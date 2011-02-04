@@ -33,17 +33,15 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class RingConfigImpl implements RingConfig {
-  
-  private String ringGroupName;
-  private int ringNumber;
-  private RingState state;
-  // Keyed first by hostName, then by domainId, to get a set of partIds
-  private Map<String, Map<Integer, Set<Integer>>> partsMap;
-  
-  // Used to cache results from #getHostsForPartition
+  private final String ringGroupName;
+  private final int ringNumber;
+  private final RingState state;
+  /** Keyed first by hostName, then by domainId, to get a set of partIds */
+  private final Map<String, Map<Integer, Set<Integer>>> partsMap;
+
+  /** Used to cache results from #getHostsForPartition */
   private Map<Integer, Map<Integer, List<String>>> hostsForPartition;
-  
-  
+
   public RingConfigImpl(String ringGroupName, int ringNumber, RingState state, Map<String, Map<Integer, Set<Integer>>> partsMap) {
     this.ringGroupName = ringGroupName;
     this.ringNumber = ringNumber;
@@ -56,22 +54,22 @@ public class RingConfigImpl implements RingConfig {
   public String getRingGroupName() {
     return this.ringGroupName;
   }
-  
+
   @Override
   public int getNumber() {
     return this.ringNumber;
   }
-  
+
   @Override
   public RingState getState() {
     return state;
   }
-  
+
   @Override
   public Set<String> getHosts() {
     return partsMap.keySet();
   }
-  
+
   @Override
   public Map<String, Map<Integer, Set<Integer>>> getPartsMap() {
     return partsMap;
@@ -79,7 +77,7 @@ public class RingConfigImpl implements RingConfig {
 
   @Override
   public Set<Integer> getPartitionsForHost(String hostName, int domainId)
-      throws DataNotFoundException {
+  throws DataNotFoundException {
     if (!partsMap.containsKey(hostName)) {
       throw new DataNotFoundException("Ring number " + ringNumber + " in ring group " + ringGroupName + " does not have host " + hostName);
     }
@@ -88,14 +86,14 @@ public class RingConfigImpl implements RingConfig {
     }
     return partsMap.get(hostName).get(domainId);
   }
-  
+
   public static RingConfig loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName, int ringNumber)
     throws InterruptedException, DataNotFoundException {
     String ringPath = ZooKeeperUtils.getRingPath(ringGroupName, ringNumber);
     ZooKeeperUtils.checkExists(zk, ringPath);
-    
+
     List<String> hostNameList = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts");
-    
+
     // Map from hostname to a map of domain_id to part_id
     Map<String, Map<Integer, Set<Integer>>> partsMap = Collections.synchronizedMap(new HashMap<String, Map<Integer, Set<Integer>>>());
     for (String hostName : hostNameList) {
@@ -114,7 +112,7 @@ public class RingConfigImpl implements RingConfig {
     }
     return new RingConfigImpl(ringGroupName, ringNumber, loadRingStateFromZooKeeper(zk, coord, ringGroupName, ringNumber), partsMap);
   }
-  
+
   /**
    * If all the hosts are serving, then return <code>AVAILABLE</code>.
    * If any one host is down or updating, then return <code>DOWN</code> or <code>UPDATING</code>, respectively.
@@ -128,19 +126,17 @@ public class RingConfigImpl implements RingConfig {
    * @throws DataNotFoundException
    * @throws InterruptedException
    */
-    public static RingState loadRingStateFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName, int ringNumber) throws InterruptedException, DataNotFoundException {
+  public static RingState loadRingStateFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName, int ringNumber) throws InterruptedException, DataNotFoundException {
     RingState state = RingState.AVAILABLE;
     List<String> hostNameList = ZooKeeperUtils.getChildrenOrDie(zk, ZooKeeperUtils.getRingPath(ringGroupName, ringNumber) + "/hosts");
     for (String hostName : hostNameList) {
       // If it's serving, then move on
       if (coord.getDaemonState(ringGroupName, ringNumber, hostName, DaemonType.PART_DAEMON) == DaemonState.STARTED) {
         continue;
-      }
-      // If it's updating, then return, since UPDATING takes precedence over DOWN
-      else if (coord.getDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON) == DaemonState.UPDATING) {
+      } else if (coord.getDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON) == DaemonState.UPDATING) {
+        // If it's updating, then return, since UPDATING takes precedence over DOWN
         return RingState.UPDATING;
-      }
-      else {
+      } else {
         state = RingState.DOWN;
       }
     }
