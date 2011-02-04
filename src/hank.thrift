@@ -1,6 +1,6 @@
-namespace java com.rapleaf.tiamat.generated
+namespace java com.rapleaf.hank.generated
 
-union TiamatResponse {
+union HankResponse {
   /** Equivalent to a "null" value */
   1: bool not_found;
   /** Single-valued result */
@@ -23,8 +23,12 @@ union TiamatResponse {
   7: bool internal_error;
 }
 
-service Tiamat {
-  TiamatResponse get(1:byte domain_id, 2:binary key);
+service PartDaemon {
+  HankResponse get(1:byte domain_id, 2:binary key);
 
-  //TiamatResponse multiget(1:byte domain_id, 2:list<binary> keys);
+  //HankResponse multiget(1:byte domain_id, 2:list<binary> keys);
+}
+
+service SmartClient {
+  HankResponse get(1:string domain_name, 2:binary key);
 }

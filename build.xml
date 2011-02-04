@@ -1,4 +1,4 @@
-<project name="tiamat" default="dist" basedir=".">
+<project name="hank" default="dist" basedir=".">
 
   <property name="version" value="0.1.0" />
 
@@ -18,7 +18,7 @@
   <property name="test.log.dir" value="${build.test}/log"/>
   <property name="test.port" value="9090" />
 
-  <property name="jar.file" location="${build}/tiamat.jar" />
+  <property name="jar.file" location="${build}/hank.jar" />
 
   <property name="thrift.compiler" value="thrift" />
 
@@ -129,21 +129,21 @@
   
   <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init, svn-clean-generated-code">
     <exec executable="${thrift.compiler}" failonerror="true">
-      <arg line="-o ${build} --gen java:hashcode ${src}/tiamat.thrift" />
+      <arg line="-o ${build} --gen java:hashcode ${src}/hank.thrift" />
     </exec>
-    <move todir="src/java/com/rapleaf/tiamat/generated/">
-      <fileset dir="${build}/gen-java/com/rapleaf/tiamat/generated" />
+    <move todir="src/java/com/rapleaf/hank/generated/">
+      <fileset dir="${build}/gen-java/com/rapleaf/hank/generated" />
     </move>
     <exec dir="." executable="/bin/sh">
       <arg value="-c"/>
-      <arg value="svn add src/java/com/rapleaf/tiamat/generated/* > /dev/null"/>
+      <arg value="svn add src/java/com/rapleaf/hank/generated/* > /dev/null"/>
     </exec>
   </target>
 
   <target name="svn-clean-generated-code" description="'svn rm' all the generated Thrift code.">
     <exec dir="." executable="/bin/sh">
       <arg value="-c"/>
-      <arg value="svn rm src/java/com/rapleaf/tiamat/generated/* --force > /dev/null"/>
+      <arg value="svn rm src/java/com/rapleaf/hank/generated/* --force > /dev/null"/>
     </exec>
   </target>
 </project>
