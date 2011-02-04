@@ -1,0 +1,42 @@
+; ZooKeeper Directory Structure for Tiamat
+
+/tiamat
+: Root directory
+	/domains
+		/<domain_name>
+			/num_parts => int
+			/storage_engine_factory_class => classname
+			/storage_engine_options => data
+			: Options for the storage engine (e.g. location), YAML format
+			/partitioner_class => classname
+			/version => data
+			: The current version that the domain is at
+	/domain_groups
+		/<group_name>
+			/domains
+				/<domain_name> => domain_id
+				: Basically map domain name to its id
+			/versions
+				/<domain_group_version>
+				: There will be a folder for each domain group version,
+				: consisting of the version of each domain in that dg version.
+					/<domain_id> => version
+	/ring_groups
+		/<ring_group_name> => <domain_group_name>
+			/ring-<ring_number>
+				/hosts
+					/<host_name>
+						/parts
+							/<domain_id> => version_num
+								/<part_id>
+						/part_daemon/status => data (enum)
+						/update_daemon/status => data (enum)
+						: Contains information about the status of this host
+				/version => data
+				: The version of this ring, which corresponds with the
+				: version of a domain group
+				/updating_version => version_number
+				: If this znode exists, it means that the ring is currently
+				: updating. If no znode exists, then this ring is not
+				: updating, and may be serving or not, and may or may not be
+				: at the latest version.

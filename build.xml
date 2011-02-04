@@ -1,0 +1,149 @@
+<project name="tiamat" default="dist" basedir=".">
+
+  <property name="version" value="0.1.0" />
+
+  <property environment="env" />
+
+  <property name="src" location="src" />
+  <property name="src.java" location="${src}/java" />
+  <property name="build" location="build" />
+  <property name="build.classes" location="${build}/classes" />
+  <property name="src.test" location="test" />
+  <property name="build.test" location="${build}/test" />
+  <property name="lib" location="lib" />
+
+  <property name="test.junit.output.format" value="plain"/>
+  <property name="test.timeout" value="2000000"/>
+  <property name="test.src.dir" location="${basedir}/test/java"/>
+  <property name="test.log.dir" value="${build.test}/log"/>
+  <property name="test.port" value="9090" />
+
+  <property name="jar.file" location="${build}/tiamat.jar" />
+
+  <property name="thrift.compiler" value="thrift" />
+
+  <fileset id="jars" dir="${lib}" includes="*.jar" />
+
+  <path id="compile.classpath">
+    <fileset id="jars" dir="${lib}" includes="*.jar" />
+  </path>
+
+  <target name="classpath">
+    <property name="cp" refid="test.run.classpath"/>
+    <pathelement location="${env.HADOOP_HOME}"/>
+    <pathelement location="${env.HADOOP_CONF_DIR}"/>
+    <echo message="Classpath: ${cp}"/>
+  </target>
+
+  <path id="test.classpath">
+    <path refid="compile.classpath" />
+    <pathelement location="${jar.file}" />
+    <pathelement location="${build.test}" />
+  </path>
+
+  <target name="clean" description="Trash all build outputs">
+    <delete dir="${build}" />
+    <delete dir="${build.test}" />
+  </target>
+  
+  <target name="init">
+    <mkdir dir="${build}"/>
+    <mkdir dir="${build.classes}"/>
+  </target>
+
+  <target name="compile" depends="init">
+    <javac srcdir="${src.java}" destdir="${build.classes}" debug="true" classpathref="compile.classpath" />
+  </target>
+  
+  <target name="init-test">
+    <mkdir dir="${build.test}" />
+  </target>
+
+  <target name="compile-test" depends="dist,init-test">
+    <javac debug="true" srcdir="${test.src.dir}" destdir="${build.test}" classpathref="test.classpath" />
+  </target>
+  
+  <target name="test" depends="compile-test" description="Run the unit test suite">
+    <mkdir dir="${test.log.dir}"/>
+    <junit
+      printsummary="yes" showoutput="${test.output}" 
+      haltonfailure="no" fork="yes" maxmemory="512m"
+      errorProperty="tests.failed" failureProperty="tests.failed"
+      timeout="${test.timeout}"
+    >
+      <sysproperty key="build.test" value="${build.test}"/>
+      <sysproperty key="test.port" value="${test.port}" />
+      <classpath refid="test.classpath"/>
+      <formatter type="${test.junit.output.format}" />
+      <batchtest todir="${test.log.dir}" unless="testcase">
+        <fileset dir="${test.src.dir}" includes="**/Test*.java" />
+      </batchtest>
+      <batchtest todir="${test.log.dir}" if="testcase">
+        <fileset dir="${test.src.dir}" includes="**/${testcase}.java" />
+      </batchtest>
+    </junit>
+    <fail if="tests.failed">Tests failed!</fail>
+  </target>
+
+  <target name="debug-test" if="testcase" description="Run a single unit test specified via '-Dtestcase [testcase]', pausing for an external debugger to connect">
+    <fileset id="selected.test.case" dir="${test.src.dir}" includes="**/${testcase}.java" />
+    <pathconvert refid="selected.test.case" property="testcase.exists" setonempty="false" />
+
+    <fail unless="testcase.exists">Specified testcase was not found!</fail>
+    <property name="debug.port" value="3408"/>
+    <junit
+      printsummary="yes" showoutput="${test.output}"
+      haltonfailure="no" fork="yes" forkmode="once" maxmemory="512m"
+      errorProperty="tests.failed" failureProperty="tests.failed"
+      timeout="${test.timeout}"
+    >
+      <sysproperty key="build.test" value="${build.test}"/>
+      <!-- <jvmarg value="-Djava.library.path=${env.HADOOP_HOME}/lib/native/${build.platform}" /> -->
+      <classpath refid="test.classpath"/>
+      <formatter type="${test.junit.output.format}" />
+      <batchtest todir="${test.log.dir}" if="testcase">
+        <fileset dir="${test.src.dir}" includes="**/${testcase}.java" />
+      </batchtest>
+      <jvmarg value="-Xdebug"/>
+      <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,address=${debug.port},suspend=y"/>
+    </junit>
+    <fail if="tests.failed">Tests failed!</fail>
+  </target>
+  
+  
+  <!-- TODO: need to build several jars here -->
+  <target name="dist" depends="compile" description="Build a distributable jar">
+    <!-- <mkdir dir="${build}/META-INF"/> -->
+    <!-- <copy file="${thrift.root}/LICENSE" tofile="${build}/META-INF/LICENSE.txt"/> -->
+    <!-- <copy file="${thrift.root}/NOTICE" tofile="${build}/META-INF/NOTICE.txt"/> -->
+    <jar jarfile="${jar.file}">
+      <fileset dir="${build.classes}">
+        <include name="**/*.class" />
+        <!-- <include name="META-INF/*.txt" /> -->
+      </fileset>
+      <fileset dir="${src.java}">
+        <include name="**/*.java" />
+      </fileset>
+    </jar>
+  </target>
+  
+  <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init, svn-clean-generated-code">
+    <exec executable="${thrift.compiler}" failonerror="true">
+      <arg line="-o ${build} --gen java:hashcode ${src}/tiamat.thrift" />
+    </exec>
+    <move todir="src/java/com/rapleaf/tiamat/generated/">
+      <fileset dir="${build}/gen-java/com/rapleaf/tiamat/generated" />
+    </move>
+    <exec dir="." executable="/bin/sh">
+      <arg value="-c"/>
+      <arg value="svn add src/java/com/rapleaf/tiamat/generated/* > /dev/null"/>
+    </exec>
+  </target>
+
+  <target name="svn-clean-generated-code" description="'svn rm' all the generated Thrift code.">
+    <exec dir="." executable="/bin/sh">
+      <arg value="-c"/>
+      <arg value="svn rm src/java/com/rapleaf/tiamat/generated/* --force > /dev/null"/>
+    </exec>
+  </target>
+</project>
