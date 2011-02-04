@@ -6,6 +6,7 @@
 
   <property name="src" location="src" />
   <property name="src.java" location="${src}/java" />
+  <property name="src.java.generated" location="${src}/java/com/rapleaf/hank/generated" />
   <property name="build" location="build" />
   <property name="build.classes" location="${build}/classes" />
   <property name="src.test" location="test" />
@@ -127,23 +128,13 @@
     </jar>
   </target>
   
-  <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init, svn-clean-generated-code">
+  <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init">
+    <delete dir="${src.java.generated}"/>
     <exec executable="${thrift.compiler}" failonerror="true">
       <arg line="-o ${build} --gen java:hashcode ${src}/hank.thrift" />
     </exec>
-    <move todir="src/java/com/rapleaf/hank/generated/">
+    <move todir="${src.java.generated}">
       <fileset dir="${build}/gen-java/com/rapleaf/hank/generated" />
     </move>
-    <exec dir="." executable="/bin/sh">
-      <arg value="-c"/>
-      <arg value="svn add src/java/com/rapleaf/hank/generated/* > /dev/null"/>
-    </exec>
-  </target>
-
-  <target name="svn-clean-generated-code" description="'svn rm' all the generated Thrift code.">
-    <exec dir="." executable="/bin/sh">
-      <arg value="-c"/>
-      <arg value="svn rm src/java/com/rapleaf/hank/generated/* --force > /dev/null"/>
-    </exec>
   </target>
 </project>
