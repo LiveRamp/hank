@@ -14,150 +14,195 @@ package com.rapleaf.hank.update_daemon;
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-//package com.rapleaf.tiamat.update_daemon;
-//
-//import java.io.IOException;
-//import java.net.UnknownHostException;
-//import java.util.Queue;
-//import java.util.concurrent.ExecutorService;
-//import java.util.concurrent.LinkedBlockingQueue;
-//import java.util.concurrent.ThreadFactory;
-//import java.util.concurrent.ThreadPoolExecutor;
-//import java.util.concurrent.TimeUnit;
-//
-//import org.apache.log4j.Logger;
-//import org.apache.log4j.PropertyConfigurator;
-//
-//import com.rapleaf.tiamat.config.DomainConfig;
-//import com.rapleaf.tiamat.config.RingConfig;
-//import com.rapleaf.tiamat.config.UpdateDaemonConfigurator;
-//import com.rapleaf.tiamat.coordinator.Coordinator;
-//import com.rapleaf.tiamat.coordinator.Coordinator.DaemonState;
-//import com.rapleaf.tiamat.coordinator.Coordinator.DaemonType;
-//import com.rapleaf.tiamat.coordinator.Coordinator.StateChangeListener;
-//import com.rapleaf.tiamat.storage.StorageEngine;
-//import com.rapleaf.tiamat.util.HostUtils;
-//import com.rapleaf.tiamat.util.ZooKeeperUtils;
-//
-//public class UpdateDaemon implements StateChangeListener {
-//  private static final Logger LOG = Logger.getLogger(UpdateDaemon.class);
-//
-//  private static final String HOST_NAME;
-//  static {
-//    try {
-//      HOST_NAME = HostUtils.getHostName();
-//    } catch (UnknownHostException e) {
-//      throw new RuntimeException(e);
-//    }
-//  }
-//
-//  private final class UpdateToDo implements Runnable {
-//    private final StorageEngine engine;
-//    private final int partNum;
-//    private final Queue<Throwable> exceptionQueue;
-//
-//    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue) {
-//      this.engine = engine;
-//      this.partNum = partNum;
-//      this.exceptionQueue = exceptionQueue;
-//    }
-//
-//    @Override
-//    public void run() {
-//      try {
-//        engine.getUpdater(configurator, partNum).update();
-//      } catch (Throwable e) {
-//        // TODO: i just *know* that i'm going to end up wishing i toStringed the
-//        // storage engine and part num here
-//        LOG.fatal("Failed to complete an UpdateToDo!", e);
-//        exceptionQueue.add(e);
-//      }
-//    }
-//  }
-//
-//  private final UpdateDaemonConfigurator configurator;
-//  private final Coordinator coord;
-//  private String hostPath;
-//
-//  private boolean goingDown;
-//
-//  public UpdateDaemon(UpdateDaemonConfigurator configurator) {
-//    this.configurator = configurator;
-//    hostPath = ZooKeeperUtils.getHostPath(configurator, HOST_NAME);
-//    this.coord = configurator.getCoordinator();
-//    coord.addStateChangeListener(hostPath, DaemonType.UPDATE_DAEMON, this);
-//  }
-//
-//  private void run() throws UnknownHostException {
-//    coord.setDaemonState(hostPath, DaemonType.UPDATE_DAEMON, DaemonState.IDLE);
-//
-//    goingDown = false;
-//
-//    while (!goingDown) {
-//      try {
-//        Thread.sleep(1000);
-//      } catch (InterruptedException e) {
-//        // TODO: probably being informed that we should shut down.
-//        break;
-//      }
-//    }
-//  }
-//
-//  private void update() {
-//    ThreadFactory factory = new ThreadFactory() {
-//      private int x = 0;
-//
-//      @Override
-//      public Thread newThread(Runnable r) {
-//        return new Thread(r, "Updater Thread Pool Thread #" + ++x);
-//      }
-//    };
-//
-//    ExecutorService executor = new ThreadPoolExecutor(
-//        configurator.getNumConcurrentUpdates(),
-//        configurator.getNumConcurrentUpdates(),
-//        1, TimeUnit.DAYS,
-//        new LinkedBlockingQueue<Runnable>(),
-//        factory);
-//    Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
-//
-//    RingConfig ringConfig = configurator.getRingGroupConfig().getRingConfigForHost(HOST_NAME);
-//
-//    for (DomainConfig domainConfig : configurator.getRingGroupConfig().getDomainGroupConfig().getDomains()) {
-//      StorageEngine engine = domainConfig.getStorageEngine();
-//
-//      for (Integer part : ringConfig.getPartitionsForHost(domainConfig.getId(), HOST_NAME)) {
-//        executor.execute(new UpdateToDo(engine, part, exceptionQueue));
-//      }
-//    }
-//
-//    try {
-//      boolean terminated = false;
-//      while (!terminated) {
-//        terminated = executor.awaitTermination(30, TimeUnit.SECONDS);
-//        // TODO: report on progress?
-//        // TODO: check exception queue
-//      }
-//    } catch (InterruptedException e) {
-//      // TODO: log and quit
-//    }
-//  }
-//
-//  public static void main(String[] args) throws IOException {
-//    String configPath = args[0];
-//    String log4jprops = args[1];
-//
-//    PropertyConfigurator.configure(log4jprops);
-//
-//    new UpdateDaemon(null).run();
-//  }
-//
-//  @Override
-//  public void onStateChange(String hostPath, DaemonType type, DaemonState state) {
-//    if (state == DaemonState.UPDATEABLE) {
-//      coord.setDaemonState(hostPath, DaemonType.UPDATE_DAEMON, DaemonState.UPDATING);
-//      update();
-//      coord.setDaemonState(hostPath, DaemonType.UPDATE_DAEMON, DaemonState.IDLE);
-//    }
-//  }
-//}
+
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.Queue;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+
+import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.config.RingConfig;
+import com.rapleaf.hank.config.RingGroupConfig;
+import com.rapleaf.hank.config.UpdateDaemonConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DaemonState;
+import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
+import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.util.HostUtils;
+
+public class UpdateDaemon implements DaemonStateChangeListener {
+  private static final Logger LOG = Logger.getLogger(UpdateDaemon.class);
+
+  private static final String HOST_NAME;
+  static {
+    try {
+      HOST_NAME = HostUtils.getHostName();
+    } catch (UnknownHostException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private final class UpdateToDo implements Runnable {
+    private final StorageEngine engine;
+    private final int partNum;
+    private final Queue<Throwable> exceptionQueue;
+
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue) {
+      this.engine = engine;
+      this.partNum = partNum;
+      this.exceptionQueue = exceptionQueue;
+    }
+
+    @Override
+    public void run() {
+      try {
+        engine.getUpdater(configurator, partNum).update();
+      } catch (Throwable e) {
+        // TODO: i just *know* that i'm going to end up wishing i toStringed the
+        // storage engine and part num here
+        LOG.fatal("Failed to complete an UpdateToDo!", e);
+        exceptionQueue.add(e);
+      }
+    }
+  }
+
+  private final UpdateDaemonConfigurator configurator;
+  private final Coordinator coord;
+  private boolean goingDown;
+
+  private final String hostName;
+
+  private final int ringNumber;
+
+  private final String ringGroupName;
+
+  public UpdateDaemon(UpdateDaemonConfigurator configurator, String hostName) throws UnknownHostException {
+    this.configurator = configurator;
+    this.hostName = hostName;
+    this.coord = configurator.getCoordinator();
+    this.ringGroupName = configurator.getRingGroupName();
+    this.ringNumber = configurator.getRingNumber();
+    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, this);
+  }
+
+  private void run() throws UnknownHostException {
+    goingDown = false;
+
+    // prime things the process by querying the current state and feeding it to
+    // the event handler
+    DaemonState state = coord.getDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON);
+    onDaemonStateChange(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, state);
+
+    while (!goingDown) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.debug("Interrupted while waiting for watching thread to go to wake up!", e);
+        break;
+      }
+    }
+  }
+
+  @Override
+  public void onDaemonStateChange(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState newState) {
+    // we only pay attention to state changes for *this* daemon, so don't need
+    // to be concerned with the identification stuff
+    switch (newState) {
+      case UPDATING:
+        // we must have crashed while updating in a prior iteration. just pick
+        // up where we left off.
+      case UPDATEABLE:
+        setUpdating();
+        try {
+          update();
+          setIdle();
+        } catch (DataNotFoundException e) {
+          LOG.fatal("Caught an unexpected exception during update process!", e);
+          goingDown = true;
+        }
+        break;
+
+      default:
+        // we don't care about other state changes, because they're not relevant
+        // to us. but let's log them anyways for the sake of completeness
+        LOG.info("Notified of uninteresting state change: " + newState + ". Ignoring.");
+    }
+  }
+
+  private void update() throws DataNotFoundException {
+    ThreadFactory factory = new ThreadFactory() {
+      private int x = 0;
+
+      @Override
+      public Thread newThread(Runnable r) {
+        return new Thread(r, "Updater Thread Pool Thread #" + ++x);
+      }
+    };
+
+    ExecutorService executor = new ThreadPoolExecutor(
+        configurator.getNumConcurrentUpdates(),
+        configurator.getNumConcurrentUpdates(),
+        1, TimeUnit.DAYS,
+        new LinkedBlockingQueue<Runnable>(),
+        factory);
+    Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
+
+    RingGroupConfig ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
+    RingConfig ringConfig = ringGroupConfig.getRingConfigForHost(HOST_NAME);
+
+    for (Entry<Integer, DomainConfig> domainConfig : ringGroupConfig.getDomainGroupConfig().getDomainConfigMap().entrySet()) {
+      StorageEngine engine = domainConfig.getValue().getStorageEngine();
+
+      for (Integer part : ringConfig.getPartitionsForHost(hostName, domainConfig.getKey())) {
+        executor.execute(new UpdateToDo(engine, part, exceptionQueue));
+      }
+    }
+
+    try {
+      boolean terminated = false;
+      while (!terminated) {
+        terminated = executor.awaitTermination(30, TimeUnit.SECONDS);
+        // TODO: report on progress?
+        // TODO: check exception queue
+      }
+    } catch (InterruptedException e) {
+      // TODO: log and quit
+    }
+  }
+
+  private void setIdle() {
+    setState(DaemonState.IDLE);
+  }
+
+  private void setUpdating() {
+    setState(DaemonState.UPDATING);
+  }
+  
+  private void setState(DaemonState state) {
+    coord.setDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, state);
+  }
+
+  /**
+   * Main method.
+   * @param args
+   * @throws IOException
+   */
+  public static void main(String[] args) throws IOException {
+    String configPath = args[0];
+    String log4jprops = args[1];
+
+    PropertyConfigurator.configure(log4jprops);
+
+    new UpdateDaemon(null, HostUtils.getHostName()).run();
+  }
+}
