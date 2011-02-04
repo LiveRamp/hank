@@ -47,7 +47,7 @@ public class RingConfigImpl implements RingConfig {
     this.ringNumber = ringNumber;
     this.state = state;
     this.partsMap = partsMap;
-    this.hostsForPartition = Collections.synchronizedMap(new HashMap<Integer, Map<Integer, List<String>>>());
+    this.hostsForPartition = new HashMap<Integer, Map<Integer, List<String>>>();
   }
 
   @Override
