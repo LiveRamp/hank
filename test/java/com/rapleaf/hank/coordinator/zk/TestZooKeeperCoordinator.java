@@ -22,6 +22,7 @@ import junit.framework.TestCase;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
@@ -44,7 +45,7 @@ public class TestZooKeeperCoordinator extends TestCase {
 
     @Override
     public void onDaemonStateChange(String ringGroupName, int ringNumber,
-        String hostName, DaemonType type, DaemonState state) {
+        PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
       this.state = state;
       synchronized(this) {
         this.notifyAll();
@@ -58,9 +59,10 @@ public class TestZooKeeperCoordinator extends TestCase {
   private final String ringGroupName = "rapleaf-1";
   private final int ringNumber = 15;
   private final String hostName = "localhost";
+  private final PartDaemonAddress hostAddress = new PartDaemonAddress(hostName, 12345);
 
-  private final String partDaemonPath = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostName, DaemonType.PART_DAEMON);
-  private final String updateDaemonPath = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON);
+  private final String partDaemonPath = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON);
+  private final String updateDaemonPath = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON);
 
   public void setUp() throws Exception {
     coord = new MockCoordinator("localhost:2181", 5000, false);
@@ -74,8 +76,8 @@ public class TestZooKeeperCoordinator extends TestCase {
 
   public void testStateChangeWatcher() throws KeeperException, InterruptedException {
     MockDaemonListener listener = new MockDaemonListener();
-    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostName, DaemonType.PART_DAEMON, listener);
-    coord.setDaemonState(ringGroupName, ringNumber, hostName, DaemonType.PART_DAEMON, DaemonState.STARTING);
+    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, listener);
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.STARTING);
     synchronized(listener) {
       listener.wait();
     }

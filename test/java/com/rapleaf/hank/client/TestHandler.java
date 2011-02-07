@@ -16,9 +16,9 @@
 package com.rapleaf.hank.client;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,7 +42,6 @@ import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.zk.DomainConfigImpl;
-import com.rapleaf.hank.coordinator.zk.RingGroupConfigImpl;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
@@ -51,10 +50,9 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.util.Bytes;
 
 public class TestHandler extends TestCase {
-  
   private static final String RING_GROUP_NAME = "rapleaf";
   private static final int RING_NUMBER = 1;
-  
+
   private class MockRingConfig implements RingConfig {
 
     @Override
@@ -67,11 +65,11 @@ public class TestHandler extends TestCase {
     public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
       // Used to test out the no_such_domain response
       if (domainId == 0) {
-        return new ArrayList<String>();
+        return new HashSet<PartDaemonAddress>();
       }
       else {
-        List<String> list = new ArrayList<String>();
-        list.add("localhost");
+        Set<PartDaemonAddress> list = new HashSet<PartDaemonAddress>();
+        list.add(new PartDaemonAddress("localhost", 12345));
         return list;
       }
     }
@@ -88,31 +86,53 @@ public class TestHandler extends TestCase {
     }
 
     @Override
-    public Map<String, Map<Integer, Set<Integer>>> getPartsMap() {
-      return null;
-    }
-
-    @Override
-    public String getRingGroupName() {
-      return RING_GROUP_NAME;
-    }
-
-    @Override
     public RingState getState() {
       return RingState.AVAILABLE;
     }
+
+    @Override
+    public RingGroupConfig getRingGroupConfig() {
+      return null;
+    }
   }
-  
+
   private class MockCoordinator implements Coordinator {
-    
     private RingGroupConfig rg;
     private DomainConfig domain;
 
     public MockCoordinator() {
       Map<Integer, RingConfig> ringMap = new HashMap<Integer, RingConfig>();
-      ringMap.put(1, new MockRingConfig());
-      rg = new RingGroupConfigImpl(RING_GROUP_NAME, null, ringMap);
-      
+      final MockRingConfig mockRingConfig = new MockRingConfig();
+      ringMap.put(1, mockRingConfig);
+      rg = new RingGroupConfig() {
+        @Override
+        public DomainGroupConfig getDomainGroupConfig() {
+          return null;
+        }
+
+        @Override
+        public String getName() {
+          return RING_GROUP_NAME;
+        }
+
+        @Override
+        public RingConfig getRingConfig(int ringNumber)
+            throws DataNotFoundException {
+          return mockRingConfig;
+        }
+
+        @Override
+        public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
+            throws DataNotFoundException {
+          return mockRingConfig;
+        }
+
+        @Override
+        public Set<RingConfig> getRingConfigs() {
+          return Collections.singleton((RingConfig)mockRingConfig);
+        }
+      };
+
       domain = new DomainConfigImpl("rapleaf_domain", 2, new Partitioner() {
         @Override
         public int partition(ByteBuffer key) {
@@ -120,40 +140,33 @@ public class TestHandler extends TestCase {
         }
       }, null, 1);
     }
-    
+
     @Override
     public void addDaemonStateChangeListener(String ringGroupName,
         int ringNumber, PartDaemonAddress hostAddress, DaemonType type,
         DaemonStateChangeListener listener) {
-      // TODO Auto-generated method stub
-      
     }
 
     @Override
     public void addDomainChangeListener(String domainName,
-        DomainChangeListener listener) throws DataNotFoundException {
-      // TODO Auto-generated method stub
-      
+        DomainChangeListener listener) 
+    throws DataNotFoundException {
     }
 
     @Override
     public void addDomainGroupChangeListener(String domainGroupName,
-        DomainGroupChangeListener listener) throws DataNotFoundException {
-      // TODO Auto-generated method stub
-      
+        DomainGroupChangeListener listener)
+    throws DataNotFoundException {
     }
 
     @Override
     public void addRingGroupChangeListener(String ringGroupName,
         RingGroupChangeListener listener) throws DataNotFoundException {
-      // TODO Auto-generated method stub
-      
     }
 
     @Override
     public DaemonState getDaemonState(String ringGroupName, int ringNumber,
         PartDaemonAddress hostAddress, DaemonType type) {
-      // TODO Auto-generated method stub
       return null;
     }
 
@@ -166,14 +179,12 @@ public class TestHandler extends TestCase {
     @Override
     public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
         throws DataNotFoundException {
-      // TODO Auto-generated method stub
       return null;
     }
 
     @Override
     public RingConfig getRingConfig(String ringGroupName, int ringNumber)
         throws DataNotFoundException {
-      // TODO Auto-generated method stub
       return null;
     }
 
@@ -186,22 +197,17 @@ public class TestHandler extends TestCase {
     @Override
     public void setDaemonState(String ringGroupName, int ringNumber,
         PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
-      // TODO Auto-generated method stub
-      
     }
 
     @Override
     public int updateDomain(String domainName) throws DataNotFoundException {
-      // TODO Auto-generated method stub
       return 0;
     }
-    
   }
-  
+
   private static final int SERVICE_PORT_1 = 9090;
-  
+
   private class MockPartDaemonConfigurator1 implements PartDaemonConfigurator {
-    
     private Coordinator coord = new MockCoordinator();
 
     @Override

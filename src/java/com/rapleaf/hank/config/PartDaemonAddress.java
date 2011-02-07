@@ -48,4 +48,9 @@ public final class PartDaemonAddress {
       return false;
     return true;
   }
+
+  @Override
+  public String toString() {
+    return hostName + ":" + portNumber;
+  }
 }
