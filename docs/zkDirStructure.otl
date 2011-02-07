@@ -25,7 +25,7 @@
 		/<ring_group_name> => <domain_group_name>
 			/ring-<ring_number>
 				/hosts
-					/<host_name>
+					/<host_name>:<port_num>
 						/parts
 							/<domain_id> => version_num
 								/<part_id>
