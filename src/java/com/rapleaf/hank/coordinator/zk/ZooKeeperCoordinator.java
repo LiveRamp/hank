@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,13 +31,9 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
 import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainConfigImpl;
 import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.DomainGroupConfigImpl;
 import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingConfigImpl;
 import com.rapleaf.hank.config.RingGroupConfig;
-import com.rapleaf.hank.config.RingGroupConfigImpl;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
@@ -363,7 +360,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       if (!dg.getDomainConfigMap().values().contains(oldDomain)) {
         continue;
       }
-      int domainId = dg.getIdForDomain(oldDomain.getName());
+      int domainId = dg.getDomainId(oldDomain.getName());
       // Update the domain group's set
       dg.getDomainConfigMap().put(domainId, newDomain); //Clobber the old domain
       
@@ -499,8 +496,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     for (RingGroupConfig rg : ringGroupConfigs.values()) {
       for (RingConfig ring : rg.getRingConfigs().values()) {
         for (String hostName : ring.getHosts()) {
-          addDaemonStateChangeListener(rg.getName(), ring.getNumber(), hostName, DaemonType.PART_DAEMON, ringStateUpdater);
-          addDaemonStateChangeListener(rg.getName(), ring.getNumber(), hostName, DaemonType.UPDATE_DAEMON, ringStateUpdater);
+          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), hostName, DaemonType.PART_DAEMON, ringStateUpdater);
+          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), hostName, DaemonType.UPDATE_DAEMON, ringStateUpdater);
         }
       }
     }

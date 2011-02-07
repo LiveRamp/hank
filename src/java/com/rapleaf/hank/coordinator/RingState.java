@@ -1,7 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.config.RingConfigImpl;
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 
 /**
  * Reflects the status of a ring, and takes on values of
@@ -12,8 +10,6 @@ import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
  * or <code>UPDATING</code>, respectively. In the case that there are both
  * down hosts and updating hosts, the ring will be <code>UPDATING</code>,
  * because updating implies that the ring is down, but not vice versa.
- * 
- * @see {@link RingConfigImpl#loadRingStateFromZooKeeper(org.apache.zookeeper.ZooKeeper, ZooKeeperCoordinator, String, int)
  */
 public enum RingState {
   // Please do not change the names associated with the RingStates unless you know what you are doing!

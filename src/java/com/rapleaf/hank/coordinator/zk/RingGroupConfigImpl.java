@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator.zk;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,7 +23,9 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.RingConfig;
+import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 

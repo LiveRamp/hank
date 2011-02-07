@@ -163,7 +163,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     for (Entry<Integer, DomainConfig> domainConfig : ringGroupConfig.getDomainGroupConfig().getDomainConfigMap().entrySet()) {
       StorageEngine engine = domainConfig.getValue().getStorageEngine();
 
-      for (Integer part : ringConfig.getPartitionsForHost(hostName, domainConfig.getKey())) {
+      for (Integer part : ringConfig.getDomainPartitionsForHost(hostName, domainConfig.getKey())) {
         executor.execute(new UpdateToDo(engine, part, exceptionQueue));
       }
     }

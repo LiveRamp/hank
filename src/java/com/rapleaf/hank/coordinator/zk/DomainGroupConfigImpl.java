@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator.zk;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,7 +23,8 @@ import java.util.Map.Entry;
 
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
@@ -57,7 +58,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   
   @Override
   // Note: This is not most efficient, but this method shouldn't be used too much
-  public int getIdForDomain(String domainName) throws DataNotFoundException {
+  public int getDomainId(String domainName) throws DataNotFoundException {
     for(Entry<Integer, DomainConfig> entry : domainConfigs.entrySet()) {
       if (entry.getValue().getName().equals(domainName)) {
         return entry.getKey();

@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
 import java.util.Map;
@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.zookeeper.ZooKeeper;
 import org.yaml.snakeyaml.Yaml;
 
+import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;

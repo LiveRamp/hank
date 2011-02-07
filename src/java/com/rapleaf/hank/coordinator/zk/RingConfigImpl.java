@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator.zk;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,10 +25,11 @@ import java.util.Set;
 
 import org.apache.zookeeper.ZooKeeper;
 
+import com.rapleaf.hank.config.PartDaemonAddress;
+import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
@@ -56,7 +57,7 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public int getNumber() {
+  public int getRingNumber() {
     return this.ringNumber;
   }
 
@@ -66,7 +67,7 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public Set<String> getHosts() {
+  public Set<PartDaemonAddress> getHosts() {
     return partsMap.keySet();
   }
 
@@ -76,15 +77,15 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public Set<Integer> getPartitionsForHost(String hostName, int domainId)
+  public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
   throws DataNotFoundException {
-    if (!partsMap.containsKey(hostName)) {
-      throw new DataNotFoundException("Ring number " + ringNumber + " in ring group " + ringGroupName + " does not have host " + hostName);
+    if (!partsMap.containsKey(hostAndPort)) {
+      throw new DataNotFoundException("Ring number " + ringNumber + " in ring group " + ringGroupName + " does not have host " + hostAndPort);
     }
-    if (!partsMap.get(hostName).containsKey(domainId)) {
-      throw new DataNotFoundException("Host " + hostName + " does not have any partitions from domain with id " + domainId);
+    if (!partsMap.get(hostAndPort).containsKey(domainId)) {
+      throw new DataNotFoundException("Host " + hostAndPort + " does not have any partitions from domain with id " + domainId);
     }
-    return partsMap.get(hostName).get(domainId);
+    return partsMap.get(hostAndPort).get(domainId);
   }
 
   public static RingConfig loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName, int ringNumber)
@@ -144,7 +145,7 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public List<String> getHostsForPartition(int domainId, int partId) {
+  public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
     // First check to see if we've already cached the list
     Map<Integer, List<String>> hostMap;
     List<String> hostList;
@@ -155,7 +156,7 @@ public class RingConfigImpl implements RingConfig {
     if ((hostList = hostMap.get(partId)) != null) {
       return hostList;
     }
-    
+
     // If not, generate the list and cache it
     hostList = new ArrayList<String>();
     for (String host : partsMap.keySet()) {
