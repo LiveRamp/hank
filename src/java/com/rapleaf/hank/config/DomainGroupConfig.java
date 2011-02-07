@@ -15,15 +15,41 @@
  */
 package com.rapleaf.hank.config;
 
-import java.util.Map;
+import java.util.SortedSet;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public interface DomainGroupConfig {
   public String getName();
-  public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException;
-  public int getIdForDomain(String domainName) throws DataNotFoundException;
-  public Map<Integer, DomainConfig> getDomainConfigMap();
-  public Map<Integer, Map<Integer, Integer>> getDomainGroupVersions();
-  public Map<Integer, Integer> getDomainGroupVersion(int domainGroupVersion) throws DataNotFoundException;
+
+  /**
+   * Get the DomainConfig for the domain with <i>domainId</i>
+   * @param domainId
+   * @return
+   * @throws DataNotFoundException
+   */
+  public DomainConfig getDomainConfig(int domainId)
+  throws DataNotFoundException;
+
+  /**
+   * Get the ID of the domain named <i>domainName</i>
+   * @param domainName
+   * @return
+   * @throws DataNotFoundException
+   */
+  public int getDomainId(String domainName) throws DataNotFoundException;
+
+  /**
+   * Get a set of DomainGroupConfigVersions ordered by version number
+   * (ascending).
+   * 
+   * @return
+   */
+  public SortedSet<DomainGroupConfigVersion> getVersions();
+
+  /**
+   * Convenience method to get the most recent version of the domain group.
+   * @return
+   */
+  public DomainGroupConfigVersion getLatestVersion();
 }

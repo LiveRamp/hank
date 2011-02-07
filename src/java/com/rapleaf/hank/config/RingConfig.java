@@ -15,19 +15,43 @@
  */
 package com.rapleaf.hank.config;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public interface RingConfig {
-  public String getRingGroupName();
-  public int getNumber();
-  public Set<String> getHosts();
+  public RingGroupConfig getRingGroupConfig();
+
+  public int getRingNumber();
+
+  /**
+   * Returns a set of all Part Daemon addresses.
+   * @return
+   */
+  public Set<PartDaemonAddress> getHosts();
+
   public RingState getState();
-  public Map<String, Map<Integer, Set<Integer>>> getPartsMap();
-  public Set<Integer> getPartitionsForHost(String hostName, int domainId) throws DataNotFoundException;
-  public List<String> getHostsForPartition(int domainId, int partId);
+
+  /**
+   * Get the set of integer partition numbers that are currently assigned to
+   * <i>hostAndPort</i> within the given <i>domainId</i>.
+   * 
+   * @param hostAndPort
+   * @param domainId
+   * @return
+   * @throws DataNotFoundException
+   */
+  public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
+  throws DataNotFoundException;
+
+  /**
+   * Get a set of HostAndPort addresses for Part Daemons that are currently
+   * hosting the requested domain's partition.
+   * 
+   * @param domainId
+   * @param partId
+   * @return
+   */
+  public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId);
 }

@@ -15,14 +15,40 @@
  */
 package com.rapleaf.hank.config;
 
-import java.util.Map;
+import java.util.Set;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public interface RingGroupConfig {
   public String getName();
-  public Map<Integer, RingConfig> getRingConfigs();
-  public RingConfig getRingConfig(int ringNumber) throws DataNotFoundException;
+
+  /**
+   * Get a Set of all RingConfigs in this Ring Group.
+   * @return
+   */
+  public Set<RingConfig> getRingConfigs();
+
+  /**
+   * Get a RingConfig by the ring number.
+   * @param ringNumber
+   * @return
+   * @throws DataNotFoundException
+   */
+  public RingConfig getRingConfig(int ringNumber)
+  throws DataNotFoundException;
+
+  /**
+   * Get the DomainGroupConfig for this Ring Group.
+   * @return
+   */
   public DomainGroupConfig getDomainGroupConfig();
-  public RingConfig getRingConfigForHost(String hostName) throws DataNotFoundException;
+
+  /**
+   * Find the RingConfig that applies to a given host
+   * @param hostName
+   * @return
+   * @throws DataNotFoundException
+   */
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAndPort)
+  throws DataNotFoundException;
 }
