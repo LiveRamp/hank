@@ -42,6 +42,7 @@ public class TestZooKeeperUtils extends TestCase {
 
   public void testGetHostPath() {
     Configurator config = new MockConfigurator();
-    assertEquals(ZooKeeperUtils.getHostPath(config.getRingGroupName(), config.getRingNumber(), new PartDaemonAddress("127.0.0.1", 12345)), "/tiamat/ring_groups/rapleaf-1/ring-015/hosts/127.0.0.1:12345");
+    assertEquals("/tiamat/ring_groups/rapleaf-1/ring-015/hosts/127.0.0.1:12345",
+        ZooKeeperUtils.getHostPath(config.getRingGroupName(), config.getRingNumber(), new PartDaemonAddress("127.0.0.1", 12345)));
   }
 }
