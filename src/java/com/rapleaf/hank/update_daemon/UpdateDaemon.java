@@ -18,7 +18,6 @@ package com.rapleaf.hank.update_daemon;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.Queue;
-import java.util.Map.Entry;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -29,6 +28,9 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.config.DomainConfigVersion;
+import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
@@ -80,19 +82,19 @@ public class UpdateDaemon implements DaemonStateChangeListener {
   private final Coordinator coord;
   private boolean goingDown;
 
-  private final String hostName;
-
   private final int ringNumber;
 
   private final String ringGroupName;
 
+  private final PartDaemonAddress hostAddress;
+
   public UpdateDaemon(UpdateDaemonConfigurator configurator, String hostName) throws UnknownHostException {
     this.configurator = configurator;
-    this.hostName = hostName;
     this.coord = configurator.getCoordinator();
     this.ringGroupName = configurator.getRingGroupName();
     this.ringNumber = configurator.getRingNumber();
-    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, this);
+    hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
+    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, this);
   }
 
   private void run() throws UnknownHostException {
@@ -100,8 +102,8 @@ public class UpdateDaemon implements DaemonStateChangeListener {
 
     // prime things the process by querying the current state and feeding it to
     // the event handler
-    DaemonState state = coord.getDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON);
-    onDaemonStateChange(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, state);
+    DaemonState state = coord.getDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON);
+    onDaemonStateChange(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, state);
 
     while (!goingDown) {
       try {
@@ -114,7 +116,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
   }
 
   @Override
-  public void onDaemonStateChange(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState newState) {
+  public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState newState) {
     // we only pay attention to state changes for *this* daemon, so don't need
     // to be concerned with the identification stuff
     switch (newState) {
@@ -158,12 +160,15 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
     RingGroupConfig ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
-    RingConfig ringConfig = ringGroupConfig.getRingConfigForHost(HOST_NAME);
+    RingConfig ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
 
-    for (Entry<Integer, DomainConfig> domainConfig : ringGroupConfig.getDomainGroupConfig().getDomainConfigMap().entrySet()) {
-      StorageEngine engine = domainConfig.getValue().getStorageEngine();
+    DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
+    for (DomainConfigVersion dcv : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
+      DomainConfig domainConfig = dcv.getDomainConfig();
+      StorageEngine engine = domainConfig.getStorageEngine();
 
-      for (Integer part : ringConfig.getDomainPartitionsForHost(hostName, domainConfig.getKey())) {
+      int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
+      for (Integer part : ringConfig.getDomainPartitionsForHost(hostAddress, domainId)) {
         executor.execute(new UpdateToDo(engine, part, exceptionQueue));
       }
     }
@@ -189,7 +194,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
   }
   
   private void setState(DaemonState state) {
-    coord.setDaemonState(ringGroupName, ringNumber, hostName, DaemonType.UPDATE_DAEMON, state);
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, state);
   }
 
   /**

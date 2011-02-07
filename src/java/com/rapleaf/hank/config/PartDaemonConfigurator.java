@@ -17,5 +17,4 @@ package com.rapleaf.hank.config;
 
 public interface PartDaemonConfigurator extends PartservConfigurator {
   public int getNumThreads();
-  public int getServicePort();
 }

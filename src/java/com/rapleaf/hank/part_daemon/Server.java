@@ -25,6 +25,7 @@ import org.apache.thrift.server.THsHaServer.Options;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -51,13 +52,15 @@ public class Server implements DaemonStateChangeListener {
   private Thread serverThread;
   private TServer server;
   private boolean goingDown = false;
+  private final PartDaemonAddress hostAddress;
 
   public Server(PartDaemonConfigurator configurator) {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     this.ringGroupName = configurator.getRingGroupName();
     this.ringNumber = configurator.getRingNumber();
-    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, this);
+    hostAddress = new PartDaemonAddress(HOST_NAME, configurator.getServicePort());
+    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, this);
   }
 
   public static void main(String[] args) throws IOException, TTransportException {
@@ -71,7 +74,7 @@ public class Server implements DaemonStateChangeListener {
   }
 
   void run() {
-    coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.IDLE);
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
 
     while (!goingDown) {
       try {
@@ -141,22 +144,22 @@ public class Server implements DaemonStateChangeListener {
   public void stop() {
     // don't wait to be started again.
     goingDown = true;
-    coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.STOPPING);
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.STOPPING);
     stopServer();
-    coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.IDLE);
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
   }
 
   @Override
-  public void onDaemonStateChange(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState state) {
+  public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
     if (state == DaemonState.STARTABLE) {
-      coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.STARTING);
+      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STARTING);
       startServer();
-      coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.STARTED);
+      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STARTED);
     }
     else if (state == DaemonState.STOPPABLE) {
-      coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.STOPPING);
+      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STOPPING);
       stopServer();
-      coord.setDaemonState(ringGroupName, ringNumber, HOST_NAME, DaemonType.PART_DAEMON, DaemonState.IDLE);
+      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
     }
   }
 }

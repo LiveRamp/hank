@@ -19,4 +19,5 @@ import java.util.Set;
 
 public interface PartservConfigurator extends Configurator {
   public Set<String> getLocalDataDirectories();
+  public int getServicePort();
 }

@@ -15,15 +15,17 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -34,11 +36,11 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   
   private String ringGroupName;
   private DomainGroupConfig domainGroupConfig;
-  private Map<Integer, RingConfig> rings;
+  private Map<Integer, RingConfigImpl> rings;
   
 
   public RingGroupConfigImpl(String ringGroupName,
-      DomainGroupConfig domainGroupConfig, Map<Integer, RingConfig> rings) {
+      DomainGroupConfig domainGroupConfig, Map<Integer, RingConfigImpl> rings) {
     this.ringGroupName = ringGroupName;
     this.domainGroupConfig = domainGroupConfig;
     this.rings = rings;
@@ -63,33 +65,34 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfigForHost(String hostName)
-      throws DataNotFoundException {
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
+  throws DataNotFoundException {
     for (RingConfig ring : rings.values()) {
-      if (ring.getHosts().contains(hostName)) {
+      if (ring.getHosts().contains(hostAddress)) {
         return ring;
       }
     }
-    throw new DataNotFoundException("Could not find the host " + hostName + " in ring group " + ringGroupName);
+    throw new DataNotFoundException("Could not find the host " + hostAddress
+        + " in ring group " + ringGroupName);
   }
 
   @Override
-  public Map<Integer, RingConfig> getRingConfigs() {
-    return rings;
+  public Set<RingConfig> getRingConfigs() {
+    return new HashSet<RingConfig>(rings.values());
   }
-  
+
   private static final String RING_NUM_REGEX = "ring\\-\\d{3}";
-  
+
   public static RingGroupConfigImpl loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName) throws InterruptedException, DataNotFoundException {
     String ringGroupPath = ZooKeeperUtils.RING_GROUP_ROOT + '/' + ringGroupName;
     ZooKeeperUtils.checkExists(zk, ringGroupPath);
-    
+
     // Get DomainGroupConfig
     String domainGroupName = ZooKeeperUtils.getStringOrDie(zk, ringGroupPath);
     DomainGroupConfig dg = coord.getDomainGroupConfig(domainGroupName);
-    
+
     // Get RingConfigs
-    Map<Integer, RingConfig> ringConfigMap = Collections.synchronizedMap(new HashMap<Integer, RingConfig>());
+    Map<Integer, RingConfigImpl> ringConfigMap = new HashMap<Integer, RingConfigImpl>();
     List<String> ringList = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupPath);
     for (String ring : ringList) {
       if (!ring.matches(RING_NUM_REGEX)) {
@@ -105,5 +108,9 @@ public class RingGroupConfigImpl implements RingGroupConfig {
       }
     }
     return new RingGroupConfigImpl(ringGroupName, dg, ringConfigMap);
+  }
+
+  public Map<Integer, RingConfigImpl> getRingConfigsMap() {
+    return rings;
   }
 }

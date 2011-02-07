@@ -19,17 +19,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedSet;
 import java.util.Map.Entry;
 
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigImpl implements DomainGroupConfig {
-
   private String groupName;
   private Map<Integer, DomainConfig> domainConfigs;
   private Map<Integer, Map<Integer, Integer>> domainGroupVersions;
@@ -66,40 +67,37 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     }
     throw new DataNotFoundException("The domain group " + groupName + " does not have any domain with name " + domainName);
   }
-  
+
   @Override
-  public Map<Integer, DomainConfig> getDomainConfigMap() {
+  public DomainGroupConfigVersion getLatestVersion() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SortedSet<DomainGroupConfigVersion> getVersions() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  Map<Integer, DomainConfig> getDomainConfigMap() {
     return domainConfigs;
   }
 
-  @Override
-  public Map<Integer, Map<Integer, Integer>> getDomainGroupVersions() {
-    return domainGroupVersions;
-  }
-
-  @Override
-  public Map<Integer, Integer> getDomainGroupVersion(int domainGroupVersion)
-      throws DataNotFoundException {
-    if (!domainGroupVersions.containsKey(domainGroupVersion)) {
-      throw new DataNotFoundException("Version " + domainGroupVersion + 
-          " does not exist for domain group " + getName());
-    }
-    return domainGroupVersions.get(domainGroupVersion);
-  }
-  
-
-  public static DomainGroupConfigImpl loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, 
-      String domainGroupName) throws InterruptedException, DataNotFoundException {
+  static DomainGroupConfigImpl loadFromZooKeeper(ZooKeeper zk,
+      ZooKeeperCoordinator coord, 
+      String domainGroupName)
+  throws InterruptedException, DataNotFoundException {
     String domainGroupPath = ZooKeeperUtils.DOMAIN_GROUP_ROOT;
     ZooKeeperUtils.checkExists(zk, domainGroupPath + '/' + domainGroupName);
- // Generate the map of DomainConfigs
+    // Generate the map of DomainConfigs
     Map<Integer, DomainConfig> domainConfigMap = new HashMap<Integer, DomainConfig>();
     String domainPath = domainGroupPath + '/' + domainGroupName + "/domains";
     List<String> domainNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainPath);
     for (String domainName : domainNameList) {
       domainConfigMap.put(ZooKeeperUtils.getIntOrDie(zk, domainPath + '/' + domainName), coord.getDomainConfig(domainName));
     }
-    
+
     // Generate the map of domain group versions
     Map<Integer, Map<Integer, Integer>> domainGroupVersionsMap = new HashMap<Integer, Map<Integer, Integer>>();
     String versionPath = domainGroupPath + '/' + domainGroupName + "/versions";
@@ -114,5 +112,4 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     }
     return new DomainGroupConfigImpl(domainGroupName, Collections.synchronizedMap(domainConfigMap), Collections.synchronizedMap(domainGroupVersionsMap));
   }
-
 }

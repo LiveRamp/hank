@@ -84,7 +84,7 @@ public class Handler implements Iface, RingGroupChangeListener {
   
   private void setRingGroup(RingGroupConfig newRingGroup) {
     List<RingConfig> tempList = new ArrayList<RingConfig>();
-    for (RingConfig ring : newRingGroup.getRingConfigs().values()) {
+    for (RingConfig ring : newRingGroup.getRingConfigs()) {
       if (ring.getState() == RingState.AVAILABLE) {
         tempList.add(ring);
       }

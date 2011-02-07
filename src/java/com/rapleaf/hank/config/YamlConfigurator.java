@@ -30,25 +30,23 @@ import org.yaml.snakeyaml.Yaml;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 
-public class YamlConfigurator implements PartDaemonConfigurator,
-    UpdateDaemonConfigurator {
+public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonConfigurator {
   private static final Logger LOG = Logger.getLogger(YamlConfigurator.class);
-
 
   // TODO: Update with real config path
   public static final String DEFAULT_CONFIG_PATH = "/config.yaml";
-  
+
   public static final String KEY_LOCAL_DATA_DIRS = "local_data_dirs";
   public static final String KEY_RING_GROUP_NAME = "ring_group_name";
   public static final String KEY_RING_NUMBER = "ring_number";
-  
+
   public static final String KEY_PART_DAEMON = "part_daemon";
   public static final String KEY_NUM_THREADS = "num_threads";
   public static final String KEY_SERVICE_PORT = "service_port";
-  
+
   public static final String KEY_UPDATE_DAEMON = "update_daemon";
   public static final String KEY_NUM_CONCURRENT_UPDATES = "num_concurrent_updates";
-  
+
   public static final String KEY_COORDINATOR = "coordinator";
   public static final String KEY_FACTORY = "factory";
   public static final String KEY_OPTIONS = "options";
@@ -111,7 +109,7 @@ public class YamlConfigurator implements PartDaemonConfigurator,
     try {
       factory = (CoordinatorFactory) Class.forName(
           ((Map<String, Map<String, String>>)config).get(KEY_COORDINATOR).get(KEY_FACTORY)).newInstance();
-    } 
+    }
     catch (InstantiationException e) { throw new RuntimeException(e); } 
     catch (IllegalAccessException e) { throw new RuntimeException(e); }
     catch (ClassNotFoundException e) { throw new RuntimeException(e); }
@@ -136,5 +134,4 @@ public class YamlConfigurator implements PartDaemonConfigurator,
   public int getRingNumber() {
     return ((Map<String, Integer>)config).get(KEY_RING_NUMBER);
   }
-
 }

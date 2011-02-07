@@ -29,6 +29,8 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.EventType;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.PartDaemonAddress;
@@ -369,8 +371,11 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     // --Update the domain config
     // Update our local copy
     int newDomainVersion = oldDomain.getVersion() + 1;
-    DomainConfigImpl newDomain = new DomainConfigImpl(oldDomain.getName(), oldDomain.getNumParts(), oldDomain.getPartitioner(),
-        oldDomain.getStorageEngine(), newDomainVersion);
+    DomainConfigImpl newDomain = new DomainConfigImpl(oldDomain.getName(),
+        oldDomain.getNumParts(),
+        oldDomain.getPartitioner(),
+        oldDomain.getStorageEngine(),
+        newDomainVersion);
     domainConfigs.put(domainName, newDomain);
     // Update the ZooKeeper Service
     String path = ZooKeeperUtils.getDomainPath(domainName) + "/version";
@@ -380,9 +385,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       // Server is probably going down
       return -1;
     }
-    
+
     pushNewDomain(newDomain);
-    
+
     // --Update every domain group that has this domain
     for (DomainGroupConfigImpl dg : domainGroupConfigs.values()) {
       if (!dg.getDomainConfigMap().values().contains(oldDomain)) {
@@ -390,34 +395,38 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       }
       int domainId = dg.getDomainId(oldDomain.getName());
       // Update the domain group's set
-      dg.getDomainConfigMap().put(domainId, newDomain); //Clobber the old domain
-      
+      // Clobber the old domain
+      dg.getDomainConfigMap().put(domainId, newDomain);
+
       // Update the domain group's map
-      Map<Integer, Map<Integer, Integer>> versionMap = dg.getDomainGroupVersions();
-      int oldDgVersion = Collections.max(versionMap.keySet());
-      int newDgVersion = oldDgVersion + 1;
-      Map<Integer, Integer> newVersionMap = Collections.synchronizedMap(new HashMap<Integer, Integer>(versionMap.get(oldDgVersion))); //Create a copy of the version map
-      newVersionMap.put(domainId, newDomainVersion); // Update the version map
-      versionMap.put(newDgVersion, newVersionMap); // Add the new version map
-      
-      // Update the ZooKeeper Service
-      String versionPath = ZooKeeperUtils.getDomainGroupPath(dg.getName()) + "/versions/" + newDgVersion;
-      try {
-        ZooKeeperUtils.createNodeOrFailSilently(zk, versionPath);
-        for (Entry<Integer, Integer> entry : newVersionMap.entrySet()) {
-          ZooKeeperUtils.setDataOrFailSilently(zk, versionPath + '/' + entry.getKey(), Bytes.intToBytes(entry.getValue()));
-        }
-      } catch (InterruptedException e) {
-        // Server is probably going down
-        return -1;
-      }
-      
-      pushNewDomainGroup(dg);
+      throw new NotImplementedException();
+//      Map<Integer, Map<Integer, Integer>> versionMap = dg.getVersions();
+//      int oldDgVersion = Collections.max(versionMap.keySet());
+//      int newDgVersion = oldDgVersion + 1;
+//      Map<Integer, Integer> newVersionMap = Collections.synchronizedMap(new HashMap<Integer, Integer>(versionMap.get(oldDgVersion))); //Create a copy of the version map
+//      newVersionMap.put(domainId, newDomainVersion); // Update the version map
+//      versionMap.put(newDgVersion, newVersionMap); // Add the new version map
+//
+//      // Update the ZooKeeper Service
+//      String versionPath = ZooKeeperUtils.getDomainGroupPath(dg.getName())
+//          + "/versions/" + newDgVersion;
+//      try {
+//        ZooKeeperUtils.createNodeOrFailSilently(zk, versionPath);
+//        for (Entry<Integer, Integer> entry : newVersionMap.entrySet()) {
+//          ZooKeeperUtils.setDataOrFailSilently(zk, versionPath + '/'
+//              + entry.getKey(), Bytes.intToBytes(entry.getValue()));
+//        }
+//      } catch (InterruptedException e) {
+//        // Server is probably going down
+//        return -1;
+//      }
+//
+//      pushNewDomainGroup(dg);
     }
-    
+
     return newDomainVersion;
   }
-  
+
   @Override
   public void addDomainChangeListener(String domainName, DomainChangeListener listener) throws DataNotFoundException {
     if (!domainConfigs.containsKey(domainName)) {
@@ -430,7 +439,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     listeners.add(listener);
   }
-  
+
   @Override
   public void addDomainGroupChangeListener(String domainGroupName, DomainGroupChangeListener listener) throws DataNotFoundException {
     if (!domainGroupConfigs.containsKey(domainGroupName)) {
@@ -510,17 +519,20 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     RingConfigImpl oldRing = (RingConfigImpl) rg.getRingConfig(ringNumber);
     RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
-    rg.getRingConfigs().put(ringNumber, newRing); // Clobber the old ring
+    rg.getRingConfigsMap().put(ringNumber, newRing); // Clobber the old ring
 
     pushNewRingGroup(rg);
   }
   
   /**
-   * Goes through the local cached config information and adds the following watchers and listeners:
-   * 1. For every host, {@link #ringStateUpdater} listens to the DaemonState of both the part daemon and update daemon.
-   * 2. For every domain, a {@link DomainVersionWatcher} listens to changes in the version of the domain
-   * 3. For every domain group, a {@link DomainGroupVersionWatcher} listens to changes in the version of the domain group.
-   * 4. For every ring group, a {@link RingGroupWatcher} listens to rings being added or removed to the ring group.
+   * Goes through the local cached config information and adds the following
+   * watchers and listeners: 1. For every host, {@link #ringStateUpdater}
+   * listens to the DaemonState of both the part daemon and update daemon. 2.
+   * For every domain, a {@link DomainVersionWatcher} listens to changes in the
+   * version of the domain 3. For every domain group, a
+   * {@link DomainGroupVersionWatcher} listens to changes in the version of the
+   * domain group. 4. For every ring group, a {@link RingGroupWatcher} listens
+   * to rings being added or removed to the ring group.
    */
   private void registerListenersAndWatchers() {
     // Register all the listeners for the ringStateUpdater

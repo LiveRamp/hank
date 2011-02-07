@@ -49,6 +49,6 @@ public interface RingGroupConfig {
    * @return
    * @throws DataNotFoundException
    */
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAndPort)
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
   throws DataNotFoundException;
 }
