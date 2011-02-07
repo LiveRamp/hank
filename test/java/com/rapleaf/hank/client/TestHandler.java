@@ -32,16 +32,17 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainConfigImpl;
 import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
-import com.rapleaf.hank.config.RingGroupConfigImpl;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.zk.DomainConfigImpl;
+import com.rapleaf.hank.coordinator.zk.RingGroupConfigImpl;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
@@ -57,13 +58,13 @@ public class TestHandler extends TestCase {
   private class MockRingConfig implements RingConfig {
 
     @Override
-    public Set<String> getHosts() {
+    public Set<PartDaemonAddress> getHosts() {
       // TODO Auto-generated method stub
       return null;
     }
 
     @Override
-    public List<String> getHostsForPartition(int domainId, int partId) {
+    public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
       // Used to test out the no_such_domain response
       if (domainId == 0) {
         return new ArrayList<String>();
@@ -76,12 +77,12 @@ public class TestHandler extends TestCase {
     }
 
     @Override
-    public int getNumber() {
+    public int getRingNumber() {
       return RING_NUMBER;
     }
 
     @Override
-    public Set<Integer> getPartitionsForHost(String hostName, int domainId)
+    public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
         throws DataNotFoundException {
       return null;
     }
@@ -122,7 +123,7 @@ public class TestHandler extends TestCase {
     
     @Override
     public void addDaemonStateChangeListener(String ringGroupName,
-        int ringNumber, String hostName, DaemonType type,
+        int ringNumber, PartDaemonAddress hostAddress, DaemonType type,
         DaemonStateChangeListener listener) {
       // TODO Auto-generated method stub
       
@@ -151,7 +152,7 @@ public class TestHandler extends TestCase {
 
     @Override
     public DaemonState getDaemonState(String ringGroupName, int ringNumber,
-        String hostName, DaemonType type) {
+        PartDaemonAddress hostAddress, DaemonType type) {
       // TODO Auto-generated method stub
       return null;
     }
@@ -184,7 +185,7 @@ public class TestHandler extends TestCase {
 
     @Override
     public void setDaemonState(String ringGroupName, int ringNumber,
-        String hostName, DaemonType type, DaemonState state) {
+        PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
       // TODO Auto-generated method stub
       
     }
