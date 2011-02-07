@@ -24,6 +24,7 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
@@ -43,12 +44,12 @@ public class ZooKeeperUtils {
   }
   
   private static final String HOST_PATH_FORMAT = RING_PATH_FORMAT + "/hosts/%s";
-  public static String getHostPath(String ringGroupName, int ringNumber, String hostName) {
+  public static String getHostPath(String ringGroupName, int ringNumber, PartDaemonAddress hostName) {
     return String.format(HOST_PATH_FORMAT, ringGroupName, ringNumber, hostName);
   }
   
   private static final String DAEMON_STATUS_FORMAT = "%s/%s/status";
-  public static String getDaemonStatusPath(String ringGroupName, int ringNumber, String hostName, DaemonType type) {
+  public static String getDaemonStatusPath(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type) {
     return String.format(DAEMON_STATUS_FORMAT, getHostPath(ringGroupName, ringNumber, hostName), type.name);
   }
   

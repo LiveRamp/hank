@@ -29,11 +29,11 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigImpl implements DomainGroupConfig {
-  
+
   private String groupName;
   private Map<Integer, DomainConfig> domainConfigs;
   private Map<Integer, Map<Integer, Integer>> domainGroupVersions;
-  
+
   public DomainGroupConfigImpl(String groupName,
       Map<Integer, DomainConfig> domainConfigs,
       Map<Integer, Map<Integer, Integer>> domainGroupVersions) {
@@ -88,7 +88,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   }
   
 
-  public static DomainGroupConfig loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, 
+  public static DomainGroupConfigImpl loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, 
       String domainGroupName) throws InterruptedException, DataNotFoundException {
     String domainGroupPath = ZooKeeperUtils.DOMAIN_GROUP_ROOT;
     ZooKeeperUtils.checkExists(zk, domainGroupPath + '/' + domainGroupName);

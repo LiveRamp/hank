@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -41,7 +42,7 @@ public interface Coordinator {
      * @param newState
      *          the new state of the specified daemon.
      */
-    public void onDaemonStateChange(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState newState);
+    public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState newState);
   }
 
   /**
@@ -94,26 +95,31 @@ public interface Coordinator {
    * @return the <code>DaemonState</code> for the specified daemon
    * @param ringGroupName
    * @param ringNumber
-   * @param hostName
+   * @param hostAddress
    * @param type
    */
-  public DaemonState getDaemonState(String ringGroupName, int ringNumber, String hostName, DaemonType type);
+  public DaemonState getDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type);
 
   /**
-   * Sets the <code>DaemonState</code> for a particular daemon, which will notify all <code>DaemonStateChangeListener</code>s
-   * that are listening on this daemon. Note that part daemons and update daemons will be listening on their own state, because
-   * that is how a third-party player can tell the daemons to start up or shut down. For example, to shut down the part server,
-   * the data deployer may set the part daemon's state to <code>DaemonState.STOPPABLE</code>. When the part daemon has been
-   * notified of its state change, it will set its own state to <code>DaemonState.STOPPING</code> to acknowledge that it
-   * has received the message. When it is actually stopped, it'll set its state again to <code>DaemonState.IDLE</code>.
+   * Sets the <code>DaemonState</code> for a particular daemon, which will
+   * notify all <code>DaemonStateChangeListener</code>s that are listening on
+   * this daemon. Note that part daemons and update daemons will be listening on
+   * their own state, because that is how a third-party player can tell the
+   * daemons to start up or shut down. For example, to shut down the part
+   * server, the data deployer may set the part daemon's state to
+   * <code>DaemonState.STOPPABLE</code>. When the part daemon has been notified
+   * of its state change, it will set its own state to
+   * <code>DaemonState.STOPPING</code> to acknowledge that it has received the
+   * message. When it is actually stopped, it'll set its state again to
+   * <code>DaemonState.IDLE</code>.
    * 
    * @param ringGroupName
    * @param ringNumber
-   * @param hostName
+   * @param hostAddress
    * @param type
    * @param state
    */
-  public void setDaemonState(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState state);
+  public void setDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState state);
 
   /**
    * Registers the provided <code>DaemonStateChangeListener</code> so that it will be notified when someone has changed
@@ -121,11 +127,11 @@ public interface Coordinator {
    * 
    * @param ringGroupName
    * @param ringNumber
-   * @param hostName
+   * @param hostAddress
    * @param type
    * @param listener
    */
-  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonStateChangeListener listener);
+  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonStateChangeListener listener);
 
   /**
    * @param domainName

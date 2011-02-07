@@ -102,7 +102,7 @@ public class DomainConfigImpl implements DomainConfig {
   private static final String KEY_VERSION = "version";
 
   @SuppressWarnings("unchecked")
-  public static DomainConfig loadFromZooKeeper(ZooKeeper zk, String domainName) throws InterruptedException, DataNotFoundException {
+  public static DomainConfigImpl loadFromZooKeeper(ZooKeeper zk, String domainName) throws InterruptedException, DataNotFoundException {
     String path = ZooKeeperUtils.getDomainPath(domainName);
 
     ZooKeeperUtils.checkExists(zk, path);

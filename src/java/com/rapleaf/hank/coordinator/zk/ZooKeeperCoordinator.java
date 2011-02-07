@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +31,7 @@ import org.apache.zookeeper.Watcher.Event.EventType;
 
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -43,11 +43,15 @@ import com.rapleaf.hank.util.ZooKeeperUtils;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
- * An implementation of the Coordinator built on top of the Apache ZooKeeper service. The ZooKeeperCoordinator initially
- * loads all the configuration into local memory for fast reads. It places watches on nodes in the ZooKeeper service so that it is
- * updated when data is changed, so that it can update its local cache and also notify any listeners that are listening on the data.
- * Currently responds to changes in version number for domains and domain groups, as well as the addition or removal of rings. However,
- * the current implementation of ZooKeeperCoordinator will not respond to addition or removal of domains, domain groups, ring groups, or hosts.
+ * An implementation of the Coordinator built on top of the Apache ZooKeeper
+ * service. The ZooKeeperCoordinator initially loads all the configuration into
+ * local memory for fast reads. It places watches on nodes in the ZooKeeper
+ * service so that it is updated when data is changed, so that it can update its
+ * local cache and also notify any listeners that are listening on the data.
+ * Currently responds to changes in version number for domains and domain
+ * groups, as well as the addition or removal of rings. However, the current
+ * implementation of ZooKeeperCoordinator will not respond to addition or
+ * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator {
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
@@ -58,32 +62,40 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private boolean isSessionExpired = false;
 
   //Data Structures used for cached config information
-  private Map<String, DomainConfig> domainConfigs;
-  private Map<String, DomainGroupConfig> domainGroupConfigs;
-  private Map<String, RingGroupConfig> ringGroupConfigs;
+  private Map<String, DomainConfigImpl> domainConfigs;
+  private Map<String, DomainGroupConfigImpl> domainGroupConfigs;
+  private Map<String, RingGroupConfigImpl> ringGroupConfigs;
 
   private Map<String, Set<DomainChangeListener>> domainListeners;
   private Map<String, Set<DomainGroupChangeListener>> domainGroupListeners;
   private Map<String, Set<RingGroupChangeListener>> ringGroupListeners;
 
   /**
-   * Blocks until the connection to the ZooKeeper service has been established. See {@link ZooKeeperConnection#ZooKeeperConnection(String)}.
-   * Immediately tries to cache configuration information from the ZooKeeper service.
+   * Blocks until the connection to the ZooKeeper service has been established.
+   * See {@link ZooKeeperConnection#ZooKeeperConnection(String)}. Immediately
+   * tries to cache configuration information from the ZooKeeper service.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a ZooKeeper server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a ZooKeeper
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
    * @throws InterruptedException
    */
   public ZooKeeperCoordinator(String connectString) throws InterruptedException {
     super(connectString);
     init(true);
   }
-  
+
   /**
-   * Blocks until the connection to the ZooKeeper service has been established. See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}.
-   * Immediately tries to cache configuration information from the ZooKeeper service.
+   * Blocks until the connection to the ZooKeeper service has been established.
+   * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}.
+   * Immediately tries to cache configuration information from the ZooKeeper
+   * service.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a ZooKeeper server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout session timeout in milliseconds
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a ZooKeeper
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout
+   *          session timeout in milliseconds
    * @throws InterruptedException
    */
   public ZooKeeperCoordinator(String connectString, int sessionTimeout) throws InterruptedException {
@@ -92,38 +104,53 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
   
   /**
-   * Blocks until the connection to the ZooKeeper service has been established. See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
+   * Blocks until the connection to the ZooKeeper service has been established.
+   * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
    * 
-   * Package-private constructor that is mainly used for testing. The last boolean flag allows you to prevent the ZooKeeperCoordinator from
-   * immediately trying to cache all the configuration information from the ZooKeeper service, which is useful if you don't want to have to
-   * setup your entire configuration just to run a few simple tests.
+   * Package-private constructor that is mainly used for testing. The last
+   * boolean flag allows you to prevent the ZooKeeperCoordinator from
+   * immediately trying to cache all the configuration information from the
+   * ZooKeeper service, which is useful if you don't want to have to setup your
+   * entire configuration just to run a few simple tests.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a ZooKeeper server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout session timeout in milliseconds
-   * @param loadImmediately whether or not <code>ZooKeeperCoordinator</code> should immediately cache configuration information. Should always be set to true
-   * for production. Only set false for special cases in testing or debugging.
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a ZooKeeper
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout
+   *          session timeout in milliseconds
+   * @param loadImmediately
+   *          whether or not <code>ZooKeeperCoordinator</code> should
+   *          immediately cache configuration information. Should always be set
+   *          to true for production. Only set false for special cases in
+   *          testing or debugging.
    * @throws InterruptedException
    */
   ZooKeeperCoordinator(String connectString, int sessionTimeout, boolean loadImmediately) throws InterruptedException {
     super(connectString, sessionTimeout);
     init(loadImmediately);
   }
-  
+
   /**
-   * Initializes field variables, loads config information into cache, and sets up all the listeners and watchers. 
-   * Provides the option to not immediately load config information into the cache. This can be useful while in a testing or debugging
-   * environment, because then it is not necessary to set up mock config information in the ZooKeeper service. Note that if config
-   * information is not immediately loaded, then watchers and listeners will not be properly set up either. See {@link #registerListenersAndWatchers()}
+   * Initializes field variables, loads config information into cache, and sets
+   * up all the listeners and watchers. Provides the option to not immediately
+   * load config information into the cache. This can be useful while in a
+   * testing or debugging environment, because then it is not necessary to set
+   * up mock config information in the ZooKeeper service. Note that if config
+   * information is not immediately loaded, then watchers and listeners will not
+   * be properly set up either. See {@link #registerListenersAndWatchers()}
    * 
-   * @param loadImmediately whether or not the ZooKeeperCoordinator should immediately load configuration information from the
-   * ZooKeeper service into memory. Always set true for production. Only set false for special cases in testing or debugging.
+   * @param loadImmediately
+   *          whether or not the ZooKeeperCoordinator should immediately load
+   *          configuration information from the ZooKeeper service into memory.
+   *          Always set true for production. Only set false for special cases
+   *          in testing or debugging.
    * @throws InterruptedException
    */
   private void init(boolean loadImmediately) throws InterruptedException {
     myWatchers = Collections.synchronizedSet(new HashSet<ZooKeeperWatcher>());
-    domainConfigs = Collections.synchronizedMap(new HashMap<String, DomainConfig>());
-    domainGroupConfigs = Collections.synchronizedMap(new HashMap<String, DomainGroupConfig>());
-    ringGroupConfigs = Collections.synchronizedMap(new HashMap<String, RingGroupConfig>());
+    domainConfigs = Collections.synchronizedMap(new HashMap<String, DomainConfigImpl>());
+    domainGroupConfigs = Collections.synchronizedMap(new HashMap<String, DomainGroupConfigImpl>());
+    ringGroupConfigs = Collections.synchronizedMap(new HashMap<String, RingGroupConfigImpl>());
     domainListeners = Collections.synchronizedMap(new HashMap<String, Set<DomainChangeListener>>());
     domainGroupListeners = Collections.synchronizedMap(new HashMap<String, Set<DomainGroupChangeListener>>());
     ringGroupListeners = Collections.synchronizedMap(new HashMap<String, Set<RingGroupChangeListener>>());
@@ -138,13 +165,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   /*----------------------------*/
 
   @Override
-  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonStateChangeListener listener) {
+  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
     myWatchers.add(new StateChangeWatcher(ringGroupName, ringNumber, hostName, type, listener));
   }
 
   @Override
-  public DaemonState getDaemonState(String ringGroupName, int ringNumber, String hostName, DaemonType type) {
-    String path = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostName, type);
+  public DaemonState getDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type) {
+    String path = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostAddress, type);
     try {
       return DaemonState.byBytes(zk.getData(path, null, null));
     } catch (KeeperException e) {
@@ -158,7 +185,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void setDaemonState(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonState state) {
+  public void setDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState state) {
     try {
       waitForConnection();
     }
@@ -192,12 +219,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private class StateChangeWatcher implements ZooKeeperWatcher {
     private String ringGroupName;
     private int ringNumber;
-    private String hostName;
+    private PartDaemonAddress hostName;
     private String path;
     private DaemonType type;
     private DaemonStateChangeListener listener;
     
-    public StateChangeWatcher(String ringGroupName, int ringNumber, String hostName, DaemonType type, DaemonStateChangeListener listener) {
+    public StateChangeWatcher(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
       this.ringGroupName = ringGroupName;
       this.ringNumber = ringNumber;
       this.hostName = hostName;
@@ -264,21 +291,22 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     return rg;
   }
-  
+
   @Override
   public RingConfig getRingConfig(String ringGroupName, int ringNumber) throws DataNotFoundException {
     return getRingGroupConfig(ringGroupName).getRingConfig(ringNumber);
   }
   
   /**
-   * Completely reloads the config information stored in ZooKeeper into memory. Discards all existing config information.
+   * Completely reloads the config information stored in ZooKeeper into memory.
+   * Discards all existing config information.
    * 
    * @throws InterruptedException
    */
   private void loadAllDomains() throws InterruptedException {
     String domainPath = ZooKeeperUtils.DOMAIN_ROOT;
     ZooKeeperUtils.checkExistsOrDie(zk, domainPath);
-    Map<String, DomainConfig> tempMap = new HashMap<String, DomainConfig>();
+    Map<String, DomainConfigImpl> tempMap = new HashMap<String, DomainConfigImpl>();
     List<String> domainNames = ZooKeeperUtils.getChildrenOrDie(zk, domainPath);
     for (String domainName : domainNames) {
       try {
@@ -294,7 +322,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   
   private void loadAllDomainGroups() throws InterruptedException {
     String domainGroupPath = ZooKeeperUtils.DOMAIN_GROUP_ROOT;
-    Map<String, DomainGroupConfig> tempMap = new HashMap<String, DomainGroupConfig>();
+    Map<String, DomainGroupConfigImpl> tempMap = new HashMap<String, DomainGroupConfigImpl>();
     ZooKeeperUtils.checkExistsOrDie(zk, domainGroupPath);
     List<String> domainGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainGroupPath);
     for (String domainGroupName : domainGroupNameList) {
@@ -311,7 +339,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   
   private void loadAllRingGroups() throws InterruptedException {
     String path = ZooKeeperUtils.RING_GROUP_ROOT;
-    Map<String, RingGroupConfig> tempMap = new HashMap<String, RingGroupConfig>();
+    Map<String, RingGroupConfigImpl> tempMap = new HashMap<String, RingGroupConfigImpl>();
     ZooKeeperUtils.checkExistsOrDie(zk, path);
     List<String> ringGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, path);
     for (String ringGroupName : ringGroupNameList) {
@@ -341,7 +369,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     // --Update the domain config
     // Update our local copy
     int newDomainVersion = oldDomain.getVersion() + 1;
-    DomainConfig newDomain = new DomainConfigImpl(oldDomain.getName(), oldDomain.getNumParts(), oldDomain.getPartitioner(),
+    DomainConfigImpl newDomain = new DomainConfigImpl(oldDomain.getName(), oldDomain.getNumParts(), oldDomain.getPartitioner(),
         oldDomain.getStorageEngine(), newDomainVersion);
     domainConfigs.put(domainName, newDomain);
     // Update the ZooKeeper Service
@@ -356,7 +384,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     pushNewDomain(newDomain);
     
     // --Update every domain group that has this domain
-    for (DomainGroupConfig dg : domainGroupConfigs.values()) {
+    for (DomainGroupConfigImpl dg : domainGroupConfigs.values()) {
       if (!dg.getDomainConfigMap().values().contains(oldDomain)) {
         continue;
       }
@@ -461,26 +489,29 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       listener.onRingGroupChange(rg);
     }
   }
-  
+
   /**
-   * Checks the state of all the hosts in the specified ring and generates a new <code>RingState</code> for the ring, and pushes out
-   * the new ring group to all listeners.
+   * Checks the state of all the hosts in the specified ring and generates a new
+   * <code>RingState</code> for the ring, and pushes out the new ring group to
+   * all listeners.
    * 
    * @param ringGroupName
    * @param ringNumber
-   * @throws DataNotFoundException if the specified ring group or ring could not be found
+   * @throws DataNotFoundException
+   *           if the specified ring group or ring could not be found
    * @throws InterruptedException
    */
-  //TODO: This is not as efficient as it could be, because it queries the DaemonState of every single daemon when only one DaemonState has changed.
+  // TODO: This is not as efficient as it could be, because it queries the
+  // DaemonState of every single daemon when only one DaemonState has changed.
   private void refreshRingState(String ringGroupName, int ringNumber) throws DataNotFoundException, InterruptedException {
-    RingGroupConfig rg;
+    RingGroupConfigImpl rg;
     if ((rg = ringGroupConfigs.get(ringGroupName)) == null) {
       throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");
     }
-    RingConfig oldRing = rg.getRingConfig(ringNumber);
-    RingConfig newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
+    RingConfigImpl oldRing = (RingConfigImpl) rg.getRingConfig(ringNumber);
+    RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
     rg.getRingConfigs().put(ringNumber, newRing); // Clobber the old ring
-    
+
     pushNewRingGroup(rg);
   }
   
@@ -494,10 +525,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void registerListenersAndWatchers() {
     // Register all the listeners for the ringStateUpdater
     for (RingGroupConfig rg : ringGroupConfigs.values()) {
-      for (RingConfig ring : rg.getRingConfigs().values()) {
-        for (String hostName : ring.getHosts()) {
-          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), hostName, DaemonType.PART_DAEMON, ringStateUpdater);
-          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), hostName, DaemonType.UPDATE_DAEMON, ringStateUpdater);
+      for (RingConfig ring : rg.getRingConfigs()) {
+        for (PartDaemonAddress address : ring.getHosts()) {
+          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), address, DaemonType.PART_DAEMON, ringStateUpdater);
+          addDaemonStateChangeListener(rg.getName(), ring.getRingNumber(), address, DaemonType.UPDATE_DAEMON, ringStateUpdater);
         }
       }
     }
@@ -515,17 +546,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       myWatchers.add(new RingGroupWatcher(rg.getName()));
     }
   }
-  
-  // Used to listen to all the hosts and update the ring state if one of the daemon state changes
+
   /**
-   * Used to listen to both the part daemon and the update daemon for every single host. When a daemon state changes,
-   * <code>ringStateUpdater</code> calls {@link #refreshRingState(String, int)} to update the RingState for the ring that
-   * the daemon is in. The new version of the RingGroupConfig then gets pushed out to all <code>RingGroupChangeListeners</code>
+   * Used to listen to both the part daemon and the update daemon for every
+   * single host. When a daemon state changes, <code>ringStateUpdater</code>
+   * calls {@link #refreshRingState(String, int)} to update the RingState for
+   * the ring that the daemon is in. The new version of the RingGroupConfig then
+   * gets pushed out to all <code>RingGroupChangeListeners</code>
    */
   private DaemonStateChangeListener ringStateUpdater = new DaemonStateChangeListener() {
     @Override
     public void onDaemonStateChange(String ringGroupName, int ringNumber,
-        String hostName, DaemonType type, DaemonState state) {
+        PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
       try {
         refreshRingState(ringGroupName, ringNumber);
       } catch (DataNotFoundException e) {
@@ -537,19 +569,21 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       }
     }
   };
-  
+
   /**
-   * Interface that extends {@link Watcher} to add a {@link ZooKeeperWatcher#register()} method that allows the <code>Watcher</code>
-   * to be easily re-registered in case of a session expiry. Also provides a uniform interface for all the different types of
+   * Interface that extends {@link Watcher} to add a
+   * {@link ZooKeeperWatcher#register()} method that allows the
+   * <code>Watcher</code> to be easily re-registered in case of a session
+   * expiry. Also provides a uniform interface for all the different types of
    * ZooKeeperWatchers.
    */
   private interface ZooKeeperWatcher extends Watcher {
     public void register();
   }
-  
+
   /**
-   * Watches for a ring being added or removed from a ring group. If so, caches the new config information and pushes
-   * the new config to all listeners.
+   * Watches for a ring being added or removed from a ring group. If so, caches
+   * the new config information and pushes the new config to all listeners.
    */
   private class RingGroupWatcher implements ZooKeeperWatcher {
     
@@ -566,7 +600,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeChildrenChanged) {
         try {
-          RingGroupConfig rg = RingGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, ringGroupName);
+          RingGroupConfigImpl rg = RingGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, ringGroupName);
           ringGroupConfigs.put(ringGroupName, rg);
           pushNewRingGroup(rg);
           register();
@@ -587,21 +621,20 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
   
   private class DomainVersionWatcher implements ZooKeeperWatcher {
-    
     private String domainName;
     private String path;
-    
+
     public DomainVersionWatcher(String domainName) {
       this.domainName = domainName;
       this.path = ZooKeeperUtils.getDomainPath(domainName);
       register();
     }
-    
+
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
         try {
-          DomainConfig newDomain = DomainConfigImpl.loadFromZooKeeper(zk, domainName);
+          DomainConfigImpl newDomain = DomainConfigImpl.loadFromZooKeeper(zk, domainName);
           domainConfigs.put(domainName, newDomain);
           pushNewDomain(newDomain);
           register();
@@ -614,29 +647,28 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         }
       }
     }
-    
+
     @Override
     public void register() {
       zk.getData(path, DomainVersionWatcher.this, null, null);
     }
   }
-  
+
   private class DomainGroupVersionWatcher implements ZooKeeperWatcher {
-    
     private String domainGroupName;
     private String path;
-    
+
     public DomainGroupVersionWatcher(String domainGroupName) {
       this.domainGroupName = domainGroupName;
       this.path = ZooKeeperUtils.getDomainGroupPath(domainGroupName) + "/versions";
       register();
     }
-    
+
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
         try {
-          DomainGroupConfig dg = DomainGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, domainGroupName);
+          DomainGroupConfigImpl dg = DomainGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, domainGroupName);
           domainGroupConfigs.put(domainGroupName, dg);
           pushNewDomainGroup(dg);
           register();
@@ -649,7 +681,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         }
       }
     }
-    
+
     @Override
     public void register() {
       zk.getChildren(path, DomainGroupVersionWatcher.this, null, null);

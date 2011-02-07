@@ -80,7 +80,7 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   
   private static final String RING_NUM_REGEX = "ring\\-\\d{3}";
   
-  public static RingGroupConfig loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName) throws InterruptedException, DataNotFoundException {
+  public static RingGroupConfigImpl loadFromZooKeeper(ZooKeeper zk, ZooKeeperCoordinator coord, String ringGroupName) throws InterruptedException, DataNotFoundException {
     String ringGroupPath = ZooKeeperUtils.RING_GROUP_ROOT + '/' + ringGroupName;
     ZooKeeperUtils.checkExists(zk, ringGroupPath);
     
