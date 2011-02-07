@@ -1,3 +1,3 @@
-Hank is an open-source, distributed, highly-scalable, low-latency, batch-writable-only, key-value datastore. You can find a much more detailed description of the project at:
+Hank is an open-source system for running distributed, highly-scalable, low-latency, batch-writable-only, key-value datastores. You can find a much more detailed description of the project at:
 
 https://docs.google.com/document/d/1enJjeleYlJZWETiceJUGGotzG_5DbysTRytNHi8Tpi0/edit?hl=en&authkey=CIeVw8EE
