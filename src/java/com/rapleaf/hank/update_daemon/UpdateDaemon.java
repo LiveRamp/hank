@@ -99,7 +99,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, this);
   }
 
-  private void run() throws UnknownHostException {
+  void run() throws UnknownHostException {
     goingDown = false;
 
     // prime things the process by querying the current state and feeding it to
