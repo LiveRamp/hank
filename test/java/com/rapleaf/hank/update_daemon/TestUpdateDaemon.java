@@ -36,9 +36,9 @@ import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -226,52 +226,13 @@ public class TestUpdateDaemon extends TestCase {
       }
     };
 
-    final Coordinator mockCoordinator = new Coordinator() {
+    MockCoordinator mockCoordinator = new MockCoordinator() {
       private DaemonState daemonState;
-
-      @Override
-      public void addDaemonStateChangeListener(String ringGroupName,
-          int ringNumber, PartDaemonAddress hostAddress, DaemonType type,
-          DaemonStateChangeListener listener) {
-      }
-
-      @Override
-      public void addDomainChangeListener(String domainName,
-          DomainChangeListener listener) throws DataNotFoundException {
-      }
-
-      @Override
-      public void addDomainGroupChangeListener(String domainGroupName,
-          DomainGroupChangeListener listener) throws DataNotFoundException {
-      }
-
-      @Override
-      public void addRingGroupChangeListener(String ringGroupName,
-          RingGroupChangeListener listener) throws DataNotFoundException {
-      }
 
       @Override
       public DaemonState getDaemonState(String ringGroupName, int ringNumber,
           PartDaemonAddress hostAddress, DaemonType type) {
         return daemonState;
-      }
-
-      @Override
-      public DomainConfig getDomainConfig(String domainName)
-          throws DataNotFoundException {
-        return null;
-      }
-
-      @Override
-      public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
-          throws DataNotFoundException {
-        return null;
-      }
-
-      @Override
-      public RingConfig getRingConfig(String ringGroupName, int ringNumber)
-          throws DataNotFoundException {
-        return null;
       }
 
       @Override
@@ -284,11 +245,6 @@ public class TestUpdateDaemon extends TestCase {
       public void setDaemonState(String ringGroupName, int ringNumber,
           PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
         daemonState = state;
-      }
-
-      @Override
-      public int updateDomain(String domainName) throws DataNotFoundException {
-        return 0;
       }
     };
 
