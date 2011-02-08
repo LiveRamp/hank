@@ -31,6 +31,7 @@ import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
 import com.rapleaf.hank.config.MockDomainConfig;
 import com.rapleaf.hank.config.MockDomainConfigVersion;
+import com.rapleaf.hank.config.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.config.MockRingGroupConfig;
 import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
 import com.rapleaf.hank.config.PartDaemonAddress;
@@ -125,22 +126,16 @@ public class TestUpdateDaemon extends TestCase {
 
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
-        return new DomainGroupConfigVersion() {
-          @Override
-          public int getVersionNumber() {
-            return 0;
-          }
-
-          @Override
-          public DomainGroupConfig getDomainGroupConfig() {
-            return null;
-          }
-
-          @Override
-          public Set<DomainConfigVersion> getDomainConfigVersions() {
-            return Collections.singleton((DomainConfigVersion)new MockDomainConfigVersion(new MockDomainConfig("myDomain", 1, new ConstantPartitioner(), mockStorageEngine, 0), 0));
-          }
-        };
+        return new MockDomainGroupConfigVersion(Collections.singleton(
+            (DomainConfigVersion)new MockDomainConfigVersion(
+                new MockDomainConfig("myDomain",
+                    1,
+                    new ConstantPartitioner(),
+                    mockStorageEngine,
+                    0),
+                0)),
+            null,
+            0);
       }
 
       @Override
