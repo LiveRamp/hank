@@ -16,7 +16,6 @@
 package com.rapleaf.hank.update_daemon;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Set;
 import java.util.SortedSet;
@@ -42,6 +41,7 @@ import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
@@ -158,12 +158,7 @@ public class TestUpdateDaemon extends TestCase {
 
                   @Override
                   public Partitioner getPartitioner() {
-                    return new Partitioner() {
-                      @Override
-                      public int partition(ByteBuffer key) {
-                        return 0;
-                      }
-                    };
+                    return new ConstantPartitioner();
                   }
 
                   @Override
@@ -185,14 +180,12 @@ public class TestUpdateDaemon extends TestCase {
 
       @Override
       public int getDomainId(String domainName) throws DataNotFoundException {
-        // TODO Auto-generated method stub
         return 0;
       }
-      
+
       @Override
       public DomainConfig getDomainConfig(int domainId)
-          throws DataNotFoundException {
-        // TODO Auto-generated method stub
+      throws DataNotFoundException {
         return null;
       }
     };
