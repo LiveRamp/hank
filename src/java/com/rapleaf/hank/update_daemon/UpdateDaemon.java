@@ -68,7 +68,9 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     @Override
     public void run() {
       try {
+        LOG.debug(String.format("UpdateToDo %s part %d starting...", engine.toString(), partNum));
         engine.getUpdater(configurator, partNum).update();
+        LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
         // TODO: i just *know* that i'm going to end up wishing i toStringed the
         // storage engine and part num here
@@ -169,14 +171,17 @@ public class UpdateDaemon implements DaemonStateChangeListener {
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
       for (Integer part : ringConfig.getDomainPartitionsForHost(hostAddress, domainId)) {
+        LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d", ringGroupConfig.getName(), ringConfig.getRingNumber(), domainConfig.getName(), part));
         executor.execute(new UpdateToDo(engine, part, exceptionQueue));
       }
     }
 
     try {
       boolean terminated = false;
+      executor.shutdown();
       while (!terminated) {
-        terminated = executor.awaitTermination(30, TimeUnit.SECONDS);
+        LOG.debug("Waiting for update executor to complete...");
+        terminated = executor.awaitTermination(100, TimeUnit.MILLISECONDS);
         // TODO: report on progress?
         // TODO: check exception queue
       }
