@@ -17,9 +17,7 @@ package com.rapleaf.hank.update_daemon;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -32,6 +30,7 @@ import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainConfigVersion;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
 import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.RingConfig;
@@ -293,37 +292,7 @@ public class TestUpdateDaemon extends TestCase {
       }
     };
 
-    UpdateDaemonConfigurator mockConfigurator = new UpdateDaemonConfigurator() {
-      @Override
-      public int getRingNumber() {
-        return 1;
-      }
-
-      @Override
-      public String getRingGroupName() {
-        return "myRingGroup";
-      }
-
-      @Override
-      public Coordinator getCoordinator() {
-        return mockCoordinator;
-      }
-
-      @Override
-      public Set<String> getLocalDataDirectories() {
-        return new HashSet<String>(Arrays.asList("/tmp/local1"));
-      }
-
-      @Override
-      public int getNumConcurrentUpdates() {
-        return 1;
-      }
-
-      @Override
-      public int getServicePort() {
-        return 12345;
-      }
-    };
+    MockUpdateDaemonConfigurator mockConfigurator = new MockUpdateDaemonConfigurator(1, null, 12345, mockCoordinator, "myRingGroup", 1);
 
     UpdateDaemon ud = new UpdateDaemon(mockConfigurator, "localhost");
 
