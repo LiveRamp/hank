@@ -30,6 +30,7 @@ import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainConfigVersion;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.config.MockRingGroupConfig;
 import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
 import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
@@ -196,33 +197,11 @@ public class TestUpdateDaemon extends TestCase {
       }
     };
     
-    final RingGroupConfig mockRingGroupConfig = new RingGroupConfig() {
-      @Override
-      public DomainGroupConfig getDomainGroupConfig() {
-        return mockDomainGroupConfig;
-      }
-
-      @Override
-      public String getName() {
-        return "myRingGroup";
-      }
-
-      @Override
-      public RingConfig getRingConfig(int ringNumber)
-          throws DataNotFoundException {
-        return null;
-      }
-
+    final RingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {
       @Override
       public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
           throws DataNotFoundException {
         return mockRingConfig;
-      }
-
-      @Override
-      public Set<RingConfig> getRingConfigs() {
-        // TODO Auto-generated method stub
-        return null;
       }
     };
 
