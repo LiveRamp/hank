@@ -29,6 +29,7 @@ import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainConfigVersion;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.config.MockDomainConfig;
 import com.rapleaf.hank.config.MockRingGroupConfig;
 import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
 import com.rapleaf.hank.config.PartDaemonAddress;
@@ -42,7 +43,6 @@ import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
-import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -145,32 +145,7 @@ public class TestUpdateDaemon extends TestCase {
 
               @Override
               public DomainConfig getDomainConfig() {
-                return new DomainConfig() {
-                  @Override
-                  public String getName() {
-                    return "myDomain";
-                  }
-
-                  @Override
-                  public int getNumParts() {
-                    return 1;
-                  }
-
-                  @Override
-                  public Partitioner getPartitioner() {
-                    return new ConstantPartitioner();
-                  }
-
-                  @Override
-                  public StorageEngine getStorageEngine() {
-                    return mockStorageEngine;
-                  }
-
-                  @Override
-                  public int getVersion() {
-                    return 0;
-                  }
-                };
+                return new MockDomainConfig("myDomain", 1, new ConstantPartitioner(), mockStorageEngine, 0);
               }
             };
             return Collections.singleton(arg0);
