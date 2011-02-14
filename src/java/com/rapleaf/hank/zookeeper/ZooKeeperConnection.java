@@ -25,57 +25,71 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 /**
- * Base class that should be used by any class intending to connect to the ZooKeeper service.
- * This class automatically handles connecting, disconnecting, and session expiry, and provides
- * a clean interface for any subclasses to take action upon these three notable events.
+ * Base class that should be used by any class intending to connect to the
+ * ZooKeeper service. This class automatically handles connecting,
+ * disconnecting, and session expiry, and provides a clean interface for any
+ * subclasses to take action upon these three notable events.
  */
 public class ZooKeeperConnection implements Watcher {
   private static final Logger LOG = Logger.getLogger(ZooKeeperConnection.class);
-  
+
   public static final int DEFAULT_SESSION_TIMEOUT = 30000;
   public static final int DEFAULT_MAX_ATTEMPTS = 5;
-  public static final int CONNECT_DELAY = 100; //ms
-  public static final int MAX_CONNECT_DELAY = 7500; //ms
-  
+  public static final int CONNECT_DELAY = 100; // ms
+  public static final int MAX_CONNECT_DELAY = 7500; // ms
+
   protected ZooKeeper zk;
-  
+
   /**
-   * Used to block while disconnected.
-   * Use {@link #waitForConnection()} in subclasses to block while disconnected.
+   * Used to block while disconnected. Use {@link #waitForConnection()} in
+   * subclasses to block while disconnected.
    */
   private CountDownLatch connectedSignal = new CountDownLatch(1);
-  
+
   private String connectString;
   private int sessionTimeout;
   private int maxConnectAttempts;
-  
+
   /**
-   * Creates a new connection to the ZooKeeper service. Blocks until we are connected to the service. Uses the default session timeout of 30 seconds.
+   * Creates a new connection to the ZooKeeper service. Blocks until we are
+   * connected to the service. Uses the default session timeout of 30 seconds.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a zk
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString) throws InterruptedException {
     this(connectString, DEFAULT_SESSION_TIMEOUT);
   }
-  
+
   /**
-   * Creates a new connection to the ZooKeeper service. Blocks until we are connected to the service.
+   * Creates a new connection to the ZooKeeper service. Blocks until we are
+   * connected to the service.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout session timeout in milliseconds
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a zk
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout
+   *          session timeout in milliseconds
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout) throws InterruptedException {
     this(connectString, sessionTimeout, DEFAULT_MAX_ATTEMPTS);
   }
-  
+
   /**
-   * Creates a new connection to the ZooKeeper service. Blocks until we are connected to the service.
+   * Creates a new connection to the ZooKeeper service. Blocks until we are
+   * connected to the service.
    * 
-   * @param connectString comma separated host:port pairs, each corresponding to a zk server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout session timeout in milliseconds
-   * @param maxConnectAttempts how many times we should try to connect to the ZooKeeper ensemble before dying
+   * @param connectString
+   *          comma separated host:port pairs, each corresponding to a zk
+   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout
+   *          session timeout in milliseconds
+   * @param maxConnectAttempts
+   *          how many times we should try to connect to the ZooKeeper ensemble
+   *          before dying
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout, int maxConnectAttempts) throws InterruptedException {
@@ -93,11 +107,15 @@ public class ZooKeeperConnection implements Watcher {
   }
  
   /**
-   * Discards the current connection (if there is one), and tries to set up a new connection to the ZooKeeper service.
+   * Discards the current connection (if there is one), and tries to set up a
+   * new connection to the ZooKeeper service.
    * 
-   * @param maxConnectAttempts the maximum number of times we want to connect to the ZooKeeper ensemble. One attempt means trying all the servers once.
-   * A value of zero means to attempt to connect forever.
-   * @throws IOException if all of our connection attempts failed
+   * @param maxConnectAttempts
+   *          the maximum number of times we want to connect to the ZooKeeper
+   *          ensemble. One attempt means trying all the servers once. A value
+   *          of zero means to attempt to connect forever.
+   * @throws IOException
+   *           if all of our connection attempts failed
    */
   private void connect(int maxConnectAttempts) throws IOException {
     int attempts = 0;
@@ -128,11 +146,13 @@ public class ZooKeeperConnection implements Watcher {
   }
 
   /**
-   * Listens for notifications from the ZooKeeper service telling that we have been connected,
-   * disconnected, or our session has expired. Upon connection, we first make a call to
-   * {@link #onConnect()}, and then we release all threads that are blocking on {@link #waitForConnection()}.
-   * Upon disconnection, we call {@link #onDisconnect()}, and then we reset the latch to block any threads that call
-   * {@link #waitForConnection()}. On session expiry, we call {@link #onSessionExpire()}, reset the latch, and then
+   * Listens for notifications from the ZooKeeper service telling that we have
+   * been connected, disconnected, or our session has expired. Upon connection,
+   * we first make a call to {@link #onConnect()}, and then we release all
+   * threads that are blocking on {@link #waitForConnection()}. Upon
+   * disconnection, we call {@link #onDisconnect()}, and then we reset the latch
+   * to block any threads that call {@link #waitForConnection()}. On session
+   * expiry, we call {@link #onSessionExpire()}, reset the latch, and then
    * manually try to reconnect to the ZooKeeper service.
    * 
    * @param event
@@ -165,31 +185,31 @@ public class ZooKeeperConnection implements Watcher {
       return;
     }
   }
-  
+
   /**
-   * Allows for subclasses to block until we are connected to the ZooKeeper service. 
-   * Returns immediately if we are already connected.
+   * Allows for subclasses to block until we are connected to the ZooKeeper
+   * service. Returns immediately if we are already connected.
    * 
    * @throws InterruptedException
    */
   protected void waitForConnection() throws InterruptedException {
-      connectedSignal.await();
+    connectedSignal.await();
   }
-  
-  // Meant to be used by subclasses
+
   /**
    * Called when a connection to the ZooKeeper service has been established.
+   * Meant to be used by subclasses
    */
   protected void onConnect() {}
-  
+
   /**
-   * Called when the connection to the ZooKeeper service has been broken. Note that
-   * a disconnect does not mean our session has expired. If the connection can be
-   * reestablished before the session timeout, we will keep the same session (which means
-   * that ephemeral nodes will stay alive).
+   * Called when the connection to the ZooKeeper service has been broken. Note
+   * that a disconnect does not mean our session has expired. If the connection
+   * can be reestablished before the session timeout, we will keep the same
+   * session (which means that ephemeral nodes will stay alive).
    */
   protected void onDisconnect() {}
-  
+
   /**
    * Called when our session with the ZooKeeper service has expired.
    */
