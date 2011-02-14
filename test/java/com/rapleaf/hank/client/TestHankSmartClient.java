@@ -238,21 +238,20 @@ public class TestHankSmartClient extends TestCase {
 
     @Override
     public int getRingNumber() {
-      // TODO Auto-generated method stub
       return RING_NUMBER;
     }
   }
- 
+
   private class MockHandler implements Iface {
     @Override
     public HankResponse get(String domain_name, ByteBuffer key) throws TException {
       return HankResponse.value(Bytes.intToBytes(123));
     }
   }
-  
+
   private TServer server;
   private Thread serverThread;
-  
+
   @Override
   protected void setUp() throws Exception {
     // launch the thrift server
@@ -274,7 +273,7 @@ public class TestHankSmartClient extends TestCase {
     };
     serverThread.start();
   }
-  
+
   public void testGet() throws Exception {
     PartDaemonConfigurator configurator = new MockPartDaemonConfigurator1();
     HankSmartClient client = new HankSmartClient(configurator.getCoordinator(), configurator.getRingGroupName());
