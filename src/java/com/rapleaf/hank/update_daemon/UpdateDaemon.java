@@ -34,6 +34,7 @@ import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
+import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
@@ -44,15 +45,6 @@ import com.rapleaf.hank.util.HostUtils;
 
 public class UpdateDaemon implements DaemonStateChangeListener {
   private static final Logger LOG = Logger.getLogger(UpdateDaemon.class);
-
-  private static final String HOST_NAME;
-  static {
-    try {
-      HOST_NAME = HostUtils.getHostName();
-    } catch (UnknownHostException e) {
-      throw new RuntimeException(e);
-    }
-  }
 
   private final class UpdateToDo implements Runnable {
     private final StorageEngine engine;
@@ -212,7 +204,8 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     String log4jprops = args[1];
 
     PropertyConfigurator.configure(log4jprops);
+    UpdateDaemonConfigurator conf = new YamlConfigurator(configPath);
 
-    new UpdateDaemon(null, HostUtils.getHostName()).run();
+    new UpdateDaemon(conf, HostUtils.getHostName()).run();
   }
 }
