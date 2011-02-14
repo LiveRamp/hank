@@ -20,11 +20,7 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
+import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.DomainConfigVersion;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
@@ -48,11 +44,7 @@ import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
 
-public class TestUpdateDaemon extends TestCase {
-  static {
-    Logger.getRootLogger().setLevel(Level.ALL);
-  }
-
+public class TestUpdateDaemon extends BaseTestCase {
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
     @Override
     public Set<Integer> getDomainPartitionsForHost(
