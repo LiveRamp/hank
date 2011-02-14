@@ -15,8 +15,12 @@
  */
 package com.rapleaf.hank.part_daemon;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Set;
+
+import org.apache.thrift.TException;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.DomainConfigVersion;
@@ -35,6 +39,8 @@ import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -86,7 +92,16 @@ public class TestServer extends BaseTestCase {
 
     MockPartDaemonConfigurator mockConfigurator = new MockPartDaemonConfigurator(12345, mockCoordinator, "myRingGroup", 1, "/tmp/local_data_dir");
 
-    Server server = new Server(mockConfigurator);
+    Server server = new Server(mockConfigurator) {
+
+      @Override
+      protected Iface getHandler() throws DataNotFoundException, IOException {
+        return new Iface() {
+          @Override
+          public HankResponse get(byte domainId, ByteBuffer key) throws TException {return null;}
+        };
+      }
+    };
 
     // should move smoothly from startable to idle
     server.onDaemonStateChange(null, 0, null, null, DaemonState.STARTABLE);

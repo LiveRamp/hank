@@ -35,6 +35,7 @@ import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
+import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.HostUtils;
 
 public class Server implements DaemonStateChangeListener {
@@ -99,7 +100,7 @@ public class Server implements DaemonStateChangeListener {
    */
   private void serve() throws TTransportException, DataNotFoundException, IOException {
     // set up the service handler
-    Handler handler = new Handler(hostAddress, configurator);
+    Iface handler = getHandler();
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
@@ -109,6 +110,10 @@ public class Server implements DaemonStateChangeListener {
     LOG.debug("Launching Thrift server...");
     server.serve();
     LOG.debug("Thrift server exited.");
+  }
+
+  protected Iface getHandler() throws DataNotFoundException, IOException {
+    return new Handler(hostAddress, configurator);
   }
 
   /**
