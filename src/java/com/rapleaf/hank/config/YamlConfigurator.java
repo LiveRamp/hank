@@ -18,6 +18,7 @@ package com.rapleaf.hank.config;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,10 +32,8 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 
 public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonConfigurator {
+  @SuppressWarnings("unused")
   private static final Logger LOG = Logger.getLogger(YamlConfigurator.class);
-
-  // TODO: Update with real config path
-  public static final String DEFAULT_CONFIG_PATH = "/config.yaml";
 
   public static final String KEY_LOCAL_DATA_DIRS = "local_data_dirs";
   public static final String KEY_RING_GROUP_NAME = "ring_group_name";
@@ -54,18 +53,11 @@ public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonCon
   private String configPath;
   private Object config;
 
-  public YamlConfigurator() {
-    this(DEFAULT_CONFIG_PATH);
-  }
-
-  public YamlConfigurator(String configPath) {
+  public YamlConfigurator(String configPath) throws IOException {
     this.configPath = configPath;
-    try {
-      loadConfig();
-    } catch (FileNotFoundException e) {
-      LOG.fatal("YAML Configuration file could not be found at " + configPath, e);
-      throw new RuntimeException("YAML Configuration file could not be found at " + configPath, e);
-    }
+    Yaml yaml = new Yaml();
+    InputStream input = new FileInputStream(new File(configPath));
+    config = yaml.load(input);
   }
 
   public void loadConfig() throws FileNotFoundException {
