@@ -1,4 +1,3 @@
-package com.rapleaf.hank.update_daemon;
 /**
  *  Copyright 2011 Rapleaf
  *
@@ -14,6 +13,7 @@ package com.rapleaf.hank.update_daemon;
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package com.rapleaf.hank.update_daemon;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
