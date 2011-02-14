@@ -47,7 +47,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   public String getName() {
     return groupName;
   }
-  
+
   @Override
   public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
     DomainConfig domain;
@@ -56,7 +56,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     }
     return domain;
   }
-  
+
   @Override
   // Note: This is not most efficient, but this method shouldn't be used too much
   public int getDomainId(String domainName) throws DataNotFoundException {

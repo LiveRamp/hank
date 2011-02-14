@@ -38,6 +38,9 @@ import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.Coordinator.DomainChangeListener;
+import com.rapleaf.hank.coordinator.Coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.Coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.ZooKeeperUtils;
@@ -82,8 +85,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @throws InterruptedException
    */
   public ZooKeeperCoordinator(String connectString) throws InterruptedException {
-    super(connectString);
-    init(true);
+    this(connectString, ZooKeeperConnection.DEFAULT_SESSION_TIMEOUT);
   }
 
   /**
@@ -100,10 +102,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @throws InterruptedException
    */
   public ZooKeeperCoordinator(String connectString, int sessionTimeout) throws InterruptedException {
-    super(connectString, sessionTimeout);
-    init(true);
+    this(connectString, sessionTimeout, false);
   }
-  
+
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
    * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
@@ -128,33 +129,15 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    */
   ZooKeeperCoordinator(String connectString, int sessionTimeout, boolean loadImmediately) throws InterruptedException {
     super(connectString, sessionTimeout);
-    init(loadImmediately);
-  }
 
-  /**
-   * Initializes field variables, loads config information into cache, and sets
-   * up all the listeners and watchers. Provides the option to not immediately
-   * load config information into the cache. This can be useful while in a
-   * testing or debugging environment, because then it is not necessary to set
-   * up mock config information in the ZooKeeper service. Note that if config
-   * information is not immediately loaded, then watchers and listeners will not
-   * be properly set up either. See {@link #registerListenersAndWatchers()}
-   * 
-   * @param loadImmediately
-   *          whether or not the ZooKeeperCoordinator should immediately load
-   *          configuration information from the ZooKeeper service into memory.
-   *          Always set true for production. Only set false for special cases
-   *          in testing or debugging.
-   * @throws InterruptedException
-   */
-  private void init(boolean loadImmediately) throws InterruptedException {
-    myWatchers = Collections.synchronizedSet(new HashSet<ZooKeeperWatcher>());
-    domainConfigs = Collections.synchronizedMap(new HashMap<String, DomainConfigImpl>());
-    domainGroupConfigs = Collections.synchronizedMap(new HashMap<String, DomainGroupConfigImpl>());
-    ringGroupConfigs = Collections.synchronizedMap(new HashMap<String, RingGroupConfigImpl>());
-    domainListeners = Collections.synchronizedMap(new HashMap<String, Set<DomainChangeListener>>());
-    domainGroupListeners = Collections.synchronizedMap(new HashMap<String, Set<DomainGroupChangeListener>>());
-    ringGroupListeners = Collections.synchronizedMap(new HashMap<String, Set<RingGroupChangeListener>>());
+    myWatchers = new HashSet<ZooKeeperWatcher>();
+    domainConfigs = new HashMap<String, DomainConfigImpl>();
+    domainGroupConfigs = new HashMap<String, DomainGroupConfigImpl>();
+    ringGroupConfigs = new HashMap<String, RingGroupConfigImpl>();
+    domainListeners = new HashMap<String, Set<DomainChangeListener>>();
+    domainGroupListeners = new HashMap<String, Set<DomainGroupChangeListener>>();
+    ringGroupListeners = new HashMap<String, Set<RingGroupChangeListener>>();
+
     if (loadImmediately) {
       loadAll();
     }
@@ -176,7 +159,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     try {
       return DaemonState.byBytes(zk.getData(path, null, null));
     } catch (KeeperException e) {
-      // We should only get a KeeperException if the node does not exist, in which case, we should fail and log.
+      // We should only get a KeeperException if the node does not exist, in
+      // which case, we should fail and log.
       LOG.fatal(e);
       throw new RuntimeException(e);
     } catch (InterruptedException e) {
@@ -189,9 +173,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public void setDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState state) {
     try {
       waitForConnection();
-    }
-    catch (InterruptedException e) {
-      // If we've been interrupted, then the server is probably going down, so we don't care about this write anymore
+    } catch (InterruptedException e) {
+      // If we've been interrupted, then the server is probably going down, so
+      // we don't care about this write anymore
       return;
     }
     String path = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostName, type);
@@ -224,7 +208,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     private String path;
     private DaemonType type;
     private DaemonStateChangeListener listener;
-    
+
     public StateChangeWatcher(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
       this.ringGroupName = ringGroupName;
       this.ringNumber = ringNumber;
@@ -233,7 +217,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       this.listener = listener;
       register();
     }
-    
+
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
