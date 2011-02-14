@@ -46,9 +46,9 @@ public class Server {
    */
   private void serve() throws TTransportException {
     // set up the service handler
-    Handler handler;
+    HankSmartClient handler;
     try {
-      handler = new Handler(coord, ringGroupName);
+      handler = new HankSmartClient(coord, ringGroupName);
     } catch (DataNotFoundException e) {
       throw new RuntimeException(e);
     }

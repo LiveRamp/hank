@@ -25,8 +25,10 @@ import com.rapleaf.hank.storage.Result;
 public class Domain {
   private final Reader[] parts;
   private final Partitioner partitioner;
+  private final String name;
 
-  public Domain(Reader[] partitions, Partitioner partitioner) {
+  public Domain(String name, Reader[] partitions, Partitioner partitioner) {
+    this.name = name;
     this.parts = partitions;
     this.partitioner = partitioner;
   }
@@ -47,5 +49,9 @@ public class Domain {
     }
     reader.get(key, result);
     return true;
+  }
+
+  public String getName() {
+    return name;
   }
 }

@@ -33,6 +33,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
+import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.util.HostUtils;
 
@@ -93,10 +94,12 @@ public class Server implements DaemonStateChangeListener {
   /**
    * start serving the thrift server. doesn't return.
    * @throws TTransportException
+   * @throws IOException 
+   * @throws DataNotFoundException 
    */
-  private void serve() throws TTransportException {
+  private void serve() throws TTransportException, DataNotFoundException, IOException {
     // set up the service handler
-    Handler handler = new Handler(configurator);
+    Handler handler = new Handler(hostAddress, configurator);
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
@@ -118,7 +121,7 @@ public class Server implements DaemonStateChangeListener {
         public void run() {
           try {
             serve();
-          } catch (TTransportException e) {
+          } catch (Exception e) {
             // TODO deal with exception. server is probably going down unexpectedly
             LOG.fatal("Server thread died with exception!", e);
           }

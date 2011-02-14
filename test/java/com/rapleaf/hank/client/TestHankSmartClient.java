@@ -280,8 +280,8 @@ public class TestHankSmartClient extends TestCase {
     HankSmartClient client = new HankSmartClient(configurator.getCoordinator(), configurator.getRingGroupName());
     HankResponse response = client.get("", ByteBuffer.wrap(new byte[4]).putInt(1));
 
-    assertEquals(Bytes.bytesToInt(response.getValue()), 123);
-    assertEquals(client.get("", ByteBuffer.wrap(new byte[4]).putInt(1)).getNot_found(), true);
+    assertEquals(Bytes.bytesToInt(response.get_value()), 123);
+    assertEquals(client.get("", ByteBuffer.wrap(new byte[4]).putInt(1)).get_not_found(), true);
   }
 
   @Override

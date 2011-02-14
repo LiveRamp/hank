@@ -131,7 +131,7 @@
   <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init">
     <delete dir="${src.java.generated}"/>
     <exec executable="${thrift.compiler}" failonerror="true">
-      <arg line="-o ${build} --gen java:hashcode ${src}/hank.thrift" />
+      <arg line="-o ${build} --gen java:hashcode,nocamel,builder ${src}/hank.thrift" />
     </exec>
     <move todir="${src.java.generated}">
       <fileset dir="${build}/gen-java/com/rapleaf/hank/generated" />

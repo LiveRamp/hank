@@ -5,31 +5,27 @@
  */
 package com.rapleaf.hank.generated;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.thrift.TBaseHelper;
-import org.apache.thrift.TEnum;
-import org.apache.thrift.TException;
-import org.apache.thrift.TFieldIdEnum;
-import org.apache.thrift.TFieldRequirementType;
-import org.apache.thrift.TUnion;
-import org.apache.thrift.meta_data.FieldMetaData;
-import org.apache.thrift.meta_data.FieldValueMetaData;
-import org.apache.thrift.meta_data.ListMetaData;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TList;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolUtil;
-import org.apache.thrift.protocol.TStruct;
-import org.apache.thrift.protocol.TType;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.Collections;
+import java.util.BitSet;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.thrift.*;
+import org.apache.thrift.async.*;
+import org.apache.thrift.meta_data.*;
+import org.apache.thrift.transport.*;
+import org.apache.thrift.protocol.*;
 
 public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   private static final TStruct STRUCT_DESC = new TStruct("HankResponse");
@@ -168,43 +164,43 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
 
   public static HankResponse not_found(boolean value) {
     HankResponse x = new HankResponse();
-    x.setNot_found(value);
+    x.set_not_found(value);
     return x;
   }
 
   public static HankResponse value(ByteBuffer value) {
     HankResponse x = new HankResponse();
-    x.setValue(value);
+    x.set_value(value);
     return x;
   }
 
   public static HankResponse value(byte[] value) {
     HankResponse x = new HankResponse();
-    x.setValue(ByteBuffer.wrap(value));
+    x.set_value(ByteBuffer.wrap(value));
     return x;
   }
 
   public static HankResponse values(List<ByteBuffer> value) {
     HankResponse x = new HankResponse();
-    x.setValues(value);
+    x.set_values(value);
     return x;
   }
 
   public static HankResponse wrong_host(boolean value) {
     HankResponse x = new HankResponse();
-    x.setWrong_host(value);
+    x.set_wrong_host(value);
     return x;
   }
 
   public static HankResponse no_such_domain(boolean value) {
     HankResponse x = new HankResponse();
-    x.setNo_such_domain(value);
+    x.set_no_such_domain(value);
     return x;
   }
 
   public static HankResponse internal_error(boolean value) {
     HankResponse x = new HankResponse();
-    x.setInternal_error(value);
+    x.set_internal_error(value);
     return x;
   }
 
@@ -402,7 +398,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Equivalent to a "null" value
    */
-  public boolean getNot_found() {
+  public boolean get_not_found() {
     if (getSetField() == _Fields.NOT_FOUND) {
       return (Boolean)getFieldValue();
     } else {
@@ -413,7 +409,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Equivalent to a "null" value
    */
-  public void setNot_found(boolean value) {
+  public void set_not_found(boolean value) {
     setField_ = _Fields.NOT_FOUND;
     value_ = value;
   }
@@ -421,13 +417,13 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Single-valued result
    */
-  public byte[] getValue() {
-    setValue(TBaseHelper.rightSize(bufferForValue()));
-    ByteBuffer b = bufferForValue();
+  public byte[] get_value() {
+    set_value(TBaseHelper.rightSize(buffer_for_value()));
+    ByteBuffer b = buffer_for_value();
     return b == null ? null : b.array();
   }
 
-  public ByteBuffer bufferForValue() {
+  public ByteBuffer buffer_for_value() {
     if (getSetField() == _Fields.VALUE) {
       return (ByteBuffer)getFieldValue();
     } else {
@@ -438,11 +434,11 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Single-valued result
    */
-  public void setValue(byte[] value) {
-    setValue(ByteBuffer.wrap(value));
+  public void set_value(byte[] value) {
+    set_value(ByteBuffer.wrap(value));
   }
 
-  public void setValue(ByteBuffer value) {
+  public void set_value(ByteBuffer value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.VALUE;
     value_ = value;
@@ -451,7 +447,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Multi-valued result for a single key
    */
-  public List<ByteBuffer> getValues() {
+  public List<ByteBuffer> get_values() {
     if (getSetField() == _Fields.VALUES) {
       return (List<ByteBuffer>)getFieldValue();
     } else {
@@ -462,7 +458,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * Multi-valued result for a single key
    */
-  public void setValues(List<ByteBuffer> value) {
+  public void set_values(List<ByteBuffer> value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.VALUES;
     value_ = value;
@@ -471,7 +467,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * The host queried is not assigned the key that was requested
    */
-  public boolean getWrong_host() {
+  public boolean get_wrong_host() {
     if (getSetField() == _Fields.WRONG_HOST) {
       return (Boolean)getFieldValue();
     } else {
@@ -482,7 +478,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * The host queried is not assigned the key that was requested
    */
-  public void setWrong_host(boolean value) {
+  public void set_wrong_host(boolean value) {
     setField_ = _Fields.WRONG_HOST;
     value_ = value;
   }
@@ -490,7 +486,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * The domain_id passed in the request does not correspond to a valid domain
    */
-  public boolean getNo_such_domain() {
+  public boolean get_no_such_domain() {
     if (getSetField() == _Fields.NO_SUCH_DOMAIN) {
       return (Boolean)getFieldValue();
     } else {
@@ -501,7 +497,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * The domain_id passed in the request does not correspond to a valid domain
    */
-  public void setNo_such_domain(boolean value) {
+  public void set_no_such_domain(boolean value) {
     setField_ = _Fields.NO_SUCH_DOMAIN;
     value_ = value;
   }
@@ -509,7 +505,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * There was some internal error in the server. This is pretty bad.
    */
-  public boolean getInternal_error() {
+  public boolean get_internal_error() {
     if (getSetField() == _Fields.INTERNAL_ERROR) {
       return (Boolean)getFieldValue();
     } else {
@@ -520,7 +516,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   /**
    * There was some internal error in the server. This is pretty bad.
    */
-  public void setInternal_error(boolean value) {
+  public void set_internal_error(boolean value) {
     setField_ = _Fields.INTERNAL_ERROR;
     value_ = value;
   }

@@ -5,44 +5,27 @@
  */
 package com.rapleaf.hank.generated;
 
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.thrift.TApplicationException;
-import org.apache.thrift.TBase;
-import org.apache.thrift.TBaseHelper;
-import org.apache.thrift.TException;
-import org.apache.thrift.TFieldIdEnum;
-import org.apache.thrift.TFieldRequirementType;
-import org.apache.thrift.TProcessor;
-import org.apache.thrift.TServiceClient;
-import org.apache.thrift.TServiceClientFactory;
-import org.apache.thrift.async.AsyncMethodCallback;
-import org.apache.thrift.async.TAsyncClient;
-import org.apache.thrift.async.TAsyncClientFactory;
-import org.apache.thrift.async.TAsyncClientManager;
-import org.apache.thrift.async.TAsyncMethodCall;
-import org.apache.thrift.meta_data.FieldMetaData;
-import org.apache.thrift.meta_data.FieldValueMetaData;
-import org.apache.thrift.meta_data.StructMetaData;
-import org.apache.thrift.protocol.TField;
-import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TMessageType;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.protocol.TProtocolException;
-import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.protocol.TProtocolUtil;
-import org.apache.thrift.protocol.TStruct;
-import org.apache.thrift.protocol.TType;
-import org.apache.thrift.transport.TMemoryInputTransport;
-import org.apache.thrift.transport.TNonblockingTransport;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.EnumMap;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.Collections;
+import java.util.BitSet;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import org.apache.thrift.*;
+import org.apache.thrift.async.*;
+import org.apache.thrift.meta_data.*;
+import org.apache.thrift.transport.*;
+import org.apache.thrift.protocol.*;
 
 public class SmartClient {
 
@@ -105,8 +88,8 @@ public class SmartClient {
     {
       oprot_.writeMessageBegin(new TMessage("get", TMessageType.CALL, ++seqid_));
       get_args args = new get_args();
-      args.setDomain_name(domain_name);
-      args.setKey(key);
+      args.set_domain_name(domain_name);
+      args.set_key(key);
       args.write(oprot_);
       oprot_.writeMessageEnd();
       oprot_.getTransport().flush();
@@ -126,7 +109,7 @@ public class SmartClient {
       get_result result = new get_result();
       result.read(iprot_);
       iprot_.readMessageEnd();
-      if (result.isSetSuccess()) {
+      if (result.is_set_success()) {
         return result.success;
       }
       throw new TApplicationException(TApplicationException.MISSING_RESULT, "get failed: unknown result");
@@ -169,8 +152,8 @@ public class SmartClient {
       public void write_args(TProtocol prot) throws TException {
         prot.writeMessageBegin(new TMessage("get", TMessageType.CALL, 0));
         get_args args = new get_args();
-        args.setDomain_name(domain_name);
-        args.setKey(key);
+        args.set_domain_name(domain_name);
+        args.set_key(key);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -347,10 +330,10 @@ public class SmartClient {
      * Performs a deep copy on <i>other</i>.
      */
     public get_args(get_args other) {
-      if (other.isSetDomain_name()) {
+      if (other.is_set_domain_name()) {
         this.domain_name = other.domain_name;
       }
-      if (other.isSetKey()) {
+      if (other.is_set_key()) {
         this.key = TBaseHelper.copyBinary(other.key);
 ;
       }
@@ -366,59 +349,59 @@ public class SmartClient {
       this.key = null;
     }
 
-    public String getDomain_name() {
+    public String get_domain_name() {
       return this.domain_name;
     }
 
-    public get_args setDomain_name(String domain_name) {
+    public get_args set_domain_name(String domain_name) {
       this.domain_name = domain_name;
       return this;
     }
 
-    public void unsetDomain_name() {
+    public void unset_domain_name() {
       this.domain_name = null;
     }
 
     /** Returns true if field domain_name is set (has been asigned a value) and false otherwise */
-    public boolean isSetDomain_name() {
+    public boolean is_set_domain_name() {
       return this.domain_name != null;
     }
 
-    public void setDomain_nameIsSet(boolean value) {
+    public void set_domain_name_isSet(boolean value) {
       if (!value) {
         this.domain_name = null;
       }
     }
 
-    public byte[] getKey() {
-      setKey(TBaseHelper.rightSize(key));
+    public byte[] get_key() {
+      set_key(TBaseHelper.rightSize(key));
       return key == null ? null : key.array();
     }
 
-    public ByteBuffer bufferForKey() {
+    public ByteBuffer buffer_for_key() {
       return key;
     }
 
-    public get_args setKey(byte[] key) {
-      setKey(key == null ? (ByteBuffer)null : ByteBuffer.wrap(key));
+    public get_args set_key(byte[] key) {
+      set_key(key == null ? (ByteBuffer)null : ByteBuffer.wrap(key));
       return this;
     }
 
-    public get_args setKey(ByteBuffer key) {
+    public get_args set_key(ByteBuffer key) {
       this.key = key;
       return this;
     }
 
-    public void unsetKey() {
+    public void unset_key() {
       this.key = null;
     }
 
     /** Returns true if field key is set (has been asigned a value) and false otherwise */
-    public boolean isSetKey() {
+    public boolean is_set_key() {
       return this.key != null;
     }
 
-    public void setKeyIsSet(boolean value) {
+    public void set_key_isSet(boolean value) {
       if (!value) {
         this.key = null;
       }
@@ -428,17 +411,17 @@ public class SmartClient {
       switch (field) {
       case DOMAIN_NAME:
         if (value == null) {
-          unsetDomain_name();
+          unset_domain_name();
         } else {
-          setDomain_name((String)value);
+          set_domain_name((String)value);
         }
         break;
 
       case KEY:
         if (value == null) {
-          unsetKey();
+          unset_key();
         } else {
-          setKey((ByteBuffer)value);
+          set_key((ByteBuffer)value);
         }
         break;
 
@@ -448,10 +431,10 @@ public class SmartClient {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case DOMAIN_NAME:
-        return getDomain_name();
+        return get_domain_name();
 
       case KEY:
-        return getKey();
+        return get_key();
 
       }
       throw new IllegalStateException();
@@ -465,9 +448,9 @@ public class SmartClient {
 
       switch (field) {
       case DOMAIN_NAME:
-        return isSetDomain_name();
+        return is_set_domain_name();
       case KEY:
-        return isSetKey();
+        return is_set_key();
       }
       throw new IllegalStateException();
     }
@@ -485,8 +468,8 @@ public class SmartClient {
       if (that == null)
         return false;
 
-      boolean this_present_domain_name = true && this.isSetDomain_name();
-      boolean that_present_domain_name = true && that.isSetDomain_name();
+      boolean this_present_domain_name = true && this.is_set_domain_name();
+      boolean that_present_domain_name = true && that.is_set_domain_name();
       if (this_present_domain_name || that_present_domain_name) {
         if (!(this_present_domain_name && that_present_domain_name))
           return false;
@@ -494,8 +477,8 @@ public class SmartClient {
           return false;
       }
 
-      boolean this_present_key = true && this.isSetKey();
-      boolean that_present_key = true && that.isSetKey();
+      boolean this_present_key = true && this.is_set_key();
+      boolean that_present_key = true && that.is_set_key();
       if (this_present_key || that_present_key) {
         if (!(this_present_key && that_present_key))
           return false;
@@ -510,12 +493,12 @@ public class SmartClient {
     public int hashCode() {
       HashCodeBuilder builder = new HashCodeBuilder();
 
-      boolean present_domain_name = true && (isSetDomain_name());
+      boolean present_domain_name = true && (is_set_domain_name());
       builder.append(present_domain_name);
       if (present_domain_name)
         builder.append(domain_name);
 
-      boolean present_key = true && (isSetKey());
+      boolean present_key = true && (is_set_key());
       builder.append(present_key);
       if (present_key)
         builder.append(key);
@@ -531,21 +514,21 @@ public class SmartClient {
       int lastComparison = 0;
       get_args typedOther = (get_args)other;
 
-      lastComparison = Boolean.valueOf(isSetDomain_name()).compareTo(typedOther.isSetDomain_name());
+      lastComparison = Boolean.valueOf(is_set_domain_name()).compareTo(typedOther.is_set_domain_name());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDomain_name()) {
+      if (is_set_domain_name()) {
         lastComparison = TBaseHelper.compareTo(this.domain_name, typedOther.domain_name);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetKey()).compareTo(typedOther.isSetKey());
+      lastComparison = Boolean.valueOf(is_set_key()).compareTo(typedOther.is_set_key());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetKey()) {
+      if (is_set_key()) {
         lastComparison = TBaseHelper.compareTo(this.key, typedOther.key);
         if (lastComparison != 0) {
           return lastComparison;
@@ -731,7 +714,7 @@ public class SmartClient {
      * Performs a deep copy on <i>other</i>.
      */
     public get_result(get_result other) {
-      if (other.isSetSuccess()) {
+      if (other.is_set_success()) {
         this.success = new HankResponse(other.success);
       }
     }
@@ -745,25 +728,25 @@ public class SmartClient {
       this.success = null;
     }
 
-    public HankResponse getSuccess() {
+    public HankResponse get_success() {
       return this.success;
     }
 
-    public get_result setSuccess(HankResponse success) {
+    public get_result set_success(HankResponse success) {
       this.success = success;
       return this;
     }
 
-    public void unsetSuccess() {
+    public void unset_success() {
       this.success = null;
     }
 
     /** Returns true if field success is set (has been asigned a value) and false otherwise */
-    public boolean isSetSuccess() {
+    public boolean is_set_success() {
       return this.success != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
+    public void set_success_isSet(boolean value) {
       if (!value) {
         this.success = null;
       }
@@ -773,9 +756,9 @@ public class SmartClient {
       switch (field) {
       case SUCCESS:
         if (value == null) {
-          unsetSuccess();
+          unset_success();
         } else {
-          setSuccess((HankResponse)value);
+          set_success((HankResponse)value);
         }
         break;
 
@@ -785,7 +768,7 @@ public class SmartClient {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return get_success();
 
       }
       throw new IllegalStateException();
@@ -799,7 +782,7 @@ public class SmartClient {
 
       switch (field) {
       case SUCCESS:
-        return isSetSuccess();
+        return is_set_success();
       }
       throw new IllegalStateException();
     }
@@ -817,8 +800,8 @@ public class SmartClient {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true && this.is_set_success();
+      boolean that_present_success = true && that.is_set_success();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
@@ -833,7 +816,7 @@ public class SmartClient {
     public int hashCode() {
       HashCodeBuilder builder = new HashCodeBuilder();
 
-      boolean present_success = true && (isSetSuccess());
+      boolean present_success = true && (is_set_success());
       builder.append(present_success);
       if (present_success)
         builder.append(success);
@@ -849,11 +832,11 @@ public class SmartClient {
       int lastComparison = 0;
       get_result typedOther = (get_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(is_set_success()).compareTo(typedOther.is_set_success());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
+      if (is_set_success()) {
         lastComparison = TBaseHelper.compareTo(this.success, typedOther.success);
         if (lastComparison != 0) {
           return lastComparison;
@@ -898,7 +881,7 @@ public class SmartClient {
     public void write(TProtocol oprot) throws TException {
       oprot.writeStructBegin(STRUCT_DESC);
 
-      if (this.isSetSuccess()) {
+      if (this.is_set_success()) {
         oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
         this.success.write(oprot);
         oprot.writeFieldEnd();
