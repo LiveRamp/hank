@@ -32,9 +32,9 @@ import com.rapleaf.hank.hadoop.TiamatOutputFormat;
 import com.rapleaf.hank.hadoop.TiamatRecordWritable;
 
 /**
- * A sink-only tap to write tuples to Tiamat data stores.
+ * A sink-only tap to write tuples to Hank Domains.
  */
-public class TiamatTap extends Hfs /*implements FlowListener*/ {
+public class HankDomainTap extends Hfs /*implements FlowListener*/ {
 
   private static final long serialVersionUID = 1L;
   private String keyFieldName;
@@ -43,8 +43,8 @@ public class TiamatTap extends Hfs /*implements FlowListener*/ {
 
   //private DomainConfig domainConfig;
 
-  public TiamatTap(String keyFieldName, String valueFieldName, String outputPath) {
-    super(new TiamatScheme(TiamatAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName));
+  public HankDomainTap(String keyFieldName, String valueFieldName, String outputPath) {
+    super(new HankDomainScheme(HankDomainAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName));
     this.keyFieldName = keyFieldName;
     this.valueFieldName = valueFieldName;
     this.outputPath = outputPath;
@@ -62,17 +62,17 @@ public class TiamatTap extends Hfs /*implements FlowListener*/ {
 
   @Override
   public void sourceInit(JobConf conf) {
-    throw new RuntimeException("TiamatTap cannot be used as a source");
+    throw new RuntimeException("HankDomainTap cannot be used as a source");
   }
 
-  private static class TiamatScheme extends Scheme {
+  private static class HankDomainScheme extends Scheme {
 
     private static final long serialVersionUID = 1L;
     private final String partitionFieldName;
     private final String keyFieldName;
     private final String valueFieldName;
 
-    public TiamatScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
+    public HankDomainScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
       this.partitionFieldName = partitionFieldName;
       this.keyFieldName = keyFieldName;
       this.valueFieldName = valueFieldName;
@@ -92,17 +92,16 @@ public class TiamatTap extends Hfs /*implements FlowListener*/ {
     public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
       jobConf.setOutputFormat(TiamatOutputFormat.class);
       // throw new RuntimeException("Not yet implemented");
-      // TODO Auto-generated method stub
     }
 
     @Override
     public Tuple source(Object key, Object value) {
-      throw new RuntimeException("TiamatScheme cannot be used as a source.");
+      throw new RuntimeException("HankDomainScheme cannot be used as a source.");
     }
 
     @Override
     public void sourceInit(Tap tap, JobConf jobConf) throws IOException {
-      throw new RuntimeException("TiamatScheme cannot be used as a source.");
+      throw new RuntimeException("HankDomainScheme cannot be used as a source.");
     }
   }
 

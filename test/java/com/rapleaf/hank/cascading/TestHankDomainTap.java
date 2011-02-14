@@ -45,13 +45,13 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.cueball.Cueball;
 
-public class TestTiamatTap extends TestCase {
-  private static final String INPUT = "/tmp/" + TestTiamatTap.class.getName() + "-input";
-  private static final String OUTPUT = "/tmp/" + TestTiamatTap.class.getName() + "-output";
+public class TestHankDomainTap extends TestCase {
+  private static final String INPUT = "/tmp/" + TestHankDomainTap.class.getName() + "-input";
+  private static final String OUTPUT = "/tmp/" + TestHankDomainTap.class.getName() + "-output";
 
   private final FileSystem fs;
 
-  public TestTiamatTap() throws IOException {
+  public TestHankDomainTap() throws IOException {
     fs = FileSystem.get(new Configuration());
   }
 
@@ -72,7 +72,7 @@ public class TestTiamatTap extends TestCase {
 
   public void testMain() throws IOException {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT);
-    TiamatTap outputTap = new TiamatTap("key", "value", OUTPUT);
+    HankDomainTap outputTap = new HankDomainTap("key", "value", OUTPUT);
     Pipe pipe = getPipe(outputTap);
     new FlowConnector().connect(inputTap, outputTap, pipe).complete();
     assertTrue(false);
@@ -93,12 +93,12 @@ public class TestTiamatTap extends TestCase {
     fs.delete(new Path(OUTPUT), true);
   }
 
-  private Pipe getPipe(TiamatTap outputTap) {
+  private Pipe getPipe(HankDomainTap outputTap) {
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, new Fields("key", "value"), new Identity());
     // TODO: get an actual domain config
     DomainConfig domainConfig = new MockDomainConfig(2);
-    pipe = new TiamatAssembly(domainConfig, pipe, "key", "value");
+    pipe = new HankDomainAssembly(domainConfig, pipe, "key", "value");
     return pipe;
   }
 

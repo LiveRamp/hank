@@ -34,13 +34,13 @@ import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 
-public class TiamatAssembly extends SubAssembly {
+public class HankDomainAssembly extends SubAssembly {
 
   public static final String PARTITION_FIELD_NAME = "__partition";
   private static final long serialVersionUID = 1L;
   private static final String SORTABLE_KEY_FIELD_NAME = "__sortableKey";
 
-  public TiamatAssembly(DomainConfig domainConfig, Pipe outputPipe, String keyFieldName,
+  public HankDomainAssembly(DomainConfig domainConfig, Pipe outputPipe, String keyFieldName,
       String valueFieldName) {
 
     // Append partition id
