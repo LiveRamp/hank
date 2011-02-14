@@ -18,6 +18,7 @@ package com.rapleaf.hank.part_daemon;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
@@ -36,6 +37,8 @@ import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.util.HostUtils;
 
 public class Server implements DaemonStateChangeListener {
+  private static final Logger LOG = Logger.getLogger(Server.class);
+  
   private static final String HOST_NAME;
   static {
     try {
@@ -53,6 +56,7 @@ public class Server implements DaemonStateChangeListener {
   private TServer server;
   private boolean goingDown = false;
   private final PartDaemonAddress hostAddress;
+  private final Object mutex = new Object();
 
   public Server(PartDaemonConfigurator configurator) {
     this.configurator = configurator;
@@ -74,7 +78,7 @@ public class Server implements DaemonStateChangeListener {
   }
 
   void run() {
-    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
+//    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
 
     while (!goingDown) {
       try {
@@ -99,31 +103,41 @@ public class Server implements DaemonStateChangeListener {
     Options options = new Options();
     options.workerThreads = configurator.getNumThreads();
     server = new THsHaServer(new PartDaemon.Processor(handler), serverSocket, options);
+    LOG.debug("Launching Thrift server...");
     server.serve();
+    LOG.debug("Thrift server exited.");
   }
 
   /**
    * Start serving the Thrift server. Returns when the server is up.
    */
   public void startServer() {
-    Runnable r = new Runnable(){
-      @Override
-      public void run() {
-        try {
-          serve();
-        } catch (TTransportException e) {
-          // TODO deal with exception. server is probably going down unexpectedly
+    if (server == null) {
+      Runnable r = new Runnable(){
+        @Override
+        public void run() {
+          try {
+            serve();
+          } catch (TTransportException e) {
+            // TODO deal with exception. server is probably going down unexpectedly
+            LOG.fatal("Server thread died with exception!", e);
+          }
         }
+      };
+      serverThread = new Thread(r, "PartDaemon Thrift Server thread");
+      LOG.info("Launching server thread...");
+      serverThread.start();
+      try {
+        while (server == null || !server.isServing()) {
+          LOG.debug("Server isn't online yet. Waiting...");
+          Thread.sleep(1000);
+        }
+        LOG.info("Thrift server online and serving.");
+      } catch (InterruptedException e) {
+        throw new RuntimeException("Interrupted waiting for server thread to start", e);
       }
-    };
-    serverThread = new Thread(r, "PartDaemon Thrift Server thread");
-    serverThread.start();
-    try {
-      while (server == null || !server.isServing()) {
-        Thread.sleep(100);
-      }
-    } catch (InterruptedException e) {
-      throw new RuntimeException("Interrupted waiting for server thread to start", e);
+    } else {
+      LOG.info("Told to start, but server was already running.");
     }
   }
 
@@ -144,22 +158,35 @@ public class Server implements DaemonStateChangeListener {
   public void stop() {
     // don't wait to be started again.
     goingDown = true;
-    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.STOPPING);
+    setState(DaemonState.STOPPING);
     stopServer();
-    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
+    setState(DaemonState.IDLE);
   }
 
   @Override
   public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
-    if (state == DaemonState.STARTABLE) {
-      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STARTING);
-      startServer();
-      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STARTED);
+    synchronized (mutex) {
+      LOG.debug("Notified of state change to state " + state);
+      switch (state) {
+        case STARTABLE:
+          setState(DaemonState.STARTING);
+          startServer();
+          setState(DaemonState.STARTED);
+          break;
+
+        case STOPPABLE:
+          setState(DaemonState.STOPPING);
+          stopServer();
+          setState(DaemonState.IDLE);
+          break;
+
+        default:
+          LOG.debug("notified of an irrelevant state: " + state);
+      }
     }
-    else if (state == DaemonState.STOPPABLE) {
-      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.STOPPING);
-      stopServer();
-      coord.setDaemonState(ringGroupName, ringNumber, this.hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
-    }
+  }
+
+  private void setState(DaemonState state) {
+    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, state);
   }
 }

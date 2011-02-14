@@ -6,9 +6,12 @@ import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 
 public class MockStorageEngine implements StorageEngine {
+  public boolean getReaderCalled;
+
   @Override
   public Reader getReader(PartDaemonConfigurator configurator, int partNum)
-      throws IOException {
+  throws IOException {
+    getReaderCalled = true;
     return null;
   }
 

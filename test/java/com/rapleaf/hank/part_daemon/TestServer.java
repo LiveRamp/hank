@@ -15,153 +15,120 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import junit.framework.TestCase;
+import java.util.Collections;
+import java.util.Set;
 
-public class TestServer extends TestCase {
-  public void testIt() {
-    fail();
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.config.DomainConfigVersion;
+import com.rapleaf.hank.config.DomainGroupConfig;
+import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.config.MockDomainConfig;
+import com.rapleaf.hank.config.MockDomainConfigVersion;
+import com.rapleaf.hank.config.MockDomainGroupConfig;
+import com.rapleaf.hank.config.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.config.MockRingConfig;
+import com.rapleaf.hank.config.MockRingGroupConfig;
+import com.rapleaf.hank.config.PartDaemonAddress;
+import com.rapleaf.hank.config.RingConfig;
+import com.rapleaf.hank.config.RingGroupConfig;
+import com.rapleaf.hank.coordinator.DaemonState;
+import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.MockCoordinator;
+import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.storage.MockStorageEngine;
+import com.rapleaf.hank.storage.StorageEngine;
+
+public class TestServer extends BaseTestCase {
+  private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
+    @Override
+    public Set<Integer> getDomainPartitionsForHost(
+        PartDaemonAddress hostAndPort, int domainId)
+    throws DataNotFoundException {
+      return Collections.singleton(0);
+    }
+  };
+
+  public void testColdStartAndShutDown() throws Exception {
+    final MockStorageEngine mockStorageEngine = new MockStorageEngine();
+
+    DomainGroupConfig mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
+
+    final RingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {
+      @Override
+      public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
+          throws DataNotFoundException {
+        return mockRingConfig;
+      }
+    };
+
+    MockCoordinator mockCoordinator = new MockCoordinator() {
+      private DaemonState daemonState;
+
+      @Override
+      public DaemonState getDaemonState(String ringGroupName, int ringNumber,
+          PartDaemonAddress hostAddress, DaemonType type) {
+        return daemonState;
+      }
+
+      @Override
+      public RingGroupConfig getRingGroupConfig(String ringGroupName)
+          throws DataNotFoundException {
+        return mockRingGroupConfig;
+      }
+
+      @Override
+      public void setDaemonState(String ringGroupName, int ringNumber,
+          PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
+        daemonState = state;
+      }
+    };
+
+    MockPartDaemonConfigurator mockConfigurator = new MockPartDaemonConfigurator(12345, mockCoordinator, "myRingGroup", 1, "/tmp/local_data_dir");
+
+    Server server = new Server(mockConfigurator);
+
+    // should move smoothly from startable to idle
+    server.onDaemonStateChange(null, 0, null, null, DaemonState.STARTABLE);
+    assertEquals("Daemon state is now STARTED",
+        DaemonState.STARTED,
+        mockCoordinator.getDaemonState(null, 0, new PartDaemonAddress("localhost", 12345), null));
+
+    // duplicate startable should end up back in started without any mess
+    server.onDaemonStateChange(null, 0, null, null, DaemonState.STARTABLE);
+    assertEquals("Daemon state is now STARTED",
+        DaemonState.STARTED,
+        mockCoordinator.getDaemonState(null, 0, new PartDaemonAddress("localhost", 12345), null));
+
+    server.onDaemonStateChange(null, 0, null, null, DaemonState.STOPPABLE);
+    assertEquals("Daemon state is now IDLE",
+        DaemonState.IDLE,
+        mockCoordinator.getDaemonState(null, 0, new PartDaemonAddress("localhost", 12345), null));
   }
- // public class MockCoordinator implements Coordinator {
- //    PartDaemonState partDaemonState = null;
- //    private StartableCallback startableCallback;
- //    private StoppableCallback stoppableCallback;
- // 
- //    @Override
- //    public void awaitStartable(String hostname, StartableCallback callback) {
- //      this.startableCallback = callback;
- //    }
- // 
- //    @Override
- //    public void awaitStoppable(String hostname, StoppableCallback callback) {
- //      this.stoppableCallback = callback;
- //    }
- // 
- //    @Override
- //    public void awaitStopped(String hostname, Object callback) {}
- // 
- //    @Override
- //    public void awaitUpdatable(String hostName, UpdatableCallback callback) {}
- // 
- //    @Override
- //    public void awaitUpdated(String hostname, Object callback) {}
- // 
- //    @Override
- //    public PartDaemonState getPartDaemonState(String hostname) {
- //      return partDaemonState;
- //    }
- // 
- //    @Override
- //    public void setServing(String hostname) {
- //      partDaemonState = PartDaemonState.SERVING;
- //    }
- // 
- //    @Override
- //    public void setStartable(String hostname) {
- //      partDaemonState = PartDaemonState.STARTABLE;
- //      startableCallback.notifyStartable();
- //    }
- // 
- //    @Override
- //    public void setStarting(String hostname) {
- //      partDaemonState = PartDaemonState.STARTING;
- //    }
- // 
- //    @Override
- //    public void setStoppable(String hostname) {
- //      partDaemonState = PartDaemonState.STOPPABLE;
- //      stoppableCallback.notifyStoppable();
- //    }
- // 
- //    @Override
- //    public void setStopped(String hostname) {
- //      partDaemonState = PartDaemonState.STOPPED;
- //    }
- // 
- //    @Override
- //    public void setStopping(String hostname) {
- //      partDaemonState = PartDaemonState.STOPPING;
- //    }
- // 
- //    @Override
- //    public void setUpdateable(String hostname) {}
- // 
- //    @Override
- //    public void setUpdated(String hostname) {}
- // 
- //    @Override
- //    public void setUpdating(String hostname) {}
- // 
- //    @Override
- //    public List<String> getHostsForPartition(int partition) {
- //      // TODO Auto-generated method stub
- //      return null;
- //    }
- //  }
- // 
- //  public class MockPartDaemonConfigurator implements PartDaemonConfigurator {
- //    private final MockCoordinator mockCoordinator;
- // 
- //    public MockPartDaemonConfigurator() {
- //      mockCoordinator = new MockCoordinator();
- //    }
- // 
- //    @Override
- //    public int getNumThreads() {
- //      return 1;
- //    }
- // 
- //    @Override
- //    public int getServicePort() {
- //      return 12345;
- //    }
- // 
- //    @Override
- //    public Set<String> getLocalDataDirectories() {
- //      // TODO Auto-generated method stub
- //      return null;
- //    }
- // 
- //    @Override
- //    public Coordinator getCoordinator() {
- //      return mockCoordinator;
- //    }
- //  }
- // 
- //  public void testMovesThroughStates() throws Exception {
- //    MockPartDaemonConfigurator conf = new MockPartDaemonConfigurator();
- //    final Server server = new Server(conf);
- // 
- //    Runnable serverRunnable = new Runnable() {
- //      @Override
- //      public void run() {
- //        server.run();
- //      }
- //    };
- // 
- //    Thread serverThread = new Thread(serverRunnable);
- //    serverThread.start();
- // 
- //    conf.getCoordinator().setStartable(null);
- // 
- //    // check that coordinator was notified of the server serving
- //    assertEquals(Coordinator.PartDaemonState.SERVING, conf.getCoordinator().getPartDaemonState(null));
- //    // verify through thrift interface that server is up
- // 
- //    // set server to stoppable
- //    conf.getCoordinator().setStoppable(null);
- // 
- //    // check that server sets itself to stopped
- //    assertEquals(Coordinator.PartDaemonState.STOPPED, conf.getCoordinator().getPartDaemonState(null));
- //    // verify that the thrift interface is down
- // 
- //    // set server to startable
- //    conf.getCoordinator().setStartable(null);
- // 
- //    // check that the server is up again
- //    assertEquals(Coordinator.PartDaemonState.SERVING, conf.getCoordinator().getPartDaemonState(null));
- // 
- //    // actually down the server
- //    server.stop();
- //    serverThread.join();
- //  }
+
+  private static DomainGroupConfigVersion getMockDomainGroupConfigVersion(
+      final StorageEngine mockStorageEngine) 
+  {
+    return new MockDomainGroupConfigVersion(Collections.singleton(
+        (DomainConfigVersion)new MockDomainConfigVersion(
+            new MockDomainConfig("myDomain",
+                1,
+                new ConstantPartitioner(),
+                mockStorageEngine,
+                0),
+            0)),
+        null,
+        0);
+  }
+
+  private DomainGroupConfig getMockDomainGroupConfig(
+      final StorageEngine mockStorageEngine) {
+    DomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+      @Override
+      public DomainGroupConfigVersion getLatestVersion() {
+        return getMockDomainGroupConfigVersion(mockStorageEngine);
+      }
+    };
+    return mockDomainGroupConfig;
+  }
 }
