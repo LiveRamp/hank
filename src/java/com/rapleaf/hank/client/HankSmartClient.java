@@ -34,7 +34,7 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Client;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
-public class Handler implements Iface, RingGroupChangeListener {
+public class HankSmartClient implements Iface, RingGroupChangeListener {
   private static final int TIMEOUT = 10000;
   private static final int RING_PORT = 9090;
 
@@ -43,7 +43,7 @@ public class Handler implements Iface, RingGroupChangeListener {
   private List<RingConfig> availableRings;
   private Map<String, Client> openConnections;
 
-  public Handler(Coordinator coord, String ringGroupName) throws DataNotFoundException {
+  public HankSmartClient(Coordinator coord, String ringGroupName) throws DataNotFoundException {
     this.coord = coord;
     this.domainGroup = coord.getRingGroupConfig(ringGroupName).getDomainGroupConfig();
     setRingGroup(coord.getRingGroupConfig(ringGroupName));

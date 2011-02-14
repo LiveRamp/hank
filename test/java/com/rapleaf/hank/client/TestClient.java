@@ -49,7 +49,7 @@ import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.util.Bytes;
 
-public class TestHandler extends TestCase {
+public class TestClient extends TestCase {
   private static final String RING_GROUP_NAME = "rapleaf";
   private static final int RING_NUMBER = 1;
 
@@ -277,7 +277,7 @@ public class TestHandler extends TestCase {
   
   public void testGet() throws Exception {
     PartDaemonConfigurator configurator = new MockPartDaemonConfigurator1();
-    Handler client = new Handler(configurator.getCoordinator(), configurator.getRingGroupName());
+    HankSmartClient client = new HankSmartClient(configurator.getCoordinator(), configurator.getRingGroupName());
     HankResponse response = client.get("", ByteBuffer.wrap(new byte[4]).putInt(1));
 
     assertEquals(Bytes.bytesToInt(response.getValue()), 123);
