@@ -49,7 +49,7 @@ import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.util.Bytes;
 
-public class TestClient extends TestCase {
+public class TestHankSmartClient extends TestCase {
   private static final String RING_GROUP_NAME = "rapleaf";
   private static final int RING_NUMBER = 1;
 
