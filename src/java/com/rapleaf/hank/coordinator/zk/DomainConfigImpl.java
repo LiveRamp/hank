@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.apache.zookeeper.ZooKeeper;
@@ -38,15 +37,24 @@ public class DomainConfigImpl implements DomainConfig {
   private int version;
 
   private StorageEngine storageEngine;
-  
-  public DomainConfigImpl(String name, int numParts, Partitioner partitioner,
-      String storageEngineFactoryName, Map<String, Object> storageEngineOptions, int version) {
-    this.name = name;
-    this.numParts = numParts;
-    this.partitioner = partitioner;
-    this.storageEngineFactoryName = storageEngineFactoryName;
-    this.storageEngineOptions = storageEngineOptions;
-    this.version = version;
+
+  public DomainConfigImpl(ZooKeeper zk, String domainPath) throws DataNotFoundException {
+    ZooKeeperUtils.checkExists(zk, domainPath);
+
+    String[] toks = domainPath.split("/");
+    this.name = toks[toks.length - 1];
+    this.numParts = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_NUM_PARTS));
+    this.version = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_VERSION));
+    this.storageEngineOptions = (Map<String, Object>)new Yaml().load(ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
+    this.storageEngineFactoryName = ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
+
+    Partitioner partitioner;
+    String partitionerClassName = ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_PARTITIONER);
+    try {
+      partitioner = (Partitioner)((Class) Class.forName(partitionerClassName)).newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+    }
   }
 
   public DomainConfigImpl(String name, int numParts,
@@ -73,7 +81,7 @@ public class DomainConfigImpl implements DomainConfig {
   public Partitioner getPartitioner() {
     return partitioner;
   }
-  
+
   @Override
   public StorageEngine getStorageEngine() {
     if (storageEngine != null) {
@@ -82,13 +90,11 @@ public class DomainConfigImpl implements DomainConfig {
     try {
       StorageEngineFactory factory = (StorageEngineFactory)Class.forName(storageEngineFactoryName).newInstance();
       return storageEngine = factory.getStorageEngine(storageEngineOptions);
+    } catch (Exception e) { 
+      throw new RuntimeException("Could not instantiate storage engine from factory " + storageEngineFactoryName, e);
     }
-    catch (ClassNotFoundException e) { throw new RuntimeException(e); }
-    catch (InstantiationException e) { throw new RuntimeException(e); } 
-    catch (IllegalAccessException e) { throw new RuntimeException(e); }
-    catch (IOException e) { throw new RuntimeException(e); }
   }
-  
+
   @Override
   public int getVersion() {
     return version;
@@ -100,31 +106,6 @@ public class DomainConfigImpl implements DomainConfig {
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
   private static final String KEY_VERSION = "version";
-
-  @SuppressWarnings("unchecked")
-  public static DomainConfigImpl loadFromZooKeeper(ZooKeeper zk, String domainName) throws InterruptedException, DataNotFoundException {
-    String path = ZooKeeperUtils.getDomainPath(domainName);
-
-    ZooKeeperUtils.checkExists(zk, path);
-    String name = ZooKeeperUtils.getStringOrDie(zk, path);
-    int numParts = ZooKeeperUtils.getIntOrDie(zk, path + '/' + KEY_NUM_PARTS);
-    int version = ZooKeeperUtils.getIntOrDie(zk, path + '/' + KEY_VERSION);
-    String optionString = ZooKeeperUtils.getStringOrDie(zk, path + '/' + KEY_STORAGE_ENGINE_OPTIONS);
-    Map<String, Object> storageEngineOptions = (Map<String, Object>)new Yaml().load(optionString);
-    String factoryName = ZooKeeperUtils.getStringOrDie(zk, path + '/' + KEY_STORAGE_ENGINE_FACTORY);
-
-    Partitioner partitioner;
-    try {
-      Class partClass = Class.forName(ZooKeeperUtils.getStringOrDie(zk, path + '/' + KEY_PARTITIONER));
-      partitioner = (Partitioner)partClass.newInstance();
-    }
-    catch (ClassNotFoundException e) { throw new RuntimeException(e); } 
-    catch (InstantiationException e) { throw new RuntimeException(e); } 
-    catch (IllegalAccessException e) { throw new RuntimeException(e); }
-    
-    
-    return new DomainConfigImpl(name, numParts, partitioner, factoryName, storageEngineOptions, version);
-  }
 
   public String getStorageEngineFactoryName() {
     return storageEngineFactoryName;
