@@ -94,6 +94,12 @@ public class TestHankSmartClient extends TestCase {
     public RingGroupConfig getRingGroupConfig() {
       return null;
     }
+
+    @Override
+    public int getVersionNumber() {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 
   private class MockCoordinator implements Coordinator {

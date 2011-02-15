@@ -54,4 +54,6 @@ public interface RingConfig {
    * @return
    */
   public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId);
+
+  public int getVersionNumber();
 }

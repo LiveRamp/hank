@@ -1,6 +1,9 @@
 package com.rapleaf.hank;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
@@ -28,4 +31,19 @@ public class ZkTestCase extends BaseTestCase {
   public ZooKeeper getZk() {
     return zk;
   }
+
+  protected void create(String path) throws KeeperException,
+      InterruptedException {
+        create(path, (byte[])null);
+      }
+
+  protected void create(String path, String data) throws KeeperException,
+      InterruptedException {
+        create(path, data.getBytes());
+      }
+
+  protected void create(String path, byte[] data) throws KeeperException,
+      InterruptedException {
+        getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
 }

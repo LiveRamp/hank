@@ -1,8 +1,5 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.config.DomainGroupConfigVersion;
@@ -49,17 +46,5 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
     assertEquals(1, dgc.getDomainId("domain1"));
     assertEquals("domain0", dgc.getDomainConfig(0).getName());
     assertEquals("domain1", dgc.getDomainConfig(1).getName());
-  }
-
-  private void create(String path) throws KeeperException, InterruptedException {
-    create(path, (byte[])null);
-  }
-
-  private void create(String path, String data) throws KeeperException, InterruptedException {
-    create(path, data.getBytes());
-  }
-
-  private void create(String path, byte[] data) throws KeeperException, InterruptedException {
-    getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 }

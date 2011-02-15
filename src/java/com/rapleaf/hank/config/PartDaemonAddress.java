@@ -1,10 +1,14 @@
 package com.rapleaf.hank.config;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * A helper class representing a hostname and port number pair used to identify
  * a Part Daemon.
  */
 public final class PartDaemonAddress {
+  private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("(\\w+):(\\d+)");
   private final String hostName;
   private final int portNumber;
 
@@ -52,5 +56,14 @@ public final class PartDaemonAddress {
   @Override
   public String toString() {
     return hostName + ":" + portNumber;
+  }
+
+  public static PartDaemonAddress parse(String s) {
+    Matcher matcher = HOST_AND_PORT_PATTERN.matcher(s);
+    if (matcher.matches()) {
+      return new PartDaemonAddress(matcher.group(1), Integer.parseInt(matcher.group(2)));
+    } else {
+      throw new RuntimeException(s + " is not a properly formatted host:port pair.");
+    }
   }
 }

@@ -498,10 +498,11 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");
     }
     RingConfigImpl oldRing = (RingConfigImpl) rg.getRingConfig(ringNumber);
-    RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
-    rg.getRingConfigsMap().put(ringNumber, newRing); // Clobber the old ring
+    throw new NotImplementedException();
+//    RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
+//    rg.getRingConfigsMap().put(ringNumber, newRing); // Clobber the old ring
 
-    pushNewRingGroup(rg);
+//    pushNewRingGroup(rg);
   }
   
   /**

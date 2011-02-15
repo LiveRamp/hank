@@ -99,13 +99,7 @@ public class RingGroupConfigImpl implements RingGroupConfig {
         throw new RuntimeException("Malformed ZooKeeper structure at " + ringGroupPath + '/' + ring + ". Should be format ring-###.");
       }
       int ringNumber = Integer.parseInt(ring.substring(5));
-      try {
-        ringConfigMap.put(ringNumber, RingConfigImpl.loadFromZooKeeper(zk, coord, ringGroupName, ringNumber));
-      }
-      catch (DataNotFoundException e) {
-        // Perhaps someone deleted the node while we were loading (unlikely)
-        LOG.warn("A node disappeared while we were loading ring configs into memory.", e);
-      }
+      ringConfigMap.put(ringNumber, new RingConfigImpl(zk, ringGroupPath + "/" + ring, null));
     }
     return new RingGroupConfigImpl(ringGroupName, dg, ringConfigMap);
   }

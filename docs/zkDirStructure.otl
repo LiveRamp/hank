@@ -14,7 +14,7 @@
 	/domain_groups
 		/<group_name>
 			/domains
-				/<domain_id> => <domain_name>
+				/<domain_id> => <domain_path (ie /hank/domains/your_domain_name)>
 				: Basically map domain name to its id
 			/versions
 				/<domain_group_version>

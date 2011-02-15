@@ -51,4 +51,10 @@ public class MockRingConfig implements RingConfig {
   public RingState getState() {
     return state;
   }
+
+  @Override
+  public int getVersionNumber() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 }
