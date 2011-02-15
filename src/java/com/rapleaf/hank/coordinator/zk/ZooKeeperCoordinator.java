@@ -325,13 +325,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     ZooKeeperUtils.checkExistsOrDie(zk, path);
     List<String> ringGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, path);
     for (String ringGroupName : ringGroupNameList) {
-      try {
-        tempMap.put(ringGroupName, RingGroupConfigImpl.loadFromZooKeeper(zk, this, ringGroupName));
-      }
-      catch (DataNotFoundException e) {
-        // Perhaps someone deleted the node while we were loading (unlikely)
-        LOG.warn("A node disappeared while we were loading ring group configs into memory.", e);
-      }
+//      try {
+        throw new NotImplementedException();
+//        tempMap.put(ringGroupName, new RingGroupConfigImpl(zk, this, ringGroupName));
+//      }
+//      catch (DataNotFoundException e) {
+//        // Perhaps someone deleted the node while we were loading (unlikely)
+//        LOG.warn("A node disappeared while we were loading ring group configs into memory.", e);
+//      }
     }
     ringGroupConfigs = Collections.synchronizedMap(tempMap);
   }
@@ -592,18 +593,19 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeChildrenChanged) {
-        try {
-          RingGroupConfigImpl rg = RingGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, ringGroupName);
-          ringGroupConfigs.put(ringGroupName, rg);
-          pushNewRingGroup(rg);
-          register();
-        } catch (DataNotFoundException e) {
-          // This should never happen
-          LOG.warn(e);
-        } catch (InterruptedException e) {
-          // Server is probably going down
-          return;
-        }
+//        try {
+          throw new NotImplementedException();
+//          RingGroupConfigImpl rg = RingGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, ringGroupName);
+//          ringGroupConfigs.put(ringGroupName, rg);
+//          pushNewRingGroup(rg);
+//          register();
+//        } catch (DataNotFoundException e) {
+//          // This should never happen
+//          LOG.warn(e);
+//        } catch (InterruptedException e) {
+//          // Server is probably going down
+//          return;
+//        }
       }
     }
     

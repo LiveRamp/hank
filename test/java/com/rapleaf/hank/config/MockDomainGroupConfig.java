@@ -36,4 +36,9 @@ public class MockDomainGroupConfig implements DomainGroupConfig {
   public SortedSet<DomainGroupConfigVersion> getVersions() {
     return null;
   }
+
+  @Override
+  public String toString() {
+    return "MockDomainGroupConfig [name=" + name + "]";
+  }
 }
