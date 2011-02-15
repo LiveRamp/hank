@@ -12,8 +12,9 @@ public class TestDomainConfigVersionImpl extends ZkTestCase {
   }
 
   public void testLoad() throws Exception {
-    getZk().create(getRoot() + "/1", "7".getBytes("utf-8"), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    DomainConfigVersion dcv = new DomainConfigVersionImpl(getZk(), getRoot() + "/1", null);
+    String path = getRoot() + "/myDomain";
+    getZk().create(path, "7".getBytes("utf-8"), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    DomainConfigVersion dcv = new DomainConfigVersionImpl(getZk(), path, null);
     assertEquals(7, dcv.getVersionNumber());
   }
 }

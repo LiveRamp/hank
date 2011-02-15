@@ -20,7 +20,7 @@
 				/<domain_group_version>
 				: There will be a folder for each domain group version,
 				: consisting of the version of each domain in that dg version.
-					/<domain_id> => version
+					/<domain_name> => version
 	/ring_groups
 		/<ring_group_name> => <domain_group_name>
 			/ring-<ring_number>
