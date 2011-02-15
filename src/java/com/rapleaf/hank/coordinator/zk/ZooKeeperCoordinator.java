@@ -38,9 +38,6 @@ import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
-import com.rapleaf.hank.coordinator.Coordinator.DomainChangeListener;
-import com.rapleaf.hank.coordinator.Coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.Coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.ZooKeeperUtils;
@@ -295,7 +292,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainNames = ZooKeeperUtils.getChildrenOrDie(zk, domainPath);
     for (String domainName : domainNames) {
       try {
-        tempMap.put(domainName, DomainConfigImpl.loadFromZooKeeper(zk, domainName));
+        tempMap.put(domainName, new DomainConfigImpl(zk, ZooKeeperUtils.DOMAIN_ROOT + "/" + domainName));
       }
       catch (DataNotFoundException e) {
         // Perhaps someone deleted the node while we were loading (unlikely)
@@ -616,11 +613,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
   
   private class DomainVersionWatcher implements ZooKeeperWatcher {
-    private String domainName;
     private String path;
 
     public DomainVersionWatcher(String domainName) {
-      this.domainName = domainName;
       this.path = ZooKeeperUtils.getDomainPath(domainName);
       register();
     }
@@ -629,13 +624,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
         try {
-          DomainConfigImpl newDomain = DomainConfigImpl.loadFromZooKeeper(zk, domainName);
-          domainConfigs.put(domainName, newDomain);
+          DomainConfigImpl newDomain = new DomainConfigImpl(zk, path);
+          domainConfigs.put(path, newDomain);
           pushNewDomain(newDomain);
           register();
-        } catch (InterruptedException e) {
-          // Server probably going down.
-          return;
         } catch (DataNotFoundException e) {
           // This shouldn't happen
           LOG.warn(e);

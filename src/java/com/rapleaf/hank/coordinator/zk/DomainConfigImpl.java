@@ -48,7 +48,6 @@ public class DomainConfigImpl implements DomainConfig {
     this.storageEngineOptions = (Map<String, Object>)new Yaml().load(ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
     this.storageEngineFactoryName = ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
 
-    Partitioner partitioner;
     String partitionerClassName = ZooKeeperUtils.getStringOrDie(zk, domainPath + '/' + KEY_PARTITIONER);
     try {
       partitioner = (Partitioner)((Class) Class.forName(partitionerClassName)).newInstance();
