@@ -20,7 +20,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainGroupConfig;
@@ -31,8 +30,6 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class RingGroupConfigImpl implements RingGroupConfig {
-  private static final Logger LOG = Logger.getLogger(RingGroupConfigImpl.class);
-
   private final String ringGroupName;
   private DomainGroupConfig domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
