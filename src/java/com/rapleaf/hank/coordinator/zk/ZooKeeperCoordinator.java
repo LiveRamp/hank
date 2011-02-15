@@ -309,7 +309,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainGroupPath);
     for (String domainGroupName : domainGroupNameList) {
       try {
-        tempMap.put(domainGroupName, DomainGroupConfigImpl.loadFromZooKeeper(zk, this, domainGroupName));
+        tempMap.put(domainGroupName, new DomainGroupConfigImpl(zk, ZooKeeperUtils.DOMAIN_GROUP_ROOT + "/" + domainGroupName));
       }
       catch (DataNotFoundException e) {
         // Perhaps someone deleted the node while we were loading (unlikely)
@@ -655,7 +655,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
         try {
-          DomainGroupConfigImpl dg = DomainGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, domainGroupName);
+          DomainGroupConfigImpl dg = new DomainGroupConfigImpl(zk, ZooKeeperUtils.DOMAIN_GROUP_ROOT + "/" + domainGroupName);
           domainGroupConfigs.put(domainGroupName, dg);
           pushNewDomainGroup(dg);
           register();

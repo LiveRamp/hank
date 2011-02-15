@@ -1,6 +1,6 @@
-; ZooKeeper Directory Structure for Tiamat
+; ZooKeeper Directory Structure for hank
 
-/tiamat
+/hank
 : Root directory
 	/domains
 		/<domain_name>
@@ -14,7 +14,7 @@
 	/domain_groups
 		/<group_name>
 			/domains
-				/<domain_name> => domain_id
+				/<domain_id> => <domain_name>
 				: Basically map domain name to its id
 			/versions
 				/<domain_group_version>

@@ -15,11 +15,14 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.Map.Entry;
 
 import org.apache.zookeeper.ZooKeeper;
@@ -31,16 +34,43 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigImpl implements DomainGroupConfig {
-  private String groupName;
-  private Map<Integer, DomainConfig> domainConfigs;
-  private Map<Integer, Map<Integer, Integer>> domainGroupVersions;
+  private final class DGCVComparator implements Comparator<DomainGroupConfigVersion> {
+    @Override
+    public int compare(DomainGroupConfigVersion arg0, DomainGroupConfigVersion arg1) {
+      int vLeft = arg0.getVersionNumber();
+      int vRight = arg1.getVersionNumber();
+      if (vLeft < vRight) {
+        return -1;
+      }
+      if (vLeft > vRight) {
+        return 1;
+      }
+      return 0;
+    }
+  }
 
-  public DomainGroupConfigImpl(String groupName,
-      Map<Integer, DomainConfig> domainConfigs,
-      Map<Integer, Map<Integer, Integer>> domainGroupVersions) {
-    this.groupName = groupName;
-    this.domainConfigs = domainConfigs;
-    this.domainGroupVersions = domainGroupVersions;
+  private final String groupName;
+  private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
+  private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
+    new TreeMap<Integer, DomainGroupConfigVersion>();
+
+  public DomainGroupConfigImpl(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException {
+    String[] toks = dgPath.split("/");
+    this.groupName = toks[toks.length - 1];
+
+    // enumerate the "domains" subkey
+    List<String> domainIds = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/domains");
+    for (String domainId : domainIds) {
+      domainConfigs.put(Integer.parseInt(domainId), 
+          new DomainConfigImpl(zk, ZooKeeperUtils.getStringOrDie(zk, dgPath + "/domains/" + domainId)));
+    }
+
+    // enumerate the versions subkey
+    List<String> versions = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/versions");
+    for (String version : versions) {
+      domainGroupConfigVersions.put(Integer.parseInt(version),
+          new DomainGroupConfigVersionImpl(zk, dgPath + "/versions/" + version, this));
+    }
   }
 
   @Override
@@ -58,8 +88,8 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   }
 
   @Override
-  // Note: This is not most efficient, but this method shouldn't be used too much
   public int getDomainId(String domainName) throws DataNotFoundException {
+    // TODO: replace this with an inverted map
     for(Entry<Integer, DomainConfig> entry : domainConfigs.entrySet()) {
       if (entry.getValue().getName().equals(domainName)) {
         return entry.getKey();
@@ -70,46 +100,17 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
 
   @Override
   public DomainGroupConfigVersion getLatestVersion() {
-    // TODO Auto-generated method stub
-    return null;
+    return domainGroupConfigVersions.get(domainGroupConfigVersions.lastKey());
   }
 
   @Override
   public SortedSet<DomainGroupConfigVersion> getVersions() {
-    // TODO Auto-generated method stub
-    return null;
+    TreeSet<DomainGroupConfigVersion> s = new TreeSet<DomainGroupConfigVersion>(new DGCVComparator());
+    s.addAll(domainGroupConfigVersions.values());
+    return s;
   }
 
   Map<Integer, DomainConfig> getDomainConfigMap() {
     return domainConfigs;
-  }
-
-  static DomainGroupConfigImpl loadFromZooKeeper(ZooKeeper zk,
-      ZooKeeperCoordinator coord, 
-      String domainGroupName)
-  throws InterruptedException, DataNotFoundException {
-    String domainGroupPath = ZooKeeperUtils.DOMAIN_GROUP_ROOT;
-    ZooKeeperUtils.checkExists(zk, domainGroupPath + '/' + domainGroupName);
-    // Generate the map of DomainConfigs
-    Map<Integer, DomainConfig> domainConfigMap = new HashMap<Integer, DomainConfig>();
-    String domainPath = domainGroupPath + '/' + domainGroupName + "/domains";
-    List<String> domainNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainPath);
-    for (String domainName : domainNameList) {
-      domainConfigMap.put(ZooKeeperUtils.getIntOrDie(zk, domainPath + '/' + domainName), coord.getDomainConfig(domainName));
-    }
-
-    // Generate the map of domain group versions
-    Map<Integer, Map<Integer, Integer>> domainGroupVersionsMap = new HashMap<Integer, Map<Integer, Integer>>();
-    String versionPath = domainGroupPath + '/' + domainGroupName + "/versions";
-    List<String> domainGroupVersionList = ZooKeeperUtils.getChildrenOrDie(zk, versionPath);
-    for (String domainGroupVersion : domainGroupVersionList) {
-      Map<Integer, Integer> domainGroupVersionMap = new HashMap<Integer, Integer>();
-      List<String> domainIds = ZooKeeperUtils.getChildrenOrDie(zk, versionPath + '/' + domainGroupVersion);
-      for (String domainId : domainIds) {
-        domainGroupVersionMap.put(Integer.parseInt(domainId), ZooKeeperUtils.getIntOrDie(zk, versionPath + '/' + domainGroupVersion + '/' + domainId));
-      }
-      domainGroupVersionsMap.put(Integer.parseInt(domainGroupVersion), domainGroupVersionMap);
-    }
-    return new DomainGroupConfigImpl(domainGroupName, Collections.synchronizedMap(domainConfigMap), Collections.synchronizedMap(domainGroupVersionsMap));
   }
 }
