@@ -215,6 +215,14 @@ public class TestHankSmartClient extends TestCase {
       // TODO Auto-generated method stub
       return null;
     }
+
+    public Set<DomainGroupConfig> getDomainGroupConfigs() {
+      return null;
+    }
+
+    public Set<RingGroupConfig> getRingGroups() {
+      return null;
+    }
   }
 
   private static final int SERVICE_PORT_1 = 9090;

@@ -611,7 +611,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     public DomainGroupVersionWatcher(String domainGroupName) {
       this.domainGroupName = domainGroupName;
-      this.path = ZooKeeperUtils.domainGroupPath(null, domainGroupName) + "/versions";
+      this.path = ZooKeeperUtils.domainGroupPath(domainGroupsRoot, domainGroupName) + "/versions";
       register();
     }
 
@@ -642,5 +642,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public Set<DomainConfig> getDomainConfigs() {
     return new HashSet<DomainConfig>(domainConfigsByName.values());
+  }
+
+  @Override
+  public Set<DomainGroupConfig> getDomainGroupConfigs() {
+    return new HashSet<DomainGroupConfig>(domainGroupConfigs.values());
+  }
+
+  public Set<RingGroupConfig> getRingGroups() {
+    return new HashSet<RingGroupConfig>(ringGroupConfigs.values());
   }
 }

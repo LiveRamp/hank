@@ -94,4 +94,12 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  public Set<DomainGroupConfig> getDomainGroupConfigs() {
+    return null;
+  }
+
+  public Set<RingGroupConfig> getRingGroups() {
+    return null;
+  }
+
 }

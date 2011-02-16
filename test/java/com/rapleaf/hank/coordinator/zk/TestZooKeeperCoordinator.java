@@ -51,11 +51,26 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     create(domains_root);
     createMockDomain(domains_root + "/domain0");
     create(domain_groups_root);
+    create(domain_groups_root + "/myDomainGroup");
+    create(domain_groups_root + "/myDomainGroup/domains");
+    create(domain_groups_root + "/myDomainGroup/versions");
     create(ring_groups_root);
+    create(ring_groups_root + "/myRingGroup", domain_groups_root + "/myDomainGroup");
+    create(ring_groups_root + "/myRingGroup/ring-001");
+    create(ring_groups_root + "/myRingGroup/ring-001/version", "1");
+    create(ring_groups_root + "/myRingGroup/ring-001/hosts");
 
     ZooKeeperCoordinator coord = new ZooKeeperCoordinator(getZkConnectString(), 100000, domains_root, domain_groups_root, ring_groups_root);
 
     assertEquals("number of loaded domain configs", 1, coord.getDomainConfigs().size());
+    assertEquals("get domain by name", "domain0", coord.getDomainConfig("domain0").getName());
+
+    assertEquals("number of loaded domain group configs", 1, coord.getDomainGroupConfigs().size());
+    assertEquals("get domain group by name", "myDomainGroup", coord.getDomainGroupConfig("myDomainGroup").getName());
+
+    assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
+    assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
+
     fail("assertions not fully implemented");
   }
 

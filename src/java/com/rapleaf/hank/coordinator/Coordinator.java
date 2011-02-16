@@ -48,45 +48,51 @@ public interface Coordinator {
   }
 
   /**
-   * Used to receive the latest configuration information when a domain has changed. Usually this
-   * occurs when a domain has been updated to a newer version.
+   * Used to receive the latest configuration information when a domain has
+   * changed. Usually this occurs when a domain has been updated to a newer
+   * version.
    */
   public interface DomainChangeListener {
     /**
-     * Called when the configuration information for a domain has changed. The latest configuration information
-     * is supplied in the arguments.
+     * Called when the configuration information for a domain has changed. The
+     * latest configuration information is supplied in the arguments.
      * 
-     * @param newDomain the latest configuration information for a domain
+     * @param newDomain
+     *          the latest configuration information for a domain
      */
     public void onDomainChange(DomainConfig newDomain);
   }
 
   /**
-   * Used to receive the latest configuration information when a domain group has changed. Usually this occurs
-   * when a domain has been updated to a newer version, and hence its domain group is also updated to a newer version.
+   * Used to receive the latest configuration information when a domain group
+   * has changed. Usually this occurs when a domain has been updated to a newer
+   * version, and hence its domain group is also updated to a newer version.
    */
   public interface DomainGroupChangeListener {
     /**
-     * Called when the configuration information for a domain group has changed. The latest configuration information
-     * is supplied in the arguments.
+     * Called when the configuration information for a domain group has changed.
+     * The latest configuration information is supplied in the arguments.
      * 
-     * @param newDomainGroup the latest configuration information for a domain group
+     * @param newDomainGroup
+     *          the latest configuration information for a domain group
      */
     public void onDomainGroupChange(DomainGroupConfig newDomainGroup);
   }
 
   /**
-   * Used to receive the latest configuration information when a ring group has changed. Currently there are two
-   * cases when <code>RingGroupChangeListener</code> might be called:
-   * 1. A host's state has changed, and so the <code>RingState</code> of a ring may have changed.
-   * 2. A ring has been added or removed.
+   * Used to receive the latest configuration information when a ring group has
+   * changed. Currently there are two cases when
+   * <code>RingGroupChangeListener</code> might be called: 1. A host's state has
+   * changed, and so the <code>RingState</code> of a ring may have changed. 2. A
+   * ring has been added or removed.
    */
   public interface RingGroupChangeListener {
     /**
-     * Called when the configuration information for a ring group has changed. The latest configuration information
-     * is supplied in the arguments.
+     * Called when the configuration information for a ring group has changed.
+     * The latest configuration information is supplied in the arguments.
      * 
-     * @param newRingGroup the latest configuration information for a ring group
+     * @param newRingGroup
+     *          the latest configuration information for a ring group
      */
     public void onRingGroupChange(RingGroupConfig newRingGroup);
   }
@@ -212,4 +218,8 @@ public interface Coordinator {
    * @throws DataNotFoundException
    */
   public void addRingGroupChangeListener(String ringGroupName, RingGroupChangeListener listener) throws DataNotFoundException;
+
+  public Set<DomainGroupConfig> getDomainGroupConfigs();
+
+  public Set<RingGroupConfig> getRingGroups();
 }
