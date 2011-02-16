@@ -22,22 +22,22 @@ import java.io.IOException;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-public class TiamatRecordWritable implements WritableComparable{
+public class HankRecordWritable implements WritableComparable{
 
   private BytesWritable key;
   private BytesWritable value;
 
-  public TiamatRecordWritable() {
+  public HankRecordWritable() {
     key = new BytesWritable();
     value = new BytesWritable();
   }
 
-  public TiamatRecordWritable(byte[] key, byte[] value) {
+  public HankRecordWritable(byte[] key, byte[] value) {
     this.key = new BytesWritable(key);
     this.value = new BytesWritable(value);
   }
 
-  public TiamatRecordWritable(BytesWritable key, BytesWritable value) {
+  public HankRecordWritable(BytesWritable key, BytesWritable value) {
     this.key = key;
     this.value = value;
   }
@@ -64,7 +64,7 @@ public class TiamatRecordWritable implements WritableComparable{
 
   @Override
   public int compareTo(Object otherO) {
-    TiamatRecordWritable other = (TiamatRecordWritable) otherO;
+    HankRecordWritable other = (HankRecordWritable) otherO;
     int ret = key.compareTo(other.key);
     if (ret == 0) {
       ret = value.compareTo(other.value);

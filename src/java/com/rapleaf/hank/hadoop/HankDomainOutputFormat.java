@@ -38,7 +38,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 
-public class TiamatOutputFormat implements OutputFormat<IntWritable, TiamatRecordWritable> {
+public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
 
   public static final String CONF_PARAMETER_OUTPUT_PATH = "tiamat.output.path";
   public static final String CONF_PARAMETER_STORAGE_ENGINE = "tiamat.storage.class";
@@ -53,11 +53,11 @@ public class TiamatOutputFormat implements OutputFormat<IntWritable, TiamatRecor
   }
 
   @Override
-  public RecordWriter<IntWritable, TiamatRecordWritable> getRecordWriter(
+  public RecordWriter<IntWritable, HankRecordWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progress) throws IOException {
     String outputPath = conf.get(CONF_PARAMETER_OUTPUT_PATH);
     StorageEngine storageEngine = getStorageEngine(conf);
-    return new TiamatRecordWriter(fs, storageEngine, outputPath);
+    return new HankDomainRecordWriter(fs, storageEngine, outputPath);
   }
 
   StorageEngine getStorageEngine(JobConf conf) {
@@ -73,7 +73,7 @@ public class TiamatOutputFormat implements OutputFormat<IntWritable, TiamatRecor
     return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
   }
 
-  private static class TiamatRecordWriter implements RecordWriter<IntWritable, TiamatRecordWritable> {
+  private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {
 
     private static final String TMP_DIRECTORY_NAME = "_tmp_TiamatRecordWriter";
 
@@ -86,7 +86,7 @@ public class TiamatOutputFormat implements OutputFormat<IntWritable, TiamatRecor
     private Integer writerPartition;
     private Set<Integer> writtenPartitions = new HashSet<Integer>();
 
-    public TiamatRecordWriter(FileSystem fs,
+    public HankDomainRecordWriter(FileSystem fs,
         StorageEngine storageEngine,
         String finalOutputPath) {
       this.fs = fs;
@@ -123,7 +123,7 @@ public class TiamatOutputFormat implements OutputFormat<IntWritable, TiamatRecor
 
     @Override
     public void write(IntWritable partitionWritable,
-        TiamatRecordWritable record) throws IOException {
+        HankRecordWritable record) throws IOException {
       Integer partition = Integer.valueOf(partitionWritable.get());
       // If writing a new partition, get a new writer
       if (writerPartition == null ||

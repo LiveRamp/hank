@@ -38,13 +38,13 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 
-public class TestTiamatOutputFormat extends TestCase {
+public class TestHankDomainOutputFormat extends TestCase {
   private FileSystem fs;
 
-  static final String TEST_DIR = "/tmp/test_" + TestTiamatOutputFormat.class.getName();
+  static final String TEST_DIR = "/tmp/test_" + TestHankDomainOutputFormat.class.getName();
   static final String OUTPUT_DIR = TEST_DIR + "/output";
 
-  public TestTiamatOutputFormat() throws IOException {
+  public TestHankDomainOutputFormat() throws IOException {
     super();
     this.fs = FileSystem.get(new Configuration());
   }
@@ -92,26 +92,26 @@ public class TestTiamatOutputFormat extends TestCase {
   private JobConf getConf(String inputPath, String outputPath) {
     JobConf conf = new JobConf();
     conf.setOutputKeyClass(IntWritable.class);
-    conf.setOutputValueClass(TiamatRecordWritable.class);
+    conf.setOutputValueClass(HankRecordWritable.class);
     conf.setMapperClass(TestMapper.class);
     conf.setReducerClass(IdentityReducer.class);
     conf.setInputFormat(TextInputFormat.class);
-    conf.setOutputFormat(TiamatOutputFormat.class);
-    conf.set(TiamatOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
+    conf.setOutputFormat(HankDomainOutputFormat.class);
+    conf.set(HankDomainOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
     FileInputFormat.setInputPaths(conf, inputPath);
     return conf;
   }
 
   // Converts text file lines "<partition> <key> <value>" to the corresponding
-  // TiamatRecordWritable object
-  private static class TestMapper extends MapReduceBase implements Mapper<LongWritable, Text, IntWritable, TiamatRecordWritable> {
+  // HankRecordWritable object
+  private static class TestMapper extends MapReduceBase implements Mapper<LongWritable, Text, IntWritable, HankRecordWritable> {
     @Override
-    public void map(LongWritable key, Text value, OutputCollector<IntWritable, TiamatRecordWritable> outputCollector, Reporter reporter) throws IOException {
+    public void map(LongWritable key, Text value, OutputCollector<IntWritable, HankRecordWritable> outputCollector, Reporter reporter) throws IOException {
       String[] splits = value.toString().split(" ");
       if (splits.length != 3) {
         throw new RuntimeException("Input text file must be lines like \"<partition> <key> <value>\"");
       }
-      TiamatRecordWritable retValue = new TiamatRecordWritable(splits[1].getBytes(), splits[2].getBytes());
+      HankRecordWritable retValue = new HankRecordWritable(splits[1].getBytes(), splits[2].getBytes());
       outputCollector.collect(new IntWritable(Integer.valueOf(splits[0])), retValue);
     }
   }

@@ -28,8 +28,8 @@ import cascading.tap.Tap;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
-import com.rapleaf.hank.hadoop.TiamatOutputFormat;
-import com.rapleaf.hank.hadoop.TiamatRecordWritable;
+import com.rapleaf.hank.hadoop.HankDomainOutputFormat;
+import com.rapleaf.hank.hadoop.HankRecordWritable;
 
 /**
  * A sink-only tap to write tuples to Hank Domains.
@@ -55,7 +55,7 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
     // Set output path in conf
-    conf.set(TiamatOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
+    conf.set(HankDomainOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
     // throw new RuntimeException("Not yet implemented");
     //    domainConfig.getStorageEngine().getWriter(streamFactory, partNum, versionNumber, base);
   }
@@ -84,13 +84,13 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
       BytesWritable key = (BytesWritable) tupleEntry.get(keyFieldName);
       BytesWritable value = (BytesWritable) tupleEntry.get(valueFieldName);
 
-      TiamatRecordWritable record = new TiamatRecordWritable(key, value);
+      HankRecordWritable record = new HankRecordWritable(key, value);
       outputCollector.collect(partition, record);
     }
 
     @Override
     public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
-      jobConf.setOutputFormat(TiamatOutputFormat.class);
+      jobConf.setOutputFormat(HankDomainOutputFormat.class);
       // throw new RuntimeException("Not yet implemented");
     }
 
