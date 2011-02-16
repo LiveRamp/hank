@@ -57,19 +57,26 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator {
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
 
-
-  // We save our watchers so that we can reregister them in case of session expiry.
-  private Set<ZooKeeperWatcher> myWatchers;
+  /**
+   * We save our watchers so that we can reregister them in case of session
+   * expiry.
+   */
+  private Set<ZooKeeperWatcher> myWatchers = new HashSet<ZooKeeperWatcher>();
   private boolean isSessionExpired = false;
 
-  //Data Structures used for cached config information
-  private Map<String, DomainConfigImpl> domainConfigsByName;
-  private Map<String, DomainGroupConfigImpl> domainGroupConfigs;
-  private Map<String, RingGroupConfigImpl> ringGroupConfigs;
+  private final Map<String, DomainConfigImpl> domainConfigsByName =
+    new HashMap<String, DomainConfigImpl>();;
+  private final Map<String, DomainGroupConfigImpl> domainGroupConfigs =
+    new HashMap<String, DomainGroupConfigImpl>();
+  private final Map<String, RingGroupConfigImpl> ringGroupConfigs =
+    new HashMap<String, RingGroupConfigImpl>();
 
-  private Map<String, Set<DomainChangeListener>> domainListeners;
-  private Map<String, Set<DomainGroupChangeListener>> domainGroupListeners;
-  private Map<String, Set<RingGroupChangeListener>> ringGroupListeners;
+  private final Map<String, Set<DomainChangeListener>> domainListeners =
+    new HashMap<String, Set<DomainChangeListener>>();
+  private final Map<String, Set<DomainGroupChangeListener>> domainGroupListeners =
+    new HashMap<String, Set<DomainGroupChangeListener>>();
+  private final Map<String, Set<RingGroupChangeListener>> ringGroupListeners =
+    new HashMap<String, Set<RingGroupChangeListener>>();
 
 
   private final String domainsRoot;
@@ -102,15 +109,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
 
-    myWatchers = new HashSet<ZooKeeperWatcher>();
-    domainConfigsByName = new HashMap<String, DomainConfigImpl>();
-    domainGroupConfigs = new HashMap<String, DomainGroupConfigImpl>();
-    ringGroupConfigs = new HashMap<String, RingGroupConfigImpl>();
-    domainListeners = new HashMap<String, Set<DomainChangeListener>>();
-    domainGroupListeners = new HashMap<String, Set<DomainGroupChangeListener>>();
-    ringGroupListeners = new HashMap<String, Set<RingGroupChangeListener>>();
-
-    loadAll();
+    loadAllDomains();
+    loadAllDomainGroups();
+    loadAllRingGroups();
 
     registerListenersAndWatchers();
   }
@@ -126,7 +127,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public DaemonState getDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type) {
-    String path = ZooKeeperUtils.daemonStatusPath(null, ringGroupName, ringNumber, hostAddress, type);
+    String path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostAddress, type);
     try {
       return DaemonState.byBytes(zk.getData(path, null, null));
     } catch (KeeperException e) {
@@ -149,13 +150,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       // we don't care about this write anymore
       return;
     }
-    String path = ZooKeeperUtils.daemonStatusPath(null, ringGroupName, ringNumber, hostName, type);
-    zk.setData(path, Bytes.stringToBytes(state.name), -1, null, null);
+    String path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostName, type);
+    zk.setData(path, Bytes.stringToBytes(state.name()), -1, null, null);
   }
 
   @Override
   protected void onConnect() {
-    // if the session expired, then we need to reregister all of our StateChangeListeners
+    // if the session expired, then we need to reregister all of our
+    // StateChangeListeners
     if (isSessionExpired) {
       for (ZooKeeperWatcher watcher : myWatchers) {
         watcher.register();
@@ -163,9 +165,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       isSessionExpired = false;
     }
   }
-
-  @Override
-  protected void onDisconnect() {}
 
   @Override
   protected void onSessionExpire() {
@@ -184,7 +183,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       this.ringGroupName = ringGroupName;
       this.ringNumber = ringNumber;
       this.hostName = hostName;
-      this.path = ZooKeeperUtils.daemonStatusPath(null, ringGroupName, ringNumber, hostName, type);
+      this.type = type;
+      this.path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostName, type);
       this.listener = listener;
       register();
     }
@@ -193,7 +193,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
         try {
-          byte[] data = zk.getData(path, StateChangeWatcher.this, null); // This call also resets the watch
+          // This call also resets the watch
+          byte[] data = zk.getData(path, StateChangeWatcher.this, null);
           listener.onDaemonStateChange(ringGroupName, ringNumber, hostName, type, DaemonState.byBytes(data));
         } catch (KeeperException e) {
           // This shouldn't happen
@@ -217,10 +218,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  /*--------------------------------------------------*/
-  /*--    Domain, DomainGroup, RingGroup Caching    --*/
-  /*--------------------------------------------------*/
-
   @Override
   public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
     DomainConfig domain;
@@ -234,7 +231,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public DomainGroupConfig getDomainGroupConfig(String domainGroupName) throws DataNotFoundException {
     DomainGroupConfig dg;
     if ((dg = domainGroupConfigs.get(domainGroupName)) == null) {
-      throw new DataNotFoundException("The domain group " + domainGroupName + " does not exist");
+      throw new DataNotFoundException("The domain group " + domainGroupName
+          + " does not exist");
     }
     return dg;
   }
@@ -243,7 +241,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public RingGroupConfig getRingGroupConfig(String ringGroupName) throws DataNotFoundException {
     RingGroupConfig rg;
     if ((rg = ringGroupConfigs.get(ringGroupName)) == null) {
-      throw new DataNotFoundException("The ring group " + ringGroupName + " does not exist");
+      throw new DataNotFoundException("The ring group " + ringGroupName
+          + " does not exist");
     }
     return rg;
   }
@@ -262,7 +261,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException {
     ZooKeeperUtils.checkExistsOrDie(zk, domainsRoot);
 
-    domainConfigsByName = new HashMap<String, DomainConfigImpl>();
     List<String> domainNames = ZooKeeperUtils.getChildrenOrDie(zk, domainsRoot);
     for (String domainName : domainNames) {
       try {
@@ -299,12 +297,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  private void loadAll() throws InterruptedException {
-    loadAllDomains();
-    loadAllDomainGroups();
-    loadAllRingGroups();
-  }
-  
   @Override
   public int updateDomain(String domainName) throws DataNotFoundException {
     DomainConfig oldDomain;
@@ -395,7 +387,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     listeners.add(listener);
   }
-  
+
   public void addRingGroupChangeListener(String ringGroupName, RingGroupChangeListener listener) throws DataNotFoundException {
     if (!ringGroupConfigs.containsKey(ringGroupName)) {
       throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");
@@ -456,16 +448,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   // TODO: This is not as efficient as it could be, because it queries the
   // DaemonState of every single daemon when only one DaemonState has changed.
   private void refreshRingState(String ringGroupName, int ringNumber) throws DataNotFoundException, InterruptedException {
-    RingGroupConfigImpl rg;
-    if ((rg = ringGroupConfigs.get(ringGroupName)) == null) {
-      throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");
-    }
-    RingConfigImpl oldRing = (RingConfigImpl) rg.getRingConfig(ringNumber);
-    throw new NotImplementedException();
-//    RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
-//    rg.getRingConfigsMap().put(ringNumber, newRing); // Clobber the old ring
-
-//    pushNewRingGroup(rg);
+//    RingGroupConfigImpl rg;
+//    if ((rg = ringGroupConfigs.get(ringGroupName)) == null) {
+//      throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");
+//    }
+//    RingConfigImpl oldRing = (RingConfigImpl) rg.getRingConfig(ringNumber);
+//    throw new NotImplementedException();
+////    RingConfigImpl newRing = new RingConfigImpl(ringGroupName, ringNumber, RingConfigImpl.loadRingStateFromZooKeeper(zk, this, ringGroupName, ringNumber), oldRing.getPartsMap());
+////    rg.getRingConfigsMap().put(ringNumber, newRing); // Clobber the old ring
+//
+////    pushNewRingGroup(rg);
   }
   
   /**
@@ -569,7 +561,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 //        }
       }
     }
-    
+
     @Override
     public void register() {
       zk.getChildren(path, RingGroupWatcher.this, null, null); //Set a watch on the children

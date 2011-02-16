@@ -1,8 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.util.Bytes;
 
 /**
@@ -20,50 +17,24 @@ public enum DaemonState {
   // WARNING: Please do not change the id or name of the DaemonStates unless
   // you know what you are doing!
   // Used by the part daemon (DaemonType.PART_DAEMON)
-  STARTABLE("startable", 1),
-  STARTING("starting", 2),
-  STARTED("started", 3),
-  STOPPABLE("stoppable", 4),
-  STOPPING("stopping", 5),
+  STARTABLE,
+  STARTING,
+  STARTED,
+  STOPPABLE,
+  STOPPING,
 
   // Used by the update daemon (DaemonType.UPDATE_DAEMON)
-  UPDATEABLE("updateable", 6),
-  UPDATING("updating", 7),
+  UPDATEABLE,
+  UPDATING,
 
   // Used by both the part daemon and the update daemon
-  IDLE("idle", 8),
+  IDLE,
 
-  UNDEFINED("undefined", -1);
+  UNDEFINED;
 
-  private static final Map<Integer, DaemonState> idMap = new HashMap<Integer, DaemonState>();
-  private static Map<String, DaemonState> nameMap = new HashMap<String, DaemonState>();
-
-  static {
-    for (DaemonState state : DaemonState.values()) {
-      idMap.put(state.id, state);
-      nameMap.put(state.name, state);
-    }
-  }
-
-  public final String name;
-  public final int id;
-
-  DaemonState(String name, int id) {
-    this.name = name;
-    this.id = id;
-  }
-
-  public static DaemonState byName(String name) {
-    DaemonState state = nameMap.get(name);
-    return state != null ? state : UNDEFINED;
-  }
-
-  public static DaemonState byId(int id) {
-    DaemonState state = idMap.get(id);
-    return state != null ? state : UNDEFINED;
-  }
+  DaemonState() {}
 
   public static DaemonState byBytes(byte[] bytes) {
-    return DaemonState.byName(Bytes.bytesToString(bytes));
+    return DaemonState.valueOf(Bytes.bytesToString(bytes));
   }
 }
