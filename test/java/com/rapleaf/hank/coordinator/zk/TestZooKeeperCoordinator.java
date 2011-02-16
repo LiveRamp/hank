@@ -18,10 +18,6 @@ package com.rapleaf.hank.coordinator.zk;
 import org.apache.zookeeper.KeeperException;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonType;
-import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {

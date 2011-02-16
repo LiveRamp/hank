@@ -142,13 +142,24 @@ public interface Coordinator {
   public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonStateChangeListener listener);
 
   /**
+   * Get the set of known DomainConfigs.
+   * @return
+   */
+  public Set<DomainConfig> getDomainConfigs();
+
+  /**
    * @param domainName
    * @return configuration information on the specified domain
    * @throws DataNotFoundException if no domain with the specified name exists
    */
   public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException;
 
-  public Set<DomainConfig> getDomainConfigs();
+  
+  /**
+   * Get the set of known DomainGroupConfigs.
+   * @return
+   */
+  public Set<DomainGroupConfig> getDomainGroupConfigs();
 
   /**
    * @param domainGroupName
@@ -156,6 +167,12 @@ public interface Coordinator {
    * @throws DataNotFoundException if no domain group with the specified name exists
    */
   public DomainGroupConfig getDomainGroupConfig(String domainGroupName) throws DataNotFoundException;
+
+  /**
+   * Get the set of known RingGroupConfigs.
+   * @return
+   */
+  public Set<RingGroupConfig> getRingGroups();
 
   /**
    * @param ringGroupName
@@ -218,8 +235,4 @@ public interface Coordinator {
    * @throws DataNotFoundException
    */
   public void addRingGroupChangeListener(String ringGroupName, RingGroupChangeListener listener) throws DataNotFoundException;
-
-  public Set<DomainGroupConfig> getDomainGroupConfigs();
-
-  public Set<RingGroupConfig> getRingGroups();
 }
