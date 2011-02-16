@@ -23,13 +23,11 @@ import com.rapleaf.hank.util.ZooKeeperUtils;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 public class AddDomainGroup extends ZooKeeperConnection {
-  
   public AddDomainGroup(String connectString) throws InterruptedException {
     super(connectString);
   }
-  
-  public void addDomainGroup(String dgName) throws InterruptedException {
-    String dgPath = ZooKeeperUtils.DOMAIN_GROUP_ROOT + '/' + dgName;
+
+  public void addDomainGroup(String dgPath) throws InterruptedException {
     ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/domains");
     ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/versions");
   }
@@ -37,10 +35,10 @@ public class AddDomainGroup extends ZooKeeperConnection {
   public static void main(String args[]) throws InterruptedException {
     Options options = new Options();
     options.addOption(CliUtils.ZK_OPTION);
-    options.addOption(CliUtils.buildOneArgOption("name", "the name of the domain group", "dg_name", true));
+    options.addOption(CliUtils.buildOneArgOption("path", "the path of the domain group", "dg_path", true));
     CommandLine line = CliUtils.parseAndHelp("add_domain_group.sh", options, args);
-    
+
     AddDomainGroup add = new AddDomainGroup(line.getOptionValue("zk"));
-    add.addDomainGroup(line.getOptionValue("name"));
+    add.addDomainGroup(line.getOptionValue("path"));
   }
 }

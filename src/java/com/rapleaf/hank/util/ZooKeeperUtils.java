@@ -33,45 +33,38 @@ public final class ZooKeeperUtils {
 
   private ZooKeeperUtils() {}
 
-  public static final String ROOT = "/tiamat";
-  public static final String DOMAIN_ROOT = ROOT + "/domains";
-  public static final String DOMAIN_GROUP_ROOT = ROOT + "/domain_groups";
-  public static final String RING_GROUP_ROOT = ROOT + "/ring_groups";
+  //TODO: consider moving the methods below into a path helper?
+  private static final String RING_PATH_FORMAT = "%s/%s/ring-%03d";
 
-  private static final String RING_PATH_FORMAT = RING_GROUP_ROOT
-      + "/%s/ring-%03d";
-
-  public static String getRingPath(String ringGroupName, int ringNumber) {
-    return String.format(RING_PATH_FORMAT, ringGroupName, ringNumber);
+  public static String ringPath(String root, String name, int number) {
+    return String.format(RING_PATH_FORMAT, root, name, number);
   }
 
   private static final String HOST_PATH_FORMAT = RING_PATH_FORMAT + "/hosts/%s";
 
-  public static String getHostPath(String ringGroupName, int ringNumber,
-      PartDaemonAddress hostName) {
-    return String.format(HOST_PATH_FORMAT, ringGroupName, ringNumber, hostName);
+  public static String hostPath(String root, String group, int number, PartDaemonAddress host) {
+    return String.format(HOST_PATH_FORMAT, root, group, number, host);
   }
 
   private static final String DAEMON_STATUS_FORMAT = "%s/%s/status";
 
-  public static String getDaemonStatusPath(String ringGroupName,
-      int ringNumber, PartDaemonAddress hostName, DaemonType type) {
-    return String.format(DAEMON_STATUS_FORMAT, getHostPath(ringGroupName,
-        ringNumber, hostName), type.name);
+  public static String daemonStatusPath(String root, String group, int number, PartDaemonAddress host, DaemonType type) {
+    return String.format(DAEMON_STATUS_FORMAT, hostPath(root, group, number, host), type.name);
   }
 
-  private static final String DOMAIN_PATH_FORMAT = DOMAIN_ROOT + "/%s";
+  private static final String DOMAIN_PATH_FORMAT = "%s/%s";
 
-  public static String getDomainPath(String domainName) {
-    return String.format(DOMAIN_PATH_FORMAT, domainName);
+  public static String domainPath(String root, String domainName) {
+    return String.format(DOMAIN_PATH_FORMAT, root, domainName);
   }
 
-  private static final String DOMAIN_GROUP_PATH_FORMAT = DOMAIN_GROUP_ROOT
-      + "/%s";
+  private static final String DOMAIN_GROUP_PATH_FORMAT = "%s/%s";
 
-  public static String getDomainGroupPath(String domainGroupName) {
-    return String.format(DOMAIN_GROUP_PATH_FORMAT, domainGroupName);
+  public static String domainGroupPath(String root, String group) {
+    return String.format(DOMAIN_GROUP_PATH_FORMAT, root, group);
   }
+
+  // end candidate for path helper
 
   public static void checkExists(ZooKeeper zk, String path) throws DataNotFoundException {
     checkExists(zk, path, "Node does not exist at " + path);

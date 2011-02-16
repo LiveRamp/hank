@@ -31,7 +31,7 @@ public class AddDomain extends ZooKeeperConnection {
 
   public void addDomain(String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
     throws InterruptedException {
-    String domainPath = ZooKeeperUtils.getDomainPath(domainName);
+    String domainPath = ZooKeeperUtils.domainPath(null, domainName);
     ZooKeeperUtils.createNodeRecursively(zk, domainPath);
     ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/num_parts", Bytes.stringToBytes(numParts));
     ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_factory_class", Bytes.stringToBytes(factoryName));

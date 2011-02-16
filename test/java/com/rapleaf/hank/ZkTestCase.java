@@ -18,6 +18,8 @@ import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 
+import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class ZkTestCase extends BaseTestCase {
@@ -143,6 +145,15 @@ public class ZkTestCase extends BaseTestCase {
     getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 
+  protected void createMockDomain(String path) throws Exception {
+    create(path);
+    create(path + "/num_parts", "1");
+    create(path + "/version", "1");
+    create(path + "/storage_engine_options", "---");
+    create(path + "/storage_engine_factory_class", ConstantStorageEngine.class.getName());
+    create(path + "/partitioner_class", ConstantPartitioner.class.getName());
+  }
+  
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
@@ -196,5 +207,9 @@ public class ZkTestCase extends BaseTestCase {
 
   public int getZkClientPort() {
     return zkClientPort;
+  }
+
+  public String getZkConnectString() {
+    return "localhost:" + zkClientPort;
   }
 }

@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.util.Set;
+
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.PartDaemonAddress;
@@ -84,6 +86,12 @@ public class MockCoordinator implements Coordinator {
   public int updateDomain(String domainName) throws DataNotFoundException {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public Set<DomainConfig> getDomainConfigs() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

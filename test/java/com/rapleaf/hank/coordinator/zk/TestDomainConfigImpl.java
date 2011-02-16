@@ -9,6 +9,7 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
+// TODO: make this work like the other zktests
 public class TestDomainConfigImpl extends ZkTestCase {
   private static final String CONST_PARTITIONER = "com.rapleaf.hank.partitioner.ConstantPartitioner";
   private static final String STORAGE_ENGINE_FACTORY = "com.rapleaf.hank.storage.constant.ConstantStorageEngine$Factory";

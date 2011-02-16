@@ -209,6 +209,12 @@ public class TestHankSmartClient extends TestCase {
     public int updateDomain(String domainName) throws DataNotFoundException {
       return 0;
     }
+
+    @Override
+    public Set<DomainConfig> getDomainConfigs() {
+      // TODO Auto-generated method stub
+      return null;
+    }
   }
 
   private static final int SERVICE_PORT_1 = 9090;

@@ -17,7 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Map;
 
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ZooKeeperCoordinatorFactory implements CoordinatorFactory {
 
@@ -26,22 +26,23 @@ public class ZooKeeperCoordinatorFactory implements CoordinatorFactory {
 
   @Override
   public Coordinator getCoordinator(Map<String, String> options) {
-    try {
-      String connectString;
-      String sessionTimeout;
-      if ((connectString = options.get(KEY_CONNECT_STRING)) == null) {
-        throw new RuntimeException("No connectString passed to the ZooKeeperCoordinatorFactory");
-      }
-      if ((sessionTimeout = options.get(KEY_SESSION_TIMEOUT)) == null) {
-        return new ZooKeeperCoordinator(connectString);
-      }
-      else {
-        return new ZooKeeperCoordinator(connectString, Integer.parseInt(sessionTimeout));
-      }
-    }
-    catch (InterruptedException e) {
-      // If we have been interrupted, then the server is probably going down.
-      return null;
-    }
+    throw new NotImplementedException();
+//    try {
+//      String connectString;
+//      String sessionTimeout;
+//      if ((connectString = options.get(KEY_CONNECT_STRING)) == null) {
+//        throw new RuntimeException("No connectString passed to the ZooKeeperCoordinatorFactory");
+//      }
+//      if ((sessionTimeout = options.get(KEY_SESSION_TIMEOUT)) == null) {
+//        return new ZooKeeperCoordinator(connectString);
+//      }
+//      else {
+//        return new ZooKeeperCoordinator(connectString, Integer.parseInt(sessionTimeout));
+//      }
+//    }
+//    catch (InterruptedException e) {
+//      // If we have been interrupted, then the server is probably going down.
+//      return null;
+//    }
   }
 }

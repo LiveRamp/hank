@@ -16,6 +16,8 @@
 package com.rapleaf.hank.coordinator;
 
 
+import java.util.Set;
+
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.PartDaemonAddress;
@@ -139,6 +141,8 @@ public interface Coordinator {
    * @throws DataNotFoundException if no domain with the specified name exists
    */
   public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException;
+
+  public Set<DomainConfig> getDomainConfigs();
 
   /**
    * @param domainGroupName
