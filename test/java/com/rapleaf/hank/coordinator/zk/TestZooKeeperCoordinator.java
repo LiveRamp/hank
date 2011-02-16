@@ -17,11 +17,9 @@ package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
 
-import junit.framework.TestCase;
-
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 
+import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonType;
@@ -29,15 +27,17 @@ import com.rapleaf.hank.coordinator.Coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 
-public class TestZooKeeperCoordinator extends TestCase {
+public class TestZooKeeperCoordinator extends ZkTestCase {
+
+  public TestZooKeeperCoordinator() throws Exception {
+    super();
+  }
 
   private class MockCoordinator extends ZooKeeperCoordinator {
     MockCoordinator(String connectString, int sessionTimeout,
         boolean loadImmediately) throws IOException, InterruptedException {
       super(connectString, sessionTimeout, loadImmediately);
     }
-
-    public ZooKeeper zk() {return zk;}
   }
 
   private class MockDaemonListener implements DaemonStateChangeListener {
@@ -54,7 +54,6 @@ public class TestZooKeeperCoordinator extends TestCase {
   }
 
   private MockCoordinator coord;
-  private ZooKeeper zk;
 
   private final String ringGroupName = "rapleaf-1";
   private final int ringNumber = 15;
@@ -65,13 +64,13 @@ public class TestZooKeeperCoordinator extends TestCase {
   private final String updateDaemonPath = ZooKeeperUtils.getDaemonStatusPath(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON);
 
   public void setUp() throws Exception {
-    coord = new MockCoordinator("localhost:2181", 5000, false);
-    zk = coord.zk();
+    super.setUp();
+    coord = new MockCoordinator("localhost:" + getZkClientPort(), 5000, false);
 
-    ZooKeeperUtils.deleteNodeRecursively(zk, "/tiamat");
+    ZooKeeperUtils.deleteNodeRecursively(getZk(), "/tiamat");
 
-    ZooKeeperUtils.createNodeRecursively(zk, partDaemonPath);
-    ZooKeeperUtils.createNodeRecursively(zk, updateDaemonPath);
+    ZooKeeperUtils.createNodeRecursively(getZk(), partDaemonPath);
+    ZooKeeperUtils.createNodeRecursively(getZk(), updateDaemonPath);
   }
 
   public void testStateChangeWatcher() throws KeeperException, InterruptedException {
