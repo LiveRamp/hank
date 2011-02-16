@@ -40,8 +40,8 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 
 public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
 
-  public static final String CONF_PARAMETER_OUTPUT_PATH = "tiamat.output.path";
-  public static final String CONF_PARAMETER_STORAGE_ENGINE = "tiamat.storage.class";
+  public static final String CONF_PARAMETER_OUTPUT_PATH = "hank.output.path";
+  public static final String CONF_PARAMETER_STORAGE_ENGINE = "hank.storage.class";
 
   @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
@@ -75,7 +75,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
 
   private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {
 
-    private static final String TMP_DIRECTORY_NAME = "_tmp_TiamatRecordWriter";
+    private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainRecordWriter";
 
     private FileSystem fs;
     private StorageEngine storageEngine;
