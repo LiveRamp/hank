@@ -540,7 +540,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * Watches for a ring being added or removed from a ring group. If so, caches
    * the new config information and pushes the new config to all listeners.
    */
-  private class RingGroupWatcher implements ZooKeeperWatcher {
+  private class RingGroupWatcher implements ZooKeeperWatcher, ChildrenCallback {
     private final String ringGroupName;
     private final String path;
     
@@ -553,25 +553,31 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeChildrenChanged) {
-//        try {
-          throw new NotImplementedException();
-//          RingGroupConfigImpl rg = RingGroupConfigImpl.loadFromZooKeeper(zk, ZooKeeperCoordinator.this, ringGroupName);
-//          ringGroupConfigs.put(ringGroupName, rg);
-//          pushNewRingGroup(rg);
-//          register();
-//        } catch (DataNotFoundException e) {
-//          // This should never happen
-//          LOG.warn(e);
-//        } catch (InterruptedException e) {
-//          // Server is probably going down
-//          return;
-//        }
+        processChange();
       }
+    }
+
+    private void processChange() {
+      try {
+        RingGroupConfigImpl rg = new RingGroupConfigImpl(zk, path, getRingGroupConfig(ringGroupName).getDomainGroupConfig());
+        ringGroupConfigs.put(ringGroupName, rg);
+        pushNewRingGroup(rg);
+        register();
+      } catch (Exception e) {
+        // subtree probably under construction
+        LOG.warn(e);
+      } 
     }
 
     @Override
     public void register() {
-      zk.getChildren(path, RingGroupWatcher.this, null, null); //Set a watch on the children
+      // Set a watch on the children
+      zk.getChildren(path, RingGroupWatcher.this, RingGroupWatcher.this, null); 
+    }
+
+    @Override
+    public void processResult(int rc, String path, Object ctx, List<String> children) {
+      processChange();
     }
   }
 
@@ -634,20 +640,22 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     @Override
     public void process(WatchedEvent event) {
       if (event.getType() == EventType.NodeDataChanged) {
-        try {
-          DomainGroupConfigImpl dg = new DomainGroupConfigImpl(zk, domainGroupsRoot + "/" + domainGroupName);
-          domainGroupConfigs.put(domainGroupName, dg);
-          pushNewDomainGroup(dg);
-          register();
-        } catch (InterruptedException e) {
-          // Server probably going down.
-          return;
-        } catch (DataNotFoundException e) {
-          // This shouldn't happen
-          LOG.warn(e);
-        }
-      } else if(event.getType() == EventType.NodeChildrenChanged) {
-        LOG.debug("children changed!");
+        processChange();
+      }
+    }
+
+    private void processChange() {
+      try {
+        DomainGroupConfigImpl dg = new DomainGroupConfigImpl(zk, domainGroupsRoot + "/" + domainGroupName);
+        domainGroupConfigs.put(domainGroupName, dg);
+        pushNewDomainGroup(dg);
+        register();
+      } catch (InterruptedException e) {
+        // Server probably going down.
+        return;
+      } catch (DataNotFoundException e) {
+        // This shouldn't happen
+        LOG.warn(e);
       }
     }
 
@@ -658,7 +666,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     @Override
     public void processResult(int rc, String path, Object ctx, List<String> children) {
-      LOG.debug("notified on " + path);
+      processChange();
     }
   }
 

@@ -17,14 +17,46 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.config.DomainGroupConfig;
 import com.rapleaf.hank.config.PartDaemonAddress;
+import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
+
+  public class MockRingGroupChangeListener implements RingGroupChangeListener {
+    public RingGroupConfig ringGroup;
+    public boolean notified = false;
+
+    @Override
+    public void onRingGroupChange(RingGroupConfig newRingGroup) {
+      this.ringGroup = newRingGroup;
+      notified = true;
+      synchronized (this) {
+        notifyAll();
+      }
+    }
+  }
+
+  public class MockDomainGroupChangeListener implements
+      DomainGroupChangeListener {
+
+    public boolean notified;
+    public DomainGroupConfig domainGroup;
+
+    @Override
+    public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
+      this.domainGroup = newDomainGroup;
+      notified = true;
+    }
+
+  }
 
   public class MockDomainChangeListener implements DomainChangeListener {
     public boolean notified = false;
@@ -123,11 +155,29 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testDomainGroupChangeListener() throws Exception {
-    fail();
+    MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
+    coord.addDomainGroupChangeListener("myDomainGroup", listener);
+    create(domain_groups_root + "/myDomainGroup/versions/1");
+    synchronized (listener) {
+      listener.wait(1000);
+    }
+    assertTrue("listener wasn't notified", listener.notified);
+    assertEquals("domain group name", "myDomainGroup", listener.domainGroup.getName());
+    assertEquals("domain group versions count", 1, listener.domainGroup.getVersions().size());
   }
 
   public void testRingGroupChangeListener() throws Exception {
-    fail();
+    MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
+    coord.addRingGroupChangeListener("myRingGroup", listener);
+    create(ring_groups_root + "/myRingGroup/ring-002");
+    create(ring_groups_root + "/myRingGroup/ring-002/version", "1");
+    create(ring_groups_root + "/myRingGroup/ring-002/hosts");
+    synchronized (listener) {
+      listener.wait(1000);
+    }
+    assertTrue("listener wasn't notified", listener.notified);
+    assertEquals("ring group name", "myRingGroup", listener.ringGroup.getName());
+    assertEquals("number of rings", 2, listener.ringGroup.getRingConfigs().size());
   }
 
   @Override
