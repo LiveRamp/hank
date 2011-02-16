@@ -27,78 +27,10 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 
 public interface Coordinator {
   
-  /**
-   * Used to receive notifications when a particular daemon's state has changed.
-   */
-  public interface DaemonStateChangeListener {
-    /**
-     * This method is called when the <code>DaemonState</code> for a daemon has
-     * changed. The first four parameters in the method are used to identify
-     * which daemon's state has changed, so that one
-     * <code>DaemonStateChangeListener</code> can listen to muliple daemons.
-     * 
-     * @param ringGroupName
-     * @param ringNumber
-     * @param hostName
-     * @param type
-     * @param newState
-     *          the new state of the specified daemon.
-     */
-    public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState newState);
-  }
-
-  /**
-   * Used to receive the latest configuration information when a domain has
-   * changed. Usually this occurs when a domain has been updated to a newer
-   * version.
-   */
-  public interface DomainChangeListener {
-    /**
-     * Called when the configuration information for a domain has changed. The
-     * latest configuration information is supplied in the arguments.
-     * 
-     * @param newDomain
-     *          the latest configuration information for a domain
-     */
-    public void onDomainChange(DomainConfig newDomain);
-  }
-
-  /**
-   * Used to receive the latest configuration information when a domain group
-   * has changed. Usually this occurs when a domain has been updated to a newer
-   * version, and hence its domain group is also updated to a newer version.
-   */
-  public interface DomainGroupChangeListener {
-    /**
-     * Called when the configuration information for a domain group has changed.
-     * The latest configuration information is supplied in the arguments.
-     * 
-     * @param newDomainGroup
-     *          the latest configuration information for a domain group
-     */
-    public void onDomainGroupChange(DomainGroupConfig newDomainGroup);
-  }
-
-  /**
-   * Used to receive the latest configuration information when a ring group has
-   * changed. Currently there are two cases when
-   * <code>RingGroupChangeListener</code> might be called: 1. A host's state has
-   * changed, and so the <code>RingState</code> of a ring may have changed. 2. A
-   * ring has been added or removed.
-   */
-  public interface RingGroupChangeListener {
-    /**
-     * Called when the configuration information for a ring group has changed.
-     * The latest configuration information is supplied in the arguments.
-     * 
-     * @param newRingGroup
-     *          the latest configuration information for a ring group
-     */
-    public void onRingGroupChange(RingGroupConfig newRingGroup);
-  }
-
-  //TODO: Add DataNotFoundExceptions to the next three methods?
-
+  //
+  // Daemons
+  //
+  
   /**
    * @return the <code>DaemonState</code> for the specified daemon
    * @param ringGroupName
@@ -106,7 +38,10 @@ public interface Coordinator {
    * @param hostAddress
    * @param type
    */
-  public DaemonState getDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type);
+  public DaemonState getDaemonState(String ringGroupName,
+      int ringNumber,
+      PartDaemonAddress hostAddress,
+      DaemonType type);
 
   /**
    * Sets the <code>DaemonState</code> for a particular daemon, which will
@@ -127,11 +62,16 @@ public interface Coordinator {
    * @param type
    * @param state
    */
-  public void setDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState state);
+  public void setDaemonState(String ringGroupName,
+      int ringNumber,
+      PartDaemonAddress hostAddress,
+      DaemonType type,
+      DaemonState state);
 
   /**
-   * Registers the provided <code>DaemonStateChangeListener</code> so that it will be notified when someone has changed
-   * the state of the specified daemon.
+   * Registers the provided <code>DaemonStateChangeListener</code> so that it
+   * will be notified when someone has changed the state of the specified
+   * daemon.
    * 
    * @param ringGroupName
    * @param ringNumber
@@ -139,7 +79,15 @@ public interface Coordinator {
    * @param type
    * @param listener
    */
-  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonStateChangeListener listener);
+  public void addDaemonStateChangeListener(String ringGroupName,
+      int ringNumber,
+      PartDaemonAddress hostAddress,
+      DaemonType type,
+      DaemonStateChangeListener listener);
+
+  //
+  // Domains
+  //
 
   /**
    * Get the set of known DomainConfigs.
@@ -152,43 +100,8 @@ public interface Coordinator {
    * @return configuration information on the specified domain
    * @throws DataNotFoundException if no domain with the specified name exists
    */
-  public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException;
-
-  
-  /**
-   * Get the set of known DomainGroupConfigs.
-   * @return
-   */
-  public Set<DomainGroupConfig> getDomainGroupConfigs();
-
-  /**
-   * @param domainGroupName
-   * @return configuration information on the specified domain group
-   * @throws DataNotFoundException if no domain group with the specified name exists
-   */
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) throws DataNotFoundException;
-
-  /**
-   * Get the set of known RingGroupConfigs.
-   * @return
-   */
-  public Set<RingGroupConfig> getRingGroups();
-
-  /**
-   * @param ringGroupName
-   * @return configuration information on the specified ring group
-   * @throws DataNotFoundException if no ring group with the specified name exists
-   */
-  public RingGroupConfig getRingGroupConfig(String ringGroupName) throws DataNotFoundException;
-
-  /**
-   * @param ringGroupName
-   * @param ringNumber
-   * @return configuration information on the specified ring
-   * @throws DataNotFoundException if no ring group with the specified name exists or if the specified 
-   * ring group does not have a ring with the specified number
-   */
-  public RingConfig getRingConfig(String ringGroupName, int ringNumber) throws DataNotFoundException;
+  public DomainConfig getDomainConfig(String domainName)
+  throws DataNotFoundException;
 
   /**
    * Updates the configuration information for the domain and domain group by
@@ -207,32 +120,93 @@ public interface Coordinator {
   public int updateDomain(String domainName) throws DataNotFoundException;
 
   /**
-   * Registers the provided <code>DomainChangeListener</code> so that it will receive the latest configuration information
-   * on the specified domain as soon as they are available.
+   * Registers the provided <code>DomainChangeListener</code> so that it will
+   * receive the latest configuration information on the specified domain as
+   * soon as they are available.
    * 
    * @param domainName
    * @param listener
-   * @throws DataNotFoundException if no domain with the specified name exists
+   * @throws DataNotFoundException
+   *           if no domain with the specified name exists
    */
-  public void addDomainChangeListener(String domainName, DomainChangeListener listener) throws DataNotFoundException;
+  public void addDomainChangeListener(String domainName,
+      DomainChangeListener listener)
+  throws DataNotFoundException;
+
+  //
+  // DomainGroups
+  //
 
   /**
-   * Registers the provided <code>DomainGroupChangeListener</code> so that it will receive the latest configuration information
-   * on the specified domain group as soon as they are available.
+   * Get the set of known DomainGroupConfigs.
+   * @return
+   */
+  public Set<DomainGroupConfig> getDomainGroupConfigs();
+
+  /**
+   * @param domainGroupName
+   * @return configuration information on the specified domain group
+   * @throws DataNotFoundException if no domain group with the specified name exists
+   */
+  public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
+  throws DataNotFoundException;
+
+  /**
+   * Registers the provided <code>DomainGroupChangeListener</code> so that it
+   * will receive the latest configuration information on the specified domain
+   * group as soon as they are available.
    * 
    * @param domainGroupName
    * @param listener
-   * @throws DataNotFoundException if no domain group with the specified name exists
+   * @throws DataNotFoundException
+   *           if no domain group with the specified name exists
    */
-  public void addDomainGroupChangeListener(String domainGroupName, DomainGroupChangeListener listener) throws DataNotFoundException;
+  public void addDomainGroupChangeListener(String domainGroupName,
+      DomainGroupChangeListener listener)
+  throws DataNotFoundException;
+
+  //
+  // RingGroups
+  //
 
   /**
-   * Reigsters the provided <code>RingGroupChangeListener</code> so that it will receive the latest configuration information
-   * on the specified ring group as soon as they are available.
+   * Get the set of known RingGroupConfigs.
+   * @return
+   */
+  public Set<RingGroupConfig> getRingGroups();
+
+  /**
+   * @param ringGroupName
+   * @return configuration information on the specified ring group
+   * @throws DataNotFoundException
+   *           if no ring group with the specified name exists
+   */
+  public RingGroupConfig getRingGroupConfig(String ringGroupName)
+  throws DataNotFoundException;
+
+  /**
+   * @param ringGroupName
+   * @param ringNumber
+   * @return configuration information on the specified ring
+   * @throws DataNotFoundException
+   *           if no ring group with the specified name exists or if the
+   *           specified ring group does not have a ring with the specified
+   *           number
+   */
+  public RingConfig getRingConfig(String ringGroupName,
+      int ringNumber)
+  throws DataNotFoundException;
+
+  /**
+   * Reigsters the provided <code>RingGroupChangeListener</code> so that it will
+   * receive the latest configuration information on the specified ring group as
+   * soon as they are available.
    * 
    * @param ringGroupName
    * @param listener
    * @throws DataNotFoundException
    */
-  public void addRingGroupChangeListener(String ringGroupName, RingGroupChangeListener listener) throws DataNotFoundException;
+  public void addRingGroupChangeListener(String ringGroupName,
+      RingGroupChangeListener listener)
+  throws DataNotFoundException;
 }
