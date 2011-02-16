@@ -10,8 +10,11 @@ import java.net.BindException;
 import java.net.Socket;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.server.NIOServerCnxn;
@@ -41,7 +44,6 @@ public class ZkTestCase extends BaseTestCase {
   public ZkTestCase() throws Exception {
     super();
     zkRoot = "/" + getClass().getSimpleName();
-
   }
 
   private int setupZkServer() throws Exception {
@@ -57,11 +59,12 @@ public class ZkTestCase extends BaseTestCase {
         standaloneServerFactory =
           new NIOServerCnxn.Factory(clientPort);
       } catch (BindException e) {
-        LOG.info("Failed binding ZK Server to client port: " + clientPort);
+        LOG.trace("Failed binding ZK Server to client port: " + clientPort);
         //this port is already in use. try to use another
         clientPort++;
         continue;
       }
+      LOG.trace("Succeeded in binding ZK Server to client port " + clientPort);
       break;
     }
     standaloneServerFactory.startup(server);
@@ -76,10 +79,14 @@ public class ZkTestCase extends BaseTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
+    Logger.getLogger("org.apache.zookeeper").setLevel(Level.ERROR);
 
     zkClientPort = setupZkServer();
 
-    zk = new ZooKeeper("127.0.0.1:" + zkClientPort, 1000000, null);
+    zk = new ZooKeeper("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
+      @Override
+      public void process(WatchedEvent event) {}
+    });
 
     ZooKeeperUtils.deleteNodeRecursively(zk, zkRoot);
     ZooKeeperUtils.createNodeRecursively(zk, zkRoot);
@@ -167,7 +174,7 @@ public class ZkTestCase extends BaseTestCase {
 
     zk.close();
     zk = null;
-    
+
     standaloneServerFactory.shutdown();
     if (!waitForServerDown(zkClientPort, CONNECTION_TIMEOUT)) {
       throw new IOException("Waiting for shutdown of standalone server");

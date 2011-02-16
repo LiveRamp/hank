@@ -26,7 +26,10 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.AsyncCallback.ChildrenCallback;
+import org.apache.zookeeper.AsyncCallback.DataCallback;
 import org.apache.zookeeper.Watcher.Event.EventType;
+import org.apache.zookeeper.data.Stat;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -37,7 +40,11 @@ import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
+import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.DomainChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.ZooKeeperUtils;
@@ -116,9 +123,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     registerListenersAndWatchers();
   }
 
-  /*----------------------------*/
-  /*--    DaemonState Code    --*/
-  /*----------------------------*/
+  //
+  // Daemons
+  //
 
   @Override
   public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
@@ -369,7 +376,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     Set<DomainChangeListener> listeners;
     if ((listeners = domainListeners.get(domainName)) == null) {
-      listeners = Collections.synchronizedSet(new HashSet<DomainChangeListener>());
+      listeners = new HashSet<DomainChangeListener>();
       domainListeners.put(domainName, listeners);
     }
     listeners.add(listener);
@@ -567,43 +574,60 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       zk.getChildren(path, RingGroupWatcher.this, null, null); //Set a watch on the children
     }
   }
-  
-  private class DomainVersionWatcher implements ZooKeeperWatcher {
+
+  private class DomainVersionWatcher implements ZooKeeperWatcher, DataCallback {
     private String path;
+    private final String domainName;
 
     public DomainVersionWatcher(String domainName) {
-      this.path = ZooKeeperUtils.domainPath(domainsRoot, domainName);
+      this.domainName = domainName;
+      this.path = ZooKeeperUtils.domainPath(domainsRoot, domainName) + "/version";
       register();
     }
 
     @Override
     public void process(WatchedEvent event) {
-      if (event.getType() == EventType.NodeDataChanged) {
-        try {
-          DomainConfigImpl newDomain = new DomainConfigImpl(zk, path);
-          domainConfigsByName.put(path, newDomain);
-          pushNewDomain(newDomain);
-          register();
-        } catch (DataNotFoundException e) {
-          // This shouldn't happen
-          LOG.warn(e);
-        }
+      switch (event.getType()) {
+        case NodeDataChanged:
+          processDomainChange();
+          break;
+
+        default:
+          LOG.debug("DomainVersionWatcher for " + path + " notified of event " + event + ". Ignoring.");
+      }
+    }
+
+    private void processDomainChange() {
+      try {
+        DomainConfigImpl newDomain = new DomainConfigImpl(zk, ZooKeeperUtils.domainPath(domainsRoot, domainName));
+        domainConfigsByName.put(path, newDomain);
+        pushNewDomain(newDomain);
+        register();
+      } catch (DataNotFoundException e) {
+        // This shouldn't happen
+        LOG.error(e);
       }
     }
 
     @Override
     public void register() {
-      zk.getData(path, DomainVersionWatcher.this, null, null);
+      zk.getData(path, DomainVersionWatcher.this, DomainVersionWatcher.this, null);
+    }
+
+    @Override
+    public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
+//      LOG.debug(String.format("DomainVersionWatcher for %s received callback (%d, %s, %s, data:%s, stat:%s)", this.path, rc, path, ctx, new String(data), stat.toString()));
+      processDomainChange();
     }
   }
 
-  private class DomainGroupVersionWatcher implements ZooKeeperWatcher {
+  private class DomainGroupVersionWatcher implements ZooKeeperWatcher, ChildrenCallback {
     private String domainGroupName;
     private String path;
 
     public DomainGroupVersionWatcher(String domainGroupName) {
       this.domainGroupName = domainGroupName;
-      this.path = ZooKeeperUtils.domainGroupPath(domainGroupsRoot, domainGroupName) + "/versions";
+      this.path = ZooKeeperUtils.domainGroupPath(domainGroupsRoot, domainGroupName);
       register();
     }
 
@@ -622,12 +646,19 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           // This shouldn't happen
           LOG.warn(e);
         }
+      } else if(event.getType() == EventType.NodeChildrenChanged) {
+        LOG.debug("children changed!");
       }
     }
 
     @Override
     public void register() {
-      zk.getChildren(path, DomainGroupVersionWatcher.this, null, null);
+      zk.getChildren(path, DomainGroupVersionWatcher.this, DomainGroupVersionWatcher.this, null);
+    }
+
+    @Override
+    public void processResult(int rc, String path, Object ctx, List<String> children) {
+      LOG.debug("notified on " + path);
     }
   }
 
