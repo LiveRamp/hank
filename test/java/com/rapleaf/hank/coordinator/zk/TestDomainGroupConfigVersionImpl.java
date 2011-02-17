@@ -1,8 +1,5 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.config.DomainConfig;
 import com.rapleaf.hank.config.DomainConfigVersion;
@@ -68,13 +65,22 @@ public class TestDomainGroupConfigVersionImpl extends ZkTestCase {
     dgcv = new DomainGroupConfigVersionImpl(getZk(), versionPath(4), mockDomainGroup);
     assertEquals(4, dgcv.getVersionNumber());
     assertEquals(2, dgcv.getDomainConfigVersions().size());
+
+    try {
+      create(versionPath(5));
+      dgcv = new DomainGroupConfigVersionImpl(getZk(), versionPath(5), mockDomainGroup);
+      fail("should have thrown an error");
+    } catch (IllegalStateException e) {
+      // success!
+    }
   }
 
   private void version(int versionNumber, int... pairs) throws Exception {
-    getZk().create(versionPath(versionNumber), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    create(versionPath(versionNumber));
     for (int i = 0; i < pairs.length; i+=2) {
-      getZk().create(versionPath(versionNumber) + "/domain" + pairs[i], ("" + pairs[i+1]).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      create(versionPath(versionNumber) + "/domain" + pairs[i], ("" + pairs[i+1]));
     }
+    create(versionPath(versionNumber) + "/.complete");
   }
 
   private String versionPath(int versionNumber) {

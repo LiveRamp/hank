@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainConfigVersion;
@@ -15,21 +16,28 @@ import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
 
+  private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroupConfig domainGroupConfig;
   private final int versionNumber;
   private final HashSet<DomainConfigVersion> domainConfigVersions;
 
-  public DomainGroupConfigVersionImpl(ZooKeeper zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException {
+  public DomainGroupConfigVersionImpl(ZooKeeper zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException, KeeperException {
     this.domainGroupConfig = domainGroupConfig;
     String[] toks = versionPath.split("/");
     versionNumber = Integer.parseInt(toks[toks.length - 1]);
 
+    if (!isComplete(versionPath, zk)) {
+      throw new IllegalStateException(versionPath + " is not yet complete!");
+    }
+
     List<String> children = ZooKeeperUtils.getChildrenOrDie(zk, versionPath);
     domainConfigVersions = new HashSet<DomainConfigVersion>();
     for (String child : children) {
-      domainConfigVersions.add(new DomainConfigVersionImpl(zk,
-          versionPath + "/" + child,
-          domainGroupConfig.getDomainConfig(domainGroupConfig.getDomainId(child))));
+      if (!child.equals(COMPLETE_NODE_NAME)) {
+        domainConfigVersions.add(new DomainConfigVersionImpl(zk,
+            versionPath + "/" + child,
+            domainGroupConfig.getDomainConfig(domainGroupConfig.getDomainId(child))));
+      }
     }
   }
 
@@ -46,5 +54,9 @@ public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
   @Override
   public int getVersionNumber() {
     return versionNumber;
+  }
+
+  public static boolean isComplete(String versionPath, ZooKeeper zk) throws KeeperException, InterruptedException {
+    return zk.exists(versionPath + "/" + COMPLETE_NODE_NAME, false) != null;
   }
 }

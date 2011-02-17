@@ -201,7 +201,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     coord = getCoord();
   }
 
-  private ZooKeeperCoordinator getCoord() throws InterruptedException {
+  private ZooKeeperCoordinator getCoord() throws Exception {
     return new ZooKeeperCoordinator(getZkConnectString(), 100000000, domains_root, domain_groups_root, ring_groups_root);
   }
 }

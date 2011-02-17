@@ -25,6 +25,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainConfig;
@@ -54,7 +55,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
     new TreeMap<Integer, DomainGroupConfigVersion>();
 
-  public DomainGroupConfigImpl(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException {
+  public DomainGroupConfigImpl(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
 
@@ -68,8 +69,11 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     // enumerate the versions subkey
     List<String> versions = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/versions");
     for (String version : versions) {
-      domainGroupConfigVersions.put(Integer.parseInt(version),
-          new DomainGroupConfigVersionImpl(zk, dgPath + "/versions/" + version, this));
+      String versionPath = dgPath + "/versions/" + version;
+      if (DomainGroupConfigVersionImpl.isComplete(versionPath, zk)) {
+        domainGroupConfigVersions.put(Integer.parseInt(version),
+            new DomainGroupConfigVersionImpl(zk, versionPath, this));
+      }
     }
   }
 

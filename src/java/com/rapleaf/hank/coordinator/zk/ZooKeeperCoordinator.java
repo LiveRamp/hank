@@ -109,8 +109,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @param domainGroupsRoot TODO
    * @param ringGroupsRoot TODO
    * @throws InterruptedException
+   * @throws KeeperException 
    */
-  ZooKeeperCoordinator(String zkConnectString, int sessionTimeoutMs, String domainsRoot, String domainGroupsRoot, String ringGroupsRoot) throws InterruptedException {
+  ZooKeeperCoordinator(String zkConnectString, int sessionTimeoutMs, String domainsRoot, String domainGroupsRoot, String ringGroupsRoot) throws InterruptedException, KeeperException {
     super(zkConnectString, sessionTimeoutMs);
     this.domainsRoot = domainsRoot;
     this.domainGroupsRoot = domainGroupsRoot;
@@ -279,7 +280,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  private void loadAllDomainGroups() throws InterruptedException {
+  private void loadAllDomainGroups() throws InterruptedException, KeeperException {
     ZooKeeperUtils.checkExistsOrDie(zk, domainGroupsRoot);
 
     List<String> domainGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainGroupsRoot);
@@ -655,6 +656,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       } catch (DataNotFoundException e) {
         // This shouldn't happen
         LOG.warn(e);
+      } catch (KeeperException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
       }
     }
 

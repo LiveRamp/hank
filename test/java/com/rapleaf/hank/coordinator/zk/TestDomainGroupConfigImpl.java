@@ -36,6 +36,10 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
     create(dg_root + "/versions/1");
     create(dg_root + "/versions/1/domain0", "1");
     create(dg_root + "/versions/1/domain1", "1");
+    create(dg_root + "/versions/1/.complete", "1");
+    create(dg_root + "/versions/2");
+    create(dg_root + "/versions/2/domain0", "1");
+    create(dg_root + "/versions/2/domain1", "1");
 
     DomainGroupConfigImpl dgc = new DomainGroupConfigImpl(getZk(), dg_root);
 
