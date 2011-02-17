@@ -43,9 +43,15 @@
 						/parts
 							/<domain_id> => version_num
 								/<part_id>
-						/part_daemon/status => data (enum)
-						/update_daemon/status => data (enum)
-						: Contains information about the status of this host
+						/part_daemon
+						  /status => data (enum)
+						  /online
+						  : Ephemeral node that should only be present when the part daemon is online
+						/update_daemon
+						  /status => data (enum)						  
+						  : Contains information about the status of this host
+						  /online
+						  : Ephemeral node that should only be present when the part daemon is online
 				/version => data
 				: The version of this ring, which corresponds with the
 				: version of a domain group
