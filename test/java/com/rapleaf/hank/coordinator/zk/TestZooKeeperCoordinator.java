@@ -30,7 +30,7 @@ import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
 
-  public class MockRingGroupChangeListener implements RingGroupChangeListener {
+  public class OmniMockListener implements RingGroupChangeListener, DomainChangeListener, DomainGroupChangeListener, DaemonStateChangeListener {
     public RingGroupConfig ringGroup;
     public boolean notified = false;
 
@@ -42,24 +42,18 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
         notifyAll();
       }
     }
-  }
 
-  public class MockDomainGroupChangeListener implements
-      DomainGroupChangeListener {
-
-    public boolean notified;
     public DomainGroupConfig domainGroup;
 
     @Override
     public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
       this.domainGroup = newDomainGroup;
       notified = true;
+      synchronized (this) {
+        notifyAll();
+      }
     }
 
-  }
-
-  public class MockDomainChangeListener implements DomainChangeListener {
-    public boolean notified = false;
     public DomainConfig newDomain;
 
     @Override
@@ -70,17 +64,12 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
         notifyAll();
       }
     }
-  }
 
-  private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
-
-  public class MockDaemonStateChangeListener implements DaemonStateChangeListener {
-    public boolean notified = false;
-    private String ringGroupName;
-    private int ringNumber;
-    private PartDaemonAddress hostName;
-    private DaemonType type;
-    private DaemonState newState;
+    public String ringGroupName;
+    public int ringNumber;
+    public PartDaemonAddress hostName;
+    public DaemonType type;
+    public DaemonState newState;
 
     @Override
     public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState newState) {
@@ -95,6 +84,8 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
       }
     }
   }
+
+  private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
 
   private final String domains_root = getRoot() + "/domains";
   private final String domain_groups_root = getRoot() + "/domain_groups";
@@ -126,7 +117,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals(DaemonState.IDLE, coord.getDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON));
 
     // test being notified of daemon state change
-    MockDaemonStateChangeListener listener = new MockDaemonStateChangeListener();
+    OmniMockListener listener = new OmniMockListener();
     coord.addDaemonStateChangeListener("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, listener);
     coord.setDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, DaemonState.STARTED);
     synchronized (listener) {
@@ -141,11 +132,11 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testDomainChangeListener() throws Exception {
-    MockDomainChangeListener listener = new MockDomainChangeListener();
+    OmniMockListener listener = new OmniMockListener();
     coord.addDomainChangeListener("domain0", listener);
     getZk().setData(domains_root + "/domain0/version", "2".getBytes(), -1);
     synchronized (listener) {
-      listener.wait(10000);
+      listener.wait(1000);
     }
     assertTrue("listener wasn't notified", listener.notified);
     assertEquals("domain name", "domain0", listener.newDomain.getName());
@@ -153,9 +144,10 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testDomainGroupChangeListener() throws Exception {
-    MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
+    OmniMockListener listener = new OmniMockListener();
     coord.addDomainGroupChangeListener("myDomainGroup", listener);
     create(domain_groups_root + "/myDomainGroup/versions/1");
+    create(domain_groups_root + "/myDomainGroup/versions/1/.complete");
     synchronized (listener) {
       listener.wait(1000);
     }
@@ -165,7 +157,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testRingGroupChangeListener() throws Exception {
-    MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
+    OmniMockListener listener = new OmniMockListener();
     coord.addRingGroupChangeListener("myRingGroup", listener);
     create(ring_groups_root + "/myRingGroup/ring-002");
     create(ring_groups_root + "/myRingGroup/ring-002/version", "1");
