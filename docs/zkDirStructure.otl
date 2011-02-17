@@ -29,7 +29,7 @@
 				: There will be a folder for each domain group version,
 				: consisting of the version of each domain in that dg version.
 					/<domain_name> => version
-					/complete
+					/.complete
 					: This node will not exist until the version being created is fully populated.
 	/ring_groups
     /__lock
