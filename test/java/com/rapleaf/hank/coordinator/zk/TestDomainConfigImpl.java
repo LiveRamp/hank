@@ -1,8 +1,5 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.ZkTestCase;
@@ -23,12 +20,12 @@ public class TestDomainConfigImpl extends ZkTestCase {
 
   public void testLoad() throws Exception {
     // write some junk to ZK
-    getZk().create(DOMAIN_PATH, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    node(getZk(), "num_parts", "1");
-    node(getZk(), "storage_engine_factory_class", STORAGE_ENGINE_FACTORY);
-    node(getZk(), "storage_engine_options", STORAGE_ENGINE_OPTS);
-    node(getZk(), "partitioner_class", CONST_PARTITIONER);
-    node(getZk(), "version", "1");
+    create(DOMAIN_PATH);
+    create(DOMAIN_PATH + "/" + "num_parts", "1");
+    create(DOMAIN_PATH + "/" + "storage_engine_factory_class", STORAGE_ENGINE_FACTORY);
+    create(DOMAIN_PATH + "/" + "storage_engine_options", STORAGE_ENGINE_OPTS);
+    create(DOMAIN_PATH + "/" + "partitioner_class", CONST_PARTITIONER);
+    create(DOMAIN_PATH + "/" + "version", "1");
 
     // try to instantiate a DomainConfigImpl
     DomainConfigImpl dc = new DomainConfigImpl(getZk(), DOMAIN_PATH);
@@ -39,9 +36,5 @@ public class TestDomainConfigImpl extends ZkTestCase {
     assertEquals(1, dc.getNumParts());
     assertTrue(dc.getPartitioner() instanceof ConstantPartitioner);
     assertEquals(1, dc.getVersion());
-  }
-
-  private void node(ZooKeeper zk, String path, String data) throws Exception {
-    zk.create(DOMAIN_PATH + "/" + path, data.getBytes("UTF-8"), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 }
