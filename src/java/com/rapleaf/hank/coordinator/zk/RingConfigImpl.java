@@ -126,7 +126,6 @@ public class RingConfigImpl implements RingConfig {
     return partsMap.get(hostAndPort).get(domainId);
   }
 
-
   @Override
   public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
     return hostsForPartition.get(domainId).get(partId);

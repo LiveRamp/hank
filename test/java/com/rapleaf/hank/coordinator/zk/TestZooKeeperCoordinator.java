@@ -106,8 +106,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testLoad() throws Exception {
-    ZooKeeperCoordinator coord = getCoord();
-
     // check standard loading stuff
     assertEquals("number of loaded domain configs", 1, coord.getDomainConfigs().size());
     assertEquals("get domain by name", "domain0", coord.getDomainConfig("domain0").getName());
@@ -118,14 +116,14 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
 
+    assertEquals("ring number", 1, coord.getRingConfig("myRingGroup", 1).getRingNumber());
+  }
+
+  public void testDaemonState() throws Exception {
     // test set/get daemon state
     assertEquals(DaemonState.STARTABLE, coord.getDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON));
     coord.setDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, DaemonState.IDLE);
     assertEquals(DaemonState.IDLE, coord.getDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON));
-  }
-
-  public void testDaemonState() throws Exception {
-    ZooKeeperCoordinator coord = getCoord();
 
     // test being notified of daemon state change
     MockDaemonStateChangeListener listener = new MockDaemonStateChangeListener();

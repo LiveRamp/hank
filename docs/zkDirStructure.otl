@@ -3,26 +3,40 @@
 /hank
 : Root directory
 	/domains
+	  /__lock
+	  : R/W lock that must be respected when enumerating, deleting, or creating domains
 		/<domain_name>
+		  /__lock
+		  : R/W lock that must be respected when modifying the contents of this particular domain (ie, setting the version number)
 			/num_parts => int
 			/storage_engine_factory_class => classname
 			/storage_engine_options => data
 			: Options for the storage engine (e.g. location), YAML format
 			/partitioner_class => classname
-			/version => data
+			/version => number
 			: The current version that the domain is at
 	/domain_groups
+    /__lock
+    : R/W lock that must be respected when enumerating, deleting, or creating domain groups	
 		/<group_name>
+		  /__lock
+		  : R/W lock that must be respected when modifying the contents of this particular domain group
 			/domains
 				/<domain_id> => <domain_path (ie /hank/domains/your_domain_name)>
-				: Basically map domain name to its id
+				: Map domain name to its id
 			/versions
-				/<domain_group_version>
+				/<version number>
 				: There will be a folder for each domain group version,
 				: consisting of the version of each domain in that dg version.
 					/<domain_name> => version
+					/complete
+					: This node will not exist until the version being created is fully populated.
 	/ring_groups
+    /__lock
+    : R/W lock that must be respected when enumerating, deleting, or creating domains
 		/<ring_group_name> => <domain_group_name>
+  		/__lock
+  	  : R/W lock that must be respected when enumerating, deleting, or creating rings in this group
 			/ring-<ring_number>
 				/hosts
 					/<host_name>:<port_num>

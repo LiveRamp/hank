@@ -16,9 +16,6 @@ public class TestRingConfigImpl extends ZkTestCase {
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
 
   public void testLoad() throws Exception {
-    create(getRoot() + "/ring-group-one");
-    create(ring_root);
-    create(ring_root + "/hosts");
     create(ring_root + "/hosts/localhost:1");
     create(ring_root + "/hosts/localhost:1/parts");
     create(ring_root + "/hosts/localhost:1/parts/0", "1");
@@ -40,5 +37,18 @@ public class TestRingConfigImpl extends ZkTestCase {
     assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
 
     // TODO: test code for determining state of a ring
+  }
+
+//  public void testGetState() throws Exception {
+//    create(ring_root);
+//      fail();
+//  }
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    create(getRoot() + "/ring-group-one");
+    create(ring_root);
+    create(ring_root + "/hosts");
   }
 }
