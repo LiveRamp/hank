@@ -56,4 +56,16 @@ public interface RingConfig {
   public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId);
 
   public int getVersionNumber();
+
+  public boolean isUpdatePending();
+
+  public void takeDownPartDaemons();
+
+  public int getUpdatingToVersionNumber();
+
+  public void updateComplete();
+
+  public void startAllPartDaemons();
+
+  public void startAllUpdaters();
 }

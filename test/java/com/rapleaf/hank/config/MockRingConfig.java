@@ -57,4 +57,40 @@ public class MockRingConfig implements RingConfig {
     // TODO Auto-generated method stub
     return 0;
   }
+
+  @Override
+  public int getUpdatingToVersionNumber() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public boolean isUpdatePending() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void startAllPartDaemons() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void startAllUpdaters() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void takeDownPartDaemons() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void updateComplete() {
+    // TODO Auto-generated method stub
+    
+  }
 }

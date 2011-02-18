@@ -42,4 +42,40 @@ public class MockRingGroupConfig implements RingGroupConfig {
   public Set<RingConfig> getRingConfigs() {
     return ringConfigs;
   }
+
+  @Override
+  public boolean claimDataDeployer() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void releaseDataDeployer() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public int getCurrentVersion() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public boolean isUpdating() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void setUpdatingToVersion(int versionNumber) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void updateComplete() {
+    // TODO Auto-generated method stub
+    
+  }
 }

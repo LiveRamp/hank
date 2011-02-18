@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainGroupConfig;
@@ -81,5 +82,35 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   @Override
   public Set<RingConfig> getRingConfigs() {
     return new HashSet<RingConfig>(ringsByNumber.values());
+  }
+
+  @Override
+  public boolean claimDataDeployer() {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public void releaseDataDeployer() {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public int getCurrentVersion() {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public boolean isUpdating() {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public void setUpdatingToVersion(int versionNumber) {
+    throw new NotImplementedException();
+  }
+
+  @Override
+  public void updateComplete() {
+    throw new NotImplementedException();
   }
 }

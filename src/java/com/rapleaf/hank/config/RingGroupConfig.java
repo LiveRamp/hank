@@ -51,4 +51,16 @@ public interface RingGroupConfig {
    */
   public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
   throws DataNotFoundException;
+
+  public boolean claimDataDeployer();
+
+  public void releaseDataDeployer();
+
+  public boolean isUpdating();
+
+  public int getCurrentVersion();
+
+  public void setUpdatingToVersion(int versionNumber);
+
+  public void updateComplete();
 }

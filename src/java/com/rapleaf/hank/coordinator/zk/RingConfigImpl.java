@@ -140,4 +140,40 @@ public class RingConfigImpl implements RingConfig {
   public int getVersionNumber() {
     return versionNumber;
   }
+
+  @Override
+  public int getUpdatingToVersionNumber() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  public boolean isUpdatePending() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void startAllPartDaemons() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void startAllUpdaters() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void takeDownPartDaemons() {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void updateComplete() {
+    // TODO Auto-generated method stub
+    
+  }
 }
