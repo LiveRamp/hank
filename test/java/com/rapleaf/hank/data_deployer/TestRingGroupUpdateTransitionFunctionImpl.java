@@ -12,7 +12,7 @@ import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
 
-public class TestDaemon extends TestCase {
+public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   private class MRC extends MockRingConfig {
     private boolean takeDownPartDaemonsCalled;
@@ -74,6 +74,7 @@ public class TestDaemon extends TestCase {
 
   private class MRG extends MockRingGroupConfig {
     private final int curVer;
+    @SuppressWarnings("unused")
     private final int toVer;
 
     public MRG(int curVer, int toVer, RingConfig... ringConfigs) {
@@ -97,17 +98,21 @@ public class TestDaemon extends TestCase {
     MRC r1 = new MRC(1, RingState.AVAILABLE, true, 1, 2);
     MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
-    Daemon.manageTransitions(rg);
+    getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been taken down", r1.takeDownPartDaemonsCalled);
     assertFalse("r2 should not have been taken down", r2.takeDownPartDaemonsCalled);
+  }
+
+  private RingGroupUpdateTransitionFunction getFunc() {
+    return new RingGroupUpdateTransitionFunctionImpl();
   }
 
   public void testDownsOnlyAvailableRing() throws Exception {
     MRC r1 = new MRC(1, RingState.AVAILABLE, false, 2, 2);
     MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
-    Daemon.manageTransitions(rg);
+    getFunc().manageTransitions(rg);
 
     assertFalse("r1 should not have been taken down", r1.takeDownPartDaemonsCalled);
     assertTrue("r2 should have been taken down", r2.takeDownPartDaemonsCalled);
@@ -118,7 +123,7 @@ public class TestDaemon extends TestCase {
       MRC r1 = new MRC(1, s, true, 1, 2);
       MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
       MRG rg = new MRG(1, 2, r1, r2);
-      Daemon.manageTransitions(rg);
+      getFunc().manageTransitions(rg);
 
       assertFalse("r1 should not have been taken down", r1.takeDownPartDaemonsCalled);
       assertFalse("r2 should not have been taken down", r2.takeDownPartDaemonsCalled); 
@@ -128,7 +133,7 @@ public class TestDaemon extends TestCase {
   public void testIdleToUpdating() throws Exception {
     MRC r1 = new MRC(1, RingState.IDLE, true, 1, 2);
     MRG rg = new MRG(1, 2, r1);
-    Daemon.manageTransitions(rg);
+    getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to updating", r1.startAllUpdatersCalled);
   }
@@ -141,7 +146,7 @@ public class TestDaemon extends TestCase {
       }
     };
     MRG rg = new MRG(1, 2, r1);
-    Daemon.manageTransitions(rg);
+    getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to starting", r1.startAllPartDaemonsCalled);
   }
@@ -154,7 +159,7 @@ public class TestDaemon extends TestCase {
       }
     };
     MRG rg = new MRG(1, 2, r1);
-    Daemon.manageTransitions(rg);
+    getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to update complete", r1.updateCompleteCalled);
   }
@@ -163,7 +168,7 @@ public class TestDaemon extends TestCase {
     for (RingState s : EnumSet.of(RingState.STOPPING, RingState.STARTING, RingState.UPDATING)) {
       MRC r1 = new MRC(1, s, true, 1, 2);
       MRG rg = new MRG(1, 2, r1);
-      Daemon.manageTransitions(rg);
+      getFunc().manageTransitions(rg);
 
       assertFalse("r1 should have no state changes", r1.anyStateMethodCalled);
     }
