@@ -176,4 +176,10 @@ public class RingConfigImpl implements RingConfig {
     // TODO Auto-generated method stub
     
   }
+
+  @Override
+  public int getOldestVersionOnHosts() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 }

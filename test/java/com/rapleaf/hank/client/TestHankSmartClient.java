@@ -140,6 +140,12 @@ public class TestHankSmartClient extends TestCase {
       // TODO Auto-generated method stub
       
     }
+
+    @Override
+    public int getOldestVersionOnHosts() {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 
   private class MockCoordinator implements Coordinator {

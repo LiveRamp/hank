@@ -93,4 +93,9 @@ public class MockRingConfig implements RingConfig {
     // TODO Auto-generated method stub
     
   }
+
+  public int getOldestVersionOnHosts() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 }

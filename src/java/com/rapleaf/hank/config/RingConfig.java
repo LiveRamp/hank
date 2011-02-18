@@ -68,4 +68,6 @@ public interface RingConfig {
   public void startAllPartDaemons();
 
   public void startAllUpdaters();
+
+  public int getOldestVersionOnHosts();
 }
