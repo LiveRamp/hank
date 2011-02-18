@@ -92,7 +92,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     }
   }
 
-  static void manageTransitions(final RingGroupConfig ringGroup, final DomainGroupConfig domainGroup) {
+  static void manageTransitions(final RingGroupConfig ringGroup) {
     boolean anyUpdatesPending = false;
     boolean anyDownOrUpdating = false;
     Queue<RingConfig> downable = new LinkedList<RingConfig>();
