@@ -5,7 +5,6 @@ import org.apache.log4j.PropertyConfigurator;
 
 import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.RingConfig;
 import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
@@ -56,8 +55,8 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         // loop until we're taken down
         try {
           while (true) {
-            // take a snapshot of the current ring/domain group configs, since they
-            // might get changed while we're processing the current update.
+            // take a snapshot of the current ring/domain group configs, since
+            // they might get changed while we're processing the current update.
             RingGroupConfig snapshotRingGroupConfig;
             DomainGroupConfig snapshotDomainGroupConfig;
             synchronized (lock) {
@@ -79,9 +78,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     }
   }
 
-
   void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) {
-
     if (ringGroup.isUpdating()) {
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
@@ -94,10 +91,6 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     }
   }
 
-  private static int getOldestHostVersion(RingConfig ring) {
-    // TODO Auto-generated method stub
-    return 0;
-  }
 
   @Override
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
@@ -113,7 +106,6 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     }
   }
 
-
   /**
    * @param args
    * @throws Exception 
@@ -122,8 +114,8 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     String configPath = args[0];
     String log4jprops = args[1];
 
-//    PartDaemonConfigurator configurator = new YamlConfigurator(configPath);
+    DataDeployerConfigurator configurator = new YamlDataDeployerConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
-    new Daemon(null).run();
+    new Daemon(configurator).run();
   }
 }

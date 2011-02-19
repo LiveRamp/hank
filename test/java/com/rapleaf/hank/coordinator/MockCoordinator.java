@@ -1,5 +1,6 @@
 package com.rapleaf.hank.coordinator;
 
+import java.util.Map;
 import java.util.Set;
 
 import com.rapleaf.hank.config.DomainConfig;
@@ -10,6 +11,25 @@ import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockCoordinator implements Coordinator {
+
+  private final Map<String, String> options;
+
+  public static class Factory implements CoordinatorFactory {
+
+    @Override
+    public Coordinator getCoordinator(Map<String, String> options) {
+      return new MockCoordinator(options);
+    }
+    
+  }
+  
+  public MockCoordinator(Map<String, String> options) {
+    this.options = options;
+  }
+
+  public MockCoordinator() {
+    options = null;
+  }
 
   @Override
   public void addDaemonStateChangeListener(String ringGroupName,
@@ -100,6 +120,10 @@ public class MockCoordinator implements Coordinator {
 
   public Set<RingGroupConfig> getRingGroups() {
     return null;
+  }
+
+  public Map<String, String> getInitOptions() {
+    return options;
   }
 
 }
