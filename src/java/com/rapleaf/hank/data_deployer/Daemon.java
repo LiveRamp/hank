@@ -1,8 +1,5 @@
 package com.rapleaf.hank.data_deployer;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -59,7 +56,16 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         // loop until we're taken down
         try {
           while (true) {
-            processUpdates();
+            // take a snapshot of the current ring/domain group configs, since they
+            // might get changed while we're processing the current update.
+            RingGroupConfig snapshotRingGroupConfig;
+            DomainGroupConfig snapshotDomainGroupConfig;
+            synchronized (lock) {
+              snapshotRingGroupConfig = ringGroupConfig;
+              snapshotDomainGroupConfig = domainGroupConfig;
+            }
+
+            processUpdates(snapshotRingGroupConfig, snapshotDomainGroupConfig);
             Thread.sleep(config.getSleepInterval());
           }
         } catch (InterruptedException e) {
@@ -74,25 +80,17 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
   }
 
 
-  private void processUpdates() {
-    // take a snapshot of the current ring/domain group configs, since they
-    // might get changed while we're processing the current update.
-    RingGroupConfig snapshotRingGroupConfig;
-    DomainGroupConfig snapshotDomainGroupConfig;
-    synchronized (lock) {
-      snapshotRingGroupConfig = ringGroupConfig;
-      snapshotDomainGroupConfig = domainGroupConfig;
-    }
+  void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) {
 
-    if (snapshotRingGroupConfig.isUpdating()) {
+    if (ringGroup.isUpdating()) {
       // There's already an update in progress. Let's just move that one along as necessary.
-      transFunc.manageTransitions(snapshotRingGroupConfig);
-    } else if (snapshotRingGroupConfig.getCurrentVersion() < snapshotDomainGroupConfig.getLatestVersion().getVersionNumber()) {
+      transFunc.manageTransitions(ringGroup);
+    } else if (ringGroup.getCurrentVersion() < domainGroup.getLatestVersion().getVersionNumber()) {
       // We can start a new update of this ring group.
 
       // set the ring group's updating version to the new domain group version
       // this will mark all the subordinate rings and hosts for update as well.
-      snapshotRingGroupConfig.setUpdatingToVersion(snapshotDomainGroupConfig.getLatestVersion().getVersionNumber());
+      ringGroup.setUpdatingToVersion(domainGroup.getLatestVersion().getVersionNumber());
     }
   }
 

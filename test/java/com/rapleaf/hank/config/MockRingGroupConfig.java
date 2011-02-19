@@ -9,6 +9,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
   private final DomainGroupConfig dcg;
   private final String name;
   private final Set<RingConfig> ringConfigs;
+  public int updateToVersion;
 
   public MockRingGroupConfig(DomainGroupConfig dcg, String name, Set<RingConfig> ringConfigs) {
     this.dcg = dcg;
@@ -69,8 +70,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
 
   @Override
   public void setUpdatingToVersion(int versionNumber) {
-    // TODO Auto-generated method stub
-    
+    updateToVersion = versionNumber;
   }
 
   @Override
