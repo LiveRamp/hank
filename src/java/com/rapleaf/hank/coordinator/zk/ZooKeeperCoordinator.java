@@ -294,7 +294,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  private void loadAllRingGroups() throws InterruptedException {
+  private void loadAllRingGroups() throws InterruptedException, KeeperException {
     ZooKeeperUtils.checkExistsOrDie(zk, ringGroupsRoot);
 
     List<String> ringGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupsRoot);

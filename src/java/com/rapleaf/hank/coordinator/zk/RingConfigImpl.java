@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -46,8 +47,10 @@ public class RingConfigImpl implements RingConfig {
   private Map<Integer, Map<Integer, Set<PartDaemonAddress>>> hostsForPartition 
     = new HashMap<Integer, Map<Integer,Set<PartDaemonAddress>>>();
   private final RingGroupConfig ringGroupConfig;
+  private final boolean isUpdating;
+  private final Integer updatingToVersion;
 
-  public RingConfigImpl(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException {
+  public RingConfigImpl(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
     this.ringGroupConfig = ringGroupConfig;
     String[] toks = ringPath.split("/");
     String lastPathElement = toks[toks.length - 1];
@@ -56,8 +59,14 @@ public class RingConfigImpl implements RingConfig {
     matcher.matches();
     ringNumber = Integer.parseInt(matcher.group(1));
 
-    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + "/version"));
-
+    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + "/current_version"));
+    if (zk.exists(ringPath + "/updating_to_version", false) == null) {
+      isUpdating = false;
+      updatingToVersion = null;
+    } else {
+      isUpdating = true;
+      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + "/updating_to_version"));
+    }
     // enumerate hosts
     List<String> hosts = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts");
     for (String host : hosts) {
@@ -143,14 +152,12 @@ public class RingConfigImpl implements RingConfig {
 
   @Override
   public int getUpdatingToVersionNumber() {
-    // TODO Auto-generated method stub
-    return 0;
+    return updatingToVersion;
   }
 
   @Override
   public boolean isUpdatePending() {
-    // TODO Auto-generated method stub
-    return false;
+    return isUpdating;
   }
 
   @Override

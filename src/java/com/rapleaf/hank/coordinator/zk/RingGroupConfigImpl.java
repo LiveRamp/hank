@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.config.DomainGroupConfig;
@@ -36,7 +37,7 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   private final HashMap<Integer,RingConfig> ringsByNumber =
     new HashMap<Integer, RingConfig>();
 
-  public RingGroupConfigImpl(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException {
+  public RingGroupConfigImpl(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
     this.domainGroupConfig = domainGroupConfig;
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];

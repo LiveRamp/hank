@@ -15,7 +15,7 @@ public class TestRingConfigImpl extends ZkTestCase {
 
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
 
-  public void testLoad() throws Exception {
+  public void testLoadNotUpdating() throws Exception {
     create(ring_root + "/hosts/localhost:1");
     create(ring_root + "/hosts/localhost:1/parts");
     create(ring_root + "/hosts/localhost:1/parts/0", "1");
@@ -24,25 +24,42 @@ public class TestRingConfigImpl extends ZkTestCase {
     create(ring_root + "/hosts/localhost:1/part_daemon/status", "STARTED");
     create(ring_root + "/hosts/localhost:1/update_daemon");
     create(ring_root + "/hosts/localhost:1/update_daemon/status", "IDLE");
-//    create(ring_root + "/hosts/localhost:2");
-    create(ring_root + "/version", "1");
+    create(ring_root + "/current_version", "1");
 
     RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", 1, ringConf.getVersionNumber());
+    assertFalse("should not be updating", ringConf.isUpdatePending());
     assertEquals("number of hosts", 1, ringConf.getHosts().size());
     assertEquals("primary host address", LOCALHOST, ringConf.getHosts().toArray()[0]);
     assertEquals("assigned parts", Collections.singleton(1), ringConf.getDomainPartitionsForHost(LOCALHOST, 0));
     assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
-
-    // TODO: test code for determining state of a ring
   }
 
-//  public void testGetState() throws Exception {
-//    create(ring_root);
-//      fail();
-//  }
+  public void testLoadUpdating() throws Exception {
+    create(ring_root + "/hosts/localhost:1");
+    create(ring_root + "/hosts/localhost:1/parts");
+    create(ring_root + "/hosts/localhost:1/parts/0", "1");
+    create(ring_root + "/hosts/localhost:1/parts/0/1", "1");
+    create(ring_root + "/hosts/localhost:1/part_daemon");
+    create(ring_root + "/hosts/localhost:1/part_daemon/status", "STARTED");
+    create(ring_root + "/hosts/localhost:1/update_daemon");
+    create(ring_root + "/hosts/localhost:1/update_daemon/status", "IDLE");
+    create(ring_root + "/current_version", "1");
+    create(ring_root + "/updating_to_version", "2");
+
+    RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
+
+    assertEquals("expected ring number", 1, ringConf.getRingNumber());
+    assertEquals("version number", 1, ringConf.getVersionNumber());
+    assertTrue("should be updating", ringConf.isUpdatePending());
+    assertEquals("updating_to_version number", 2, ringConf.getUpdatingToVersionNumber());
+    assertEquals("number of hosts", 1, ringConf.getHosts().size());
+    assertEquals("primary host address", LOCALHOST, ringConf.getHosts().toArray()[0]);
+    assertEquals("assigned parts", Collections.singleton(1), ringConf.getDomainPartitionsForHost(LOCALHOST, 0));
+    assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
+  }
 
   @Override
   protected void setUp() throws Exception {
