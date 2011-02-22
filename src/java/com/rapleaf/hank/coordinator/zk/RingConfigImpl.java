@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -36,6 +37,8 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class RingConfigImpl implements RingConfig {
+  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
+  private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private final int ringNumber;
   private final int versionNumber;
 
@@ -49,8 +52,12 @@ public class RingConfigImpl implements RingConfig {
   private final RingGroupConfig ringGroupConfig;
   private final boolean isUpdating;
   private final Integer updatingToVersion;
+  private final ZooKeeper zk;
+  private final String ringPath;
 
   public RingConfigImpl(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
+    this.zk = zk;
+    this.ringPath = ringPath;
     this.ringGroupConfig = ringGroupConfig;
     String[] toks = ringPath.split("/");
     String lastPathElement = toks[toks.length - 1];
@@ -59,13 +66,13 @@ public class RingConfigImpl implements RingConfig {
     matcher.matches();
     ringNumber = Integer.parseInt(matcher.group(1));
 
-    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + "/current_version"));
-    if (zk.exists(ringPath + "/updating_to_version", false) == null) {
+    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT));
+    if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
       isUpdating = false;
       updatingToVersion = null;
     } else {
       isUpdating = true;
-      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + "/updating_to_version"));
+      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT));
     }
     // enumerate hosts
     List<String> hosts = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts");
@@ -179,9 +186,13 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public void updateComplete() {
-    // TODO Auto-generated method stub
-    
+  public void updateComplete() throws IOException {
+    try {
+      zk.setData(ringPath + CURRENT_VERSION_PATH_SEGMENT, updatingToVersion.toString().getBytes(), -1);
+      zk.delete(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, -1);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

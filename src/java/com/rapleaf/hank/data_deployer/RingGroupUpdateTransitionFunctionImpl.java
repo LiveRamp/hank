@@ -1,5 +1,6 @@
 package com.rapleaf.hank.data_deployer;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -10,7 +11,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
     RingGroupUpdateTransitionFunction {
 
   @Override
-  public void manageTransitions(RingGroupConfig ringGroup) {
+  public void manageTransitions(RingGroupConfig ringGroup) throws IOException {
     boolean anyUpdatesPending = false;
     boolean anyDownOrUpdating = false;
     Queue<RingConfig> downable = new LinkedList<RingConfig>();

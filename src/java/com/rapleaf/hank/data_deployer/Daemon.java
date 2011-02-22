@@ -1,5 +1,7 @@
 package com.rapleaf.hank.data_deployer;
 
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
@@ -78,7 +80,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     }
   }
 
-  void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) {
+  void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) throws IOException {
     if (ringGroup.isUpdating()) {
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);

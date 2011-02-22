@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.config;
 
+import java.io.IOException;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.RingState;
@@ -63,7 +64,7 @@ public interface RingConfig {
 
   public int getUpdatingToVersionNumber();
 
-  public void updateComplete();
+  public void updateComplete() throws IOException;
 
   public void startAllPartDaemons();
 
