@@ -2,8 +2,8 @@ package com.rapleaf.hank.coordinator.zk;
 
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainConfigVersionImpl implements DomainConfigVersion {

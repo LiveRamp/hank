@@ -6,10 +6,10 @@ import java.util.LinkedHashSet;
 
 import junit.framework.TestCase;
 
-import com.rapleaf.hank.config.MockRingConfig;
-import com.rapleaf.hank.config.MockRingGroupConfig;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingConfig;
+import com.rapleaf.hank.coordinator.MockRingConfig;
+import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {

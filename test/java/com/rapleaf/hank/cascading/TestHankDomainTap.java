@@ -38,7 +38,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 
-import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;

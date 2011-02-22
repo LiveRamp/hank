@@ -16,16 +16,16 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {

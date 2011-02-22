@@ -13,12 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Set;
 
-import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public interface RingConfig {

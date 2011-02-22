@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class RingGroupUpdateTransitionFunctionImpl implements
     RingGroupUpdateTransitionFunction {

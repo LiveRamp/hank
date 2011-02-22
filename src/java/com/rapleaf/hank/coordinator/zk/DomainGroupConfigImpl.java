@@ -28,9 +28,9 @@ import java.util.Map.Entry;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 

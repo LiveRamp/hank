@@ -3,8 +3,8 @@ package com.rapleaf.hank.coordinator.zk;
 import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 
 public class TestRingConfigImpl extends ZkTestCase {
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");

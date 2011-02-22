@@ -1,7 +1,10 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 import java.util.SortedSet;
 
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockDomainGroupConfig implements DomainGroupConfig {

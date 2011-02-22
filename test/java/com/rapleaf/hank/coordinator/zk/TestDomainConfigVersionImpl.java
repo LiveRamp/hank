@@ -1,7 +1,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
 
 public class TestDomainConfigVersionImpl extends ZkTestCase {
   private final String path = getRoot() + "/myDomain";

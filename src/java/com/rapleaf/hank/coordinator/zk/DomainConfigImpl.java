@@ -20,7 +20,7 @@ import java.util.Map;
 import org.apache.zookeeper.ZooKeeper;
 import org.yaml.snakeyaml.Yaml;
 
-import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;

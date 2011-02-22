@@ -33,18 +33,18 @@ import org.apache.zookeeper.data.Stat;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.ZooKeeperUtils;

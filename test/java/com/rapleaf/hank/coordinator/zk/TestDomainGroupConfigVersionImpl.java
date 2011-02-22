@@ -1,10 +1,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainConfigVersion;
-import com.rapleaf.hank.config.MockDomainConfig;
-import com.rapleaf.hank.config.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class TestDomainGroupConfigVersionImpl extends ZkTestCase {

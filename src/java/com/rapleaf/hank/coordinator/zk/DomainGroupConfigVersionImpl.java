@@ -8,9 +8,9 @@ import java.util.Set;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.config.DomainConfigVersion;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 

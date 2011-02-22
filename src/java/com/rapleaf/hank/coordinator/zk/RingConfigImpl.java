@@ -29,9 +29,9 @@ import org.apache.zookeeper.ZooKeeper;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;

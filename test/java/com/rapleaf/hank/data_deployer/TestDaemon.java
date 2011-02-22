@@ -5,14 +5,14 @@ import java.util.Collections;
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.DomainGroupConfigVersion;
-import com.rapleaf.hank.config.MockDomainGroupConfig;
-import com.rapleaf.hank.config.MockDomainGroupConfigVersion;
-import com.rapleaf.hank.config.MockRingGroupConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockCoordinator;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class TestDaemon extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {

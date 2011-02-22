@@ -3,11 +3,6 @@ package com.rapleaf.hank.coordinator;
 import java.util.Map;
 import java.util.Set;
 
-import com.rapleaf.hank.config.DomainConfig;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.PartDaemonAddress;
-import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockCoordinator implements Coordinator {

@@ -1,6 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.config.PartDaemonAddress;
 
 /**
  * Used to receive notifications when a particular daemon's state has changed.

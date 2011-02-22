@@ -1,4 +1,4 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
 

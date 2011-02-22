@@ -18,8 +18,8 @@ package com.rapleaf.hank.util;
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 
 public class TestZooKeeperUtils extends TestCase {

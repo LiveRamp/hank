@@ -2,7 +2,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 

@@ -23,11 +23,11 @@ import java.util.Map;
 
 import org.apache.thrift.TException;
 
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.RingConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;

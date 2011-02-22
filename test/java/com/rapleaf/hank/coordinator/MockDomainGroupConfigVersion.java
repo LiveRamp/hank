@@ -1,6 +1,10 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
+
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 
 public class MockDomainGroupConfigVersion implements DomainGroupConfigVersion {
   private final int versionNumber;

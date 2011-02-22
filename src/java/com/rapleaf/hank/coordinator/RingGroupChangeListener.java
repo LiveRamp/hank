@@ -1,6 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.config.RingGroupConfig;
 
 /**
  * Used to receive the latest configuration information when a ring group has

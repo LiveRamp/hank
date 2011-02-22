@@ -1,4 +1,7 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
+
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
 
 public class MockDomainConfigVersion implements DomainConfigVersion {
   private final int versionNumber;

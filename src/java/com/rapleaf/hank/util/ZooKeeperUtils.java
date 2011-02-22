@@ -24,8 +24,8 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public final class ZooKeeperUtils {

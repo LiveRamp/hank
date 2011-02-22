@@ -1,6 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.config.DomainGroupConfig;
 
 /**
  * Used to receive the latest configuration information when a domain group

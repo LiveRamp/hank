@@ -1,8 +1,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.MockDomainGroupConfig;
-import com.rapleaf.hank.config.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class TestRingGroupConfigImpl extends ZkTestCase {
 

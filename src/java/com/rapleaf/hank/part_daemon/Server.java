@@ -26,13 +26,13 @@ import org.apache.thrift.server.THsHaServer.Options;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.PartDaemonAddress;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DaemonState;
 import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
 import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;

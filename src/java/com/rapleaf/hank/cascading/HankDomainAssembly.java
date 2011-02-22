@@ -31,7 +31,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
-import com.rapleaf.hank.config.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 
 public class HankDomainAssembly extends SubAssembly {

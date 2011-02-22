@@ -6,11 +6,11 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.DomainGroupConfig;
-import com.rapleaf.hank.config.RingGroupConfig;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class Daemon implements RingGroupChangeListener, DomainGroupChangeListener {

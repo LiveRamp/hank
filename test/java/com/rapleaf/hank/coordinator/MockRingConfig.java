@@ -1,7 +1,10 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
 
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 

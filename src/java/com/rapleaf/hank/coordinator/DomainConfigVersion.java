@@ -1,4 +1,4 @@
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.coordinator;
 
 public interface DomainConfigVersion {
   public DomainConfig getDomainConfig();
