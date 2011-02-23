@@ -41,7 +41,7 @@ public class ZkTestCase extends BaseTestCase {
 
   private boolean startedZk = false;
 
-  public ZkTestCase() throws Exception {
+  public ZkTestCase() {
     super();
     zkRoot = "/" + getClass().getSimpleName();
   }
