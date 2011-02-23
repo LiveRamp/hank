@@ -40,6 +40,7 @@ import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
@@ -60,7 +61,7 @@ public class TestHankSmartClient extends TestCase {
   private class MockRingConfig implements RingConfig {
 
     @Override
-    public Set<PartDaemonAddress> getHosts() {
+    public Set<HostConfig> getHosts() {
       // TODO Auto-generated method stub
       return null;
     }

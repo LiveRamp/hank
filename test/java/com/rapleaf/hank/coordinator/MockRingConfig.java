@@ -2,10 +2,8 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
 
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.coordinator.RingState;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockRingConfig implements RingConfig {
@@ -30,8 +28,9 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public Set<PartDaemonAddress> getHosts() {
-    return hosts;
+  public Set<HostConfig> getHosts() {
+    throw new NotImplementedException();
+//    return hosts;
   }
 
   @Override
