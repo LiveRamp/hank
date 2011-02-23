@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
  * a Part Daemon.
  */
 public final class PartDaemonAddress {
-  private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("(\\w+):(\\d+)");
+  private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("([^:]+):(\\d+)");
   private final String hostName;
   private final int portNumber;
 
