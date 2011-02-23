@@ -3,6 +3,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 
 public class TestRingGroupConfigImpl extends ZkTestCase {
 
@@ -33,11 +34,7 @@ public class TestRingGroupConfigImpl extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    String base = ring_group + "/ring-" + ringNum;
-    create(base);
-    create(base + "/hosts");
-    create(base + "/hosts/localhost:" + ringNum);
-    create(base + "/hosts/localhost:" + ringNum + "/parts");
-    create(base + "/version", "1");
+    RingConfig rc = RingConfigImpl.create(getZk(), ring_group, ringNum, null, 1);
+    rc.addHost(new PartDaemonAddress("localhost", ringNum));
   }
 }

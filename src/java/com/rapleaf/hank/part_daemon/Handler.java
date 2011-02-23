@@ -26,6 +26,7 @@ import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -64,7 +65,7 @@ public class Handler implements Iface {
       StorageEngine eng = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      Set<Integer> partitions = ringConfig.getDomainPartitionsForHost(hostAndPort, domainId);
+      Set<HostDomainPartitionConfig> partitions = ringConfig.getHostConfigByAddress(hostAndPort).getDomainById(domainId).getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(),
           domainConfig.getNumParts(),
@@ -72,9 +73,9 @@ public class Handler implements Iface {
 
       // instantiate all the readers
       Reader[] readers = new Reader[domainConfig.getNumParts()];
-      for (int partNum : partitions) {
-        LOG.debug(String.format("Instantiating reader for part num %d", partNum));
-        readers[partNum] = eng.getReader(config, partNum);
+      for (HostDomainPartitionConfig part : partitions) {
+        LOG.debug(String.format("Instantiating reader for part num %d", part));
+        readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
       }
 
       // configure and store the Domain wrapper

@@ -1,10 +1,9 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.Set;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockRingConfig implements RingConfig {
 
@@ -22,21 +21,9 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort,
-      int domainId) throws DataNotFoundException {
-    return null;
-  }
-
-  @Override
   public Set<HostConfig> getHosts() {
     throw new NotImplementedException();
 //    return hosts;
-  }
-
-  @Override
-  public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId,
-      int partId) {
-    return null;
   }
 
   @Override
@@ -55,13 +42,13 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public int getVersionNumber() {
+  public Integer getVersionNumber() {
     // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
-  public int getUpdatingToVersionNumber() {
+  public Integer getUpdatingToVersionNumber() {
     // TODO Auto-generated method stub
     return 0;
   }
@@ -99,5 +86,17 @@ public class MockRingConfig implements RingConfig {
   public int getOldestVersionOnHosts() {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public HostConfig addHost(PartDaemonAddress address) throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

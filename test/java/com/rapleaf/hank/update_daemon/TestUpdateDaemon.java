@@ -18,7 +18,6 @@ package com.rapleaf.hank.update_daemon;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
@@ -46,12 +45,12 @@ import com.rapleaf.hank.storage.Updater;
 
 public class TestUpdateDaemon extends BaseTestCase {
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
-    @Override
-    public Set<Integer> getDomainPartitionsForHost(
-        PartDaemonAddress hostAndPort, int domainId)
-    throws DataNotFoundException {
-      return Collections.singleton(0);
-    }
+//    @Override
+//    public Set<Integer> getDomainPartitionsForHost(
+//        PartDaemonAddress hostAndPort, int domainId)
+//    throws DataNotFoundException {
+//      return Collections.singleton(0);
+//    }
   };
 
   public void testColdStart() throws Exception {

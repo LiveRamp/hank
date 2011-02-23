@@ -68,13 +68,13 @@ public class TestHandler extends BaseTestCase {
     final MockRingGroupConfig rgc = new MockRingGroupConfig(dcg, "myRingGroupName", null);
 
     final MockRingConfig mockRingConfig = new MockRingConfig(null, rgc, 1, RingState.AVAILABLE) {
-      @Override
-      public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
-      throws DataNotFoundException {
-        assertEquals(new PartDaemonAddress("localhost", 12345), hostAndPort);
-        assertEquals(0, domainId);
-        return new HashSet<Integer>(Arrays.asList(0, 4));
-      }
+//      @Override
+//      public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
+//      throws DataNotFoundException {
+//        assertEquals(new PartDaemonAddress("localhost", 12345), hostAndPort);
+//        assertEquals(0, domainId);
+//        return new HashSet<Integer>(Arrays.asList(0, 4));
+//      }
     };
 
     Coordinator mockCoordinator = new MockCoordinator() {

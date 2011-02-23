@@ -36,6 +36,7 @@ import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -125,6 +126,9 @@ public class UpdateDaemon implements DaemonStateChangeListener {
         } catch (DataNotFoundException e) {
           LOG.fatal("Caught an unexpected exception during update process!", e);
           goingDown = true;
+        } catch (IOException e) {
+          // TODO: hopefully a transient error.
+          LOG.error(e);
         }
         break;
 
@@ -135,7 +139,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     }
   }
 
-  private void update() throws DataNotFoundException {
+  private void update() throws DataNotFoundException, IOException {
     ThreadFactory factory = new ThreadFactory() {
       private int x = 0;
 
@@ -162,9 +166,15 @@ public class UpdateDaemon implements DaemonStateChangeListener {
       StorageEngine engine = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      for (Integer part : ringConfig.getDomainPartitionsForHost(hostAddress, domainId)) {
-        LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d", ringGroupConfig.getName(), ringConfig.getRingNumber(), domainConfig.getName(), part));
-        executor.execute(new UpdateToDo(engine, part, exceptionQueue));
+      for (HostDomainPartitionConfig part : ringConfig.getHostConfigByAddress(hostAddress).getDomainById(domainId).getPartitions()) {
+        LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
+            ringGroupConfig.getName(),
+            ringConfig.getRingNumber(),
+            domainConfig.getName(),
+            part.getPartNum(),
+            part.getCurrentDomainGroupVersion(),
+            part.getUpdatingToDomainGroupVersion()));
+        executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue));
       }
     }
 

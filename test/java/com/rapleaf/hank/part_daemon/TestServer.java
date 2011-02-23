@@ -47,12 +47,12 @@ import com.rapleaf.hank.storage.StorageEngine;
 
 public class TestServer extends BaseTestCase {
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
-    @Override
-    public Set<Integer> getDomainPartitionsForHost(
-        PartDaemonAddress hostAndPort, int domainId)
-    throws DataNotFoundException {
-      return Collections.singleton(0);
-    }
+//    @Override
+//    public Set<Integer> getDomainPartitionsForHost(
+//        PartDaemonAddress hostAndPort, int domainId)
+//    throws DataNotFoundException {
+//      return Collections.singleton(0);
+//    }
   };
 
   public void testColdStartAndShutDown() throws Exception {

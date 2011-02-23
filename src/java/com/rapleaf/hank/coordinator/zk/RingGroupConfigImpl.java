@@ -72,7 +72,7 @@ public class RingGroupConfigImpl implements RingGroupConfig {
   public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
   throws DataNotFoundException {
     for (RingConfig ring : ringsByNumber.values()) {
-      if (ring.getHosts().contains(hostAddress)) {
+      if (ring.getHostConfigByAddress(hostAddress) != null) {
         return ring;
       }
     }

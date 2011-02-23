@@ -43,12 +43,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     @Override
-    public int getUpdatingToVersionNumber() {
+    public Integer getUpdatingToVersionNumber() {
       return nextVer;
     }
 
     @Override
-    public int getVersionNumber() {
+    public Integer getVersionNumber() {
       return curVer;
     }
 

@@ -188,4 +188,19 @@ public class ZkHostConfig implements HostConfig {
     HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + "/parts", domainId);
     return hdc;
   }
+
+  @Override
+  public HostDomainConfig getDomainById(int domainId) {
+    // TODO: this should be done with a map and caching
+    try {
+      for (HostDomainConfig hdc : getAssignedDomains()) {
+        if (hdc.getDomainId() == domainId) {
+          return hdc;
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
 }

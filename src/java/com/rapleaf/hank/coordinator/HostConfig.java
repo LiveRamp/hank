@@ -22,4 +22,6 @@ public interface HostConfig {
 
   public Set<HostDomainConfig> getAssignedDomains() throws IOException;
   public HostDomainConfig addDomain(byte domainId) throws IOException;
+
+  public HostDomainConfig getDomainById(int domainId);
 }

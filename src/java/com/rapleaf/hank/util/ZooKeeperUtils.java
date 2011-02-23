@@ -210,4 +210,12 @@ public final class ZooKeeperUtils {
       return;
     }
   }
+
+  public static Integer getIntOrNull(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
+    if (zk.exists(path, false) == null) {
+      return null;
+    } else {
+      return Integer.parseInt(new String(zk.getData(path, false, new Stat())));
+    }
+  }
 }

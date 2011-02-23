@@ -19,7 +19,7 @@ public class TestRingConfigImpl extends ZkTestCase {
     RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", 1, ringConf.getVersionNumber());
+    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
     assertFalse("should not be updating", ringConf.isUpdatePending());
     assertEquals("number of hosts", 1, ringConf.getHosts().size());
     assertEquals("expected hosts", Collections.singleton(hostConfig), ringConf.getHosts());
@@ -32,9 +32,9 @@ public class TestRingConfigImpl extends ZkTestCase {
     RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", 1, ringConf.getVersionNumber());
+    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
     assertTrue("should be updating", ringConf.isUpdatePending());
-    assertEquals("updating_to_version number", 2, ringConf.getUpdatingToVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(2), ringConf.getUpdatingToVersionNumber());
   }
 
   public void testUpdateComplete() throws Exception {
@@ -44,16 +44,16 @@ public class TestRingConfigImpl extends ZkTestCase {
     RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", 1, ringConf.getVersionNumber());
+    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
     assertTrue("should be updating", ringConf.isUpdatePending());
-    assertEquals("updating_to_version number", 2, ringConf.getUpdatingToVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(2), ringConf.getUpdatingToVersionNumber());
 
     ringConf.updateComplete();
 
     ringConf = new RingConfigImpl(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", 2, ringConf.getVersionNumber());
+    assertEquals("version number", Integer.valueOf(2), ringConf.getVersionNumber());
     assertFalse("should not be updating", ringConf.isUpdatePending());
   }
 

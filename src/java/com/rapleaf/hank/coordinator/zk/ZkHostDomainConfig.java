@@ -25,7 +25,7 @@ public class ZkHostDomainConfig implements HostDomainConfig {
   }
 
   @Override
-  public byte getDomainId() {
+  public int getDomainId() {
     return domainId;
   }
 

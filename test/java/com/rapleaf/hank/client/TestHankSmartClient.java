@@ -15,10 +15,10 @@
  */
 package com.rapleaf.hank.client;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -67,27 +67,8 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
-      // Used to test out the no_such_domain response
-      if (domainId == 0) {
-        return new HashSet<PartDaemonAddress>();
-      }
-      else {
-        Set<PartDaemonAddress> list = new HashSet<PartDaemonAddress>();
-        list.add(new PartDaemonAddress("localhost", 12345));
-        return list;
-      }
-    }
-
-    @Override
     public int getRingNumber() {
       return RING_NUMBER;
-    }
-
-    @Override
-    public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
-        throws DataNotFoundException {
-      return null;
     }
 
     @Override
@@ -101,13 +82,13 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public int getVersionNumber() {
+    public Integer getVersionNumber() {
       // TODO Auto-generated method stub
       return 0;
     }
 
     @Override
-    public int getUpdatingToVersionNumber() {
+    public Integer getUpdatingToVersionNumber() {
       // TODO Auto-generated method stub
       return 0;
     }
@@ -146,6 +127,18 @@ public class TestHankSmartClient extends TestCase {
     public int getOldestVersionOnHosts() {
       // TODO Auto-generated method stub
       return 0;
+    }
+
+    @Override
+    public HostConfig addHost(PartDaemonAddress address) throws IOException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+      // TODO Auto-generated method stub
+      return null;
     }
   }
 

@@ -81,5 +81,7 @@ public class TestZkHostConfig extends ZkTestCase {
     c.addDomain((byte) 0);
     HostDomainConfig hostDomainConf = (HostDomainConfig) c.getAssignedDomains().toArray()[0];
     assertEquals(0, hostDomainConf.getDomainId());
+
+    assertEquals(0, c.getDomainById(0).getDomainId());
   }
 }

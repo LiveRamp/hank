@@ -35,13 +35,13 @@ public interface RingConfig {
 
   public RingState getState();
 
-  public int getVersionNumber();
+  public Integer getVersionNumber();
 
   public boolean isUpdatePending();
 
   public void takeDownPartDaemons();
 
-  public int getUpdatingToVersionNumber();
+  public Integer getUpdatingToVersionNumber();
 
   public void updateComplete() throws IOException;
 

@@ -24,10 +24,12 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -44,11 +46,9 @@ public class RingConfigImpl implements RingConfig, Watcher {
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
 
   private final int ringNumber;
-  private final int versionNumber;
+  
 
   private final RingGroupConfig ringGroupConfig;
-  private final boolean isUpdating;
-  private final Integer updatingToVersion;
   private final ZooKeeper zk;
   private final String ringPath;
 
@@ -66,14 +66,14 @@ public class RingConfigImpl implements RingConfig, Watcher {
     matcher.matches();
     ringNumber = Integer.parseInt(matcher.group(1));
 
-    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT));
-    if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
-      isUpdating = false;
-      updatingToVersion = null;
-    } else {
-      isUpdating = true;
-      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT));
-    }
+//    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT));
+//    if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
+//      isUpdating = false;
+//      updatingToVersion = null;
+//    } else {
+//      isUpdating = true;
+//      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT));
+//    }
 
     // enumerate hosts
     refreshAndRegister();
@@ -109,18 +109,26 @@ public class RingConfigImpl implements RingConfig, Watcher {
   }
 
   @Override
-  public int getVersionNumber() {
-    return versionNumber;
+  public Integer getVersionNumber() {
+    try {
+      return ZooKeeperUtils.getIntOrNull(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
-  public int getUpdatingToVersionNumber() {
-    return updatingToVersion;
+  public Integer getUpdatingToVersionNumber() {
+    try {
+      return ZooKeeperUtils.getIntOrNull(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
   public boolean isUpdatePending() {
-    return isUpdating;
+    return getUpdatingToVersionNumber() != null;
   }
 
   @Override
@@ -144,7 +152,7 @@ public class RingConfigImpl implements RingConfig, Watcher {
   @Override
   public void updateComplete() throws IOException {
     try {
-      zk.setData(ringPath + CURRENT_VERSION_PATH_SEGMENT, updatingToVersion.toString().getBytes(), -1);
+      zk.setData(ringPath + CURRENT_VERSION_PATH_SEGMENT, getUpdatingToVersionNumber().toString().getBytes(), -1);
       zk.delete(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, -1);
     } catch (Exception e) {
       throw new IOException(e);
@@ -190,5 +198,13 @@ public class RingConfigImpl implements RingConfig, Watcher {
       // TODO Auto-generated catch block
       e.printStackTrace();
     }
+  }
+
+  public static RingConfig create(ZooKeeper zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
+    String ringPath = ringGroup + "/ring-" + ringNum;
+    zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + "/updating_to_version", ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new RingConfigImpl(zk, ringPath, group);
   }
 }
