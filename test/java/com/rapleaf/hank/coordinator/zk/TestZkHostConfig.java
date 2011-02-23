@@ -82,9 +82,5 @@ public class TestZkHostConfig extends ZkTestCase {
     c.addDomain((byte) 0);
     HostDomainConfig hostDomainConf = (HostDomainConfig) c.getAssignedDomains().toArray()[0];
     assertEquals(0, hostDomainConf.getDomainId());
-//  assertEquals("primary host address", LOCALHOST, ringConf.getHosts().toArray()[0]);
-//  assertEquals("assigned parts", Collections.singleton(1), ringConf.getDomainPartitionsForHost(LOCALHOST, 0));
-//  assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
-//    fail();
   }
 }
