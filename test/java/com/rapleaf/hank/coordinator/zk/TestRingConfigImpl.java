@@ -3,27 +3,17 @@ package com.rapleaf.hank.coordinator.zk;
 import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 
 public class TestRingConfigImpl extends ZkTestCase {
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
 
-  public TestRingConfigImpl() throws Exception {
-    super();
-  }
-
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
 
   public void testLoadNotUpdating() throws Exception {
-    create(ring_root + "/hosts/localhost:1");
-    create(ring_root + "/hosts/localhost:1/parts");
-    create(ring_root + "/hosts/localhost:1/parts/0", "1");
-    create(ring_root + "/hosts/localhost:1/parts/0/1", "1");
-    create(ring_root + "/hosts/localhost:1/part_daemon");
-    create(ring_root + "/hosts/localhost:1/part_daemon/status", "STARTED");
-    create(ring_root + "/hosts/localhost:1/update_daemon");
-    create(ring_root + "/hosts/localhost:1/update_daemon/status", "IDLE");
+    ZkHostConfig hostConfig = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
     create(ring_root + "/current_version", "1");
 
     RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
@@ -32,9 +22,7 @@ public class TestRingConfigImpl extends ZkTestCase {
     assertEquals("version number", 1, ringConf.getVersionNumber());
     assertFalse("should not be updating", ringConf.isUpdatePending());
     assertEquals("number of hosts", 1, ringConf.getHosts().size());
-    assertEquals("primary host address", LOCALHOST, ringConf.getHosts().toArray()[0]);
-    assertEquals("assigned parts", Collections.singleton(1), ringConf.getDomainPartitionsForHost(LOCALHOST, 0));
-    assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
+    assertEquals("expected hosts", Collections.singleton(hostConfig), ringConf.getHosts());
   }
 
   public void testLoadUpdating() throws Exception {
@@ -67,6 +55,19 @@ public class TestRingConfigImpl extends ZkTestCase {
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", 2, ringConf.getVersionNumber());
     assertFalse("should not be updating", ringConf.isUpdatePending());
+  }
+
+  public void testHosts() throws Exception {
+    create(ring_root + "/current_version", "1");
+
+    RingConfigImpl ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    assertEquals(0, ringConf.getHosts().size());
+
+    HostConfig hc = ringConf.addHost(LOCALHOST);
+    assertEquals(LOCALHOST, hc.getAddress());
+    assertEquals(Collections.singleton(hc), ringConf.getHosts());
+
+    assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
   }
 
   @Override

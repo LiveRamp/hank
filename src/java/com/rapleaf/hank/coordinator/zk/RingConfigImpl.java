@@ -25,44 +25,44 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class RingConfigImpl implements RingConfig {
+public class RingConfigImpl implements RingConfig, Watcher {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
+  private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
+
   private final int ringNumber;
   private final int versionNumber;
 
-  /** Keyed first by hostName, then by domainId, to get a set of partIds */
-  private final Map<PartDaemonAddress, Map<Integer, Set<Integer>>> partsMap = 
-    new HashMap<PartDaemonAddress, Map<Integer,Set<Integer>>>();
-
-  /** domainId => partNum => set of hosts */
-  private Map<Integer, Map<Integer, Set<PartDaemonAddress>>> hostsForPartition 
-    = new HashMap<Integer, Map<Integer,Set<PartDaemonAddress>>>();
   private final RingGroupConfig ringGroupConfig;
   private final boolean isUpdating;
   private final Integer updatingToVersion;
   private final ZooKeeper zk;
   private final String ringPath;
 
+  private final Map<PartDaemonAddress, HostConfig> hostConfigs = 
+    new HashMap<PartDaemonAddress, HostConfig>();
+
   public RingConfigImpl(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringPath = ringPath;
     this.ringGroupConfig = ringGroupConfig;
+
     String[] toks = ringPath.split("/");
     String lastPathElement = toks[toks.length - 1];
-    Pattern p = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
-    Matcher matcher = p.matcher(lastPathElement);
+    Matcher matcher = RING_NUMBER_PATTERN.matcher(lastPathElement);
     matcher.matches();
     ringNumber = Integer.parseInt(matcher.group(1));
 
@@ -74,42 +74,17 @@ public class RingConfigImpl implements RingConfig {
       isUpdating = true;
       updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT));
     }
+
     // enumerate hosts
+    refreshAndRegister();
+  }
+
+  private void refreshHosts(ZooKeeper zk, String ringPath)
+      throws InterruptedException {
     List<String> hosts = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts");
     for (String host : hosts) {
-      PartDaemonAddress address = PartDaemonAddress.parse(host);
-      Map<Integer, Set<Integer>> hostDomains = new HashMap<Integer, Set<Integer>>();
-      List<String> assignedDomainIds = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts/" + host + "/parts");
-      for (String assignedDomainId : assignedDomainIds) {
-        Set<Integer> partNums = new HashSet<Integer>();
-        List<String> parts = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts/" + host + "/parts/" + assignedDomainId);
-        for (String part : parts) {
-          partNums.add(Integer.parseInt(part));
-        }
-        hostDomains.put(Integer.parseInt(assignedDomainId), partNums);
-      }
-      partsMap.put(address, hostDomains);
-    }
-
-    // invert the map to get domain/part to host
-    for (Map.Entry<PartDaemonAddress, Map<Integer, Set<Integer>>> forHost : partsMap.entrySet()) {
-      PartDaemonAddress host = forHost.getKey();
-      for (Map.Entry<Integer, Set<Integer>> forDomain : forHost.getValue().entrySet()) {
-        int domainId = forDomain.getKey();
-        Map<Integer, Set<PartDaemonAddress>> partToHost = hostsForPartition.get(domainId);
-        if (partToHost == null) {
-          partToHost = new HashMap<Integer, Set<PartDaemonAddress>>();
-          hostsForPartition.put(domainId, partToHost);
-        }
-        for (Integer partNum : forDomain.getValue()) {
-          Set<PartDaemonAddress> hostAddresses = partToHost.get(partNum);
-          if (hostAddresses == null) {
-            hostAddresses = new HashSet<PartDaemonAddress>();
-            partToHost.put(partNum, hostAddresses);
-          }
-          hostAddresses.add(host);
-        }
-      }
+      HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
+      hostConfigs.put(hostConf.getAddress(), hostConf);
     }
   }
 
@@ -124,27 +99,8 @@ public class RingConfigImpl implements RingConfig {
   }
 
   @Override
-  public Set<PartDaemonAddress> getHosts() {
-    return partsMap.keySet();
-  }
-
-  @Override
-  public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
-  throws DataNotFoundException {
-    if (!partsMap.containsKey(hostAndPort)) {
-      throw new DataNotFoundException("Ring number " + ringNumber
-          + " does not contain host " + hostAndPort);
-    }
-    if (!partsMap.get(hostAndPort).containsKey(domainId)) {
-      throw new DataNotFoundException("Host " + hostAndPort
-          + " does not have any partitions from domain with id " + domainId);
-    }
-    return partsMap.get(hostAndPort).get(domainId);
-  }
-
-  @Override
-  public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId) {
-    return hostsForPartition.get(domainId).get(partId);
+  public Set<HostConfig> getHosts() {
+    return new HashSet<HostConfig>(hostConfigs.values());
   }
 
   @Override
@@ -199,5 +155,40 @@ public class RingConfigImpl implements RingConfig {
   public int getOldestVersionOnHosts() {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+    return hostConfigs.get(address);
+  }
+
+  @Override
+  public HostConfig addHost(PartDaemonAddress address) throws IOException {
+    try {
+      return ZkHostConfig.create(zk, ringPath + "/hosts", address);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void process(WatchedEvent event) {
+    switch (event.getType()) {
+      case NodeChildrenChanged:
+        refreshAndRegister();
+    }
+  }
+
+  private void refreshAndRegister() {
+    try {
+      refreshHosts(zk, ringPath);
+      zk.getChildren(ringPath + "/hosts", this);
+    } catch (InterruptedException e) {
+      // eek.
+      // TODO: log this.
+    } catch (KeeperException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 }

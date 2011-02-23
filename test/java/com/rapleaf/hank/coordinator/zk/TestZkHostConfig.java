@@ -10,7 +10,6 @@ import com.rapleaf.hank.coordinator.UpdateDaemonState;
 import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 
 public class TestZkHostConfig extends ZkTestCase {
-
   private static final class MockHostStateChangeListener implements HostStateChangeListener {
     private HostConfig calledWith;
 

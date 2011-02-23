@@ -18,8 +18,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 public interface RingConfig {
   public RingGroupConfig getRingGroupConfig();
 
@@ -29,31 +27,13 @@ public interface RingConfig {
    * Returns a set of all Part Daemon addresses.
    * @return
    */
-  public Set<PartDaemonAddress> getHosts();
+  public Set<HostConfig> getHosts();
+
+  public HostConfig getHostConfigByAddress(PartDaemonAddress address);
+
+  public HostConfig addHost(PartDaemonAddress address) throws IOException;
 
   public RingState getState();
-
-  /**
-   * Get the set of integer partition numbers that are currently assigned to
-   * <i>hostAndPort</i> within the given <i>domainId</i>.
-   * 
-   * @param hostAndPort
-   * @param domainId
-   * @return
-   * @throws DataNotFoundException
-   */
-  public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
-  throws DataNotFoundException;
-
-  /**
-   * Get a set of HostAndPort addresses for Part Daemons that are currently
-   * hosting the requested domain's partition.
-   * 
-   * @param domainId
-   * @param partId
-   * @return
-   */
-  public Set<PartDaemonAddress> getHostsForDomainPartition(int domainId, int partId);
 
   public int getVersionNumber();
 
