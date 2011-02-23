@@ -53,4 +53,8 @@ public class ZkHostDomainConfig implements HostDomainConfig {
     }
   }
 
+  @Override
+  public void addPartition(int partNum, int initialVersion) throws Exception {
+    ZkHostDomainPartitionConfig.create(zk, root, partNum, initialVersion);
+  }
 }
