@@ -31,7 +31,7 @@ public class ZkHostConfig implements HostConfig {
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeDataChanged:
-          listener.stateChange(ZkHostConfig.this);
+          listener.onHostStateChange(ZkHostConfig.this);
           // reset callback
           try {
             setWatch();

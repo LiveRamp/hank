@@ -93,7 +93,7 @@ public class UpdateDaemon implements HostStateChangeListener {
 
     // prime things the process by querying the current state and feeding it to
     // the event handler
-    stateChange(hostConfig);
+    onHostStateChange(hostConfig);
 
     while (!goingDown) {
       try {
@@ -187,7 +187,7 @@ public class UpdateDaemon implements HostStateChangeListener {
   }
 
   @Override
-  public void stateChange(HostConfig hostConfig) {
+  public void onHostStateChange(HostConfig hostConfig) {
     // we only pay attention to state changes for *this* daemon, so don't need
     // to be concerned with the identification stuff
     try {
@@ -206,7 +206,7 @@ public class UpdateDaemon implements HostStateChangeListener {
             goingDown = true;
           } catch (IOException e) {
             // TODO: hopefully a transient error.
-            LOG.error(e);
+            LOG.error("unexpected error.", e);
           }
           break;
 

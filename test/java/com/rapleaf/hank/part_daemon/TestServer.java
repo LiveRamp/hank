@@ -73,20 +73,20 @@ public class TestServer extends BaseTestCase {
 
     // should move smoothly from startable to idle
     mockHostConfig.setPartDaemonState(PartDaemonState.STARTABLE);
-    server.stateChange(mockHostConfig);
+    server.onHostStateChange(mockHostConfig);
     assertEquals("Daemon state is now STARTED",
         PartDaemonState.STARTED,
         mockHostConfig.getPartDaemonState());
 
     // duplicate startable should end up back in started without any mess
     mockHostConfig.setPartDaemonState(PartDaemonState.STARTABLE);
-    server.stateChange(mockHostConfig);
+    server.onHostStateChange(mockHostConfig);
     assertEquals("Daemon state is now STARTED",
         PartDaemonState.STARTED,
         mockHostConfig.getPartDaemonState());
 
     mockHostConfig.setPartDaemonState(PartDaemonState.STOPPABLE);
-    server.stateChange(mockHostConfig);
+    server.onHostStateChange(mockHostConfig);
     assertEquals("Daemon state is now IDLE",
         PartDaemonState.IDLE,
         mockHostConfig.getPartDaemonState());

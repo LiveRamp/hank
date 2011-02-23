@@ -14,7 +14,7 @@ public class TestZkHostConfig extends ZkTestCase {
     private HostConfig calledWith;
 
     @Override
-    public void stateChange(HostConfig hostConfig) {
+    public void onHostStateChange(HostConfig hostConfig) {
       calledWith = hostConfig;
       synchronized (this) {
         notifyAll();

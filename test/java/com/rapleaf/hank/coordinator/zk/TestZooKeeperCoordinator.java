@@ -68,7 +68,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     public HostConfig hostConfig;
 
     @Override
-    public void stateChange(HostConfig hostConfig) {
+    public void onHostStateChange(HostConfig hostConfig) {
       this.hostConfig = hostConfig;
       notified = true;
       synchronized (this) {

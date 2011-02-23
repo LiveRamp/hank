@@ -175,7 +175,7 @@ public class Server implements HostStateChangeListener {
   }
 
   @Override
-  public void stateChange(HostConfig hostConfig) {
+  public void onHostStateChange(HostConfig hostConfig) {
     synchronized (mutex) {
       PartDaemonState state;
       try {

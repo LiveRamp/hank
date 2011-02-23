@@ -5,7 +5,7 @@ import java.util.Set;
 
 public interface HostConfig {
   public interface HostStateChangeListener {
-    public void stateChange(HostConfig hostConfig);
+    public void onHostStateChange(HostConfig hostConfig);
   }
 
   public PartDaemonAddress getAddress();
