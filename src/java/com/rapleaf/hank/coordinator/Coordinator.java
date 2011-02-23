@@ -121,19 +121,6 @@ public interface Coordinator {
   throws DataNotFoundException;
 
   /**
-   * @param ringGroupName
-   * @param ringNumber
-   * @return configuration information on the specified ring
-   * @throws DataNotFoundException
-   *           if no ring group with the specified name exists or if the
-   *           specified ring group does not have a ring with the specified
-   *           number
-   */
-  public RingConfig getRingConfig(String ringGroupName,
-      int ringNumber)
-  throws DataNotFoundException;
-
-  /**
    * Reigsters the provided <code>RingGroupChangeListener</code> so that it will
    * receive the latest configuration information on the specified ring group as
    * soon as they are available.

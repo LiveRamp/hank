@@ -98,8 +98,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
-
-    assertEquals("ring number", 1, coord.getRingConfig("myRingGroup", 1).getRingNumber());
   }
 
   public void testDomainChangeListener() throws Exception {

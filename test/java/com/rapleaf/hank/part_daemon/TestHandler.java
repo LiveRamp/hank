@@ -2,7 +2,10 @@ package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
@@ -10,15 +13,21 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
@@ -35,9 +44,31 @@ public class TestHandler extends BaseTestCase {
   private static final ByteBuffer K4 = bb(4);
   private static final ByteBuffer K5 = bb(5);
   private static final byte[] V1 = new byte[]{9};
+  private static final HostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("localhost", 12345)) {
+
+    @Override
+    public HostDomainConfig getDomainById(int domainId) {
+      return new HostDomainConfig() {
+        @Override
+        public void addPartition(int partNum, int initialVersion) {}
+
+        @Override
+        public int getDomainId() {
+          return 0;
+        }
+
+        @Override
+        public Set<HostDomainPartitionConfig> getPartitions()
+        throws IOException {
+          return new HashSet<HostDomainPartitionConfig>(Arrays.asList(
+              new MockHostDomainPartitionConfig(0, 1, 2),
+              new MockHostDomainPartitionConfig(4, 1, 2)));
+        }
+      };
+    }
+  };
 
   public void testSetUpAndServe() throws Exception {
-
     Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3, K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
@@ -65,22 +96,22 @@ public class TestHandler extends BaseTestCase {
     final MockRingGroupConfig rgc = new MockRingGroupConfig(dcg, "myRingGroupName", null);
 
     final MockRingConfig mockRingConfig = new MockRingConfig(null, rgc, 1, RingState.AVAILABLE) {
-//      @Override
-//      public Set<Integer> getDomainPartitionsForHost(PartDaemonAddress hostAndPort, int domainId)
-//      throws DataNotFoundException {
-//        assertEquals(new PartDaemonAddress("localhost", 12345), hostAndPort);
-//        assertEquals(0, domainId);
-//        return new HashSet<Integer>(Arrays.asList(0, 4));
-//      }
+      @Override
+      public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+        return mockHostConfig;
+      }
     };
 
     Coordinator mockCoordinator = new MockCoordinator() {
       @Override
-      public RingConfig getRingConfig(String ringGroupName, int ringNumber)
-      throws DataNotFoundException {
+      public RingGroupConfig getRingGroupConfig(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
-        assertEquals(1, ringNumber);
-        return mockRingConfig;
+        return new MockRingGroupConfig(dcg, "myRingGroupName", null) {
+          @Override
+          public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
+            return mockRingConfig;
+          }
+        };
       }
     };
     PartDaemonConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", 1, "/tmp/local/data/dir");

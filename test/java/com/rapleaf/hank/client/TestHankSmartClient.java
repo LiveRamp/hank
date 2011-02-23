@@ -250,12 +250,6 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public RingConfig getRingConfig(String ringGroupName, int ringNumber)
-        throws DataNotFoundException {
-      return null;
-    }
-
-    @Override
     public RingGroupConfig getRingGroupConfig(String ringGroupName)
         throws DataNotFoundException {
       return rg;

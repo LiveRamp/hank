@@ -38,7 +38,6 @@ import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -168,11 +167,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           + " does not exist");
     }
     return rg;
-  }
-
-  @Override
-  public RingConfig getRingConfig(String ringGroupName, int ringNumber) throws DataNotFoundException {
-    return getRingGroupConfig(ringGroupName).getRingConfig(ringNumber);
   }
 
   /**

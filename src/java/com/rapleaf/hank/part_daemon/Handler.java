@@ -43,7 +43,7 @@ public class Handler implements Iface {
 
   public Handler(PartDaemonAddress hostAndPort, PartDaemonConfigurator config) throws DataNotFoundException, IOException {
     // find the ring config
-    RingConfig ringConfig = config.getCoordinator().getRingConfig(config.getRingGroupName(), config.getRingNumber());
+    RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
     // get the domain group config for the ring
     DomainGroupConfig domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroupConfig();
@@ -74,7 +74,7 @@ public class Handler implements Iface {
       // instantiate all the readers
       Reader[] readers = new Reader[domainConfig.getNumParts()];
       for (HostDomainPartitionConfig part : partitions) {
-        LOG.debug(String.format("Instantiating reader for part num %d", part));
+        LOG.debug(String.format("Instantiating reader for part num %d", part.getPartNum()));
         readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
       }
 

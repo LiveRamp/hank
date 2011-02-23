@@ -62,13 +62,6 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public RingConfig getRingConfig(String ringGroupName, int ringNumber)
-      throws DataNotFoundException {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
   public RingGroupConfig getRingGroupConfig(String ringGroupName)
       throws DataNotFoundException {
     // TODO Auto-generated method stub
