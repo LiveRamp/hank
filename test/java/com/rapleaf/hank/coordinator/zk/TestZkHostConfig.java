@@ -2,6 +2,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
@@ -72,5 +73,18 @@ public class TestZkHostConfig extends ZkTestCase {
     assertNotNull("mock listener should have received second call!", mockListener.calledWith);
     assertEquals(ADDRESS, mockListener.calledWith.getAddress());
     assertEquals(PartDaemonState.STARTING, mockListener.calledWith.getPartDaemonState());
+  }
+
+  public void testDomains() throws Exception {
+    ZkHostConfig c = ZkHostConfig.create(getZk(), getRoot(), ADDRESS);
+    assertEquals(0, c.getAssignedDomains().size());
+
+    c.addDomain((byte) 0);
+    HostDomainConfig hostDomainConf = (HostDomainConfig) c.getAssignedDomains().toArray()[0];
+    assertEquals(0, hostDomainConf.getDomainId());
+//  assertEquals("primary host address", LOCALHOST, ringConf.getHosts().toArray()[0]);
+//  assertEquals("assigned parts", Collections.singleton(1), ringConf.getDomainPartitionsForHost(LOCALHOST, 0));
+//  assertEquals("hosts for parts", Collections.singleton(LOCALHOST), ringConf.getHostsForDomainPartition(0, 1));
+//    fail();
   }
 }

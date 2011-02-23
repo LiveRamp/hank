@@ -1,6 +1,9 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -11,6 +14,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
@@ -132,4 +136,56 @@ public class ZkHostConfig implements HostConfig {
     return new ZkHostConfig(zk, hostPath);
   }
 
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((address == null) ? 0 : address.hashCode());
+    result = prime * result + ((hostPath == null) ? 0 : hostPath.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    ZkHostConfig other = (ZkHostConfig) obj;
+    if (address == null) {
+      if (other.address != null)
+        return false;
+    } else if (!address.equals(other.address))
+      return false;
+    if (hostPath == null) {
+      if (other.hostPath != null)
+        return false;
+    } else if (!hostPath.equals(other.hostPath))
+      return false;
+    return true;
+  }
+
+  @Override
+  public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+    List<String> domains;
+    try {
+      domains = zk.getChildren(hostPath + "/parts", false);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    Set<HostDomainConfig> results = new HashSet<HostDomainConfig>();
+    for (String domain : domains) {
+      results.add(new ZkHostDomainConfig(zk, hostPath + "/parts", Byte.parseByte(domain)));
+    }
+    return results;
+  }
+
+  @Override
+  public HostDomainConfig addDomain(byte domainId) throws IOException {
+    // TODO: check if we already have a domain with that id
+    HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + "/parts", domainId);
+    return hdc;
+  }
 }

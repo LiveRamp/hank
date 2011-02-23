@@ -1,6 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Set;
 
 public interface HostConfig {
   public interface HostStateChangeListener {
@@ -18,4 +19,7 @@ public interface HostConfig {
   public void setUpdateDaemonState(UpdateDaemonState state) throws IOException;
 
   public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
+
+  public Set<HostDomainConfig> getAssignedDomains() throws IOException;
+  public HostDomainConfig addDomain(byte domainId) throws IOException;
 }
