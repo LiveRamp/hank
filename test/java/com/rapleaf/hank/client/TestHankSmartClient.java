@@ -33,9 +33,6 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
-import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
@@ -224,12 +221,6 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public void addDaemonStateChangeListener(String ringGroupName,
-        int ringNumber, PartDaemonAddress hostAddress, DaemonType type,
-        DaemonStateChangeListener listener) {
-    }
-
-    @Override
     public void addDomainChangeListener(String domainName,
         DomainChangeListener listener) 
     throws DataNotFoundException {
@@ -244,12 +235,6 @@ public class TestHankSmartClient extends TestCase {
     @Override
     public void addRingGroupChangeListener(String ringGroupName,
         RingGroupChangeListener listener) throws DataNotFoundException {
-    }
-
-    @Override
-    public DaemonState getDaemonState(String ringGroupName, int ringNumber,
-        PartDaemonAddress hostAddress, DaemonType type) {
-      return null;
     }
 
     @Override
@@ -274,11 +259,6 @@ public class TestHankSmartClient extends TestCase {
     public RingGroupConfig getRingGroupConfig(String ringGroupName)
         throws DataNotFoundException {
       return rg;
-    }
-
-    @Override
-    public void setDaemonState(String ringGroupName, int ringNumber,
-        PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
     }
 
     @Override

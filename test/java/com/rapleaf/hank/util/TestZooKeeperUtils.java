@@ -17,32 +17,8 @@ package com.rapleaf.hank.util;
 
 import junit.framework.TestCase;
 
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-
 
 public class TestZooKeeperUtils extends TestCase {
-  private class MockConfigurator implements Configurator {
-    @Override
-    public Coordinator getCoordinator() {
-      return null;
-    }
 
-    @Override
-    public String getRingGroupName() {
-      return "rapleaf-1";
-    }
 
-    @Override
-    public int getRingNumber() {
-      return 15;
-    }
-  }
-
-  public void testGetHostPath() {
-    Configurator config = new MockConfigurator();
-    assertEquals("/hank_root/ring_groups/rapleaf-1/ring-015/hosts/127.0.0.1:12345",
-        ZooKeeperUtils.hostPath("/hank_root/ring_groups", config.getRingGroupName(), config.getRingNumber(), new PartDaemonAddress("127.0.0.1", 12345)));
-  }
 }

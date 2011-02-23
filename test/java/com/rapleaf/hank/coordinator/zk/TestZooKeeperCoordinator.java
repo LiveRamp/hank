@@ -16,21 +16,21 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
-import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
 
-  public class OmniMockListener implements RingGroupChangeListener, DomainChangeListener, DomainGroupChangeListener, DaemonStateChangeListener {
+  public class OmniMockListener implements RingGroupChangeListener, DomainChangeListener, DomainGroupChangeListener, HostStateChangeListener {
     public RingGroupConfig ringGroup;
     public boolean notified = false;
 
@@ -65,19 +65,11 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
       }
     }
 
-    public String ringGroupName;
-    public int ringNumber;
-    public PartDaemonAddress hostName;
-    public DaemonType type;
-    public DaemonState newState;
+    public HostConfig hostConfig;
 
     @Override
-    public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState newState) {
-      this.ringGroupName = ringGroupName;
-      this.ringNumber = ringNumber;
-      this.hostName = hostName;
-      this.type = type;
-      this.newState = newState;
+    public void stateChange(HostConfig hostConfig) {
+      this.hostConfig = hostConfig;
       notified = true;
       synchronized (this) {
         notifyAll();
@@ -108,27 +100,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
 
     assertEquals("ring number", 1, coord.getRingConfig("myRingGroup", 1).getRingNumber());
-  }
-
-  public void testDaemonState() throws Exception {
-    // test set/get daemon state
-    assertEquals(DaemonState.STARTABLE, coord.getDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON));
-    coord.setDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, DaemonState.IDLE);
-    assertEquals(DaemonState.IDLE, coord.getDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON));
-
-    // test being notified of daemon state change
-    OmniMockListener listener = new OmniMockListener();
-    coord.addDaemonStateChangeListener("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, listener);
-    coord.setDaemonState("myRingGroup", 1, LOCALHOST, DaemonType.PART_DAEMON, DaemonState.STARTED);
-    synchronized (listener) {
-      listener.wait();
-    }
-    assertTrue("daemon state change listener notified", listener.notified);
-    assertEquals("myRingGroup", listener.ringGroupName);
-    assertEquals(1, listener.ringNumber);
-    assertEquals(LOCALHOST, listener.hostName);
-    assertEquals(DaemonType.PART_DAEMON, listener.type);
-    assertEquals(DaemonState.STARTED, listener.newState);
   }
 
   public void testDomainChangeListener() throws Exception {
@@ -187,7 +158,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     create(ring_groups_root + "/myRingGroup/ring-001/hosts");
     create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1");
     create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/part_daemon");
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/part_daemon/status", DaemonState.STARTABLE.name());
+    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/part_daemon/status", PartDaemonState.STARTABLE.name());
     create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/parts");
 
     coord = getCoord();

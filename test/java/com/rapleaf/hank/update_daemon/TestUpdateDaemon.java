@@ -22,8 +22,6 @@ import java.util.EnumSet;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;

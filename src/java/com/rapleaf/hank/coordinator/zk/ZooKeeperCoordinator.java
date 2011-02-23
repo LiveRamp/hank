@@ -34,14 +34,10 @@ import org.apache.zookeeper.data.Stat;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
-import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -129,40 +125,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   //
 
   @Override
-  public void addDaemonStateChangeListener(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
-    myWatchers.add(new StateChangeWatcher(ringGroupName, ringNumber, hostName, type, listener));
-  }
-
-  @Override
-  public DaemonState getDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type) {
-    String path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostAddress, type);
-    try {
-      return DaemonState.byBytes(zk.getData(path, null, null));
-    } catch (KeeperException e) {
-      // We should only get a KeeperException if the node does not exist, in
-      // which case, we should fail and log.
-      LOG.fatal(e);
-      throw new RuntimeException(e);
-    } catch (InterruptedException e) {
-      // Server is probably going down
-      return DaemonState.UNDEFINED;
-    }
-  }
-
-  @Override
-  public void setDaemonState(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonState state) {
-    try {
-      waitForConnection();
-    } catch (InterruptedException e) {
-      // If we've been interrupted, then the server is probably going down, so
-      // we don't care about this write anymore
-      return;
-    }
-    String path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostName, type);
-    zk.setData(path, Bytes.stringToBytes(state.name()), -1, null, null);
-  }
-
-  @Override
   protected void onConnect() {
     // if the session expired, then we need to reregister all of our
     // StateChangeListeners
@@ -177,53 +139,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   protected void onSessionExpire() {
     isSessionExpired = true;
-  }
-
-  private class StateChangeWatcher implements ZooKeeperWatcher {
-    private String ringGroupName;
-    private int ringNumber;
-    private PartDaemonAddress hostName;
-    private String path;
-    private DaemonType type;
-    private DaemonStateChangeListener listener;
-
-    public StateChangeWatcher(String ringGroupName, int ringNumber, PartDaemonAddress hostName, DaemonType type, DaemonStateChangeListener listener) {
-      this.ringGroupName = ringGroupName;
-      this.ringNumber = ringNumber;
-      this.hostName = hostName;
-      this.type = type;
-      this.path = ZooKeeperUtils.daemonStatusPath(ringGroupsRoot, ringGroupName, ringNumber, hostName, type);
-      this.listener = listener;
-      register();
-    }
-
-    @Override
-    public void process(WatchedEvent event) {
-      if (event.getType() == EventType.NodeDataChanged) {
-        try {
-          // This call also resets the watch
-          byte[] data = zk.getData(path, StateChangeWatcher.this, null);
-          listener.onDaemonStateChange(ringGroupName, ringNumber, hostName, type, DaemonState.byBytes(data));
-        } catch (KeeperException e) {
-          // This shouldn't happen
-          LOG.warn(e);
-        } catch (InterruptedException e) {
-          // Server is probably going down
-          return;
-        }
-      }
-    }
-
-    /**
-     * Registers this StateChangeWatcher to watch its assigned znode. The
-     * StateChangeWatcher is automatically registered upon instantiation. This
-     * method would be used in case of session expiry, when all watches must be
-     * manually reregistered.
-     */
-    @Override
-    public void register() {
-      zk.getData(path, StateChangeWatcher.this, null, null);
-    }
   }
 
   @Override

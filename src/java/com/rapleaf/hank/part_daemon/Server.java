@@ -29,18 +29,18 @@ import org.apache.thrift.transport.TTransportException;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
-import com.rapleaf.hank.coordinator.DaemonType;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartDaemonState;
+import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.HostUtils;
 
-public class Server implements DaemonStateChangeListener {
+public class Server implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(Server.class);
-  
+
   private static final String HOST_NAME;
   static {
     try {
@@ -52,24 +52,23 @@ public class Server implements DaemonStateChangeListener {
 
   private final PartDaemonConfigurator configurator;
   private final Coordinator coord;
-  private final String ringGroupName;
-  private final int ringNumber;
   private Thread serverThread;
   private TServer server;
   private boolean goingDown = false;
   private final PartDaemonAddress hostAddress;
   private final Object mutex = new Object();
 
-  public Server(PartDaemonConfigurator configurator) {
+  private final HostConfig hostConfig;
+
+  public Server(PartDaemonConfigurator configurator) throws IOException, DataNotFoundException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
-    this.ringGroupName = configurator.getRingGroupName();
-    this.ringNumber = configurator.getRingNumber();
     hostAddress = new PartDaemonAddress(HOST_NAME, configurator.getServicePort());
-    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, this);
+    hostConfig = coord.getRingGroupConfig(configurator.getRingGroupName()).getRingConfigForHost(hostAddress).getHostConfigByAddress(hostAddress);
+    hostConfig.setStateChangeListener(this);
   }
 
-  public static void main(String[] args) throws IOException, TTransportException {
+  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException {
     String configPath = args[0];
     String log4jprops = args[1];
 
@@ -163,38 +162,46 @@ public class Server implements DaemonStateChangeListener {
     serverThread = null;
   }
 
-  public void stop() {
+  public void stop() throws IOException {
     // don't wait to be started again.
     goingDown = true;
-    setState(DaemonState.STOPPING);
+    setState(PartDaemonState.STOPPING);
     stopServer();
-    setState(DaemonState.IDLE);
+    setState(PartDaemonState.IDLE);
+  }
+
+  private void setState(PartDaemonState state) throws IOException {
+    hostConfig.setPartDaemonState(state);
   }
 
   @Override
-  public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
+  public void stateChange(HostConfig hostConfig) {
     synchronized (mutex) {
-      LOG.debug("Notified of state change to state " + state);
-      switch (state) {
-        case STARTABLE:
-          setState(DaemonState.STARTING);
-          startServer();
-          setState(DaemonState.STARTED);
-          break;
+      PartDaemonState state;
+      try {
+        state = hostConfig.getPartDaemonState();
+        LOG.debug("Notified of state change to state " + state);
+        switch (state) {
+          case STARTABLE:
+            setState(PartDaemonState.STARTING);
+            startServer();
+            setState(PartDaemonState.STARTED);
+            break;
 
-        case STOPPABLE:
-          setState(DaemonState.STOPPING);
-          stopServer();
-          setState(DaemonState.IDLE);
-          break;
+          case STOPPABLE:
+            setState(PartDaemonState.STOPPING);
+            stopServer();
+            setState(PartDaemonState.IDLE);
+            break;
 
-        default:
-          LOG.debug("notified of an irrelevant state: " + state);
+          default:
+            LOG.debug("notified of an irrelevant state: " + state);
+        }
+      } catch (IOException e) {
+        LOG.error("Error processing host state change!", e);
+        return;
       }
+      
     }
-  }
-
-  private void setState(DaemonState state) {
-    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, state);
   }
 }

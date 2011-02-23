@@ -27,14 +27,6 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public void addDaemonStateChangeListener(String ringGroupName,
-      int ringNumber, PartDaemonAddress hostAddress, DaemonType type,
-      DaemonStateChangeListener listener) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public void addDomainChangeListener(String domainName,
       DomainChangeListener listener) throws DataNotFoundException {
     // TODO Auto-generated method stub
@@ -53,13 +45,6 @@ public class MockCoordinator implements Coordinator {
       RingGroupChangeListener listener) throws DataNotFoundException {
     // TODO Auto-generated method stub
 
-  }
-
-  @Override
-  public DaemonState getDaemonState(String ringGroupName, int ringNumber,
-      PartDaemonAddress hostAddress, DaemonType type) {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override
@@ -88,13 +73,6 @@ public class MockCoordinator implements Coordinator {
       throws DataNotFoundException {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public void setDaemonState(String ringGroupName, int ringNumber,
-      PartDaemonAddress hostAddress, DaemonType type, DaemonState state) {
-    // TODO Auto-generated method stub
-
   }
 
   @Override

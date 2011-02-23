@@ -30,21 +30,21 @@ import org.apache.log4j.PropertyConfigurator;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DaemonState;
-import com.rapleaf.hank.coordinator.DaemonStateChangeListener;
-import com.rapleaf.hank.coordinator.DaemonType;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.UpdateDaemonState;
+import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.HostUtils;
 
-public class UpdateDaemon implements DaemonStateChangeListener {
+public class UpdateDaemon implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(UpdateDaemon.class);
 
   private final class UpdateToDo implements Runnable {
@@ -77,19 +77,15 @@ public class UpdateDaemon implements DaemonStateChangeListener {
   private final Coordinator coord;
   private boolean goingDown;
 
-  private final int ringNumber;
-
-  private final String ringGroupName;
-
   private final PartDaemonAddress hostAddress;
+  private final HostConfig hostConfig;
 
-  public UpdateDaemon(UpdateDaemonConfigurator configurator, String hostName) throws UnknownHostException {
+  public UpdateDaemon(UpdateDaemonConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
-    this.ringGroupName = configurator.getRingGroupName();
-    this.ringNumber = configurator.getRingNumber();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    coord.addDaemonStateChangeListener(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, this);
+    hostConfig = coord.getRingGroupConfig(configurator.getRingGroupName()).getRingConfigForHost(hostAddress).getHostConfigByAddress(hostAddress);
+    hostConfig.setStateChangeListener(this);
   }
 
   void run() throws UnknownHostException {
@@ -97,8 +93,7 @@ public class UpdateDaemon implements DaemonStateChangeListener {
 
     // prime things the process by querying the current state and feeding it to
     // the event handler
-    DaemonState state = coord.getDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON);
-    onDaemonStateChange(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, state);
+    stateChange(hostConfig);
 
     while (!goingDown) {
       try {
@@ -107,35 +102,6 @@ public class UpdateDaemon implements DaemonStateChangeListener {
         LOG.debug("Interrupted while waiting for watching thread to go to wake up!", e);
         break;
       }
-    }
-  }
-
-  @Override
-  public void onDaemonStateChange(String ringGroupName, int ringNumber, PartDaemonAddress hostAddress, DaemonType type, DaemonState newState) {
-    // we only pay attention to state changes for *this* daemon, so don't need
-    // to be concerned with the identification stuff
-    switch (newState) {
-      case UPDATING:
-        // we must have crashed while updating in a prior iteration. just pick
-        // up where we left off.
-      case UPDATEABLE:
-        setUpdating();
-        try {
-          update();
-          setIdle();
-        } catch (DataNotFoundException e) {
-          LOG.fatal("Caught an unexpected exception during update process!", e);
-          goingDown = true;
-        } catch (IOException e) {
-          // TODO: hopefully a transient error.
-          LOG.error(e);
-        }
-        break;
-
-      default:
-        // we don't care about other state changes, because they're not relevant
-        // to us. but let's log them anyways for the sake of completeness
-        LOG.info("Notified of uninteresting state change: " + newState + ". Ignoring.");
     }
   }
 
@@ -192,24 +158,25 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     }
   }
 
-  private void setIdle() {
-    setState(DaemonState.IDLE);
+  private void setIdle() throws IOException {
+    setState(UpdateDaemonState.IDLE);
   }
 
-  private void setUpdating() {
-    setState(DaemonState.UPDATING);
+  private void setUpdating() throws IOException {
+    setState(UpdateDaemonState.UPDATING);
   }
   
-  private void setState(DaemonState state) {
-    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.UPDATE_DAEMON, state);
+  private void setState(UpdateDaemonState state) throws IOException {
+    hostConfig.setUpdateDaemonState(state);
   }
 
   /**
    * Main method.
    * @param args
    * @throws IOException
+   * @throws DataNotFoundException 
    */
-  public static void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, DataNotFoundException {
     String configPath = args[0];
     String log4jprops = args[1];
 
@@ -217,5 +184,39 @@ public class UpdateDaemon implements DaemonStateChangeListener {
     UpdateDaemonConfigurator conf = new YamlConfigurator(configPath);
 
     new UpdateDaemon(conf, HostUtils.getHostName()).run();
+  }
+
+  @Override
+  public void stateChange(HostConfig hostConfig) {
+    // we only pay attention to state changes for *this* daemon, so don't need
+    // to be concerned with the identification stuff
+    try {
+      final UpdateDaemonState newState = hostConfig.getUpdateDaemonState();
+      switch (newState) {
+        case UPDATING:
+          // we must have crashed while updating in a prior iteration. just pick
+          // up where we left off.
+        case UPDATABLE:
+          setUpdating();
+          try {
+            update();
+            setIdle();
+          } catch (DataNotFoundException e) {
+            LOG.fatal("Caught an unexpected exception during update process!", e);
+            goingDown = true;
+          } catch (IOException e) {
+            // TODO: hopefully a transient error.
+            LOG.error(e);
+          }
+          break;
+
+        default:
+          // we don't care about other state changes, because they're not relevant
+          // to us. but let's log them anyways for the sake of completeness
+          LOG.info("Notified of uninteresting state change: " + newState + ". Ignoring.");
+      }
+    } catch (Exception e) {
+      LOG.error(e);
+    }
   }
 }

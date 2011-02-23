@@ -1,9 +1,9 @@
 package com.rapleaf.hank;
 
+import junit.framework.TestCase;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-
-import junit.framework.TestCase;
 
 public class BaseTestCase extends TestCase {
   static {
