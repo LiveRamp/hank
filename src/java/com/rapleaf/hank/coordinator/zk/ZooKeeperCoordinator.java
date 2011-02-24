@@ -69,8 +69,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     new HashMap<String, ZkDomainConfig>();;
   private final Map<String, ZkDomainGroupConfig> domainGroupConfigs =
     new HashMap<String, ZkDomainGroupConfig>();
-  private final Map<String, RingGroupConfigImpl> ringGroupConfigs =
-    new HashMap<String, RingGroupConfigImpl>();
+  private final Map<String, ZkRingGroupConfig> ringGroupConfigs =
+    new HashMap<String, ZkRingGroupConfig>();
 
   private final Map<String, Set<DomainChangeListener>> domainListeners =
     new HashMap<String, Set<DomainChangeListener>>();
@@ -209,7 +209,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
       ZkDomainGroupConfig dgc = domainGroupConfigs.get(ZooKeeperUtils.getStringOrDie(zk, ringGroupPath));
-      ringGroupConfigs.put(ringGroupName, new RingGroupConfigImpl(zk, ringGroupPath, dgc));
+      ringGroupConfigs.put(ringGroupName, new ZkRingGroupConfig(zk, ringGroupPath, dgc));
     }
   }
 
@@ -456,7 +456,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     private void processChange() {
       try {
-        RingGroupConfigImpl rg = new RingGroupConfigImpl(zk, path, getRingGroupConfig(ringGroupName).getDomainGroupConfig());
+        ZkRingGroupConfig rg = new ZkRingGroupConfig(zk, path, getRingGroupConfig(ringGroupName).getDomainGroupConfig());
         ringGroupConfigs.put(ringGroupName, rg);
         pushNewRingGroup(rg);
         register();

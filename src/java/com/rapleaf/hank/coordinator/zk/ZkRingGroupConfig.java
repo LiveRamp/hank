@@ -31,13 +31,13 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class RingGroupConfigImpl implements RingGroupConfig {
+public class ZkRingGroupConfig implements RingGroupConfig {
   private final String ringGroupName;
   private DomainGroupConfig domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
     new HashMap<Integer, RingConfig>();
 
-  public RingGroupConfigImpl(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRingGroupConfig(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
     this.domainGroupConfig = domainGroupConfig;
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];

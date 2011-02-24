@@ -5,9 +5,9 @@ import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 
-public class TestRingGroupConfigImpl extends ZkTestCase {
+public class TestZkRingGroupConfig extends ZkTestCase {
 
-  public TestRingGroupConfigImpl() throws Exception {
+  public TestZkRingGroupConfig() throws Exception {
     super();
   }
 
@@ -23,7 +23,7 @@ public class TestRingGroupConfigImpl extends ZkTestCase {
     createRing(3);
 
     MockDomainGroupConfig dgc = new MockDomainGroupConfig("myDomainGroup");
-    RingGroupConfigImpl ringGroupConf = new RingGroupConfigImpl(getZk(), ring_group, dgc);
+    ZkRingGroupConfig ringGroupConf = new ZkRingGroupConfig(getZk(), ring_group, dgc);
 
     assertEquals("ring group name", "myRingGroup", ringGroupConf.getName());
     assertEquals("num rings", 3, ringGroupConf.getRingConfigs().size());
