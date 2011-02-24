@@ -1,8 +1,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -76,7 +80,15 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
   }
 
   public void testCreateNewSequential() throws Exception {
-    fail();
+    Map<String, Integer> map = new HashMap<String, Integer>();
+    map.put("domain1", 2);
+    map.put("domain4", 7);
+
+    DomainGroupConfigVersion ver = ZkDomainGroupConfigVersion.create(getZk(), getRoot(), map, null);
+    assertEquals(1, ver.getVersionNumber());
+    assertEquals(2, ver.getDomainConfigVersions().size());
+    ver = ZkDomainGroupConfigVersion.create(getZk(), getRoot(), map, null);
+    assertEquals(2, ver.getVersionNumber());
   }
 
   private void version(int versionNumber, int... pairs) throws Exception {
