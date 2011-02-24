@@ -45,7 +45,7 @@ public class RingGroupConfigImpl implements RingGroupConfig {
     // enumerate ring group configs
     List<String> ringNames = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupPath);
     for (String ringName : ringNames) {
-      RingConfig rc = new RingConfigImpl(zk, ringGroupPath + "/" + ringName, this);
+      RingConfig rc = new ZkRingConfig(zk, ringGroupPath + "/" + ringName, this);
       ringsByNumber.put(rc.getRingNumber(), rc);
     }
   }

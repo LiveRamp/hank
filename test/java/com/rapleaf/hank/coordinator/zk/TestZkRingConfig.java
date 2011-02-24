@@ -7,7 +7,7 @@ import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 
-public class TestRingConfigImpl extends ZkTestCase {
+public class TestZkRingConfig extends ZkTestCase {
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
 
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
@@ -16,7 +16,7 @@ public class TestRingConfigImpl extends ZkTestCase {
     ZkHostConfig hostConfig = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
     create(ring_root + "/current_version", "1");
 
-    RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
@@ -29,7 +29,7 @@ public class TestRingConfigImpl extends ZkTestCase {
     create(ring_root + "/current_version", "1");
     create(ring_root + "/updating_to_version", "2");
 
-    RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
@@ -41,7 +41,7 @@ public class TestRingConfigImpl extends ZkTestCase {
     create(ring_root + "/current_version", "1");
     create(ring_root + "/updating_to_version", "2");
 
-    RingConfig ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
@@ -50,7 +50,7 @@ public class TestRingConfigImpl extends ZkTestCase {
 
     ringConf.updateComplete();
 
-    ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    ringConf = new ZkRingConfig(getZk(), ring_root, null);
 
     assertEquals("expected ring number", 1, ringConf.getRingNumber());
     assertEquals("version number", Integer.valueOf(2), ringConf.getVersionNumber());
@@ -60,7 +60,7 @@ public class TestRingConfigImpl extends ZkTestCase {
   public void testHosts() throws Exception {
     create(ring_root + "/current_version", "1");
 
-    RingConfigImpl ringConf = new RingConfigImpl(getZk(), ring_root, null);
+    ZkRingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
     assertEquals(0, ringConf.getHosts().size());
 
     HostConfig hc = ringConf.addHost(LOCALHOST);

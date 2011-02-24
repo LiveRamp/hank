@@ -34,7 +34,7 @@ public class TestRingGroupConfigImpl extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    RingConfig rc = RingConfigImpl.create(getZk(), ring_group, ringNum, null, 1);
+    RingConfig rc = ZkRingConfig.create(getZk(), ring_group, ringNum, null, 1);
     rc.addHost(new PartDaemonAddress("localhost", ringNum));
   }
 }

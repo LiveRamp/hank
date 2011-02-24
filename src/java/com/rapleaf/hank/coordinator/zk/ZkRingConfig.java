@@ -40,7 +40,7 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class RingConfigImpl implements RingConfig, Watcher {
+public class ZkRingConfig implements RingConfig, Watcher {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
@@ -55,7 +55,7 @@ public class RingConfigImpl implements RingConfig, Watcher {
   private final Map<PartDaemonAddress, HostConfig> hostConfigs = 
     new HashMap<PartDaemonAddress, HostConfig>();
 
-  public RingConfigImpl(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRingConfig(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringPath = ringPath;
     this.ringGroupConfig = ringGroupConfig;
@@ -205,6 +205,6 @@ public class RingConfigImpl implements RingConfig, Watcher {
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/updating_to_version", ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new RingConfigImpl(zk, ringPath, group);
+    return new ZkRingConfig(zk, ringPath, group);
   }
 }
