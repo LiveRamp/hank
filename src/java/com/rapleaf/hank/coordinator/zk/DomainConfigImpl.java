@@ -17,7 +17,10 @@ package com.rapleaf.hank.coordinator.zk;
 
 import java.util.Map;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
@@ -28,7 +31,6 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainConfigImpl implements DomainConfig {
-
   private String name;
   private int numParts;
   private Partitioner partitioner;
@@ -37,8 +39,10 @@ public class DomainConfigImpl implements DomainConfig {
   private int version;
 
   private StorageEngine storageEngine;
+  private final String domainPath;
 
   public DomainConfigImpl(ZooKeeper zk, String domainPath) throws DataNotFoundException {
+    this.domainPath = domainPath;
     ZooKeeperUtils.checkExists(zk, domainPath);
 
     String[] toks = domainPath.split("/");
@@ -54,16 +58,6 @@ public class DomainConfigImpl implements DomainConfig {
     } catch (Exception e) {
       throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
     }
-  }
-
-  public DomainConfigImpl(String name, int numParts,
-      Partitioner partitioner, StorageEngine storageEngine,
-      int version) {
-    this.name = name;
-    this.numParts = numParts;
-    this.partitioner = partitioner;
-    this.storageEngine = storageEngine;
-    this.version = version;
   }
 
   @Override
@@ -98,7 +92,6 @@ public class DomainConfigImpl implements DomainConfig {
   public int getVersion() {
     return version;
   }
-  
 
   private static final String KEY_NUM_PARTS = "num_parts";
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
@@ -112,5 +105,29 @@ public class DomainConfigImpl implements DomainConfig {
 
   public Map<String, Object> getStorageEngineOptions() {
     return storageEngineOptions;
+  }
+
+  public static DomainConfig create(ZooKeeper zk,
+      String domainsRoot,
+      String domainName,
+      int numParts,
+      String storageEngineFactory,
+      String storageEngineOpts,
+      String partitioner,
+      int initVersion) throws KeeperException, InterruptedException, DataNotFoundException
+  {
+    String domainPath = domainsRoot + "/" + domainName;
+    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new DomainConfigImpl(zk, domainPath);
+  }
+
+  public String getPath() {
+    return domainPath;
   }
 }

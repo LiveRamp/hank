@@ -100,18 +100,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
   }
 
-  public void testDomainChangeListener() throws Exception {
-    OmniMockListener listener = new OmniMockListener();
-    coord.addDomainChangeListener("domain0", listener);
-    getZk().setData(domains_root + "/domain0/version", "2".getBytes(), -1);
-    synchronized (listener) {
-      listener.wait(1000);
-    }
-    assertTrue("listener wasn't notified", listener.notified);
-    assertEquals("domain name", "domain0", listener.newDomain.getName());
-    assertEquals("domain version", 2, listener.newDomain.getVersion());
-  }
-
   public void testDomainGroupChangeListener() throws Exception {
     OmniMockListener listener = new OmniMockListener();
     coord.addDomainGroupChangeListener("myDomainGroup", listener);

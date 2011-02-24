@@ -1,5 +1,6 @@
 package com.rapleaf.hank.coordinator;
 
+import java.util.Map;
 import java.util.SortedSet;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -40,5 +41,24 @@ public class MockDomainGroupConfig implements DomainGroupConfig {
   @Override
   public String toString() {
     return "MockDomainGroupConfig [name=" + name + "]";
+  }
+
+  @Override
+  public void setListener(DomainGroupChangeListener listener) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void addDomain(DomainConfig domainConfig, int domainId) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public DomainGroupConfigVersion createNewVersion(
+      Map<Integer, Integer> domainIdToVersion) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

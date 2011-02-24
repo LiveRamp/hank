@@ -55,20 +55,6 @@ public interface Coordinator {
    */
   public int updateDomain(String domainName) throws DataNotFoundException;
 
-  /**
-   * Registers the provided <code>DomainChangeListener</code> so that it will
-   * receive the latest configuration information on the specified domain as
-   * soon as they are available.
-   * 
-   * @param domainName
-   * @param listener
-   * @throws DataNotFoundException
-   *           if no domain with the specified name exists
-   */
-  public void addDomainChangeListener(String domainName,
-      DomainChangeListener listener)
-  throws DataNotFoundException;
-
   //
   // DomainGroups
   //

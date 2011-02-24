@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -25,16 +26,52 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigImpl implements DomainGroupConfig {
+  private static final Logger LOG = Logger.getLogger(DomainConfigImpl.class);
+
+  private class StateChangeWatcher implements Watcher {
+    private final DomainGroupChangeListener listener;
+
+    public StateChangeWatcher(DomainGroupChangeListener listener) throws KeeperException, InterruptedException {
+      this.listener = listener;
+      register();
+    }
+
+    private void register() throws KeeperException, InterruptedException {
+      zk.getChildren(dgPath + "/versions" , this);
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+      switch (event.getType()) {
+        case NodeChildrenChanged:
+          listener.onDomainGroupChange(DomainGroupConfigImpl.this);
+          try {
+            register();
+          } catch (Exception e) {
+            LOG.error("failed to reregister listener!", e);
+          }
+          break;
+      }
+    }
+
+  }
+
   private final class DGCVComparator implements Comparator<DomainGroupConfigVersion> {
     @Override
     public int compare(DomainGroupConfigVersion arg0, DomainGroupConfigVersion arg1) {
@@ -54,8 +91,12 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
   private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
     new TreeMap<Integer, DomainGroupConfigVersion>();
+  private final ZooKeeper zk;
+  private final String dgPath;
 
   public DomainGroupConfigImpl(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
+    this.zk = zk;
+    this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
 
@@ -116,5 +157,45 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
 
   Map<Integer, DomainConfig> getDomainConfigMap() {
     return domainConfigs;
+  }
+
+  @Override
+  public void setListener(DomainGroupChangeListener listener) {
+    try {
+      new StateChangeWatcher(listener);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static DomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
+    String domainGroupPath = dgRoot + "/" + domainGroupName;
+    zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new DomainGroupConfigImpl(zk, domainGroupPath);
+  }
+
+  @Override
+  public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
+    String path = dgPath + "/domains/" + domainId;
+    try {
+      if (zk.exists(path, false) != null) {
+        throw new IllegalArgumentException("Domain ID " + domainId + " is already assigned!");
+      }
+      String domainPath = ((DomainConfigImpl)domainConfig).getPath();
+      zk.create(path, domainPath.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      domainConfigs.put(domainId, new DomainConfigImpl(zk, domainPath));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public DomainGroupConfigVersion createNewVersion(
+      Map<Integer, Integer> domainIdToVersion) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

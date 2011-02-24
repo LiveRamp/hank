@@ -27,37 +27,24 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public void addDomainChangeListener(String domainName,
-      DomainChangeListener listener) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
   public void addDomainGroupChangeListener(String domainGroupName,
       DomainGroupChangeListener listener) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public void addRingGroupChangeListener(String ringGroupName,
       RingGroupChangeListener listener) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public DomainConfig getDomainConfig(String domainName)
       throws DataNotFoundException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
       throws DataNotFoundException {
-    // TODO Auto-generated method stub
     return null;
   }
 

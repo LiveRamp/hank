@@ -280,19 +280,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void addDomainChangeListener(String domainName, DomainChangeListener listener) throws DataNotFoundException {
-    if (!domainConfigsByName.containsKey(domainName)) {
-      throw new DataNotFoundException("Domain " + domainName + " does not exist");
-    }
-    Set<DomainChangeListener> listeners;
-    if ((listeners = domainListeners.get(domainName)) == null) {
-      listeners = new HashSet<DomainChangeListener>();
-      domainListeners.put(domainName, listeners);
-    }
-    listeners.add(listener);
-  }
-
-  @Override
   public void addDomainGroupChangeListener(String domainGroupName, DomainGroupChangeListener listener) throws DataNotFoundException {
     if (!domainGroupConfigs.containsKey(domainGroupName)) {
       throw new DataNotFoundException("Domain group " + domainGroupName + " does not exist");

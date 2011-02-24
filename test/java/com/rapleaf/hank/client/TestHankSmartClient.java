@@ -221,12 +221,6 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public void addDomainChangeListener(String domainName,
-        DomainChangeListener listener) 
-    throws DataNotFoundException {
-    }
-
-    @Override
     public void addDomainGroupChangeListener(String domainGroupName,
         DomainGroupChangeListener listener)
     throws DataNotFoundException {

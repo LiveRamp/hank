@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+import java.util.Map;
 import java.util.SortedSet;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -52,4 +54,10 @@ public interface DomainGroupConfig {
    * @return
    */
   public DomainGroupConfigVersion getLatestVersion();
+
+  public void setListener(DomainGroupChangeListener listener);
+
+  public void addDomain(DomainConfig domainConfig, int domainId) throws IOException;
+
+  public DomainGroupConfigVersion createNewVersion(Map<Integer,Integer> domainIdToVersion);
 }
