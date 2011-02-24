@@ -65,8 +65,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private Set<ZooKeeperWatcher> myWatchers = new HashSet<ZooKeeperWatcher>();
   private boolean isSessionExpired = false;
 
-  private final Map<String, DomainConfigImpl> domainConfigsByName =
-    new HashMap<String, DomainConfigImpl>();;
+  private final Map<String, ZkDomainConfig> domainConfigsByName =
+    new HashMap<String, ZkDomainConfig>();;
   private final Map<String, DomainGroupConfigImpl> domainGroupConfigs =
     new HashMap<String, DomainGroupConfigImpl>();
   private final Map<String, RingGroupConfigImpl> ringGroupConfigs =
@@ -180,7 +180,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainNames = ZooKeeperUtils.getChildrenOrDie(zk, domainsRoot);
     for (String domainName : domainNames) {
       try {
-        domainConfigsByName.put(domainName, new DomainConfigImpl(zk, domainsRoot + "/" + domainName));
+        domainConfigsByName.put(domainName, new ZkDomainConfig(zk, domainsRoot + "/" + domainName));
       } catch (DataNotFoundException e) {
         // Perhaps someone deleted the node while we were loading (unlikely)
         LOG.warn("A node disappeared while we were loading domain configs into memory.", e);
@@ -502,7 +502,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     private void processDomainChange() {
       try {
-        DomainConfigImpl newDomain = new DomainConfigImpl(zk, ZooKeeperUtils.domainPath(domainsRoot, domainName));
+        ZkDomainConfig newDomain = new ZkDomainConfig(zk, ZooKeeperUtils.domainPath(domainsRoot, domainName));
         domainConfigsByName.put(path, newDomain);
         pushNewDomain(newDomain);
         register();

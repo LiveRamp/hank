@@ -42,7 +42,7 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigImpl implements DomainGroupConfig {
-  private static final Logger LOG = Logger.getLogger(DomainConfigImpl.class);
+  private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
 
   private class StateChangeWatcher implements Watcher {
     private final DomainGroupChangeListener listener;
@@ -104,7 +104,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     List<String> domainIds = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/domains");
     for (String domainId : domainIds) {
       domainConfigs.put(Integer.parseInt(domainId), 
-          new DomainConfigImpl(zk, ZooKeeperUtils.getStringOrDie(zk, dgPath + "/domains/" + domainId)));
+          new ZkDomainConfig(zk, ZooKeeperUtils.getStringOrDie(zk, dgPath + "/domains/" + domainId)));
     }
 
     // enumerate the versions subkey
@@ -184,9 +184,9 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
       if (zk.exists(path, false) != null) {
         throw new IllegalArgumentException("Domain ID " + domainId + " is already assigned!");
       }
-      String domainPath = ((DomainConfigImpl)domainConfig).getPath();
+      String domainPath = ((ZkDomainConfig)domainConfig).getPath();
       zk.create(path, domainPath.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      domainConfigs.put(domainId, new DomainConfigImpl(zk, domainPath));
+      domainConfigs.put(domainId, new ZkDomainConfig(zk, domainPath));
     } catch (Exception e) {
       throw new IOException(e);
     }

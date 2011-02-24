@@ -6,14 +6,14 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
-public class TestDomainConfigImpl extends ZkTestCase {
+public class TestZkDomainConfig extends ZkTestCase {
   private static final String CONST_PARTITIONER = ConstantPartitioner.class.getName();
   private static final String STORAGE_ENGINE_FACTORY = ConstantStorageEngine.Factory.class.getName();
   private static final String STORAGE_ENGINE_OPTS = "---\n";
 
   private final String DOMAIN_PATH = getRoot() + "/test_domain_config";
 
-  public TestDomainConfigImpl() throws Exception {
+  public TestZkDomainConfig() throws Exception {
     super();
   }
 
@@ -27,7 +27,7 @@ public class TestDomainConfigImpl extends ZkTestCase {
     create(DOMAIN_PATH + "/" + "version", "1");
 
     // try to instantiate a DomainConfigImpl
-    DomainConfigImpl dc = new DomainConfigImpl(getZk(), DOMAIN_PATH);
+    ZkDomainConfig dc = new ZkDomainConfig(getZk(), DOMAIN_PATH);
 
     // assert that we got back what we expected
     assertEquals(new Yaml().load(STORAGE_ENGINE_OPTS), dc.getStorageEngineOptions());

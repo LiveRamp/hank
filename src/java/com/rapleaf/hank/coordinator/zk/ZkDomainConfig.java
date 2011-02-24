@@ -30,7 +30,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class DomainConfigImpl implements DomainConfig {
+public class ZkDomainConfig implements DomainConfig {
   private String name;
   private int numParts;
   private Partitioner partitioner;
@@ -41,7 +41,7 @@ public class DomainConfigImpl implements DomainConfig {
   private StorageEngine storageEngine;
   private final String domainPath;
 
-  public DomainConfigImpl(ZooKeeper zk, String domainPath) throws DataNotFoundException {
+  public ZkDomainConfig(ZooKeeper zk, String domainPath) throws DataNotFoundException {
     this.domainPath = domainPath;
     ZooKeeperUtils.checkExists(zk, domainPath);
 
@@ -124,7 +124,7 @@ public class DomainConfigImpl implements DomainConfig {
     zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new DomainConfigImpl(zk, domainPath);
+    return new ZkDomainConfig(zk, domainPath);
   }
 
   public String getPath() {

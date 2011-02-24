@@ -98,7 +98,7 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
   }
 
   private DomainConfig createDomain(String domainName, int initVersion) throws KeeperException, InterruptedException, DataNotFoundException {
-    return DomainConfigImpl.create(getZk(),
+    return ZkDomainConfig.create(getZk(),
         domains_root,
         domainName,
         1,
