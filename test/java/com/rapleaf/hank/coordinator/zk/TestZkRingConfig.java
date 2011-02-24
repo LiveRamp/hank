@@ -80,6 +80,16 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(PartDaemonState.STARTABLE, hc.getPartDaemonState());
   }
 
+  public void testTakeDownAllPartDaemons() throws Exception {
+    create(ring_root + "/current_version", "1");
+    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+    hc.setPartDaemonState(PartDaemonState.STARTED);
+    assertEquals(PartDaemonState.STARTED, hc.getPartDaemonState());
+    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
+    rc.takeDownPartDaemons();
+    assertEquals(PartDaemonState.STOPPABLE, hc.getPartDaemonState());
+  }
+  
   @Override
   protected void setUp() throws Exception {
     super.setUp();

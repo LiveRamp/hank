@@ -146,9 +146,10 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public void takeDownPartDaemons() {
-    // TODO Auto-generated method stub
-    
+  public void takeDownPartDaemons() throws IOException {
+    for (HostConfig hc : hostConfigs.values()) {
+      hc.setPartDaemonState(PartDaemonState.STOPPABLE);
+    }
   }
 
   @Override

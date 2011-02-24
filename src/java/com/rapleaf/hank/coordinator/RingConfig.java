@@ -39,7 +39,7 @@ public interface RingConfig {
 
   public boolean isUpdatePending();
 
-  public void takeDownPartDaemons();
+  public void takeDownPartDaemons() throws IOException;
 
   public Integer getUpdatingToVersionNumber();
 
