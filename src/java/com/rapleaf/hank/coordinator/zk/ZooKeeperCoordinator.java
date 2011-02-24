@@ -67,8 +67,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   private final Map<String, ZkDomainConfig> domainConfigsByName =
     new HashMap<String, ZkDomainConfig>();;
-  private final Map<String, DomainGroupConfigImpl> domainGroupConfigs =
-    new HashMap<String, DomainGroupConfigImpl>();
+  private final Map<String, ZkDomainGroupConfig> domainGroupConfigs =
+    new HashMap<String, ZkDomainGroupConfig>();
   private final Map<String, RingGroupConfigImpl> ringGroupConfigs =
     new HashMap<String, RingGroupConfigImpl>();
 
@@ -194,7 +194,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, domainGroupsRoot);
     for (String domainGroupName : domainGroupNameList) {
       try {
-        domainGroupConfigs.put(domainGroupName, new DomainGroupConfigImpl(zk, domainGroupsRoot + "/" + domainGroupName));
+        domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, domainGroupsRoot + "/" + domainGroupName));
       } catch (DataNotFoundException e) {
         // Perhaps someone deleted the node while we were loading (unlikely)
         LOG.warn("A node disappeared while we were loading domain group configs into memory.", e);
@@ -208,7 +208,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> ringGroupNameList = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupsRoot);
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
-      DomainGroupConfigImpl dgc = domainGroupConfigs.get(ZooKeeperUtils.getStringOrDie(zk, ringGroupPath));
+      ZkDomainGroupConfig dgc = domainGroupConfigs.get(ZooKeeperUtils.getStringOrDie(zk, ringGroupPath));
       ringGroupConfigs.put(ringGroupName, new RingGroupConfigImpl(zk, ringGroupPath, dgc));
     }
   }
@@ -542,7 +542,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     private void processChange() {
       try {
-        DomainGroupConfigImpl dg = new DomainGroupConfigImpl(zk, domainGroupsRoot + "/" + domainGroupName);
+        ZkDomainGroupConfig dg = new ZkDomainGroupConfig(zk, domainGroupsRoot + "/" + domainGroupName);
         domainGroupConfigs.put(domainGroupName, dg);
         pushNewDomainGroup(dg);
         register();

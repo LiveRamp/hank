@@ -14,7 +14,7 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
-public class TestDomainGroupConfigImpl extends ZkTestCase {
+public class TestZkDomainGroupConfig extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
     public DomainGroupConfig calledWith;
 
@@ -57,7 +57,7 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
     create(dg_root + "/versions/v2/domain0", "1");
     create(dg_root + "/versions/v2/domain1", "1");
 
-    DomainGroupConfigImpl dgc = new DomainGroupConfigImpl(getZk(), dg_root);
+    ZkDomainGroupConfig dgc = new ZkDomainGroupConfig(getZk(), dg_root);
 
     assertEquals(1, dgc.getVersions().size());
     assertEquals(1, ((DomainGroupConfigVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
@@ -69,7 +69,7 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
   }
 
   public void testDomainsAndListener() throws Exception {
-    DomainGroupConfig dgc = DomainGroupConfigImpl.create(getZk(), dg_root, "myDomainGroup");
+    DomainGroupConfig dgc = ZkDomainGroupConfig.create(getZk(), dg_root, "myDomainGroup");
     MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
     dgc.setListener(listener);
     assertNull(listener.calledWith);

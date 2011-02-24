@@ -41,7 +41,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class DomainGroupConfigImpl implements DomainGroupConfig {
+public class ZkDomainGroupConfig implements DomainGroupConfig {
   private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
 
   private class StateChangeWatcher implements Watcher {
@@ -60,7 +60,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeChildrenChanged:
-          listener.onDomainGroupChange(DomainGroupConfigImpl.this);
+          listener.onDomainGroupChange(ZkDomainGroupConfig.this);
           try {
             register();
           } catch (Exception e) {
@@ -94,7 +94,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   private final ZooKeeper zk;
   private final String dgPath;
 
-  public DomainGroupConfigImpl(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
+  public ZkDomainGroupConfig(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
     this.zk = zk;
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
@@ -174,7 +174,7 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new DomainGroupConfigImpl(zk, domainGroupPath);
+    return new ZkDomainGroupConfig(zk, domainGroupPath);
   }
 
   @Override
