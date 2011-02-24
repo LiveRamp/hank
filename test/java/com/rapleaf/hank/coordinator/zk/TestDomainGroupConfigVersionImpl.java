@@ -75,6 +75,10 @@ public class TestDomainGroupConfigVersionImpl extends ZkTestCase {
     }
   }
 
+  public void testCreateNewSequential() throws Exception {
+    fail();
+  }
+
   private void version(int versionNumber, int... pairs) throws Exception {
     create(versionPath(versionNumber));
     for (int i = 0; i < pairs.length; i+=2) {
@@ -84,6 +88,6 @@ public class TestDomainGroupConfigVersionImpl extends ZkTestCase {
   }
 
   private String versionPath(int versionNumber) {
-    return getRoot() + "/" + versionNumber;
+    return getRoot() + "/v" + versionNumber;
   }
 }

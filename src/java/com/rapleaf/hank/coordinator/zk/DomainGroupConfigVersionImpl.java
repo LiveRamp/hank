@@ -3,10 +3,16 @@ package com.rapleaf.hank.coordinator.zk;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -15,7 +21,7 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
-
+  private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroupConfig domainGroupConfig;
   private final int versionNumber;
@@ -24,7 +30,11 @@ public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
   public DomainGroupConfigVersionImpl(ZooKeeper zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException, KeeperException {
     this.domainGroupConfig = domainGroupConfig;
     String[] toks = versionPath.split("/");
-    versionNumber = Integer.parseInt(toks[toks.length - 1]);
+    Matcher m = VERSION_NAME_PATTERN.matcher(toks[toks.length - 1]);
+    if (!m.matches()) {
+      throw new IllegalArgumentException(versionPath + " has an improperly formatted version number! Must be in the form of 'vNNNN'.");
+    }
+    versionNumber = Integer.parseInt(m.group(1));
 
     if (!isComplete(versionPath, zk)) {
       throw new IllegalStateException(versionPath + " is not yet complete!");
@@ -58,5 +68,15 @@ public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
 
   public static boolean isComplete(String versionPath, ZooKeeper zk) throws KeeperException, InterruptedException {
     return zk.exists(versionPath + "/" + COMPLETE_NODE_NAME, false) != null;
+  }
+
+  public static DomainGroupConfigVersion create(ZooKeeper zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, DataNotFoundException {
+    // grab the next possible version number
+    String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+    for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {
+      zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+    zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new DomainGroupConfigVersionImpl(zk, actualPath, domainGroupConfig);
   }
 }

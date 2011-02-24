@@ -33,7 +33,6 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -43,12 +42,10 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.zk.DomainConfigImpl;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.util.Bytes;
 
 public class TestHankSmartClient extends TestCase {
@@ -211,13 +208,6 @@ public class TestHankSmartClient extends TestCase {
           
         }
       };
-
-      domain = new DomainConfigImpl("rapleaf_domain", 2, new Partitioner() {
-        @Override
-        public int partition(ByteBuffer key) {
-          return key.getInt(0);
-        }
-      }, null, 1);
     }
 
     @Override

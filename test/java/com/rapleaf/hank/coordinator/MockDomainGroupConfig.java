@@ -57,7 +57,7 @@ public class MockDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public DomainGroupConfigVersion createNewVersion(
-      Map<Integer, Integer> domainIdToVersion) {
+      Map<String, Integer> domainIdToVersion) {
     // TODO Auto-generated method stub
     return null;
   }

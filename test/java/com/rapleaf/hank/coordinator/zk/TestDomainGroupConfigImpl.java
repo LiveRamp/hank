@@ -49,13 +49,13 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
     create(dg_root + "/domains/0", domains_root + "/domain0");
     create(dg_root + "/domains/1", domains_root + "/domain1");
     create(dg_root + "/versions");
-    create(dg_root + "/versions/1");
-    create(dg_root + "/versions/1/domain0", "1");
-    create(dg_root + "/versions/1/domain1", "1");
-    create(dg_root + "/versions/1/.complete", "1");
-    create(dg_root + "/versions/2");
-    create(dg_root + "/versions/2/domain0", "1");
-    create(dg_root + "/versions/2/domain1", "1");
+    create(dg_root + "/versions/v1");
+    create(dg_root + "/versions/v1/domain0", "1");
+    create(dg_root + "/versions/v1/domain1", "1");
+    create(dg_root + "/versions/v1/.complete", "1");
+    create(dg_root + "/versions/v2");
+    create(dg_root + "/versions/v2/domain0", "1");
+    create(dg_root + "/versions/v2/domain1", "1");
 
     DomainGroupConfigImpl dgc = new DomainGroupConfigImpl(getZk(), dg_root);
 
@@ -84,9 +84,9 @@ public class TestDomainGroupConfigImpl extends ZkTestCase {
 
     assertNull(listener.calledWith);
 
-    HashMap<Integer, Integer> versionMap = new HashMap<Integer, Integer>() {{
-      put(0, 1);
-      put(1, 3);
+    HashMap<String, Integer> versionMap = new HashMap<String, Integer>() {{
+      put("domain0", 1);
+      put("domain1", 3);
     }};
     dgc.createNewVersion(versionMap);
 

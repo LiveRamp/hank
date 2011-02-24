@@ -112,8 +112,8 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
     for (String version : versions) {
       String versionPath = dgPath + "/versions/" + version;
       if (DomainGroupConfigVersionImpl.isComplete(versionPath, zk)) {
-        domainGroupConfigVersions.put(Integer.parseInt(version),
-            new DomainGroupConfigVersionImpl(zk, versionPath, this));
+        DomainGroupConfigVersionImpl ver = new DomainGroupConfigVersionImpl(zk, versionPath, this);
+        domainGroupConfigVersions.put(ver.getVersionNumber(), ver);
       }
     }
   }
@@ -193,9 +193,11 @@ public class DomainGroupConfigImpl implements DomainGroupConfig {
   }
 
   @Override
-  public DomainGroupConfigVersion createNewVersion(
-      Map<Integer, Integer> domainIdToVersion) {
-    // TODO Auto-generated method stub
-    return null;
+  public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
+    try {
+      return DomainGroupConfigVersionImpl.create(zk, dgPath + "/versions", domainIdToVersion, this);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

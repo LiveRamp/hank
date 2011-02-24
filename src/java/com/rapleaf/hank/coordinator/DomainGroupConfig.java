@@ -59,5 +59,5 @@ public interface DomainGroupConfig {
 
   public void addDomain(DomainConfig domainConfig, int domainId) throws IOException;
 
-  public DomainGroupConfigVersion createNewVersion(Map<Integer,Integer> domainIdToVersion);
+  public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException;
 }

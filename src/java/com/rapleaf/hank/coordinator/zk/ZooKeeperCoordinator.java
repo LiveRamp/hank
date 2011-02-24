@@ -41,7 +41,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
@@ -216,67 +215,68 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public int updateDomain(String domainName) throws DataNotFoundException {
-    DomainConfig oldDomain;
-    if ((oldDomain = domainConfigsByName.get(domainName)) == null) {
-      throw new DataNotFoundException("Domain " + domainName + " does not exist");
-    }
-    // --Update the domain config
-    // Update our local copy
-    int newDomainVersion = oldDomain.getVersion() + 1;
-    DomainConfigImpl newDomain = new DomainConfigImpl(oldDomain.getName(),
-        oldDomain.getNumParts(),
-        oldDomain.getPartitioner(),
-        oldDomain.getStorageEngine(),
-        newDomainVersion);
-    domainConfigsByName.put(domainName, newDomain);
-    // Update the ZooKeeper Service
-    String path = ZooKeeperUtils.domainPath(null, domainName) + "/version";
-    try {
-      ZooKeeperUtils.setDataOrDie(zk, path, Bytes.intToBytes(newDomainVersion));
-    } catch (InterruptedException e) {
-      // Server is probably going down
-      return -1;
-    }
-
-    pushNewDomain(newDomain);
-
-    // --Update every domain group that has this domain
-    for (DomainGroupConfigImpl dg : domainGroupConfigs.values()) {
-      if (!dg.getDomainConfigMap().values().contains(oldDomain)) {
-        continue;
-      }
-      int domainId = dg.getDomainId(oldDomain.getName());
-      // Update the domain group's set
-      // Clobber the old domain
-      dg.getDomainConfigMap().put(domainId, newDomain);
-
-      // Update the domain group's map
-      throw new NotImplementedException();
-//      Map<Integer, Map<Integer, Integer>> versionMap = dg.getVersions();
-//      int oldDgVersion = Collections.max(versionMap.keySet());
-//      int newDgVersion = oldDgVersion + 1;
-//      Map<Integer, Integer> newVersionMap = Collections.synchronizedMap(new HashMap<Integer, Integer>(versionMap.get(oldDgVersion))); //Create a copy of the version map
-//      newVersionMap.put(domainId, newDomainVersion); // Update the version map
-//      versionMap.put(newDgVersion, newVersionMap); // Add the new version map
+    throw new NotImplementedException();
+//    DomainConfig oldDomain;
+//    if ((oldDomain = domainConfigsByName.get(domainName)) == null) {
+//      throw new DataNotFoundException("Domain " + domainName + " does not exist");
+//    }
+//    // --Update the domain config
+//    // Update our local copy
+//    int newDomainVersion = oldDomain.getVersion() + 1;
+//    DomainConfigImpl newDomain = new DomainConfigImpl(oldDomain.getName(),
+//        oldDomain.getNumParts(),
+//        oldDomain.getPartitioner(),
+//        oldDomain.getStorageEngine(),
+//        newDomainVersion);
+//    domainConfigsByName.put(domainName, newDomain);
+//    // Update the ZooKeeper Service
+//    String path = ZooKeeperUtils.domainPath(null, domainName) + "/version";
+//    try {
+//      ZooKeeperUtils.setDataOrDie(zk, path, Bytes.intToBytes(newDomainVersion));
+//    } catch (InterruptedException e) {
+//      // Server is probably going down
+//      return -1;
+//    }
 //
-//      // Update the ZooKeeper Service
-//      String versionPath = ZooKeeperUtils.getDomainGroupPath(dg.getName())
-//          + "/versions/" + newDgVersion;
-//      try {
-//        ZooKeeperUtils.createNodeOrFailSilently(zk, versionPath);
-//        for (Entry<Integer, Integer> entry : newVersionMap.entrySet()) {
-//          ZooKeeperUtils.setDataOrFailSilently(zk, versionPath + '/'
-//              + entry.getKey(), Bytes.intToBytes(entry.getValue()));
-//        }
-//      } catch (InterruptedException e) {
-//        // Server is probably going down
-//        return -1;
+//    pushNewDomain(newDomain);
+//
+//    // --Update every domain group that has this domain
+//    for (DomainGroupConfigImpl dg : domainGroupConfigs.values()) {
+//      if (!dg.getDomainConfigMap().values().contains(oldDomain)) {
+//        continue;
 //      }
+//      int domainId = dg.getDomainId(oldDomain.getName());
+//      // Update the domain group's set
+//      // Clobber the old domain
+//      dg.getDomainConfigMap().put(domainId, newDomain);
 //
-//      pushNewDomainGroup(dg);
-    }
+//      // Update the domain group's map
+//      throw new NotImplementedException();
+////      Map<Integer, Map<Integer, Integer>> versionMap = dg.getVersions();
+////      int oldDgVersion = Collections.max(versionMap.keySet());
+////      int newDgVersion = oldDgVersion + 1;
+////      Map<Integer, Integer> newVersionMap = Collections.synchronizedMap(new HashMap<Integer, Integer>(versionMap.get(oldDgVersion))); //Create a copy of the version map
+////      newVersionMap.put(domainId, newDomainVersion); // Update the version map
+////      versionMap.put(newDgVersion, newVersionMap); // Add the new version map
+////
+////      // Update the ZooKeeper Service
+////      String versionPath = ZooKeeperUtils.getDomainGroupPath(dg.getName())
+////          + "/versions/" + newDgVersion;
+////      try {
+////        ZooKeeperUtils.createNodeOrFailSilently(zk, versionPath);
+////        for (Entry<Integer, Integer> entry : newVersionMap.entrySet()) {
+////          ZooKeeperUtils.setDataOrFailSilently(zk, versionPath + '/'
+////              + entry.getKey(), Bytes.intToBytes(entry.getValue()));
+////        }
+////      } catch (InterruptedException e) {
+////        // Server is probably going down
+////        return -1;
+////      }
+////
+////      pushNewDomainGroup(dg);
+//    }
 
-    return newDomainVersion;
+//    return newDomainVersion;
   }
 
   @Override
