@@ -111,8 +111,8 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
     List<String> versions = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/versions");
     for (String version : versions) {
       String versionPath = dgPath + "/versions/" + version;
-      if (DomainGroupConfigVersionImpl.isComplete(versionPath, zk)) {
-        DomainGroupConfigVersionImpl ver = new DomainGroupConfigVersionImpl(zk, versionPath, this);
+      if (ZkDomainGroupConfigVersion.isComplete(versionPath, zk)) {
+        ZkDomainGroupConfigVersion ver = new ZkDomainGroupConfigVersion(zk, versionPath, this);
         domainGroupConfigVersions.put(ver.getVersionNumber(), ver);
       }
     }
@@ -195,7 +195,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   @Override
   public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     try {
-      return DomainGroupConfigVersionImpl.create(zk, dgPath + "/versions", domainIdToVersion, this);
+      return ZkDomainGroupConfigVersion.create(zk, dgPath + "/versions", domainIdToVersion, this);
     } catch (Exception e) {
       throw new IOException(e);
     }

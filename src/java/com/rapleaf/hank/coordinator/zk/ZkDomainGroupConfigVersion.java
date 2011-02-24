@@ -20,14 +20,14 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
+public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroupConfig domainGroupConfig;
   private final int versionNumber;
   private final HashSet<DomainConfigVersion> domainConfigVersions;
 
-  public DomainGroupConfigVersionImpl(ZooKeeper zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException, KeeperException {
+  public ZkDomainGroupConfigVersion(ZooKeeper zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException, KeeperException {
     this.domainGroupConfig = domainGroupConfig;
     String[] toks = versionPath.split("/");
     Matcher m = VERSION_NAME_PATTERN.matcher(toks[toks.length - 1]);
@@ -77,6 +77,6 @@ public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
       zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
     zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new DomainGroupConfigVersionImpl(zk, actualPath, domainGroupConfig);
+    return new ZkDomainGroupConfigVersion(zk, actualPath, domainGroupConfig);
   }
 }
