@@ -7,6 +7,7 @@ import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.UpdateDaemonState;
 
 public class TestZkRingConfig extends ZkTestCase {
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
@@ -89,7 +90,17 @@ public class TestZkRingConfig extends ZkTestCase {
     rc.takeDownPartDaemons();
     assertEquals(PartDaemonState.STOPPABLE, hc.getPartDaemonState());
   }
-  
+
+  public void testStartAllUpdaters() throws Exception {
+    create(ring_root + "/current_version", "1");
+    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+//    hc.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
+    assertEquals(UpdateDaemonState.IDLE, hc.getUpdateDaemonState());
+    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
+    rc.startAllUpdaters();
+    assertEquals(UpdateDaemonState.UPDATABLE, hc.getUpdateDaemonState());
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

@@ -47,7 +47,7 @@ public interface RingConfig {
 
   public void startAllPartDaemons() throws IOException;
 
-  public void startAllUpdaters();
+  public void startAllUpdaters() throws IOException;
 
   public int getOldestVersionOnHosts();
 }

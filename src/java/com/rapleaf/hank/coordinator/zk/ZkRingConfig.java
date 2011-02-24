@@ -39,6 +39,7 @@ import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.UpdateDaemonState;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class ZkRingConfig implements RingConfig, Watcher {
@@ -140,9 +141,10 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public void startAllUpdaters() {
-    // TODO Auto-generated method stub
-    
+  public void startAllUpdaters() throws IOException {
+    for (HostConfig hc : hostConfigs.values()) {
+      hc.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
+    }
   }
 
   @Override
