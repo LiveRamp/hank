@@ -44,7 +44,7 @@ public class DomainGroupConfigVersionImpl implements DomainGroupConfigVersion {
     domainConfigVersions = new HashSet<DomainConfigVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
-        domainConfigVersions.add(new DomainConfigVersionImpl(zk,
+        domainConfigVersions.add(new ZkDomainConfigVersion(zk,
             versionPath + "/" + child,
             domainGroupConfig.getDomainConfig(domainGroupConfig.getDomainId(child))));
       }

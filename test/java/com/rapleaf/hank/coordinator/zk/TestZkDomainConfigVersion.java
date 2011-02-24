@@ -3,16 +3,16 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 
-public class TestDomainConfigVersionImpl extends ZkTestCase {
+public class TestZkDomainConfigVersion extends ZkTestCase {
   private final String path = getRoot() + "/myDomain";
 
-  public TestDomainConfigVersionImpl() throws Exception {
+  public TestZkDomainConfigVersion() throws Exception {
     super();
   }
 
   public void testLoad() throws Exception {
     create(path, "7");
-    DomainConfigVersion dcv = new DomainConfigVersionImpl(getZk(), path, null);
+    DomainConfigVersion dcv = new ZkDomainConfigVersion(getZk(), path, null);
     assertEquals(7, dcv.getVersionNumber());
   }
 }
