@@ -45,7 +45,7 @@ public interface RingConfig {
 
   public void updateComplete() throws IOException;
 
-  public void startAllPartDaemons();
+  public void startAllPartDaemons() throws IOException;
 
   public void startAllUpdaters();
 

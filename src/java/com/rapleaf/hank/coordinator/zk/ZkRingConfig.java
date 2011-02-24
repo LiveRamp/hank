@@ -35,6 +35,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -132,9 +133,10 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public void startAllPartDaemons() {
-    // TODO Auto-generated method stub
-    
+  public void startAllPartDaemons() throws IOException {
+    for (HostConfig hc : hostConfigs.values()) {
+      hc.setPartDaemonState(PartDaemonState.STARTABLE);
+    }
   }
 
   @Override

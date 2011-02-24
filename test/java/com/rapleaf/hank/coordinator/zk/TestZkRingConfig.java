@@ -5,6 +5,7 @@ import java.util.Collections;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 
 public class TestZkRingConfig extends ZkTestCase {
@@ -68,6 +69,15 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+  }
+
+  public void testStartAllPartDaemons() throws Exception {
+    create(ring_root + "/current_version", "1");
+    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+    assertEquals(PartDaemonState.IDLE, hc.getPartDaemonState());
+    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
+    rc.startAllPartDaemons();
+    assertEquals(PartDaemonState.STARTABLE, hc.getPartDaemonState());
   }
 
   @Override
