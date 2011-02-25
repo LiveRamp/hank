@@ -57,15 +57,17 @@ public interface RingGroupConfig {
 
   public void releaseDataDeployer();
 
-  public boolean isUpdating();
+  public boolean isUpdating() throws IOException;
 
   public Integer getCurrentVersion() throws IOException;
 
-  public void setUpdatingToVersion(Integer versionNumber);
+  public void setUpdatingToVersion(Integer versionNumber) throws IOException;
 
   public void updateComplete() throws IOException;
 
-  public void setListener(RingGroupChangeListener listener);
+  public void setListener(RingGroupChangeListener listener) throws IOException;
 
   public Integer getUpdatingToVersion() throws IOException;
+
+  RingConfig addRing(int ringNum) throws IOException;
 }

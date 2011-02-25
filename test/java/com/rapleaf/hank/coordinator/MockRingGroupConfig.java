@@ -1,5 +1,6 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.Set;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -87,6 +88,12 @@ public class MockRingGroupConfig implements RingGroupConfig {
 
   @Override
   public Integer getUpdatingToVersion() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public RingConfig addRing(int ringNum) throws IOException {
     // TODO Auto-generated method stub
     return null;
   }

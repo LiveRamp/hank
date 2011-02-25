@@ -7,12 +7,21 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class TestZkRingGroupConfig extends ZkTestCase {
 
-  public TestZkRingGroupConfig() throws Exception {
-    super();
+  public final class MockRingGroupChangeListener implements RingGroupChangeListener {
+    public RingGroupConfig calledWith;
+
+    @Override
+    public void onRingGroupChange(RingGroupConfig newRingGroup) {
+      this.calledWith = newRingGroup;
+      synchronized (this) {
+        notifyAll();
+      }
+    }
   }
 
   private final String ring_groups = getRoot() + "/ring_groups";
@@ -48,7 +57,37 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   public void testListener() throws Exception {
-    fail();
+    ZkDomainGroupConfig dgc = (ZkDomainGroupConfig) ZkDomainGroupConfig.create(getZk(), getRoot() + "/domain_groups", "blah");
+    dgc.createNewVersion(Collections.EMPTY_MAP);
+    RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
+    rgc.updateComplete();
+
+    MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
+    rgc.setListener(listener);
+    assertNull(listener.calledWith);
+    rgc.setUpdatingToVersion(2);
+    synchronized (listener) {
+      listener.wait(1000);
+    }
+    assertNotNull(listener.calledWith);
+    assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersion());
+
+    listener.calledWith = null;
+    rgc.updateComplete();
+    synchronized (listener) {
+      listener.wait(1000);
+    }
+    assertNotNull(listener.calledWith);
+    assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersion());
+
+    listener.calledWith = null;
+    RingConfig newRing = rgc.addRing(1);
+    synchronized (listener) {
+      listener.wait(1000);
+    }
+    assertNotNull(listener.calledWith);
+    assertEquals(1, listener.calledWith.getRingConfigs().size());
+    assertEquals(newRing.getRingNumber(), ((RingConfig) listener.calledWith.getRingConfigs().toArray()[0]).getRingNumber());
   }
 
   public void testClaimDataDeployer() throws Exception {

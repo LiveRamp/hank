@@ -218,6 +218,12 @@ public class TestHankSmartClient extends TestCase {
           // TODO Auto-generated method stub
           return null;
         }
+
+        @Override
+        public RingConfig addRing(int ringNum) throws IOException {
+          // TODO Auto-generated method stub
+          return null;
+        }
       };
     }
 

@@ -22,10 +22,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -36,6 +40,64 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class ZkRingGroupConfig implements RingGroupConfig {
+  private static final Logger LOG = Logger.getLogger(ZkRingGroupConfig.class);
+
+  private final class StateChangeListener implements Watcher {
+    private final RingGroupChangeListener listener;
+
+    public StateChangeListener(RingGroupChangeListener listener) throws KeeperException, InterruptedException {
+      this.listener = listener;
+      reregister();
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+      switch (event.getType()) {
+        case NodeChildrenChanged:
+          // ring group was added OR currentversion was set for the first time
+          LOG.debug("NodeChildrenChanged fired");
+          fireListener();
+          break;
+          
+        case NodeDataChanged:
+          // one of the versions was updated
+          LOG.debug("NodeDataChanged fired");
+          fireListener();
+          break;
+
+        case NodeDeleted:
+          // updatingToVersion was whacked
+          LOG.debug("NodeDeleted fired");
+          fireListener();
+          break;
+
+        default:
+          LOG.debug("Unexpected event type " + event.getType());
+      }
+    }
+
+    private void fireListener() {
+      listener.onRingGroupChange(ZkRingGroupConfig.this);
+      try {
+        reregister();
+      } catch (Exception e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    }
+
+    private void reregister() throws KeeperException, InterruptedException {
+      zk.getChildren(ringGroupPath, this);
+      if (zk.exists(currentVerPath, this) != null) {
+        zk.getData(currentVerPath, this, new Stat());
+      }
+      if (zk.exists(updatingToVersionPath, this) != null) {
+        zk.getData(updatingToVersionPath, this, new Stat());
+      }
+    }
+
+  }
+
   private final String ringGroupName;
   private DomainGroupConfig domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
@@ -119,13 +181,22 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public boolean isUpdating() {
-    throw new NotImplementedException();
+  public boolean isUpdating() throws IOException {
+    return getUpdatingToVersion() != null;
   }
 
   @Override
-  public void setUpdatingToVersion(Integer versionNumber) {
-    throw new NotImplementedException();
+  public void setUpdatingToVersion(Integer versionNumber) throws IOException {
+    byte[] newVer = ("" + versionNumber).getBytes();
+    try {
+      if (zk.exists(updatingToVersionPath, false) == null) {
+        zk.create(updatingToVersionPath, newVer, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } else {
+        zk.setData(updatingToVersionPath, newVer, -1);
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -144,8 +215,12 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public void setListener(RingGroupChangeListener listener) {
-    throw new NotImplementedException();
+  public void setListener(RingGroupChangeListener listener) throws IOException {
+    try {
+      new StateChangeListener(listener);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   public static RingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException {
@@ -158,6 +233,17 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   public Integer getUpdatingToVersion() throws IOException {
     try {
       return ZooKeeperUtils.getIntOrNull(zk, ringGroupPath + "/updating_to_version");
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public RingConfig addRing(int ringNum) throws IOException {
+    try {
+      RingConfig rc = ZkRingConfig.create(zk, ringGroupPath, ringNum, this, isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
+      ringsByNumber.put(rc.getRingNumber(), rc);
+      return rc;
     } catch (Exception e) {
       throw new IOException(e);
     }
