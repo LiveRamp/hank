@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -106,6 +105,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
+  private final String dataDeployerOnlinePath;
 
   public ZkRingGroupConfig(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
     this.zk = zk;
@@ -124,6 +124,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     }
     currentVerPath = ringGroupPath + "/current_version";
     updatingToVersionPath = ringGroupPath + "/updating_to_version";
+    dataDeployerOnlinePath = ringGroupPath + "/data_deployer_online";
   }
 
   @Override
@@ -162,13 +163,29 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public boolean claimDataDeployer() {
-    throw new NotImplementedException();
+  public boolean claimDataDeployer() throws IOException {
+    try {
+      if (zk.exists(dataDeployerOnlinePath, false) == null) {
+        zk.create(dataDeployerOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        return true;
+      }
+      return false;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
-  public void releaseDataDeployer() {
-    throw new NotImplementedException();
+  public void releaseDataDeployer() throws IOException {
+    try {
+      if (zk.exists(dataDeployerOnlinePath, false) != null) {
+        zk.delete(dataDeployerOnlinePath, -1);
+        return;
+      }
+      throw new IllegalStateException("Can't release the data deployer lock when it's not currently set!");
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

@@ -37,12 +37,14 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     coord = config.getCoordinator();
   }
 
-  private void run() {
+  private void run() throws IOException {
+    boolean claimedDataDeployer = false;
     try {
       ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
 
       // attempt to claim the data deployer title
       if (!ringGroupConfig.claimDataDeployer()) {
+        claimedDataDeployer = true;
         LOG.info("Attempted to claim data deployer status, but it was already claimed. Exiting.");
 
         // we are now *the* data deployer for this ring group.
@@ -76,7 +78,9 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     } catch (Throwable t) {
       LOG.fatal("unexpected exception!", t);
     } finally {
-      ringGroupConfig.releaseDataDeployer();
+      if (claimedDataDeployer) {
+        ringGroupConfig.releaseDataDeployer();
+      }
     }
   }
 

@@ -91,7 +91,16 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   public void testClaimDataDeployer() throws Exception {
-    fail();
+    ZkDomainGroupConfig dgc = (ZkDomainGroupConfig) ZkDomainGroupConfig.create(getZk(), dg_root, "blah");
+    dgc.createNewVersion(Collections.EMPTY_MAP);
+    RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), ring_group, dgc);
+    create(ring_group + "/data_deployer_online");
+    assertFalse(rgc.claimDataDeployer());
+    getZk().delete(ring_group + "/data_deployer_online", -1);
+    assertTrue(rgc.claimDataDeployer());
+    assertFalse(rgc.claimDataDeployer());
+    rgc.releaseDataDeployer();
+    assertTrue(rgc.claimDataDeployer());
   }
 
   private void createRing(int ringNum) throws Exception {

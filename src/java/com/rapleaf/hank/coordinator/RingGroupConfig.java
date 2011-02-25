@@ -53,9 +53,9 @@ public interface RingGroupConfig {
   public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
   throws DataNotFoundException;
 
-  public boolean claimDataDeployer();
+  public boolean claimDataDeployer() throws IOException;
 
-  public void releaseDataDeployer();
+  public void releaseDataDeployer() throws IOException;
 
   public boolean isUpdating() throws IOException;
 
