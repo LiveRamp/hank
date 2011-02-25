@@ -24,4 +24,16 @@ public interface HostConfig {
   public HostDomainConfig addDomain(int domainId) throws IOException;
 
   public HostDomainConfig getDomainById(int domainId);
+
+  public boolean updateDaemonOnline() throws IOException;
+
+  public boolean isUpdateDaemonOnline() throws IOException;
+
+  public void updateDaemonOffline() throws IOException;
+
+  public boolean partDaemonOnline() throws IOException;
+
+  public boolean isPartDaemonOnline() throws IOException;
+
+  public void partDaemonOffline() throws IOException;
 }

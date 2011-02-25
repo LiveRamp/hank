@@ -68,4 +68,40 @@ public class MockHostConfig implements HostConfig {
     updateDaemonState = state;
   }
 
+  @Override
+  public boolean isPartDaemonOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean isUpdateDaemonOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void partDaemonOffline() throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean partDaemonOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void updateDaemonOffline() throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean updateDaemonOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
 }

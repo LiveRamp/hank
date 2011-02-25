@@ -54,10 +54,14 @@ public class ZkHostConfig implements HostConfig {
   private final ZooKeeper zk;
   private final String hostPath;
   private final PartDaemonAddress address;
+  private final String updateDaemonOnlinePath;
+  private final String partDaemonOnlinePath;
 
   public ZkHostConfig(ZooKeeper zk, String hostPath) {
     this.zk = zk;
     this.hostPath = hostPath;
+    this.updateDaemonOnlinePath = hostPath + "/update_daemon/online";
+    this.partDaemonOnlinePath = hostPath + "/part_daemon/online";
 
     String[] toks = hostPath.split("/");
     this.address = PartDaemonAddress.parse(toks[toks.length - 1]);
@@ -202,5 +206,69 @@ public class ZkHostConfig implements HostConfig {
       throw new RuntimeException(e);
     }
     return null;
+  }
+
+  @Override
+  public boolean isUpdateDaemonOnline() throws IOException {
+    try {
+      return zk.exists(updateDaemonOnlinePath, false) != null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void updateDaemonOffline() throws IOException {
+    try {
+      zk.delete(updateDaemonOnlinePath, -1);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public boolean updateDaemonOnline() throws IOException {
+    try {
+      if (zk.exists(updateDaemonOnlinePath, false) == null) {
+        zk.create(updateDaemonOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public boolean isPartDaemonOnline() throws IOException {
+    try {
+      return zk.exists(partDaemonOnlinePath, false) != null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void partDaemonOffline() throws IOException {
+    try {
+      zk.delete(partDaemonOnlinePath, -1);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public boolean partDaemonOnline() throws IOException {
+    try {
+      if (zk.exists(partDaemonOnlinePath, false) == null) {
+        zk.create(partDaemonOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

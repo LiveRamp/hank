@@ -84,4 +84,19 @@ public class TestZkHostConfig extends ZkTestCase {
 
     assertEquals(0, c.getDomainById(0).getDomainId());
   }
+
+  public void testOnline() throws Exception {
+    ZkHostConfig host = ZkHostConfig.create(getZk(), getRoot(), ADDRESS);
+    assertFalse(host.isUpdateDaemonOnline());
+    host.updateDaemonOnline();
+    assertTrue(host.isUpdateDaemonOnline());
+    host.updateDaemonOffline();
+    assertFalse(host.isUpdateDaemonOnline());
+
+    assertFalse(host.isPartDaemonOnline());
+    host.partDaemonOnline();
+    assertTrue(host.isPartDaemonOnline());
+    host.partDaemonOffline();
+    assertFalse(host.isPartDaemonOnline());
+  }
 }
