@@ -78,7 +78,8 @@ public class Server implements HostStateChangeListener {
     new Server(configurator).run();
   }
 
-  void run() {
+  void run() throws IOException {
+    hostConfig.partDaemonOnline();
 //    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
 
     while (!goingDown) {
@@ -89,6 +90,7 @@ public class Server implements HostStateChangeListener {
         break;
       }
     }
+    hostConfig.partDaemonOffline();
   }
 
   /**
