@@ -84,7 +84,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     @Override
-    public int getCurrentVersion() {
+    public Integer getCurrentVersion() {
       return curVer;
     }
 

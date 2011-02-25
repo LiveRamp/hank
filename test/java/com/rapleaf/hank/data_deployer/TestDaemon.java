@@ -40,7 +40,7 @@ public class TestDaemon extends TestCase {
       }
 
       @Override
-      public int getCurrentVersion() {
+      public Integer getCurrentVersion() {
         return 1;
       }
     };
@@ -89,7 +89,7 @@ public class TestDaemon extends TestCase {
       }
 
       @Override
-      public int getCurrentVersion() {
+      public Integer getCurrentVersion() {
         return 1;
       }
 

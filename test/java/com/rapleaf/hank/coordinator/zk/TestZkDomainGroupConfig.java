@@ -30,8 +30,6 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   private final String dg_root = getRoot() + "/myDomainGroup";
   private final String domains_root = getRoot() + "/domains";
 
-  
-
   public void testLoad() throws Exception {
     create(domains_root + "/domain0");
     create(domains_root + "/domain0/num_parts", "1");

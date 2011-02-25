@@ -195,9 +195,15 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   @Override
   public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     try {
-      return ZkDomainGroupConfigVersion.create(zk, dgPath + "/versions", domainIdToVersion, this);
+      DomainGroupConfigVersion version = ZkDomainGroupConfigVersion.create(zk, dgPath + "/versions", domainIdToVersion, this);
+      domainGroupConfigVersions.put(version.getVersionNumber(), version);
+      return version;
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  public String getPath() {
+    return dgPath;
   }
 }

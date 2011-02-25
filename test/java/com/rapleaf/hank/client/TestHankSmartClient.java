@@ -34,7 +34,6 @@ import org.apache.thrift.transport.TTransportException;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -185,7 +184,7 @@ public class TestHankSmartClient extends TestCase {
         }
 
         @Override
-        public int getCurrentVersion() {
+        public Integer getCurrentVersion() {
           // TODO Auto-generated method stub
           return 0;
         }
@@ -197,7 +196,7 @@ public class TestHankSmartClient extends TestCase {
         }
 
         @Override
-        public void setUpdatingToVersion(int versionNumber) {
+        public void setUpdatingToVersion(Integer versionNumber) {
           // TODO Auto-generated method stub
           
         }
@@ -207,13 +206,19 @@ public class TestHankSmartClient extends TestCase {
           // TODO Auto-generated method stub
           
         }
-      };
-    }
 
-    @Override
-    public void addDomainGroupChangeListener(String domainGroupName,
-        DomainGroupChangeListener listener)
-    throws DataNotFoundException {
+        @Override
+        public void setListener(RingGroupChangeListener listener) {
+          // TODO Auto-generated method stub
+          
+        }
+
+        @Override
+        public Integer getUpdatingToVersion() {
+          // TODO Auto-generated method stub
+          return null;
+        }
+      };
     }
 
     @Override

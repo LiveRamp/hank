@@ -15,18 +15,22 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.util.ZooKeeperUtils;
@@ -36,8 +40,14 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   private DomainGroupConfig domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
     new HashMap<Integer, RingConfig>();
+  private final ZooKeeper zk;
+  private final String ringGroupPath;
+  private final String currentVerPath;
+  private final String updatingToVersionPath;
 
   public ZkRingGroupConfig(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
+    this.zk = zk;
+    this.ringGroupPath = ringGroupPath;
     this.domainGroupConfig = domainGroupConfig;
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];
@@ -45,9 +55,13 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     // enumerate ring group configs
     List<String> ringNames = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupPath);
     for (String ringName : ringNames) {
-      RingConfig rc = new ZkRingConfig(zk, ringGroupPath + "/" + ringName, this);
-      ringsByNumber.put(rc.getRingNumber(), rc);
+      if (ringName.matches("ring-\\d+")) {
+        RingConfig rc = new ZkRingConfig(zk, ringGroupPath + "/" + ringName, this);
+        ringsByNumber.put(rc.getRingNumber(), rc);
+      }
     }
+    currentVerPath = ringGroupPath + "/current_version";
+    updatingToVersionPath = ringGroupPath + "/updating_to_version";
   }
 
   @Override
@@ -96,8 +110,12 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public int getCurrentVersion() {
-    throw new NotImplementedException();
+  public Integer getCurrentVersion() throws IOException {
+    try {
+      return ZooKeeperUtils.getIntOrNull(zk, ringGroupPath + "/current_version");
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -106,12 +124,42 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public void setUpdatingToVersion(int versionNumber) {
+  public void setUpdatingToVersion(Integer versionNumber) {
     throw new NotImplementedException();
   }
 
   @Override
-  public void updateComplete() {
+  public void updateComplete() throws IOException {
+    byte[] newVer = ("" + getUpdatingToVersion()).getBytes();
+    try {
+      if (zk.exists(currentVerPath, false) == null) {
+        zk.create(currentVerPath, newVer, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } else {
+        zk.setData(currentVerPath, newVer, -1);
+      }
+      zk.delete(updatingToVersionPath, -1);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setListener(RingGroupChangeListener listener) {
     throw new NotImplementedException();
+  }
+
+  public static RingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException {
+    zk.create(path, domainGroupConfig.getPath().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(path + "/updating_to_version", ("" + domainGroupConfig.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkRingGroupConfig(zk, path, domainGroupConfig);
+  }
+
+  @Override
+  public Integer getUpdatingToVersion() throws IOException {
+    try {
+      return ZooKeeperUtils.getIntOrNull(zk, ringGroupPath + "/updating_to_version");
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

@@ -52,7 +52,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         coord.addRingGroupChangeListener(ringGroupName, this);
 
         // set a watch on the domain group version
-        coord.addDomainGroupChangeListener(ringGroupConfig.getDomainGroupConfig().getName(), this);
+        domainGroupConfig.setListener(this);
 
         // loop until we're taken down
         try {

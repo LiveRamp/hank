@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.Set;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -58,9 +59,13 @@ public interface RingGroupConfig {
 
   public boolean isUpdating();
 
-  public int getCurrentVersion();
+  public Integer getCurrentVersion() throws IOException;
 
-  public void setUpdatingToVersion(int versionNumber);
+  public void setUpdatingToVersion(Integer versionNumber);
 
-  public void updateComplete();
+  public void updateComplete() throws IOException;
+
+  public void setListener(RingGroupChangeListener listener);
+
+  public Integer getUpdatingToVersion() throws IOException;
 }

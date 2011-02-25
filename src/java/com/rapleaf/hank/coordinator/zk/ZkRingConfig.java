@@ -70,15 +70,6 @@ public class ZkRingConfig implements RingConfig, Watcher {
     matcher.matches();
     ringNumber = Integer.parseInt(matcher.group(1));
 
-//    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT));
-//    if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
-//      isUpdating = false;
-//      updatingToVersion = null;
-//    } else {
-//      isUpdating = true;
-//      updatingToVersion = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT));
-//    }
-
     // enumerate hosts
     refreshAndRegister();
   }

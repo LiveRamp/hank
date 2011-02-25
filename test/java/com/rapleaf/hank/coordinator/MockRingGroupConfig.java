@@ -57,7 +57,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public int getCurrentVersion() {
+  public Integer getCurrentVersion() {
     // TODO Auto-generated method stub
     return 0;
   }
@@ -69,7 +69,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public void setUpdatingToVersion(int versionNumber) {
+  public void setUpdatingToVersion(Integer versionNumber) {
     updateToVersion = versionNumber;
   }
 
@@ -77,5 +77,17 @@ public class MockRingGroupConfig implements RingGroupConfig {
   public void updateComplete() {
     // TODO Auto-generated method stub
     
+  }
+
+  @Override
+  public void setListener(RingGroupChangeListener listener) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public Integer getUpdatingToVersion() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
