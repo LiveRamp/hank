@@ -4,6 +4,7 @@ import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -94,11 +95,21 @@ public class TestZkRingConfig extends ZkTestCase {
   public void testStartAllUpdaters() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-//    hc.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
     assertEquals(UpdateDaemonState.IDLE, hc.getUpdateDaemonState());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
     rc.startAllUpdaters();
     assertEquals(UpdateDaemonState.UPDATABLE, hc.getUpdateDaemonState());
+  }
+
+  public void testGetOldestVersionOnHosts() throws Exception {
+    create(ring_root + "/current_version", "1");
+    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+    HostDomainConfig d = hc.addDomain(0);
+    d.addPartition(1, 1).setCurrentDomainGroupVersion(1);
+    d = hc.addDomain(1);
+    d.addPartition(1, 2).setCurrentDomainGroupVersion(2);
+    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
+    assertEquals(Integer.valueOf(1), rc.getOldestVersionOnHosts());
   }
 
   @Override

@@ -50,7 +50,7 @@ public class TestHandler extends BaseTestCase {
     public HostDomainConfig getDomainById(int domainId) {
       return new HostDomainConfig() {
         @Override
-        public void addPartition(int partNum, int initialVersion) {}
+        public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
 
         @Override
         public int getDomainId() {

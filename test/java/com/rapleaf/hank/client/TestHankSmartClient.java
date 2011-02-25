@@ -118,7 +118,7 @@ public class TestHankSmartClient extends TestCase {
     }
 
     @Override
-    public int getOldestVersionOnHosts() {
+    public Integer getOldestVersionOnHosts() {
       // TODO Auto-generated method stub
       return 0;
     }

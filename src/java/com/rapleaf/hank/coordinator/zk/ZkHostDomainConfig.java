@@ -16,9 +16,9 @@ public class ZkHostDomainConfig implements HostDomainConfig {
 
   private final ZooKeeper zk;
   private final String root;
-  private final byte domainId;
+  private final int domainId;
 
-  public ZkHostDomainConfig(ZooKeeper zk, String partsRoot, byte domainId) {
+  public ZkHostDomainConfig(ZooKeeper zk, String partsRoot, int domainId) {
     this.zk = zk;
     this.domainId = domainId;
     this.root = partsRoot + "/" + (domainId & 0xff);
@@ -44,7 +44,7 @@ public class ZkHostDomainConfig implements HostDomainConfig {
     return results;
   }
 
-  public static HostDomainConfig create(ZooKeeper zk, String partsRoot, byte domainId) throws IOException {
+  public static HostDomainConfig create(ZooKeeper zk, String partsRoot, int domainId) throws IOException {
     try {
       zk.create(partsRoot + "/" + (domainId & 0xff), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainConfig(zk, partsRoot, domainId);
@@ -54,7 +54,7 @@ public class ZkHostDomainConfig implements HostDomainConfig {
   }
 
   @Override
-  public void addPartition(int partNum, int initialVersion) throws Exception {
-    ZkHostDomainPartitionConfig.create(zk, root, partNum, initialVersion);
+  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {
+    return ZkHostDomainPartitionConfig.create(zk, root, partNum, initialVersion);
   }
 }

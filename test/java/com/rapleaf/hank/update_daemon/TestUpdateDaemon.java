@@ -124,7 +124,7 @@ public class TestUpdateDaemon extends BaseTestCase {
         }
 
         @Override
-        public void addPartition(int partNum, int initialVersion) throws Exception {}
+        public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {return null;}
       };
     }
   };

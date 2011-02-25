@@ -21,7 +21,7 @@ public interface HostConfig {
   public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
 
   public Set<HostDomainConfig> getAssignedDomains() throws IOException;
-  public HostDomainConfig addDomain(byte domainId) throws IOException;
+  public HostDomainConfig addDomain(int domainId) throws IOException;
 
   public HostDomainConfig getDomainById(int domainId);
 }

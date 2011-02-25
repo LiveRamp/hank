@@ -183,7 +183,7 @@ public class ZkHostConfig implements HostConfig {
   }
 
   @Override
-  public HostDomainConfig addDomain(byte domainId) throws IOException {
+  public HostDomainConfig addDomain(int domainId) throws IOException {
     // TODO: check if we already have a domain with that id
     HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + "/parts", domainId);
     return hdc;

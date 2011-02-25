@@ -34,6 +34,8 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -165,9 +167,19 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public int getOldestVersionOnHosts() {
-    // TODO Auto-generated method stub
-    return 0;
+  public Integer getOldestVersionOnHosts() throws IOException {
+    Integer min = null;
+    for (HostConfig host : hostConfigs.values()) {
+      for (HostDomainConfig hdc : host.getAssignedDomains()) {
+        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+          Integer ver = hdpc.getCurrentDomainGroupVersion();
+          if (min == null || (ver != null && min > ver)) {
+            min = ver;
+          }
+        }
+      }
+    }
+    return min;
   }
 
   @Override

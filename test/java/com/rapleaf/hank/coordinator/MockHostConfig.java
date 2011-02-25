@@ -13,7 +13,7 @@ public class MockHostConfig implements HostConfig {
   }
   
   @Override
-  public HostDomainConfig addDomain(byte domainId) throws IOException {
+  public HostDomainConfig addDomain(int domainId) throws IOException {
     // TODO Auto-generated method stub
     return null;
   }

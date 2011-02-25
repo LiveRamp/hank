@@ -141,7 +141,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testIdleToStarting() throws Exception {
     MRC r1 = new MRC(1, RingState.IDLE, true, 1, 2) {
       @Override
-      public int getOldestVersionOnHosts() {
+      public Integer getOldestVersionOnHosts() {
         return 2;
       }
     };
@@ -154,7 +154,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testAvailableToUpdateComplete() throws Exception {
     MRC r1 = new MRC(1, RingState.AVAILABLE, true, 1, 2) {
       @Override
-      public int getOldestVersionOnHosts() {
+      public Integer getOldestVersionOnHosts() {
         return 2;
       }
     };
