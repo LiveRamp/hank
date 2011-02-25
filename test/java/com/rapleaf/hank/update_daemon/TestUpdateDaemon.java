@@ -16,7 +16,6 @@
 package com.rapleaf.hank.update_daemon;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -176,7 +175,7 @@ public class TestUpdateDaemon extends BaseTestCase {
       public void run() {
         try {
           ud.run();
-        } catch (UnknownHostException e) {
+        } catch (Exception e) {
           throw new RuntimeException(e);
         }
       }
@@ -188,6 +187,7 @@ public class TestUpdateDaemon extends BaseTestCase {
         UpdateDaemonState.IDLE,
         mockHostConfig.getUpdateDaemonState());
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
+    assertTrue(mockHostConfig.isUpdateDaemonOnline());
   }
 
   private static DomainGroupConfigVersion getMockDomainGroupConfigVersion(

@@ -16,7 +16,6 @@
 package com.rapleaf.hank.update_daemon;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -88,9 +87,10 @@ public class UpdateDaemon implements HostStateChangeListener {
     hostConfig.setStateChangeListener(this);
   }
 
-  void run() throws UnknownHostException {
+  void run() throws IOException {
     goingDown = false;
 
+    hostConfig.updateDaemonOnline();
     // prime things the process by querying the current state and feeding it to
     // the event handler
     onHostStateChange(hostConfig);
@@ -103,6 +103,8 @@ public class UpdateDaemon implements HostStateChangeListener {
         break;
       }
     }
+
+    hostConfig.updateDaemonOffline();
   }
 
   private void update() throws DataNotFoundException, IOException {

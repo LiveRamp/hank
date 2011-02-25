@@ -7,6 +7,7 @@ public class MockHostConfig implements HostConfig {
   private final PartDaemonAddress address;
   private PartDaemonState partDaemonState;
   private UpdateDaemonState updateDaemonState;
+  private boolean updateDaemonOnline;
 
   public MockHostConfig(PartDaemonAddress address) {
     this.address = address;
@@ -76,8 +77,7 @@ public class MockHostConfig implements HostConfig {
 
   @Override
   public boolean isUpdateDaemonOnline() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    return updateDaemonOnline;
   }
 
   @Override
@@ -94,14 +94,13 @@ public class MockHostConfig implements HostConfig {
 
   @Override
   public void updateDaemonOffline() throws IOException {
-    // TODO Auto-generated method stub
-    
+    updateDaemonOnline = false;
   }
 
   @Override
   public boolean updateDaemonOnline() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    updateDaemonOnline = true;
+    return true;
   }
 
 }
