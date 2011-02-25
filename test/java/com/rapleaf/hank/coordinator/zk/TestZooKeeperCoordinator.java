@@ -21,7 +21,6 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -77,8 +76,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     }
   }
 
-  private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
-
   private final String domains_root = getRoot() + "/domains";
   private final String domain_groups_root = getRoot() + "/domain_groups";
   private final String ring_groups_root = getRoot() + "/ring_groups";
@@ -98,19 +95,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
-  }
-
-  public void testDomainGroupChangeListener() throws Exception {
-    OmniMockListener listener = new OmniMockListener();
-    coord.addDomainGroupChangeListener("myDomainGroup", listener);
-    create(domain_groups_root + "/myDomainGroup/versions/1");
-    create(domain_groups_root + "/myDomainGroup/versions/1/.complete");
-    synchronized (listener) {
-      listener.wait(1000);
-    }
-    assertTrue("listener wasn't notified", listener.notified);
-    assertEquals("domain group name", "myDomainGroup", listener.domainGroup.getName());
-    assertEquals("domain group versions count", 1, listener.domainGroup.getVersions().size());
   }
 
   public void testRingGroupChangeListener() throws Exception {

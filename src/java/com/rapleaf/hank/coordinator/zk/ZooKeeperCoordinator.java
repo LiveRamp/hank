@@ -279,19 +279,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 //    return newDomainVersion;
   }
 
-  @Override
-  public void addDomainGroupChangeListener(String domainGroupName, DomainGroupChangeListener listener) throws DataNotFoundException {
-    if (!domainGroupConfigs.containsKey(domainGroupName)) {
-      throw new DataNotFoundException("Domain group " + domainGroupName + " does not exist");
-    }
-    Set<DomainGroupChangeListener> listeners;
-    if ((listeners = domainGroupListeners.get(domainGroupName)) == null) {
-      listeners = Collections.synchronizedSet(new HashSet<DomainGroupChangeListener>());
-      domainGroupListeners.put(domainGroupName, listeners);
-    }
-    listeners.add(listener);
-  }
-
   public void addRingGroupChangeListener(String ringGroupName, RingGroupChangeListener listener) throws DataNotFoundException {
     if (!ringGroupConfigs.containsKey(ringGroupName)) {
       throw new DataNotFoundException("Ring group " + ringGroupName + " does not exist");

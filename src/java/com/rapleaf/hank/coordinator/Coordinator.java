@@ -73,20 +73,6 @@ public interface Coordinator {
   public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
   throws DataNotFoundException;
 
-  /**
-   * Registers the provided <code>DomainGroupChangeListener</code> so that it
-   * will receive the latest configuration information on the specified domain
-   * group as soon as they are available.
-   * 
-   * @param domainGroupName
-   * @param listener
-   * @throws DataNotFoundException
-   *           if no domain group with the specified name exists
-   */
-  public void addDomainGroupChangeListener(String domainGroupName,
-      DomainGroupChangeListener listener)
-  throws DataNotFoundException;
-
   //
   // RingGroups
   //

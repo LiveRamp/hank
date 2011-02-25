@@ -27,11 +27,6 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public void addDomainGroupChangeListener(String domainGroupName,
-      DomainGroupChangeListener listener) throws DataNotFoundException {
-  }
-
-  @Override
   public void addRingGroupChangeListener(String ringGroupName,
       RingGroupChangeListener listener) throws DataNotFoundException {
   }
