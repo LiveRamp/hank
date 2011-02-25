@@ -19,8 +19,6 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   private final String ring_group = ring_groups + "/myRingGroup";
   private final String dg_root = getRoot() + "/domain_groups";
 
-  
-  
   public void testLoad() throws Exception {
     create(ring_group, dg_root + "/myDomainGroup");
     createRing(1);
@@ -48,15 +46,15 @@ public class TestZkRingGroupConfig extends ZkTestCase {
     assertEquals(Integer.valueOf(version.getVersionNumber()), rgc.getCurrentVersion());
     assertNull(rgc.getUpdatingToVersion());
   }
-  
+
   public void testListener() throws Exception {
     fail();
   }
-  
+
   public void testClaimDataDeployer() throws Exception {
     fail();
   }
-  
+
   private void createRing(int ringNum) throws Exception {
     RingConfig rc = ZkRingConfig.create(getZk(), ring_group, ringNum, null, 1);
     rc.addHost(new PartDaemonAddress("localhost", ringNum));
