@@ -91,17 +91,4 @@ public interface Coordinator {
    */
   public RingGroupConfig getRingGroupConfig(String ringGroupName)
   throws DataNotFoundException;
-
-  /**
-   * Reigsters the provided <code>RingGroupChangeListener</code> so that it will
-   * receive the latest configuration information on the specified ring group as
-   * soon as they are available.
-   * 
-   * @param ringGroupName
-   * @param listener
-   * @throws DataNotFoundException
-   */
-  public void addRingGroupChangeListener(String ringGroupName,
-      RingGroupChangeListener listener)
-  throws DataNotFoundException;
 }
