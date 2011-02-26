@@ -21,23 +21,18 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.thrift.*;
-import org.apache.thrift.async.*;
-import org.apache.thrift.meta_data.*;
-import org.apache.thrift.transport.*;
-import org.apache.thrift.protocol.*;
-
-public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
-  private static final TStruct STRUCT_DESC = new TStruct("HankResponse");
-  private static final TField NOT_FOUND_FIELD_DESC = new TField("not_found", TType.BOOL, (short)1);
-  private static final TField VALUE_FIELD_DESC = new TField("value", TType.STRING, (short)2);
-  private static final TField VALUES_FIELD_DESC = new TField("values", TType.LIST, (short)3);
-  private static final TField WRONG_HOST_FIELD_DESC = new TField("wrong_host", TType.BOOL, (short)5);
-  private static final TField NO_SUCH_DOMAIN_FIELD_DESC = new TField("no_such_domain", TType.BOOL, (short)6);
-  private static final TField INTERNAL_ERROR_FIELD_DESC = new TField("internal_error", TType.BOOL, (short)7);
+public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankResponse._Fields> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HankResponse");
+  private static final org.apache.thrift.protocol.TField NOT_FOUND_FIELD_DESC = new org.apache.thrift.protocol.TField("not_found", org.apache.thrift.protocol.TType.BOOL, (short)1);
+  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField VALUES_FIELD_DESC = new org.apache.thrift.protocol.TField("values", org.apache.thrift.protocol.TType.LIST, (short)3);
+  private static final org.apache.thrift.protocol.TField WRONG_HOST_FIELD_DESC = new org.apache.thrift.protocol.TField("wrong_host", org.apache.thrift.protocol.TType.BOOL, (short)5);
+  private static final org.apache.thrift.protocol.TField NO_SUCH_DOMAIN_FIELD_DESC = new org.apache.thrift.protocol.TField("no_such_domain", org.apache.thrift.protocol.TType.BOOL, (short)6);
+  private static final org.apache.thrift.protocol.TField ZERO_REPLICAS_FIELD_DESC = new org.apache.thrift.protocol.TField("zero_replicas", org.apache.thrift.protocol.TType.BOOL, (short)7);
+  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.BOOL, (short)8);
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-  public enum _Fields implements TFieldIdEnum {
+  public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     /**
      * Equivalent to a "null" value
      */
@@ -59,9 +54,13 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
      */
     NO_SUCH_DOMAIN((short)6, "no_such_domain"),
     /**
+     * There were no available replicas for a given partition
+     */
+    ZERO_REPLICAS((short)7, "zero_replicas"),
+    /**
      * There was some internal error in the server. This is pretty bad.
      */
-    INTERNAL_ERROR((short)7, "internal_error");
+    INTERNAL_ERROR((short)8, "internal_error");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -86,7 +85,9 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
           return WRONG_HOST;
         case 6: // NO_SUCH_DOMAIN
           return NO_SUCH_DOMAIN;
-        case 7: // INTERNAL_ERROR
+        case 7: // ZERO_REPLICAS
+          return ZERO_REPLICAS;
+        case 8: // INTERNAL_ERROR
           return INTERNAL_ERROR;
         default:
           return null;
@@ -127,24 +128,26 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
     }
   }
 
-  public static final Map<_Fields, FieldMetaData> metaDataMap;
+  public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
-    Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NOT_FOUND, new FieldMetaData("not_found", TFieldRequirementType.DEFAULT, 
-        new FieldValueMetaData(TType.BOOL)));
-    tmpMap.put(_Fields.VALUE, new FieldMetaData("value", TFieldRequirementType.DEFAULT, 
-        new FieldValueMetaData(TType.STRING        , true)));
-    tmpMap.put(_Fields.VALUES, new FieldMetaData("values", TFieldRequirementType.DEFAULT, 
-        new ListMetaData(TType.LIST, 
-            new FieldValueMetaData(TType.STRING            , true))));
-    tmpMap.put(_Fields.WRONG_HOST, new FieldMetaData("wrong_host", TFieldRequirementType.DEFAULT, 
-        new FieldValueMetaData(TType.BOOL)));
-    tmpMap.put(_Fields.NO_SUCH_DOMAIN, new FieldMetaData("no_such_domain", TFieldRequirementType.DEFAULT, 
-        new FieldValueMetaData(TType.BOOL)));
-    tmpMap.put(_Fields.INTERNAL_ERROR, new FieldMetaData("internal_error", TFieldRequirementType.DEFAULT, 
-        new FieldValueMetaData(TType.BOOL)));
+    Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.NOT_FOUND, new org.apache.thrift.meta_data.FieldMetaData("not_found", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
+    tmpMap.put(_Fields.VALUES, new org.apache.thrift.meta_data.FieldMetaData("values", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING            , true))));
+    tmpMap.put(_Fields.WRONG_HOST, new org.apache.thrift.meta_data.FieldMetaData("wrong_host", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.NO_SUCH_DOMAIN, new org.apache.thrift.meta_data.FieldMetaData("no_such_domain", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.ZERO_REPLICAS, new org.apache.thrift.meta_data.FieldMetaData("zero_replicas", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.INTERNAL_ERROR, new org.apache.thrift.meta_data.FieldMetaData("internal_error", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    FieldMetaData.addStructMetaDataMap(HankResponse.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankResponse.class, metaDataMap);
   }
 
   public HankResponse() {
@@ -198,6 +201,12 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
     return x;
   }
 
+  public static HankResponse zero_replicas(boolean value) {
+    HankResponse x = new HankResponse();
+    x.set_zero_replicas(value);
+    return x;
+  }
+
   public static HankResponse internal_error(boolean value) {
     HankResponse x = new HankResponse();
     x.set_internal_error(value);
@@ -233,6 +242,11 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
           break;
         }
         throw new ClassCastException("Was expecting value of type Boolean for field 'no_such_domain', but got " + value.getClass().getSimpleName());
+      case ZERO_REPLICAS:
+        if (value instanceof Boolean) {
+          break;
+        }
+        throw new ClassCastException("Was expecting value of type Boolean for field 'zero_replicas', but got " + value.getClass().getSimpleName());
       case INTERNAL_ERROR:
         if (value instanceof Boolean) {
           break;
@@ -244,7 +258,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   }
 
   @Override
-  protected Object readValue(TProtocol iprot, TField field) throws TException {
+  protected Object readValue(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TField field) throws org.apache.thrift.TException {
     _Fields setField = _Fields.findByThriftId(field.id);
     if (setField != null) {
       switch (setField) {
@@ -254,7 +268,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             not_found = iprot.readBool();
             return not_found;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case VALUE:
@@ -263,14 +277,14 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             value = iprot.readBinary();
             return value;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case VALUES:
           if (field.type == VALUES_FIELD_DESC.type) {
             List<ByteBuffer> values;
             {
-              TList _list0 = iprot.readListBegin();
+              org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
               values = new ArrayList<ByteBuffer>(_list0.size);
               for (int _i1 = 0; _i1 < _list0.size; ++_i1)
               {
@@ -282,7 +296,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             }
             return values;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case WRONG_HOST:
@@ -291,7 +305,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             wrong_host = iprot.readBool();
             return wrong_host;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case NO_SUCH_DOMAIN:
@@ -300,7 +314,16 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             no_such_domain = iprot.readBool();
             return no_such_domain;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            return null;
+          }
+        case ZERO_REPLICAS:
+          if (field.type == ZERO_REPLICAS_FIELD_DESC.type) {
+            Boolean zero_replicas;
+            zero_replicas = iprot.readBool();
+            return zero_replicas;
+          } else {
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case INTERNAL_ERROR:
@@ -309,20 +332,20 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
             internal_error = iprot.readBool();
             return internal_error;
           } else {
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         default:
           throw new IllegalStateException("setField wasn't null, but didn't match any of the case statements!");
       }
     } else {
-      TProtocolUtil.skip(iprot, field.type);
+      org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
       return null;
     }
   }
 
   @Override
-  protected void writeValue(TProtocol oprot) throws TException {
+  protected void writeValue(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
     switch (setField_) {
       case NOT_FOUND:
         Boolean not_found = (Boolean)value_;
@@ -335,7 +358,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
       case VALUES:
         List<ByteBuffer> values = (List<ByteBuffer>)value_;
         {
-          oprot.writeListBegin(new TList(TType.STRING, values.size()));
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, values.size()));
           for (ByteBuffer _iter3 : values)
           {
             oprot.writeBinary(_iter3);
@@ -351,6 +374,10 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
         Boolean no_such_domain = (Boolean)value_;
         oprot.writeBool(no_such_domain);
         return;
+      case ZERO_REPLICAS:
+        Boolean zero_replicas = (Boolean)value_;
+        oprot.writeBool(zero_replicas);
+        return;
       case INTERNAL_ERROR:
         Boolean internal_error = (Boolean)value_;
         oprot.writeBool(internal_error);
@@ -361,7 +388,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   }
 
   @Override
-  protected TField getFieldDesc(_Fields setField) {
+  protected org.apache.thrift.protocol.TField getFieldDesc(_Fields setField) {
     switch (setField) {
       case NOT_FOUND:
         return NOT_FOUND_FIELD_DESC;
@@ -373,6 +400,8 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
         return WRONG_HOST_FIELD_DESC;
       case NO_SUCH_DOMAIN:
         return NO_SUCH_DOMAIN_FIELD_DESC;
+      case ZERO_REPLICAS:
+        return ZERO_REPLICAS_FIELD_DESC;
       case INTERNAL_ERROR:
         return INTERNAL_ERROR_FIELD_DESC;
       default:
@@ -381,7 +410,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   }
 
   @Override
-  protected TStruct getStructDesc() {
+  protected org.apache.thrift.protocol.TStruct getStructDesc() {
     return STRUCT_DESC;
   }
 
@@ -418,7 +447,7 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
    * Single-valued result
    */
   public byte[] get_value() {
-    set_value(TBaseHelper.rightSize(buffer_for_value()));
+    set_value(org.apache.thrift.TBaseHelper.rightSize(buffer_for_value()));
     ByteBuffer b = buffer_for_value();
     return b == null ? null : b.array();
   }
@@ -503,6 +532,25 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   }
 
   /**
+   * There were no available replicas for a given partition
+   */
+  public boolean get_zero_replicas() {
+    if (getSetField() == _Fields.ZERO_REPLICAS) {
+      return (Boolean)getFieldValue();
+    } else {
+      throw new RuntimeException("Cannot get field 'zero_replicas' because union is currently set to " + getFieldDesc(getSetField()).name);
+    }
+  }
+
+  /**
+   * There were no available replicas for a given partition
+   */
+  public void set_zero_replicas(boolean value) {
+    setField_ = _Fields.ZERO_REPLICAS;
+    value_ = value;
+  }
+
+  /**
    * There was some internal error in the server. This is pretty bad.
    */
   public boolean get_internal_error() {
@@ -535,9 +583,9 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
 
   @Override
   public int compareTo(HankResponse other) {
-    int lastComparison = TBaseHelper.compareTo(getSetField(), other.getSetField());
+    int lastComparison = org.apache.thrift.TBaseHelper.compareTo(getSetField(), other.getSetField());
     if (lastComparison == 0) {
-      return TBaseHelper.compareTo(getFieldValue(), other.getFieldValue());
+      return org.apache.thrift.TBaseHelper.compareTo(getFieldValue(), other.getFieldValue());
     }
     return lastComparison;
   }
@@ -547,16 +595,34 @@ public class HankResponse extends TUnion<HankResponse, HankResponse._Fields> {
   public int hashCode() {
     HashCodeBuilder hcb = new HashCodeBuilder();
     hcb.append(this.getClass().getName());
-    TFieldIdEnum setField = getSetField();
+    org.apache.thrift.TFieldIdEnum setField = getSetField();
     if (setField != null) {
       hcb.append(setField.getThriftFieldId());
       Object value = getFieldValue();
-      if (value instanceof TEnum) {
-        hcb.append(((TEnum)getFieldValue()).getValue());
+      if (value instanceof org.apache.thrift.TEnum) {
+        hcb.append(((org.apache.thrift.TEnum)getFieldValue()).getValue());
       } else {
         hcb.append(value);
       }
     }
     return hcb.toHashCode();
   }
+  private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+    try {
+      write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+    } catch (org.apache.thrift.TException te) {
+      throw new java.io.IOException(te);
+    }
+  }
+
+
+  private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+    try {
+      read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+    } catch (org.apache.thrift.TException te) {
+      throw new java.io.IOException(te);
+    }
+  }
+
+
 }

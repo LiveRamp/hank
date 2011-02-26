@@ -21,136 +21,100 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.thrift.*;
-import org.apache.thrift.async.*;
-import org.apache.thrift.meta_data.*;
-import org.apache.thrift.transport.*;
-import org.apache.thrift.protocol.*;
-
 public class PartDaemon {
 
   public interface Iface {
 
-    public HankResponse get(byte domain_id, ByteBuffer key) throws TException;
+    public HankResponse get(int domain_id, ByteBuffer key) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void get(byte domain_id, ByteBuffer key, AsyncMethodCallback<AsyncClient.get_call> resultHandler) throws TException;
+    public void get(int domain_id, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback<AsyncClient.get_call> resultHandler) throws org.apache.thrift.TException;
 
   }
 
-  public static class Client implements TServiceClient, Iface {
-    public static class Factory implements TServiceClientFactory<Client> {
+  public static class Client extends org.apache.thrift.TServiceClient implements Iface {
+    public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
       public Factory() {}
-      public Client getClient(TProtocol prot) {
+      public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
         return new Client(prot);
       }
-      public Client getClient(TProtocol iprot, TProtocol oprot) {
+      public Client getClient(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
         return new Client(iprot, oprot);
       }
     }
 
-    public Client(TProtocol prot)
+    public Client(org.apache.thrift.protocol.TProtocol prot)
     {
-      this(prot, prot);
+      super(prot, prot);
     }
 
-    public Client(TProtocol iprot, TProtocol oprot)
-    {
-      iprot_ = iprot;
-      oprot_ = oprot;
+    public Client(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
+      super(iprot, oprot);
     }
 
-    protected TProtocol iprot_;
-    protected TProtocol oprot_;
-
-    protected int seqid_;
-
-    public TProtocol getInputProtocol()
-    {
-      return this.iprot_;
-    }
-
-    public TProtocol getOutputProtocol()
-    {
-      return this.oprot_;
-    }
-
-    public HankResponse get(byte domain_id, ByteBuffer key) throws TException
+    public HankResponse get(int domain_id, ByteBuffer key) throws org.apache.thrift.TException
     {
       send_get(domain_id, key);
       return recv_get();
     }
 
-    public void send_get(byte domain_id, ByteBuffer key) throws TException
+    public void send_get(int domain_id, ByteBuffer key) throws org.apache.thrift.TException
     {
-      oprot_.writeMessageBegin(new TMessage("get", TMessageType.CALL, ++seqid_));
       get_args args = new get_args();
       args.set_domain_id(domain_id);
       args.set_key(key);
-      args.write(oprot_);
-      oprot_.writeMessageEnd();
-      oprot_.getTransport().flush();
+      sendBase("get", args);
     }
 
-    public HankResponse recv_get() throws TException
+    public HankResponse recv_get() throws org.apache.thrift.TException
     {
-      TMessage msg = iprot_.readMessageBegin();
-      if (msg.type == TMessageType.EXCEPTION) {
-        TApplicationException x = TApplicationException.read(iprot_);
-        iprot_.readMessageEnd();
-        throw x;
-      }
-      if (msg.seqid != seqid_) {
-        throw new TApplicationException(TApplicationException.BAD_SEQUENCE_ID, "get failed: out of sequence response");
-      }
       get_result result = new get_result();
-      result.read(iprot_);
-      iprot_.readMessageEnd();
+      receiveBase(result, "get");
       if (result.is_set_success()) {
         return result.success;
       }
-      throw new TApplicationException(TApplicationException.MISSING_RESULT, "get failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "get failed: unknown result");
     }
 
   }
-  public static class AsyncClient extends TAsyncClient implements AsyncIface {
-    public static class Factory implements TAsyncClientFactory<AsyncClient> {
-      private TAsyncClientManager clientManager;
-      private TProtocolFactory protocolFactory;
-      public Factory(TAsyncClientManager clientManager, TProtocolFactory protocolFactory) {
+  public static class AsyncClient extends org.apache.thrift.async.TAsyncClient implements AsyncIface {
+    public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
+      private org.apache.thrift.async.TAsyncClientManager clientManager;
+      private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
+      public Factory(org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.protocol.TProtocolFactory protocolFactory) {
         this.clientManager = clientManager;
         this.protocolFactory = protocolFactory;
       }
-      public AsyncClient getAsyncClient(TNonblockingTransport transport) {
+      public AsyncClient getAsyncClient(org.apache.thrift.transport.TNonblockingTransport transport) {
         return new AsyncClient(protocolFactory, clientManager, transport);
       }
     }
 
-    public AsyncClient(TProtocolFactory protocolFactory, TAsyncClientManager clientManager, TNonblockingTransport transport) {
+    public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void get(byte domain_id, ByteBuffer key, AsyncMethodCallback<get_call> resultHandler) throws TException {
+    public void get(int domain_id, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback<get_call> resultHandler) throws org.apache.thrift.TException {
       checkReady();
       get_call method_call = new get_call(domain_id, key, resultHandler, this, protocolFactory, transport);
       this.currentMethod = method_call;
       manager.call(method_call);
     }
 
-    public static class get_call extends TAsyncMethodCall {
-      private byte domain_id;
+    public static class get_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private int domain_id;
       private ByteBuffer key;
-      public get_call(byte domain_id, ByteBuffer key, AsyncMethodCallback<get_call> resultHandler, TAsyncClient client, TProtocolFactory protocolFactory, TNonblockingTransport transport) throws TException {
+      public get_call(int domain_id, ByteBuffer key, org.apache.thrift.async.AsyncMethodCallback<get_call> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.domain_id = domain_id;
         this.key = key;
       }
 
-      public void write_args(TProtocol prot) throws TException {
-        prot.writeMessageBegin(new TMessage("get", TMessageType.CALL, 0));
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("get", org.apache.thrift.protocol.TMessageType.CALL, 0));
         get_args args = new get_args();
         args.set_domain_id(domain_id);
         args.set_key(key);
@@ -158,90 +122,62 @@ public class PartDaemon {
         prot.writeMessageEnd();
       }
 
-      public HankResponse getResult() throws TException {
-        if (getState() != State.RESPONSE_READ) {
+      public HankResponse getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
-        TMemoryInputTransport memoryTransport = new TMemoryInputTransport(getFrameBuffer().array());
-        TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_get();
       }
     }
 
   }
 
-  public static class Processor implements TProcessor {
+  public static class Processor<I extends Iface> extends org.apache.thrift.TBaseProcessor implements org.apache.thrift.TProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(Processor.class.getName());
-    public Processor(Iface iface)
-    {
-      iface_ = iface;
-      processMap_.put("get", new get());
+    public Processor(I iface) {
+      super(iface, getProcessMap(new HashMap<String, org.apache.thrift.ProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
     }
 
-    protected static interface ProcessFunction {
-      public void process(int seqid, TProtocol iprot, TProtocol oprot) throws TException;
+    protected Processor(I iface, Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      super(iface, getProcessMap(processMap));
     }
 
-    private Iface iface_;
-    protected final HashMap<String,ProcessFunction> processMap_ = new HashMap<String,ProcessFunction>();
+    private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
+      processMap.put("get", new get());
+      return processMap;
+    }
 
-    public boolean process(TProtocol iprot, TProtocol oprot) throws TException
-    {
-      TMessage msg = iprot.readMessageBegin();
-      ProcessFunction fn = processMap_.get(msg.name);
-      if (fn == null) {
-        TProtocolUtil.skip(iprot, TType.STRUCT);
-        iprot.readMessageEnd();
-        TApplicationException x = new TApplicationException(TApplicationException.UNKNOWN_METHOD, "Invalid method name: '"+msg.name+"'");
-        oprot.writeMessageBegin(new TMessage(msg.name, TMessageType.EXCEPTION, msg.seqid));
-        x.write(oprot);
-        oprot.writeMessageEnd();
-        oprot.getTransport().flush();
-        return true;
+    private static class get<I extends Iface> extends org.apache.thrift.ProcessFunction<I, get_args> {
+      public get() {
+        super("get");
       }
-      fn.process(msg.seqid, iprot, oprot);
-      return true;
-    }
 
-    private class get implements ProcessFunction {
-      public void process(int seqid, TProtocol iprot, TProtocol oprot) throws TException
-      {
-        get_args args = new get_args();
-        try {
-          args.read(iprot);
-        } catch (TProtocolException e) {
-          iprot.readMessageEnd();
-          TApplicationException x = new TApplicationException(TApplicationException.PROTOCOL_ERROR, e.getMessage());
-          oprot.writeMessageBegin(new TMessage("get", TMessageType.EXCEPTION, seqid));
-          x.write(oprot);
-          oprot.writeMessageEnd();
-          oprot.getTransport().flush();
-          return;
-        }
-        iprot.readMessageEnd();
+      protected get_args getEmptyArgsInstance() {
+        return new get_args();
+      }
+
+      protected get_result getResult(I iface, get_args args) throws org.apache.thrift.TException {
         get_result result = new get_result();
-        result.success = iface_.get(args.domain_id, args.key);
-        oprot.writeMessageBegin(new TMessage("get", TMessageType.REPLY, seqid));
-        result.write(oprot);
-        oprot.writeMessageEnd();
-        oprot.getTransport().flush();
+        result.success = iface.get(args.domain_id, args.key);
+        return result;
       }
-
     }
 
   }
 
-  public static class get_args implements TBase<get_args, get_args._Fields>, java.io.Serializable, Cloneable   {
-    private static final TStruct STRUCT_DESC = new TStruct("get_args");
+  public static class get_args implements org.apache.thrift.TBase<get_args, get_args._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("get_args");
 
-    private static final TField DOMAIN_ID_FIELD_DESC = new TField("domain_id", TType.BYTE, (short)1);
-    private static final TField KEY_FIELD_DESC = new TField("key", TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField DOMAIN_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("domain_id", org.apache.thrift.protocol.TType.I32, (short)1);
+    private static final org.apache.thrift.protocol.TField KEY_FIELD_DESC = new org.apache.thrift.protocol.TField("key", org.apache.thrift.protocol.TType.STRING, (short)2);
 
-    public byte domain_id;
+    public int domain_id;
     public ByteBuffer key;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements TFieldIdEnum {
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       DOMAIN_ID((short)1, "domain_id"),
       KEY((short)2, "key");
 
@@ -305,22 +241,22 @@ public class PartDaemon {
     private static final int __DOMAIN_ID_ISSET_ID = 0;
     private BitSet __isset_bit_vector = new BitSet(1);
 
-    public static final Map<_Fields, FieldMetaData> metaDataMap;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
-      Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.DOMAIN_ID, new FieldMetaData("domain_id", TFieldRequirementType.DEFAULT, 
-          new FieldValueMetaData(TType.BYTE)));
-      tmpMap.put(_Fields.KEY, new FieldMetaData("key", TFieldRequirementType.DEFAULT, 
-          new FieldValueMetaData(TType.STRING          , true)));
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.DOMAIN_ID, new org.apache.thrift.meta_data.FieldMetaData("domain_id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.KEY, new org.apache.thrift.meta_data.FieldMetaData("key", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING          , true)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      FieldMetaData.addStructMetaDataMap(get_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_args.class, metaDataMap);
     }
 
     public get_args() {
     }
 
     public get_args(
-      byte domain_id,
+      int domain_id,
       ByteBuffer key)
     {
       this();
@@ -337,7 +273,7 @@ public class PartDaemon {
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.domain_id = other.domain_id;
       if (other.is_set_key()) {
-        this.key = TBaseHelper.copyBinary(other.key);
+        this.key = org.apache.thrift.TBaseHelper.copyBinary(other.key);
 ;
       }
     }
@@ -353,11 +289,11 @@ public class PartDaemon {
       this.key = null;
     }
 
-    public byte get_domain_id() {
+    public int get_domain_id() {
       return this.domain_id;
     }
 
-    public get_args set_domain_id(byte domain_id) {
+    public get_args set_domain_id(int domain_id) {
       this.domain_id = domain_id;
       set_domain_id_isSet(true);
       return this;
@@ -367,7 +303,7 @@ public class PartDaemon {
       __isset_bit_vector.clear(__DOMAIN_ID_ISSET_ID);
     }
 
-    /** Returns true if field domain_id is set (has been asigned a value) and false otherwise */
+    /** Returns true if field domain_id is set (has been assigned a value) and false otherwise */
     public boolean is_set_domain_id() {
       return __isset_bit_vector.get(__DOMAIN_ID_ISSET_ID);
     }
@@ -377,7 +313,7 @@ public class PartDaemon {
     }
 
     public byte[] get_key() {
-      set_key(TBaseHelper.rightSize(key));
+      set_key(org.apache.thrift.TBaseHelper.rightSize(key));
       return key == null ? null : key.array();
     }
 
@@ -399,7 +335,7 @@ public class PartDaemon {
       this.key = null;
     }
 
-    /** Returns true if field key is set (has been asigned a value) and false otherwise */
+    /** Returns true if field key is set (has been assigned a value) and false otherwise */
     public boolean is_set_key() {
       return this.key != null;
     }
@@ -416,7 +352,7 @@ public class PartDaemon {
         if (value == null) {
           unset_domain_id();
         } else {
-          set_domain_id((Byte)value);
+          set_domain_id((Integer)value);
         }
         break;
 
@@ -434,7 +370,7 @@ public class PartDaemon {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case DOMAIN_ID:
-        return new Byte(get_domain_id());
+        return Integer.valueOf(get_domain_id());
 
       case KEY:
         return get_key();
@@ -443,7 +379,7 @@ public class PartDaemon {
       throw new IllegalStateException();
     }
 
-    /** Returns true if field corresponding to fieldID is set (has been asigned a value) and false otherwise */
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
     public boolean isSet(_Fields field) {
       if (field == null) {
         throw new IllegalArgumentException();
@@ -522,7 +458,7 @@ public class PartDaemon {
         return lastComparison;
       }
       if (is_set_domain_id()) {
-        lastComparison = TBaseHelper.compareTo(this.domain_id, typedOther.domain_id);
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domain_id, typedOther.domain_id);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -532,7 +468,7 @@ public class PartDaemon {
         return lastComparison;
       }
       if (is_set_key()) {
-        lastComparison = TBaseHelper.compareTo(this.key, typedOther.key);
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.key, typedOther.key);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -544,33 +480,33 @@ public class PartDaemon {
       return _Fields.findByThriftId(fieldId);
     }
 
-    public void read(TProtocol iprot) throws TException {
-      TField field;
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      org.apache.thrift.protocol.TField field;
       iprot.readStructBegin();
       while (true)
       {
         field = iprot.readFieldBegin();
-        if (field.type == TType.STOP) { 
+        if (field.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (field.id) {
           case 1: // DOMAIN_ID
-            if (field.type == TType.BYTE) {
-              this.domain_id = iprot.readByte();
+            if (field.type == org.apache.thrift.protocol.TType.I32) {
+              this.domain_id = iprot.readI32();
               set_domain_id_isSet(true);
             } else { 
-              TProtocolUtil.skip(iprot, field.type);
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
           case 2: // KEY
-            if (field.type == TType.STRING) {
+            if (field.type == org.apache.thrift.protocol.TType.STRING) {
               this.key = iprot.readBinary();
             } else { 
-              TProtocolUtil.skip(iprot, field.type);
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
           default:
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
         iprot.readFieldEnd();
       }
@@ -580,12 +516,12 @@ public class PartDaemon {
       validate();
     }
 
-    public void write(TProtocol oprot) throws TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
       oprot.writeFieldBegin(DOMAIN_ID_FIELD_DESC);
-      oprot.writeByte(this.domain_id);
+      oprot.writeI32(this.domain_id);
       oprot.writeFieldEnd();
       if (this.key != null) {
         oprot.writeFieldBegin(KEY_FIELD_DESC);
@@ -609,28 +545,46 @@ public class PartDaemon {
       if (this.key == null) {
         sb.append("null");
       } else {
-        TBaseHelper.toString(this.key, sb);
+        org.apache.thrift.TBaseHelper.toString(this.key, sb);
       }
       first = false;
       sb.append(")");
       return sb.toString();
     }
 
-    public void validate() throws TException {
+    public void validate() throws org.apache.thrift.TException {
       // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bit_vector = new BitSet(1);
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
     }
 
   }
 
-  public static class get_result implements TBase<get_result, get_result._Fields>, java.io.Serializable, Cloneable   {
-    private static final TStruct STRUCT_DESC = new TStruct("get_result");
+  public static class get_result implements org.apache.thrift.TBase<get_result, get_result._Fields>, java.io.Serializable, Cloneable   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("get_result");
 
-    private static final TField SUCCESS_FIELD_DESC = new TField("success", TType.STRUCT, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
 
     public HankResponse success;
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements TFieldIdEnum {
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -689,13 +643,13 @@ public class PartDaemon {
 
     // isset id assignments
 
-    public static final Map<_Fields, FieldMetaData> metaDataMap;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
-      Map<_Fields, FieldMetaData> tmpMap = new EnumMap<_Fields, FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new FieldMetaData("success", TFieldRequirementType.DEFAULT, 
-          new StructMetaData(TType.STRUCT, HankResponse.class)));
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankResponse.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      FieldMetaData.addStructMetaDataMap(get_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(get_result.class, metaDataMap);
     }
 
     public get_result() {
@@ -739,7 +693,7 @@ public class PartDaemon {
       this.success = null;
     }
 
-    /** Returns true if field success is set (has been asigned a value) and false otherwise */
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean is_set_success() {
       return this.success != null;
     }
@@ -772,7 +726,7 @@ public class PartDaemon {
       throw new IllegalStateException();
     }
 
-    /** Returns true if field corresponding to fieldID is set (has been asigned a value) and false otherwise */
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
     public boolean isSet(_Fields field) {
       if (field == null) {
         throw new IllegalArgumentException();
@@ -835,7 +789,7 @@ public class PartDaemon {
         return lastComparison;
       }
       if (is_set_success()) {
-        lastComparison = TBaseHelper.compareTo(this.success, typedOther.success);
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -847,26 +801,26 @@ public class PartDaemon {
       return _Fields.findByThriftId(fieldId);
     }
 
-    public void read(TProtocol iprot) throws TException {
-      TField field;
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      org.apache.thrift.protocol.TField field;
       iprot.readStructBegin();
       while (true)
       {
         field = iprot.readFieldBegin();
-        if (field.type == TType.STOP) { 
+        if (field.type == org.apache.thrift.protocol.TType.STOP) { 
           break;
         }
         switch (field.id) {
           case 0: // SUCCESS
-            if (field.type == TType.STRUCT) {
+            if (field.type == org.apache.thrift.protocol.TType.STRUCT) {
               this.success = new HankResponse();
               this.success.read(iprot);
             } else { 
-              TProtocolUtil.skip(iprot, field.type);
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
             break;
           default:
-            TProtocolUtil.skip(iprot, field.type);
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
         }
         iprot.readFieldEnd();
       }
@@ -876,7 +830,7 @@ public class PartDaemon {
       validate();
     }
 
-    public void write(TProtocol oprot) throws TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       oprot.writeStructBegin(STRUCT_DESC);
 
       if (this.is_set_success()) {
@@ -904,8 +858,24 @@ public class PartDaemon {
       return sb.toString();
     }
 
-    public void validate() throws TException {
+    public void validate() throws org.apache.thrift.TException {
       // check for required fields
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
     }
 
   }
