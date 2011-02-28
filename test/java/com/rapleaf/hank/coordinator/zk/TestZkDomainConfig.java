@@ -36,4 +36,8 @@ public class TestZkDomainConfig extends ZkTestCase {
     assertTrue(dc.getPartitioner() instanceof ConstantPartitioner);
     assertEquals(1, dc.getVersion());
   }
+
+  public void testNewVersion() throws Exception {
+    fail("Not Implemented");
+  }
 }

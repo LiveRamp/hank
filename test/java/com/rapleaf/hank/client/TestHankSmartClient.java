@@ -73,7 +73,7 @@ public class TestHankSmartClient extends BaseTestCase {
       server.serve();
     }
   }
-  
+
   private class MockPartDaemonHandler implements PartDaemon.Iface {
     @SuppressWarnings("unused")
     private final int domainId;
@@ -171,7 +171,7 @@ public class TestHankSmartClient extends BaseTestCase {
     final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.AVAILABLE) {
       @Override
       public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) {
-        assertEquals("existent_domain", domainId);
+        assertEquals(1, domainId);
         if (partition == 0) {
           return Collections.singleton(getHostConfig(new PartDaemonAddress("localhost", server1Port)));
         } else if (partition == 1) {
@@ -215,23 +215,23 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    
-
     Thread.sleep(1000);
 
-    HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup");
-
-    assertEquals(HankResponse.no_such_domain(true), c.get("nonexistent_domain", null));
-
-    assertEquals(VALUE_1, c.get("existent_domain", KEY_1).buffer_for_value());
-    assertEquals(VALUE_2, c.get("existent_domain", KEY_2).buffer_for_value());
-
-    server1.stop();
-    server2.stop();
-    thread1.join();
-    thread2.join();
-    trans1.close();
-    trans2.close();
+    try {
+      HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup");
+  
+      assertEquals(HankResponse.no_such_domain(true), c.get("nonexistent_domain", null));
+  
+      assertEquals(VALUE_1, c.get("existent_domain", KEY_1).buffer_for_value());
+      assertEquals(VALUE_2, c.get("existent_domain", KEY_2).buffer_for_value());
+    } finally {
+      server1.stop();
+      server2.stop();
+      thread1.join();
+      thread2.join();
+      trans1.close();
+      trans2.close();
+    }
   }
 
   private HostConfig getHostConfig(PartDaemonAddress address) {

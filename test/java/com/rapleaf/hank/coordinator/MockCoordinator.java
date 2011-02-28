@@ -46,12 +46,6 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public int updateDomain(String domainName) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-    return 0;
-  }
-
-  @Override
   public Set<DomainConfig> getDomainConfigs() {
     // TODO Auto-generated method stub
     return null;

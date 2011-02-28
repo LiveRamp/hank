@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 
@@ -50,5 +52,11 @@ public class MockDomainConfig implements DomainConfig {
     return "MockDomainConfig [name=" + name + ", numParts=" + numParts
         + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
         + version + "]";
+  }
+
+  @Override
+  public int newVersion() throws IOException {
+    // TODO Auto-generated method stub
+    return 0;
   }
 }

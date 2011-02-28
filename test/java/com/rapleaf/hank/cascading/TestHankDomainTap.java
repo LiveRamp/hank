@@ -158,5 +158,11 @@ public class TestHankDomainTap extends TestCase {
       // TODO Auto-generated method stub
       return null;
     }
+
+    @Override
+    public int newVersion() throws IOException {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 }

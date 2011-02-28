@@ -97,20 +97,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
   }
 
-  public void testRingGroupChangeListener() throws Exception {
-    OmniMockListener listener = new OmniMockListener();
-    coord.addRingGroupChangeListener("myRingGroup", listener);
-    create(ring_groups_root + "/myRingGroup/ring-002");
-    create(ring_groups_root + "/myRingGroup/ring-002/version", "1");
-    create(ring_groups_root + "/myRingGroup/ring-002/hosts");
-    synchronized (listener) {
-      listener.wait(1000);
-    }
-    assertTrue("listener wasn't notified", listener.notified);
-    assertEquals("ring group name", "myRingGroup", listener.ringGroup.getName());
-    assertEquals("number of rings", 2, listener.ringGroup.getRingConfigs().size());
-  }
-
   @Override
   protected void setUp() throws Exception {
     super.setUp();

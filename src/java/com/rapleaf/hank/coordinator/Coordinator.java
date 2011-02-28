@@ -39,22 +39,6 @@ public interface Coordinator {
   public DomainConfig getDomainConfig(String domainName)
   throws DataNotFoundException;
 
-  /**
-   * Updates the configuration information for the domain and domain group by
-   * incrementing the version number of the domain and adding a new version to
-   * its corresponding domain group as well. This method should be called
-   * whenever a new version of the domain is being made available, so that
-   * anyone listening for changes to the domain or domain group can be notified.
-   * New versions of the domain and domain group are pushed out to all
-   * listeners.
-   * 
-   * @param domainName
-   *          the name of the domain that has been updated
-   * @return the new version of the specified domain
-   * @throws DataNotFoundException
-   */
-  public int updateDomain(String domainName) throws DataNotFoundException;
-
   //
   // DomainGroups
   //
