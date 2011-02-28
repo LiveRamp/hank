@@ -34,7 +34,7 @@ public class AddDomain {
   }
 
   public void addDomain(String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
-  throws InterruptedException {
+  throws InterruptedException, IOException {
     configurator.getCoordinator().addDomain(domainName,
         Integer.parseInt(numParts),
         factoryName,

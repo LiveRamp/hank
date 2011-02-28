@@ -26,8 +26,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
@@ -248,7 +246,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public void addDomain(String domainName, int numParts,
       String storageEngineFactoryName, String storageEngineOptions,
-      String partitionerName, int initialVersion) {
-    throw new NotImplementedException();
+      String partitionerName, int initialVersion)
+  throws IOException {
+    try {
+      ZkDomainConfig domain = (ZkDomainConfig) ZkDomainConfig.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, initialVersion);
+      domainConfigsByName.put(domainName, domain);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

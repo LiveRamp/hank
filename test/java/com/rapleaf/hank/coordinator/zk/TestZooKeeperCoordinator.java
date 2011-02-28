@@ -16,7 +16,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonState;
+import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
@@ -35,6 +38,17 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
+  }
+
+  public void testAddDomain() throws Exception {
+    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
+    DomainConfig domainConfig = coord.getDomainConfig("myDomain");
+    assertNotNull(domainConfig);
+    assertEquals("myDomain", domainConfig.getName());
+    assertEquals(1234, domainConfig.getNumParts());
+    assertEquals(1, domainConfig.getVersion());
+    assertTrue(domainConfig.getStorageEngine() instanceof ConstantStorageEngine);
+    assertTrue(domainConfig.getPartitioner() instanceof ConstantPartitioner);
   }
 
   @Override

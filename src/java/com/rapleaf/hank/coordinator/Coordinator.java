@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 
+import java.io.IOException;
 import java.util.Set;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -26,7 +27,7 @@ public interface Coordinator {
   //
 
   public void addDomain(String domainName, int numParts, String storageEngineFactoryName,
-      String storageEngineOptions, String partitionerName, int initialVersion);
+      String storageEngineOptions, String partitionerName, int initialVersion) throws IOException;
 
   /**
    * Get the set of known DomainConfigs.
