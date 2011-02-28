@@ -170,8 +170,8 @@ public class TestHankSmartClient extends BaseTestCase {
 
     final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.AVAILABLE) {
       @Override
-      public Set<HostConfig> getHostsForDomainPartition(String domainName, int partition) {
-        assertEquals("existent_domain", domainName);
+      public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) {
+        assertEquals("existent_domain", domainId);
         if (partition == 0) {
           return Collections.singleton(getHostConfig(new PartDaemonAddress("localhost", server1Port)));
         } else if (partition == 1) {

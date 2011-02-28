@@ -69,7 +69,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
       return HankResponse.no_such_domain(true);
     }
     RingConfig rc = randomRing();
-    Set<HostConfig> hosts = rc.getHostsForDomainPartition(domain_name, partition);
+    Set<HostConfig> hosts;
+    try {
+      hosts = rc.getHostsForDomainPartition(domainGroup.getDomainId(domain_name), partition);
+    } catch (DataNotFoundException e1) {
+      return HankResponse.no_such_domain(true);
+    } catch (IOException e) {
+      return HankResponse.internal_error(true);
+    }
     if (hosts.size() == 0) {
       // TODO: this is false. we need another state: no replicas
       return HankResponse.zero_replicas(true);

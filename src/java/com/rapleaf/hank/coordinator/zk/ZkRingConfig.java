@@ -217,7 +217,16 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(String domainName, int partition) {
-    throw new NotImplementedException();
+  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+    Set<HostConfig> results = new HashSet<HostConfig>();
+    for (HostConfig hc : getHosts()) {
+      for (HostDomainPartitionConfig hdpc : hc.getDomainById(domainId).getPartitions()) {
+        if (hdpc.getPartNum() == partition) {
+          results.add(hc);
+          break;
+        }
+      }
+    }
+    return results;
   }
 }

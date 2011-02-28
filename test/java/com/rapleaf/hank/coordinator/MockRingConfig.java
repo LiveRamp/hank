@@ -101,7 +101,7 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(String domainName,
+  public Set<HostConfig> getHostsForDomainPartition(int domainId,
       int partition) {
     // TODO Auto-generated method stub
     return null;
