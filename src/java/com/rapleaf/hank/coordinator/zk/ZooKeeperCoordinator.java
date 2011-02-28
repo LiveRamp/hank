@@ -26,7 +26,10 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -48,6 +51,21 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
+
+  public static final class Factory implements CoordinatorFactory {
+    @Override
+    public Coordinator getCoordinator(Map<String, Object> options) {
+      try {
+        return new ZooKeeperCoordinator((String)options.get("connect_string"),
+            (Integer)options.get("session_timeout"),
+            (String)options.get("domains_root"),
+            (String)options.get("domain_groups_root"),
+            (String)options.get("ring_groups_root"));
+      } catch (Exception e) {
+        throw new RuntimeException("Couldn't make a ZooKeeperCoordinator from options " + options, e);
+      }
+    }
+  }
 
   /**
    * We save our watchers so that we can reregister them in case of session
@@ -225,5 +243,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
     // TODO Auto-generated method stub
     
+  }
+
+  @Override
+  public void addDomain(String domainName, int numParts,
+      String storageEngineFactoryName, String storageEngineOptions,
+      String partitionerName, int initialVersion) {
+    throw new NotImplementedException();
   }
 }

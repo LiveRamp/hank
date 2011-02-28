@@ -25,7 +25,7 @@ public class ZooKeeperCoordinatorFactory implements CoordinatorFactory {
   public static final String KEY_SESSION_TIMEOUT = "session_timeout";
 
   @Override
-  public Coordinator getCoordinator(Map<String, String> options) {
+  public Coordinator getCoordinator(Map<String, Object> options) {
     throw new NotImplementedException();
 //    try {
 //      String connectString;

@@ -34,7 +34,7 @@ public class AddDomainGroup extends ZooKeeperConnection {
   public static void main(String args[]) throws InterruptedException {
     Options options = new Options();
     options.addOption(CliUtils.ZK_OPTION);
-    options.addOption(CliUtils.buildOneArgOption("path", "the path of the domain group", "dg_path", true));
+    options.addOption(CliUtils.buildOneArgOption("n", "the path of the domain group", "dg_path", true, "domain-group"));
     CommandLine line = CliUtils.parseAndHelp("add_domain_group.sh", options, args);
 
     AddDomainGroup add = new AddDomainGroup(line.getOptionValue("zk"));

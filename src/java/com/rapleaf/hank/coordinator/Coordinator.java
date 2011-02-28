@@ -25,6 +25,9 @@ public interface Coordinator {
   // Domains
   //
 
+  public void addDomain(String domainName, int numParts, String storageEngineFactoryName,
+      String storageEngineOptions, String partitionerName, int initialVersion);
+
   /**
    * Get the set of known DomainConfigs.
    * @return

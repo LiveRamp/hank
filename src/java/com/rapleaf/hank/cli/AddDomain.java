@@ -15,45 +15,62 @@
  */
 package com.rapleaf.hank.cli;
 
+import java.io.IOException;
+
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-import com.rapleaf.hank.util.CliUtils;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.YamlConfigurator;
 
-public class AddDomain extends ZooKeeperConnection {
-  public AddDomain(String connectString) throws InterruptedException {
-    super(connectString);
+public class AddDomain {
+  private final ClientConfigurator configurator;
+
+  public AddDomain(ClientConfigurator configurator) {
+    this.configurator = configurator;
   }
 
   public void addDomain(String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
-    throws InterruptedException {
-//    String domainPath = ZooKeeperUtils.domainPath(null, domainName);
-//    ZooKeeperUtils.createNodeRecursively(zk, domainPath);
-//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/num_parts", Bytes.stringToBytes(numParts));
-//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_factory_class", Bytes.stringToBytes(factoryName));
-//    if (!StringUtils.isBlank(factoryOptions)) {
-//      ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_options", Bytes.stringToBytes(factoryOptions));
-//    }
-//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/partitioner", Bytes.stringToBytes(partitionerName));
-//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/version", Bytes.stringToBytes(version));
+  throws InterruptedException {
+    configurator.getCoordinator().addDomain(domainName,
+        Integer.parseInt(numParts),
+        factoryName,
+        factoryOptions,
+        partitionerName,
+        Integer.parseInt(version));
   }
 
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) throws InterruptedException, ParseException, IOException {
     Options options = new Options();
-    options.addOption(CliUtils.ZK_OPTION);
-    options.addOption(CliUtils.buildOneArgOption("name", "the name of the domain", "domain_name", true));
-    options.addOption(CliUtils.buildOneArgOption("parts", "the number of partitions for this domain", "num", true));
-    options.addOption(CliUtils.buildOneArgOption("se_factory", "The storage engine factory class", "classname", true));
-    options.addOption(CliUtils.buildOneArgOption("se_options", "YAML file containing options for storage engine factory", "file", false));
-    options.addOption(CliUtils.buildOneArgOption("partitioner", "the partitioner that the domain uses", "classname", true));
-    options.addOption(CliUtils.buildOneArgOption("version", "The current version of the domain. Defaults to 1", "num", false));
-    CommandLine line = CliUtils.parseAndHelp("add_domain.sh", options, args);
-
-    String factoryOptions = CliUtils.fileToString(line.getOptionValue("se_options"));
-
-    AddDomain add = new AddDomain(line.getOptionValue("zk"));
-    add.addDomain(line.getOptionValue("name"), line.getOptionValue("parts"), line.getOptionValue("se_factory"), 
-        factoryOptions, line.getOptionValue("partitioner"), line.getOptionValue("version", "1"));
+    options.addOption("n", "name", true,
+        "the name of the domain to be created");
+    options.addOption("p", "num-parts", true,
+        "the number of partitions for this domain");
+    options.addOption("f", "storage-engine-factory", true,
+        "class name of the storage engine factory used by this domain");
+    options.addOption("o", "storage-engine-options", true,
+        "path to a yaml file containing the options for the storage engine");
+    options.addOption("t", "partitioner", true,
+        "class name of the partition used by this domain");
+    options.addOption("v", "initial-version", true,
+        "initial version number of this domain");
+    options.addOption("c", "config", true,
+        "path of a valid config file with coordinator connection information");
+    try {
+      CommandLine line = new GnuParser().parse(options, args);
+      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      new AddDomain(configurator).addDomain(line.getOptionValue("name"),
+          line.getOptionValue("num-parts"),
+          line.getOptionValue("storage-engine-factory"),
+          line.getOptionValue("storage-engine-options"),
+          line.getOptionValue("partitioner"),
+          line.getOptionValue("initial-version"));
+    } catch (ParseException e) {
+      new HelpFormatter().printHelp("add_domain", options);
+      throw e;
+    }
   }
 }

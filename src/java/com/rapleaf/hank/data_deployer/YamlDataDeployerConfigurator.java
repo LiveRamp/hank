@@ -27,11 +27,11 @@ public class YamlDataDeployerConfigurator implements DataDeployerConfigurator {
     this.ringGroupName = (String) rawConfig.get(RING_GROUP_NAME_KEY);
     Map<String, Object> coordinatorMap = (Map<String, Object>) rawConfig.get(COORDINATOR_KEY);
     String coordinatorFactoryClassName = (String) coordinatorMap.get(FACTORY_KEY);
-    Map<String, String> coordOpts = (Map<String, String>) coordinatorMap.get(COORDINATOR_OPTS_KEY);
+    Map<String, Object> coordOpts = (Map<String, Object>) coordinatorMap.get(COORDINATOR_OPTS_KEY);
     this.coordinator = instantiate(coordinatorFactoryClassName, coordOpts);
   }
 
-  private Coordinator instantiate(String coordinatorFactoryClassName, Map<String, String> coordOpts) {
+  private Coordinator instantiate(String coordinatorFactoryClassName, Map<String, Object> coordOpts) {
     try {
       CoordinatorFactory factory = (CoordinatorFactory) Class.forName(coordinatorFactoryClassName).newInstance();
       return factory.getCoordinator(coordOpts);

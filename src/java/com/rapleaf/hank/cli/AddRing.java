@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.cli;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 public class AddRing extends ZooKeeperConnection {
@@ -22,6 +24,10 @@ public class AddRing extends ZooKeeperConnection {
   public AddRing(String connectString) throws InterruptedException {
     super(connectString);
     // TODO Auto-generated constructor stub
+  }
+
+  public static void main(String[] strings) {
+    throw new NotImplementedException();
   }
 
 }

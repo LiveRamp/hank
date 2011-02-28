@@ -31,7 +31,7 @@ import org.yaml.snakeyaml.Yaml;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 
-public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonConfigurator {
+public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonConfigurator, ClientConfigurator {
   @SuppressWarnings("unused")
   private static final Logger LOG = Logger.getLogger(YamlConfigurator.class);
 
@@ -105,7 +105,7 @@ public class YamlConfigurator implements PartDaemonConfigurator, UpdateDaemonCon
     catch (InstantiationException e) { throw new RuntimeException(e); } 
     catch (IllegalAccessException e) { throw new RuntimeException(e); }
     catch (ClassNotFoundException e) { throw new RuntimeException(e); }
-    Map<String, String> options = ((Map<String, Map<String, Map<String, String>>>)config).get(KEY_COORDINATOR).get(KEY_OPTIONS);
+    Map<String, Object> options = ((Map<String, Map<String, Map<String, Object>>>)config).get(KEY_COORDINATOR).get(KEY_OPTIONS);
     return factory.getCoordinator(options);
   }
 

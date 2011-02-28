@@ -31,45 +31,43 @@ import org.apache.commons.cli.Parser;
 import org.apache.commons.lang.StringUtils;
 
 public class CliUtils {
-  public static final Option ZK_OPTION = buildOneArgOption("zk", "comma delimited string of host:ports for the ZooKeeper service", "ensemble", true);
+  public static final Option ZK_OPTION = buildOneArgOption("zk", "comma delimited string of host:ports for the ZooKeeper service", "ensemble", true, "quorum-connect-string");
   
   private static final Option HELP_OPTION = new Option("help", "print usage");
   
   @SuppressWarnings("static-access")
-  public static Option buildOneArgOption(String name, String description, String argName, boolean required) {
+  public static Option buildOneArgOption(String name, String description, String argName, boolean required, String longOpt) {
     return OptionBuilder.withArgName(argName)
                         .hasArg()
                         .isRequired(required)
                         .withDescription(description)
+                        .withLongOpt(longOpt)
                         .create(name);
   }
-  
+
   public static CommandLine parseAndHelp(String appName, Options options, String[] args) {
     options.addOption(HELP_OPTION);
-    
+
     Parser parser = new GnuParser();
     CommandLine line = null;
     try {
       line = parser.parse(options, args);
-    }
-    catch (MissingOptionException e) {
+    } catch (MissingOptionException e) {
       new HelpFormatter().printHelp(appName, options, true);
-      System.exit(1);
-    }
-    catch (MissingArgumentException e) {
+      throw new IllegalArgumentException();
+    } catch (MissingArgumentException e) {
       new HelpFormatter().printHelp(appName, options, true);
-      System.exit(1);
-    }
-    catch (ParseException e) {
+      throw new IllegalArgumentException();
+    } catch (ParseException e) {
       System.err.println("Unexpected Exception: " + e);
-      System.exit(1);
+      throw new IllegalArgumentException();
     }
-    
+
     if (line.hasOption("help")) {
       new HelpFormatter().printHelp(appName, options, true);
-      System.exit(1);
+      throw new IllegalArgumentException();
     }
-    
+
     return line;
   }
 
