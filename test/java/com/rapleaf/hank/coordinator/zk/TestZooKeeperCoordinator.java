@@ -16,74 +16,14 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainChangeListener;
-import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonState;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
-
-  public class OmniMockListener implements RingGroupChangeListener, DomainChangeListener, DomainGroupChangeListener, HostStateChangeListener {
-    public RingGroupConfig ringGroup;
-    public boolean notified = false;
-
-    @Override
-    public void onRingGroupChange(RingGroupConfig newRingGroup) {
-      this.ringGroup = newRingGroup;
-      notified = true;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-
-    public DomainGroupConfig domainGroup;
-
-    @Override
-    public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
-      this.domainGroup = newDomainGroup;
-      notified = true;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-
-    public DomainConfig newDomain;
-
-    @Override
-    public void onDomainChange(DomainConfig newDomain) {
-      this.newDomain = newDomain;
-      notified = true;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-
-    public HostConfig hostConfig;
-
-    @Override
-    public void onHostStateChange(HostConfig hostConfig) {
-      this.hostConfig = hostConfig;
-      notified = true;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-  }
-
   private final String domains_root = getRoot() + "/domains";
   private final String domain_groups_root = getRoot() + "/domain_groups";
   private final String ring_groups_root = getRoot() + "/ring_groups";
   private ZooKeeperCoordinator coord;
-
-  public TestZooKeeperCoordinator() throws Exception {
-    super();
-  }
 
   public void testLoad() throws Exception {
     // check standard loading stuff

@@ -24,15 +24,9 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.AsyncCallback.DataCallback;
-import org.apache.zookeeper.data.Stat;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainChangeListener;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -69,9 +63,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private final Map<String, ZkRingGroupConfig> ringGroupConfigs =
     new HashMap<String, ZkRingGroupConfig>();
 
-  private final Map<String, Set<DomainChangeListener>> domainListeners =
-    new HashMap<String, Set<DomainChangeListener>>();
-
   private final String domainsRoot;
   private final String domainGroupsRoot;
   private final String ringGroupsRoot;
@@ -107,8 +98,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     loadAllDomains();
     loadAllDomainGroups();
     loadAllRingGroups();
-
-    registerListenersAndWatchers();
   }
 
   //
@@ -202,43 +191,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   /**
-   * Pushes the domain to all <code>DomainChangeListener</code>s listening on this domain.
-   * 
-   * @param domain
-   */
-  private void pushNewDomain(DomainConfig domain) {
-    for (DomainChangeListener listener : domainListeners.get(domain.getName())) {
-      listener.onDomainChange(domain);
-    }
-  }
-
-  /**
-   * Goes through the local cached config information and adds the following
-   * watchers and listeners: 1. For every host, {@link #ringStateUpdater}
-   * listens to the DaemonState of both the part daemon and update daemon. 2.
-   * For every domain, a {@link DomainVersionWatcher} listens to changes in the
-   * version of the domain 3. For every domain group, a
-   * {@link DomainGroupVersionWatcher} listens to changes in the version of the
-   * domain group. 4. For every ring group, a {@link RingGroupWatcher} listens
-   * to rings being added or removed to the ring group.
-   * @throws IOException 
-   */
-  private void registerListenersAndWatchers() throws IOException {
-    // Register DomainVersionWatchers
-    for (DomainConfig domain : domainConfigsByName.values()) {
-      myWatchers.add(new DomainVersionWatcher(domain.getName()));
-    }
-    // Register DomainGroupVersionWatchers
-    for (DomainGroupConfig dg : domainGroupConfigs.values()) {
-      dg.setListener(this);
-    }
-    // Register all the RingGroupWatchers
-    for (RingGroupConfig rg : ringGroupConfigs.values()) {
-      rg.setListener(this);
-    }
-  }
-
-  /**
    * Interface that extends {@link Watcher} to add a
    * {@link ZooKeeperWatcher#register()} method that allows the
    * <code>Watcher</code> to be easily re-registered in case of a session
@@ -247,59 +199,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    */
   private interface ZooKeeperWatcher extends Watcher {
     public void register();
-  }
-
-  private class DomainVersionWatcher implements ZooKeeperWatcher, DataCallback {
-    private String path;
-    private String domainName;
-
-    public DomainVersionWatcher(String domainName) {
-      throw new NotImplementedException();
-//      this.domainName = domainName;
-//      this.path = String.format(ZooKeeperUtils.DOMAIN_PATH_FORMAT, domainsRoot, domainName) + "/version";
-//      register();
-    }
-
-    @Override
-    public void process(WatchedEvent event) {
-      switch (event.getType()) {
-        case NodeDataChanged:
-          processDomainChange();
-          break;
-
-        default:
-          LOG.debug("DomainVersionWatcher for " + path + " notified of event " + event + ". Ignoring.");
-      }
-    }
-
-    private void processDomainChange() {
-      throw new NotImplementedException();
-//      try {
-//        ZkDomainConfig newDomain = new ZkDomainConfig(zk, String.format(ZooKeeperUtils.DOMAIN_PATH_FORMAT, domainsRoot, domainName));
-//        domainConfigsByName.put(path, newDomain);
-//        pushNewDomain(newDomain);
-//        register();
-//      } catch (DataNotFoundException e) {
-//        // This shouldn't happen
-//        LOG.error(e);
-//      } catch (KeeperException e) {
-//        // TODO Auto-generated catch block
-//        e.printStackTrace();
-//      } catch (InterruptedException e) {
-//        // TODO Auto-generated catch block
-//        e.printStackTrace();
-//      }
-    }
-
-    @Override
-    public void register() {
-      zk.getData(path, DomainVersionWatcher.this, DomainVersionWatcher.this, null);
-    }
-
-    @Override
-    public void processResult(int rc, String path, Object ctx, byte[] data, Stat stat) {
-      processDomainChange();
-    }
   }
 
   @Override
