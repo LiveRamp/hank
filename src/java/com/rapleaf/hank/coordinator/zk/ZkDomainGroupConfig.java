@@ -39,9 +39,8 @@ import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class ZkDomainGroupConfig implements DomainGroupConfig {
+public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupConfig {
   private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
 
   private class StateChangeWatcher implements Watcher {
@@ -91,24 +90,23 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
   private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
     new TreeMap<Integer, DomainGroupConfigVersion>();
-  private final ZooKeeper zk;
   private final String dgPath;
 
   public ZkDomainGroupConfig(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
-    this.zk = zk;
+    super(zk);
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
 
     // enumerate the "domains" subkey
-    List<String> domainIds = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/domains");
+    List<String> domainIds = zk.getChildren(dgPath + "/domains", false);
     for (String domainId : domainIds) {
       domainConfigs.put(Integer.parseInt(domainId), 
-          new ZkDomainConfig(zk, ZooKeeperUtils.getStringOrDie(zk, dgPath + "/domains/" + domainId)));
+          new ZkDomainConfig(zk, getString(dgPath + "/domains/" + domainId)));
     }
 
     // enumerate the versions subkey
-    List<String> versions = ZooKeeperUtils.getChildrenOrDie(zk, dgPath + "/versions");
+    List<String> versions = zk.getChildren(dgPath + "/versions", false);
     for (String version : versions) {
       String versionPath = dgPath + "/versions/" + version;
       if (ZkDomainGroupConfigVersion.isComplete(versionPath, zk)) {

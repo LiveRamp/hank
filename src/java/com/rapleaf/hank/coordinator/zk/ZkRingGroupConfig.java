@@ -36,9 +36,8 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class ZkRingGroupConfig implements RingGroupConfig {
+public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig {
   private static final Logger LOG = Logger.getLogger(ZkRingGroupConfig.class);
 
   private final class StateChangeListener implements Watcher {
@@ -101,21 +100,20 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   private DomainGroupConfig domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
     new HashMap<Integer, RingConfig>();
-  private final ZooKeeper zk;
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
   private final String dataDeployerOnlinePath;
 
   public ZkRingGroupConfig(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
-    this.zk = zk;
+    super(zk);
     this.ringGroupPath = ringGroupPath;
     this.domainGroupConfig = domainGroupConfig;
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];
 
     // enumerate ring group configs
-    List<String> ringNames = ZooKeeperUtils.getChildrenOrDie(zk, ringGroupPath);
+    List<String> ringNames = zk.getChildren(ringGroupPath, false);
     for (String ringName : ringNames) {
       if (ringName.matches("ring-\\d+")) {
         RingConfig rc = new ZkRingConfig(zk, ringGroupPath + "/" + ringName, this);
@@ -191,7 +189,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   @Override
   public Integer getCurrentVersion() throws IOException {
     try {
-      return ZooKeeperUtils.getIntOrNull(zk, ringGroupPath + "/current_version");
+      return getIntOrNull(ringGroupPath + "/current_version");
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -249,7 +247,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   @Override
   public Integer getUpdatingToVersion() throws IOException {
     try {
-      return ZooKeeperUtils.getIntOrNull(zk, ringGroupPath + "/updating_to_version");
+      return getIntOrNull(ringGroupPath + "/updating_to_version");
     } catch (Exception e) {
       throw new IOException(e);
     }

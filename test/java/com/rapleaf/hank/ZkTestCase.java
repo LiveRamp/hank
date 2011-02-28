@@ -8,11 +8,13 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.BindException;
 import java.net.Socket;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
@@ -23,7 +25,6 @@ import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(BaseTestCase.class);
@@ -88,8 +89,8 @@ public class ZkTestCase extends BaseTestCase {
       public void process(WatchedEvent event) {}
     });
 
-    ZooKeeperUtils.deleteNodeRecursively(zk, zkRoot);
-    ZooKeeperUtils.createNodeRecursively(zk, zkRoot);
+    deleteNodeRecursively(zkRoot);
+    createNodeRecursively(zkRoot);
   }
 
   private static boolean waitForServerUp(int port, long timeout) {
@@ -218,5 +219,34 @@ public class ZkTestCase extends BaseTestCase {
 
   public String getZkConnectString() {
     return "localhost:" + zkClientPort;
+  }
+
+  // TODO: this is inefficient. tokenize on / and then just make all the nodes iteratively.
+  protected void createNodeRecursively(String path)
+  throws InterruptedException {
+    try {
+      zk.create(path, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    } catch (KeeperException.NoNodeException e) {
+      String parentPath = path.substring(0, path.lastIndexOf('/'));
+      createNodeRecursively(parentPath);
+      createNodeRecursively(path);
+    } catch (KeeperException e) {
+      LOG.warn(e);
+    }
+  }
+  
+  protected void deleteNodeRecursively(String path) throws Exception {
+    try {
+      zk.delete(path, -1);
+    } catch (KeeperException.NotEmptyException e) {
+      List<String> children = zk.getChildren(path, null);
+      for (String child : children) {
+        deleteNodeRecursively(path + "/" + child);
+      }
+      zk.delete(path, -1);
+    } catch (KeeperException.NoNodeException e) {
+      // Silently return if the node has already been deleted.
+      return;
+    }
   }
 }

@@ -42,25 +42,21 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.UpdateDaemonState;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class ZkRingConfig implements RingConfig, Watcher {
+public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
 
   private final int ringNumber;
-  
-
   private final RingGroupConfig ringGroupConfig;
-  private final ZooKeeper zk;
   private final String ringPath;
 
   private final Map<PartDaemonAddress, HostConfig> hostConfigs = 
     new HashMap<PartDaemonAddress, HostConfig>();
 
   public ZkRingConfig(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
-    this.zk = zk;
+    super(zk);
     this.ringPath = ringPath;
     this.ringGroupConfig = ringGroupConfig;
 
@@ -75,8 +71,8 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   private void refreshHosts(ZooKeeper zk, String ringPath)
-      throws InterruptedException {
-    List<String> hosts = ZooKeeperUtils.getChildrenOrDie(zk, ringPath + "/hosts");
+      throws InterruptedException, KeeperException {
+    List<String> hosts = zk.getChildren(ringPath + "/hosts", false);
     for (String host : hosts) {
       HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
       hostConfigs.put(hostConf.getAddress(), hostConf);
@@ -106,7 +102,7 @@ public class ZkRingConfig implements RingConfig, Watcher {
   @Override
   public Integer getVersionNumber() {
     try {
-      return ZooKeeperUtils.getIntOrNull(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT);
+      return getIntOrNull(ringPath + CURRENT_VERSION_PATH_SEGMENT);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -115,7 +111,7 @@ public class ZkRingConfig implements RingConfig, Watcher {
   @Override
   public Integer getUpdatingToVersionNumber() {
     try {
-      return ZooKeeperUtils.getIntOrNull(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT);
+      return getIntOrNull(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

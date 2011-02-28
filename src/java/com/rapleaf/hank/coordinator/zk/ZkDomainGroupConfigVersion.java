@@ -18,7 +18,6 @@ import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
 public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
@@ -40,7 +39,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
       throw new IllegalStateException(versionPath + " is not yet complete!");
     }
 
-    List<String> children = ZooKeeperUtils.getChildrenOrDie(zk, versionPath);
+    List<String> children = zk.getChildren(versionPath, false);
     domainConfigVersions = new HashSet<DomainConfigVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {

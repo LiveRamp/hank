@@ -1,18 +1,19 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 
-public class ZkDomainConfigVersion implements DomainConfigVersion {
+public class ZkDomainConfigVersion extends BaseZkConsumer implements DomainConfigVersion {
   private final DomainConfig domainConfig;
   private final int versionNumber;
 
-  public ZkDomainConfigVersion(ZooKeeper zk, String path, DomainConfig domainConfig) {
+  public ZkDomainConfigVersion(ZooKeeper zk, String path, DomainConfig domainConfig) throws KeeperException, InterruptedException {
+    super(zk);
     this.domainConfig = domainConfig;
-    versionNumber = Integer.parseInt(ZooKeeperUtils.getStringOrDie(zk, path));
+    versionNumber = getInt(path);
   }
 
   @Override
