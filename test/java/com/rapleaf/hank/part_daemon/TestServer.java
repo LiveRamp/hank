@@ -66,7 +66,7 @@ public class TestServer extends BaseTestCase {
       protected Iface getHandler() throws DataNotFoundException, IOException {
         return new Iface() {
           @Override
-          public HankResponse get(byte domainId, ByteBuffer key) throws TException {return null;}
+          public HankResponse get(int domainId, ByteBuffer key) throws TException {return null;}
         };
       }
     };

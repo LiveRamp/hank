@@ -51,7 +51,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
 
         // set a watch on the ring group
-        coord.addRingGroupChangeListener(ringGroupName, this);
+        ringGroupConfig.setListener(this);
 
         // set a watch on the domain group version
         domainGroupConfig.setListener(this);

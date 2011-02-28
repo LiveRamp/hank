@@ -215,4 +215,9 @@ public class ZkRingConfig implements RingConfig, Watcher {
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingConfig(zk, ringPath, group);
   }
+
+  @Override
+  public Set<HostConfig> getHostsForDomainPartition(String domainName, int partition) {
+    throw new NotImplementedException();
+  }
 }

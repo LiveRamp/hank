@@ -84,7 +84,7 @@ public class Handler implements Iface {
   }
 
   @Override
-  public HankResponse get(byte domainId, ByteBuffer key) throws TException {
+  public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
     Domain domain = getDomain(domainId & 0xff);
 

@@ -112,6 +112,10 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(Integer.valueOf(1), rc.getOldestVersionOnHosts());
   }
 
+  public void testGetHostsForDomainPartition() throws Exception {
+    fail("not implemented");
+  }
+  
   @Override
   protected void setUp() throws Exception {
     super.setUp();

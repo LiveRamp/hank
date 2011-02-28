@@ -50,4 +50,6 @@ public interface RingConfig {
   public void startAllUpdaters() throws IOException;
 
   public Integer getOldestVersionOnHosts() throws IOException;
+
+  public Set<HostConfig> getHostsForDomainPartition(String domainName, int partition);
 }

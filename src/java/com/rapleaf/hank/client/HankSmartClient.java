@@ -15,23 +15,31 @@
  */
 package com.rapleaf.hank.client;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Client;
+import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
 public class HankSmartClient implements Iface, RingGroupChangeListener {
@@ -40,61 +48,85 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
 
   private final Coordinator coord;
   private final DomainGroupConfig domainGroup;
-  private List<RingConfig> availableRings;
-  private Map<String, Client> openConnections;
+  private final RingGroupConfig ringGroupConfig;
 
-  public HankSmartClient(Coordinator coord, String ringGroupName) throws DataNotFoundException {
+  public HankSmartClient(Coordinator coord, String ringGroupName) throws DataNotFoundException, IOException {
     this.coord = coord;
-    this.domainGroup = coord.getRingGroupConfig(ringGroupName).getDomainGroupConfig();
-    setRingGroup(coord.getRingGroupConfig(ringGroupName));
-    coord.addRingGroupChangeListener(ringGroupName, this);
-    this.openConnections = new HashMap<String, Client>();
+    ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
+    this.domainGroup = ringGroupConfig.getDomainGroupConfig();
+//    setRingGroup(ringGroupConfig);
+    ringGroupConfig.setListener(this);
   }
 
   @Override
   public HankResponse get(String domain_name, ByteBuffer key) throws TException {
-//    int partition;
-//    try {
-//      partition = domainGroup.getDomainConfig((int)domain_id).getPartitioner().partition(key);
-//    } catch (DataNotFoundException e) {
-//      return TiamatResponse.no_such_domain(true);
-//    }
-//    List<String> hosts = availableRings.get((int)(availableRings.size() * Math.random())).getHostsForPartition(domain_id, partition);
-//    if (hosts.size() == 0) {
-//      return TiamatResponse.not_found(true);
-//    }
-//    String host = hosts.get((int)(hosts.size() * Math.random()));
-//    TiamatResponse response = directGet(host, domain_id, key);
-//    return response;
-    throw new RuntimeException();
+    int partition = -1;
+    int domainId = -1;
+    try {
+      domainId = domainGroup.getDomainId(domain_name);
+      partition = domainGroup.getDomainConfig(domainId).getPartitioner().partition(key);
+    } catch (DataNotFoundException e) {
+      return HankResponse.no_such_domain(true);
+    }
+    RingConfig rc = randomRing();
+    Set<HostConfig> hosts = rc.getHostsForDomainPartition(domain_name, partition);
+    if (hosts.size() == 0) {
+      // TODO: this is false. we need another state: no replicas
+      return HankResponse.zero_replicas(true);
+    }
+    HostConfig host;
+    try {
+      host = getRandomHost(hosts);
+    } catch (IOException e) {
+      // TODO: log this.
+      return HankResponse.internal_error(true);
+    }
+    HankResponse response = directGet(host, domainId, key);
+    return response;
   }
 
-  private HankResponse directGet(String server, byte domain_id, ByteBuffer key) throws TException {
-//    Client client;
-//    if ((client = openConnections.get(server)) == null) {
-//      TTransport transport = new TFramedTransport(new TSocket(server, RING_PORT, TIMEOUT));
-//      TProtocol protocol = new TBinaryProtocol(transport);
-//      client = new Client(protocol);
-//      openConnections.put(server, client);
-//      transport.open();
-//    }
-//    return client.get(domain_id, key);
-    throw new RuntimeException();
-  }
-  
-  private void setRingGroup(RingGroupConfig newRingGroup) {
-    List<RingConfig> tempList = new ArrayList<RingConfig>();
-    for (RingConfig ring : newRingGroup.getRingConfigs()) {
-      if (ring.getState() == RingState.AVAILABLE) {
-        tempList.add(ring);
+  private HostConfig getRandomHost(Set<HostConfig> hosts) throws IOException {
+    List<HostConfig> candidates = new ArrayList<HostConfig>();
+    for (HostConfig hc : hosts) {
+      if (hc.isPartDaemonOnline() && hc.getPartDaemonState() == PartDaemonState.STARTED) {
+       candidates.add(hc); 
       }
     }
-    this.availableRings = tempList;
+    Collections.shuffle(candidates);
+    return candidates.get(0);
   }
+
+  private RingConfig randomRing() {
+    List<RingConfig> candidates = new ArrayList<RingConfig>();
+    for (RingConfig rc: ringGroupConfig.getRingConfigs()) {
+      if (rc.getState() == RingState.AVAILABLE) {
+        candidates.add(rc);
+      }
+    }
+    Collections.shuffle(candidates);
+    return candidates.get(0);
+  }
+
+  private HankResponse directGet(HostConfig host, int domain_id, ByteBuffer key) throws TException {
+    TTransport transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber()));
+    transport.open();
+    TProtocol proto = new TCompactProtocol(transport);
+    PartDaemon.Client client = new PartDaemon.Client(proto);
+    return client.get(domain_id, key);
+  }
+
+//  private void setRingGroup(RingGroupConfig newRingGroup) {
+//    List<RingConfig> tempList = new ArrayList<RingConfig>();
+//    for (RingConfig ring : newRingGroup.getRingConfigs()) {
+//      if (ring.getState() == RingState.AVAILABLE) {
+//        tempList.add(ring);
+//      }
+//    }
+//    this.availableRings = tempList;
+//  }
 
   @Override
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
-    setRingGroup(newRingGroup);
+//    setRingGroup(newRingGroup);
   }
-
 }

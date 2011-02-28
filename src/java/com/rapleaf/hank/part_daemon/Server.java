@@ -22,7 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.THsHaServer.Options;
+import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
@@ -105,9 +105,10 @@ public class Server implements HostStateChangeListener {
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
-    Options options = new Options();
-    options.workerThreads = configurator.getNumThreads();
-    server = new THsHaServer(new PartDaemon.Processor(handler), serverSocket, options);
+    Args options = new Args(serverSocket);
+    options.processor(new PartDaemon.Processor(handler));
+    options.workerThreads(configurator.getNumThreads());
+    server = new THsHaServer(options);
     LOG.debug("Launching Thrift server...");
     server.serve();
     LOG.debug("Thrift server exited.");

@@ -15,9 +15,11 @@
  */
 package com.rapleaf.hank.client;
 
+import java.io.IOException;
+
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.THsHaServer.Options;
+import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
@@ -43,8 +45,9 @@ public class Server {
   /**
    * start serving the thrift server. doesn't return.
    * @throws TTransportException
+   * @throws IOException 
    */
-  private void serve() throws TTransportException {
+  private void serve() throws TTransportException, IOException {
     // set up the service handler
     HankSmartClient handler;
     try {
@@ -55,9 +58,10 @@ public class Server {
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
-    Options options = new Options();
-    options.workerThreads = configurator.getNumThreads();
-    server = new THsHaServer(new SmartClient.Processor(handler), serverSocket, options);
+    Args options = new THsHaServer.Args(serverSocket);
+    options.processor(new SmartClient.Processor(handler));
+    options.workerThreads(configurator.getNumThreads());
+    server = new THsHaServer(options);
     server.serve();
   }
 
@@ -83,6 +87,9 @@ public class Server {
           serve();
         } catch (TTransportException e) {
           // TODO deal with exception. server is probably going down unexpectedly
+        } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
         }
       }
     };

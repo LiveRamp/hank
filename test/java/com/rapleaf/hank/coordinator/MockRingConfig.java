@@ -99,4 +99,11 @@ public class MockRingConfig implements RingConfig {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public Set<HostConfig> getHostsForDomainPartition(String domainName,
+      int partition) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }

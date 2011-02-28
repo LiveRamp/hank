@@ -8,6 +8,7 @@ public class MockHostConfig implements HostConfig {
   private PartDaemonState partDaemonState;
   private UpdateDaemonState updateDaemonState;
   private boolean updateDaemonOnline;
+  private boolean partDaemonOnline;
 
   public MockHostConfig(PartDaemonAddress address) {
     this.address = address;
@@ -43,17 +44,17 @@ public class MockHostConfig implements HostConfig {
   }
 
   @Override
-  public PartDaemonState getPartDaemonState() throws IOException {
+  public PartDaemonState getPartDaemonState() {
     return partDaemonState;
   }
 
   @Override
-  public UpdateDaemonState getUpdateDaemonState() throws IOException {
+  public UpdateDaemonState getUpdateDaemonState() {
     return updateDaemonState;
   }
 
   @Override
-  public void setPartDaemonState(PartDaemonState state) throws IOException {
+  public void setPartDaemonState(PartDaemonState state) {
     partDaemonState = state;
   }
 
@@ -70,35 +71,34 @@ public class MockHostConfig implements HostConfig {
   }
 
   @Override
-  public boolean isPartDaemonOnline() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean isPartDaemonOnline() {
+    return partDaemonOnline;
   }
 
   @Override
-  public boolean isUpdateDaemonOnline() throws IOException {
+  public boolean isUpdateDaemonOnline() {
     return updateDaemonOnline;
   }
 
   @Override
-  public void partDaemonOffline() throws IOException {
+  public void partDaemonOffline() {
     // TODO Auto-generated method stub
     
   }
 
   @Override
-  public boolean partDaemonOnline() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean partDaemonOnline() {
+    partDaemonOnline = true;
+    return true;
   }
 
   @Override
-  public void updateDaemonOffline() throws IOException {
+  public void updateDaemonOffline() {
     updateDaemonOnline = false;
   }
 
   @Override
-  public boolean updateDaemonOnline() throws IOException {
+  public boolean updateDaemonOnline() {
     updateDaemonOnline = true;
     return true;
   }
