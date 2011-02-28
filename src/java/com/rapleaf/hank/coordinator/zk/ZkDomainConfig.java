@@ -24,8 +24,6 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -38,7 +36,6 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
   private Partitioner partitioner;
   private String storageEngineFactoryName;
   private Map<String, Object> storageEngineOptions;
-  private int version;
 
   private StorageEngine storageEngine;
   private final String domainPath;
@@ -50,7 +47,6 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
     String[] toks = domainPath.split("/");
     this.name = toks[toks.length - 1];
     this.numParts = getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.version = getInt(domainPath + '/' + KEY_VERSION);
     this.storageEngineOptions = (Map<String, Object>)new Yaml().load(getString(domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
     this.storageEngineFactoryName = getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
 
@@ -92,7 +88,11 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
 
   @Override
   public int getVersion() {
-    return version;
+    try {
+      return getInt(domainPath + '/' + KEY_VERSION);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static final String KEY_NUM_PARTS = "num_parts";
@@ -135,6 +135,12 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
 
   @Override
   public int newVersion() throws IOException {
-    throw new NotImplementedException();
+    int nextVersion = getVersion() + 1;
+    try {
+      setInt(domainPath + "/" + KEY_VERSION, nextVersion);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    return nextVersion;
   }
 }

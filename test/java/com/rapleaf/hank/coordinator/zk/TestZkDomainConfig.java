@@ -3,6 +3,7 @@ package com.rapleaf.hank.coordinator.zk;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
@@ -38,6 +39,10 @@ public class TestZkDomainConfig extends ZkTestCase {
   }
 
   public void testNewVersion() throws Exception {
-    fail("Not Implemented");
+    DomainConfig dc = ZkDomainConfig.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER, 1);
+    assertEquals(2, dc.newVersion());
+    assertEquals(2, dc.getVersion());
+    assertEquals(3, dc.newVersion());
+    assertEquals(3, dc.getVersion());
   }
 }

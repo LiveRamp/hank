@@ -34,6 +34,11 @@ abstract class BaseZkConsumer {
     }
   }
 
+  protected void setInt(String path, int nextVersion) throws KeeperException,
+      InterruptedException {
+        zk.setData(path, ("" + nextVersion).getBytes(), -1);
+      }
+
   public static void deleteNodeRecursively(ZooKeeper zk, String path) throws InterruptedException, KeeperException {
     try {
       zk.delete(path, -1);
