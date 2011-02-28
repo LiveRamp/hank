@@ -19,7 +19,6 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import com.rapleaf.hank.util.CliUtils;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 public class AddDomainGroup extends ZooKeeperConnection {
@@ -28,8 +27,8 @@ public class AddDomainGroup extends ZooKeeperConnection {
   }
 
   public void addDomainGroup(String dgPath) throws InterruptedException {
-    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/domains");
-    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/versions");
+//    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/domains");
+//    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/versions");
   }
 
   public static void main(String args[]) throws InterruptedException {

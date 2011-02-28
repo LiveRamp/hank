@@ -17,11 +17,8 @@ package com.rapleaf.hank.cli;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
 
-import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.CliUtils;
-import com.rapleaf.hank.util.ZooKeeperUtils;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 public class AddDomain extends ZooKeeperConnection {
@@ -31,15 +28,15 @@ public class AddDomain extends ZooKeeperConnection {
 
   public void addDomain(String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
     throws InterruptedException {
-    String domainPath = ZooKeeperUtils.domainPath(null, domainName);
-    ZooKeeperUtils.createNodeRecursively(zk, domainPath);
-    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/num_parts", Bytes.stringToBytes(numParts));
-    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_factory_class", Bytes.stringToBytes(factoryName));
-    if (!StringUtils.isBlank(factoryOptions)) {
-      ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_options", Bytes.stringToBytes(factoryOptions));
-    }
-    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/partitioner", Bytes.stringToBytes(partitionerName));
-    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/version", Bytes.stringToBytes(version));
+//    String domainPath = ZooKeeperUtils.domainPath(null, domainName);
+//    ZooKeeperUtils.createNodeRecursively(zk, domainPath);
+//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/num_parts", Bytes.stringToBytes(numParts));
+//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_factory_class", Bytes.stringToBytes(factoryName));
+//    if (!StringUtils.isBlank(factoryOptions)) {
+//      ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/storage_engine_options", Bytes.stringToBytes(factoryOptions));
+//    }
+//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/partitioner", Bytes.stringToBytes(partitionerName));
+//    ZooKeeperUtils.setDataOrFailSilently(zk, domainPath + "/version", Bytes.stringToBytes(version));
   }
 
   public static void main(String[] args) throws InterruptedException {
