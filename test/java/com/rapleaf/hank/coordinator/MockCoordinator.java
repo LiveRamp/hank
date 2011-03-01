@@ -1,5 +1,6 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,6 +66,12 @@ public class MockCoordinator implements Coordinator {
   public void addDomain(String domainName, int numParts,
       String storageEngineFactoryName, String storageEngineOptions,
       String partitionerName, int initialVersion) {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void addDomainGroup(String name) throws IOException {
     // TODO Auto-generated method stub
     
   }

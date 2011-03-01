@@ -39,15 +39,28 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.util.FsUtils;
 
 public class Curly implements StorageEngine {
-  private static final Pattern BASE_OR_REGEX_PATTERN = Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
+  private static final Pattern BASE_OR_REGEX_PATTERN = Pattern
+      .compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
   static final String BASE_REGEX = "\\d{5}\\.base\\.curly";
   static final String DELTA_REGEX = "\\d{5}\\.delta\\.curly";
 
   public static class Factory implements StorageEngineFactory {
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options)
-    throws IOException {
-      throw new NotImplementedException();
+        throws IOException {
+      Hasher hasher;
+      try {
+        hasher = (Hasher)Class.forName((String)options.get("hasher")).newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return new Curly((Integer)options.get("key_hash_size"),
+          hasher,
+          (Integer)options.get("max_allowed_part_size"),
+          (Integer)options.get("hash_index_bits"),
+          (Integer)options.get("cueball_read_buffer_bytes"),
+          (Integer)options.get("record_file_read_buffer_bytes"),
+          (String)options.get("remote_domain_root"));
     }
   }
 
@@ -56,37 +69,30 @@ public class Curly implements StorageEngine {
 
   private final Cueball cueballStorageEngine;
 
-  public Curly(int keyHashSize,
-      Hasher hasher,
-      int maxAllowedPartSize,
-      int hashIndexBits,
-      int cueballReadBufferBytes,
-      int recordFileReadBufferBytes,
-      String remoteDomainRoot)
-  {
+  public Curly(int keyHashSize, Hasher hasher, int maxAllowedPartSize,
+      int hashIndexBits, int cueballReadBufferBytes,
+      int recordFileReadBufferBytes, String remoteDomainRoot) {
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
-    this.offsetSize = (int)(Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
-    this.cueballStorageEngine = new Cueball(keyHashSize,
-        hasher,
-        offsetSize,
-        hashIndexBits,
-        cueballReadBufferBytes,
-        remoteDomainRoot);
+    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
+        / Math.log(2)) / 8.0));
+    this.cueballStorageEngine = new Cueball(keyHashSize, hasher, offsetSize,
+        hashIndexBits, cueballReadBufferBytes, remoteDomainRoot);
   }
 
   @Override
-  public Reader getReader(PartDaemonConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(PartDaemonConfigurator configurator, int partNum)
+      throws IOException {
     return new CurlyReader(getLocalDir(configurator, partNum),
-        recordFileReadBufferBytes,
-        cueballStorageEngine.getReader(configurator, partNum));
+        recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator,
+            partNum));
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base)
-  throws IOException {
-    return new CurlyWriter(streamFactory.getOutputStream(partNum, getName(versionNumber, base)),
-        cueballStorageEngine.getWriter(streamFactory, partNum, versionNumber, base),
-        offsetSize);
+  public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
+      int versionNumber, boolean base) throws IOException {
+    return new CurlyWriter(streamFactory.getOutputStream(partNum, getName(
+        versionNumber, base)), cueballStorageEngine.getWriter(streamFactory,
+        partNum, versionNumber, base), offsetSize);
   }
 
   private String padVersion(int versionNumber) {
@@ -96,11 +102,13 @@ public class Curly implements StorageEngine {
   @Override
   public Updater getUpdater(UpdateDaemonConfigurator configurator, int partNum) {
     throw new NotImplementedException();
-//    return new CurlyUpdater();
+    // return new CurlyUpdater();
   }
 
-  private static String getLocalDir(PartservConfigurator configurator, int partNum) {
-    ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
+  private static String getLocalDir(PartservConfigurator configurator,
+      int partNum) {
+    ArrayList<String> l = new ArrayList<String>(configurator
+        .getLocalDataDirectories());
     Collections.sort(l);
     return l.get(partNum % l.size());
   }

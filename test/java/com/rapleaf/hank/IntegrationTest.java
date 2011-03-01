@@ -1,10 +1,16 @@
 package com.rapleaf.hank;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -27,15 +33,35 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
+  private static class LocalDiskOutputStreamFactory implements OutputStreamFactory {
+    private final String basePath;
+
+    public LocalDiskOutputStreamFactory(String basePath) {
+      this.basePath = basePath;
+    }
+
+    @Override
+    public OutputStream getOutputStream(int partNum, String name) throws IOException {
+      String fullPath = basePath + "/" + partNum + "/" + name;
+      new File(new File(fullPath).getParent()).mkdirs();
+      return new FileOutputStream(fullPath);
+    }
+  }
+
   private final String domainsRoot = getRoot() + "/domains";
   private final String domainGroupsRoot = getRoot() + "/domain_groups";
   private final String ringGroupsRoot = getRoot() + "/ring_groups";
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
+  private final String localTmpDomains = localTmpDir + "/domain_persistence";
 
   public void testItAll() throws Throwable {
     create(domainsRoot);
@@ -57,7 +83,7 @@ public class IntegrationTest extends ZkTestCase {
     pw = new PrintWriter(new FileWriter(domain0OptsYml));
     pw.println("---");
     pw.println("key_hash_size: 10");
-    pw.println("hashser: " + Murmur64Hasher.class.getName());
+    pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
     pw.println("hash_index_bits: 10");
     pw.println("cueball_read_buffer_bytes: 10240");
@@ -76,7 +102,7 @@ public class IntegrationTest extends ZkTestCase {
     pw = new PrintWriter(new FileWriter(domain1OptsYml));
     pw.println("---");
     pw.println("key_hash_size: 10");
-    pw.println("hashser: " + Murmur64Hasher.class.getName());
+    pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
     pw.println("hash_index_bits: 10");
     pw.println("cueball_read_buffer_bytes: 10240");
@@ -103,7 +129,7 @@ public class IntegrationTest extends ZkTestCase {
     domain0DataItems.put(bb(3), bb(3, 3));
     domain0DataItems.put(bb(4), bb(4, 4));
 
-    writeOut(coord.getDomainConfig("domain0"), domain0DataItems);
+    writeOut(coord.getDomainConfig("domain0"), domain0DataItems, 1, true);
 
     Map<ByteBuffer, ByteBuffer> domain1DataItems = new HashMap<ByteBuffer, ByteBuffer>();
     domain1DataItems.put(bb(4), bb(1, 1));
@@ -111,11 +137,12 @@ public class IntegrationTest extends ZkTestCase {
     domain1DataItems.put(bb(2), bb(3, 3));
     domain1DataItems.put(bb(1), bb(4, 4));
 
-    writeOut(coord.getDomainConfig("domain1"), domain1DataItems);
+    writeOut(coord.getDomainConfig("domain1"), domain1DataItems, 1, true);
 
     // configure domain group
     AddDomainGroup.main(new String[]{
-       "--name", getRoot() + "/domain_groups/dg1"
+       "--name", getRoot() + "/domain_groups/dg1",
+       "--config", clientConfigYml,
     });
 
     // add our domains
@@ -196,7 +223,7 @@ public class IntegrationTest extends ZkTestCase {
     domain1Delta.put(bb(4), bb(6, 6));
     domain1Delta.put(bb(5), bb(5, 5));
 
-    writeOut(coord.getDomainConfig("domain1"), domain1Delta);
+    writeOut(coord.getDomainConfig("domain1"), domain1Delta, 2, false);
 
     // wait until the rings have been updated to the new version
     fail("not implemented");
@@ -269,8 +296,28 @@ public class IntegrationTest extends ZkTestCase {
     fail("not implemented");
   }
 
-  private void writeOut(DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems) {
-    fail();
+  private void writeOut(DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase) throws IOException {
+    // partition keys and values
+    Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer,ByteBuffer>>();
+    Partitioner p = domainConfig.getPartitioner();
+    for (Map.Entry<ByteBuffer, ByteBuffer> pair : dataItems.entrySet()) {
+      int partNum = p.partition(pair.getKey()) % domainConfig.getNumParts();
+      SortedMap<ByteBuffer, ByteBuffer> part = sortedAndPartitioned.get(partNum);
+      if (part == null) {
+        part = new TreeMap<ByteBuffer, ByteBuffer>();
+        sortedAndPartitioned.put(partNum, part);
+      }
+      part.put(pair.getKey(), pair.getValue());
+    }
+
+    StorageEngine engine = domainConfig.getStorageEngine();
+    for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
+      Writer writer = engine.getWriter(new LocalDiskOutputStreamFactory(localTmpDomains + "/" + domainConfig.getName()), part.getKey(), versionNumber, isBase);
+      for (Map.Entry<ByteBuffer, ByteBuffer> pair : part.getValue().entrySet()) {
+        writer.write(pair.getKey(), pair.getValue());
+      }
+      writer.close();
+    }
   }
 
   private static ByteBuffer bb(int... bs) {

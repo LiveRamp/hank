@@ -166,7 +166,7 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     }
   }
 
-  public static DomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
+  public static ZkDomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
     String domainGroupPath = dgRoot + "/" + domainGroupName;
     zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

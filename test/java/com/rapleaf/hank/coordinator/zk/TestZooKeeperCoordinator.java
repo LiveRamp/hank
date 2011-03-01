@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -49,6 +50,14 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals(1, domainConfig.getVersion());
     assertTrue(domainConfig.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(domainConfig.getPartitioner() instanceof ConstantPartitioner);
+  }
+
+  public void testAddDomainGroup() throws Exception {
+    coord.addDomainGroup("myDomainGroup2");
+    DomainGroupConfig c = coord.getDomainGroupConfig("myDomainGroup2");
+    assertNotNull(c);
+    assertEquals("myDomainGroup2", c.getName());
+    assertEquals(0, c.getVersions().size());
   }
 
   @Override

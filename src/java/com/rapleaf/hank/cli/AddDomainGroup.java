@@ -15,29 +15,41 @@
  */
 package com.rapleaf.hank.cli;
 
+import java.io.IOException;
+
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-import com.rapleaf.hank.util.CliUtils;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.YamlConfigurator;
 
-public class AddDomainGroup extends ZooKeeperConnection {
-  public AddDomainGroup(String connectString) throws InterruptedException {
-    super(connectString);
+public class AddDomainGroup {
+  private final ClientConfigurator configurator;
+
+  public AddDomainGroup(ClientConfigurator configurator) throws InterruptedException {
+    this.configurator = configurator;
   }
 
-  public void addDomainGroup(String dgPath) throws InterruptedException {
-//    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/domains");
-//    ZooKeeperUtils.createNodeRecursively(zk, dgPath + "/versions");
+  public void addDomainGroup(String name) throws InterruptedException, IOException {
+    configurator.getCoordinator().addDomainGroup(name);
   }
 
-  public static void main(String args[]) throws InterruptedException {
+  public static void main(String args[]) throws InterruptedException, IOException, ParseException {
     Options options = new Options();
-    options.addOption(CliUtils.ZK_OPTION);
-    options.addOption(CliUtils.buildOneArgOption("n", "the path of the domain group", "dg_path", true, "domain-group"));
-    CommandLine line = CliUtils.parseAndHelp("add_domain_group.sh", options, args);
-
-    AddDomainGroup add = new AddDomainGroup(line.getOptionValue("zk"));
-    add.addDomainGroup(line.getOptionValue("path"));
+    options.addOption("n", "name", true,
+        "the name of the domain to be created");
+    options.addOption("c", "config", true,
+        "path of a valid config file with coordinator connection information");
+    try {
+      CommandLine line = new GnuParser().parse(options, args);
+      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      new AddDomainGroup(configurator).addDomainGroup(line.getOptionValue("name"));
+    } catch (ParseException e) {
+      new HelpFormatter().printHelp("add_domain", options);
+      throw e;
+    }
   }
 }

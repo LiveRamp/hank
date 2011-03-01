@@ -47,6 +47,8 @@ public interface Coordinator {
   // DomainGroups
   //
 
+  public void addDomainGroup(String name) throws IOException;
+
   /**
    * Get the set of known DomainGroupConfigs.
    * @return

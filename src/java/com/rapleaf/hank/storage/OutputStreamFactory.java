@@ -15,8 +15,9 @@
  */
 package com.rapleaf.hank.storage;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface OutputStreamFactory {
-  public OutputStream getOutputStream(int partNum, String name);
+  public OutputStream getOutputStream(int partNum, String name) throws IOException;
 }

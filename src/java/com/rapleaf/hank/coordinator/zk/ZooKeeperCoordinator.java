@@ -255,4 +255,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       throw new IOException(e);
     }
   }
+
+  @Override
+  public void addDomainGroup(String name) throws IOException {
+    try {
+      ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(zk, domainGroupsRoot, name);
+      domainGroupConfigs.put(name, dgc);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }
