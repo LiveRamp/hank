@@ -22,7 +22,6 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;

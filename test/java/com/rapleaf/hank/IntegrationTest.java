@@ -186,23 +186,25 @@ public class IntegrationTest extends ZkTestCase {
 
     // configure ring group
     AddRingGroup.main(new String[]{
-        "--name", getRoot() + "/ring_groups/rg1",
-        "--domain-group", getRoot() + "/domain_groups/dg1",
-        "--initial-version", "" + domainGroupConfig.getLatestVersion().getVersionNumber()
+        "--ring-group", "rg1",
+        "--domain-group", "dg1",
+        "--config", clientConfigYml,
     });
 
     // add ring 1
     AddRing.main(new String[]{
-        "--ring-group", getRoot() + "/ring_groups/rg1",
+        "--ring-group", "rg1",
         "--num", "1",
-        "--hosts", "localhost:50000,localhost:50001"
+        "--hosts", "localhost:50000,localhost:50001",
+        "--config", clientConfigYml,
     });
 
     // add ring 2
     AddRing.main(new String[]{
-        "--ring-group", getRoot() + "/ring_groups/rg1",
+        "--ring-group", "rg1",
         "--num", "2",
-        "--hosts", "localhost:50002,localhost:50003"
+        "--hosts", "localhost:50002,localhost:50003",
+        "--config", clientConfigYml,
     });
 
     // launch 2x 2-node rings
