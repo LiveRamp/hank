@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
@@ -40,6 +41,8 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
+  private static final Logger LOG = Logger.getLogger(IntegrationTest.class);
+
   private static class LocalDiskOutputStreamFactory implements OutputStreamFactory {
     private final String basePath;
 
@@ -145,6 +148,8 @@ public class IntegrationTest extends ZkTestCase {
        "--config", clientConfigYml,
     });
 
+    LOG.debug("-------- domain is created --------");
+    
     // add our domains
     AddDomainToDomainGroup.main(new String[]{
         "--domain-group", "dg1",
@@ -160,10 +165,24 @@ public class IntegrationTest extends ZkTestCase {
         "--config", clientConfigYml,
     });
 
+//    Thread.sleep(1500);
+
     // simulate publisher pushing out a new version
-    DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig("dg1");
-    domainGroupConfig.addDomain(coord.getDomainConfig("domain0"), 0);
-    domainGroupConfig.addDomain(coord.getDomainConfig("domain1"), 1);
+    DomainGroupConfig domainGroupConfig = null;
+    coord = config.getCoordinator();
+    for (int i = 0; i < 15; i++) {
+      domainGroupConfig = coord.getDomainGroupConfig("dg1");
+      if (domainGroupConfig != null) {
+        break;
+      }
+      Thread.sleep(1000);
+    }
+    assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroupConfig);
+
+    Map<String, Integer> versionMap = new HashMap<String, Integer>();
+    versionMap.put("domain0", 1);
+    versionMap.put("domain1", 1);
+    domainGroupConfig.createNewVersion(versionMap);
 
     // configure ring group
     AddRingGroup.main(new String[]{

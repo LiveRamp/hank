@@ -54,6 +54,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     @Override
     public void register() {
       try {
+        LOG.debug("Registering watch on " + domainGroupsRoot);
         zk.getChildren(domainGroupsRoot, this);
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -62,14 +63,19 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     @Override
     public void process(WatchedEvent event) {
+      LOG.debug(getClass().getSimpleName() + " received notification!");
       switch (event.getType()) {
         case NodeChildrenChanged:
           // reload domain groups
           try {
             loadAllDomainGroups();
+            register();
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
+          break;
+        default:
+          LOG.debug("Skipped message with event type: " + event.getType());
       }
     }
 
@@ -178,12 +184,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public DomainGroupConfig getDomainGroupConfig(String domainGroupName) throws DataNotFoundException {
-    DomainGroupConfig dg;
-    if ((dg = domainGroupConfigs.get(domainGroupName)) == null) {
-      throw new DataNotFoundException("The domain group " + domainGroupName
-          + " does not exist");
-    }
-    return dg;
+    LOG.trace("Looking up DomainGroupConfig " + domainGroupName);
+    return domainGroupConfigs.get(domainGroupName);
   }
 
   @Override
@@ -216,13 +218,22 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   private void loadAllDomainGroups() throws InterruptedException, KeeperException {
+    LOG.debug("Reloading all domain groups...");
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
-    for (String domainGroupName : domainGroupNameList) {
-      try {
-        domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, domainGroupsRoot + "/" + domainGroupName));
-      } catch (DataNotFoundException e) {
-        // Perhaps someone deleted the node while we were loading (unlikely)
-        LOG.warn("A node disappeared while we were loading domain group configs into memory.", e);
+    synchronized(domainGroupConfigs) {
+      for (String domainGroupName : domainGroupNameList) {
+        try {
+          String dgPath = domainGroupsRoot + "/" + domainGroupName;
+          boolean isComplete = ZkDomainGroupConfig.isComplete(zk, dgPath);
+          if (isComplete) {
+            domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, dgPath));
+          } else {
+            LOG.debug("Not opening domain group " + dgPath + " because it was incomplete."); 
+          }
+        } catch (DataNotFoundException e) {
+          // Perhaps someone deleted the node while we were loading (unlikely)
+          LOG.warn("A node disappeared while we were loading domain group configs into memory.", e);
+        }
       }
     }
   }
@@ -254,7 +265,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public Set<DomainGroupConfig> getDomainGroupConfigs() {
-    return new HashSet<DomainGroupConfig>(domainGroupConfigs.values());
+    synchronized(domainGroupConfigs) {
+      return new HashSet<DomainGroupConfig>(domainGroupConfigs.values());
+    }
   }
 
   public Set<RingGroupConfig> getRingGroups() {

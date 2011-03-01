@@ -94,6 +94,8 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   public ZkDomainGroupConfig(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
     super(zk);
+    LOG.trace("Opening ZkDomainGroupConfig " + dgPath);
+
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
@@ -172,6 +174,7 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroupConfig(zk, domainGroupPath);
   }
 
@@ -203,5 +206,9 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   public String getPath() {
     return dgPath;
+  }
+
+  public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
+    return zk.exists(path + "/.complete", false) != null;
   }
 }
