@@ -16,7 +16,6 @@
 package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
-import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -41,15 +40,6 @@ import com.rapleaf.hank.util.HostUtils;
 public class Server implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(Server.class);
 
-  private static final String HOST_NAME;
-  static {
-    try {
-      HOST_NAME = HostUtils.getHostName();
-    } catch (UnknownHostException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   private final PartDaemonConfigurator configurator;
   private final Coordinator coord;
   private Thread serverThread;
@@ -60,10 +50,10 @@ public class Server implements HostStateChangeListener {
 
   private final HostConfig hostConfig;
 
-  public Server(PartDaemonConfigurator configurator) throws IOException, DataNotFoundException {
+  public Server(PartDaemonConfigurator configurator, String hostName) throws IOException, DataNotFoundException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
-    hostAddress = new PartDaemonAddress(HOST_NAME, configurator.getServicePort());
+    hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
     hostConfig = coord.getRingGroupConfig(configurator.getRingGroupName()).getRingConfigForHost(hostAddress).getHostConfigByAddress(hostAddress);
     hostConfig.setStateChangeListener(this);
   }
@@ -75,10 +65,10 @@ public class Server implements HostStateChangeListener {
     PartDaemonConfigurator configurator = new YamlConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
 
-    new Server(configurator).run();
+    new Server(configurator, HostUtils.getHostName()).run();
   }
 
-  void run() throws IOException {
+  public void run() throws IOException {
     hostConfig.partDaemonOnline();
 //    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
 

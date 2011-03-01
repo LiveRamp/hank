@@ -61,7 +61,7 @@ public class TestServer extends BaseTestCase {
   private static final MockPartDaemonConfigurator configurator = new MockPartDaemonConfigurator(12345, mockCoord, "myRingGroup", 1, null);
 
   public void testColdStartAndShutDown() throws Exception {
-    Server server = new Server(configurator) {
+    Server server = new Server(configurator, "localhost") {
       @Override
       protected Iface getHandler() throws DataNotFoundException, IOException {
         return new Iface() {

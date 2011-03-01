@@ -15,19 +15,90 @@
  */
 package com.rapleaf.hank.cli;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
-public class AddRing extends ZooKeeperConnection {
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 
-  public AddRing(String connectString) throws InterruptedException {
-    super(connectString);
-    // TODO Auto-generated constructor stub
+public class AddRing {
+
+  public static void main(String[] args) throws Exception {
+    Options options = new Options();
+    options.addOption("r", "ring-group", true,
+        "the name of the ring group");
+    options.addOption("n", "ring-number", true,
+        "the number of the new ring you are creating");
+    options.addOption("h", "hosts", true,
+        "a comma-separated list of host:port pairs");
+    options.addOption("c", "config", true,
+        "path of a valid config file with coordinator connection information");
+    try {
+      CommandLine line = new GnuParser().parse(options, args);
+      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      addRing(configurator,
+          line.getOptionValue("ring-group"),
+          Integer.parseInt(line.getOptionValue("ring-number")),
+          line.getOptionValue("hosts"));
+    } catch (ParseException e) {
+      new HelpFormatter().printHelp("add_domain", options);
+      throw e;
+    }
   }
 
-  public static void main(String[] strings) {
-    throw new NotImplementedException();
+  private static void addRing(ClientConfigurator configurator,
+      String ringGroupName,
+      int ringNumber,
+      String hostsString)
+  throws Exception {
+    // create the ring
+    Coordinator coord = configurator.getCoordinator();
+    RingGroupConfig ringGroup = coord.getRingGroupConfig(ringGroupName);
+    RingConfig newRing = ringGroup.addRing(ringNumber);
+
+    // add all the hosts to the ring
+    String[] hosts = hostsString.split(",");
+    List<HostConfig> hostConfigs = new LinkedList<HostConfig>();
+    for (String host : hosts) {
+      PartDaemonAddress address = PartDaemonAddress.parse(host);
+      hostConfigs.add(newRing.addHost(address));
+    }
+
+    // assign all the domains to the hosts
+    DomainGroupConfig domainGroupConfig = ringGroup.getDomainGroupConfig();
+    DomainGroupConfigVersion latestVersion = domainGroupConfig.getLatestVersion();
+    int verNum = latestVersion.getVersionNumber();
+    for (DomainConfigVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
+      DomainConfig domainConfig = domainConfigVersion.getDomainConfig();
+
+      Queue<HostDomainConfig> q = new LinkedList<HostDomainConfig>();
+      for (HostConfig hostConfig : hostConfigs) {
+        q.add(hostConfig.addDomain(domainGroupConfig.getDomainId(domainConfig.getName())));
+      }
+
+      for (int i = 0; i < domainConfig.getNumParts(); i++) {
+        HostDomainConfig hdc = q.poll();
+        hdc.addPartition(i, verNum);
+        q.add(hdc);
+      }
+    }
   }
 
 }

@@ -25,6 +25,8 @@ import com.rapleaf.hank.cli.AddDomainToDomainGroup;
 import com.rapleaf.hank.cli.AddRing;
 import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
@@ -41,6 +43,103 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
+  private final class UpdateDaemonRunnable implements Runnable {
+    private String configPath;
+    private com.rapleaf.hank.update_daemon.UpdateDaemon server;
+    public Throwable throwable;
+
+    public UpdateDaemonRunnable(PartDaemonAddress addy) throws Exception {
+      String hostDotPort = addy.getHostName() + "." + addy.getPortNumber();
+      this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
+
+      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
+      pw.println("---");
+      pw.println("part_daemon:");
+      pw.println("  service_port: " + addy.getPortNumber());
+      pw.println("ring_group_name: rg1");
+      pw.println("local_data_dirs:");
+      pw.println("  - " + localTmpDir + "/" + hostDotPort);
+      pw.println("update_daemon:");
+      pw.println("  num_concurrent_updates: 1");
+      pw.println("coordinator:");
+      pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
+      pw.println("  options:");
+      pw.println("    connect_string: localhost:" + getZkClientPort());
+      pw.println("    session_timeout: 1000000");
+      pw.println("    domains_root: " + domainsRoot);
+      pw.println("    domain_groups_root: " + domainGroupsRoot);
+      pw.println("    ring_groups_root: " + ringGroupsRoot);
+      pw.close();
+    }
+
+    @Override
+    public void run() {
+      try {
+        UpdateDaemonConfigurator c = new YamlConfigurator(configPath);
+        server = new com.rapleaf.hank.update_daemon.UpdateDaemon(c, "localhost");
+        server.run();
+      } catch (Throwable t) {
+        LOG.fatal("crap, some error...", t);
+        throwable = t;
+      }
+    }
+
+    public void pleaseStop() {
+      server.stop();
+    }
+
+  }
+
+  private final class PartDaemonRunnable implements Runnable {
+    private final PartDaemonAddress partDaemonAddress;
+    private final String configPath;
+    private Throwable throwable;
+    private com.rapleaf.hank.part_daemon.Server server;
+
+    public PartDaemonRunnable(PartDaemonAddress addy) throws IOException {
+      this.partDaemonAddress = addy;
+      String hostDotPort = addy.getHostName()
+                + "." + addy.getPortNumber();
+      this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
+
+      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
+      pw.println("---");
+      pw.println("part_daemon:");
+      pw.println("  service_port: " + addy.getPortNumber());
+      pw.println("ring_group_name: rg1");
+      pw.println("local_data_dirs:");
+      pw.println("  - " + localTmpDir + "/" + hostDotPort);
+      pw.println("update_daemon:");
+      pw.println("  num_concurrent_updates: 1");
+      pw.println("coordinator:");
+      pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
+      pw.println("  options:");
+      pw.println("    connect_string: localhost:" + getZkClientPort());
+      pw.println("    session_timeout: 1000000");
+      pw.println("    domains_root: " + domainsRoot);
+      pw.println("    domain_groups_root: " + domainGroupsRoot);
+      pw.println("    ring_groups_root: " + ringGroupsRoot);
+      pw.close();
+    }
+
+    @Override
+    public void run() {
+      try {
+        PartDaemonConfigurator configurator = new YamlConfigurator(configPath);
+        server = new com.rapleaf.hank.part_daemon.Server(configurator, "localhost");
+        server.run();
+      } catch (Throwable t) {
+        LOG.fatal("crap, some exception...", t);
+        throwable = t;
+      }
+    }
+
+    public void pleaseStop() {
+      server.stopServer();
+    }
+
+  }
+
   private static final Logger LOG = Logger.getLogger(IntegrationTest.class);
 
   private static class LocalDiskOutputStreamFactory implements OutputStreamFactory {
@@ -65,6 +164,10 @@ public class IntegrationTest extends ZkTestCase {
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
   private final String localTmpDomains = localTmpDir + "/domain_persistence";
+  private final Map<PartDaemonAddress, Thread> partDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
+  private final Map<PartDaemonAddress, PartDaemonRunnable> partDaemonRunnables = new HashMap<PartDaemonAddress, PartDaemonRunnable>();
+  private final Map<PartDaemonAddress, Thread> updateDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
+  private final Map<PartDaemonAddress, UpdateDaemonRunnable> updateDaemonRunnables = new HashMap<PartDaemonAddress, UpdateDaemonRunnable>();
 
   public void testItAll() throws Throwable {
     create(domainsRoot);
@@ -165,8 +268,6 @@ public class IntegrationTest extends ZkTestCase {
         "--config", clientConfigYml,
     });
 
-//    Thread.sleep(1500);
-
     // simulate publisher pushing out a new version
     DomainGroupConfig domainGroupConfig = null;
     coord = config.getCoordinator();
@@ -194,7 +295,7 @@ public class IntegrationTest extends ZkTestCase {
     // add ring 1
     AddRing.main(new String[]{
         "--ring-group", "rg1",
-        "--num", "1",
+        "--ring-number", "1",
         "--hosts", "localhost:50000,localhost:50001",
         "--config", clientConfigYml,
     });
@@ -202,7 +303,7 @@ public class IntegrationTest extends ZkTestCase {
     // add ring 2
     AddRing.main(new String[]{
         "--ring-group", "rg1",
-        "--num", "2",
+        "--ring-number", "2",
         "--hosts", "localhost:50002,localhost:50003",
         "--config", clientConfigYml,
     });
@@ -214,6 +315,7 @@ public class IntegrationTest extends ZkTestCase {
     startDaemons(new PartDaemonAddress("localhost", 50003));
 
     // launch the data deployer
+//    Thread.sleep(1000000);
     startDataDeployer();
 
     // launch a smart client server
@@ -299,10 +401,6 @@ public class IntegrationTest extends ZkTestCase {
     fail("not implemented");
   }
 
-  private void stopDaemons(PartDaemonAddress partDaemonAddress) {
-    fail("not implemented");
-  }
-
   private void stopDataDeployer() {
     fail("not implemented");
   }
@@ -315,8 +413,24 @@ public class IntegrationTest extends ZkTestCase {
     fail("not implemented");
   }
 
-  private void startDaemons(PartDaemonAddress partDaemonAddress) {
-    fail("not implemented");
+  private void startDaemons(PartDaemonAddress a) throws Exception {
+    PartDaemonRunnable pr = new PartDaemonRunnable(a);
+    partDaemonRunnables.put(a, pr);
+    Thread pt = new Thread(pr, "part daemon thread for " + a);
+    partDaemonThreads.put(a, pt);
+    pt.start();
+    UpdateDaemonRunnable ur = new UpdateDaemonRunnable(a);
+    updateDaemonRunnables.put(a, ur);
+    Thread ut = new Thread(ur, "update daemon thread for " + a);
+    updateDaemonThreads.put(a, ut);
+    ut.start();
+  }
+
+  private void stopDaemons(PartDaemonAddress a) throws Exception {
+    partDaemonRunnables.get(a).pleaseStop();
+    updateDaemonRunnables.get(a).pleaseStop();
+    partDaemonThreads.get(a).join();
+    updateDaemonThreads.get(a).join();
   }
 
   private void writeOut(DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase) throws IOException {

@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -87,7 +89,7 @@ public class UpdateDaemon implements HostStateChangeListener {
     hostConfig.setStateChangeListener(this);
   }
 
-  void run() throws IOException {
+  public void run() throws IOException {
     goingDown = false;
 
     hostConfig.updateDaemonOnline();
@@ -220,5 +222,9 @@ public class UpdateDaemon implements HostStateChangeListener {
     } catch (Exception e) {
       LOG.error(e);
     }
+  }
+
+  public void stop() {
+    throw new NotImplementedException();
   }
 }
