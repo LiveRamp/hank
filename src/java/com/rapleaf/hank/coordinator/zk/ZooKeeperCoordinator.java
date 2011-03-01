@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -48,6 +49,32 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+  public class WatchForNewDomainGroups implements ZooKeeperWatcher {
+
+    @Override
+    public void register() {
+      try {
+        zk.getChildren(domainGroupsRoot, this);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+      switch (event.getType()) {
+        case NodeChildrenChanged:
+          // reload domain groups
+          try {
+            loadAllDomainGroups();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+      }
+    }
+
+  }
+
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
 
   public static final class Factory implements CoordinatorFactory {
@@ -114,6 +141,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     loadAllDomains();
     loadAllDomainGroups();
     loadAllRingGroups();
+    WatchForNewDomainGroups watchForNewDomainGroups = new WatchForNewDomainGroups();
+    watchForNewDomainGroups.register();
+    myWatchers.add(watchForNewDomainGroups);
   }
 
   //
@@ -233,8 +263,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
-    // TODO Auto-generated method stub
-    
+    domainGroupConfigs.put(newDomainGroup.getName(), (ZkDomainGroupConfig) newDomainGroup);
   }
 
   @Override

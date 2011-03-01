@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonState;
@@ -53,8 +54,18 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testAddDomainGroup() throws Exception {
+    // keep a second coordinator aside
+    Coordinator coord2 = getCoord();
     coord.addDomainGroup("myDomainGroup2");
+
     DomainGroupConfig c = coord.getDomainGroupConfig("myDomainGroup2");
+    assertNotNull(c);
+    assertEquals("myDomainGroup2", c.getName());
+    assertEquals(0, c.getVersions().size());
+
+    // repeat the assertions with the other coord instance to ensure changes are
+    // visible
+    c = coord2.getDomainGroupConfig("myDomainGroup2");
     assertNotNull(c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
