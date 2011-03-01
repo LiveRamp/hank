@@ -71,9 +71,15 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public void addDomainGroup(String name) throws IOException {
+  public DomainGroupConfig addDomainGroup(String name) throws IOException {
+    return null;
+  }
+
+  @Override
+  public RingGroupConfig addRingGroup(String ringGroupName,
+      String domainGroupName) throws IOException {
     // TODO Auto-generated method stub
-    
+    return null;
   }
 
 }

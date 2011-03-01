@@ -299,10 +299,26 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void addDomainGroup(String name) throws IOException {
+  public DomainGroupConfig addDomainGroup(String name) throws IOException {
     try {
       ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(zk, domainGroupsRoot, name);
-      domainGroupConfigs.put(name, dgc);
+      synchronized(domainGroupConfigs) {
+        domainGroupConfigs.put(name, dgc);
+      }
+      return dgc;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public RingGroupConfig addRingGroup(String ringGroupName,
+      String domainGroupName)
+  throws IOException {
+    try {
+      RingGroupConfig rg = ZkRingGroupConfig.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroupConfig) getDomainGroupConfig(domainGroupName));
+      ringGroupConfigs.put(ringGroupName, (ZkRingGroupConfig) rg);
+      return rg;
     } catch (Exception e) {
       throw new IOException(e);
     }

@@ -15,11 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.PartDaemonState;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
@@ -71,6 +76,17 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals(0, c.getVersions().size());
   }
 
+  public void testAddRingGroup() throws Exception {
+    DomainGroupConfig dg = coord.addDomainGroup("myDomainGroup2");
+    Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
+    dg.createNewVersion(domainIdToVersion);
+    RingGroupConfig rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
+    assertEquals("superDuperRingGroup", rg.getName());
+    assertEquals(0, rg.getRingConfigs().size());
+    assertEquals(Integer.valueOf(dg.getLatestVersion().getVersionNumber()), rg.getUpdatingToVersion());
+    assertNull(rg.getCurrentVersion());
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
@@ -79,6 +95,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     createMockDomain(domains_root + "/domain0");
     create(domain_groups_root);
     create(domain_groups_root + "/myDomainGroup");
+    create(domain_groups_root + "/myDomainGroup/.complete");
     create(domain_groups_root + "/myDomainGroup/domains");
     create(domain_groups_root + "/myDomainGroup/versions");
     create(ring_groups_root);

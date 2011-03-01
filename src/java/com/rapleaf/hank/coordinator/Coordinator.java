@@ -47,7 +47,7 @@ public interface Coordinator {
   // DomainGroups
   //
 
-  public void addDomainGroup(String name) throws IOException;
+  public DomainGroupConfig addDomainGroup(String name) throws IOException;
 
   /**
    * Get the set of known DomainGroupConfigs.
@@ -81,4 +81,7 @@ public interface Coordinator {
    */
   public RingGroupConfig getRingGroupConfig(String ringGroupName)
   throws DataNotFoundException;
+
+  public RingGroupConfig addRingGroup(String ringGroupName, String domainGroupName)
+  throws IOException;
 }
