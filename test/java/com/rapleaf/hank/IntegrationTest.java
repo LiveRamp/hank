@@ -141,21 +141,23 @@ public class IntegrationTest extends ZkTestCase {
 
     // configure domain group
     AddDomainGroup.main(new String[]{
-       "--name", getRoot() + "/domain_groups/dg1",
+       "--name", "dg1",
        "--config", clientConfigYml,
     });
 
     // add our domains
     AddDomainToDomainGroup.main(new String[]{
-        "--domain-group", getRoot() + "/domain_groups/dg1",
+        "--domain-group", "dg1",
         "--domain", "domain0",
-        "--domain-id", "0"
+        "--id", "0",
+        "--config", clientConfigYml,
     });
 
     AddDomainToDomainGroup.main(new String[]{
-        "--domain-group", getRoot() + "/domain_groups/dg1",
+        "--domain-group", "dg1",
         "--domain", "domain1",
-        "--domain-id", "1"
+        "--id", "1",
+        "--config", clientConfigYml,
     });
 
     // simulate publisher pushing out a new version
