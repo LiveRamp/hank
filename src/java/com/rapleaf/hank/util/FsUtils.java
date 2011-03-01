@@ -58,6 +58,7 @@ public final class FsUtils {
     String line = br.readLine();
     while (line != null) {
       sb.append(line);
+      sb.append("\n");
       line = br.readLine();
     }
     return sb.toString();

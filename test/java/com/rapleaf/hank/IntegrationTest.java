@@ -25,51 +25,74 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
-  public void testItAll() throws Throwable {
-    // initialize the bare structure
-    create(getRoot() + "/domains");
-    create(getRoot() + "/domain_groups");
-    create(getRoot() + "/ring_groups");
+  private final String domainsRoot = getRoot() + "/domains";
+  private final String domainGroupsRoot = getRoot() + "/domain_groups";
+  private final String ringGroupsRoot = getRoot() + "/ring_groups";
+  private final String clientConfigYml = localTmpDir + "/config.yml";
+  private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
+  private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
 
-    PrintWriter pw = new PrintWriter(new FileWriter(localTmpDir + "/config.yml"));
+  public void testItAll() throws Throwable {
+    create(domainsRoot);
+    create(domainGroupsRoot);
+    create(ringGroupsRoot);
+
+    PrintWriter pw = new PrintWriter(new FileWriter(clientConfigYml));
     pw.println("---");
     pw.println("coordinator:");
     pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
     pw.println("  options:");
     pw.println("    connect_string: localhost:" + getZkClientPort());
     pw.println("    session_timeout: 1000000");
-    pw.println("    domains_root: " + getRoot() + "/domains");
-    pw.println("    domain_groups_root: " + getRoot() + "/domain_groups");
-    pw.println("    ring_groups_root: " + getRoot() + "/ring_groups");
+    pw.println("    domains_root: " + domainsRoot);
+    pw.println("    domain_groups_root: " + domainGroupsRoot);
+    pw.println("    ring_groups_root: " + ringGroupsRoot);
     pw.close();
 
-    // use cli tools to create a pair of domains
-    // TODO: set up domain0_opts.yml
+    pw = new PrintWriter(new FileWriter(domain0OptsYml));
+    pw.println("---");
+    pw.println("key_hash_size: 10");
+    pw.println("hashser: " + Murmur64Hasher.class.getName());
+    pw.println("max_allowed_part_size: " + 1024 * 1024);
+    pw.println("hash_index_bits: 10");
+    pw.println("cueball_read_buffer_bytes: 10240");
+    pw.println("record_file_read_buffer_bytes: 10240");
+    pw.println("remote_domain_root: /tmp/domain0_datafiles");
+    pw.close();
     AddDomain.main(new String[]{
         "--name", "domain0",
         "--num-parts", "2",
         "--storage-engine-factory", Curly.Factory.class.getName(),
-        "--storage-engine-options", "domain0_opts.yml",
+        "--storage-engine-options", domain0OptsYml,
         "--partitioner", Murmur64Partitioner.class.getName(),
-        "--config", localTmpDir + "/config.yml",
+        "--config", clientConfigYml,
         "--initial-version", "1"});
 
-    // TODO: set up domain1_opts.yml
+    pw = new PrintWriter(new FileWriter(domain1OptsYml));
+    pw.println("---");
+    pw.println("key_hash_size: 10");
+    pw.println("hashser: " + Murmur64Hasher.class.getName());
+    pw.println("max_allowed_part_size: " + 1024 * 1024);
+    pw.println("hash_index_bits: 10");
+    pw.println("cueball_read_buffer_bytes: 10240");
+    pw.println("record_file_read_buffer_bytes: 10240");
+    pw.println("remote_domain_root: /tmp/domain1_datafiles");
+    pw.close();
     AddDomain.main(new String[]{
         "--name", "domain1",
         "--num-parts", "2",
         "--storage-engine-factory", Curly.Factory.class.getName(),
-        "--storage-engine-options", "domain1_opts.yml",
+        "--storage-engine-options", domain1OptsYml,
         "--partitioner", Murmur64Partitioner.class.getName(),
+        "--config", clientConfigYml,
         "--initial-version", "1"});
 
-    // TODO: set up yaml config for clientside
-    String configPath = null;
-    Configurator config = new YamlConfigurator(configPath);
+    Configurator config = new YamlConfigurator(clientConfigYml);
 
     Coordinator coord = config.getCoordinator();
 

@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.cli;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.cli.CommandLine;
@@ -25,6 +26,7 @@ import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.util.FsUtils;
 
 public class AddDomain {
   private final ClientConfigurator configurator;
@@ -38,7 +40,7 @@ public class AddDomain {
     configurator.getCoordinator().addDomain(domainName,
         Integer.parseInt(numParts),
         factoryName,
-        factoryOptions,
+        FsUtils.readFileToString(new File(factoryOptions)),
         partitionerName,
         Integer.parseInt(version));
   }
