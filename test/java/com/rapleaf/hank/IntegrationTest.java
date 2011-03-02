@@ -52,15 +52,22 @@ public class IntegrationTest extends ZkTestCase {
     private final String configPath;
     private com.rapleaf.hank.client.Server server;
     private boolean keepRunning = true;
+    private final SmartClientDaemonConfigurator configurator;
 
-    public SmartClientRunnable() {
+    public SmartClientRunnable() throws Exception {
       this.configPath = localTmpDir + "/smart_client_config.yml";
-      fail("need to write out the config file!");
+      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
+      pw.println("smart_client:");
+      pw.println("  service_port: 50004");
+      pw.println("  num_worker_threads: 1");
+      pw.println("  ring_group_name: rg1");
+      coordinatorConfig(pw);
+      pw.close();
+      configurator = new YamlSmartClientDaemonConfigurator(configPath);
     }
 
     @Override
     public void run() {
-      SmartClientDaemonConfigurator configurator = new YamlSmartClientDaemonConfigurator(configPath);
       server = new com.rapleaf.hank.client.Server(configurator);
       server.startServer();
       while(keepRunning) {
@@ -436,7 +443,7 @@ public class IntegrationTest extends ZkTestCase {
     stopDaemons(new PartDaemonAddress("localhost", 50003));
   }
 
-  private void startSmartClientServer() {
+  private void startSmartClientServer() throws Exception {
     smartClientRunnable = new SmartClientRunnable();
     smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
     smartClientThread.start();
