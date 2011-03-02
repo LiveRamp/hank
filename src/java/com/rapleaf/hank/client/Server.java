@@ -17,6 +17,8 @@ package com.rapleaf.hank.client;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
@@ -29,6 +31,8 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
 
 public class Server {
+  private static final Logger LOG = Logger.getLogger(Server.class);
+
   private final SmartClientDaemonConfigurator configurator;
   private final Coordinator coord;
   private final String ringGroupName;
@@ -60,6 +64,7 @@ public class Server {
     Args options = new THsHaServer.Args(serverSocket);
     options.processor(new SmartClient.Processor(handler));
     options.workerThreads(configurator.getNumThreads());
+    options.protocolFactory(new TCompactProtocol.Factory());
     server = new THsHaServer(options);
     server.serve();
   }
@@ -96,8 +101,10 @@ public class Server {
     serverThread.start();
     try {
       while (server == null || !server.isServing()) {
+        LOG.debug("waiting for smart client daemon server to come online...");
         Thread.sleep(100);
       }
+      LOG.debug("smart client server is online.");
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for server thread to start", e);
     }

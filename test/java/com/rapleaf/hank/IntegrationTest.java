@@ -70,15 +70,16 @@ public class IntegrationTest extends ZkTestCase {
     public void run() {
       server = new com.rapleaf.hank.client.Server(configurator);
       server.startServer();
-      while(keepRunning) {
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {}
-      }
+//      while(keepRunning) {
+//        try {
+//          Thread.sleep(100);
+//        } catch (InterruptedException e) {}
+//      }
     }
 
     public void pleaseStop() {
       keepRunning = false;
+      server.downServer();
     }
   }
 
@@ -444,9 +445,11 @@ public class IntegrationTest extends ZkTestCase {
   }
 
   private void startSmartClientServer() throws Exception {
+    LOG.debug("starting smart client server...");
     smartClientRunnable = new SmartClientRunnable();
-    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
-    smartClientThread.start();
+//    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
+//    smartClientThread.start();
+    smartClientRunnable.run();
   }
 
   private void stopSmartClient() throws Exception {
