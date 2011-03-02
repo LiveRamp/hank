@@ -22,7 +22,7 @@ public abstract class BaseYamlConfigurator implements Configurator {
     validate();
   }
 
-  private void validate() throws InvalidConfigurationException {
+  protected void validate() throws InvalidConfigurationException {
     if (config.containsKey(COORDINATOR_SECTION_KEY)) {
       Map<String, Object> coordSection = (Map<String, Object>) config.get(COORDINATOR_SECTION_KEY);
       if (coordSection == null) {
