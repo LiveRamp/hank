@@ -94,6 +94,7 @@ public class IntegrationTest extends ZkTestCase {
     private String configPath;
     private com.rapleaf.hank.update_daemon.UpdateDaemon server;
     public Throwable throwable;
+    private final UpdateDaemonConfigurator configurator;
 
     public UpdateDaemonRunnable(PartDaemonAddress addy) throws Exception {
       String hostDotPort = addy.getHostName() + "." + addy.getPortNumber();
@@ -110,13 +111,13 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    num_concurrent_updates: 1");
       coordinatorConfig(pw);
       pw.close();
+      configurator = new YamlUpdateDaemonConfigurator(configPath);
     }
 
     @Override
     public void run() {
       try {
-        UpdateDaemonConfigurator c = new YamlUpdateDaemonConfigurator(configPath);
-        server = new com.rapleaf.hank.update_daemon.UpdateDaemon(c, "localhost");
+        server = new com.rapleaf.hank.update_daemon.UpdateDaemon(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
         LOG.fatal("crap, some error...", t);
@@ -135,8 +136,9 @@ public class IntegrationTest extends ZkTestCase {
     private final String configPath;
     private Throwable throwable;
     private com.rapleaf.hank.part_daemon.Server server;
+    private final PartDaemonConfigurator configurator;
 
-    public PartDaemonRunnable(PartDaemonAddress addy) throws IOException {
+    public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
       this.partDaemonAddress = addy;
       String hostDotPort = addy.getHostName()
                 + "." + addy.getPortNumber();
@@ -153,12 +155,12 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    num_worker_threads: 1");
       coordinatorConfig(pw);
       pw.close();
+      configurator = new YamlPartDaemonConfigurator(configPath);
     }
 
     @Override
     public void run() {
       try {
-        PartDaemonConfigurator configurator = new YamlPartDaemonConfigurator(configPath);
         server = new com.rapleaf.hank.part_daemon.Server(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
