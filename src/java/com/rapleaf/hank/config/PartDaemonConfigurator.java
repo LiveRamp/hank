@@ -15,6 +15,13 @@
  */
 package com.rapleaf.hank.config;
 
+/**
+ * Configuration specific to the Part Daemon.
+ */
 public interface PartDaemonConfigurator extends PartservConfigurator {
+  /**
+   * How many threads the daemon should allow for the Thrift Server.
+   * @return
+   */
   public int getNumThreads();
 }
