@@ -26,8 +26,11 @@ import com.rapleaf.hank.cli.AddRing;
 import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
+import com.rapleaf.hank.config.YamlSmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.YamlUpdateDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -43,6 +46,49 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
+  private final class SmartClientRunnable implements Runnable {
+
+    private final String configPath;
+    private com.rapleaf.hank.client.Server server;
+    private boolean keepRunning = true;
+
+    public SmartClientRunnable() {
+      this.configPath = localTmpDir + "/smart_client_config.yml";
+      fail("need to write out the config file!");
+    }
+
+    @Override
+    public void run() {
+      SmartClientDaemonConfigurator configurator = new YamlSmartClientDaemonConfigurator(configPath);
+      server = new com.rapleaf.hank.client.Server(configurator);
+      server.startServer();
+      while(keepRunning) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {}
+      }
+    }
+
+    public void pleaseStop() {
+      keepRunning = false;
+    }
+  }
+
+  private final class DataDeployerRunnable implements Runnable {
+
+    @Override
+    public void run() {
+      // TODO Auto-generated method stub
+
+    }
+
+    public void pleaseStop() {
+      // TODO Auto-generated method stub
+      
+    }
+
+  }
+
   private final class UpdateDaemonRunnable implements Runnable {
     private String configPath;
     private com.rapleaf.hank.update_daemon.UpdateDaemon server;
@@ -75,7 +121,7 @@ public class IntegrationTest extends ZkTestCase {
     @Override
     public void run() {
       try {
-        UpdateDaemonConfigurator c = new YamlConfigurator(configPath);
+        UpdateDaemonConfigurator c = new YamlUpdateDaemonConfigurator(configPath);
         server = new com.rapleaf.hank.update_daemon.UpdateDaemon(c, "localhost");
         server.run();
       } catch (Throwable t) {
@@ -125,7 +171,7 @@ public class IntegrationTest extends ZkTestCase {
     @Override
     public void run() {
       try {
-        PartDaemonConfigurator configurator = new YamlConfigurator(configPath);
+        PartDaemonConfigurator configurator = new YamlPartDaemonConfigurator(configPath);
         server = new com.rapleaf.hank.part_daemon.Server(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
@@ -168,6 +214,10 @@ public class IntegrationTest extends ZkTestCase {
   private final Map<PartDaemonAddress, PartDaemonRunnable> partDaemonRunnables = new HashMap<PartDaemonAddress, PartDaemonRunnable>();
   private final Map<PartDaemonAddress, Thread> updateDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
   private final Map<PartDaemonAddress, UpdateDaemonRunnable> updateDaemonRunnables = new HashMap<PartDaemonAddress, UpdateDaemonRunnable>();
+  private Thread dataDeployerThread;
+  private DataDeployerRunnable dataDeployerRunnable;
+  private SmartClientRunnable smartClientRunnable;
+  private Thread smartClientThread;
 
   public void testItAll() throws Throwable {
     create(domainsRoot);
@@ -224,7 +274,7 @@ public class IntegrationTest extends ZkTestCase {
         "--config", clientConfigYml,
         "--initial-version", "1"});
 
-    Configurator config = new YamlConfigurator(clientConfigYml);
+    Configurator config = new YamlPartDaemonConfigurator(clientConfigYml);
 
     Coordinator coord = config.getCoordinator();
 
@@ -315,7 +365,6 @@ public class IntegrationTest extends ZkTestCase {
     startDaemons(new PartDaemonAddress("localhost", 50003));
 
     // launch the data deployer
-//    Thread.sleep(1000000);
     startDataDeployer();
 
     // launch a smart client server
@@ -323,6 +372,7 @@ public class IntegrationTest extends ZkTestCase {
 
     // open a dumb client (through the smart client)
     TTransport trans = new TFramedTransport(new TSocket("localhost", 50004));
+    trans.open();
     TProtocol proto = new TCompactProtocol(trans);
     SmartClient.Client dumbClient = new SmartClient.Client(proto);
 
@@ -397,23 +447,32 @@ public class IntegrationTest extends ZkTestCase {
     stopDaemons(new PartDaemonAddress("localhost", 50003));
   }
 
-  private void stopSmartClient() {
-    fail("not implemented");
-  }
-
-  private void stopDataDeployer() {
-    fail("not implemented");
-  }
-
   private void startSmartClientServer() {
-    fail("not implemented");
+    smartClientRunnable = new SmartClientRunnable();
+    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
+    smartClientThread.start();
+  }
+
+  private void stopSmartClient() throws Exception {
+    smartClientRunnable.pleaseStop();
+    smartClientThread.join();
   }
 
   private void startDataDeployer() {
-    fail("not implemented");
+    LOG.debug("starting data deployer");
+    dataDeployerRunnable = new DataDeployerRunnable();
+    dataDeployerThread = new Thread(dataDeployerRunnable, "data deployer thread");
+    dataDeployerThread.start();
+  }
+
+  private void stopDataDeployer() throws Exception {
+    LOG.debug("stopping data deployer");
+    dataDeployerRunnable.pleaseStop();
+    dataDeployerThread.join();
   }
 
   private void startDaemons(PartDaemonAddress a) throws Exception {
+    LOG.debug("Starting daemons for " + a);
     PartDaemonRunnable pr = new PartDaemonRunnable(a);
     partDaemonRunnables.put(a, pr);
     Thread pt = new Thread(pr, "part daemon thread for " + a);
@@ -427,6 +486,7 @@ public class IntegrationTest extends ZkTestCase {
   }
 
   private void stopDaemons(PartDaemonAddress a) throws Exception {
+    LOG.debug("Stopping daemons for " + a);
     partDaemonRunnables.get(a).pleaseStop();
     updateDaemonRunnables.get(a).pleaseStop();
     partDaemonThreads.get(a).join();

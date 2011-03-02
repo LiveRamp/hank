@@ -24,18 +24,13 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 import com.rapleaf.hank.util.FsUtils;
 
 public class AddDomain {
-  private final ClientConfigurator configurator;
-
-  public AddDomain(ClientConfigurator configurator) {
-    this.configurator = configurator;
-  }
-
-  public void addDomain(String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
+  public static void addDomain(Configurator configurator, String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
   throws InterruptedException, IOException {
     configurator.getCoordinator().addDomain(domainName,
         Integer.parseInt(numParts),
@@ -45,7 +40,7 @@ public class AddDomain {
         Integer.parseInt(version));
   }
 
-  public static void main(String[] args) throws InterruptedException, ParseException, IOException {
+  public static void main(String[] args) throws InterruptedException, ParseException, IOException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("n", "name", true,
         "the name of the domain to be created");
@@ -63,8 +58,9 @@ public class AddDomain {
         "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
-      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
-      new AddDomain(configurator).addDomain(line.getOptionValue("name"),
+      Configurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
+      addDomain(configurator,
+          line.getOptionValue("name"),
           line.getOptionValue("num-parts"),
           line.getOptionValue("storage-engine-factory"),
           line.getOptionValue("storage-engine-options"),

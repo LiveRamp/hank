@@ -9,7 +9,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
@@ -20,8 +21,9 @@ public class AddDomainToDomainGroup {
    * @throws ParseException 
    * @throws DataNotFoundException 
    * @throws NumberFormatException 
+   * @throws InvalidConfigurationException 
    */
-  public static void main(String[] args) throws IOException, ParseException, NumberFormatException, DataNotFoundException {
+  public static void main(String[] args) throws IOException, ParseException, NumberFormatException, DataNotFoundException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("g", "domain-group", true,
         "the name of the domain group");
@@ -33,7 +35,7 @@ public class AddDomainToDomainGroup {
         "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
-      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addDomainToDomainGroup(configurator,
           line.getOptionValue("domain-group"),
           line.getOptionValue("domain"),

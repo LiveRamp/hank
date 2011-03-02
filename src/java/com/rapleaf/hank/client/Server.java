@@ -23,23 +23,22 @@ import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
 
 public class Server {
-
-  private final PartDaemonConfigurator configurator;
+  private final SmartClientDaemonConfigurator configurator;
   private final Coordinator coord;
   private final String ringGroupName;
   private Thread serverThread;
   private TServer server;
-  
-  public Server(PartDaemonConfigurator configurator, String ringGroupName) {
+
+  public Server(SmartClientDaemonConfigurator configurator) {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
-    this.ringGroupName = ringGroupName;
+    this.ringGroupName = configurator.getRingGroupName();
   }
 
   /**
@@ -57,7 +56,7 @@ public class Server {
     }
 
     // launch the thrift server
-    TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
+    TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getPortNumber());
     Args options = new THsHaServer.Args(serverSocket);
     options.processor(new SmartClient.Processor(handler));
     options.workerThreads(configurator.getNumThreads());
@@ -66,14 +65,14 @@ public class Server {
   }
 
   public void downServer() {
-  server.stop();
-  try {
-    serverThread.join();
-  } catch (InterruptedException e) {
-    // TODO we're probably shutting down... log a message and continue.
-  }
-  server = null;
-  serverThread = null;
+    server.stop();
+    try {
+      serverThread.join();
+    } catch (InterruptedException e) {
+      // TODO we're probably shutting down... log a message and continue.
+    }
+    server = null;
+    serverThread = null;
   }
 
   /**
@@ -103,4 +102,6 @@ public class Server {
       throw new RuntimeException("Interrupted waiting for server thread to start", e);
     }
   }
+
+  // TODO: where's the main method?
 }

@@ -28,8 +28,9 @@ import org.apache.log4j.PropertyConfigurator;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.YamlUpdateDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
@@ -179,13 +180,14 @@ public class UpdateDaemon implements HostStateChangeListener {
    * @param args
    * @throws IOException
    * @throws DataNotFoundException 
+   * @throws InvalidConfigurationException 
    */
-  public static void main(String[] args) throws IOException, DataNotFoundException {
+  public static void main(String[] args) throws IOException, DataNotFoundException, InvalidConfigurationException {
     String configPath = args[0];
     String log4jprops = args[1];
 
     PropertyConfigurator.configure(log4jprops);
-    UpdateDaemonConfigurator conf = new YamlConfigurator(configPath);
+    UpdateDaemonConfigurator conf = new YamlUpdateDaemonConfigurator(configPath);
 
     new UpdateDaemon(conf, HostUtils.getHostName()).run();
   }

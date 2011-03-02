@@ -9,11 +9,12 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 
 public class AddRingGroup {
-  public static void main(String[] args) throws IOException, ParseException {
+  public static void main(String[] args) throws IOException, ParseException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("r", "ring-group", true,
         "the name of the ring group to be created");
@@ -23,7 +24,7 @@ public class AddRingGroup {
         "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
-      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addRingGroup(configurator,
           line.getOptionValue("ring-group"),
           line.getOptionValue("domain-group"));

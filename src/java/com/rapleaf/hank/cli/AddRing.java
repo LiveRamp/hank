@@ -26,7 +26,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
@@ -52,7 +52,7 @@ public class AddRing {
         "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
-      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
+      ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addRing(configurator,
           line.getOptionValue("ring-group"),
           Integer.parseInt(line.getOptionValue("ring-number")),

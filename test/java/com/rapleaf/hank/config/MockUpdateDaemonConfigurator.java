@@ -45,9 +45,4 @@ public class MockUpdateDaemonConfigurator implements UpdateDaemonConfigurator {
   public String getRingGroupName() {
     return ringGroupName;
   }
-
-  @Override
-  public int getRingNumber() {
-    return ringNum;
-  }
 }

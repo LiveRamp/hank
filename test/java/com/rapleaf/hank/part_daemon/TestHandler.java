@@ -114,7 +114,7 @@ public class TestHandler extends BaseTestCase {
         };
       }
     };
-    PartDaemonConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", 1, "/tmp/local/data/dir");
+    PartDaemonConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", "/tmp/local/data/dir");
     Handler handler = new Handler(new PartDaemonAddress("localhost", 12345), config);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));

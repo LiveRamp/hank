@@ -24,20 +24,15 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 
 public class AddDomainGroup {
-  private final ClientConfigurator configurator;
-
-  public AddDomainGroup(ClientConfigurator configurator) throws InterruptedException {
-    this.configurator = configurator;
-  }
-
-  public void addDomainGroup(String name) throws InterruptedException, IOException {
+  public static void addDomainGroup(ClientConfigurator configurator, String name) throws InterruptedException, IOException {
     configurator.getCoordinator().addDomainGroup(name);
   }
 
-  public static void main(String args[]) throws InterruptedException, IOException, ParseException {
+  public static void main(String args[]) throws InterruptedException, IOException, ParseException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("n", "name", true,
         "the name of the domain to be created");
@@ -45,8 +40,8 @@ public class AddDomainGroup {
         "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
-      ClientConfigurator configurator = new YamlConfigurator(line.getOptionValue("config"));
-      new AddDomainGroup(configurator).addDomainGroup(line.getOptionValue("name"));
+      ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
+      addDomainGroup(configurator, line.getOptionValue("name"));
     } catch (ParseException e) {
       new HelpFormatter().printHelp("add_domain", options);
       throw e;

@@ -11,14 +11,12 @@ public class MockPartDaemonConfigurator implements PartDaemonConfigurator {
   private final int servicePort;
   private final Coordinator coordinator;
   private final String ringGroupName;
-  private final int ringNumber;
   private final String localDataDir;
 
-  public MockPartDaemonConfigurator(int servicePort, Coordinator coordinator, String ringGroupName, int ringNumber, String localDataDir) {
+  public MockPartDaemonConfigurator(int servicePort, Coordinator coordinator, String ringGroupName, String localDataDir) {
     this.servicePort = servicePort;
     this.coordinator = coordinator;
     this.ringGroupName = ringGroupName;
-    this.ringNumber = ringNumber;
     this.localDataDir = localDataDir;
   }
 
@@ -40,11 +38,6 @@ public class MockPartDaemonConfigurator implements PartDaemonConfigurator {
   @Override
   public String getRingGroupName() {
     return ringGroupName;
-  }
-
-  @Override
-  public int getRingNumber() {
-    return ringNumber;
   }
 
   @Override

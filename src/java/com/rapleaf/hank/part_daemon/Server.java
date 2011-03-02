@@ -25,8 +25,9 @@ import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
-import com.rapleaf.hank.config.YamlConfigurator;
+import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -58,11 +59,11 @@ public class Server implements HostStateChangeListener {
     hostConfig.setStateChangeListener(this);
   }
 
-  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException {
+  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException, InvalidConfigurationException {
     String configPath = args[0];
     String log4jprops = args[1];
 
-    PartDaemonConfigurator configurator = new YamlConfigurator(configPath);
+    PartDaemonConfigurator configurator = new YamlPartDaemonConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
 
     new Server(configurator, HostUtils.getHostName()).run();
