@@ -15,6 +15,13 @@
  */
 package com.rapleaf.hank.config;
 
+/**
+ * Configuration specific to the UpdateDaemon.
+ */
 public interface UpdateDaemonConfigurator extends PartservConfigurator {
+  /**
+   * How many concurrent updates the Update Daemon should allow to occur.
+   * @return
+   */
   public int getNumConcurrentUpdates();
 }
