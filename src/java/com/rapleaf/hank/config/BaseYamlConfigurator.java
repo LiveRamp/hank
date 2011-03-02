@@ -19,6 +19,11 @@ public abstract class BaseYamlConfigurator implements Configurator {
 
   protected BaseYamlConfigurator(String path) throws IOException, InvalidConfigurationException {
     config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
+    if (config == null) {
+      throw new InvalidConfigurationException(
+          "Failed to load config from file " + path
+          + ": load resulted in a null config map!");
+    }
     validate();
   }
 

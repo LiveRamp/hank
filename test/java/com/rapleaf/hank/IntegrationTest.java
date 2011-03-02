@@ -28,6 +28,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.UpdateDaemonConfigurator;
+import com.rapleaf.hank.config.YamlClientConfigurator;
 import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
 import com.rapleaf.hank.config.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.YamlUpdateDaemonConfigurator;
@@ -96,25 +97,18 @@ public class IntegrationTest extends ZkTestCase {
 
     public UpdateDaemonRunnable(PartDaemonAddress addy) throws Exception {
       String hostDotPort = addy.getHostName() + "." + addy.getPortNumber();
-      this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
+      this.configPath = localTmpDir + "/" + hostDotPort + ".update_daemon.yml";
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
       pw.println("---");
-      pw.println("part_daemon:");
+      pw.println("partserv:");
       pw.println("  service_port: " + addy.getPortNumber());
-      pw.println("ring_group_name: rg1");
-      pw.println("local_data_dirs:");
-      pw.println("  - " + localTmpDir + "/" + hostDotPort);
-      pw.println("update_daemon:");
-      pw.println("  num_concurrent_updates: 1");
-      pw.println("coordinator:");
-      pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
-      pw.println("  options:");
-      pw.println("    connect_string: localhost:" + getZkClientPort());
-      pw.println("    session_timeout: 1000000");
-      pw.println("    domains_root: " + domainsRoot);
-      pw.println("    domain_groups_root: " + domainGroupsRoot);
-      pw.println("    ring_groups_root: " + ringGroupsRoot);
+      pw.println("  ring_group_name: rg1");
+      pw.println("  local_data_dirs:");
+      pw.println("    - " + localTmpDir + "/" + hostDotPort);
+      pw.println("  update_daemon:");
+      pw.println("    num_concurrent_updates: 1");
+      coordinatorConfig(pw);
       pw.close();
     }
 
@@ -150,21 +144,14 @@ public class IntegrationTest extends ZkTestCase {
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
       pw.println("---");
-      pw.println("part_daemon:");
+      pw.println("partserv:");
       pw.println("  service_port: " + addy.getPortNumber());
-      pw.println("ring_group_name: rg1");
-      pw.println("local_data_dirs:");
-      pw.println("  - " + localTmpDir + "/" + hostDotPort);
-      pw.println("update_daemon:");
-      pw.println("  num_concurrent_updates: 1");
-      pw.println("coordinator:");
-      pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
-      pw.println("  options:");
-      pw.println("    connect_string: localhost:" + getZkClientPort());
-      pw.println("    session_timeout: 1000000");
-      pw.println("    domains_root: " + domainsRoot);
-      pw.println("    domain_groups_root: " + domainGroupsRoot);
-      pw.println("    ring_groups_root: " + ringGroupsRoot);
+      pw.println("  ring_group_name: rg1");
+      pw.println("  local_data_dirs:");
+      pw.println("    - " + localTmpDir + "/" + hostDotPort);
+      pw.println("  part_daemon:");
+      pw.println("    num_worker_threads: 1");
+      coordinatorConfig(pw);
       pw.close();
     }
 
@@ -274,7 +261,7 @@ public class IntegrationTest extends ZkTestCase {
         "--config", clientConfigYml,
         "--initial-version", "1"});
 
-    Configurator config = new YamlPartDaemonConfigurator(clientConfigYml);
+    Configurator config = new YamlClientConfigurator(clientConfigYml);
 
     Coordinator coord = config.getCoordinator();
 
@@ -523,5 +510,16 @@ public class IntegrationTest extends ZkTestCase {
       bytes[i] = (byte) bs[i];
     }
     return ByteBuffer.wrap(bytes);
+  }
+
+  private void coordinatorConfig(PrintWriter pw) {
+    pw.println("coordinator:");
+    pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
+    pw.println("  options:");
+    pw.println("    connect_string: localhost:" + getZkClientPort());
+    pw.println("    session_timeout: 1000000");
+    pw.println("    domains_root: " + domainsRoot);
+    pw.println("    domain_groups_root: " + domainGroupsRoot);
+    pw.println("    ring_groups_root: " + ringGroupsRoot);
   }
 }
