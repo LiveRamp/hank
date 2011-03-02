@@ -17,7 +17,28 @@ package com.rapleaf.hank.config;
 
 import java.util.Set;
 
+/**
+ * Common configurator for any daemon that runs on a Host.
+ */
 public interface PartservConfigurator extends Configurator {
+  /**
+   * Where are the daemons on this host allowed to write data?
+   * @return
+   */
   public Set<String> getLocalDataDirectories();
+
+  /**
+   * Which port should the Part Daemon launch it's Thrift service on? Which port
+   * should the Update Daemon use to identify itself to the Coordinator?
+   * @return
+   */
   public int getServicePort();
+
+  /**
+   * Which ring group is this Host a member of? (The actual ring membership is
+   * determined by Coordinator-held configuration.)
+   * 
+   * @return
+   */
+  public String getRingGroupName();
 }

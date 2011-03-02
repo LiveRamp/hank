@@ -17,9 +17,12 @@ package com.rapleaf.hank.config;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 
-
+/**
+ * The base for all Configurators for all actors in the Hank ecosystem.
+ */
 public interface Configurator {
+  /**
+   * Get an instance of the Coordinator for this Hank installation.
+   */
   public Coordinator getCoordinator();
-  public String getRingGroupName();
-  public int getRingNumber();
 }
