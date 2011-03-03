@@ -153,15 +153,6 @@ public class ZkTestCase extends BaseTestCase {
     getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 
-  protected void createMockDomain(String path) throws Exception {
-    create(path);
-    create(path + "/num_parts", "1");
-    create(path + "/version", "1");
-    create(path + "/storage_engine_options", "---");
-    create(path + "/storage_engine_factory_class", ConstantStorageEngine.class.getName());
-    create(path + "/partitioner_class", ConstantPartitioner.class.getName());
-  }
-  
   @Override
   protected void tearDown() throws Exception {
     super.tearDown();
