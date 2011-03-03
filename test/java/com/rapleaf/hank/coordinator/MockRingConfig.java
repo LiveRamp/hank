@@ -106,4 +106,10 @@ public class MockRingConfig implements RingConfig {
     // TODO Auto-generated method stub
     return null;
   }
+
+  @Override
+  public void setState(RingState newState) throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
 }
