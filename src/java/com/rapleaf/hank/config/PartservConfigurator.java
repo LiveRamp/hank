@@ -41,4 +41,16 @@ public interface PartservConfigurator extends Configurator {
    * @return
    */
   public String getRingGroupName();
+
+  /**
+   * How many concurrent updates the Update Daemon should allow to occur.
+   * @return
+   */
+  public int getNumConcurrentUpdates();
+
+  /**
+   * How many threads allowed to the Thrift Server.
+   * @return
+   */
+  public int getNumThreads();
 }
