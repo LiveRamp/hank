@@ -31,15 +31,17 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.UpdateDaemonState;
 
 public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
@@ -130,21 +132,21 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   @Override
   public void startAllPartDaemons() throws IOException {
     for (HostConfig hc : hostConfigs.values()) {
-      hc.setPartDaemonState(PartDaemonState.STARTABLE);
+      hc.setCommand(HostCommand.SERVE_DATA);
     }
   }
 
   @Override
   public void startAllUpdaters() throws IOException {
     for (HostConfig hc : hostConfigs.values()) {
-      hc.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
+      hc.setCommand(HostCommand.EXECUTE_UPDATE);
     }
   }
 
   @Override
   public void takeDownPartDaemons() throws IOException {
     for (HostConfig hc : hostConfigs.values()) {
-      hc.setPartDaemonState(PartDaemonState.STOPPABLE);
+      hc.setCommand(HostCommand.GO_TO_IDLE);
     }
   }
 
@@ -247,5 +249,10 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
   protected void setString(String path, String value) throws KeeperException, InterruptedException {
     zk.setData(path, value.getBytes(), -1);
+  }
+
+  @Override
+  public int getNumHostsInState(HostState state) {
+    throw new NotImplementedException();
   }
 }

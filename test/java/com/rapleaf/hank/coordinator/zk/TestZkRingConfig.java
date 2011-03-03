@@ -5,13 +5,12 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.UpdateDaemonState;
 
 public class TestZkRingConfig extends ZkTestCase {
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
@@ -79,29 +78,29 @@ public class TestZkRingConfig extends ZkTestCase {
   public void testStartAllPartDaemons() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    assertEquals(PartDaemonState.IDLE, hc.getPartDaemonState());
+    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
     rc.startAllPartDaemons();
-    assertEquals(PartDaemonState.STARTABLE, hc.getPartDaemonState());
+    assertEquals(HostCommand.SERVE_DATA, hc.getCommand());
   }
 
   public void testTakeDownAllPartDaemons() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    hc.setPartDaemonState(PartDaemonState.STARTED);
-    assertEquals(PartDaemonState.STARTED, hc.getPartDaemonState());
+    hc.setCommand(HostCommand.SERVE_DATA);
+    assertEquals(HostCommand.SERVE_DATA, hc.getCommand());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
     rc.takeDownPartDaemons();
-    assertEquals(PartDaemonState.STOPPABLE, hc.getPartDaemonState());
+    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
   }
 
   public void testStartAllUpdaters() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    assertEquals(UpdateDaemonState.IDLE, hc.getUpdateDaemonState());
+    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
     rc.startAllUpdaters();
-    assertEquals(UpdateDaemonState.UPDATABLE, hc.getUpdateDaemonState());
+    assertEquals(HostCommand.EXECUTE_UPDATE, hc.getCommand());
   }
 
   public void testGetOldestVersionOnHosts() throws Exception {
@@ -142,6 +141,10 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(RingState.UP, rc.getState());
     rc = new ZkRingConfig(getZk(), getRoot() + "/ring-1", null);
     assertEquals(RingState.UP, rc.getState());
+  }
+
+  public void testGetNumHostsInState() throws Exception {
+    fail("not implemented");
   }
 
   @Override
