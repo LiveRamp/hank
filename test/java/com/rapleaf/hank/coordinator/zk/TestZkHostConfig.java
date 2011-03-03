@@ -21,7 +21,6 @@ public class TestZkHostConfig extends ZkTestCase {
     }
   }
 
-  private final String HOST = getRoot() + "/my.super.host:32267";
   private static final PartDaemonAddress ADDRESS = new PartDaemonAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {
@@ -77,13 +76,20 @@ public class TestZkHostConfig extends ZkTestCase {
     assertEquals(HostCommand.GO_TO_IDLE, host.getCommand());
     assertEquals(HostState.OFFLINE, host.getHostState());
     assertFalse(host.isOnline());
+
     host.setState(HostState.IDLE);
     assertEquals(HostCommand.GO_TO_IDLE, host.getCommand());
     assertEquals(HostState.IDLE, host.getHostState());
     assertTrue(host.isOnline());
+
     host.setCommand(HostCommand.EXECUTE_UPDATE);
     assertEquals(HostCommand.EXECUTE_UPDATE, host.getCommand());
     assertEquals(HostState.IDLE, host.getHostState());
     assertTrue(host.isOnline());
+
+    host.setState(HostState.OFFLINE);
+    assertEquals(HostCommand.EXECUTE_UPDATE, host.getCommand());
+    assertEquals(HostState.OFFLINE, host.getHostState());
+    assertFalse(host.isOnline());
   }
 }
