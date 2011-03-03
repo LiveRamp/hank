@@ -22,7 +22,8 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.PartDaemonState;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -91,21 +92,15 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     super.setUp();
 
     create(domains_root);
-    createMockDomain(domains_root + "/domain0");
+    ZkDomainConfig.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
     create(domain_groups_root);
-    create(domain_groups_root + "/myDomainGroup");
-    create(domain_groups_root + "/myDomainGroup/.complete");
-    create(domain_groups_root + "/myDomainGroup/domains");
-    create(domain_groups_root + "/myDomainGroup/versions");
+    ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(getZk(), domain_groups_root, "myDomainGroup");
+    Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
+    dgc.createNewVersion(domainIdToVersion);
     create(ring_groups_root);
-    create(ring_groups_root + "/myRingGroup", domain_groups_root + "/myDomainGroup");
-    create(ring_groups_root + "/myRingGroup/ring-001");
-    create(ring_groups_root + "/myRingGroup/ring-001/version", "1");
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts");
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1");
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/part_daemon");
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/part_daemon/status", PartDaemonState.STARTABLE.name());
-    create(ring_groups_root + "/myRingGroup/ring-001/hosts/localhost:1/parts");
+    ZkRingGroupConfig rg = ZkRingGroupConfig.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
+    RingConfig rc = rg.addRing(1);
+    rc.addHost(new PartDaemonAddress("localhost", 1));
 
     coord = getCoord();
   }

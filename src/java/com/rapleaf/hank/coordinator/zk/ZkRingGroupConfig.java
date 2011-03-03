@@ -238,7 +238,7 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
     }
   }
 
-  public static RingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException {
+  public static ZkRingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException {
     zk.create(path, domainGroupConfig.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(path + "/updating_to_version", ("" + domainGroupConfig.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingGroupConfig(zk, path, domainGroupConfig);
