@@ -103,7 +103,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
   private HostConfig getRandomHost(Set<HostConfig> hosts) throws IOException {
     List<HostConfig> candidates = new ArrayList<HostConfig>();
     for (HostConfig hc : hosts) {
-      if (hc.isOnline() && hc.getHostState() == HostState.SERVING) {
+      if (hc.isOnline() && hc.getState() == HostState.SERVING) {
        candidates.add(hc); 
       }
     }

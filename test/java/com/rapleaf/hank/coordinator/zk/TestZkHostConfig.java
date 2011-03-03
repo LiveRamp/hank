@@ -27,7 +27,7 @@ public class TestZkHostConfig extends ZkTestCase {
     ZkHostConfig c = ZkHostConfig.create(getZk(), getRoot(), ADDRESS);
     assertEquals(ADDRESS, c.getAddress());
     assertEquals(HostCommand.GO_TO_IDLE, c.getCommand());
-    assertEquals(HostState.OFFLINE, c.getHostState());
+    assertEquals(HostState.OFFLINE, c.getState());
     assertFalse(c.isOnline());
   }
 
@@ -48,7 +48,7 @@ public class TestZkHostConfig extends ZkTestCase {
     }
     assertNotNull("mock listener should have received a call!", mockListener.calledWith);
     assertEquals(ADDRESS, mockListener.calledWith.getAddress());
-    assertEquals(HostState.SERVING, mockListener.calledWith.getHostState());
+    assertEquals(HostState.SERVING, mockListener.calledWith.getState());
 
     mockListener.calledWith = null;
     c.setCommand(HostCommand.SERVE_DATA);
@@ -74,22 +74,22 @@ public class TestZkHostConfig extends ZkTestCase {
   public void testSetStateAndCommand() throws Exception {
     ZkHostConfig host = ZkHostConfig.create(getZk(), getRoot(), ADDRESS);
     assertEquals(HostCommand.GO_TO_IDLE, host.getCommand());
-    assertEquals(HostState.OFFLINE, host.getHostState());
+    assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(host.isOnline());
 
     host.setState(HostState.IDLE);
     assertEquals(HostCommand.GO_TO_IDLE, host.getCommand());
-    assertEquals(HostState.IDLE, host.getHostState());
+    assertEquals(HostState.IDLE, host.getState());
     assertTrue(host.isOnline());
 
     host.setCommand(HostCommand.EXECUTE_UPDATE);
     assertEquals(HostCommand.EXECUTE_UPDATE, host.getCommand());
-    assertEquals(HostState.IDLE, host.getHostState());
+    assertEquals(HostState.IDLE, host.getState());
     assertTrue(host.isOnline());
 
     host.setState(HostState.OFFLINE);
     assertEquals(HostCommand.EXECUTE_UPDATE, host.getCommand());
-    assertEquals(HostState.OFFLINE, host.getHostState());
+    assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(host.isOnline());
   }
 }

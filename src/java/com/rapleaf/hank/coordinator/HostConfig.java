@@ -10,7 +10,7 @@ public interface HostConfig {
 
   public PartDaemonAddress getAddress();
 
-  public HostState getHostState() throws IOException;
+  public HostState getState() throws IOException;
 
   public void setState(HostState state) throws IOException;
 

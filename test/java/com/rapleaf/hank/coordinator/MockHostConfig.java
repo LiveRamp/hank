@@ -5,8 +5,8 @@ import java.util.Set;
 
 public class MockHostConfig implements HostConfig {
   private final PartDaemonAddress address;
-  private boolean updateDaemonOnline;
-  private boolean partDaemonOnline;
+  private HostCommand command;
+  private HostState state = HostState.OFFLINE;
 
   public MockHostConfig(PartDaemonAddress address) {
     this.address = address;
@@ -36,40 +36,31 @@ public class MockHostConfig implements HostConfig {
   }
 
   @Override
-  public HostState getHostState() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+  public HostState getState() throws IOException {
+    return state;
   }
 
   @Override
-  public void setStateChangeListener(HostStateChangeListener listener)
-      throws IOException {
-    // TODO Auto-generated method stub
-
+  public void setStateChangeListener(HostStateChangeListener listener) {
   }
 
   @Override
   public HostCommand getCommand() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    return command;
   }
 
   @Override
   public boolean isOnline() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    return state != HostState.OFFLINE;
   }
 
   @Override
   public void setCommand(HostCommand command) throws IOException {
-    // TODO Auto-generated method stub
-    
+    this.command = command;
   }
 
   @Override
   public void setState(HostState state) throws IOException {
-    // TODO Auto-generated method stub
-    
+    this.state = state;
   }
-
 }

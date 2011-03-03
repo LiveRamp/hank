@@ -73,7 +73,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   @Override
-  public HostState getHostState() throws IOException {
+  public HostState getState() throws IOException {
     try {
       if (zk.exists(hostPath + "/status", false) == null) {
         return HostState.OFFLINE;
@@ -181,7 +181,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
   @Override
   public boolean isOnline() throws IOException {
-    return getHostState() != HostState.OFFLINE;
+    return getState() != HostState.OFFLINE;
   }
 
   @Override
