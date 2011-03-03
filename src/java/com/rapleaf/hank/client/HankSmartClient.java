@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -32,7 +33,7 @@ import org.apache.thrift.transport.TTransport;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.PartDaemonState;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -43,6 +44,7 @@ import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
 public class HankSmartClient implements Iface, RingGroupChangeListener {
+  private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
   private static final int TIMEOUT = 10000;
   private static final int RING_PORT = 9090;
 
@@ -68,7 +70,13 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
     } catch (DataNotFoundException e) {
       return HankResponse.no_such_domain(true);
     }
-    RingConfig rc = randomRing();
+    RingConfig rc;
+    try {
+      rc = randomRing();
+    } catch (IOException e2) {
+      LOG.error("Exception while trying to pick a random ring!", e2);
+      return HankResponse.internal_error(true);
+    }
     Set<HostConfig> hosts;
     try {
       hosts = rc.getHostsForDomainPartition(domainGroup.getDomainId(domain_name), partition);
@@ -95,7 +103,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
   private HostConfig getRandomHost(Set<HostConfig> hosts) throws IOException {
     List<HostConfig> candidates = new ArrayList<HostConfig>();
     for (HostConfig hc : hosts) {
-      if (hc.isPartDaemonOnline() && hc.getPartDaemonState() == PartDaemonState.STARTED) {
+      if (hc.isOnline() && hc.getHostState() == HostState.SERVING) {
        candidates.add(hc); 
       }
     }
@@ -103,10 +111,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
     return candidates.get(0);
   }
 
-  private RingConfig randomRing() {
+  private RingConfig randomRing() throws IOException {
     List<RingConfig> candidates = new ArrayList<RingConfig>();
     for (RingConfig rc: ringGroupConfig.getRingConfigs()) {
-      if (rc.getState() == RingState.AVAILABLE) {
+      if (rc.getState() == RingState.UP) {
         candidates.add(rc);
       }
     }

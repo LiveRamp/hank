@@ -37,6 +37,7 @@ import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
@@ -44,7 +45,6 @@ import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -168,9 +168,9 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread thread2 = new Thread(new ServerRunnable(server2), "mock part daemon #2");
     thread2.start();
 
-    final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.AVAILABLE) {
+    final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.UP) {
       @Override
-      public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) {
+      public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
         assertEquals(1, domainId);
         if (partition == 0) {
           return Collections.singleton(getHostConfig(new PartDaemonAddress("localhost", server1Port)));
@@ -234,10 +234,9 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private HostConfig getHostConfig(PartDaemonAddress address) {
+  private HostConfig getHostConfig(PartDaemonAddress address) throws IOException {
     MockHostConfig hc = new MockHostConfig(address);
-    hc.partDaemonOnline();
-    hc.setPartDaemonState(PartDaemonState.STARTED);
+    hc.setState(HostState.SERVING);
     return hc;
   }
 }
