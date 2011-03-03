@@ -33,7 +33,9 @@ public interface RingConfig {
 
   public HostConfig addHost(PartDaemonAddress address) throws IOException;
 
-  public RingState getState();
+  public RingState getState() throws IOException;
+
+  public void setState(RingState newState) throws IOException;
 
   public Integer getVersionNumber();
 

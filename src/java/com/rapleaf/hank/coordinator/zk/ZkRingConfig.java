@@ -31,8 +31,6 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -47,6 +45,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
+  private static final String STATUS_PATH_SEGMENT = "/status";
 
   private final int ringNumber;
   private final RingGroupConfig ringGroupConfig;
@@ -85,8 +84,14 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   }
 
   @Override
-  public RingState getState() {
-    throw new NotImplementedException();
+  public RingState getState() throws IOException {
+    String statusString = null;
+    try {
+      statusString = getString(ringPath + STATUS_PATH_SEGMENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    return RingState.valueOf(statusString);
   }
 
   @Override
@@ -146,7 +151,11 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   @Override
   public void updateComplete() throws IOException {
     try {
-      zk.setData(ringPath + CURRENT_VERSION_PATH_SEGMENT, getUpdatingToVersionNumber().toString().getBytes(), -1);
+      if (zk.exists(ringPath + CURRENT_VERSION_PATH_SEGMENT, false) != null) {
+        zk.setData(ringPath + CURRENT_VERSION_PATH_SEGMENT, getUpdatingToVersionNumber().toString().getBytes(), -1);
+      } else {
+        zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, getUpdatingToVersionNumber().toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
       zk.delete(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, -1);
     } catch (Exception e) {
       throw new IOException(e);
@@ -207,7 +216,8 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   public static RingConfig create(ZooKeeper zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + "/updating_to_version", ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingConfig(zk, ringPath, group);
   }
@@ -224,5 +234,18 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
       }
     }
     return results;
+  }
+
+  @Override
+  public void setState(RingState newState) throws IOException {
+    try {
+      setString(ringPath + STATUS_PATH_SEGMENT, newState.toString());
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  protected void setString(String path, String value) throws KeeperException, InterruptedException {
+    zk.setData(path, value.getBytes(), -1);
   }
 }

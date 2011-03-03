@@ -10,6 +10,7 @@ import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.PartDaemonState;
 import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.UpdateDaemonState;
 
 public class TestZkRingConfig extends ZkTestCase {
@@ -132,6 +133,15 @@ public class TestZkRingConfig extends ZkTestCase {
     d.addPartition(0, 1);
 
     assertEquals(new HashSet<HostConfig>(Arrays.asList(hc1, hc3)), rc.getHostsForDomainPartition(1, 0));
+  }
+
+  public void testGetRingState() throws Exception {
+    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
+    assertEquals(RingState.DOWN, rc.getState());
+    rc.setState(RingState.UP);
+    assertEquals(RingState.UP, rc.getState());
+    rc = new ZkRingConfig(getZk(), getRoot() + "/ring-1", null);
+    assertEquals(RingState.UP, rc.getState());
   }
 
   @Override
