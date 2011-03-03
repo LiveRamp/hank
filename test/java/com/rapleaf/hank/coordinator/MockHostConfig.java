@@ -5,15 +5,13 @@ import java.util.Set;
 
 public class MockHostConfig implements HostConfig {
   private final PartDaemonAddress address;
-  private PartDaemonState partDaemonState;
-  private UpdateDaemonState updateDaemonState;
   private boolean updateDaemonOnline;
   private boolean partDaemonOnline;
 
   public MockHostConfig(PartDaemonAddress address) {
     this.address = address;
   }
-  
+
   @Override
   public HostDomainConfig addDomain(int domainId) throws IOException {
     // TODO Auto-generated method stub
@@ -44,21 +42,6 @@ public class MockHostConfig implements HostConfig {
   }
 
   @Override
-  public PartDaemonState getPartDaemonState() {
-    return partDaemonState;
-  }
-
-  @Override
-  public UpdateDaemonState getUpdateDaemonState() {
-    return updateDaemonState;
-  }
-
-  @Override
-  public void setPartDaemonState(PartDaemonState state) {
-    partDaemonState = state;
-  }
-
-  @Override
   public void setStateChangeListener(HostStateChangeListener listener)
       throws IOException {
     // TODO Auto-generated method stub
@@ -66,41 +49,27 @@ public class MockHostConfig implements HostConfig {
   }
 
   @Override
-  public void setUpdateDaemonState(UpdateDaemonState state) throws IOException {
-    updateDaemonState = state;
+  public HostCommand getCommand() throws IOException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   @Override
-  public boolean isPartDaemonOnline() {
-    return partDaemonOnline;
+  public boolean isOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
   }
 
   @Override
-  public boolean isUpdateDaemonOnline() {
-    return updateDaemonOnline;
-  }
-
-  @Override
-  public void partDaemonOffline() {
+  public void setCommand(HostCommand command) throws IOException {
     // TODO Auto-generated method stub
     
   }
 
   @Override
-  public boolean partDaemonOnline() {
-    partDaemonOnline = true;
-    return true;
-  }
-
-  @Override
-  public void updateDaemonOffline() {
-    updateDaemonOnline = false;
-  }
-
-  @Override
-  public boolean updateDaemonOnline() {
-    updateDaemonOnline = true;
-    return true;
+  public void setState(HostState state) throws IOException {
+    // TODO Auto-generated method stub
+    
   }
 
 }
