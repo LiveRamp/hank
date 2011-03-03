@@ -95,7 +95,7 @@ public class TestHandler extends BaseTestCase {
     };
     final MockRingGroupConfig rgc = new MockRingGroupConfig(dcg, "myRingGroupName", null);
 
-    final MockRingConfig mockRingConfig = new MockRingConfig(null, rgc, 1, RingState.AVAILABLE) {
+    final MockRingConfig mockRingConfig = new MockRingConfig(null, rgc, 1, RingState.UP) {
       @Override
       public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
         return mockHostConfig;

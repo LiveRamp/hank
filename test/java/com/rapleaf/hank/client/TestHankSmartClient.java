@@ -219,9 +219,9 @@ public class TestHankSmartClient extends BaseTestCase {
 
     try {
       HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup");
-  
+
       assertEquals(HankResponse.no_such_domain(true), c.get("nonexistent_domain", null));
-  
+
       assertEquals(VALUE_1, c.get("existent_domain", KEY_1).buffer_for_value());
       assertEquals(VALUE_2, c.get("existent_domain", KEY_2).buffer_for_value());
     } finally {
