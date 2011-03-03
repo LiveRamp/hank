@@ -1,4 +1,4 @@
-package com.rapleaf.hank.update_daemon;
+package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
 

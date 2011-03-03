@@ -100,7 +100,7 @@ public class IntegrationTest extends ZkTestCase {
 
   private final class UpdateDaemonRunnable implements Runnable {
     private String configPath;
-    private com.rapleaf.hank.update_daemon.UpdateDaemon server;
+    private com.rapleaf.hank.part_daemon.UpdateDaemon server;
     public Throwable throwable;
     private final UpdateDaemonConfigurator configurator;
 
@@ -125,7 +125,7 @@ public class IntegrationTest extends ZkTestCase {
     @Override
     public void run() {
       try {
-        server = new com.rapleaf.hank.update_daemon.UpdateDaemon(configurator, "localhost");
+        server = new com.rapleaf.hank.part_daemon.UpdateDaemon(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
         LOG.fatal("crap, some error...", t);
