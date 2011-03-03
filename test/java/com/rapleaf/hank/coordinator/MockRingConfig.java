@@ -1,20 +1,21 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class MockRingConfig implements RingConfig {
 
-  private final RingState state;
+  private RingState state;
   private final int number;
   private final RingGroupConfig rgc;
-  private final Set<PartDaemonAddress> hosts;
+  private final Set<HostConfig> hosts;
 
-  public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc,
-      int number, RingState state) {
-    this.hosts = hosts;
+  public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
+    this.hosts = new HashSet<HostConfig>();
+    for (PartDaemonAddress addy : hosts) {
+      this.hosts.add(new MockHostConfig(addy));
+    }
     this.rgc = rgc;
     this.number = number;
     this.state = state;
@@ -22,8 +23,7 @@ public class MockRingConfig implements RingConfig {
 
   @Override
   public Set<HostConfig> getHosts() {
-    throw new NotImplementedException();
-//    return hosts;
+    return hosts;
   }
 
   @Override
@@ -109,7 +109,12 @@ public class MockRingConfig implements RingConfig {
 
   @Override
   public void setState(RingState newState) throws IOException {
+    state = newState;
+  }
+
+  @Override
+  public int getNumHostsInState(HostState state) {
     // TODO Auto-generated method stub
-    
+    return 0;
   }
 }

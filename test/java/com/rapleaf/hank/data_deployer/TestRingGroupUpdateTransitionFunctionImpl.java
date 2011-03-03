@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 
 import junit.framework.TestCase;
 
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -13,7 +14,6 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
-
   private class MRC extends MockRingConfig {
     private boolean takeDownPartDaemonsCalled;
     private final boolean updatePending;
@@ -22,8 +22,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     public boolean startAllUpdatersCalled;
     private boolean startAllPartDaemonsCalled;
     public boolean updateCompleteCalled;
-    public boolean anyStateMethodCalled;
-
     public MRC(int number, RingState state, boolean updatePending, int curVer, int nextVer, PartDaemonAddress... hosts) {
       super(new LinkedHashSet<PartDaemonAddress>(Arrays.asList(hosts)), null, number, state);
       this.updatePending = updatePending;
@@ -33,7 +31,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     @Override
     public void takeDownPartDaemons() {
-      this.anyStateMethodCalled = true;
       this.takeDownPartDaemonsCalled = true;
     }
 
@@ -54,19 +51,16 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     @Override
     public void startAllPartDaemons() {
-      this.anyStateMethodCalled = true;
       this.startAllPartDaemonsCalled = true;
     }
 
     @Override
     public void startAllUpdaters() {
-      this.anyStateMethodCalled = true;
       this.startAllUpdatersCalled = true;
     }
 
     @Override
     public void updateComplete() {
-      this.anyStateMethodCalled = true;
       this.updateCompleteCalled = true;
     }
   }
@@ -95,13 +89,15 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownsFirstAvailableRing() throws Exception {
-    MRC r1 = new MRC(1, RingState.AVAILABLE, true, 1, 2);
-    MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
+    MRC r1 = new MRC(1, RingState.UP, true, 1, 2);
+    MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been taken down", r1.takeDownPartDaemonsCalled);
+    assertEquals(RingState.GOING_DOWN, r1.getState());
     assertFalse("r2 should not have been taken down", r2.takeDownPartDaemonsCalled);
+    assertEquals(RingState.UP, r2.getState());
   }
 
   private RingGroupUpdateTransitionFunction getFunc() {
@@ -109,68 +105,120 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownsOnlyAvailableRing() throws Exception {
-    MRC r1 = new MRC(1, RingState.AVAILABLE, false, 2, 2);
-    MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
+    MRC r1 = new MRC(1, RingState.UP, false, 2, 2);
+    MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
     assertFalse("r1 should not have been taken down", r1.takeDownPartDaemonsCalled);
+    assertEquals(RingState.UP, r1.getState());
     assertTrue("r2 should have been taken down", r2.takeDownPartDaemonsCalled);
+    assertEquals(RingState.GOING_DOWN, r2.getState());
   }
 
   public void testDownsNothingIfSomethingIsAlreadyDown() throws Exception {
-    for(RingState s : EnumSet.of(RingState.STOPPING, RingState.STARTING, RingState.UPDATING, RingState.IDLE)) {
+    for(RingState s : EnumSet.of(RingState.GOING_DOWN, RingState.COMING_UP, RingState.UPDATING, RingState.DOWN)) {
       MRC r1 = new MRC(1, s, true, 1, 2);
-      MRC r2 = new MRC(2, RingState.AVAILABLE, true, 1, 2);
+      MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
       MRG rg = new MRG(1, 2, r1, r2);
       getFunc().manageTransitions(rg);
 
-      assertFalse("r1 should not have been taken down", r1.takeDownPartDaemonsCalled);
-      assertFalse("r2 should not have been taken down", r2.takeDownPartDaemonsCalled); 
+      assertEquals("r2 should still be up", RingState.UP, r2.getState());
     }
   }
 
-  public void testIdleToUpdating() throws Exception {
-    MRC r1 = new MRC(1, RingState.IDLE, true, 1, 2);
+  public void testDownToUpdating() throws Exception {
+    MRC r1 = new MRC(1, RingState.DOWN, true, 1, 2);
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to updating", r1.startAllUpdatersCalled);
+    assertEquals(RingState.UPDATING, r1.getState());
   }
 
-  public void testIdleToStarting() throws Exception {
-    MRC r1 = new MRC(1, RingState.IDLE, true, 1, 2) {
+  public void testUpdatingToComingUp() throws Exception {
+    MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public Integer getOldestVersionOnHosts() {
-        return 2;
+      public int getNumHostsInState(HostState state) {
+        switch (state) {
+          case OFFLINE:
+            return 0;
+          case UPDATING:
+            return 0;
+          default:
+            throw new IllegalStateException(state.toString());
+        }
       }
     };
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to starting", r1.startAllPartDaemonsCalled);
+    assertEquals(RingState.COMING_UP, r1.getState());
   }
 
-  public void testAvailableToUpdateComplete() throws Exception {
-    MRC r1 = new MRC(1, RingState.AVAILABLE, true, 1, 2) {
+  public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
+    MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public Integer getOldestVersionOnHosts() {
-        return 2;
+      public int getNumHostsInState(HostState state) {
+        switch (state) {
+          case OFFLINE:
+            return 0;
+          case UPDATING:
+            return 1;
+          default:
+            throw new IllegalStateException(state.toString());
+        }
+      }
+    };
+    MRG rg = new MRG(1, 2, r1);
+    getFunc().manageTransitions(rg);
+
+    assertFalse("r1 should have been set to starting", r1.startAllPartDaemonsCalled);
+    assertEquals(RingState.UPDATING, r1.getState());
+  }
+
+  // this case will only occur when the data deployer has died or something.
+  public void testUpdatedToComingUp() throws Exception {
+    MRC r1 = new MRC(1, RingState.UPDATED, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+      @Override
+      public int getNumHostsInState(HostState state) {
+        switch (state) {
+          case OFFLINE:
+            return 0;
+          case UPDATING:
+            return 0;
+          default:
+            throw new IllegalStateException(state.toString());
+        }
+      }
+    };
+    MRG rg = new MRG(1, 2, r1);
+    getFunc().manageTransitions(rg);
+
+    assertTrue("r1's hosts should be commanded to start", r1.startAllPartDaemonsCalled);
+    assertEquals(RingState.COMING_UP, r1.getState());
+  }
+
+  public void testComingUpToUp() throws Exception {
+    MRC r1 = new MRC(1, RingState.COMING_UP, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+
+      @Override
+      public int getNumHostsInState(HostState state) {
+        switch(state) {
+          case SERVING:
+            return 1;
+          case OFFLINE:
+            return 0;
+          default:
+            throw new IllegalStateException(state.toString());
+        }
       }
     };
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
     assertTrue("r1 should have been set to update complete", r1.updateCompleteCalled);
-  }
-
-  public void testDoesNothingInWaitStates() throws Exception {
-    for (RingState s : EnumSet.of(RingState.STOPPING, RingState.STARTING, RingState.UPDATING)) {
-      MRC r1 = new MRC(1, s, true, 1, 2);
-      MRG rg = new MRG(1, 2, r1);
-      getFunc().manageTransitions(rg);
-
-      assertFalse("r1 should have no state changes", r1.anyStateMethodCalled);
-    }
+    assertEquals(RingState.UP, r1.getState());
   }
 }
