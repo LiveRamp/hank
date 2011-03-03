@@ -13,14 +13,13 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.PartDaemonState;
-import com.rapleaf.hank.coordinator.UpdateDaemonState;
 
-public class ZkHostConfig implements HostConfig {
+public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private class StateChangeWatcher implements Watcher {
     private final HostStateChangeListener listener;
 
@@ -30,6 +29,8 @@ public class ZkHostConfig implements HostConfig {
 
     public void process(WatchedEvent event) {
       switch (event.getType()) {
+        case NodeCreated:
+        case NodeDeleted:
         case NodeDataChanged:
           listener.onHostStateChange(ZkHostConfig.this);
           // reset callback
@@ -46,22 +47,21 @@ public class ZkHostConfig implements HostConfig {
     }
 
     private void setWatch() throws KeeperException, InterruptedException {
-      zk.getData(hostPath + "/part_daemon/status", this, new Stat());
-      zk.getData(hostPath + "/update_daemon/status", this, new Stat());
+      if (zk.exists(hostPath + "/status", this) != null) {
+        zk.getData(hostPath + "/status", this, new Stat());
+      }
+      zk.getData(hostPath + "/command", this, new Stat());
     }
   }
 
   private final ZooKeeper zk;
   private final String hostPath;
   private final PartDaemonAddress address;
-  private final String updateDaemonOnlinePath;
-  private final String partDaemonOnlinePath;
 
   public ZkHostConfig(ZooKeeper zk, String hostPath) {
+    super(zk);
     this.zk = zk;
     this.hostPath = hostPath;
-    this.updateDaemonOnlinePath = hostPath + "/update_daemon/online";
-    this.partDaemonOnlinePath = hostPath + "/part_daemon/online";
 
     String[] toks = hostPath.split("/");
     this.address = PartDaemonAddress.parse(toks[toks.length - 1]);
@@ -74,37 +74,11 @@ public class ZkHostConfig implements HostConfig {
 
   @Override
   public HostState getHostState() throws IOException {
-    if (getUpdateDaemonState() != UpdateDaemonState.IDLE) {
-      return HostState.UPDATING;
-    }
-    if (getPartDaemonState() != PartDaemonState.IDLE) {
-      return HostState.SERVING;
-    }
-    return HostState.IDLE;
-  }
-
-  @Override
-  public PartDaemonState getPartDaemonState() throws IOException {
     try {
-      return PartDaemonState.valueOf(new String(zk.getData(hostPath + "/part_daemon/status", false, null)));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public UpdateDaemonState getUpdateDaemonState() throws IOException {
-    try {
-      return UpdateDaemonState.valueOf(new String(zk.getData(hostPath + "/update_daemon/status", false, null)));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setPartDaemonState(PartDaemonState state) throws IOException {
-    try {
-      zk.setData(hostPath + "/part_daemon/status", state.toString().getBytes(), -1);
+      if (zk.exists(hostPath + "/status", false) == null) {
+        return HostState.OFFLINE;
+      }
+      return HostState.valueOf(getString(hostPath + "/status"));
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -119,23 +93,11 @@ public class ZkHostConfig implements HostConfig {
     }
   }
 
-  @Override
-  public void setUpdateDaemonState(UpdateDaemonState state) throws IOException {
-    try {
-      zk.setData(hostPath + "/update_daemon/status", state.toString().getBytes(), -1);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
   public static ZkHostConfig create(ZooKeeper zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
     String hostPath = root + "/" + partDaemonAddress.toString();
     zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(hostPath + "/parts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/part_daemon", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/part_daemon/status", PartDaemonState.IDLE.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/update_daemon", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/update_daemon/status", UpdateDaemonState.IDLE.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + "/command", HostCommand.GO_TO_IDLE.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(hostPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkHostConfig(zk, hostPath);
   }
@@ -209,63 +171,43 @@ public class ZkHostConfig implements HostConfig {
   }
 
   @Override
-  public boolean isUpdateDaemonOnline() throws IOException {
+  public HostCommand getCommand() throws IOException {
     try {
-      return zk.exists(updateDaemonOnlinePath, false) != null;
+      return HostCommand.valueOf(getString(hostPath + "/command"));
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public void updateDaemonOffline() throws IOException {
+  public boolean isOnline() throws IOException {
+    return getHostState() != HostState.OFFLINE;
+  }
+
+  @Override
+  public void setCommand(HostCommand command) throws IOException {
     try {
-      zk.delete(updateDaemonOnlinePath, -1);
+      zk.setData(hostPath + "/command", command.toString().getBytes(), -1);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public boolean updateDaemonOnline() throws IOException {
+  public void setState(HostState state) throws IOException {
     try {
-      if (zk.exists(updateDaemonOnlinePath, false) == null) {
-        zk.create(updateDaemonOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        return true;
+      if (state == HostState.OFFLINE) {
+        if (zk.exists(hostPath + "/status", false) == null) {
+          // already offline
+        } else {
+          zk.delete(hostPath + "/status", -1);
+        }
       } else {
-        return false;
-      }
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public boolean isPartDaemonOnline() throws IOException {
-    try {
-      return zk.exists(partDaemonOnlinePath, false) != null;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void partDaemonOffline() throws IOException {
-    try {
-      zk.delete(partDaemonOnlinePath, -1);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public boolean partDaemonOnline() throws IOException {
-    try {
-      if (zk.exists(partDaemonOnlinePath, false) == null) {
-        zk.create(partDaemonOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        return true;
-      } else {
-        return false;
+        if (zk.exists(hostPath + "/status", false) == null) {
+          zk.create(hostPath + "/status", state.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        } else {
+          zk.setData(hostPath + "/status", state.toString().getBytes(), -1);
+        }
       }
     } catch (Exception e) {
       throw new IOException(e);

@@ -12,28 +12,41 @@ public interface HostConfig {
 
   public HostState getHostState() throws IOException;
 
-  public PartDaemonState getPartDaemonState() throws IOException;
-  public void setPartDaemonState(PartDaemonState state) throws IOException;
+  public void setState(HostState state) throws IOException;
 
-  public UpdateDaemonState getUpdateDaemonState() throws IOException;
-  public void setUpdateDaemonState(UpdateDaemonState state) throws IOException;
+  /**
+   * Returns true when the host is online. Note that this is distinct from
+   * "serving data" - a host is online when it's NOT offline.
+   * 
+   * @return
+   * @throws IOException
+   */
+  public boolean isOnline() throws IOException;
 
+  /**
+   * Tell the host what it should do next.
+   * @param command
+   * @throws IOException
+   */
+  public void setCommand(HostCommand command) throws IOException;
+
+  /**
+   * Get the currently pending command.
+   * @return
+   * @throws IOException
+   */
+  public HostCommand getCommand() throws IOException;
+
+  /**
+   * The listener will be notified when either the state or the command changes.
+   * @param listener
+   * @throws IOException
+   */
   public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
 
   public Set<HostDomainConfig> getAssignedDomains() throws IOException;
+
   public HostDomainConfig addDomain(int domainId) throws IOException;
 
   public HostDomainConfig getDomainById(int domainId);
-
-  public boolean updateDaemonOnline() throws IOException;
-
-  public boolean isUpdateDaemonOnline() throws IOException;
-
-  public void updateDaemonOffline() throws IOException;
-
-  public boolean partDaemonOnline() throws IOException;
-
-  public boolean isPartDaemonOnline() throws IOException;
-
-  public void partDaemonOffline() throws IOException;
 }
