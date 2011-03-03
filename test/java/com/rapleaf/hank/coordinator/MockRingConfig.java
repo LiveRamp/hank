@@ -13,8 +13,10 @@ public class MockRingConfig implements RingConfig {
 
   public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
     this.hosts = new HashSet<HostConfig>();
-    for (PartDaemonAddress addy : hosts) {
-      this.hosts.add(new MockHostConfig(addy));
+    if (hosts != null) {
+      for (PartDaemonAddress addy : hosts) {
+        this.hosts.add(new MockHostConfig(addy));
+      }
     }
     this.rgc = rgc;
     this.number = number;

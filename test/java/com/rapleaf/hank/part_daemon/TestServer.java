@@ -21,7 +21,9 @@ import java.nio.ByteBuffer;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
@@ -71,23 +73,16 @@ public class TestServer extends BaseTestCase {
     };
 
     // should move smoothly from startable to idle
-    mockHostConfig.setPartDaemonState(PartDaemonState.STARTABLE);
+    mockHostConfig.setCommand(HostCommand.SERVE_DATA);
     server.onHostStateChange(mockHostConfig);
-    assertEquals("Daemon state is now STARTED",
-        PartDaemonState.STARTED,
-        mockHostConfig.getPartDaemonState());
+    assertEquals("Daemon state is now SERVING",
+        HostState.SERVING,
+        mockHostConfig.getState());
 
-    // duplicate startable should end up back in started without any mess
-    mockHostConfig.setPartDaemonState(PartDaemonState.STARTABLE);
-    server.onHostStateChange(mockHostConfig);
-    assertEquals("Daemon state is now STARTED",
-        PartDaemonState.STARTED,
-        mockHostConfig.getPartDaemonState());
-
-    mockHostConfig.setPartDaemonState(PartDaemonState.STOPPABLE);
+    mockHostConfig.setCommand(HostCommand.GO_TO_IDLE);
     server.onHostStateChange(mockHostConfig);
     assertEquals("Daemon state is now IDLE",
-        PartDaemonState.IDLE,
-        mockHostConfig.getPartDaemonState());
+        HostState.IDLE,
+        mockHostConfig.getState());
   }
 }

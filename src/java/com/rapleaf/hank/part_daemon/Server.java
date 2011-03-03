@@ -25,11 +25,15 @@ import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -69,8 +73,7 @@ public class Server implements HostStateChangeListener {
   }
 
   public void run() throws IOException {
-    hostConfig.partDaemonOnline();
-//    coord.setDaemonState(ringGroupName, ringNumber, hostAddress, DaemonType.PART_DAEMON, DaemonState.IDLE);
+    hostConfig.setState(HostState.IDLE);
 
     while (!goingDown) {
       try {
@@ -80,7 +83,7 @@ public class Server implements HostStateChangeListener {
         break;
       }
     }
-    hostConfig.partDaemonOffline();
+    hostConfig.setState(HostState.OFFLINE);
   }
 
   /**
@@ -158,37 +161,39 @@ public class Server implements HostStateChangeListener {
   public void stop() throws IOException {
     // don't wait to be started again.
     goingDown = true;
-    setState(PartDaemonState.STOPPING);
     stopServer();
-    setState(PartDaemonState.IDLE);
+    setState(HostState.IDLE);
   }
 
-  private void setState(PartDaemonState state) throws IOException {
-    hostConfig.setPartDaemonState(state);
+  private void setState(HostState state) throws IOException {
+    hostConfig.setState(state);
   }
 
   @Override
   public void onHostStateChange(HostConfig hostConfig) {
     synchronized (mutex) {
-      PartDaemonState state;
+      HostCommand command;
       try {
-        state = hostConfig.getPartDaemonState();
-        LOG.debug("Notified of state change to state " + state);
-        switch (state) {
-          case STARTABLE:
-            setState(PartDaemonState.STARTING);
+        command = hostConfig.getCommand();
+        LOG.debug("Notified of host state change. Current command: " + command);
+        switch (command) {
+          case SERVE_DATA:
             startServer();
-            setState(PartDaemonState.STARTED);
+            setState(HostState.SERVING);
             break;
 
-          case STOPPABLE:
-            setState(PartDaemonState.STOPPING);
+          case GO_TO_IDLE:
             stopServer();
-            setState(PartDaemonState.IDLE);
+            setState(HostState.IDLE);
+            break;
+
+          case EXECUTE_UPDATE:
+            setState(HostState.UPDATING);
+            update();
             break;
 
           default:
-            LOG.debug("notified of an irrelevant state: " + state);
+            LOG.debug("notified of an irrelevant state: " + command);
         }
       } catch (IOException e) {
         LOG.error("Error processing host state change!", e);
@@ -196,5 +201,9 @@ public class Server implements HostStateChangeListener {
       }
       
     }
+  }
+
+  private void update() {
+    throw new NotImplementedException();
   }
 }
