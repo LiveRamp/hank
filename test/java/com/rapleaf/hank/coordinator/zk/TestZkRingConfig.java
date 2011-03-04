@@ -8,6 +8,7 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -125,7 +126,21 @@ public class TestZkRingConfig extends ZkTestCase {
   }
 
   public void testGetNumHostsInState() throws Exception {
-    fail("not implemented");
+    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
+    PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
+    PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
+    PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
+
+    HostConfig hc1 = rc.addHost(h1);
+    hc1.setState(HostState.IDLE);
+    HostConfig hc2 = rc.addHost(h2);
+    hc2.setState(HostState.SERVING);
+    HostConfig hc3 = rc.addHost(h3);
+    hc3.setState(HostState.OFFLINE);
+
+    assertEquals(Collections.singleton(hc1), rc.getHostsInState(HostState.IDLE));
+    assertEquals(Collections.singleton(hc2), rc.getHostsInState(HostState.SERVING));
+    assertEquals(Collections.singleton(hc3), rc.getHostsInState(HostState.OFFLINE));
   }
 
   @Override

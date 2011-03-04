@@ -36,8 +36,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements
             anyDownOrUpdating = true;
 
             // let's check if the ring is fully down or not.
-            int numHostsIdle = ring.getNumHostsInState(HostState.IDLE);
-            int numHostsOffline = ring.getNumHostsInState(HostState.OFFLINE);
+            int numHostsIdle = ring.getHostsInState(HostState.IDLE).size();
+            int numHostsOffline = ring.getHostsInState(HostState.OFFLINE).size();
             if (numHostsIdle + numHostsOffline == ring.getHosts().size()) {
               // sweet, everyone's either offline or idle.
               ring.setState(RingState.DOWN);
@@ -61,7 +61,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
             anyDownOrUpdating = true;
 
             // let's check if we're done updating yet
-            int numHostsUpdating = ring.getNumHostsInState(HostState.UPDATING);
+            int numHostsUpdating = ring.getHostsInState(HostState.UPDATING).size();
             if (numHostsUpdating > 0) {
               // we're not done updating yet.
               break;
@@ -91,8 +91,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements
             anyDownOrUpdating = true;
 
             // let's check if we're all the way online yet
-            int numHostsServing = ring.getNumHostsInState(HostState.SERVING);
-            numHostsOffline = ring.getNumHostsInState(HostState.OFFLINE);
+            int numHostsServing = ring.getHostsInState(HostState.SERVING).size();
+            numHostsOffline = ring.getHostsInState(HostState.OFFLINE).size();
             if (numHostsServing + numHostsOffline == ring.getHosts().size()) {
               // yay! we're all online!
               ring.setState(RingState.UP);

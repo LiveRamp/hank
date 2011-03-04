@@ -31,8 +31,6 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
@@ -231,8 +229,14 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   }
 
   @Override
-  public int getNumHostsInState(HostState state) {
-    throw new NotImplementedException();
+  public Set<HostConfig> getHostsInState(HostState state) throws IOException {
+    Set<HostConfig> results = new HashSet<HostConfig>();
+    for (HostConfig hostConfig: getHosts()) {
+      if (hostConfig.getState() == state) {
+        results.add(hostConfig);
+      }
+    }
+    return results;
   }
 
   @Override

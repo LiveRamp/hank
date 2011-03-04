@@ -47,9 +47,20 @@ public interface RingConfig {
 
   public void updateComplete() throws IOException;
 
+  /**
+   * TODO: this might be a dead method.
+   * @return
+   * @throws IOException
+   */
   public Integer getOldestVersionOnHosts() throws IOException;
 
   public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException;
 
-  public int getNumHostsInState(HostState state);
+  /**
+   * Return all the hosts that are in the requested state.
+   * @param state
+   * @return
+   * @throws IOException
+   */
+  public Set<HostConfig> getHostsInState(HostState state) throws IOException;
 }

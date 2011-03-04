@@ -98,9 +98,9 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public int getNumHostsInState(HostState state) {
+  public Set<HostConfig> getHostsInState(HostState state) {
     // TODO Auto-generated method stub
-    return 0;
+    return null;
   }
 
   @Override

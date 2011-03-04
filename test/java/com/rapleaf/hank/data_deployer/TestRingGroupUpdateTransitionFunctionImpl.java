@@ -1,12 +1,15 @@
 package com.rapleaf.hank.data_deployer;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -124,12 +127,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testUpdatingToComingUp() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public int getNumHostsInState(HostState state) {
+      public Set<HostConfig> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
-            return 0;
+            return Collections.EMPTY_SET;
           case UPDATING:
-            return 0;
+            return Collections.EMPTY_SET;
           default:
             throw new IllegalStateException(state.toString());
         }
@@ -145,12 +148,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public int getNumHostsInState(HostState state) {
+      public Set<HostConfig> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
-            return 0;
+            return Collections.EMPTY_SET;
           case UPDATING:
-            return 1;
+            return getHosts();
           default:
             throw new IllegalStateException(state.toString());
         }
@@ -167,12 +170,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testUpdatedToComingUp() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATED, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public int getNumHostsInState(HostState state) {
+      public Set<HostConfig> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
-            return 0;
+            return Collections.EMPTY_SET;
           case UPDATING:
-            return 0;
+            return Collections.EMPTY_SET;
           default:
             throw new IllegalStateException(state.toString());
         }
@@ -189,12 +192,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRC r1 = new MRC(1, RingState.COMING_UP, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
 
       @Override
-      public int getNumHostsInState(HostState state) {
+      public Set<HostConfig> getHostsInState(HostState state) {
         switch(state) {
           case SERVING:
-            return 1;
+            return getHosts();
           case OFFLINE:
-            return 0;
+            return Collections.EMPTY_SET;
           default:
             throw new IllegalStateException(state.toString());
         }
