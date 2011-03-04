@@ -75,32 +75,13 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
   }
 
-  public void testStartAllPartDaemons() throws Exception {
+  public void testCommandAll() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
     assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
-    rc.startAllPartDaemons();
+    rc.commandAll(HostCommand.SERVE_DATA);
     assertEquals(HostCommand.SERVE_DATA, hc.getCommand());
-  }
-
-  public void testTakeDownAllPartDaemons() throws Exception {
-    create(ring_root + "/current_version", "1");
-    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    hc.setCommand(HostCommand.SERVE_DATA);
-    assertEquals(HostCommand.SERVE_DATA, hc.getCommand());
-    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
-    rc.takeDownPartDaemons();
-    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
-  }
-
-  public void testStartAllUpdaters() throws Exception {
-    create(ring_root + "/current_version", "1");
-    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
-    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
-    rc.startAllUpdaters();
-    assertEquals(HostCommand.EXECUTE_UPDATE, hc.getCommand());
   }
 
   public void testGetOldestVersionOnHosts() throws Exception {

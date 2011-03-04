@@ -41,15 +41,11 @@ public interface RingConfig {
 
   public boolean isUpdatePending();
 
-  public void takeDownPartDaemons() throws IOException;
+  public void commandAll(HostCommand command) throws IOException;
 
   public Integer getUpdatingToVersionNumber();
 
   public void updateComplete() throws IOException;
-
-  public void startAllPartDaemons() throws IOException;
-
-  public void startAllUpdaters() throws IOException;
 
   public Integer getOldestVersionOnHosts() throws IOException;
 

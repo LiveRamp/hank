@@ -10,6 +10,7 @@ public class MockRingConfig implements RingConfig {
   private final int number;
   private final RingGroupConfig rgc;
   private final Set<HostConfig> hosts;
+  public HostCommand allCommanded;
 
   public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
     this.hosts = new HashSet<HostConfig>();
@@ -62,24 +63,6 @@ public class MockRingConfig implements RingConfig {
   }
 
   @Override
-  public void startAllPartDaemons() {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void startAllUpdaters() {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
-  public void takeDownPartDaemons() {
-    // TODO Auto-generated method stub
-    
-  }
-
-  @Override
   public void updateComplete() {
     // TODO Auto-generated method stub
     
@@ -118,5 +101,10 @@ public class MockRingConfig implements RingConfig {
   public int getNumHostsInState(HostState state) {
     // TODO Auto-generated method stub
     return 0;
+  }
+
+  @Override
+  public void commandAll(HostCommand command) throws IOException {
+    this.allCommanded = command;
   }
 }

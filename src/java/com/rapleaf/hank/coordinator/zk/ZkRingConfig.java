@@ -130,27 +130,6 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   }
 
   @Override
-  public void startAllPartDaemons() throws IOException {
-    for (HostConfig hc : hostConfigs.values()) {
-      hc.setCommand(HostCommand.SERVE_DATA);
-    }
-  }
-
-  @Override
-  public void startAllUpdaters() throws IOException {
-    for (HostConfig hc : hostConfigs.values()) {
-      hc.setCommand(HostCommand.EXECUTE_UPDATE);
-    }
-  }
-
-  @Override
-  public void takeDownPartDaemons() throws IOException {
-    for (HostConfig hc : hostConfigs.values()) {
-      hc.setCommand(HostCommand.GO_TO_IDLE);
-    }
-  }
-
-  @Override
   public void updateComplete() throws IOException {
     try {
       if (zk.exists(ringPath + CURRENT_VERSION_PATH_SEGMENT, false) != null) {
@@ -254,5 +233,12 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   @Override
   public int getNumHostsInState(HostState state) {
     throw new NotImplementedException();
+  }
+
+  @Override
+  public void commandAll(HostCommand command) throws IOException {
+    for (HostConfig hostConfig : getHosts()) {
+      hostConfig.setCommand(command);
+    }
   }
 }

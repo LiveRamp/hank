@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 
 import junit.framework.TestCase;
 
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -15,23 +16,17 @@ import com.rapleaf.hank.coordinator.RingState;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MRC extends MockRingConfig {
-    private boolean takeDownPartDaemonsCalled;
     private final boolean updatePending;
     private final int curVer;
     private final int nextVer;
-    public boolean startAllUpdatersCalled;
-    private boolean startAllPartDaemonsCalled;
+
     public boolean updateCompleteCalled;
+
     public MRC(int number, RingState state, boolean updatePending, int curVer, int nextVer, PartDaemonAddress... hosts) {
       super(new LinkedHashSet<PartDaemonAddress>(Arrays.asList(hosts)), null, number, state);
       this.updatePending = updatePending;
       this.curVer = curVer;
       this.nextVer = nextVer;
-    }
-
-    @Override
-    public void takeDownPartDaemons() {
-      this.takeDownPartDaemonsCalled = true;
     }
 
     @Override
@@ -47,16 +42,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     @Override
     public Integer getVersionNumber() {
       return curVer;
-    }
-
-    @Override
-    public void startAllPartDaemons() {
-      this.startAllPartDaemonsCalled = true;
-    }
-
-    @Override
-    public void startAllUpdaters() {
-      this.startAllUpdatersCalled = true;
     }
 
     @Override
@@ -94,9 +79,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
-    assertTrue("r1 should have been taken down", r1.takeDownPartDaemonsCalled);
+    assertEquals("r1 should have been taken down", HostCommand.GO_TO_IDLE, r1.allCommanded);
     assertEquals(RingState.GOING_DOWN, r1.getState());
-    assertFalse("r2 should not have been taken down", r2.takeDownPartDaemonsCalled);
+    assertNull("r2 should not have been taken down", r2.allCommanded);
     assertEquals(RingState.UP, r2.getState());
   }
 
@@ -110,9 +95,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
-    assertFalse("r1 should not have been taken down", r1.takeDownPartDaemonsCalled);
+    assertNull("r1 should not have been taken down", r1.allCommanded);
     assertEquals(RingState.UP, r1.getState());
-    assertTrue("r2 should have been taken down", r2.takeDownPartDaemonsCalled);
+    assertEquals("r2 should have been taken down", HostCommand.GO_TO_IDLE, r2.allCommanded);
     assertEquals(RingState.GOING_DOWN, r2.getState());
   }
 
@@ -132,7 +117,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
-    assertTrue("r1 should have been set to updating", r1.startAllUpdatersCalled);
+    assertEquals("r1 should have been set to updating", HostCommand.EXECUTE_UPDATE, r1.allCommanded);
     assertEquals(RingState.UPDATING, r1.getState());
   }
 
@@ -153,7 +138,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
-    assertTrue("r1 should have been set to starting", r1.startAllPartDaemonsCalled);
+    assertEquals("r1 should have been set to starting", HostCommand.SERVE_DATA, r1.allCommanded);
     assertEquals(RingState.COMING_UP, r1.getState());
   }
 
@@ -174,7 +159,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
-    assertFalse("r1 should have been set to starting", r1.startAllPartDaemonsCalled);
+    assertNull("r1 should have been set to starting", r1.allCommanded);
     assertEquals(RingState.UPDATING, r1.getState());
   }
 
@@ -196,7 +181,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
-    assertTrue("r1's hosts should be commanded to start", r1.startAllPartDaemonsCalled);
+    assertEquals("r1's hosts should be commanded to start", HostCommand.SERVE_DATA, r1.allCommanded);
     assertEquals(RingState.COMING_UP, r1.getState());
   }
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -51,7 +52,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
 
             // we just finished stopping
             // start up all the updaters
-            ring.startAllUpdaters();
+            ring.commandAll(HostCommand.EXECUTE_UPDATE);
             ring.setState(RingState.UPDATING);
             break;
 
@@ -81,7 +82,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
             anyDownOrUpdating = true;
 
             // sweet, we're done updating, so we can start all our daemons now
-            ring.startAllPartDaemons();
+            ring.commandAll(HostCommand.SERVE_DATA);
             ring.setState(RingState.COMING_UP);
             break;
 
@@ -113,7 +114,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
     if (!anyDownOrUpdating && !downable.isEmpty()) {
       RingConfig toDown = downable.poll();
 
-      toDown.takeDownPartDaemons();
+      toDown.commandAll(HostCommand.GO_TO_IDLE);
       toDown.setState(RingState.GOING_DOWN);
     }
 
