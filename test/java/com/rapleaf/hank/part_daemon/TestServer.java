@@ -37,13 +37,17 @@ import com.rapleaf.hank.generated.PartDaemon.Iface;
 
 public class TestServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {
-
+    public boolean updateCalled = false;
     @Override
     public void update() throws DataNotFoundException, IOException {
-      // TODO Auto-generated method stub
-
+      updateCalled = true;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
     }
-
   }
 
   private static final MockHostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("localhost", 1));
@@ -123,6 +127,8 @@ public class TestServer extends BaseTestCase {
     assertEquals("Daemon state is now UPDATING",
         HostState.UPDATING,
         mockHostConfig.getState());
+    Thread.sleep(1500);
+    assertTrue("update called", mockUpdateManager.updateCalled);
 
     server.stop();
     t.join();

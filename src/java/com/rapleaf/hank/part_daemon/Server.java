@@ -54,7 +54,6 @@ public class Server implements HostStateChangeListener {
 
   private final HostConfig hostConfig;
 
-  @SuppressWarnings("unused")
   private Thread updateThread;
 
   private final RingGroupConfig ringGroupConfig;
@@ -262,6 +261,7 @@ public class Server implements HostStateChangeListener {
       }
     };
     updateThread = new Thread(updateRunnable, "update manager thread");
+    updateThread.start();
   }
 
   protected IUpdateManager getUpdateManager() throws DataNotFoundException, IOException {
