@@ -25,9 +25,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.rapleaf.hank.config.PartDaemonConfigurator;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
@@ -80,7 +78,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartDaemonConfigurator configurator, int partNum)
+  public Reader getReader(PartservConfigurator configurator, int partNum)
       throws IOException {
     return new CurlyReader(getLocalDir(configurator, partNum),
         recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator,
@@ -100,7 +98,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(UpdateDaemonConfigurator configurator, int partNum) {
+  public Updater getUpdater(PartservConfigurator configurator, int partNum) {
     throw new NotImplementedException();
     // return new CurlyUpdater();
   }
