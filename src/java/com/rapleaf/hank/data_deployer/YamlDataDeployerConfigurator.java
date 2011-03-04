@@ -23,7 +23,7 @@ public class YamlDataDeployerConfigurator extends BaseYamlConfigurator implement
 
   @Override
   public long getSleepInterval() {
-    return ((Long) ((Map<String, Object>) config.get(DATA_DEPLOYER_SECTION_KEY)).get(SLEEP_INTERVAL_KEY)).longValue();
+    return ((Integer) ((Map<String, Object>) config.get(DATA_DEPLOYER_SECTION_KEY)).get(SLEEP_INTERVAL_KEY)).longValue();
   }
 
   @Override
