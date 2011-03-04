@@ -8,7 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
@@ -72,7 +72,7 @@ public class TestHandler extends BaseTestCase {
     Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3, K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
-      public Reader getReader(PartDaemonConfigurator configurator, int partNum)
+      public Reader getReader(PartservConfigurator configurator, int partNum)
       throws IOException {
         return new MockReader(configurator, partNum, V1);
       }
@@ -114,7 +114,7 @@ public class TestHandler extends BaseTestCase {
         };
       }
     };
-    PartDaemonConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", "/tmp/local/data/dir");
+    PartservConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", "/tmp/local/data/dir");
     Handler handler = new Handler(new PartDaemonAddress("localhost", 12345), config);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));

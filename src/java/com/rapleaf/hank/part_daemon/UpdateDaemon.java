@@ -29,8 +29,7 @@ import org.apache.log4j.PropertyConfigurator;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.UpdateDaemonConfigurator;
-import com.rapleaf.hank.config.YamlUpdateDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
@@ -74,14 +73,14 @@ public class UpdateDaemon implements HostStateChangeListener {
     }
   }
 
-  private final UpdateDaemonConfigurator configurator;
+  private final PartservConfigurator configurator;
   private final Coordinator coord;
   private boolean goingDown;
 
   private final PartDaemonAddress hostAddress;
   private final HostConfig hostConfig;
 
-  public UpdateDaemon(UpdateDaemonConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
+  public UpdateDaemon(PartservConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());

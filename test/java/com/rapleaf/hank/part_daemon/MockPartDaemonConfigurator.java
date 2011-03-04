@@ -3,10 +3,10 @@ package com.rapleaf.hank.part_daemon;
 import java.util.Collections;
 import java.util.Set;
 
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 
-public class MockPartDaemonConfigurator implements PartDaemonConfigurator {
+public class MockPartDaemonConfigurator implements PartservConfigurator {
 
   private final int servicePort;
   private final Coordinator coordinator;
@@ -42,6 +42,11 @@ public class MockPartDaemonConfigurator implements PartDaemonConfigurator {
 
   @Override
   public int getNumThreads() {
+    return 1;
+  }
+
+  @Override
+  public int getNumConcurrentUpdates() {
     return 1;
   }
 }

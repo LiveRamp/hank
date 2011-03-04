@@ -3,15 +3,15 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 
 public class MockReader implements Reader {
 
-  private final PartDaemonConfigurator configurator;
+  private final PartservConfigurator configurator;
   private final int partNum;
   private final byte[] returnValue;
 
-  public MockReader(PartDaemonConfigurator configurator, int partNum, byte[] returnValue) {
+  public MockReader(PartservConfigurator configurator, int partNum, byte[] returnValue) {
     this.configurator = configurator;
     this.partNum = partNum;
     this.returnValue = returnValue;
@@ -26,12 +26,11 @@ public class MockReader implements Reader {
     result.found();
   }
 
-  public PartDaemonConfigurator getConfigurator() {
+  public PartservConfigurator getConfigurator() {
     return configurator;
   }
 
   public int getPartNum() {
     return partNum;
   }
-
 }

@@ -32,8 +32,7 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartDaemonConfigurator;
-import com.rapleaf.hank.config.UpdateDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -93,7 +92,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
   private class EchoStorageEngine implements StorageEngine {
     @Override
-    public Reader getReader(PartDaemonConfigurator configurator, int partNum) {
+    public Reader getReader(PartservConfigurator configurator, int partNum) {
       return new Reader() {
         @Override
         public void get(ByteBuffer key, Result result) throws IOException {
@@ -104,7 +103,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
 
     @Override
-    public Updater getUpdater(UpdateDaemonConfigurator configurator, int partNum) {
+    public Updater getUpdater(PartservConfigurator configurator, int partNum) {
       return null;
     }
 

@@ -20,8 +20,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.MockUpdateDaemonConfigurator;
-import com.rapleaf.hank.config.UpdateDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -80,7 +79,7 @@ public class TestUpdateDaemon extends BaseTestCase {
     }
 
     @Override
-    public Updater getUpdater(UpdateDaemonConfigurator configurator, int partNum) {
+    public Updater getUpdater(PartservConfigurator configurator, int partNum) {
       return mockUpdater;
     }
   }
@@ -145,7 +144,7 @@ public class TestUpdateDaemon extends BaseTestCase {
 
     MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
 
-    UpdateDaemon ud = new UpdateDaemon(new MockUpdateDaemonConfigurator(1, null, 12345, mockCoordinator, "myRingGroup", 1), "localhost");
+    UpdateDaemon ud = new UpdateDaemon(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", "/local/data/dir"), "localhost");
 
     // should move smoothly from updateable to idle
     mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
@@ -168,7 +167,7 @@ public class TestUpdateDaemon extends BaseTestCase {
     MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
     mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATING);
 
-    final UpdateDaemon ud = new UpdateDaemon(new MockUpdateDaemonConfigurator(1, null, 12345, mockCoordinator, "myRingGroup", 1), "localhost");
+    final UpdateDaemon ud = new UpdateDaemon(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", null), "localhost");
     new Thread(new Runnable() {
       @Override
       public void run() {

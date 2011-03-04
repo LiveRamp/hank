@@ -25,13 +25,11 @@ import com.rapleaf.hank.cli.AddDomainToDomainGroup;
 import com.rapleaf.hank.cli.AddRing;
 import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.UpdateDaemonConfigurator;
 import com.rapleaf.hank.config.YamlClientConfigurator;
-import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
+import com.rapleaf.hank.config.YamlPartservConfigurator;
 import com.rapleaf.hank.config.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.YamlUpdateDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -102,7 +100,7 @@ public class IntegrationTest extends ZkTestCase {
     private String configPath;
     private com.rapleaf.hank.part_daemon.UpdateDaemon server;
     public Throwable throwable;
-    private final UpdateDaemonConfigurator configurator;
+    private final PartservConfigurator configurator;
 
     public UpdateDaemonRunnable(PartDaemonAddress addy) throws Exception {
       String hostDotPort = addy.getHostName() + "." + addy.getPortNumber();
@@ -119,7 +117,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    num_concurrent_updates: 1");
       coordinatorConfig(pw);
       pw.close();
-      configurator = new YamlUpdateDaemonConfigurator(configPath);
+      configurator = new YamlPartservConfigurator(configPath);
     }
 
     @Override
@@ -144,7 +142,7 @@ public class IntegrationTest extends ZkTestCase {
     private final String configPath;
     private Throwable throwable;
     private com.rapleaf.hank.part_daemon.Server server;
-    private final PartDaemonConfigurator configurator;
+    private final PartservConfigurator configurator;
 
     public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
       this.partDaemonAddress = addy;
@@ -163,7 +161,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    num_worker_threads: 1");
       coordinatorConfig(pw);
       pw.close();
-      configurator = new YamlPartDaemonConfigurator(configPath);
+      configurator = new YamlPartservConfigurator(configPath);
     }
 
     @Override
