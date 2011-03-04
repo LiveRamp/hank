@@ -51,6 +51,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     public void updateComplete() {
       this.updateCompleteCalled = true;
     }
+
+    @Override
+    public Set<HostConfig> getHostsInState(HostState state) {
+      return Collections.EMPTY_SET;
+    }
+    
   }
 
 
