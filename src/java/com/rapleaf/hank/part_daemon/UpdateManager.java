@@ -36,7 +36,7 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
 
-public class UpdateManager {
+public class UpdateManager implements IUpdateManager {
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class UpdateToDo implements Runnable {

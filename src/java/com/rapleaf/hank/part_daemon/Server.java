@@ -25,8 +25,6 @@ import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.config.YamlPartservConfigurator;
@@ -35,6 +33,8 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
@@ -54,11 +54,20 @@ public class Server implements HostStateChangeListener {
 
   private final HostConfig hostConfig;
 
+  @SuppressWarnings("unused")
+  private Thread updateThread;
+
+  private final RingGroupConfig ringGroupConfig;
+
+  private final RingConfig ringConfig;
+
   public Server(PartservConfigurator configurator, String hostName) throws IOException, DataNotFoundException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    hostConfig = coord.getRingGroupConfig(configurator.getRingGroupName()).getRingConfigForHost(hostAddress).getHostConfigByAddress(hostAddress);
+    ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
+    ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
+    hostConfig = ringConfig.getHostConfigByAddress(hostAddress);
     hostConfig.setStateChangeListener(this);
   }
 
@@ -148,6 +157,10 @@ public class Server implements HostStateChangeListener {
    * blocks until thrift server is down
    */
   public void stopServer() {
+    if (server == null) {
+      return;
+    }
+
     server.stop();
     try {
       serverThread.join();
@@ -175,35 +188,83 @@ public class Server implements HostStateChangeListener {
       HostCommand command;
       try {
         command = hostConfig.getCommand();
+        HostState state = hostConfig.getState();
         LOG.debug("Notified of host state change. Current command: " + command);
         switch (command) {
           case SERVE_DATA:
-            startServer();
-            setState(HostState.SERVING);
+            switch (state) {
+              case IDLE:
+                startServer();
+                setState(HostState.SERVING);
+                break;
+              default:
+                LOG.debug("have command " + command
+                    + " but not compatible with current state " + state
+                    + ". Ignoring.");
+            }
             break;
 
           case GO_TO_IDLE:
-            stopServer();
-            setState(HostState.IDLE);
+            switch (state) {
+              case SERVING:
+                stopServer();
+                setState(HostState.IDLE);
+                break;
+              case UPDATING:
+                LOG.debug("received command " + command
+                    + " but current state is " + state
+                    + ", which cannot be stopped. Will wait until completion.");
+                break;
+              default:
+                LOG.debug("have command " + command
+                    + " but not compatible with current state " + state
+                    + ". Ignoring.");
+            }
             break;
 
           case EXECUTE_UPDATE:
-            setState(HostState.UPDATING);
-            update();
+            switch (state) {
+              case IDLE:
+                setState(HostState.UPDATING);
+                update();
+                break;
+              case SERVING:
+                LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+              default:
+                LOG.debug("have command " + command
+                    + " but not compatible with current state " + state
+                    + ". Ignoring.");
+            }
             break;
 
           default:
-            LOG.debug("notified of an irrelevant state: " + command);
+            LOG.debug("notified of an irrelevant command: " + command);
         }
       } catch (IOException e) {
         LOG.error("Error processing host state change!", e);
         return;
       }
-      
     }
   }
 
   private void update() {
-    throw new NotImplementedException();
+    Runnable updateRunnable = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          IUpdateManager updateManager = getUpdateManager();
+          updateManager.update();
+          setState(HostState.IDLE);
+        } catch (Throwable e) {
+          // TODO: should this take the server down?
+          LOG.fatal("updater encountered a fatal error!", e);
+        }
+      }
+    };
+    updateThread = new Thread(updateRunnable, "update manager thread");
+  }
+
+  protected IUpdateManager getUpdateManager() throws DataNotFoundException, IOException {
+    return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
   }
 }

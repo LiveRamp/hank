@@ -36,6 +36,16 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 
 public class TestServer extends BaseTestCase {
+  private final class MockUpdateManager implements IUpdateManager {
+
+    @Override
+    public void update() throws DataNotFoundException, IOException {
+      // TODO Auto-generated method stub
+
+    }
+
+  }
+
   private static final MockHostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("localhost", 1));
 
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
@@ -62,7 +72,8 @@ public class TestServer extends BaseTestCase {
   private static final MockPartDaemonConfigurator configurator = new MockPartDaemonConfigurator(12345, mockCoord, "myRingGroup", null);
 
   public void testColdStartAndShutDown() throws Exception {
-    Server server = new Server(configurator, "localhost") {
+    final MockUpdateManager mockUpdateManager = new MockUpdateManager();
+    final Server server = new Server(configurator, "localhost") {
       @Override
       protected Iface getHandler() throws DataNotFoundException, IOException {
         return new Iface() {
@@ -70,7 +81,29 @@ public class TestServer extends BaseTestCase {
           public HankResponse get(int domainId, ByteBuffer key) throws TException {return null;}
         };
       }
+
+      @Override
+      protected IUpdateManager getUpdateManager() {
+        return mockUpdateManager;
+      }
     };
+
+    Runnable serverRunnable = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          server.run();
+        } catch (IOException e) {
+          fail("exception!" + e);
+        }
+      }
+    };
+    Thread t = new Thread(serverRunnable, "server thread");
+
+    mockHostConfig.setCommand(HostCommand.GO_TO_IDLE);
+    t.start();
+    Thread.sleep(1000);
+    assertEquals(HostState.IDLE, mockHostConfig.getState());
 
     // should move smoothly from startable to idle
     mockHostConfig.setCommand(HostCommand.SERVE_DATA);
@@ -84,5 +117,15 @@ public class TestServer extends BaseTestCase {
     assertEquals("Daemon state is now IDLE",
         HostState.IDLE,
         mockHostConfig.getState());
+
+    mockHostConfig.setCommand(HostCommand.EXECUTE_UPDATE);
+    server.onHostStateChange(mockHostConfig);
+    assertEquals("Daemon state is now UPDATING",
+        HostState.UPDATING,
+        mockHostConfig.getState());
+
+    server.stop();
+    t.join();
+    assertEquals(HostState.OFFLINE, mockHostConfig.getState());
   }
 }
