@@ -28,8 +28,8 @@ import org.apache.thrift.transport.TTransportException;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.PartDaemonConfigurator;
-import com.rapleaf.hank.config.YamlPartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.YamlPartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -44,7 +44,7 @@ import com.rapleaf.hank.util.HostUtils;
 public class Server implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(Server.class);
 
-  private final PartDaemonConfigurator configurator;
+  private final PartservConfigurator configurator;
   private final Coordinator coord;
   private Thread serverThread;
   private TServer server;
@@ -54,7 +54,7 @@ public class Server implements HostStateChangeListener {
 
   private final HostConfig hostConfig;
 
-  public Server(PartDaemonConfigurator configurator, String hostName) throws IOException, DataNotFoundException {
+  public Server(PartservConfigurator configurator, String hostName) throws IOException, DataNotFoundException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
@@ -66,7 +66,7 @@ public class Server implements HostStateChangeListener {
     String configPath = args[0];
     String log4jprops = args[1];
 
-    PartDaemonConfigurator configurator = new YamlPartDaemonConfigurator(configPath);
+    PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
 
     new Server(configurator, HostUtils.getHostName()).run();

@@ -22,7 +22,7 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import com.rapleaf.hank.config.PartDaemonConfigurator;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -41,7 +41,7 @@ public class Handler implements Iface {
 
   private final Domain[] domains;
 
-  public Handler(PartDaemonAddress hostAndPort, PartDaemonConfigurator config) throws DataNotFoundException, IOException {
+  public Handler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws DataNotFoundException, IOException {
     // find the ring config
     RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
