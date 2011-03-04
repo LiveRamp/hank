@@ -24,27 +24,19 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.util.HostUtils;
 
-public class UpdateManager implements HostStateChangeListener {
+public class UpdateManager {
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class UpdateToDo implements Runnable {
@@ -74,41 +66,18 @@ public class UpdateManager implements HostStateChangeListener {
   }
 
   private final PartservConfigurator configurator;
-  private final Coordinator coord;
-  private boolean goingDown;
-
-  private final PartDaemonAddress hostAddress;
   private final HostConfig hostConfig;
+  private final RingGroupConfig ringGroupConfig;
+  private final RingConfig ringConfig;
 
-  public UpdateManager(PartservConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
+  public UpdateManager(PartservConfigurator configurator, HostConfig hostConfig, RingGroupConfig ringGroupConfig, RingConfig ringConfig) throws DataNotFoundException, IOException {
     this.configurator = configurator;
-    this.coord = configurator.getCoordinator();
-    hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    hostConfig = coord.getRingGroupConfig(configurator.getRingGroupName()).getRingConfigForHost(hostAddress).getHostConfigByAddress(hostAddress);
-    hostConfig.setStateChangeListener(this);
+    this.hostConfig = hostConfig;
+    this.ringGroupConfig = ringGroupConfig;
+    this.ringConfig = ringConfig;
   }
 
-  public void run() throws IOException {
-    goingDown = false;
-
-    hostConfig.updateDaemonOnline();
-    // prime things the process by querying the current state and feeding it to
-    // the event handler
-    onHostStateChange(hostConfig);
-
-    while (!goingDown) {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        LOG.debug("Interrupted while waiting for watching thread to go to wake up!", e);
-        break;
-      }
-    }
-
-    hostConfig.updateDaemonOffline();
-  }
-
-  private void update() throws DataNotFoundException, IOException {
+  public void update() throws DataNotFoundException, IOException {
     ThreadFactory factory = new ThreadFactory() {
       private int x = 0;
 
@@ -126,16 +95,13 @@ public class UpdateManager implements HostStateChangeListener {
         factory);
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    RingGroupConfig ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
-    RingConfig ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
-
     DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
     for (DomainConfigVersion dcv : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
       DomainConfig domainConfig = dcv.getDomainConfig();
       StorageEngine engine = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      for (HostDomainPartitionConfig part : ringConfig.getHostConfigByAddress(hostAddress).getDomainById(domainId).getPartitions()) {
+      for (HostDomainPartitionConfig part : hostConfig.getDomainById(domainId).getPartitions()) {
         LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
             ringGroupConfig.getName(),
             ringConfig.getRingNumber(),
@@ -159,72 +125,5 @@ public class UpdateManager implements HostStateChangeListener {
     } catch (InterruptedException e) {
       // TODO: log and quit
     }
-  }
-
-  private void setIdle() throws IOException {
-    setState(UpdateDaemonState.IDLE);
-  }
-
-  private void setUpdating() throws IOException {
-    setState(UpdateDaemonState.UPDATING);
-  }
-  
-  private void setState(UpdateDaemonState state) throws IOException {
-    hostConfig.setUpdateDaemonState(state);
-  }
-
-  /**
-   * Main method.
-   * @param args
-   * @throws IOException
-   * @throws DataNotFoundException 
-   * @throws InvalidConfigurationException 
-   */
-  public static void main(String[] args) throws IOException, DataNotFoundException, InvalidConfigurationException {
-    String configPath = args[0];
-    String log4jprops = args[1];
-
-    PropertyConfigurator.configure(log4jprops);
-    UpdateDaemonConfigurator conf = new YamlUpdateDaemonConfigurator(configPath);
-
-    new UpdateManager(conf, HostUtils.getHostName()).run();
-  }
-
-  @Override
-  public void onHostStateChange(HostConfig hostConfig) {
-    // we only pay attention to state changes for *this* daemon, so don't need
-    // to be concerned with the identification stuff
-    try {
-      final UpdateDaemonState newState = hostConfig.getUpdateDaemonState();
-      switch (newState) {
-        case UPDATING:
-          // we must have crashed while updating in a prior iteration. just pick
-          // up where we left off.
-        case UPDATABLE:
-          setUpdating();
-          try {
-            update();
-            setIdle();
-          } catch (DataNotFoundException e) {
-            LOG.fatal("Caught an unexpected exception during update process!", e);
-            goingDown = true;
-          } catch (IOException e) {
-            // TODO: hopefully a transient error.
-            LOG.error("unexpected error.", e);
-          }
-          break;
-
-        default:
-          // we don't care about other state changes, because they're not relevant
-          // to us. but let's log them anyways for the sake of completeness
-          LOG.info("Notified of uninteresting state change: " + newState + ". Ignoring.");
-      }
-    } catch (Exception e) {
-      LOG.error(e);
-    }
-  }
-
-  public void stop() {
-    throw new NotImplementedException();
   }
 }
