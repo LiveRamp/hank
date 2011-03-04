@@ -27,7 +27,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
@@ -45,20 +44,6 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
 
 public class TestUpdateManager extends BaseTestCase {
-  private final class MC extends MockCoordinator {
-    private final RingGroupConfig mockRingGroupConfig;
-
-    private MC(RingGroupConfig mockRingGroupConfig) {
-      this.mockRingGroupConfig = mockRingGroupConfig;
-    }
-
-    @Override
-    public RingGroupConfig getRingGroupConfig(String ringGroupName)
-        throws DataNotFoundException {
-      return mockRingGroupConfig;
-    }
-  }
-
   private final class MRG extends MockRingGroupConfig {
     private MRG(DomainGroupConfig dcg, String name, Set<RingConfig> ringConfigs) {
       super(dcg, name, ringConfigs);
@@ -145,10 +130,6 @@ public class TestUpdateManager extends BaseTestCase {
     UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup", "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
     ud.update();
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
-  }
-
-  public void testRestartsUpdating() throws Exception {
-    fail("not implemented");
   }
 
   private static DomainGroupConfigVersion getMockDomainGroupConfigVersion(
