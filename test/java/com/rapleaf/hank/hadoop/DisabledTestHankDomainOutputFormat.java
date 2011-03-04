@@ -38,13 +38,13 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 
-public class TestHankDomainOutputFormat extends TestCase {
+public class DisabledTestHankDomainOutputFormat extends TestCase {
   private FileSystem fs;
 
-  static final String TEST_DIR = "/tmp/test_" + TestHankDomainOutputFormat.class.getName();
+  static final String TEST_DIR = "/tmp/test_" + DisabledTestHankDomainOutputFormat.class.getName();
   static final String OUTPUT_DIR = TEST_DIR + "/output";
 
-  public TestHankDomainOutputFormat() throws IOException {
+  public DisabledTestHankDomainOutputFormat() throws IOException {
     super();
     this.fs = FileSystem.get(new Configuration());
   }

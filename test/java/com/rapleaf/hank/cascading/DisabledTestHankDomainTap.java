@@ -45,13 +45,13 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.cueball.Cueball;
 
-public class TestHankDomainTap extends TestCase {
-  private static final String INPUT = "/tmp/" + TestHankDomainTap.class.getName() + "-input";
-  private static final String OUTPUT = "/tmp/" + TestHankDomainTap.class.getName() + "-output";
+public class DisabledTestHankDomainTap extends TestCase {
+  private static final String INPUT = "/tmp/" + DisabledTestHankDomainTap.class.getName() + "-input";
+  private static final String OUTPUT = "/tmp/" + DisabledTestHankDomainTap.class.getName() + "-output";
 
   private final FileSystem fs;
 
-  public TestHankDomainTap() throws IOException {
+  public DisabledTestHankDomainTap() throws IOException {
     fs = FileSystem.get(new Configuration());
   }
 
