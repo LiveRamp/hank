@@ -44,8 +44,8 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.HostUtils;
 
-public class UpdateDaemon implements HostStateChangeListener {
-  private static final Logger LOG = Logger.getLogger(UpdateDaemon.class);
+public class UpdateManager implements HostStateChangeListener {
+  private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class UpdateToDo implements Runnable {
     private final StorageEngine engine;
@@ -80,7 +80,7 @@ public class UpdateDaemon implements HostStateChangeListener {
   private final PartDaemonAddress hostAddress;
   private final HostConfig hostConfig;
 
-  public UpdateDaemon(PartservConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
+  public UpdateManager(PartservConfigurator configurator, String hostName) throws DataNotFoundException, IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
@@ -187,7 +187,7 @@ public class UpdateDaemon implements HostStateChangeListener {
     PropertyConfigurator.configure(log4jprops);
     UpdateDaemonConfigurator conf = new YamlUpdateDaemonConfigurator(configPath);
 
-    new UpdateDaemon(conf, HostUtils.getHostName()).run();
+    new UpdateManager(conf, HostUtils.getHostName()).run();
   }
 
   @Override

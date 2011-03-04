@@ -44,7 +44,7 @@ import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
 
-public class TestUpdateDaemon extends BaseTestCase {
+public class TestUpdateManager extends BaseTestCase {
   private final class MC extends MockCoordinator {
     private final RingGroupConfig mockRingGroupConfig;
 
@@ -144,7 +144,7 @@ public class TestUpdateDaemon extends BaseTestCase {
 
     MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
 
-    UpdateDaemon ud = new UpdateDaemon(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", "/local/data/dir"), "localhost");
+    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", "/local/data/dir"), "localhost");
 
     // should move smoothly from updateable to idle
     mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
@@ -167,7 +167,7 @@ public class TestUpdateDaemon extends BaseTestCase {
     MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
     mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATING);
 
-    final UpdateDaemon ud = new UpdateDaemon(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", null), "localhost");
+    final UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", null), "localhost");
     new Thread(new Runnable() {
       @Override
       public void run() {
