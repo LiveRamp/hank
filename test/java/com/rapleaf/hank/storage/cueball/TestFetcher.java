@@ -50,7 +50,7 @@ public class TestFetcher extends TestCase {
     makeRemoteFile("00001.delta.cueball");
     makeRemoteFile("00002.delta.cueball");
 
-    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1);
+    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1, 2);
 
     assertTrue(exists("00000.base.cueball"));
     assertTrue(exists("00001.delta.cueball"));
@@ -66,7 +66,7 @@ public class TestFetcher extends TestCase {
     makeRemoteFile("00001.delta.cueball");
     makeRemoteFile("00002.delta.cueball");
 
-    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1);
+    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1, 2);
 
     assertTrue(exists("00000.base.cueball"));
     assertTrue(exists("00001.delta.cueball"));
@@ -82,7 +82,7 @@ public class TestFetcher extends TestCase {
     makeRemoteFile("00001.delta.cueball");
     makeRemoteFile("00002.delta.cueball");
 
-    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(5);
+    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(5, 5);
 
     assertFalse(exists("00001.delta.cueball"));
     assertFalse(exists("00002.delta.cueball"));
@@ -100,7 +100,7 @@ public class TestFetcher extends TestCase {
     makeRemoteFile("00003.base.cueball");
     makeRemoteFile("00004.delta.cueball");
 
-    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0);
+    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0, 4);
 
     assertTrue(exists("00000.base.cueball"));
     assertFalse(exists("00001.delta.cueball"));
@@ -121,7 +121,7 @@ public class TestFetcher extends TestCase {
     makeRemoteFile("00004.delta.cueball");
     makeRemoteFile("00005.base.cueball");
 
-    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0);
+    new Fetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0, 5);
 
     assertTrue(exists("00000.base.cueball"));
     assertFalse(exists("00001.delta.cueball"));

@@ -18,5 +18,5 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.IOException;
 
 public interface IFetcher {
-  public void fetch(int latestLocalVersion) throws IOException;
+  public void fetch(int latestLocalVersion, int desiredVersion) throws IOException;
 }

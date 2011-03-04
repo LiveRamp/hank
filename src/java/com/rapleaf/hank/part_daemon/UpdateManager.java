@@ -43,18 +43,20 @@ public class UpdateManager implements IUpdateManager {
     private final StorageEngine engine;
     private final int partNum;
     private final Queue<Throwable> exceptionQueue;
+    private final int toVersion;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
+      this.toVersion = toVersion;
     }
 
     @Override
     public void run() {
       try {
         LOG.debug(String.format("UpdateToDo %s part %d starting...", engine.toString(), partNum));
-        engine.getUpdater(configurator, partNum).update();
+        engine.getUpdater(configurator, partNum).update(toVersion);
         LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
         // TODO: i just *know* that i'm going to end up wishing i toStringed the
@@ -109,7 +111,7 @@ public class UpdateManager implements IUpdateManager {
             part.getPartNum(),
             part.getCurrentDomainGroupVersion(),
             part.getUpdatingToDomainGroupVersion()));
-        executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue));
+        executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue, dcv.getVersionNumber()));
       }
     }
 

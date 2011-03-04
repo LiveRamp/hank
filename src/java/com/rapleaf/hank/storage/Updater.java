@@ -18,5 +18,5 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 
 public interface Updater {
-  void update() throws IOException;
+  void update(int toVersion) throws IOException;
 }

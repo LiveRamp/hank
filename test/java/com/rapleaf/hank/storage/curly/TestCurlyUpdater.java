@@ -97,7 +97,7 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
         fetcher, curlyMerger, cueballMerger);
 
-    updater.update();
+    updater.update(1);
 
     // make sure fetcher got the right args
     assertEquals(-1, fetcher.latestLocalVersion);
@@ -131,7 +131,7 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
         fetcher, curlyMerger, cueballMerger);
 
-    updater.update();
+    updater.update(7);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);
@@ -167,7 +167,7 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
         fetcher, curlyMerger, cueballMerger);
 
-    updater.update();
+    updater.update(7);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);

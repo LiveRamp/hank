@@ -8,7 +8,7 @@ public class MockUpdater implements Updater {
   private boolean updated = false;
 
   @Override
-  public void update() throws IOException {
+  public void update(int toVersion) throws IOException {
     setUpdated(true);
   }
 

@@ -32,7 +32,7 @@ public class MockFetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int latestLocalVersion) throws IOException {
+  public void fetch(int latestLocalVersion, int desiredVersion) throws IOException {
     this.latestLocalVersion = latestLocalVersion;
     for (String s : localFilesToCreate) {
       new File(localRoot + "/" + s).createNewFile();

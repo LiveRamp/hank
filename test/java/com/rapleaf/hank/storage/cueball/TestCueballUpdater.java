@@ -41,7 +41,7 @@ public class TestCueballUpdater extends TestCase {
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, REMOTE_ROOT, 12, 5,
         fetcher, merger);
 
-    updater.update();
+    updater.update(1);
 
     // make sure fetcher got the right args
     assertEquals(-1, fetcher.latestLocalVersion);
@@ -70,7 +70,7 @@ public class TestCueballUpdater extends TestCase {
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, REMOTE_ROOT, 12, 5,
         fetcher, merger);
 
-    updater.update();
+    updater.update(7);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);
@@ -100,7 +100,7 @@ public class TestCueballUpdater extends TestCase {
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, REMOTE_ROOT, 12, 5,
         fetcher, merger);
 
-    updater.update();
+    updater.update(7);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);

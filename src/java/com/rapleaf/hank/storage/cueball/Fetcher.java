@@ -41,7 +41,7 @@ public class Fetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int localVersionNumber) throws IOException {
+  public void fetch(int localVersionNumber, int desiredVersion) throws IOException {
     FileSystem fs = FileSystem.get(new Configuration());
 
     FileStatus[] filesInRemoteRoot = fs.listStatus(new Path(remotePartitionRoot));

@@ -50,7 +50,7 @@ public class TestCurlyFetcher extends TestCase {
     makeDelta(1);
     makeDelta(2);
 
-    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1);
+    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1, 2);
 
     assertTrue(baseExists(0));
     assertTrue(deltaExists(1));
@@ -67,7 +67,7 @@ public class TestCurlyFetcher extends TestCase {
     makeDelta(1);
     makeDelta(2);
 
-    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1);
+    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(-1, 2);
 
     assertTrue(baseExists(0));
     assertTrue(deltaExists(1));
@@ -84,7 +84,7 @@ public class TestCurlyFetcher extends TestCase {
     makeDelta(1);
     makeDelta(2);
 
-    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(5);
+    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(5, 5);
 
     assertFalse(deltaExists(1));
     assertFalse(deltaExists(2));
@@ -103,7 +103,7 @@ public class TestCurlyFetcher extends TestCase {
     makeBase(3);
     makeDelta(4);
 
-    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0);
+    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0, 4);
 
     assertTrue(exists("00000.base.cueball"));
     assertFalse(exists("00001.delta.cueball"));
@@ -125,7 +125,7 @@ public class TestCurlyFetcher extends TestCase {
     makeDelta(4);
     makeBase(5);
 
-    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0);
+    new CurlyFetcher(LOCAL_ROOT, REMOTE_ROOT).fetch(0, 5);
 
     assertTrue(baseExists(0));
     assertFalse(deltaExists(1));
