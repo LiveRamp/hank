@@ -53,6 +53,13 @@ public interface RingGroupConfig {
   public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
   throws DataNotFoundException;
 
+  /**
+   * Claim the title of Data Deployer for this ring group.
+   * 
+   * @return true if the current session has successfully claimed Data Deployer
+   *         status. false otherwise.
+   * @throws IOException
+   */
   public boolean claimDataDeployer() throws IOException;
 
   public void releaseDataDeployer() throws IOException;

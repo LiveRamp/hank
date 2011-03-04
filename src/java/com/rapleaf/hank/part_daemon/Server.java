@@ -122,7 +122,7 @@ public class Server implements HostStateChangeListener {
   /**
    * Start serving the Thrift server. Returns when the server is up.
    */
-  public void startServer() {
+  private void startServer() {
     if (server == null) {
       Runnable r = new Runnable(){
         @Override
@@ -155,7 +155,7 @@ public class Server implements HostStateChangeListener {
   /**
    * blocks until thrift server is down
    */
-  public void stopServer() {
+  private void stopServer() {
     if (server == null) {
       return;
     }

@@ -26,6 +26,8 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
 
   private final RingGroupUpdateTransitionFunction transFunc;
 
+  private boolean goingDown = false;
+
   public Daemon(DataDeployerConfigurator config) throws DataNotFoundException {
     this(config, new RingGroupUpdateTransitionFunctionImpl());
   }
@@ -37,13 +39,14 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     coord = config.getCoordinator();
   }
 
-  private void run() throws IOException {
+  public void run() throws IOException {
+    LOG.info("Data Deployer Daemon for ring " + ringGroupName + " starting.");
     boolean claimedDataDeployer = false;
     try {
       ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
 
       // attempt to claim the data deployer title
-      if (!ringGroupConfig.claimDataDeployer()) {
+      if (ringGroupConfig.claimDataDeployer()) {
         claimedDataDeployer = true;
         LOG.info("Attempted to claim data deployer status, but it was already claimed. Exiting.");
 
@@ -57,8 +60,9 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         domainGroupConfig.setListener(this);
 
         // loop until we're taken down
+        goingDown = false;
         try {
-          while (true) {
+          while (!goingDown) {
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
             RingGroupConfig snapshotRingGroupConfig;
@@ -74,6 +78,8 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         } catch (InterruptedException e) {
           // daemon is going down.
         }
+      } else {
+        LOG.info("Attempted to claim data deployer status, but there was already a lock in place!");
       }
     } catch (Throwable t) {
       LOG.fatal("unexpected exception!", t);
@@ -82,10 +88,12 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
         ringGroupConfig.releaseDataDeployer();
       }
     }
+    LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " shutting down.");
   }
 
   void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) throws IOException {
     if (ringGroup.isUpdating()) {
+      LOG.info("Ring group " + ringGroupName + " is currently updating.");
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
     } else if (ringGroup.getCurrentVersion() < domainGroup.getLatestVersion().getVersionNumber()) {
@@ -93,7 +101,10 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
 
       // set the ring group's updating version to the new domain group version
       // this will mark all the subordinate rings and hosts for update as well.
+      LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
       ringGroup.setUpdatingToVersion(domainGroup.getLatestVersion().getVersionNumber());
+    } else {
+      LOG.info("No updates in process and no updates pending.");
     }
   }
 
@@ -123,5 +134,9 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
     DataDeployerConfigurator configurator = new YamlDataDeployerConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
     new Daemon(configurator).run();
+  }
+
+  public void stop() {
+    goingDown = true;
   }
 }

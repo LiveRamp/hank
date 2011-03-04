@@ -25,6 +25,7 @@ import com.rapleaf.hank.cli.AddDomainToDomainGroup;
 import com.rapleaf.hank.cli.AddRing;
 import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.YamlClientConfigurator;
@@ -34,6 +35,8 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.data_deployer.Daemon;
+import com.rapleaf.hank.data_deployer.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
@@ -74,29 +77,43 @@ public class IntegrationTest extends ZkTestCase {
   }
 
   private final class DataDeployerRunnable implements Runnable {
+    private DataDeployerConfigurator configurator;
+    private Daemon daemon;
+
+    public DataDeployerRunnable() throws Exception {
+      String configPath = localTmpDir + "/data_deployer_config.yml";
+      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
+      pw.println("data_deployer:");
+      pw.println("  sleep_interval: 1000");
+      pw.println("  ring_group_name: rg1");
+      coordinatorConfig(pw);
+      pw.close();
+      configurator = new YamlDataDeployerConfigurator(configPath);
+    }
 
     @Override
     public void run() {
-      // TODO Auto-generated method stub
-
+      try {
+        daemon = new Daemon(configurator);
+        daemon.run();
+      } catch (Exception e) {
+        LOG.fatal("crap, some exception", e);
+      }
     }
 
     public void pleaseStop() {
-      // TODO Auto-generated method stub
-      
+      daemon.stop();
     }
-
   }
 
   private final class PartDaemonRunnable implements Runnable {
-    private final PartDaemonAddress partDaemonAddress;
     private final String configPath;
+    @SuppressWarnings("unused")
     private Throwable throwable;
     private com.rapleaf.hank.part_daemon.Server server;
     private final PartservConfigurator configurator;
 
     public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
-      this.partDaemonAddress = addy;
       String hostDotPort = addy.getHostName()
                 + "." + addy.getPortNumber();
       this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
@@ -128,8 +145,8 @@ public class IntegrationTest extends ZkTestCase {
       }
     }
 
-    public void pleaseStop() {
-      server.stopServer();
+    public void pleaseStop() throws Exception {
+      server.stop();
     }
 
   }
@@ -314,6 +331,8 @@ public class IntegrationTest extends ZkTestCase {
     // launch the data deployer
     startDataDeployer();
 
+    Thread.sleep(100000000);
+    
     // launch a smart client server
     startSmartClientServer();
 
@@ -407,7 +426,7 @@ public class IntegrationTest extends ZkTestCase {
     smartClientThread.join();
   }
 
-  private void startDataDeployer() {
+  private void startDataDeployer() throws Exception {
     LOG.debug("starting data deployer");
     dataDeployerRunnable = new DataDeployerRunnable();
     dataDeployerThread = new Thread(dataDeployerRunnable, "data deployer thread");

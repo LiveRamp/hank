@@ -23,8 +23,6 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -66,11 +64,17 @@ public class Curly implements StorageEngine {
   private final int recordFileReadBufferBytes;
 
   private final Cueball cueballStorageEngine;
+  private final String remoteDomainRoot;
+  private final int keyHashSize;
+  private final int cueballReadBufferBytes;
 
   public Curly(int keyHashSize, Hasher hasher, int maxAllowedPartSize,
       int hashIndexBits, int cueballReadBufferBytes,
       int recordFileReadBufferBytes, String remoteDomainRoot) {
+    this.keyHashSize = keyHashSize;
+    this.cueballReadBufferBytes = cueballReadBufferBytes;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
+    this.remoteDomainRoot = remoteDomainRoot;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
     this.cueballStorageEngine = new Cueball(keyHashSize, hasher, offsetSize,
@@ -99,8 +103,7 @@ public class Curly implements StorageEngine {
 
   @Override
   public Updater getUpdater(PartservConfigurator configurator, int partNum) {
-    throw new NotImplementedException();
-    // return new CurlyUpdater();
+     return new CurlyUpdater(getLocalDir(configurator, partNum), remoteDomainRoot, keyHashSize, offsetSize, cueballReadBufferBytes);
   }
 
   private static String getLocalDir(PartservConfigurator configurator,

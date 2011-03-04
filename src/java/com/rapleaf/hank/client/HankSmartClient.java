@@ -77,6 +77,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
       LOG.error("Exception while trying to pick a random ring!", e2);
       return HankResponse.internal_error(true);
     }
+    if (rc == null) {
+      return HankResponse.zero_replicas(true);
+    }
     Set<HostConfig> hosts;
     try {
       hosts = rc.getHostsForDomainPartition(domainGroup.getDomainId(domain_name), partition);
@@ -119,6 +122,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
       }
     }
     Collections.shuffle(candidates);
+    if (candidates.isEmpty()) {
+      return null;
+    }
     return candidates.get(0);
   }
 

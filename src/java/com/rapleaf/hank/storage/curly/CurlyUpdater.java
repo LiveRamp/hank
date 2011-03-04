@@ -147,13 +147,14 @@ public class CurlyUpdater implements Updater {
     String[] filesInLocal = local.list();
 
     int bestVer = -1;
-
-    // identify all the bases and deltas
-    for (String file : filesInLocal) {
-      if (file.matches(Curly.BASE_REGEX)) {
-        int thisVer = Curly.parseVersionNumber(file);
-        if (thisVer > bestVer) {
-          bestVer = thisVer;
+    if (filesInLocal != null) {
+      // identify all the bases and deltas
+      for (String file : filesInLocal) {
+        if (file.matches(Curly.BASE_REGEX)) {
+          int thisVer = Curly.parseVersionNumber(file);
+          if (thisVer > bestVer) {
+            bestVer = thisVer;
+          }
         }
       }
     }
@@ -167,13 +168,15 @@ public class CurlyUpdater implements Updater {
     File local = new File(localPartitionRoot);
     String[] filesInLocal = local.list();
 
-    // identify all the bases and deltas
-    for (String file : filesInLocal) {
-      if (file.matches(Curly.BASE_REGEX)) {
-        bases.add(localPartitionRoot + "/" + file);
-      }
-      if (file.matches(Curly.DELTA_REGEX)) {
-        deltas.add(localPartitionRoot + "/" + file);
+    if (filesInLocal != null) {
+      // identify all the bases and deltas
+      for (String file : filesInLocal) {
+        if (file.matches(Curly.BASE_REGEX)) {
+          bases.add(localPartitionRoot + "/" + file);
+        }
+        if (file.matches(Curly.DELTA_REGEX)) {
+          deltas.add(localPartitionRoot + "/" + file);
+        }
       }
     }
   }
