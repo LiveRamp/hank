@@ -133,7 +133,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
   };
 
-  public void testColdStart() throws Exception {
+  public void testUpdate() throws Exception {
     final MockUpdater mockUpdater = new MockUpdater();
 
     StorageEngine mockStorageEngine = new MSE(mockUpdater);
@@ -142,50 +142,13 @@ public class TestUpdateManager extends BaseTestCase {
 
     final RingGroupConfig mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
 
-    MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
-
-    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", "/local/data/dir"), "localhost");
-
-    // should move smoothly from updateable to idle
-    mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATABLE);
-    ud.onHostStateChange(mockHostConfig);
-    assertEquals("Daemon state is now in IDLE",
-        UpdateDaemonState.IDLE,
-        mockHostConfig.getUpdateDaemonState());
+    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup", "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
+    ud.update();
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
   }
 
   public void testRestartsUpdating() throws Exception {
-    final MockUpdater mockUpdater = new MockUpdater();
-
-    StorageEngine mockStorageEngine = new MSE(mockUpdater);
-
-    DomainGroupConfig mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
-
-    final RingGroupConfig mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
-
-    MockCoordinator mockCoordinator = new MC(mockRingGroupConfig);
-    mockHostConfig.setUpdateDaemonState(UpdateDaemonState.UPDATING);
-
-    final UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, mockCoordinator, "myRingGroup", null), "localhost");
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          ud.run();
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
-    }).start();
-    Thread.sleep(100);
-
-    // should move smoothly from updateable to idle
-    assertEquals("Daemon state is now in IDLE",
-        UpdateDaemonState.IDLE,
-        mockHostConfig.getUpdateDaemonState());
-    assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
-    assertTrue(mockHostConfig.isUpdateDaemonOnline());
+    fail("not implemented");
   }
 
   private static DomainGroupConfigVersion getMockDomainGroupConfigVersion(

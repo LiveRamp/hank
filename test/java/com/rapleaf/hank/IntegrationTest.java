@@ -46,10 +46,8 @@ import com.rapleaf.hank.storage.curly.Curly;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
-
     private final String configPath;
     private com.rapleaf.hank.client.Server server;
-    private boolean keepRunning = true;
     private final SmartClientDaemonConfigurator configurator;
 
     public SmartClientRunnable() throws Exception {
@@ -68,15 +66,9 @@ public class IntegrationTest extends ZkTestCase {
     public void run() {
       server = new com.rapleaf.hank.client.Server(configurator);
       server.startServer();
-//      while(keepRunning) {
-//        try {
-//          Thread.sleep(100);
-//        } catch (InterruptedException e) {}
-//      }
     }
 
     public void pleaseStop() {
-      keepRunning = false;
       server.downServer();
     }
   }
@@ -92,47 +84,6 @@ public class IntegrationTest extends ZkTestCase {
     public void pleaseStop() {
       // TODO Auto-generated method stub
       
-    }
-
-  }
-
-  private final class UpdateDaemonRunnable implements Runnable {
-    private String configPath;
-    private com.rapleaf.hank.part_daemon.UpdateManager server;
-    public Throwable throwable;
-    private final PartservConfigurator configurator;
-
-    public UpdateDaemonRunnable(PartDaemonAddress addy) throws Exception {
-      String hostDotPort = addy.getHostName() + "." + addy.getPortNumber();
-      this.configPath = localTmpDir + "/" + hostDotPort + ".update_daemon.yml";
-
-      PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("---");
-      pw.println("partserv:");
-      pw.println("  service_port: " + addy.getPortNumber());
-      pw.println("  ring_group_name: rg1");
-      pw.println("  local_data_dirs:");
-      pw.println("    - " + localTmpDir + "/" + hostDotPort);
-      pw.println("  update_daemon:");
-      pw.println("    num_concurrent_updates: 1");
-      coordinatorConfig(pw);
-      pw.close();
-      configurator = new YamlPartservConfigurator(configPath);
-    }
-
-    @Override
-    public void run() {
-      try {
-        server = new com.rapleaf.hank.part_daemon.UpdateManager(configurator, "localhost");
-        server.run();
-      } catch (Throwable t) {
-        LOG.fatal("crap, some error...", t);
-        throwable = t;
-      }
-    }
-
-    public void pleaseStop() {
-      server.stop();
     }
 
   }
@@ -159,6 +110,8 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    - " + localTmpDir + "/" + hostDotPort);
       pw.println("  part_daemon:");
       pw.println("    num_worker_threads: 1");
+      pw.println("  update_daemon:");
+      pw.println("    num_concurrent_updates: 1");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlPartservConfigurator(configPath);
@@ -207,8 +160,7 @@ public class IntegrationTest extends ZkTestCase {
   private final String localTmpDomains = localTmpDir + "/domain_persistence";
   private final Map<PartDaemonAddress, Thread> partDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
   private final Map<PartDaemonAddress, PartDaemonRunnable> partDaemonRunnables = new HashMap<PartDaemonAddress, PartDaemonRunnable>();
-  private final Map<PartDaemonAddress, Thread> updateDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
-  private final Map<PartDaemonAddress, UpdateDaemonRunnable> updateDaemonRunnables = new HashMap<PartDaemonAddress, UpdateDaemonRunnable>();
+
   private Thread dataDeployerThread;
   private DataDeployerRunnable dataDeployerRunnable;
   private SmartClientRunnable smartClientRunnable;
@@ -475,19 +427,12 @@ public class IntegrationTest extends ZkTestCase {
     Thread pt = new Thread(pr, "part daemon thread for " + a);
     partDaemonThreads.put(a, pt);
     pt.start();
-    UpdateDaemonRunnable ur = new UpdateDaemonRunnable(a);
-    updateDaemonRunnables.put(a, ur);
-    Thread ut = new Thread(ur, "update daemon thread for " + a);
-    updateDaemonThreads.put(a, ut);
-    ut.start();
   }
 
   private void stopDaemons(PartDaemonAddress a) throws Exception {
     LOG.debug("Stopping daemons for " + a);
     partDaemonRunnables.get(a).pleaseStop();
-    updateDaemonRunnables.get(a).pleaseStop();
     partDaemonThreads.get(a).join();
-    updateDaemonThreads.get(a).join();
   }
 
   private void writeOut(DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase) throws IOException {
