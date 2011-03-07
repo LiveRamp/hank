@@ -28,15 +28,15 @@ public class TestFetcher2 extends BaseTestCase {
     public Set<String> selectFilesToCopyCalledWith;
 
     @Override
-    public boolean isRelevantFile(String fileName, int f, int t) {
-      assertEquals("from", 7, f);
+    public boolean isRelevantFile(String fileName, Integer f, int t) {
+      assertEquals("from", 7, f.intValue());
       assertEquals("to", 10, t);
       isRelevantCalledWith.add(fileName);
       return fileName.equals("x") || fileName.equals("z");
     }
 
     @Override
-    public List<String> selectFilesToCopy(List<String> relevantFiles) {
+    public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion) {
       selectFilesToCopyCalledWith = new HashSet<String>(relevantFiles);
       return Arrays.asList("z");
     }

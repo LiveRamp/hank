@@ -24,7 +24,7 @@ public final class Fetcher2 implements IFetcher {
       }
     }
 
-    List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles);
+    List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles, fromVersion, toVersion);
 
     for (String fileName : filesToCopy) {
       fileOps.copyToLocal(fileName);
