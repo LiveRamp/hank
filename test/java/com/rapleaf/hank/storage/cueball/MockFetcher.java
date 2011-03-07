@@ -32,8 +32,8 @@ public class MockFetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int latestLocalVersion, int desiredVersion) throws IOException {
-    this.latestLocalVersion = latestLocalVersion;
+  public void fetch(int fromVersion, int toVersion) throws IOException {
+    this.latestLocalVersion = fromVersion;
     for (String s : localFilesToCreate) {
       new File(localRoot + "/" + s).createNewFile();
     }

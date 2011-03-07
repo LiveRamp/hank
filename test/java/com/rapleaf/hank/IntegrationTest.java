@@ -266,7 +266,7 @@ public class IntegrationTest extends ZkTestCase {
     });
 
     LOG.debug("-------- domain is created --------");
-    
+
     // add our domains
     AddDomainToDomainGroup.main(new String[]{
         "--domain-group", "dg1",
