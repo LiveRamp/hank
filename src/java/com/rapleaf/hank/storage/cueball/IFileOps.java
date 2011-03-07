@@ -7,6 +7,6 @@ public interface IFileOps {
 
   public List<String> listFiles() throws IOException;
 
-  public void copyToLocal(String fileName);
+  public void copyToLocal(String fileName) throws IOException;
 
 }
