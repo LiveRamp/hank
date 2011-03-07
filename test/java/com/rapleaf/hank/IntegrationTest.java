@@ -332,7 +332,7 @@ public class IntegrationTest extends ZkTestCase {
     startDataDeployer();
 
     Thread.sleep(100000000);
-    
+
     // launch a smart client server
     startSmartClientServer();
 

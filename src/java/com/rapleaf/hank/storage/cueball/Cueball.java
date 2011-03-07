@@ -117,4 +117,12 @@ public class Cueball implements StorageEngine {
     }
     return s + ".cueball";
   }
+
+  @Override
+  public String toString() {
+    return "Cueball [hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
+        + ", keyHashSize=" + keyHashSize + ", readBufferBytes="
+        + readBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", valueSize=" + valueSize + "]";
+  }
 }

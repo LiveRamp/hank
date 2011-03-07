@@ -141,4 +141,13 @@ public class Curly implements StorageEngine {
     }
     return s + ".curly";
   }
+
+  @Override
+  public String toString() {
+    return "Curly [cueballReadBufferBytes=" + cueballReadBufferBytes
+        + ", cueballStorageEngine=" + cueballStorageEngine + ", keyHashSize="
+        + keyHashSize + ", offsetSize=" + offsetSize
+        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
+        + ", remoteDomainRoot=" + remoteDomainRoot + "]";
+  }
 }
