@@ -32,6 +32,7 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
+import com.rapleaf.hank.storage.cueball.IFileOpsFactory;
 import com.rapleaf.hank.util.FsUtils;
 
 public class Curly implements StorageEngine {
@@ -45,8 +46,10 @@ public class Curly implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options)
         throws IOException {
       Hasher hasher;
+      IFileOpsFactory fileOpsFactory;
       try {
         hasher = (Hasher)Class.forName((String)options.get("hasher")).newInstance();
+        fileOpsFactory = (IFileOpsFactory)Class.forName((String)options.get("file_ops_factory")).newInstance();
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -56,7 +59,8 @@ public class Curly implements StorageEngine {
           (Integer)options.get("hash_index_bits"),
           (Integer)options.get("cueball_read_buffer_bytes"),
           (Integer)options.get("record_file_read_buffer_bytes"),
-          (String)options.get("remote_domain_root"));
+          (String)options.get("remote_domain_root"),
+          fileOpsFactory);
     }
   }
 
@@ -67,18 +71,31 @@ public class Curly implements StorageEngine {
   private final String remoteDomainRoot;
   private final int keyHashSize;
   private final int cueballReadBufferBytes;
+  private final IFileOpsFactory fileOpsFactory;
 
-  public Curly(int keyHashSize, Hasher hasher, int maxAllowedPartSize,
-      int hashIndexBits, int cueballReadBufferBytes,
-      int recordFileReadBufferBytes, String remoteDomainRoot) {
+  public Curly(int keyHashSize,
+      Hasher hasher,
+      int maxAllowedPartSize,
+      int hashIndexBits,
+      int cueballReadBufferBytes,
+      int recordFileReadBufferBytes,
+      String remoteDomainRoot,
+      IFileOpsFactory fileOpsFactory)
+  {
     this.keyHashSize = keyHashSize;
     this.cueballReadBufferBytes = cueballReadBufferBytes;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
+    this.fileOpsFactory = fileOpsFactory;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
-    this.cueballStorageEngine = new Cueball(keyHashSize, hasher, offsetSize,
-        hashIndexBits, cueballReadBufferBytes, remoteDomainRoot);
+    this.cueballStorageEngine = new Cueball(keyHashSize,
+        hasher,
+        offsetSize,
+        hashIndexBits,
+        cueballReadBufferBytes,
+        remoteDomainRoot,
+        fileOpsFactory);
   }
 
   @Override
@@ -103,7 +120,13 @@ public class Curly implements StorageEngine {
 
   @Override
   public Updater getUpdater(PartservConfigurator configurator, int partNum) {
-     return new CurlyUpdater(getLocalDir(configurator, partNum), remoteDomainRoot, keyHashSize, offsetSize, cueballReadBufferBytes);
+    String localDir = getLocalDir(configurator, partNum);
+    return new CurlyUpdater(localDir,
+        remoteDomainRoot,
+        keyHashSize,
+        offsetSize,
+        cueballReadBufferBytes,
+        fileOpsFactory.getFileOps(localDir, remoteDomainRoot));
   }
 
   private static String getLocalDir(PartservConfigurator configurator,

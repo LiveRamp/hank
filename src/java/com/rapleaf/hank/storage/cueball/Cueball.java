@@ -36,6 +36,8 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.FsUtils;
 
 public class Cueball implements StorageEngine {
+  private static final IFileSelector cueballFileSelector = new CueballFileSelector();
+
   private static final Pattern BASE_OR_DELTA_PATTERN =
     Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.cueball");
   static final String BASE_REGEX = "\\d{5}\\.base\\.cueball";
@@ -55,14 +57,16 @@ public class Cueball implements StorageEngine {
   private final int hashIndexBits;
   private final int readBufferBytes;
   private final String remoteDomainRoot;
+  private final IFileOpsFactory fileOpsFactory;
 
-  public Cueball(int keyHashSize, Hasher hasher, int valueSize, int hashIndexBits, int readBufferBytes, String remoteDomainRoot) {
+  public Cueball(int keyHashSize, Hasher hasher, int valueSize, int hashIndexBits, int readBufferBytes, String remoteDomainRoot, IFileOpsFactory fileOpsFactory) {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.hashIndexBits = hashIndexBits;
     this.readBufferBytes = readBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
+    this.fileOpsFactory = fileOpsFactory;
   }
 
   @Override
@@ -77,7 +81,12 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Updater getUpdater(PartservConfigurator configurator, int partNum) {
-    return new CueballUpdater(getLocalDir(configurator, partNum), remoteDomainRoot + "/" + partNum, keyHashSize, valueSize);
+    String localDir = getLocalDir(configurator, partNum);
+    return new CueballUpdater(localDir,
+        keyHashSize,
+        valueSize,
+        fileOpsFactory.getFileOps(localDir, remoteDomainRoot + "/" + partNum),
+        cueballFileSelector);
   }
 
   static String padVersion(int ver) {

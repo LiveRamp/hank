@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 
 import junit.framework.TestCase;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -43,7 +44,6 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.cueball.Cueball;
 
 public class DisabledTestHankDomainTap extends TestCase {
   private static final String INPUT = "/tmp/" + DisabledTestHankDomainTap.class.getName() + "-input";
@@ -124,7 +124,8 @@ public class DisabledTestHankDomainTap extends TestCase {
       Integer hashIndexBits = 1;
       Integer readBufferBytes = 1;
       String remoteDomainRoot = "";
-      return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
+//      return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
+      throw new NotImplementedException();
     }
 
     @Override

@@ -32,11 +32,12 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.cueball.Cueball;
 
 public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
 
@@ -70,7 +71,8 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     Integer readBufferBytes = 1;
     String remoteDomainRoot = "";
 
-    return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
+    throw new NotImplementedException();
+//    return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
   }
 
   private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {

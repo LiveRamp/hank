@@ -30,9 +30,9 @@ public class CueballUpdater implements Updater {
   private final ICueballMerger merger;
 
   CueballUpdater(String localPartitionRoot,
-      String remotePartitionRoot,
       int keyHashSize,
-      int valueSize, IFetcher fetcher, ICueballMerger merger)
+      int valueSize,
+      IFetcher fetcher, ICueballMerger merger)
   {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
@@ -42,15 +42,15 @@ public class CueballUpdater implements Updater {
   }
 
   public CueballUpdater(String localPartitionRoot,
-      String remotePartitionRoot,
       int keyHashSize,
-      int valueSize)
+      int valueSize,
+      IFileOps fileOps,
+      IFileSelector fileSelector)
   {
     this(localPartitionRoot,
-        remotePartitionRoot,
         keyHashSize,
         valueSize,
-        new Fetcher(localPartitionRoot, remotePartitionRoot),
+        new Fetcher2(fileOps, fileSelector),
         new CueballMerger());
   }
 

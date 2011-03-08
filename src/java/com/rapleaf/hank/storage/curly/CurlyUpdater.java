@@ -24,8 +24,10 @@ import java.util.TreeSet;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
+import com.rapleaf.hank.storage.cueball.Fetcher2;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
 import com.rapleaf.hank.storage.cueball.IFetcher;
+import com.rapleaf.hank.storage.cueball.IFileOps;
 import com.rapleaf.hank.storage.cueball.StreamBuffer;
 import com.rapleaf.hank.storage.cueball.ValueTransformer;
 import com.rapleaf.hank.util.EncodingHelper;
@@ -61,12 +63,12 @@ public class CurlyUpdater implements Updater {
   private final ICurlyMerger curlyMerger;
   private final ICueballMerger cueballMerger;
 
-  public CurlyUpdater(String localPartitionRoot, String remotePartitionRoot, int keyHashSize, int offsetSize, int bufferSize) {
+  public CurlyUpdater(String localPartitionRoot, String remotePartitionRoot, int keyHashSize, int offsetSize, int bufferSize, IFileOps fileOps) {
     this(localPartitionRoot,
         keyHashSize,
         offsetSize,
         bufferSize,
-        new CurlyFetcher(localPartitionRoot, remotePartitionRoot),
+        new Fetcher2(fileOps, new CurlyFileSelector()),
         new CurlyMerger(),
         new CueballMerger());
   }
