@@ -67,7 +67,6 @@ public class Server implements HostCommandQueueChangeListener {
     ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
     ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
     hostConfig = ringConfig.getHostConfigByAddress(hostAddress);
-//    hostConfig.setStateChangeListener(this);
     hostConfig.setCommandQueueChangeListener(this);
   }
 
@@ -183,6 +182,7 @@ public class Server implements HostCommandQueueChangeListener {
           IUpdateManager updateManager = getUpdateManager();
           updateManager.update();
           setState(HostState.IDLE);
+          hostConfig.completeCommand();
           updateThread = null;
         } catch (Throwable e) {
           // TODO: should this take the server down?

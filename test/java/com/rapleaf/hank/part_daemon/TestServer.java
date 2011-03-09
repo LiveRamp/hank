@@ -130,6 +130,7 @@ public class TestServer extends BaseTestCase {
         mockHostConfig.getState());
     Thread.sleep(1500);
     assertTrue("update called", mockUpdateManager.updateCalled);
+    assertNull("current command cleared", mockHostConfig.getCurrentCommand());
 
     server.stop();
     t.join();
