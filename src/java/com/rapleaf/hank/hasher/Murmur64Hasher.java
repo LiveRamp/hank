@@ -114,4 +114,9 @@ public final class Murmur64Hasher implements Hasher {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "Murmur64Hasher";
+  }
 }
