@@ -104,7 +104,8 @@ public class TestServer extends BaseTestCase {
     };
     Thread t = new Thread(serverRunnable, "server thread");
 
-//    mockHostConfig.enqueueCommand(HostCommand.GO_TO_IDLE);
+    // TODO: test here for when starting up with commands in the queue...
+
     t.start();
     Thread.sleep(1000);
     assertEquals(HostState.IDLE, mockHostConfig.getState());
