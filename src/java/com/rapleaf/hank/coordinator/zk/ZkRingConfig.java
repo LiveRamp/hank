@@ -242,7 +242,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   @Override
   public void commandAll(HostCommand command) throws IOException {
     for (HostConfig hostConfig : getHosts()) {
-      hostConfig.setCommand(command);
+      hostConfig.enqueueCommand(command);
     }
   }
 }

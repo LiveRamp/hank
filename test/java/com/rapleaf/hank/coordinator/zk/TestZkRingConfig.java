@@ -79,10 +79,10 @@ public class TestZkRingConfig extends ZkTestCase {
   public void testCommandAll() throws Exception {
     create(ring_root + "/current_version", "1");
     ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    assertEquals(HostCommand.GO_TO_IDLE, hc.getCommand());
+    assertNull(hc.getCurrentCommand());
     ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
     rc.commandAll(HostCommand.SERVE_DATA);
-    assertEquals(HostCommand.SERVE_DATA, hc.getCommand());
+    assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
   }
 
   public void testGetOldestVersionOnHosts() throws Exception {
