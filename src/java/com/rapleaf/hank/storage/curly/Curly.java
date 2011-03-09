@@ -15,7 +15,9 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
@@ -38,12 +40,12 @@ import com.rapleaf.hank.util.FsUtils;
 public class Curly implements StorageEngine {
   private static final Pattern BASE_OR_REGEX_PATTERN = Pattern
       .compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
-  static final String BASE_REGEX = "\\d{5}\\.base\\.curly";
-  static final String DELTA_REGEX = "\\d{5}\\.delta\\.curly";
+  static final String BASE_REGEX = ".*\\d{5}\\.base\\.curly";
+  static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.curly";
 
   public static class Factory implements StorageEngineFactory {
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options)
+    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
         throws IOException {
       Hasher hasher;
       IFileOpsFactory fileOpsFactory;
@@ -60,9 +62,12 @@ public class Curly implements StorageEngine {
           (Integer)options.get("cueball_read_buffer_bytes"),
           (Integer)options.get("record_file_read_buffer_bytes"),
           (String)options.get("remote_domain_root"),
-          fileOpsFactory);
+          fileOpsFactory,
+          domainName);
     }
   }
+
+  private final String domainName;
 
   private final int offsetSize;
   private final int recordFileReadBufferBytes;
@@ -80,13 +85,15 @@ public class Curly implements StorageEngine {
       int cueballReadBufferBytes,
       int recordFileReadBufferBytes,
       String remoteDomainRoot,
-      IFileOpsFactory fileOpsFactory)
+      IFileOpsFactory fileOpsFactory,
+      String domainName)
   {
     this.keyHashSize = keyHashSize;
     this.cueballReadBufferBytes = cueballReadBufferBytes;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
+    this.domainName = domainName;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
     this.cueballStorageEngine = new Cueball(keyHashSize,
@@ -108,10 +115,11 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-      int versionNumber, boolean base) throws IOException {
-    return new CurlyWriter(streamFactory.getOutputStream(partNum, getName(
-        versionNumber, base)), cueballStorageEngine.getWriter(streamFactory,
-        partNum, versionNumber, base), offsetSize);
+      int versionNumber, boolean base)
+  throws IOException {
+    OutputStream outputStream = streamFactory.getOutputStream(partNum, getName(versionNumber, base));
+    Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partNum, versionNumber, base);
+    return new CurlyWriter(outputStream, cueballWriter, offsetSize);
   }
 
   private String padVersion(int versionNumber) {
@@ -121,20 +129,22 @@ public class Curly implements StorageEngine {
   @Override
   public Updater getUpdater(PartservConfigurator configurator, int partNum) {
     String localDir = getLocalDir(configurator, partNum);
+    new File(localDir).mkdirs();
+    String remotePartRoot = remoteDomainRoot + "/" + partNum;
     return new CurlyUpdater(localDir,
-        remoteDomainRoot,
+        remotePartRoot,
         keyHashSize,
         offsetSize,
         cueballReadBufferBytes,
-        fileOpsFactory.getFileOps(localDir, remoteDomainRoot));
+        fileOpsFactory.getFileOps(localDir, remotePartRoot));
   }
 
-  private static String getLocalDir(PartservConfigurator configurator,
+  private String getLocalDir(PartservConfigurator configurator,
       int partNum) {
     ArrayList<String> l = new ArrayList<String>(configurator
         .getLocalDataDirectories());
     Collections.sort(l);
-    return l.get(partNum % l.size());
+    return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;
   }
 
   public static int parseVersionNumber(String name) {

@@ -3,7 +3,10 @@ package com.rapleaf.hank.storage.cueball;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 public class CueballFileSelector implements IFileSelector {
+  private static final Logger LOG = Logger.getLogger(CueballFileSelector.class);
 
   @Override
   public boolean isRelevantFile(String fileName, Integer fromVersion, int toVersion) {
@@ -12,6 +15,8 @@ public class CueballFileSelector implements IFileSelector {
       if ((fromVersion == null || ver > fromVersion) && ver <= toVersion) {
         return true;
       }
+    } else {
+      LOG.trace(String.format("%s is not relevant for update %s -> %s (to cueball)", fileName, fromVersion, toVersion));
     }
     return false;
   }

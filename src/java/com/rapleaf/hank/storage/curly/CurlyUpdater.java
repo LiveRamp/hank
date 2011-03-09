@@ -121,24 +121,28 @@ public class CurlyUpdater implements Updater {
     String latestCueballBase = cueballBases.last();
     SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCurlyBase);
 
-    // run the cueball merger
-    String newCueballBasePath = localPartitionRoot + "/"
-      + String.format("%05d", Cueball.parseVersionNumber(relevantCueballDeltas.last()))
-      + ".base.cueball";
-    cueballMerger.merge(latestCueballBase,
-        relevantCueballDeltas,
-        newCueballBasePath,
-        keyHashSize,
-        offsetSize,
-        bufferSize,
-        new OffsetTransformer(keyHashSize, offsetSize, offsetAdjustments));
-
-    // rename the modified base to the current version
-    String newCurlyBasePath = localPartitionRoot + "/"
-      + String.format("%05d", Curly.parseVersionNumber(relevantCurlyDeltas.last()))
-      + ".base.curly";
-    // TODO: this can fail. watch it.
-    new File(latestCurlyBase).renameTo(new File(newCurlyBasePath));
+    if (relevantCueballDeltas.isEmpty()) {
+      // no need to merge! in fact, we're done.
+    } else {
+      // run the cueball merger
+      String newCueballBasePath = localPartitionRoot + "/"
+        + String.format("%05d", Cueball.parseVersionNumber(relevantCueballDeltas.last()))
+        + ".base.cueball";
+      cueballMerger.merge(latestCueballBase,
+          relevantCueballDeltas,
+          newCueballBasePath,
+          keyHashSize,
+          offsetSize,
+          bufferSize,
+          new OffsetTransformer(keyHashSize, offsetSize, offsetAdjustments));
+  
+      // rename the modified base to the current version
+      String newCurlyBasePath = localPartitionRoot + "/"
+        + String.format("%05d", Curly.parseVersionNumber(relevantCurlyDeltas.last()))
+        + ".base.curly";
+      // TODO: this can fail. watch it.
+      new File(latestCurlyBase).renameTo(new File(newCurlyBasePath));
+    }
 
     // delete all the old curly bases
     deleteFiles(curlyBases, cueballBases, curlyDeltas, cueballDeltas);

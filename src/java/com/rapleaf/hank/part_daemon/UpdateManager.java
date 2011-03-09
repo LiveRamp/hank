@@ -44,12 +44,14 @@ public class UpdateManager implements IUpdateManager {
     private final int partNum;
     private final Queue<Throwable> exceptionQueue;
     private final int toVersion;
+    private final HostDomainPartitionConfig part;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartitionConfig part) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
       this.toVersion = toVersion;
+      this.part = part;
     }
 
     @Override
@@ -57,6 +59,8 @@ public class UpdateManager implements IUpdateManager {
       try {
         LOG.debug(String.format("UpdateToDo %s part %d starting...", engine.toString(), partNum));
         engine.getUpdater(configurator, partNum).update(toVersion);
+        part.setCurrentDomainGroupVersion(toVersion);
+        part.setUpdatingToDomainGroupVersion(null);
         LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
         // TODO: i just *know* that i'm going to end up wishing i toStringed the
@@ -104,14 +108,16 @@ public class UpdateManager implements IUpdateManager {
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
       for (HostDomainPartitionConfig part : hostConfig.getDomainById(domainId).getPartitions()) {
-        LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
-            ringGroupConfig.getName(),
-            ringConfig.getRingNumber(),
-            domainConfig.getName(),
-            part.getPartNum(),
-            part.getCurrentDomainGroupVersion(),
-            part.getUpdatingToDomainGroupVersion()));
-        executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue, dcv.getVersionNumber()));
+        if (part.getUpdatingToDomainGroupVersion() != null) {
+          LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
+              ringGroupConfig.getName(),
+              ringConfig.getRingNumber(),
+              domainConfig.getName(),
+              part.getPartNum(),
+              part.getCurrentDomainGroupVersion(),
+              part.getUpdatingToDomainGroupVersion()));
+          executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue, dcv.getVersionNumber(), part));
+        }
       }
     }
 
@@ -120,9 +126,13 @@ public class UpdateManager implements IUpdateManager {
       executor.shutdown();
       while (!terminated) {
         LOG.debug("Waiting for update executor to complete...");
-        terminated = executor.awaitTermination(100, TimeUnit.MILLISECONDS);
+        terminated = executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
         // TODO: report on progress?
         // TODO: check exception queue
+        if (!exceptionQueue.isEmpty()) {
+          LOG.fatal("An UpdateToDo encountered an exception:", exceptionQueue.poll());
+          throw new RuntimeException("Failed to complete update!");
+        }
       }
     } catch (InterruptedException e) {
       // TODO: log and quit

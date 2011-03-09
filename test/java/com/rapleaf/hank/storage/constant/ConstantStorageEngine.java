@@ -17,7 +17,7 @@ public class ConstantStorageEngine implements StorageEngine {
 
   public static class Factory implements StorageEngineFactory {
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options)
+    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
         throws IOException {
       return new ConstantStorageEngine(options);
     }

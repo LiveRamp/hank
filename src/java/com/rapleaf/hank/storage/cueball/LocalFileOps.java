@@ -13,6 +13,13 @@ public class LocalFileOps implements IFileOps {
   private final String remoteRoot;
   private final String localRoot;
 
+  public static class Factory implements IFileOpsFactory {
+    @Override
+    public IFileOps getFileOps(String localPath, String remotePath) {
+      return new LocalFileOps(remotePath, localPath);
+    }
+  }
+
   public LocalFileOps(String remoteRoot, String localRoot) {
     this.remoteRoot = remoteRoot;
     this.localRoot = localRoot;

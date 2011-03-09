@@ -247,6 +247,9 @@ public class Server implements HostStateChangeListener {
   }
 
   private void update() {
+    if (updateThread != null) {
+      throw new IllegalStateException("update got called again unexpectedly!");
+    }
     Runnable updateRunnable = new Runnable() {
       @Override
       public void run() {
@@ -254,6 +257,7 @@ public class Server implements HostStateChangeListener {
           IUpdateManager updateManager = getUpdateManager();
           updateManager.update();
           setState(HostState.IDLE);
+          updateThread = null;
         } catch (Throwable e) {
           // TODO: should this take the server down?
           LOG.fatal("updater encountered a fatal error!", e);

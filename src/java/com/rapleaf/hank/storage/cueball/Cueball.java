@@ -40,12 +40,12 @@ public class Cueball implements StorageEngine {
 
   private static final Pattern BASE_OR_DELTA_PATTERN =
     Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.cueball");
-  static final String BASE_REGEX = "\\d{5}\\.base\\.cueball";
-  static final String DELTA_REGEX = "\\d{5}\\.delta\\.cueball";
+  static final String BASE_REGEX = ".*\\d{5}\\.base\\.cueball";
+  static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.cueball";
 
   public static class Factory implements StorageEngineFactory {
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options)
+    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
         throws IOException {
       throw new NotImplementedException();
     }

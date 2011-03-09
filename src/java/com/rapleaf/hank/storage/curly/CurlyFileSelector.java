@@ -2,9 +2,13 @@ package com.rapleaf.hank.storage.curly;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.rapleaf.hank.storage.cueball.CueballFileSelector;
 
 public class CurlyFileSelector extends CueballFileSelector {
+  private static final Logger LOG = Logger.getLogger(CurlyFileSelector.class);
+
   @Override
   public boolean isRelevantFile(String fileName,
       Integer fromVersion,
@@ -15,6 +19,8 @@ public class CurlyFileSelector extends CueballFileSelector {
       if ((fromVersion == null || ver > fromVersion) && ver <= toVersion) {
         return true;
       }
+    } else {
+      LOG.trace(String.format("%s is not relevant for update %s -> %s (to curly)", fileName, fromVersion, toVersion));
     }
 
     return super.isRelevantFile(fileName, fromVersion, toVersion);

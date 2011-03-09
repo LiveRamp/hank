@@ -19,5 +19,5 @@ import java.io.IOException;
 import java.util.Map;
 
 public interface StorageEngineFactory {
-  public StorageEngine getStorageEngine(Map<String, Object> options) throws IOException;
+  public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException;
 }

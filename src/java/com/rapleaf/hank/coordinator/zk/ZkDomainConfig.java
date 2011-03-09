@@ -80,7 +80,7 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
     }
     try {
       StorageEngineFactory factory = (StorageEngineFactory)Class.forName(storageEngineFactoryName).newInstance();
-      return storageEngine = factory.getStorageEngine(storageEngineOptions);
+      return storageEngine = factory.getStorageEngine(storageEngineOptions, getName());
     } catch (Exception e) { 
       throw new RuntimeException("Could not instantiate storage engine from factory " + storageEngineFactoryName, e);
     }
