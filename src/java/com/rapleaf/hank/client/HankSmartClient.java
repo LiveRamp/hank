@@ -31,6 +31,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostState;
@@ -66,7 +67,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener {
     int domainId = -1;
     try {
       domainId = domainGroup.getDomainId(domain_name);
-      partition = domainGroup.getDomainConfig(domainId).getPartitioner().partition(key);
+      DomainConfig domainConfig = domainGroup.getDomainConfig(domainId);
+      partition = domainConfig.getPartitioner().partition(key) % domainConfig.getNumParts();
     } catch (DataNotFoundException e) {
       return HankResponse.no_such_domain(true);
     }

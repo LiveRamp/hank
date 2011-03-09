@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
@@ -99,6 +100,7 @@ public class Server implements HostCommandQueueChangeListener {
     Args options = new Args(serverSocket);
     options.processor(new PartDaemon.Processor(handler));
     options.workerThreads(configurator.getNumThreads());
+    options.protocolFactory(new TCompactProtocol.Factory());
     server = new THsHaServer(options);
     LOG.debug("Launching Thrift server...");
     server.serve();
