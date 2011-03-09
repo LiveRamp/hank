@@ -104,26 +104,26 @@ public class TestServer extends BaseTestCase {
     };
     Thread t = new Thread(serverRunnable, "server thread");
 
-    mockHostConfig.setCommand(HostCommand.GO_TO_IDLE);
+//    mockHostConfig.enqueueCommand(HostCommand.GO_TO_IDLE);
     t.start();
     Thread.sleep(1000);
     assertEquals(HostState.IDLE, mockHostConfig.getState());
 
     // should move smoothly from startable to idle
-    mockHostConfig.setCommand(HostCommand.SERVE_DATA);
-    server.onHostStateChange(mockHostConfig);
+    mockHostConfig.enqueueCommand(HostCommand.SERVE_DATA);
+    server.onCommandQueueChange(mockHostConfig);
     assertEquals("Daemon state is now SERVING",
         HostState.SERVING,
         mockHostConfig.getState());
 
-    mockHostConfig.setCommand(HostCommand.GO_TO_IDLE);
-    server.onHostStateChange(mockHostConfig);
+    mockHostConfig.enqueueCommand(HostCommand.GO_TO_IDLE);
+    server.onCommandQueueChange(mockHostConfig);
     assertEquals("Daemon state is now IDLE",
         HostState.IDLE,
         mockHostConfig.getState());
 
-    mockHostConfig.setCommand(HostCommand.EXECUTE_UPDATE);
-    server.onHostStateChange(mockHostConfig);
+    mockHostConfig.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    server.onCommandQueueChange(mockHostConfig);
     assertEquals("Daemon state is now UPDATING",
         HostState.UPDATING,
         mockHostConfig.getState());

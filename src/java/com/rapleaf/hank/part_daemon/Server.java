@@ -30,18 +30,18 @@ import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.config.YamlPartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.HostUtils;
 
-public class Server implements HostStateChangeListener {
+public class Server implements HostCommandQueueChangeListener {
   private static final Logger LOG = Logger.getLogger(Server.class);
 
   private final PartservConfigurator configurator;
@@ -67,17 +67,8 @@ public class Server implements HostStateChangeListener {
     ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
     ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
     hostConfig = ringConfig.getHostConfigByAddress(hostAddress);
-    hostConfig.setStateChangeListener(this);
-  }
-
-  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException, InvalidConfigurationException {
-    String configPath = args[0];
-    String log4jprops = args[1];
-
-    PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
-    PropertyConfigurator.configure(log4jprops);
-
-    new Server(configurator, HostUtils.getHostName()).run();
+//    hostConfig.setStateChangeListener(this);
+    hostConfig.setCommandQueueChangeListener(this);
   }
 
   public void run() throws IOException {
@@ -181,71 +172,6 @@ public class Server implements HostStateChangeListener {
     hostConfig.setState(state);
   }
 
-  @Override
-  public void onHostStateChange(HostConfig hostConfig) {
-    synchronized (mutex) {
-      HostCommand command;
-      try {
-        command = hostConfig.getCommand();
-        HostState state = hostConfig.getState();
-        LOG.debug("Notified of host state change. Current command: " + command);
-        switch (command) {
-          case SERVE_DATA:
-            switch (state) {
-              case IDLE:
-                startServer();
-                setState(HostState.SERVING);
-                break;
-              default:
-                LOG.debug("have command " + command
-                    + " but not compatible with current state " + state
-                    + ". Ignoring.");
-            }
-            break;
-
-          case GO_TO_IDLE:
-            switch (state) {
-              case SERVING:
-                stopServer();
-                setState(HostState.IDLE);
-                break;
-              case UPDATING:
-                LOG.debug("received command " + command
-                    + " but current state is " + state
-                    + ", which cannot be stopped. Will wait until completion.");
-                break;
-              default:
-                LOG.debug("have command " + command
-                    + " but not compatible with current state " + state
-                    + ". Ignoring.");
-            }
-            break;
-
-          case EXECUTE_UPDATE:
-            switch (state) {
-              case IDLE:
-                setState(HostState.UPDATING);
-                update();
-                break;
-              case SERVING:
-                LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
-              default:
-                LOG.debug("have command " + command
-                    + " but not compatible with current state " + state
-                    + ". Ignoring.");
-            }
-            break;
-
-          default:
-            LOG.debug("notified of an irrelevant command: " + command);
-        }
-      } catch (IOException e) {
-        LOG.error("Error processing host state change!", e);
-        return;
-      }
-    }
-  }
-
   private void update() {
     if (updateThread != null) {
       throw new IllegalStateException("update got called again unexpectedly!");
@@ -270,5 +196,94 @@ public class Server implements HostStateChangeListener {
 
   protected IUpdateManager getUpdateManager() throws DataNotFoundException, IOException {
     return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
+  }
+
+  @Override
+  public void onCommandQueueChange(HostConfig hostConfig) {
+    synchronized(mutex) {
+      try {
+        if (this.hostConfig.getCurrentCommand() == null) {
+          HostCommand nextCommand = this.hostConfig.processNextCommand();
+          if (nextCommand == null) {
+            LOG.debug("Command queue was empty; doing nothing.");
+            return;
+          }
+          HostState state = hostConfig.getState();
+          switch (nextCommand) {
+            case EXECUTE_UPDATE:
+              processExecuteUpdate(state);
+              break;
+            case GO_TO_IDLE:
+              processGoToIdle(state);
+              break;
+            case SERVE_DATA:
+              processServeData(state);
+              break;
+          }
+        } else {
+          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
+        }
+      } catch (IOException e) {
+        LOG.error("Got an exception checking the current command!", e);
+      }
+    }
+  }
+
+  private void processServeData(HostState state) throws IOException {
+    switch (state) {
+      case IDLE:
+        startServer();
+        setState(HostState.SERVING);
+        hostConfig.completeCommand();
+        break;
+      default:
+        LOG.debug("have command " + HostCommand.SERVE_DATA
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  private void processGoToIdle(HostState state) throws IOException {
+    switch (state) {
+      case SERVING:
+        stopServer();
+        setState(HostState.IDLE);
+        hostConfig.completeCommand();
+        break;
+      case UPDATING:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but current state is " + state
+            + ", which cannot be stopped. Will wait until completion.");
+        break;
+      default:
+        LOG.debug("have command " + HostCommand.GO_TO_IDLE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  private void processExecuteUpdate(HostState state) throws IOException {
+    switch (state) {
+      case IDLE:
+        setState(HostState.UPDATING);
+        update();
+        break;
+      case SERVING:
+        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+      default:
+        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException, InvalidConfigurationException {
+    String configPath = args[0];
+    String log4jprops = args[1];
+
+    PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
+    PropertyConfigurator.configure(log4jprops);
+
+    new Server(configurator, HostUtils.getHostName()).run();
   }
 }
