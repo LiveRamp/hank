@@ -91,7 +91,7 @@ public class CueballReader implements Reader {
     int lim = off + (hashIndexBits / 8);
     int prefix = 0;
     for (; off < lim; off++) {
-      prefix = (prefix << 8) | chunkBytes[off];
+      prefix = (prefix << 8) | (chunkBytes[off] & 0xff);
     }
     int bitsFromLastByte = hashIndexBits % 8;
     prefix = (prefix << bitsFromLastByte) | ((chunkBytes[off] >> (8-bitsFromLastByte)) & (1 << bitsFromLastByte));

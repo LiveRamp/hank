@@ -102,7 +102,8 @@ public class Curly implements StorageEngine {
         hashIndexBits,
         cueballReadBufferBytes,
         remoteDomainRoot,
-        fileOpsFactory);
+        fileOpsFactory,
+        domainName);
   }
 
   @Override
@@ -177,8 +178,8 @@ public class Curly implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Curly [cueballReadBufferBytes=" + cueballReadBufferBytes
-        + ", cueballStorageEngine=" + cueballStorageEngine + ", keyHashSize="
+    return "Curly [domain=" + domainName + ", cueballReadBufferBytes=" + cueballReadBufferBytes
+        + ", " + cueballStorageEngine + ", keyHashSize="
         + keyHashSize + ", offsetSize=" + offsetSize
         + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
         + ", remoteDomainRoot=" + remoteDomainRoot + "]";

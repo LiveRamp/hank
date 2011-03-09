@@ -51,6 +51,8 @@ public class Cueball implements StorageEngine {
     }
   }
 
+  private final String domainName;
+
   private final int keyHashSize;
   private final Hasher hasher;
   private final int valueSize;
@@ -59,7 +61,15 @@ public class Cueball implements StorageEngine {
   private final String remoteDomainRoot;
   private final IFileOpsFactory fileOpsFactory;
 
-  public Cueball(int keyHashSize, Hasher hasher, int valueSize, int hashIndexBits, int readBufferBytes, String remoteDomainRoot, IFileOpsFactory fileOpsFactory) {
+  public Cueball(int keyHashSize,
+      Hasher hasher,
+      int valueSize,
+      int hashIndexBits,
+      int readBufferBytes,
+      String remoteDomainRoot,
+      IFileOpsFactory fileOpsFactory,
+      String domainName)
+  {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
@@ -67,6 +77,7 @@ public class Cueball implements StorageEngine {
     this.readBufferBytes = readBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
+    this.domainName = domainName;
   }
 
   @Override
@@ -111,10 +122,10 @@ public class Cueball implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  private static String getLocalDir(PartservConfigurator configurator, int partNum) {
+  private String getLocalDir(PartservConfigurator configurator, int partNum) {
     ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
     Collections.sort(l);
-    return l.get(partNum % l.size());
+    return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;
   }
 
   private String getName(int versionNumber, boolean base) {
@@ -129,7 +140,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Cueball [hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
+    return "Cueball [indexBits=" + hashIndexBits + ", hasher=" + hasher
         + ", keyHashSize=" + keyHashSize + ", readBufferBytes="
         + readBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
         + ", valueSize=" + valueSize + "]";

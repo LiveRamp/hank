@@ -145,7 +145,7 @@ public class CurlyUpdater implements Updater {
     }
 
     // delete all the old curly bases
-    deleteFiles(curlyBases, cueballBases, curlyDeltas, cueballDeltas);
+    deleteFiles(curlyBases.headSet(latestCurlyBase), cueballBases.headSet(latestCueballBase), curlyDeltas, cueballDeltas);
   }
 
   private int getLocalVersionNumber() {
