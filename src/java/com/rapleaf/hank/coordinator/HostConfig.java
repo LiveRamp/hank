@@ -1,6 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 
 public interface HostConfig {
@@ -10,8 +11,20 @@ public interface HostConfig {
 
   public PartDaemonAddress getAddress();
 
+  /**
+   * Return this host's current state.
+   * @return
+   * @throws IOException
+   */
   public HostState getState() throws IOException;
 
+  /**
+   * Set this host's current state. This method should only be called by the
+   * host itself.
+   * 
+   * @param state
+   * @throws IOException
+   */
   public void setState(HostState state) throws IOException;
 
   /**
@@ -24,29 +37,78 @@ public interface HostConfig {
   public boolean isOnline() throws IOException;
 
   /**
-   * Tell the host what it should do next.
+   * The listener will be notified when host state changes.
+   * @param listener
+   * @throws IOException
+   */
+  public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
+
+  /**
+   * Add a command to this host's command queue. Consecutive duplicate commands
+   * will be ignored.
+   * 
    * @param command
    * @throws IOException
    */
-  public void setCommand(HostCommand command) throws IOException;
+  public void enqueueCommand(HostCommand command) throws IOException;
+
+  /**
+   * Get the (immutable) list of commands in this host's command queue.
+   * @return
+   * @throws IOException
+   */
+  public List<HostCommand> getCommandQueue() throws IOException;
+
+  /**
+   * Return the command at the head of this host's command queue and set it as
+   * the current command.
+   * 
+   * @return
+   * @throws IOException
+   */
+  public HostCommand processNextCommand() throws IOException;
 
   /**
    * Get the currently pending command.
    * @return
    * @throws IOException
    */
-  public HostCommand getCommand() throws IOException;
+  public HostCommand getCurrentCommand() throws IOException;
 
   /**
-   * The listener will be notified when either the state or the command changes.
+   * Discard the current command.
+   * @throws IOException
+   */
+  public void completeCommand() throws IOException;
+
+  /**
+   * The listener will be notified when there are changes to this host's command
+   * queue.
+   * 
    * @param listener
    * @throws IOException
    */
-  public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
+  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) throws IOException;
 
+  /**
+   * Get the HostDomainConfigs for the domains assigned to this host.
+   * @return
+   * @throws IOException
+   */
   public Set<HostDomainConfig> getAssignedDomains() throws IOException;
 
+  /**
+   * Add a new domain to this host.
+   * @param domainId
+   * @return
+   * @throws IOException
+   */
   public HostDomainConfig addDomain(int domainId) throws IOException;
 
+  /**
+   * Get the HostDomainConfig for the provided domainId.
+   * @param domainId
+   * @return
+   */
   public HostDomainConfig getDomainById(int domainId);
 }
