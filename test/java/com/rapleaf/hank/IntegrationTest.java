@@ -39,6 +39,7 @@ import com.rapleaf.hank.data_deployer.Daemon;
 import com.rapleaf.hank.data_deployer.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -336,7 +337,7 @@ public class IntegrationTest extends ZkTestCase {
     // launch the data deployer
     startDataDeployer();
 
-    Thread.sleep(100000000);
+//    Thread.sleep(100000000);
 
     // launch a smart client server
     startSmartClientServer();
@@ -346,6 +347,21 @@ public class IntegrationTest extends ZkTestCase {
     trans.open();
     TProtocol proto = new TCompactProtocol(trans);
     SmartClient.Client dumbClient = new SmartClient.Client(proto);
+
+    boolean found = false;
+    for (int i = 0; i < 15; i++) {
+      HankResponse r = dumbClient.get("domain0", bb(1));
+      if (r.isSet(_Fields.VALUE)) {
+        found = true;
+        break;
+      }
+      LOG.trace(r);
+      Thread.sleep(1000);
+    }
+
+    if (!found) {
+      fail("No ring came online in the time we waited!");
+    }
 
     // make a few requests
     assertEquals(HankResponse.value(bb(1,1)), dumbClient.get("domain0", bb(1)));
