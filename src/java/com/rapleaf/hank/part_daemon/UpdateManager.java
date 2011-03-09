@@ -45,19 +45,21 @@ public class UpdateManager implements IUpdateManager {
     private final Queue<Throwable> exceptionQueue;
     private final int toVersion;
     private final HostDomainPartitionConfig part;
+    private final String domainName;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartitionConfig part) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartitionConfig part, String domainName) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
       this.toVersion = toVersion;
       this.part = part;
+      this.domainName = domainName;
     }
 
     @Override
     public void run() {
       try {
-        LOG.debug(String.format("UpdateToDo %s part %d starting...", engine.toString(), partNum));
+        LOG.debug(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toVersion, engine.toString()));
         engine.getUpdater(configurator, partNum).update(toVersion);
         part.setCurrentDomainGroupVersion(toVersion);
         part.setUpdatingToDomainGroupVersion(null);
@@ -116,7 +118,12 @@ public class UpdateManager implements IUpdateManager {
               part.getPartNum(),
               part.getCurrentDomainGroupVersion(),
               part.getUpdatingToDomainGroupVersion()));
-          executor.execute(new UpdateToDo(engine, part.getPartNum(), exceptionQueue, dcv.getVersionNumber(), part));
+          executor.execute(new UpdateToDo(engine,
+              part.getPartNum(),
+              exceptionQueue,
+              dcv.getVersionNumber(),
+              part,
+              domainConfig.getName()));
         }
       }
     }

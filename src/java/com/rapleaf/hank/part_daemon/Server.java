@@ -181,6 +181,7 @@ public class Server implements HostCommandQueueChangeListener {
         try {
           IUpdateManager updateManager = getUpdateManager();
           updateManager.update();
+          LOG.info("Update is complete! recording state changes...");
           setState(HostState.IDLE);
           hostConfig.completeCommand();
           updateThread = null;
