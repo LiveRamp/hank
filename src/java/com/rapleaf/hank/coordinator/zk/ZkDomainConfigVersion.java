@@ -25,4 +25,10 @@ public class ZkDomainConfigVersion extends BaseZkConsumer implements DomainConfi
   public int getVersionNumber() {
     return versionNumber;
   }
+
+  @Override
+  public String toString() {
+    return "ZkDomainConfigVersion [domainConfig=" + domainConfig
+        + ", versionNumber=" + versionNumber + "]";
+  }
 }

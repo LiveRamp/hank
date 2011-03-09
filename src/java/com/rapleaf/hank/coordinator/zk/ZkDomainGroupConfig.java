@@ -68,7 +68,6 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
           break;
       }
     }
-
   }
 
   private final class DGCVComparator implements Comparator<DomainGroupConfigVersion> {
@@ -108,14 +107,23 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     }
 
     // enumerate the versions subkey
+    loadVersions();
+  }
+
+  private SortedMap<Integer, DomainGroupConfigVersion> loadVersions()
+  throws KeeperException, InterruptedException, DataNotFoundException {
+    SortedMap<Integer, DomainGroupConfigVersion> dgcvs = 
+      new TreeMap<Integer, DomainGroupConfigVersion>();
+
     List<String> versions = zk.getChildren(dgPath + "/versions", false);
     for (String version : versions) {
       String versionPath = dgPath + "/versions/" + version;
       if (ZkDomainGroupConfigVersion.isComplete(versionPath, zk)) {
         ZkDomainGroupConfigVersion ver = new ZkDomainGroupConfigVersion(zk, versionPath, this);
-        domainGroupConfigVersions.put(ver.getVersionNumber(), ver);
+        dgcvs.put(ver.getVersionNumber(), ver);
       }
     }
+    return dgcvs;
   }
 
   @Override
@@ -144,14 +152,24 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
   }
 
   @Override
-  public DomainGroupConfigVersion getLatestVersion() {
-    return domainGroupConfigVersions.get(domainGroupConfigVersions.lastKey());
+  public DomainGroupConfigVersion getLatestVersion() throws IOException {
+    SortedMap<Integer, DomainGroupConfigVersion> vers;
+    try {
+      vers = loadVersions();
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    return vers.get(vers.lastKey());
   }
 
   @Override
-  public SortedSet<DomainGroupConfigVersion> getVersions() {
+  public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException {
     TreeSet<DomainGroupConfigVersion> s = new TreeSet<DomainGroupConfigVersion>(new DGCVComparator());
-    s.addAll(domainGroupConfigVersions.values());
+    try {
+      s.addAll(loadVersions().values());
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
     return s;
   }
 
@@ -210,5 +228,12 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
     return zk.exists(path + "/.complete", false) != null;
+  }
+
+  @Override
+  public String toString() {
+    return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domainConfigs="
+        + domainConfigs + ", domainGroupConfigVersions="
+        + domainGroupConfigVersions + ", groupName=" + groupName + "]";
   }
 }

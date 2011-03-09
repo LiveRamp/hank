@@ -33,6 +33,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     if (!m.matches()) {
       throw new IllegalArgumentException(versionPath + " has an improperly formatted version number! Must be in the form of 'vNNNN'.");
     }
+
     versionNumber = Integer.parseInt(m.group(1));
 
     if (!isComplete(versionPath, zk)) {
@@ -76,6 +77,15 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
       zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
     zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    // touch it again to notify watchers
+    zk.setData(actualPath, new byte[1], -1);
     return new ZkDomainGroupConfigVersion(zk, actualPath, domainGroupConfig);
+  }
+
+  @Override
+  public String toString() {
+    return "ZkDomainGroupConfigVersion [domainConfigVersions="
+        + domainConfigVersions + ", domainGroup=" + domainGroupConfig.getName()
+        + ", versionNumber=" + versionNumber + "]";
   }
 }

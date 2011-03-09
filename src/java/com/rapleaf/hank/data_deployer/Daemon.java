@@ -93,7 +93,10 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
 
   void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) throws IOException {
     if (ringGroup.isUpdating()) {
-      LOG.info("Ring group " + ringGroupName + " is currently updating.");
+      LOG.info("Ring group " + ringGroupName
+          + " is currently updating from version "
+          + ringGroup.getCurrentVersion() + " to version "
+          + ringGroup.getUpdatingToVersion() + ".");
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
     } else if (ringGroup.getCurrentVersion() < domainGroup.getLatestVersion().getVersionNumber()) {
@@ -112,6 +115,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
   @Override
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
     synchronized(lock) {
+      LOG.debug("Got an updated ring group config version!");
       ringGroupConfig = newRingGroup;
     }
   }
@@ -119,6 +123,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
   @Override
   public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
     synchronized (lock) {
+      LOG.debug("Got an updated domain group config version: " + newDomainGroup + "!" );
       domainGroupConfig = newDomainGroup;
     }
   }

@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -22,9 +23,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
-
-import com.rapleaf.hank.partitioner.ConstantPartitioner;
-import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(BaseTestCase.class);
@@ -212,6 +210,28 @@ public class ZkTestCase extends BaseTestCase {
     return "localhost:" + zkClientPort;
   }
 
+  public void dumpZk() throws Exception {
+    dumpZk("", "", 0);
+  }
+
+  private void dumpZk(String parentPath, String nodeName, int depth) throws Exception {
+    System.err.print(StringUtils.repeat("  ", depth));
+    System.err.print("/" + nodeName);
+    String nodePath = parentPath + "/" + nodeName;
+    nodePath = nodePath.replace("//", "/");
+    byte[] data = zk.getData(nodePath, false, null);
+    if (data == null) {
+      System.err.print(" -> null");
+    } else {
+      System.err.print(" -> [bytes]");
+    }
+    System.err.println();
+    List<String> children = zk.getChildren(nodePath, false);
+    for (String child : children) {
+      dumpZk(nodePath, child, depth + 1);
+    }
+  }
+
   // TODO: this is inefficient. tokenize on / and then just make all the nodes iteratively.
   protected void createNodeRecursively(String path)
   throws InterruptedException {
@@ -225,7 +245,7 @@ public class ZkTestCase extends BaseTestCase {
       LOG.warn(e);
     }
   }
-  
+
   protected void deleteNodeRecursively(String path) throws Exception {
     try {
       zk.delete(path, -1);

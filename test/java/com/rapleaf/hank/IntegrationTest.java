@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
@@ -178,7 +179,6 @@ public class IntegrationTest extends ZkTestCase {
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
-//  private final String localTmpDomains = localTmpDir + "/domain_persistence";
   private final Map<PartDaemonAddress, Thread> partDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
   private final Map<PartDaemonAddress, PartDaemonRunnable> partDaemonRunnables = new HashMap<PartDaemonAddress, PartDaemonRunnable>();
 
@@ -188,6 +188,9 @@ public class IntegrationTest extends ZkTestCase {
   private Thread smartClientThread;
 
   public void testItAll() throws Throwable {
+    Logger.getLogger("com.rapleaf.hank.coordinator.zk").setLevel(Level.INFO);
+    Logger.getLogger("com.rapleaf.hank.part_daemon").setLevel(Level.INFO);
+    Logger.getLogger("com.rapleaf.hank.storage").setLevel(Level.INFO);
     create(domainsRoot);
     create(domainGroupsRoot);
     create(ringGroupsRoot);
@@ -387,8 +390,17 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coord.getDomainConfig("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
 
+    versionMap = new HashMap<String, Integer>();
+    versionMap.put("domain0", 1);
+    versionMap.put("domain1", 2);
+    LOG.info("----- stamping new dg1 version -----");
+    domainGroupConfig.createNewVersion(versionMap);
+
+//    dumpZk();
+
     // wait until the rings have been updated to the new version
-    fail("not implemented");
+    Thread.sleep(15000);
+//    fail("not implemented");
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1,1)), dumbClient.get("domain0", bb(1)));

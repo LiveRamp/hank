@@ -46,14 +46,16 @@ public interface DomainGroupConfig {
    * (ascending).
    * 
    * @return
+   * @throws IOException 
    */
-  public SortedSet<DomainGroupConfigVersion> getVersions();
+  public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException;
 
   /**
    * Convenience method to get the most recent version of the domain group.
    * @return
+   * @throws IOException 
    */
-  public DomainGroupConfigVersion getLatestVersion();
+  public DomainGroupConfigVersion getLatestVersion() throws IOException;
 
   public void setListener(DomainGroupChangeListener listener);
 

@@ -143,4 +143,13 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
     }
     return nextVersion;
   }
+
+  @Override
+  public String toString() {
+    return "ZkDomainConfig [domainPath=" + domainPath + ", name=" + name
+        + ", numParts=" + numParts + ", partitioner=" + partitioner
+        + ", storageEngine=" + storageEngine + ", storageEngineFactoryName="
+        + storageEngineFactoryName + ", storageEngineOptions="
+        + storageEngineOptions + "]";
+  }
 }
