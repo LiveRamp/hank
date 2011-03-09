@@ -28,7 +28,11 @@ abstract class BaseZkConsumer {
 
   protected String getString(String path) throws KeeperException, InterruptedException {
     try {
-      return new String(zk.getData(path, false, null), "UTF-8");
+      byte[] data = zk.getData(path, false, null);
+      if (data == null) {
+        return null;
+      }
+      return new String(data, "UTF-8");
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }

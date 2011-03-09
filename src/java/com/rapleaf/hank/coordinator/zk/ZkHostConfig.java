@@ -1,6 +1,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,12 +16,53 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
+  private class CommandQueueWatcher implements Watcher {
+
+    private final HostCommandQueueChangeListener listener;
+
+    public CommandQueueWatcher(HostCommandQueueChangeListener listener) throws KeeperException, InterruptedException {
+      this.listener = listener;
+      setWatch();
+    }
+
+    public void process(WatchedEvent event) {
+      switch (event.getType()) {
+        case NodeCreated:
+        case NodeDeleted:
+        case NodeDataChanged:
+        case NodeChildrenChanged:
+          listener.onCommandQueueChange(ZkHostConfig.this);
+          // reset callback
+          try {
+            setWatch();
+          } catch (KeeperException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+          }
+      }
+    }
+
+    private void setWatch() throws KeeperException, InterruptedException {
+      zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, this);
+    }
+  }
+
+  private static final String STATUS_PATH_SEGMENT = "/status";
+  private static final String COMPLETE_PATH_SEGMENT = "/.complete";
+  private static final String PARTS_PATH_SEGMENT = "/parts";
+  private static final String COMMAND_QUEUE_PATH_SEGMENT = "/command_queue";
+  private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
+
   private class StateChangeWatcher implements Watcher {
     private final HostStateChangeListener listener;
 
@@ -47,10 +90,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
 
     private void setWatch() throws KeeperException, InterruptedException {
-      if (zk.exists(hostPath + "/status", this) != null) {
-        zk.getData(hostPath + "/status", this, new Stat());
+      if (zk.exists(hostPath + STATUS_PATH_SEGMENT, this) != null) {
+        zk.getData(hostPath + STATUS_PATH_SEGMENT, this, new Stat());
       }
-      zk.getData(hostPath + "/command", this, new Stat());
     }
   }
 
@@ -75,10 +117,10 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   @Override
   public HostState getState() throws IOException {
     try {
-      if (zk.exists(hostPath + "/status", false) == null) {
+      if (zk.exists(hostPath + STATUS_PATH_SEGMENT, false) == null) {
         return HostState.OFFLINE;
       }
-      return HostState.valueOf(getString(hostPath + "/status"));
+      return HostState.valueOf(getString(hostPath + STATUS_PATH_SEGMENT));
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -93,14 +135,6 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
   }
 
-  public static ZkHostConfig create(ZooKeeper zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
-    String hostPath = root + "/" + partDaemonAddress.toString();
-    zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/parts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/command", HostCommand.GO_TO_IDLE.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkHostConfig(zk, hostPath);
-  }
 
   @Override
   public int hashCode() {
@@ -137,13 +171,13 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   public Set<HostDomainConfig> getAssignedDomains() throws IOException {
     List<String> domains;
     try {
-      domains = zk.getChildren(hostPath + "/parts", false);
+      domains = zk.getChildren(hostPath + PARTS_PATH_SEGMENT, false);
     } catch (Exception e) {
       throw new IOException(e);
     }
     Set<HostDomainConfig> results = new HashSet<HostDomainConfig>();
     for (String domain : domains) {
-      results.add(new ZkHostDomainConfig(zk, hostPath + "/parts", Byte.parseByte(domain)));
+      results.add(new ZkHostDomainConfig(zk, hostPath + PARTS_PATH_SEGMENT, Byte.parseByte(domain)));
     }
     return results;
   }
@@ -151,7 +185,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   @Override
   public HostDomainConfig addDomain(int domainId) throws IOException {
     // TODO: check if we already have a domain with that id
-    HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + "/parts", domainId);
+    HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
     return hdc;
   }
 
@@ -171,9 +205,13 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   @Override
-  public HostCommand getCommand() throws IOException {
+  public HostCommand getCurrentCommand() throws IOException {
     try {
-      return HostCommand.valueOf(getString(hostPath + "/command"));
+      String commandString = getString(hostPath + CURRENT_COMMAND_PATH_SEGMENT);
+      if (commandString == null) {
+        return null;
+      }
+      return HostCommand.valueOf(commandString);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -185,32 +223,106 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   @Override
-  public void setCommand(HostCommand command) throws IOException {
+  public void setState(HostState state) throws IOException {
     try {
-      zk.setData(hostPath + "/command", command.toString().getBytes(), -1);
+      if (state == HostState.OFFLINE) {
+        if (zk.exists(hostPath + STATUS_PATH_SEGMENT, false) == null) {
+          // already offline
+        } else {
+          zk.delete(hostPath + STATUS_PATH_SEGMENT, -1);
+        }
+      } else {
+        if (zk.exists(hostPath + STATUS_PATH_SEGMENT, false) == null) {
+          zk.create(hostPath + STATUS_PATH_SEGMENT, state.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        } else {
+          zk.setData(hostPath + STATUS_PATH_SEGMENT, state.toString().getBytes(), -1);
+        }
+      }
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public void setState(HostState state) throws IOException {
+  public void completeCommand() throws IOException {
     try {
-      if (state == HostState.OFFLINE) {
-        if (zk.exists(hostPath + "/status", false) == null) {
-          // already offline
-        } else {
-          zk.delete(hostPath + "/status", -1);
-        }
-      } else {
-        if (zk.exists(hostPath + "/status", false) == null) {
-          zk.create(hostPath + "/status", state.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        } else {
-          zk.setData(hostPath + "/status", state.toString().getBytes(), -1);
-        }
-      }
+      zk.setData(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, -1);
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public void enqueueCommand(HostCommand command) throws IOException {
+    try {
+      zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/command_",
+          command.toString().getBytes(),
+          Ids.OPEN_ACL_UNSAFE,
+          CreateMode.PERSISTENT_SEQUENTIAL);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public List<HostCommand> getCommandQueue() throws IOException {
+    try {
+      List<String> children = zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, false);
+      Collections.sort(children);
+      List<HostCommand> queue = new ArrayList<HostCommand>();
+      for (String child : children) {
+        queue.add(HostCommand.valueOf(new String(zk.getData(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child, false, null))));
+      }
+      return queue;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public HostCommand processNextCommand() throws IOException {
+    try {
+      // get the queue and sort so we have correct ordering
+      List<String> children = zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, false);
+      Collections.sort(children);
+
+      // if there are no children, the queue is empty.
+      if (children.size() == 0) {
+        return null;
+      }
+
+      // parse out the actual command
+      String headOfQueuePath = hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + children.get(0);
+      HostCommand nextCommand = HostCommand.valueOf(getString(headOfQueuePath));
+
+      // set the current command
+      zk.setData(hostPath + CURRENT_COMMAND_PATH_SEGMENT, nextCommand.toString().getBytes(), -1);
+      // delete the head of the queue
+      zk.delete(headOfQueuePath, -1);
+
+      return nextCommand;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener)
+  throws IOException {
+    try {
+      new CommandQueueWatcher(listener);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public static ZkHostConfig create(ZooKeeper zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
+    String hostPath = root + "/" + partDaemonAddress.toString();
+    zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + PARTS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkHostConfig(zk, hostPath);
   }
 }
