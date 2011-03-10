@@ -167,8 +167,14 @@ public class TestZkRingConfig extends ZkTestCase {
     RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
     MockListener mockListener = new MockListener();
     rc.setStateChangeListener(mockListener);
+    synchronized (mockListener) {
+      mockListener.wait(1000);
+    }
     assertNull(mockListener.calledWith);
     rc.setState(RingState.DOWN);
+    synchronized (mockListener) {
+      mockListener.wait(1000);
+    }
     assertEquals(rc, mockListener.calledWith);
   }
 
