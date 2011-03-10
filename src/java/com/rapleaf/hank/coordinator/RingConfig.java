@@ -70,4 +70,11 @@ public interface RingConfig {
    * @throws IOException 
    */
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException;
+
+  /**
+   * Listener will be notified when the ring's state changes.
+   * @param listener
+   * @throws IOException
+   */
+  public void setStateChangeListener(RingStateChangeListener listener) throws IOException;
 }
