@@ -185,7 +185,6 @@ public class IntegrationTest extends ZkTestCase {
   private Thread dataDeployerThread;
   private DataDeployerRunnable dataDeployerRunnable;
   private SmartClientRunnable smartClientRunnable;
-  private Thread smartClientThread;
 
   public void testItAll() throws Throwable {
     Logger.getLogger("com.rapleaf.hank.coordinator.zk").setLevel(Level.INFO);
@@ -456,7 +455,6 @@ public class IntegrationTest extends ZkTestCase {
 
   private void stopSmartClient() throws Exception {
     smartClientRunnable.pleaseStop();
-    smartClientThread.join();
   }
 
   private void startDataDeployer() throws Exception {
