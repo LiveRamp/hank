@@ -12,8 +12,20 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.RingStateChangeListener;
 
 public class TestZkRingConfig extends ZkTestCase {
+  private static final class MockListener implements RingStateChangeListener {
+    public RingConfig calledWith;
+    @Override
+    public void onRingStateChange(RingConfig ringConfig) {
+      calledWith = ringConfig;
+      synchronized (this) {
+        notifyAll();
+      }
+    }
+  }
+
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
 
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
@@ -149,6 +161,15 @@ public class TestZkRingConfig extends ZkTestCase {
     assertNull(rc.getUpdatingToVersionNumber());
     rc.setUpdatingToVersion(7);
     assertEquals(Integer.valueOf(7), rc.getUpdatingToVersionNumber());
+  }
+
+  public void testRingStateListener() throws Exception {
+    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
+    MockListener mockListener = new MockListener();
+    rc.setStateChangeListener(mockListener);
+    assertNull(mockListener.calledWith);
+    rc.setState(RingState.DOWN);
+    assertEquals(rc, mockListener.calledWith);
   }
 
   @Override

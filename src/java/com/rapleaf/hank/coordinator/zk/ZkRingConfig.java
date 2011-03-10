@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -40,8 +41,38 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.RingStateChangeListener;
 
 public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher {
+  private static final Logger LOG = Logger.getLogger(ZkRingConfig.class);
+
+  private final class StateChangeWatcher implements Watcher {
+    private final RingStateChangeListener listener;
+
+    public StateChangeWatcher(RingStateChangeListener listener) throws KeeperException, InterruptedException {
+      this.listener = listener;
+      register();
+    }
+
+    private void register() throws KeeperException, InterruptedException {
+      zk.getData(ringPath + STATUS_PATH_SEGMENT, this, null);
+    }
+
+    @Override
+    public void process(WatchedEvent event) {
+      switch (event.getType()) {
+        case NodeDataChanged:
+          listener.onRingStateChange(ZkRingConfig.this);
+          try {
+            register();
+          } catch (Exception e) {
+            LOG.error("failed to reregister watch!");
+          }
+      }
+    }
+
+  }
+
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
@@ -246,6 +277,16 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
     try {
       zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + latestVersionNumber).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setStateChangeListener(RingStateChangeListener listener)
+  throws IOException {
+    try {
+      new StateChangeWatcher(listener);
     } catch (Exception e) {
       throw new IOException(e);
     }
