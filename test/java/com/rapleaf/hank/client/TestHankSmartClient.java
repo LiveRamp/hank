@@ -17,8 +17,10 @@ package com.rapleaf.hank.client;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,15 +34,21 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
+import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -51,12 +59,6 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.partitioner.MapPartitioner;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Updater;
-import com.rapleaf.hank.storage.Writer;
 
 public class TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
@@ -87,30 +89,6 @@ public class TestHankSmartClient extends BaseTestCase {
     public HankResponse get(int domainId, ByteBuffer key) throws TException {
       // todo: check domainId?
       return HankResponse.value(result);
-    }
-  }
-
-  private class EchoStorageEngine implements StorageEngine {
-    @Override
-    public Reader getReader(PartservConfigurator configurator, int partNum) {
-      return new Reader() {
-        @Override
-        public void get(ByteBuffer key, Result result) throws IOException {
-          result.requiresBufferSize(key.remaining());
-          result.getBuffer().put(key.slice());
-        }
-      };
-    }
-
-    @Override
-    public Updater getUpdater(PartservConfigurator configurator, int partNum) {
-      return null;
-    }
-
-    @Override
-    public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-        int versionNumber, boolean base) throws IOException {
-      return null;
     }
   }
 
@@ -167,21 +145,29 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread thread2 = new Thread(new ServerRunnable(server2), "mock part daemon #2");
     thread2.start();
 
+    final HostConfig hostConfig1 = getHostConfig(new PartDaemonAddress("localhost", server1Port), 0);
+    final HostConfig hostConfig2 = getHostConfig(new PartDaemonAddress("localhost", server2Port), 1);
+
     final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.UP) {
       @Override
       public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
         assertEquals(1, domainId);
         if (partition == 0) {
-          return Collections.singleton(getHostConfig(new PartDaemonAddress("localhost", server1Port)));
+          return Collections.singleton(hostConfig1);
         } else if (partition == 1) {
-          return Collections.singleton(getHostConfig(new PartDaemonAddress("localhost", server2Port)));
+          return Collections.singleton(hostConfig2);
         }
         fail("got partition id " + partition + " which is invalid");
         throw new IllegalStateException();
       }
+
+      @Override
+      public Set<HostConfig> getHosts() {
+        return new HashSet<HostConfig>(Arrays.asList(hostConfig1, hostConfig2));
+      }
     };
 
-    final MockDomainConfig existentDomainConfig = new MockDomainConfig("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), new EchoStorageEngine(), 1);
+    final MockDomainConfig existentDomainConfig = new MockDomainConfig("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
     MockDomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
       private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>() {{
         put(1, existentDomainConfig);
@@ -199,6 +185,11 @@ public class TestHankSmartClient extends BaseTestCase {
         } else {
           throw new DataNotFoundException();
         }
+      }
+
+      @Override
+      public DomainGroupConfigVersion getLatestVersion() {
+        return new MockDomainGroupConfigVersion(new HashSet<DomainConfigVersion>(Arrays.asList(new MockDomainConfigVersion(existentDomainConfig, 1))), this, 1);
       }
     };
     final MockRingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {
@@ -221,8 +212,8 @@ public class TestHankSmartClient extends BaseTestCase {
 
       assertEquals(HankResponse.no_such_domain(true), c.get("nonexistent_domain", null));
 
-      assertEquals(VALUE_1, c.get("existent_domain", KEY_1).buffer_for_value());
-      assertEquals(VALUE_2, c.get("existent_domain", KEY_2).buffer_for_value());
+      assertEquals(HankResponse.value(VALUE_1), c.get("existent_domain", KEY_1));
+      assertEquals(HankResponse.value(VALUE_2), c.get("existent_domain", KEY_2));
     } finally {
       server1.stop();
       server2.stop();
@@ -233,8 +224,32 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private HostConfig getHostConfig(PartDaemonAddress address) throws IOException {
-    MockHostConfig hc = new MockHostConfig(address);
+  private HostConfig getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
+    MockHostConfig hc = new MockHostConfig(address) {
+
+      @Override
+      public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+        return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
+          @Override
+          public HostDomainPartitionConfig addPartition(int partNum,
+              int initialVersion) throws Exception {
+            // TODO Auto-generated method stub
+            return null;
+          }
+
+          @Override
+          public int getDomainId() {
+            return 1;
+          }
+
+          @Override
+          public Set<HostDomainPartitionConfig> getPartitions() {
+            return Collections.singleton((HostDomainPartitionConfig)new MockHostDomainPartitionConfig(partNum, 1, -1));
+          }
+        });
+      }
+      
+    };
     hc.setState(HostState.SERVING);
     return hc;
   }

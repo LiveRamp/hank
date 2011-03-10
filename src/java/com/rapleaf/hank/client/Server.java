@@ -18,6 +18,7 @@ package com.rapleaf.hank.client;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
@@ -47,10 +48,10 @@ public class Server {
 
   /**
    * start serving the thrift server. doesn't return.
-   * @throws TTransportException
    * @throws IOException 
+   * @throws TException 
    */
-  private void serve() throws TTransportException, IOException {
+  private void serve() throws IOException, TException {
     // set up the service handler
     HankSmartClient handler;
     try {
@@ -92,6 +93,9 @@ public class Server {
         } catch (TTransportException e) {
           // TODO deal with exception. server is probably going down unexpectedly
         } catch (IOException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+        } catch (TException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
         }
