@@ -113,4 +113,11 @@ public class MockRingConfig implements RingConfig {
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
     updatingToVersion = latestVersionNumber;
   }
+
+  @Override
+  public void setStateChangeListener(RingStateChangeListener listener)
+      throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
 }
