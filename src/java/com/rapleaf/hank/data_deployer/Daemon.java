@@ -9,6 +9,10 @@ import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -99,15 +103,28 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
           + ringGroup.getUpdatingToVersion() + ".");
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
-    } else if (ringGroup.getCurrentVersion() < domainGroup.getLatestVersion().getVersionNumber()) {
-      // We can start a new update of this ring group.
-
-      // set the ring group's updating version to the new domain group version
-      // this will mark all the subordinate rings and hosts for update as well.
-      LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
-      ringGroup.setUpdatingToVersion(domainGroup.getLatestVersion().getVersionNumber());
     } else {
-      LOG.info("No updates in process and no updates pending.");
+      int latestVersionNumber = domainGroup.getLatestVersion().getVersionNumber();
+      if (ringGroup.getCurrentVersion() < latestVersionNumber) {
+        // We can start a new update of this ring group.
+
+        // set the ring group's updating version to the new domain group version
+        // this will mark all the subordinate rings and hosts for update as well.
+        LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
+        for (RingConfig ringConfig : ringGroup.getRingConfigs()) {
+          for (HostConfig hostConfig : ringConfig.getHosts()) {
+            for (HostDomainConfig hdc : hostConfig.getAssignedDomains()) {
+              for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+                hdpc.setUpdatingToDomainGroupVersion(latestVersionNumber);
+              }
+            }
+          }
+          ringConfig.setUpdatingToVersion(latestVersionNumber);
+        }
+        ringGroup.setUpdatingToVersion(latestVersionNumber);
+      } else {
+        LOG.info("No updates in process and no updates pending.");
+      }
     }
   }
 

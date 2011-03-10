@@ -1,6 +1,8 @@
 package com.rapleaf.hank.data_deployer;
 
+import java.io.IOException;
 import java.util.Collections;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -8,10 +10,18 @@ import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class TestDaemon extends TestCase {
@@ -33,6 +43,33 @@ public class TestDaemon extends TestCase {
       }
     };
 
+    final MockHostDomainPartitionConfig mockHostDomainPartitionConfig = new MockHostDomainPartitionConfig(0, 0, 1);
+
+    final MockHostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("locahost", 12345)) {
+      @Override
+      public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+        return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
+          @Override
+          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
+
+          @Override
+          public int getDomainId() {return 0;}
+
+          @Override
+          public Set<HostDomainPartitionConfig> getPartitions() {
+            return Collections.singleton((HostDomainPartitionConfig)mockHostDomainPartitionConfig);
+          }
+        });
+      }
+    };
+
+    final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, null) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return Collections.singleton((HostConfig)mockHostConfig);
+      }
+    };
+
     final MockRingGroupConfig mockRingGroupConf = new MockRingGroupConfig(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroupConfig getDomainGroupConfig() {
@@ -42,6 +79,11 @@ public class TestDaemon extends TestCase {
       @Override
       public Integer getCurrentVersion() {
         return 1;
+      }
+
+      @Override
+      public Set<RingConfig> getRingConfigs() {
+        return Collections.singleton((RingConfig)mockRingConfig);
       }
     };
 
@@ -72,6 +114,8 @@ public class TestDaemon extends TestCase {
 
     assertNull(mockTransFunc.calledWithRingGroup);
     assertEquals(2, mockRingGroupConf.updateToVersion);
+    assertEquals(Integer.valueOf(2), mockRingConfig.updatingToVersion);
+    assertEquals(2, mockHostDomainPartitionConfig.updatingToVersion);
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {

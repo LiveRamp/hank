@@ -11,6 +11,7 @@ public class MockRingConfig implements RingConfig {
   private final RingGroupConfig rgc;
   private final Set<HostConfig> hosts;
   public HostCommand allCommanded;
+  public Integer updatingToVersion;
 
   public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
     this.hosts = new HashSet<HostConfig>();
@@ -106,5 +107,10 @@ public class MockRingConfig implements RingConfig {
   @Override
   public void commandAll(HostCommand command) throws IOException {
     this.allCommanded = command;
+  }
+
+  @Override
+  public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
+    updatingToVersion = latestVersionNumber;
   }
 }

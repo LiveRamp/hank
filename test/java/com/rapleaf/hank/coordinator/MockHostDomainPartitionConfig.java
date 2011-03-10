@@ -7,6 +7,7 @@ public class MockHostDomainPartitionConfig implements HostDomainPartitionConfig 
   private final int partNum;
   private final int curVer;
   private final int nextVer;
+  public int updatingToVersion;
 
   public MockHostDomainPartitionConfig(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
@@ -33,5 +34,7 @@ public class MockHostDomainPartitionConfig implements HostDomainPartitionConfig 
   public void setCurrentDomainGroupVersion(int version) {}
 
   @Override
-  public void setUpdatingToDomainGroupVersion(Integer version) {}
+  public void setUpdatingToDomainGroupVersion(Integer version) {
+    updatingToVersion = version;
+  }
 }
