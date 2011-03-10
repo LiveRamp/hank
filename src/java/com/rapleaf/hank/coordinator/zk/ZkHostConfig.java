@@ -12,6 +12,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -120,7 +121,16 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
       if (zk.exists(hostPath + STATUS_PATH_SEGMENT, false) == null) {
         return HostState.OFFLINE;
       }
-      return HostState.valueOf(getString(hostPath + STATUS_PATH_SEGMENT));
+      try {
+        return HostState.valueOf(getString(hostPath + STATUS_PATH_SEGMENT));
+      } catch (KeeperException e) {
+        if (e.code() == Code.NONODE) {
+          // the node disappeared between our exists check and our get. must be
+          // offline now.
+          return HostState.OFFLINE;
+        }
+        throw (e);
+      }
     } catch (Exception e) {
       throw new IOException(e);
     }
