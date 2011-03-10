@@ -143,6 +143,14 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(Collections.singleton(hc3), rc.getHostsInState(HostState.OFFLINE));
   }
 
+  public void testSetUpdatingToVersion() throws Exception {
+    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
+    rc.updateComplete();
+    assertNull(rc.getUpdatingToVersionNumber());
+    rc.setUpdatingToVersion(7);
+    assertEquals(Integer.valueOf(7), rc.getUpdatingToVersionNumber());
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

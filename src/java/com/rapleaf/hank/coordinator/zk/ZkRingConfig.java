@@ -224,10 +224,6 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     }
   }
 
-  protected void setString(String path, String value) throws KeeperException, InterruptedException {
-    zk.setData(path, value.getBytes(), -1);
-  }
-
   @Override
   public Set<HostConfig> getHostsInState(HostState state) throws IOException {
     Set<HostConfig> results = new HashSet<HostConfig>();
@@ -243,6 +239,15 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   public void commandAll(HostCommand command) throws IOException {
     for (HostConfig hostConfig : getHosts()) {
       hostConfig.enqueueCommand(command);
+    }
+  }
+
+  @Override
+  public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
+    try {
+      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + latestVersionNumber).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
     }
   }
 }

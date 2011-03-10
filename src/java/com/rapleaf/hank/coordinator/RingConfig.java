@@ -63,4 +63,11 @@ public interface RingConfig {
    * @throws IOException
    */
   public Set<HostConfig> getHostsInState(HostState state) throws IOException;
+
+  /**
+   * Set the updating-to version number.
+   * @param latestVersionNumber
+   * @throws IOException 
+   */
+  public void setUpdatingToVersion(int latestVersionNumber) throws IOException;
 }
