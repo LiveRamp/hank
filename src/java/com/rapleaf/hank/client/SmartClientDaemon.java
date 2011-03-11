@@ -18,15 +18,16 @@ package com.rapleaf.hank.client;
 import java.io.IOException;
 
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
@@ -79,7 +80,8 @@ public class SmartClientDaemon {
     try {
       serverThread.join();
     } catch (InterruptedException e) {
-      // TODO we're probably shutting down... log a message and continue.
+      // we're probably shutting down
+      LOG.debug("Interrupted waiting for server thread to exit.", e);
     }
     server = null;
     serverThread = null;
@@ -94,14 +96,8 @@ public class SmartClientDaemon {
       public void run() {
         try {
           serve();
-        } catch (TTransportException e) {
-          // TODO deal with exception. server is probably going down unexpectedly
-        } catch (IOException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
-        } catch (TException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
+        } catch (Exception e) {
+          LOG.fatal("Unexpected error in server main loop!", e);
         }
       }
     };
@@ -118,5 +114,23 @@ public class SmartClientDaemon {
     }
   }
 
-  // TODO: where's the main method?
+  private void run() {
+    startServer();
+    while(true) {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        LOG.debug("Interrupted main thread. Exiting.", e);
+        break;
+      }
+    }
+    downServer();
+  }
+
+  public static void main(String[] args) throws Throwable {
+    String configPath = args[0];
+    String log4jProps = args[1];
+    PropertyConfigurator.configure(log4jProps);
+    new SmartClientDaemon(new YamlSmartClientDaemonConfigurator(configPath)).run();
+  }
 }
