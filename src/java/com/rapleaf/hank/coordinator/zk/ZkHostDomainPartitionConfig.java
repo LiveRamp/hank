@@ -1,3 +1,18 @@
+/**
+ *  Copyright 2011 Rapleaf
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
@@ -5,19 +20,16 @@ import java.io.IOException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
-
+public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostDomainPartitionConfig {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
-  private final ZooKeeper zk;
   private final String path;
   private final int partNum;
 
   public ZkHostDomainPartitionConfig(ZooKeeper zk, String path) {
-    this.zk = zk;
+    super(zk);
     this.path = path;
     String[] toks = path.split("/");
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
@@ -27,12 +39,12 @@ public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
   public Integer getCurrentDomainGroupVersion() throws IOException {
     try {
       if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) != null) {
-        return Integer.parseInt(new String(zk.getData(path + CURRENT_VERSION_PATH_SEGMENT, false, new Stat())));
+        return getIntOrNull(path + CURRENT_VERSION_PATH_SEGMENT);
       }
+      return null;
     } catch (Exception e) {
       throw new IOException(e);
     }
-    return null;
   }
 
   @Override
@@ -44,7 +56,7 @@ public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
   public Integer getUpdatingToDomainGroupVersion() throws IOException {
     try {
       if (zk.exists(path + UPDATING_TO_VERSION_PATH_SEGMENT, false) != null) {
-        return Integer.parseInt(new String(zk.getData(path + UPDATING_TO_VERSION_PATH_SEGMENT, false, new Stat())));
+        return getIntOrNull(path + UPDATING_TO_VERSION_PATH_SEGMENT);
       }
     } catch (Exception e) {
       throw new IOException(e);
@@ -56,11 +68,7 @@ public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
   public void setCurrentDomainGroupVersion(int version) throws IOException {
     try {
       String p = path + CURRENT_VERSION_PATH_SEGMENT;
-      if (zk.exists(p, false) == null) {
-        zk.create(p, ("" + version).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      } else {
-        zk.setData(p, ("" + version).getBytes(), -1);
-      }
+      setOrCreate(p, version, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -74,11 +82,7 @@ public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
         zk.delete(p, -1);
         return;
       }
-      if (zk.exists(p, false) == null) {
-        zk.create(p, ("" + version).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      } else {
-        zk.setData(p, ("" + version).getBytes(), -1);
-      }
+      setOrCreate(p, version, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -94,5 +98,4 @@ public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
       throw new IOException(e);
     }
   }
-
 }
