@@ -93,7 +93,6 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   public ZkDomainGroupConfig(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
     super(zk);
-    LOG.trace("Opening ZkDomainGroupConfig " + dgPath);
 
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
@@ -135,7 +134,8 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
   public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
     DomainConfig domain;
     if ((domain = domainConfigs.get(domainId)) == null) {
-      throw new DataNotFoundException("Domain group " + groupName + " does not have any domain with id " + domainId);
+      throw new DataNotFoundException("Domain group " + groupName
+          + " does not have any domain with id " + domainId);
     }
     return domain;
   }
@@ -148,7 +148,8 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
         return entry.getKey();
       }
     }
-    throw new DataNotFoundException("The domain group " + groupName + " does not have any domain with name " + domainName);
+    throw new DataNotFoundException("The domain group " + groupName
+        + " does not have any domain with name " + domainName);
   }
 
   @Override
@@ -186,15 +187,6 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     }
   }
 
-  public static ZkDomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
-    String domainGroupPath = dgRoot + "/" + domainGroupName;
-    zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.setData(domainGroupPath, new byte[]{1}, -1);
-    return new ZkDomainGroupConfig(zk, domainGroupPath);
-  }
 
   @Override
   public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
@@ -235,5 +227,15 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domainConfigs="
         + domainConfigs + ", domainGroupConfigVersions="
         + domainGroupConfigVersions + ", groupName=" + groupName + "]";
+  }
+
+  public static ZkDomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
+    String domainGroupPath = dgRoot + "/" + domainGroupName;
+    zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.setData(domainGroupPath, new byte[]{1}, -1);
+    return new ZkDomainGroupConfig(zk, domainGroupPath);
   }
 }
