@@ -35,6 +35,9 @@ import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.FsUtils;
 
+/**
+ * Cueball is a storage engine optimized for small, fixed-size values.
+ */
 public class Cueball implements StorageEngine {
   private static final IFileSelector cueballFileSelector = new CueballFileSelector();
 
@@ -46,7 +49,7 @@ public class Cueball implements StorageEngine {
   public static class Factory implements StorageEngineFactory {
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
-        throws IOException {
+    throws IOException {
       throw new NotImplementedException();
     }
   }

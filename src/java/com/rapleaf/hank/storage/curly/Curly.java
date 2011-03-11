@@ -37,6 +37,10 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.IFileOpsFactory;
 import com.rapleaf.hank.util.FsUtils;
 
+/**
+ * Curly is a storage engine designed for larger, variable-sized values. It uses
+ * Cueball under the hood.
+ */
 public class Curly implements StorageEngine {
   private static final Pattern BASE_OR_REGEX_PATTERN = Pattern
       .compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
@@ -46,7 +50,7 @@ public class Curly implements StorageEngine {
   public static class Factory implements StorageEngineFactory {
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
-        throws IOException {
+    throws IOException {
       Hasher hasher;
       IFileOpsFactory fileOpsFactory;
       try {

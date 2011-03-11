@@ -15,6 +15,17 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+/**
+ * Factory for getting IFileOps instances.
+ */
 public interface IFileOpsFactory {
+  /**
+   * Get an IFileOps instance that is targeted at the specified remote and local
+   * directories.
+   * 
+   * @param localPath
+   * @param remotePath
+   * @return
+   */
   public IFileOps getFileOps(String localPath, String remotePath);
 }

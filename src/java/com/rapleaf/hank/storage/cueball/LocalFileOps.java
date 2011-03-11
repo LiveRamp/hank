@@ -24,6 +24,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Implementation of the IFileOps interface for local disk. This File Ops is
+ * suitable for use when your datafiles are on local disk or NFS.
+ */
 public class LocalFileOps implements IFileOps {
   private final String remoteRoot;
   private final String localRoot;

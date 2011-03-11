@@ -18,10 +18,22 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * IFileOps is a micro-abstraction of a remote filesystem used by Fetcher to
+ * provide a variety of retrieval strategies.
+ */
 public interface IFileOps {
-
+  /**
+   * Get the list of files in the remote location.
+   * @return
+   * @throws IOException
+   */
   public List<String> listFiles() throws IOException;
 
+  /**
+   * Copy the specified file from remote to local.
+   * @param fileName
+   * @throws IOException
+   */
   public void copyToLocal(String fileName) throws IOException;
-
 }
