@@ -17,6 +17,16 @@ package com.rapleaf.hank.partitioner;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Interface used to partition keys across a domain's partitions.
+ */
 public interface Partitioner {
+  /**
+   * The returned partition number must be:
+   * - >= 0
+   * - deterministic
+   * @param key
+   * @return
+   */
   public int partition(ByteBuffer key);
 }
