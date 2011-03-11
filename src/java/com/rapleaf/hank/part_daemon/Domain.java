@@ -22,7 +22,10 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 
-public class Domain {
+/**
+ * Class that manages serving on behalf of a particular Domain.
+ */
+class Domain {
   private final Reader[] parts;
   private final Partitioner partitioner;
   private final String name;

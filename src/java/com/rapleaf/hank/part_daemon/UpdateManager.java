@@ -36,6 +36,9 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
 
+/**
+ * Manages the domain update process.
+ */
 public class UpdateManager implements IUpdateManager {
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
