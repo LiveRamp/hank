@@ -39,7 +39,7 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
-public class TestDaemon extends TestCase {
+public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
     public RingGroupConfig calledWithRingGroup;
 
@@ -124,7 +124,7 @@ public class TestDaemon extends TestCase {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    Daemon daemon = new Daemon(mockConfig, mockTransFunc);
+    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
     daemon.processUpdates(mockRingGroupConf, domainGroupConfig);
 
     assertNull(mockTransFunc.calledWithRingGroup);
@@ -180,7 +180,7 @@ public class TestDaemon extends TestCase {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    Daemon daemon = new Daemon(mockConfig, mockTransFunc);
+    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
     daemon.processUpdates(mockRingGroupConf, domainGroupConfig);
 
     assertEquals(mockRingGroupConf, mockTransFunc.calledWithRingGroup);

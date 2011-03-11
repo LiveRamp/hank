@@ -51,7 +51,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.data_deployer.Daemon;
+import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.data_deployer.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
@@ -96,7 +96,7 @@ public class IntegrationTest extends ZkTestCase {
 
   private final class DataDeployerRunnable implements Runnable {
     private DataDeployerConfigurator configurator;
-    private Daemon daemon;
+    private DataDeployer daemon;
 
     public DataDeployerRunnable() throws Exception {
       String configPath = localTmpDir + "/data_deployer_config.yml";
@@ -112,7 +112,7 @@ public class IntegrationTest extends ZkTestCase {
     @Override
     public void run() {
       try {
-        daemon = new Daemon(configurator);
+        daemon = new DataDeployer(configurator);
         daemon.run();
       } catch (Exception e) {
         LOG.fatal("crap, some exception", e);

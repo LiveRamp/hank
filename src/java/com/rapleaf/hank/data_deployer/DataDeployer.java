@@ -32,8 +32,8 @@ import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
-public class Daemon implements RingGroupChangeListener, DomainGroupChangeListener {
-  private static final Logger LOG = Logger.getLogger(Daemon.class);
+public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
+  private static final Logger LOG = Logger.getLogger(DataDeployer.class);
 
   private final DataDeployerConfigurator config;
   private final String ringGroupName;
@@ -47,11 +47,11 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
 
   private boolean goingDown = false;
 
-  public Daemon(DataDeployerConfigurator config) throws DataNotFoundException {
+  public DataDeployer(DataDeployerConfigurator config) throws DataNotFoundException {
     this(config, new RingGroupUpdateTransitionFunctionImpl());
   }
 
-  Daemon(DataDeployerConfigurator config, RingGroupUpdateTransitionFunction transFunc) {
+  DataDeployer(DataDeployerConfigurator config, RingGroupUpdateTransitionFunction transFunc) {
     this.config = config;
     this.transFunc = transFunc;
     ringGroupName = config.getRingGroupName();
@@ -170,7 +170,7 @@ public class Daemon implements RingGroupChangeListener, DomainGroupChangeListene
 
     DataDeployerConfigurator configurator = new YamlDataDeployerConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
-    new Daemon(configurator).run();
+    new DataDeployer(configurator).run();
   }
 
   public void stop() {
