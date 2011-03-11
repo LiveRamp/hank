@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.config.yaml;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;

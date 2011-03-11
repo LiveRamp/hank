@@ -27,7 +27,7 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.YamlPartservConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;

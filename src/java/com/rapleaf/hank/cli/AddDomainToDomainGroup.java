@@ -25,7 +25,7 @@ import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.YamlClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 

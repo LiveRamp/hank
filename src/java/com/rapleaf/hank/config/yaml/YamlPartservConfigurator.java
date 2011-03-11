@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.config.yaml;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -21,6 +21,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.PartservConfigurator;
 
 public class YamlPartservConfigurator extends BaseYamlConfigurator implements PartservConfigurator {
   private static final String PARTSERV_SECTION_KEY = "partserv";

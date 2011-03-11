@@ -13,9 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.config.yaml;
 
 import java.io.IOException;
+
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
 
 public class YamlClientConfigurator extends BaseYamlConfigurator implements ClientConfigurator {
   public YamlClientConfigurator(String path) throws IOException,

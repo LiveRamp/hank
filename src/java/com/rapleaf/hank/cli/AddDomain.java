@@ -26,7 +26,7 @@ import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.YamlClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.util.FsUtils;
 
 public class AddDomain {

@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.config.yaml;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 

@@ -25,7 +25,7 @@ import org.apache.commons.cli.ParseException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.YamlClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 
 public class AddDomainGroup {
   public static void addDomainGroup(ClientConfigurator configurator, String name) throws InterruptedException, IOException {

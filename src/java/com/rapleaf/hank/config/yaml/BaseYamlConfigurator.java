@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
+package com.rapleaf.hank.config.yaml;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -22,6 +22,8 @@ import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 
