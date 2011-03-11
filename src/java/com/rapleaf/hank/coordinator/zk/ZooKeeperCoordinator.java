@@ -49,8 +49,7 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
-  public class WatchForNewDomainGroups implements ZooKeeperWatcher {
-
+  private final class WatchForNewDomainGroups implements ZooKeeperWatcher {
     @Override
     public void register() {
       try {
@@ -78,7 +77,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           LOG.debug("Skipped message with event type: " + event.getType());
       }
     }
-
   }
 
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
@@ -151,10 +149,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     watchForNewDomainGroups.register();
     myWatchers.add(watchForNewDomainGroups);
   }
-
-  //
-  // Daemons
-  //
 
   @Override
   protected void onConnect() {
@@ -286,12 +280,22 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void addDomain(String domainName, int numParts,
-      String storageEngineFactoryName, String storageEngineOptions,
-      String partitionerName, int initialVersion)
+  public void addDomain(String domainName,
+      int numParts,
+      String storageEngineFactoryName,
+      String storageEngineOptions,
+      String partitionerName,
+      int initialVersion)
   throws IOException {
     try {
-      ZkDomainConfig domain = (ZkDomainConfig) ZkDomainConfig.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, initialVersion);
+      ZkDomainConfig domain = (ZkDomainConfig) ZkDomainConfig.create(zk,
+          domainsRoot,
+          domainName,
+          numParts,
+          storageEngineFactoryName,
+          storageEngineOptions,
+          partitionerName,
+          initialVersion);
       domainConfigsByName.put(domainName, domain);
     } catch (Exception e) {
       throw new IOException(e);
