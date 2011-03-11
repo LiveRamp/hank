@@ -31,6 +31,12 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
 public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
+  private static final String KEY_NUM_PARTS = "num_parts";
+  private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
+  private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
+  private static final String KEY_PARTITIONER = "partitioner_class";
+  private static final String KEY_VERSION = "version";
+
   private String name;
   private int numParts;
   private Partitioner partitioner;
@@ -95,38 +101,12 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
     }
   }
 
-  private static final String KEY_NUM_PARTS = "num_parts";
-  private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
-  private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
-  private static final String KEY_PARTITIONER = "partitioner_class";
-  private static final String KEY_VERSION = "version";
-
   public String getStorageEngineFactoryName() {
     return storageEngineFactoryName;
   }
 
   public Map<String, Object> getStorageEngineOptions() {
     return storageEngineOptions;
-  }
-
-  public static DomainConfig create(ZooKeeper zk,
-      String domainsRoot,
-      String domainName,
-      int numParts,
-      String storageEngineFactory,
-      String storageEngineOpts,
-      String partitioner,
-      int initVersion) throws KeeperException, InterruptedException, DataNotFoundException
-  {
-    String domainPath = domainsRoot + "/" + domainName;
-    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkDomainConfig(zk, domainPath);
   }
 
   public String getPath() {
@@ -151,5 +131,25 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
         + ", storageEngine=" + storageEngine + ", storageEngineFactoryName="
         + storageEngineFactoryName + ", storageEngineOptions="
         + storageEngineOptions + "]";
+  }
+
+  public static DomainConfig create(ZooKeeper zk,
+      String domainsRoot,
+      String domainName,
+      int numParts,
+      String storageEngineFactory,
+      String storageEngineOpts,
+      String partitioner,
+      int initVersion) throws KeeperException, InterruptedException, DataNotFoundException
+  {
+    String domainPath = domainsRoot + "/" + domainName;
+    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkDomainConfig(zk, domainPath);
   }
 }
