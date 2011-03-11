@@ -80,7 +80,7 @@ public class Server implements HostCommandQueueChangeListener {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
-        // TODO: probably going down.
+        LOG.debug("Interrupted in run loop. Exiting.");
         break;
       }
     }

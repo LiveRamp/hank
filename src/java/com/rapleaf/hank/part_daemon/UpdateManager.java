@@ -68,8 +68,6 @@ class UpdateManager implements IUpdateManager {
         part.setUpdatingToDomainGroupVersion(null);
         LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
-        // TODO: i just *know* that i'm going to end up wishing i toStringed the
-        // storage engine and part num here
         LOG.fatal("Failed to complete an UpdateToDo!", e);
         exceptionQueue.add(e);
       }
@@ -145,7 +143,7 @@ class UpdateManager implements IUpdateManager {
         }
       }
     } catch (InterruptedException e) {
-      // TODO: log and quit
+      LOG.debug("Interrupted while waiting for update to complete. Terminating.");
     }
   }
 }

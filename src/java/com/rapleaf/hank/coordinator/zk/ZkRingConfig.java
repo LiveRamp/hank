@@ -216,10 +216,9 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
       zk.getChildren(ringPath + "/hosts", this);
     } catch (InterruptedException e) {
       // eek.
-      // TODO: log this.
+      LOG.error("Interrupted while trying to refesh hosts!", e);
     } catch (KeeperException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
+      LOG.error("Unexpected KeeperException!", e);
     }
   }
 

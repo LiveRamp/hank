@@ -194,8 +194,9 @@ public class CurlyUpdater implements Updater {
   private static void deleteFiles(Set<String>... sets) {
     for (Set<String> set : sets) {
       for (String s : set) {
-        // TODO: if this fails, throw an exception
-        new File(s).delete();
+        if (!new File(s).delete()) {
+          throw new RuntimeException("failed to delete file " + s);
+        }
       }
     }
   }

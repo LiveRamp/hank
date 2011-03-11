@@ -129,9 +129,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
    * @param sessionTimeoutMs
    *          session timeout in milliseconds
-   * @param domainsRoot TODO
-   * @param domainGroupsRoot TODO
-   * @param ringGroupsRoot TODO
+   * @param domainsRoot 
+   * @param domainGroupsRoot 
+   * @param ringGroupsRoot 
    * @throws InterruptedException
    * @throws KeeperException 
    * @throws IOException 
@@ -275,8 +275,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override

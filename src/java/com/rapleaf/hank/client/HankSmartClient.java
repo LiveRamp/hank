@@ -156,7 +156,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     List<PartDaemonAddress> partList = domainMap.get(partition);
     if (partList == null) {
-      // TODO: this is a problem, since the cache must not have been loaded correctly
+      // this is a problem, since the cache must not have been loaded correctly
+      LOG.debug(String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domain_name, domainId, partition));
       return HankResponse.internal_error(true);
     }
 
@@ -172,13 +173,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   @Override
   public void onRingGroupChange(RingGroupConfig newRingGroup) {
     LOG.debug("Smart Client notified of ring group change!");
-//    setRingGroup(newRingGroup);
   }
 
   @Override
   public void onRingStateChange(RingConfig ringConfig) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
