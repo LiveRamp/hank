@@ -19,6 +19,6 @@ import java.io.IOException;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
 
-public interface IUpdateManager {
+interface IUpdateManager {
   public void update() throws DataNotFoundException, IOException;
 }

@@ -39,7 +39,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 /**
  * Implements the actual data serving logic of the PartDaemon
  */
-public class Handler implements Iface {
+class Handler implements Iface {
   private final static Logger LOG = Logger.getLogger(Handler.class);
 
   private final Domain[] domains;
