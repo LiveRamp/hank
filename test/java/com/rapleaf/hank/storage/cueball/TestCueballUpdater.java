@@ -20,16 +20,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 
-import junit.framework.TestCase;
+import com.rapleaf.hank.BaseTestCase;
 
-import com.rapleaf.hank.util.FsUtils;
-
-public class TestCueballUpdater extends TestCase {
-  private static final String LOCAL_ROOT = "/tmp/TestCueballUpdater_local";
-  private static final String REMOTE_ROOT = "/tmp/TestCueballUpdater_remote";
+public class TestCueballUpdater extends BaseTestCase {
+  private final String LOCAL_ROOT = localTmpDir + "/local";
 
   public void setUp() throws Exception {
-    FsUtils.rmrf(LOCAL_ROOT);
+    super.setUp();
     new File(LOCAL_ROOT).mkdirs();
   }
 
