@@ -17,6 +17,9 @@ package com.rapleaf.hank.hasher;
 
 import java.nio.ByteBuffer;
 
+/**
+ * Interface for general-purpose hashing functions.
+ */
 public interface Hasher {
   public void hash(ByteBuffer val, byte[] hashBytes);
 }

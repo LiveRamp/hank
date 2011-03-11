@@ -17,14 +17,11 @@ package com.rapleaf.hank.hasher;
 
 import java.nio.ByteBuffer;
 
-
-
 /**
  * This is a very fast, non-cryptographic hash suitable for general hash-based
  * lookup. See http://murmurhash.googlepages.com/ for more details.
  */
 public final class Murmur64Hasher implements Hasher {
-
   public static long murmurHash64(byte[] data, int off, int length, int seed) {
     long m = 0xc6a4a7935bd1e995L;
     int r = 47;
