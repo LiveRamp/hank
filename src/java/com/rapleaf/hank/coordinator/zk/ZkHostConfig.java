@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -24,8 +25,9 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
-  private class CommandQueueWatcher implements Watcher {
+  private static final Logger LOG = Logger.getLogger(ZkHostConfig.class);
 
+  private class CommandQueueWatcher implements Watcher {
     private final HostCommandQueueChangeListener listener;
 
     public CommandQueueWatcher(HostCommandQueueChangeListener listener) throws KeeperException, InterruptedException {
@@ -43,12 +45,8 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
           // reset callback
           try {
             setWatch();
-          } catch (KeeperException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+          } catch (Exception e) {
+            LOG.error("Failed to reset watch!", e);
           }
       }
     }
@@ -80,12 +78,8 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
           // reset callback
           try {
             setWatch();
-          } catch (KeeperException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-          } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+          } catch (Exception e) {
+            LOG.error("Failed to reset watch!", e);
           }
       }
     }
@@ -187,7 +181,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
     Set<HostDomainConfig> results = new HashSet<HostDomainConfig>();
     for (String domain : domains) {
-      results.add(new ZkHostDomainConfig(zk, hostPath + PARTS_PATH_SEGMENT, Byte.parseByte(domain)));
+      results.add(new ZkHostDomainConfig(zk, hostPath + PARTS_PATH_SEGMENT, Integer.parseInt(domain)));
     }
     return results;
   }
@@ -273,7 +267,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
       Collections.sort(children);
       List<HostCommand> queue = new ArrayList<HostCommand>();
       for (String child : children) {
-        queue.add(HostCommand.valueOf(new String(zk.getData(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child, false, null))));
+        queue.add(HostCommand.valueOf(getString(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child)));
       }
       return queue;
     } catch (Exception e) {
