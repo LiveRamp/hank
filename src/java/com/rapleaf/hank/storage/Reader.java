@@ -18,6 +18,9 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+/**
+ * Interface through which individual partitions are queried.
+ */
 public interface Reader {
   public void get(ByteBuffer key, Result result) throws IOException;
 }

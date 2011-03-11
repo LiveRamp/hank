@@ -18,6 +18,10 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.io.OutputStream;
 
+/**
+ * Factory for getting output streams. Hides filesystem implementation for use
+ * in different environments.
+ */
 public interface OutputStreamFactory {
   public OutputStream getOutputStream(int partNum, String name) throws IOException;
 }

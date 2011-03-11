@@ -19,6 +19,9 @@ import java.io.IOException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 
+/**
+ * Defines how to read, write, and update the data stored for a given partition.
+ */
 public interface StorageEngine {
   public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException;
 
