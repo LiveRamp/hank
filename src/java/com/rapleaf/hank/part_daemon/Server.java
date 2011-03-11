@@ -26,7 +26,6 @@ import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.config.YamlPartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -42,6 +41,9 @@ import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.HostUtils;
 
+/**
+ * The main class of the Part Daemon.
+ */
 public class Server implements HostCommandQueueChangeListener {
   private static final Logger LOG = Logger.getLogger(Server.class);
 
@@ -280,13 +282,18 @@ public class Server implements HostCommandQueueChangeListener {
     }
   }
 
-  public static void main(String[] args) throws IOException, TTransportException, DataNotFoundException, InvalidConfigurationException {
-    String configPath = args[0];
-    String log4jprops = args[1];
-
-    PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
-    PropertyConfigurator.configure(log4jprops);
-
-    new Server(configurator, HostUtils.getHostName()).run();
+  public static void main(String[] args) throws Throwable {
+    try {
+      String configPath = args[0];
+      String log4jprops = args[1];
+  
+      PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
+      PropertyConfigurator.configure(log4jprops);
+  
+      new Server(configurator, HostUtils.getHostName()).run();
+    } catch (Throwable t) {
+      System.err.println("usage: bin/part_daemon.sh <path to config.yml> <path to log4j properties>");
+      throw t;
+    }
   }
 }
