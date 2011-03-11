@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.config;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -24,7 +24,6 @@ import junit.framework.TestCase;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 
 public class TestYamlDataDeployerConfigurator extends TestCase {
-
   private static final String PATH = "/tmp/yaml_data_deployer_configurator.yml";
 
   @Override

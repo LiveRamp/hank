@@ -13,14 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.config;
 
 import java.io.IOException;
 import java.util.Map;
 
-import com.rapleaf.hank.config.BaseYamlConfigurator;
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.InvalidConfigurationException;
 
 public class YamlDataDeployerConfigurator extends BaseYamlConfigurator implements DataDeployerConfigurator {
   private static final String DATA_DEPLOYER_SECTION_KEY = "data_deployer";
