@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -168,5 +169,16 @@ public class TestZkHostConfig extends ZkTestCase {
     assertEquals(0, hostDomainConf.getDomainId());
 
     assertEquals(0, c.getDomainById(0).getDomainId());
+  }
+
+  public void testDuplicateDomainAdd() throws Exception {
+    ZkHostConfig c = ZkHostConfig.create(getZk(), getRoot(), ADDRESS);
+    c.addDomain(0);
+    try {
+      c.addDomain(0);
+      fail("should have thrown an exception!");
+    } catch (IOException e) {
+      // yay!
+    }
   }
 }

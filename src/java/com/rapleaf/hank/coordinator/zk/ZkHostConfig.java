@@ -204,7 +204,13 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
   @Override
   public HostDomainConfig addDomain(int domainId) throws IOException {
-    // TODO: check if we already have a domain with that id
+    try {
+      if (zk.exists(hostPath + PARTS_PATH_SEGMENT + "/" + domainId, false) != null) {
+        throw new IOException("Domain " + domainId + " is already assigned to this host!");
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
     HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
     return hdc;
   }
