@@ -51,6 +51,11 @@ import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Client;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
+/**
+ * HankSmartClient implements the logic of determining which PartDaemon to
+ * contact to fulfill requests for a given key, as well as managing a connection
+ * pool and detecting PartDaemon failures.
+ */
 public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener, HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
@@ -66,7 +71,6 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
   }
 
-  private final Coordinator coord;
   private final DomainGroupConfig domainGroup;
   private final RingGroupConfig ringGroupConfig;
 
@@ -74,8 +78,18 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private final Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHost = new HashMap<Integer, Map<Integer,List<PartDaemonAddress>>>();
 
+  /**
+   * Create a new HankSmartClient that uses the supplied coordinator and works
+   * with the requested ring group. Note that a given HankSmartClient can only
+   * contact one ring group.
+   * 
+   * @param coord
+   * @param ringGroupName
+   * @throws DataNotFoundException
+   * @throws IOException
+   * @throws TException
+   */
   public HankSmartClient(Coordinator coord, String ringGroupName) throws DataNotFoundException, IOException, TException {
-    this.coord = coord;
     ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
     this.domainGroup = ringGroupConfig.getDomainGroupConfig();
 

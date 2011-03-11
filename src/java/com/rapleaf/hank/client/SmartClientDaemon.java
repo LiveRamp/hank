@@ -31,8 +31,12 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
 
-public class Server {
-  private static final Logger LOG = Logger.getLogger(Server.class);
+/**
+ * Run a HankSmartClient inside a Thrift server so non-Java clients can
+ * communicate with Hank.
+ */
+public class SmartClientDaemon {
+  private static final Logger LOG = Logger.getLogger(SmartClientDaemon.class);
 
   private final SmartClientDaemonConfigurator configurator;
   private final Coordinator coord;
@@ -40,7 +44,7 @@ public class Server {
   private Thread serverThread;
   private TServer server;
 
-  public Server(SmartClientDaemonConfigurator configurator) {
+  public SmartClientDaemon(SmartClientDaemonConfigurator configurator) {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     this.ringGroupName = configurator.getRingGroupName();

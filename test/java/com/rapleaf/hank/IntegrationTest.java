@@ -68,7 +68,7 @@ import com.rapleaf.hank.storage.curly.Curly;
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
     private final String configPath;
-    private com.rapleaf.hank.client.Server server;
+    private com.rapleaf.hank.client.SmartClientDaemon server;
     private final SmartClientDaemonConfigurator configurator;
 
     public SmartClientRunnable() throws Exception {
@@ -85,7 +85,7 @@ public class IntegrationTest extends ZkTestCase {
 
     @Override
     public void run() {
-      server = new com.rapleaf.hank.client.Server(configurator);
+      server = new com.rapleaf.hank.client.SmartClientDaemon(configurator);
       server.startServer();
     }
 
