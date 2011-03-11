@@ -3,8 +3,10 @@ package com.rapleaf.hank.coordinator.zk;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 abstract class BaseZkConsumer {
@@ -54,6 +56,14 @@ abstract class BaseZkConsumer {
     }
   }
 
+  protected void setOrCreate(String path, String value, CreateMode createMode) throws KeeperException, InterruptedException {
+    if (zk.exists(path, false) == null) {
+      zk.create(path, value.getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+    } else {
+      zk.setData(path, value.getBytes(), -1);
+    }
+  }
+  
   public static void deleteNodeRecursively(ZooKeeper zk, String path) throws InterruptedException, KeeperException {
     try {
       zk.delete(path, -1);

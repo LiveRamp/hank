@@ -238,11 +238,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
       if (state == HostState.OFFLINE) {
         deleteIfExists(hostPath + STATUS_PATH_SEGMENT);
       } else {
-        if (zk.exists(hostPath + STATUS_PATH_SEGMENT, false) == null) {
-          zk.create(hostPath + STATUS_PATH_SEGMENT, state.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-        } else {
-          zk.setData(hostPath + STATUS_PATH_SEGMENT, state.toString().getBytes(), -1);
-        }
+        setOrCreate(hostPath + STATUS_PATH_SEGMENT, state.toString(), CreateMode.EPHEMERAL);
       }
     } catch (Exception e) {
       throw new IOException(e);
