@@ -21,13 +21,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-public final class Fetcher2 implements IFetcher {
-  private static final Logger LOG = Logger.getLogger(Fetcher2.class);
+public final class Fetcher implements IFetcher {
+  private static final Logger LOG = Logger.getLogger(Fetcher.class);
 
   private final IFileOps fileOps;
   private final IFileSelector fileSelector;
 
-  public Fetcher2(IFileOps fileOps, IFileSelector fileSelector) {
+  public Fetcher(IFileOps fileOps, IFileSelector fileSelector) {
     this.fileOps = fileOps;
     this.fileSelector = fileSelector;
   }

@@ -24,7 +24,7 @@ import java.util.TreeSet;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
-import com.rapleaf.hank.storage.cueball.Fetcher2;
+import com.rapleaf.hank.storage.cueball.Fetcher;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
 import com.rapleaf.hank.storage.cueball.IFetcher;
 import com.rapleaf.hank.storage.cueball.IFileOps;
@@ -68,7 +68,7 @@ public class CurlyUpdater implements Updater {
         keyHashSize,
         offsetSize,
         bufferSize,
-        new Fetcher2(fileOps, new CurlyFileSelector()),
+        new Fetcher(fileOps, new CurlyFileSelector()),
         new CurlyMerger(),
         new CueballMerger());
   }

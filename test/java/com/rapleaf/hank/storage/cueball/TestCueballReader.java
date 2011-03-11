@@ -23,16 +23,16 @@ import java.nio.ByteBuffer;
 import com.rapleaf.hank.storage.Result;
 
 public class TestCueballReader extends AbstractCueballTest {
-
   public void testRead() throws Exception {
     // set up fake cueball file
-    new File("/tmp/1").mkdir();
-    OutputStream os = new FileOutputStream("/tmp/1/00000.base.cueball");
+    String root = localTmpDir + "/1";
+    new File(root).mkdir();
+    OutputStream os = new FileOutputStream(root + "/00000.base.cueball");
     os.write(EXPECTED_DATA);
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader("/tmp/1", 10, HASHER, 5, 10, 1000);
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 10, 1000);
 
     Result result = new Result();
     reader.get(ByteBuffer.wrap(KEY1), result);

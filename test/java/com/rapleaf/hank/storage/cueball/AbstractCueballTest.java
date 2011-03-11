@@ -19,13 +19,11 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import junit.framework.TestCase;
-
+import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.test.MapHasher;
 
-public class AbstractCueballTest extends TestCase {
-
+public class AbstractCueballTest extends BaseTestCase {
   protected static final byte[] EXPECTED_DATA = new byte[]{
    1,1,1,1,1,1,1,1,1,1, // KEY1
    1,2,1,2,1, // value 1 (truncated)
@@ -54,11 +52,10 @@ public class AbstractCueballTest extends TestCase {
     hsh4[0] = 1;
     put(ByteBuffer.wrap(KEY4), hsh4);
   }});
-  
+
   protected void set(byte[] hashBytes, int i) {
     for (int idx = 0; idx < hashBytes.length; idx++) {
       hashBytes[idx] = (byte)i;
     }
   }
-
 }

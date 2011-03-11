@@ -25,13 +25,13 @@ import java.util.Arrays;
 import java.util.TreeSet;
 
 public class TestCueballMerger extends AbstractCueballTest {
-  private static final String LOCAL_ROOT = "/tmp/TestCueballMerger";
+  private final String LOCAL_ROOT = localTmpDir;
 
-  private static final String DELTA_2_FILE_PATH = LOCAL_ROOT + "/00002.delta.cueball";
+  private final String DELTA_2_FILE_PATH = LOCAL_ROOT + "/00002.delta.cueball";
 
-  private static final String DELTA_1_FILE_PATH = LOCAL_ROOT + "/00001.delta.cueball";
+  private final String DELTA_1_FILE_PATH = LOCAL_ROOT + "/00001.delta.cueball";
 
-  private static final String BASE_FILE_PATH = LOCAL_ROOT + "/00000.base.cueball";
+  private final String BASE_FILE_PATH = LOCAL_ROOT + "/00000.base.cueball";
 
   private static final byte[] BASE_DATA = {
     // key 1
@@ -74,7 +74,7 @@ public class TestCueballMerger extends AbstractCueballTest {
     15, 14, 13, 12
   };
 
-  private static final String NEW_BASE_PATH = LOCAL_ROOT + "/00002.base.cueball";
+  private final String NEW_BASE_PATH = LOCAL_ROOT + "/00002.base.cueball";
 
   private static final byte[] EXPECTED_MERGED_DATA = {
     // key 1

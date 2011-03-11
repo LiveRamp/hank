@@ -50,7 +50,7 @@ public class CueballUpdater implements Updater {
     this(localPartitionRoot,
         keyHashSize,
         valueSize,
-        new Fetcher2(fileOps, fileSelector),
+        new Fetcher(fileOps, fileSelector),
         new CueballMerger());
   }
 

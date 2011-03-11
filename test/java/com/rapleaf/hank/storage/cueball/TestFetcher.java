@@ -23,7 +23,7 @@ import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 
-public class TestFetcher2 extends BaseTestCase {
+public class TestFetcher extends BaseTestCase {
   private class MFO implements IFileOps {
     Set<String> copyToLocalCalledWith = new HashSet<String>();
 
@@ -60,7 +60,7 @@ public class TestFetcher2 extends BaseTestCase {
   public void testIt() throws Exception {
     MFO mockFileOps = new MFO();
     MFS mockFileSelector = new MFS();
-    Fetcher2 f = new Fetcher2(mockFileOps, mockFileSelector);
+    Fetcher f = new Fetcher(mockFileOps, mockFileSelector);
 
     f.fetch(7, 10);
 
