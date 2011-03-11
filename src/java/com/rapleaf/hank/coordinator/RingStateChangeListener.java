@@ -15,6 +15,9 @@
  */
 package com.rapleaf.hank.coordinator;
 
+/**
+ * Interface for notification of changes to ring state.
+ */
 public interface RingStateChangeListener {
   public void onRingStateChange(RingConfig ringConfig);
 }

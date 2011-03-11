@@ -15,6 +15,33 @@
  */
 package com.rapleaf.hank.coordinator;
 
+/**
+ * The various states that a Ring can take on.
+ */
 public enum RingState {
-  UP, GOING_DOWN, DOWN, UPDATING, UPDATED, COMING_UP;
+  /**
+   * The ring is up, ready to serve data.
+   */
+  UP,
+  /**
+   * The ring is going down - there may be one or more hosts still serving, but
+   * no new clients should make requests.
+   */
+  GOING_DOWN,
+  /**
+   * The ring is down - there are no part daemons still serving data.
+   */
+  DOWN,
+  /**
+   * The ring has at least one host updating.
+   */
+  UPDATING,
+  /**
+   * The ring has completed its update.
+   */
+  UPDATED,
+  /**
+   * The part daemons are starting up, but they're not completely started yet.
+   */
+  COMING_UP;
 }
