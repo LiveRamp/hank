@@ -135,8 +135,6 @@ class UpdateManager implements IUpdateManager {
       while (!terminated) {
         LOG.debug("Waiting for update executor to complete...");
         terminated = executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
-        // TODO: report on progress?
-        // TODO: check exception queue
         if (!exceptionQueue.isEmpty()) {
           LOG.fatal("An UpdateToDo encountered an exception:", exceptionQueue.poll());
           throw new RuntimeException("Failed to complete update!");

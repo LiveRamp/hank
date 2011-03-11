@@ -149,15 +149,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHost.get(domainId);
     if (domainMap == null) {
-      // TODO: this seems like it might be an internal error, since we found a
-      // domain id, but didn't find a cache entry for it. hm.
-      return HankResponse.no_such_domain(true);
+      LOG.error(String.format("Got a null domain->part map for domain %s (%d)!", domain_name, domainId));
+      return HankResponse.internal_error(true);
     }
 
     List<PartDaemonAddress> partList = domainMap.get(partition);
     if (partList == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      LOG.debug(String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domain_name, domainId, partition));
+      LOG.error(String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domain_name, domainId, partition));
       return HankResponse.internal_error(true);
     }
 
