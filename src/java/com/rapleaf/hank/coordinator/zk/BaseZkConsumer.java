@@ -48,6 +48,12 @@ abstract class BaseZkConsumer {
     zk.setData(path, value.getBytes(), -1);
   }
 
+  protected void deleteIfExists(String path) throws KeeperException, InterruptedException {
+    if (zk.exists(path, false) != null) {
+      zk.delete(path, -1);
+    }
+  }
+
   public static void deleteNodeRecursively(ZooKeeper zk, String path) throws InterruptedException, KeeperException {
     try {
       zk.delete(path, -1);
