@@ -79,8 +79,7 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
       try {
         reregister();
       } catch (Exception e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        LOG.error("Unexpected error registering watch!", e);
       }
     }
 
@@ -93,7 +92,6 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
         zk.getData(updatingToVersionPath, this, new Stat());
       }
     }
-
   }
 
   private final String ringGroupName;

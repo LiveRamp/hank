@@ -40,7 +40,6 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   public ConstantStorageEngine(Map<String, Object> options) {
-    // TODO Auto-generated constructor stub
   }
 
   @Override

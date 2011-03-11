@@ -62,49 +62,40 @@ public class MockRingConfig implements RingConfig {
 
   @Override
   public Integer getVersionNumber() {
-    // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
   public Integer getUpdatingToVersionNumber() {
-    // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
   public boolean isUpdatePending() {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public void updateComplete() {
-    // TODO Auto-generated method stub
-    
   }
 
   public Integer getOldestVersionOnHosts() {
-    // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
   public HostConfig addHost(PartDaemonAddress address) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Set<HostConfig> getHostsForDomainPartition(int domainId,
       int partition) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -115,7 +106,6 @@ public class MockRingConfig implements RingConfig {
 
   @Override
   public Set<HostConfig> getHostsInState(HostState state) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -132,7 +122,5 @@ public class MockRingConfig implements RingConfig {
   @Override
   public void setStateChangeListener(RingStateChangeListener listener)
       throws IOException {
-    // TODO Auto-generated method stub
-    
   }
 }

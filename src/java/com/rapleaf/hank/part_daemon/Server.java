@@ -158,7 +158,7 @@ public class Server implements HostCommandQueueChangeListener {
     try {
       serverThread.join();
     } catch (InterruptedException e) {
-      // TODO we're probably shutting down... log a message and continue.
+      LOG.debug("Interrupted while waiting for server thread to stop. Continuing.", e);
     }
     server = null;
     serverThread = null;

@@ -62,25 +62,20 @@ public class MockRingGroupConfig implements RingGroupConfig {
 
   @Override
   public boolean claimDataDeployer() {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public void releaseDataDeployer() {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public Integer getCurrentVersion() {
-    // TODO Auto-generated method stub
     return 0;
   }
 
   @Override
   public boolean isUpdating() {
-    // TODO Auto-generated method stub
     return false;
   }
 
@@ -91,25 +86,19 @@ public class MockRingGroupConfig implements RingGroupConfig {
 
   @Override
   public void updateComplete() {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void setListener(RingGroupChangeListener listener) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public Integer getUpdatingToVersion() {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public RingConfig addRing(int ringNum) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 }

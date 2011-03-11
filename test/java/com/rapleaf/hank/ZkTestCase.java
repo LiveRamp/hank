@@ -188,7 +188,7 @@ public class ZkTestCase extends BaseTestCase {
     startedZk = false;
   }
 
-  // XXX: From o.a.zk.t.ClientBase
+  // From o.a.zk.t.ClientBase
   private boolean waitForServerDown(int port, long timeout) {
     long start = System.currentTimeMillis();
     while (true) {

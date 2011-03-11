@@ -55,13 +55,11 @@ public class MockCoordinator implements Coordinator {
   @Override
   public RingGroupConfig getRingGroupConfig(String ringGroupName)
       throws DataNotFoundException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Set<DomainConfig> getDomainConfigs() {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -81,8 +79,6 @@ public class MockCoordinator implements Coordinator {
   public void addDomain(String domainName, int numParts,
       String storageEngineFactoryName, String storageEngineOptions,
       String partitionerName, int initialVersion) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
@@ -93,8 +89,6 @@ public class MockCoordinator implements Coordinator {
   @Override
   public RingGroupConfig addRingGroup(String ringGroupName,
       String domainGroupName) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
-
 }

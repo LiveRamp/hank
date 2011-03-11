@@ -60,20 +60,15 @@ public class MockDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public void setListener(DomainGroupChangeListener listener) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public void addDomain(DomainConfig domainConfig, int domainId) {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public DomainGroupConfigVersion createNewVersion(
       Map<String, Integer> domainIdToVersion) {
-    // TODO Auto-generated method stub
     return null;
   }
 }

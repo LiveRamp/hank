@@ -32,7 +32,6 @@ public class MockHostConfig implements HostConfig {
 
   @Override
   public HostDomainConfig addDomain(int domainId) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -43,13 +42,11 @@ public class MockHostConfig implements HostConfig {
 
   @Override
   public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public HostDomainConfig getDomainById(int domainId) {
-    // TODO Auto-generated method stub
     return null;
   }
 
@@ -101,7 +98,5 @@ public class MockHostConfig implements HostConfig {
   @Override
   public void setCommandQueueChangeListener(
       HostCommandQueueChangeListener listener) throws IOException {
-    // TODO Auto-generated method stub
-    
   }
 }
