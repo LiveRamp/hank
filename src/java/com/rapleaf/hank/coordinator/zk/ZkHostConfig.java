@@ -37,6 +37,7 @@ import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class ZkHostConfig extends BaseZkConsumer implements HostConfig {

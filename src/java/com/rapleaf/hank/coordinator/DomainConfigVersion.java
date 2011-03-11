@@ -15,8 +15,15 @@
  */
 package com.rapleaf.hank.coordinator;
 
+/**
+ * Represents a given domain in a domain group's version, capturing the domain
+ * version.
+ */
 public interface DomainConfigVersion {
   public DomainConfig getDomainConfig();
 
+  /**
+   * The domain version that this domain is within the domain group version. 
+   */
   public int getVersionNumber();
 }

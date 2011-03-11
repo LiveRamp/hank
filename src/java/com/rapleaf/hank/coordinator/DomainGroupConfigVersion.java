@@ -17,6 +17,11 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
 
+/**
+ * Encapsulates a domain group config version, which is a numbered set of
+ * individual DomainConfigVersions. A DomainGroupConfigVersion is distributed as
+ * a whole to a RingGroup.
+ */
 public interface DomainGroupConfigVersion {
   public int getVersionNumber();
 

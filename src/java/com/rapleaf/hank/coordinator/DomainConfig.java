@@ -20,16 +20,32 @@ import java.io.IOException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 
+/**
+ * Encapsulates all the information about a given Domain.
+ */
 public interface DomainConfig {
   public String getName();
 
+  /**
+   * The number of partitions this domain is configured for.
+   * @return
+   */
   public int getNumParts();
 
   public StorageEngine getStorageEngine();
 
   public Partitioner getPartitioner();
 
+  /**
+   * Get the latest version number.
+   * @return
+   */
   public int getVersion();
 
+  /**
+   * Increment and return the version number.
+   * @return
+   * @throws IOException
+   */
   public int newVersion() throws IOException;
 }

@@ -16,19 +16,8 @@
 package com.rapleaf.hank.coordinator;
 
 /**
- * The set of things that we can tell a PartDaemon to do.
+ * Listener for being notified of changes to a given host's state.
  */
-public enum HostCommand {
-  /**
-   * Start serving data.
-   */
-  SERVE_DATA,
-  /** 
-   * Generally, stop serving data.
-   */
-  GO_TO_IDLE,
-  /**
-   * Attempt to run an update.
-   */
-  EXECUTE_UPDATE;
+public interface HostStateChangeListener {
+  public void onHostStateChange(HostConfig hostConfig);
 }

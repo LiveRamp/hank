@@ -21,6 +21,9 @@ import java.util.SortedSet;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
 
+/**
+ * Encapsulates the configuration and listening/modification of a domain group.
+ */
 public interface DomainGroupConfig {
   public String getName();
 

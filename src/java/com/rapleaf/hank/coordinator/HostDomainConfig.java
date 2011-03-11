@@ -18,6 +18,9 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
+/**
+ * Info about a given host's view of a domain.
+ */
 public interface HostDomainConfig {
   public int getDomainId();
 

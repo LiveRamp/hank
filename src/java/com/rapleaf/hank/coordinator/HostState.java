@@ -15,6 +15,25 @@
  */
 package com.rapleaf.hank.coordinator;
 
+/**
+ * The possible states a PartDaemon can take.
+ */
 public enum HostState {
-  IDLE, SERVING, UPDATING, OFFLINE;
+  /**
+   * The PartDaemon is online, but not doing anything.
+   */
+  IDLE,
+  /**
+   * The PartDaemon is serving data.
+   */
+  SERVING,
+  /**
+   * The PartDaemon is currently executing an update.
+   */
+  UPDATING,
+  /**
+   * The PartDaemon is currently offline, or separated from the Coordinator
+   * unexpectedly.
+   */
+  OFFLINE;
 }

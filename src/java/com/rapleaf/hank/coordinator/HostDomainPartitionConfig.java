@@ -17,6 +17,9 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
+/**
+ * Info about a partition within a given HostDomain.
+ */
 public interface HostDomainPartitionConfig {
   public int getPartNum();
   public Integer getCurrentDomainGroupVersion() throws IOException;

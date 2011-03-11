@@ -24,8 +24,8 @@ import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.HostConfig.HostStateChangeListener;
 
 public class TestZkHostConfig extends ZkTestCase {
   private final class MockHostCommandQueueChangeListener implements HostCommandQueueChangeListener {

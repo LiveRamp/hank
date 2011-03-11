@@ -19,11 +19,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Encapsulates the configuration and listening/modification of individual
+ * PartDaemon hosts within the cluster.
+ */
 public interface HostConfig {
-  public interface HostStateChangeListener {
-    public void onHostStateChange(HostConfig hostConfig);
-  }
-
   public PartDaemonAddress getAddress();
 
   /**

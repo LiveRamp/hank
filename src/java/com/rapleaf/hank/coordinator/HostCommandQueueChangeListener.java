@@ -15,6 +15,9 @@
  */
 package com.rapleaf.hank.coordinator;
 
+/**
+ * Listener for notifying of changes to a given host's command queue.
+ */
 public interface HostCommandQueueChangeListener {
   public void onCommandQueueChange(HostConfig hostConfig);
 }
