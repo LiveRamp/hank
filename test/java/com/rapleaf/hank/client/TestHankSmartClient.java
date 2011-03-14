@@ -87,7 +87,6 @@ public class TestHankSmartClient extends BaseTestCase {
 
     @Override
     public HankResponse get(int domainId, ByteBuffer key) throws TException {
-      // todo: check domainId?
       return HankResponse.value(result);
     }
   }
@@ -226,14 +225,11 @@ public class TestHankSmartClient extends BaseTestCase {
 
   private HostConfig getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
     MockHostConfig hc = new MockHostConfig(address) {
-
       @Override
       public Set<HostDomainConfig> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
           @Override
-          public HostDomainPartitionConfig addPartition(int partNum,
-              int initialVersion) throws Exception {
-            // TODO Auto-generated method stub
+          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {
             return null;
           }
 
@@ -248,7 +244,6 @@ public class TestHankSmartClient extends BaseTestCase {
           }
         });
       }
-      
     };
     hc.setState(HostState.SERVING);
     return hc;

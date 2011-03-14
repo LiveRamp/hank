@@ -150,19 +150,16 @@ public class DisabledTestHankDomainTap extends TestCase {
 
     @Override
     public int getVersion() {
-      // TODO Auto-generated method stub
       return 0;
     }
 
     @Override
     public String getName() {
-      // TODO Auto-generated method stub
       return null;
     }
 
     @Override
     public int newVersion() throws IOException {
-      // TODO Auto-generated method stub
       return 0;
     }
   }

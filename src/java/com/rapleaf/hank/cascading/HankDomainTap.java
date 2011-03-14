@@ -108,70 +108,57 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
   //  @Override
   //  public boolean deletePath(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public Path getPath() {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public long getPathModified(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public boolean makeDirs(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public TupleEntryIterator openForRead(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public TupleEntryCollector openForWrite(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
   //
   //  @Override
   //  public boolean pathExists(JobConf arg0) throws IOException {
   //    throw new RuntimeException("Not yet implemented");
-  //    // TODO Auto-generated method stub
   //  }
 
   /*
   @Override
   public void onCompleted(Flow flow) {
     throw new RuntimeException("Not yet implemented");
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void onStarting(Flow flow) {
     throw new RuntimeException("Not yet implemented");
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public void onStopping(Flow flow) {
     throw new RuntimeException("Not yet implemented");
-    // TODO Auto-generated method stub
-
   }
 
   @Override
   public boolean onThrowable(Flow flow, Throwable throwable) {
     throw new RuntimeException("Not yet implemented");
-    // TODO Auto-generated method stub
   }
    */
 }
