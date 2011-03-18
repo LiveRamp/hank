@@ -1,0 +1,73 @@
+package com.rapleaf.hank.storage.cueball;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.zip.GZIPOutputStream;
+
+import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.FsUtils;
+
+public class PerformanceTestCueballWriter {
+  private static final int VALUE_SIZE = 16;
+  private static final int KEY_SIZE = 20;
+
+  public static void main(String[] args) throws Exception {
+    int numRecords = 3000000;
+    String tmpDir = "/Users/bryanduxbury/hank_test_data";
+
+    FsUtils.rmrf(tmpDir);
+    new File(tmpDir).mkdirs();
+
+    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, 16*1024, "/tmp/remote_domains_root", new LocalFileOps.Factory(), "domain0");
+    OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
+//      @Override
+//      public OutputStream getOutputStream(int partNum, String name)
+//      throws IOException {
+//        return new GZIPOutputStream(super.getOutputStream(partNum, name));
+//      }
+    };
+//    OutputStreamFactory localFs = new OutputStreamFactory() {
+//      @Override
+//      public OutputStream getOutputStream(int partNum, String name) {
+//        return new OutputStream() {
+//          @Override
+//          public void write(int arg0) {}
+//        };
+//      }
+//    };
+    Writer writer = cueball.getWriter(localFs, 0, 1, true);
+
+    long start = System.currentTimeMillis();
+    for (int i = 0; i < numRecords; i++) {
+      writer.write(key(i, KEY_SIZE), value(i, VALUE_SIZE));
+    }
+    writer.close();
+    long end = System.currentTimeMillis();
+    long elapsedMs = end-start;
+
+    System.out.println("Test took " + elapsedMs + "ms.");
+    double elapsedSecs = elapsedMs / 1000.0;
+    System.out.println(String.format("Throughput: %.2f writes/sec", numRecords / elapsedSecs));
+    int totalBytes = numRecords * (KEY_SIZE + VALUE_SIZE);
+    System.out.println(String.format("Throughput: %.2f MB/sec", totalBytes / 1024 / 1024 / elapsedSecs));
+  }
+
+  private static ByteBuffer key(int keyNum, int len) {
+    byte[] k = new byte[len];
+    EncodingHelper.encodeLittleEndianFixedWidthLong(keyNum, k);
+    return ByteBuffer.wrap(k);
+  }
+
+  private static ByteBuffer value(int i, int j) {
+    byte[] v = new byte[j];
+    Arrays.fill(v, (byte)i);
+    return ByteBuffer.wrap(v);
+  }
+}

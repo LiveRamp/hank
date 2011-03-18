@@ -32,7 +32,6 @@ import com.rapleaf.hank.util.FsUtils;
 
 public class TestCurlyUpdater extends TestCase {
   public static class MockCurlyMerger implements ICurlyMerger {
-
     public String latestBase;
     public SortedSet<String> deltas;
 
@@ -41,10 +40,8 @@ public class TestCurlyUpdater extends TestCase {
     throws IOException {
       this.latestBase = latestBase;
       this.deltas = deltas;
-
       return null;
     }
-
   }
 
   private static final byte[] BUF = new byte[]{

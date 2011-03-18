@@ -31,6 +31,5 @@ public class TestCueballWriter extends AbstractCueballTest {
     byte[] result = s.toByteArray();
     assertEquals(ByteBuffer.wrap(EXPECTED_DATA),
         ByteBuffer.wrap(result));
-    
   }
 }

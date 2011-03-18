@@ -16,10 +16,8 @@
 package com.rapleaf.hank;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -59,7 +57,7 @@ import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.LocalFileOps;
@@ -172,21 +170,6 @@ public class IntegrationTest extends ZkTestCase {
   private static final Logger LOG = Logger.getLogger(IntegrationTest.class);
   private final String DOMAIN_0_DATAFILES = localTmpDir + "/domain0_datafiles";
   private final String DOMAIN_1_DATAFILES = localTmpDir + "/domain1_datafiles";
-
-  private static class LocalDiskOutputStreamFactory implements OutputStreamFactory {
-    private final String basePath;
-
-    public LocalDiskOutputStreamFactory(String basePath) {
-      this.basePath = basePath;
-    }
-
-    @Override
-    public OutputStream getOutputStream(int partNum, String name) throws IOException {
-      String fullPath = basePath + "/" + partNum + "/" + name;
-      new File(new File(fullPath).getParent()).mkdirs();
-      return new FileOutputStream(fullPath);
-    }
-  }
 
   private final String domainsRoot = getRoot() + "/domains";
   private final String domainGroupsRoot = getRoot() + "/domain_groups";
