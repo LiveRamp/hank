@@ -17,13 +17,14 @@ package com.rapleaf.hank.storage.cueball;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
@@ -47,10 +48,49 @@ public class Cueball implements StorageEngine {
   static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.cueball";
 
   public static class Factory implements StorageEngineFactory {
+    public static final String REMOTE_DOMAIN_ROOT_KEY = "remote_domain_root";
+    public static final String READ_BUFFER_BYTES_KEY = "read_buffer_bytes";
+    public static final String HASH_INDEX_BITS_KEY = "hash_index_bits";
+    public static final String VALUE_SIZE_KEY = "value_size";
+    public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
+    public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
+    public static final String HASHER_KEY = "hasher";
+
+    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
+        REMOTE_DOMAIN_ROOT_KEY,
+        READ_BUFFER_BYTES_KEY,
+        HASH_INDEX_BITS_KEY,
+        HASHER_KEY,
+        VALUE_SIZE_KEY,
+        KEY_HASH_SIZE_KEY,
+        FILE_OPS_FACTORY_KEY
+    ));
+
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
     throws IOException {
-      throw new NotImplementedException();
+      for (String requiredKey : REQUIRED_KEYS) {
+        if (options.get(requiredKey) == null) {
+          throw new RuntimeException("Required key '" + requiredKey + "' was not found!");
+        }
+      }
+
+      Hasher hasher;
+      IFileOpsFactory fileOpsFactory;
+      try {
+        hasher = (Hasher)Class.forName((String)options.get(HASHER_KEY)).newInstance();
+        fileOpsFactory = (IFileOpsFactory)Class.forName((String)options.get(FILE_OPS_FACTORY_KEY)).newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return new Cueball((Integer)options.get(KEY_HASH_SIZE_KEY),
+          hasher,
+          (Integer)options.get(VALUE_SIZE_KEY),
+          (Integer)options.get(HASH_INDEX_BITS_KEY),
+          (Integer)options.get(READ_BUFFER_BYTES_KEY),
+          (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
+          fileOpsFactory,
+          domainName);
     }
   }
 
