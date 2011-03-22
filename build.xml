@@ -7,6 +7,8 @@
   <property name="src" location="src" />
   <property name="src.java" location="${src}/java" />
   <property name="src.java.generated" location="${src}/java/com/rapleaf/hank/generated" />
+  <property name="src.bash" location="${src}/bash" />
+  <property name="src.default_config" location="${src}/default_config" />
   <property name="build" location="build" />
   <property name="build.classes" location="${build}/classes" />
   <property name="src.test" location="test" />
@@ -136,5 +138,39 @@
     <move todir="${src.java.generated}">
       <fileset dir="${build}/gen-java/com/rapleaf/hank/generated" />
     </move>
+  </target>
+
+  <target name="tar" description="Generate a Hank deploy tarball" depends="dist">
+    <delete dir="${build}/tar_temp" />
+    <mkdir dir="${build}/tar_temp/hank" />
+    <mkdir dir="${build}/tar_temp/hank/bin" />
+    <mkdir dir="${build}/tar_temp/hank/lib" />
+    <mkdir dir="${build}/tar_temp/hank/conf" />
+    <mkdir dir="${build}/tar_temp/hank/log" />
+
+    <!-- copy bash scripts to bin/ -->
+    <copy todir="${build}/tar_temp/hank/bin" >
+      <fileset dir="${src.bash}" includes="**/*" />
+    </copy>
+
+    <!-- copy jars to lib/ -->
+    <copy todir="${build}/tar_temp/hank/lib" >
+      <fileset dir="${lib}" includes="**/*" />
+      <fileset file="${jar.file}"/>
+    </copy>
+
+    <!-- copy default configs to conf/ -->
+    <copy todir="${build}/tar_temp/hank/conf" >
+      <fileset dir="${src.default_config}">
+        <include name="**/*.yaml"/>
+        <include name="**/*.log4j.properties"/>
+      </fileset>
+    </copy>
+
+    <!-- run tar command -->
+    <tar basedir="${build}/tar_temp" destfile="hank-deploy.tar.gz" compression="gzip"/>
+    
+    <!-- delete tar_temp -->
+    <delete dir="${build}/tar_temp" />
   </target>
 </project>
