@@ -1,0 +1,14 @@
+data_deployer:
+  # replace this with the name of the ring group you want the data deployer to manage
+  ring_group_name: myRingGroup
+  # low values affect CPU usage. you probably don't need to touch this.
+  sleep_interval: 1000
+coordinator:
+  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  options:
+    # a ZooKeeper connection string that identifies your quorum
+    connect_string: localhost:2181
+    session_timeout: 2000
+    domains_root: /hank/domains
+    domain_groups_root: /hank/domain_groups
+    ring_groups_root: /hank/ring_groups
