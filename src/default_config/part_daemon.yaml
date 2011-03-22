@@ -1,0 +1,22 @@
+partserv:
+  # add the directories that your part daemon should use to store/read data
+  # NOTE: don't change these once you've started using them, since it will mess
+  # up the hash/mod partitioning over your disks. (unless you're an expert.)
+  local_data_dirs:
+    - /path/to/some/data
+  service_port: 12345
+  # change this to the name of the ring group this part daemon should join
+  ring_group_name: rg1
+  part_daemon:
+    num_worker_threads: 256
+  update_daemon:
+    num_concurrent_updates: 1
+coordinator:
+  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  options:
+    # a ZooKeeper connection string that identifies your quorum
+    connect_string: localhost:2181
+    session_timeout: 2000
+    domains_root: /hank/domains
+    domain_groups_root: /hank/domain_groups
+    ring_groups_root: /hank/ring_groups
