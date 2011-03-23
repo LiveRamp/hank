@@ -17,12 +17,6 @@ package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
 
-import junit.framework.TestCase;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -38,39 +32,32 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 
-public class TestHankDomainOutputFormat extends TestCase {
-  private FileSystem fs;
+import com.rapleaf.hank.HadoopTestCase;
+import com.rapleaf.hank.storage.cueball.Cueball;
 
-  static final String TEST_DIR = "/tmp/test_" + TestHankDomainOutputFormat.class.getName();
-  static final String OUTPUT_DIR = TEST_DIR + "/output";
+public class TestHankDomainOutputFormat extends HadoopTestCase {
 
   public TestHankDomainOutputFormat() throws IOException {
     super();
-    this.fs = FileSystem.get(new Configuration());
   }
 
   @Override
-  public void setUp() {
-    try {
-      fs.delete(new Path(TEST_DIR), true);
-      fs.mkdirs(new Path(TEST_DIR));
-      outputFile(fs, TEST_DIR + "/a", "1 k1 v1\n1 k2 v2\n2 k3 v3");
-    } catch (IOException e) {
-      throw new RuntimeException("Could not set up tests.");
-    }
+  public void setUp() throws Exception {
+    super.setUp();
+    outputFile(fs, TEST_DIR + "/a", "1 k1 v1\n1 k2 v2\n2 k3 v3");
   }
 
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_DIR));
     try {
-      JobClient.runJob(getConf(TEST_DIR + "/a", OUTPUT_DIR));
+      JobClient.runJob(getConf(TEST_DIR + "/a", OUTPUT_DIR, Cueball.class.getName()));
       fail("Should fail when output exists");
     } catch (FileAlreadyExistsException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    JobClient.runJob(getConf(TEST_DIR + "/a", OUTPUT_DIR));
+    JobClient.runJob(getConf(TEST_DIR + "/a", OUTPUT_DIR, Cueball.class.getName()));
     String p1 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "00001.base.cueball"));
     String p2 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 2, "00001.base.cueball"));
     // hash(k1),v1
@@ -89,7 +76,7 @@ public class TestHankDomainOutputFormat extends TestCase {
     assertEquals("v3", p2.substring(2, 4));
   }
 
-  private JobConf getConf(String inputPath, String outputPath) {
+  private JobConf getConf(String inputPath, String outputPath, String storageEngine) {
     JobConf conf = new JobConf();
     conf.setOutputKeyClass(IntWritable.class);
     conf.setOutputValueClass(HankRecordWritable.class);
@@ -98,6 +85,7 @@ public class TestHankDomainOutputFormat extends TestCase {
     conf.setInputFormat(TextInputFormat.class);
     conf.setOutputFormat(HankDomainOutputFormat.class);
     conf.set(HankDomainOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
+    conf.set(HankDomainOutputFormat.CONF_PARAMETER_STORAGE_ENGINE, storageEngine);
     FileInputFormat.setInputPaths(conf, inputPath);
     return conf;
   }
@@ -114,24 +102,5 @@ public class TestHankDomainOutputFormat extends TestCase {
       HankRecordWritable retValue = new HankRecordWritable(splits[1].getBytes(), splits[2].getBytes());
       outputCollector.collect(new IntWritable(Integer.valueOf(splits[0])), retValue);
     }
-  }
-
-  protected void outputFile(FileSystem fs, String path, String output)
-  throws IOException {
-    FSDataOutputStream os = fs.create(new Path(path));
-    os.write(output.getBytes());
-    os.close();
-  }
-
-  protected String getContents(FileSystem fs, String path) throws IOException {
-    FSDataInputStream in = fs.open(new Path(path));
-    StringBuilder builder = new StringBuilder();
-    byte[] buffer = new byte[1024];
-    int bytesRead;
-    while ((bytesRead = in.read(buffer)) > 0) {
-      builder.append(new String(buffer, 0, bytesRead));
-    }
-    in.close();
-    return builder.toString();
   }
 }

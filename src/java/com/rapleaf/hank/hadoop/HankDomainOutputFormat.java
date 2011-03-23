@@ -17,8 +17,12 @@
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,11 +36,8 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.storage.Writer;
 
 public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
@@ -57,22 +58,37 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
   public RecordWriter<IntWritable, HankRecordWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progress) throws IOException {
     String outputPath = conf.get(CONF_PARAMETER_OUTPUT_PATH);
-    StorageEngine storageEngine = getStorageEngine(conf);
+    StorageEngine storageEngine = null;
+    try {
+      storageEngine = buildStorageEngineFromConf(conf);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
     return new HankDomainRecordWriter(fs, storageEngine, outputPath);
   }
 
-  StorageEngine getStorageEngine(JobConf conf) {
+  StorageEngine buildStorageEngineFromConf(JobConf conf) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
     String storageEngineClassName = conf.get(CONF_PARAMETER_STORAGE_ENGINE);
-    //((StorageEngine) Class.forName(storageEngineClassName)).Factory;
-    Integer keyHashSize = 2;
-    Hasher hasher = new Murmur64Hasher();
-    Integer valueSize = 2;
-    Integer hashIndexBits = 1;
-    Integer readBufferBytes = 1;
-    String remoteDomainRoot = "";
+    Class<StorageEngine> storageEngineClass = (Class<StorageEngine>) Class.forName(storageEngineClassName);
+    Class[] storageEngineClassClasses = storageEngineClass.getDeclaredClasses();
+    for (Class c : storageEngineClassClasses) {
+      String storageEngineClassFactoryClassName = storageEngineClassName + "$Factory";
+      if (c.getName().equals(storageEngineClassFactoryClassName)) {
+        Class factoryClass = c;
+        StorageEngineFactory factory = (StorageEngineFactory) factoryClass.newInstance();
+        Class parameterTypes[] = {Map.class, String.class};;
+        Method method = factoryClass.getMethod("getStorageEngine", parameterTypes);
 
-    throw new NotImplementedException();
-//    return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
+        // TODO: load options and domainName from conf
+        Map<String, Object> options = new HashMap<String, Object>();
+        String domainName = "TestDomain";
+
+        Object argList[] = {options, domainName};
+        StorageEngine storageEngine = (StorageEngine) method.invoke(factory, argList);
+        return storageEngine;
+      }
+    }
+    throw new NoSuchFieldError("StorageEngine class " + storageEngineClassName + " should provide a Factory static class.");
   }
 
   private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {
