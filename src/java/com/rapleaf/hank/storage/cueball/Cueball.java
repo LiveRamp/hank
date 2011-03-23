@@ -70,7 +70,7 @@ public class Cueball implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
     throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
-        if (options.get(requiredKey) == null) {
+        if (options == null || options.get(requiredKey) == null) {
           throw new RuntimeException("Required key '" + requiredKey + "' was not found!");
         }
       }
@@ -184,8 +184,8 @@ public class Cueball implements StorageEngine {
   @Override
   public String toString() {
     return "Cueball [indexBits=" + hashIndexBits + ", hasher=" + hasher
-        + ", keyHashSize=" + keyHashSize + ", readBufferBytes="
-        + readBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
-        + ", valueSize=" + valueSize + "]";
+    + ", keyHashSize=" + keyHashSize + ", readBufferBytes="
+    + readBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
+    + ", valueSize=" + valueSize + "]";
   }
 }

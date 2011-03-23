@@ -46,7 +46,7 @@ import com.rapleaf.hank.util.FsUtils;
  */
 public class Curly implements StorageEngine {
   private static final Pattern BASE_OR_REGEX_PATTERN = Pattern
-      .compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
+  .compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
   static final String BASE_REGEX = ".*\\d{5}\\.base\\.curly";
   static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.curly";
 
@@ -75,7 +75,7 @@ public class Curly implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
     throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
-        if (options.get(requiredKey) == null) {
+        if (options == null || options.get(requiredKey) == null) {
           throw new RuntimeException("Required key '" + requiredKey + "' was not found!");
         }
       }
@@ -141,7 +141,7 @@ public class Curly implements StorageEngine {
 
   @Override
   public Reader getReader(PartservConfigurator configurator, int partNum)
-      throws IOException {
+  throws IOException {
     return new CurlyReader(getLocalDir(configurator, partNum),
         recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator,
             partNum));
@@ -212,9 +212,9 @@ public class Curly implements StorageEngine {
   @Override
   public String toString() {
     return "Curly [domain=" + domainName + ", cueballReadBufferBytes=" + cueballReadBufferBytes
-        + ", " + cueballStorageEngine + ", keyHashSize="
-        + keyHashSize + ", offsetSize=" + offsetSize
-        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
-        + ", remoteDomainRoot=" + remoteDomainRoot + "]";
+    + ", " + cueballStorageEngine + ", keyHashSize="
+    + keyHashSize + ", offsetSize=" + offsetSize
+    + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
+    + ", remoteDomainRoot=" + remoteDomainRoot + "]";
   }
 }
