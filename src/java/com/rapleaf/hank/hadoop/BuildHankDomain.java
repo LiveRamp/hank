@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
@@ -28,6 +28,7 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.log4j.Logger;
 
@@ -35,9 +36,9 @@ public class BuildHankDomain {
 
   private static final Logger LOG = Logger.getLogger(BuildHankDomain.class);
 
-  public static final int run(String domainName, String inputPath, String configPath) {
+  public static final void run(String domainName, String configPath, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and configuration " + configPath);
-    throw new NotImplementedException();
+    buildHankDomain(domainName, inputPath, SequenceFileInputFormat.class, HankDomainBuilderDefaultMapper.class, configPath, outputPath);
   }
 
   public static final RunningJob buildHankDomain(
@@ -76,11 +77,19 @@ public class BuildHankDomain {
     return conf;
   }
 
-  public static final int main(String[] args){
+  private static class HankDomainBuilderDefaultMapper extends HankDomainBuilderMapper<BytesWritable, BytesWritable> {
+
+    @Override
+    protected HankRecordWritable buildHankRecord(BytesWritable key, BytesWritable value) {
+      return new HankRecordWritable(key, value);
+    }
+  }
+
+  public static final void main(String[] args) throws IOException{
     if (args.length != 3) {
-      LOG.fatal("Usage: BuildHankDomain <domain name> <input path> <config path>");
+      LOG.fatal("Usage: BuildHankDomain <domain name> <config path> <input path> <output_path>");
       System.exit(1);
     }
-    return run(args[0], args[1], args[2]);
+    run(args[0], args[1], args[2], args[3]);
   }
 }
