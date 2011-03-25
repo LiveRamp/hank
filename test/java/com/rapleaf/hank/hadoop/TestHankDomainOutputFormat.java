@@ -15,21 +15,18 @@
  */
 package com.rapleaf.hank.hadoop;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.rapleaf.hank.HadoopTestCase;
@@ -39,7 +36,7 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.partitioner.Murmur64Partitioner;
+import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
@@ -47,6 +44,7 @@ import com.rapleaf.hank.storage.Writer;
 public class TestHankDomainOutputFormat extends HadoopTestCase {
 
   private final String DOMAIN_A_NAME = "a";
+  private final String CONFIG_PATH = localTmpDir + "/config";
 
   public TestHankDomainOutputFormat() throws IOException {
     super();
@@ -75,6 +73,22 @@ public class TestHankDomainOutputFormat extends HadoopTestCase {
     }
   }
 
+  private static class IntKeyModPartitioner implements Partitioner {
+
+    private int numPartitions;
+
+    IntKeyModPartitioner(int numPartitions) {
+      this.numPartitions = numPartitions;
+    }
+
+    @Override
+    public int partition(ByteBuffer key) {
+      String keyString = new String(key.array(), key.position(), key.remaining());
+      Integer keyInteger = Integer.valueOf(keyString);
+      return keyInteger % numPartitions;
+    }
+  }
+
   private static class LocalMockStorageEngine extends MockStorageEngine {
     @Override
     public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
@@ -94,50 +108,50 @@ public class TestHankDomainOutputFormat extends HadoopTestCase {
 
     @Override
     public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
-      return new MockDomainConfig(domainName, 2, new Murmur64Partitioner(), new LocalMockStorageEngine(), 0);
+      return new MockDomainConfig(domainName, 2, new IntKeyModPartitioner(2), new LocalMockStorageEngine(), 0);
     }
   }
 
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    outputFile(fs, INPUT_DIR + "/" + DOMAIN_A_NAME, "1 k1 v1\n1 k2 v2\n2 k3 v3");
-  }
+    // Create config
+    PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
+    pw.write("coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHankDomainOutputFormat$LocalMockCoordinator$Factory\n  options:\n");
+    pw.close();
 
-  private String getConfiguration() {
-    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHankDomainOutputFormat$LocalMockCoordinator$Factory\n" +
-    "  options:\n";
+    // Create input
+    outputFile(fs, INPUT_DIR + "/" + DOMAIN_A_NAME, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
   }
 
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_DIR));
     try {
-      JobClient.runJob(BuildHankDomain.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, getConfiguration(), OUTPUT_DIR));
+      JobClient.runJob(BuildHankDomain.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR));
       fail("Should fail when output exists");
     } catch (FileAlreadyExistsException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    JobClient.runJob(BuildHankDomain.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, getConfiguration(), OUTPUT_DIR));
-    String p1 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
-    String p2 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 2, "0.base"));
-
-    assertEquals("k1 v1\nk2 v2\n", p1);
-    assertEquals("k3 v3\n", p2);
+    BuildHankDomain.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
+    String p1 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
+    String p2 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
+    assertEquals("0 v0\n2 v2\n4 v4\n", p1);
+    assertEquals("1 v1\n3 v3\n", p2);
   }
 
-  // Converts text file lines "<partition> <key> <value>" to the corresponding
-  // HankRecordWritable object
-  private static class TestMapper extends MapReduceBase implements Mapper<LongWritable, Text, IntWritable, HankRecordWritable> {
+  private static class TestMapper extends HankDomainBuilderMapper<LongWritable, Text> {
+
+    // Converts text file lines "<partition> <key> <value>" to the corresponding
+    // HankRecordWritable object
     @Override
-    public void map(LongWritable key, Text value, OutputCollector<IntWritable, HankRecordWritable> outputCollector, Reporter reporter) throws IOException {
+    protected HankRecordWritable buildHankRecord(LongWritable key, Text value) {
       String[] splits = value.toString().split(" ");
-      if (splits.length != 3) {
-        throw new RuntimeException("Input text file must be lines like \"<partition> <key> <value>\"");
+      if (splits.length != 2) {
+        throw new RuntimeException("Input text file must be lines like \"<key> <value>\"");
       }
-      HankRecordWritable retValue = new HankRecordWritable(splits[1].getBytes(), splits[2].getBytes());
-      outputCollector.collect(new IntWritable(Integer.valueOf(splits[0])), retValue);
+      return new HankRecordWritable(splits[0].getBytes(), splits[1].getBytes());
     }
   }
 }

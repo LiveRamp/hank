@@ -18,6 +18,7 @@ package com.rapleaf.hank.hadoop;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
@@ -42,12 +43,20 @@ public class HankRecordWritable implements WritableComparable{
     this.value = value;
   }
 
-  public byte[] getKey() {
-    return getBytesFromBytesWritable(key);
+  public ByteBuffer getKey() {
+    return ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
   }
 
-  public byte[] getValue() {
-    return getBytesFromBytesWritable(value);
+  public ByteBuffer getValue() {
+    return ByteBuffer.wrap(value.getBytes(), 0, value.getLength());
+  }
+
+  public byte[] getKeyCopy() {
+    return getBytesCopyFromBytesWritable(key);
+  }
+
+  public byte[] getValueCopy() {
+    return getBytesCopyFromBytesWritable(value);
   }
 
   @Override
@@ -77,7 +86,7 @@ public class HankRecordWritable implements WritableComparable{
     return "<" + key.toString() + ", " + value.toString() + ">";
   }
 
-  private static byte[] getBytesFromBytesWritable(BytesWritable bw) {
+  private static byte[] getBytesCopyFromBytesWritable(BytesWritable bw) {
     if (bw.getCapacity() == bw.getLength()) {
       return bw.getBytes();
     }

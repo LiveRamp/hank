@@ -17,7 +17,6 @@
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -32,8 +31,7 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -104,7 +102,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
         setNewPartitionWriter(partition);
       }
       // Write record
-      writer.write(ByteBuffer.wrap(record.getKey()), ByteBuffer.wrap(record.getValue()));
+      writer.write(record.getKey(), record.getValue());
     }
 
     private void setNewPartitionWriter(int partition) throws IOException {
@@ -145,15 +143,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     // Load configuration items
     String domainName = getRequiredConfigurationItem(CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     String outputPath = getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
-    String configuration = getRequiredConfigurationItem(CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", conf);
-    // Build configurator
-    YamlClientConfigurator configurator = new YamlClientConfigurator();
-    // Try to load configurator
-    try {
-      configurator.loadFromYaml(configuration);
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Failed to load configuration!", e);
-    }
+    Configurator configurator = new HadoopJobConfConfigurator(conf);
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
     // Try to get domain config
@@ -167,7 +157,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     return new HankDomainRecordWriter(domainConfig, fs, outputPath);
   }
 
-  private String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
+  public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
     String result = conf.get(key);
     if (result == null || result.equals("")) {
       throw new RuntimeException(prettyName + " must be set with configuration item: " + key);

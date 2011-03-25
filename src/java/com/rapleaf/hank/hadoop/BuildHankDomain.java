@@ -16,12 +16,18 @@
 
 package com.rapleaf.hank.hadoop;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.log4j.Logger;
 
@@ -32,6 +38,17 @@ public class BuildHankDomain {
   public static final int run(String domainName, String inputPath, String configPath) {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and configuration " + configPath);
     throw new NotImplementedException();
+  }
+
+  public static final RunningJob buildHankDomain(
+      String domainName,
+      String inputPath,
+      Class<? extends InputFormat> inputFormatClass,
+      Class<? extends HankDomainBuilderMapper> mapperClass,
+      String hankConfigurationPath,
+      String outputPath) throws IOException {
+    String hankConfiguration = FileUtils.readFileToString(new File(hankConfigurationPath));
+    return JobClient.runJob(createJobConfiguration(domainName, inputPath, inputFormatClass, mapperClass, hankConfiguration, outputPath));
   }
 
   public static final JobConf createJobConfiguration(String domainName,
