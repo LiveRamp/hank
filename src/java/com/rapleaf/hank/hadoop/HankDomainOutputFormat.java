@@ -17,12 +17,8 @@
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -36,84 +32,42 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.storage.Writer;
+
 
 public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
 
-  public static final String CONF_PARAMETER_OUTPUT_PATH = "hank.output.path";
-  public static final String CONF_PARAMETER_STORAGE_ENGINE = "hank.storage.class";
-
-  @Override
-  public void checkOutputSpecs(FileSystem fs, JobConf conf)
-  throws IOException {
-    String outputPath = conf.get(CONF_PARAMETER_OUTPUT_PATH);
-    if (fs.exists(new Path(outputPath))) {
-      throw new FileAlreadyExistsException("Output root already exists: " + outputPath);
-    }
-  }
-
-  @Override
-  public RecordWriter<IntWritable, HankRecordWritable> getRecordWriter(
-      FileSystem fs, JobConf conf, String name, Progressable progress) throws IOException {
-    String outputPath = conf.get(CONF_PARAMETER_OUTPUT_PATH);
-    StorageEngine storageEngine = null;
-    try {
-      storageEngine = buildStorageEngineFromConf(conf);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return new HankDomainRecordWriter(fs, storageEngine, outputPath);
-  }
-
-  StorageEngine buildStorageEngineFromConf(JobConf conf) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SecurityException, NoSuchMethodException, IllegalArgumentException, InvocationTargetException {
-    String storageEngineClassName = conf.get(CONF_PARAMETER_STORAGE_ENGINE);
-    Class<StorageEngine> storageEngineClass = (Class<StorageEngine>) Class.forName(storageEngineClassName);
-    Class[] storageEngineClassClasses = storageEngineClass.getDeclaredClasses();
-    for (Class c : storageEngineClassClasses) {
-      String storageEngineClassFactoryClassName = storageEngineClassName + "$Factory";
-      if (c.getName().equals(storageEngineClassFactoryClassName)) {
-        Class factoryClass = c;
-        StorageEngineFactory factory = (StorageEngineFactory) factoryClass.newInstance();
-        Class parameterTypes[] = {Map.class, String.class};;
-        Method method = factoryClass.getMethod("getStorageEngine", parameterTypes);
-
-        // TODO: load options and domainName from conf
-        Map<String, Object> options = new HashMap<String, Object>();
-        String domainName = "TestDomain";
-
-        Object argList[] = {options, domainName};
-        StorageEngine storageEngine = (StorageEngine) method.invoke(factory, argList);
-        return storageEngine;
-      }
-    }
-    throw new NoSuchFieldError("StorageEngine class " + storageEngineClassName + " should provide a Factory static class.");
-  }
+  public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
+  public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
+  public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
 
   private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {
 
     private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainRecordWriter";
 
-    private FileSystem fs;
-    private StorageEngine storageEngine;
-    private String tmpOutputPath;
-    private String finalOutputPath;
-    private HadoopFSOutputStreamFactory tmpOutputStreamFactory;
-    private Writer writer;
-    private Integer writerPartition;
-    private Set<Integer> writtenPartitions = new HashSet<Integer>();
+    private final FileSystem fs;
+    private final DomainConfig domainConfig;
+    private final StorageEngine storageEngine;
+    private Writer writer = null;
+    private Integer writerPartition = null;
+    private final Set<Integer> writtenPartitions = new HashSet<Integer>();
+    private final HadoopFSOutputStreamFactory tmpOutputStreamFactory;
+    private final String tmpOutputPath;
+    private final String finalOutputPath;
 
-    public HankDomainRecordWriter(FileSystem fs,
-        StorageEngine storageEngine,
-        String finalOutputPath) {
-      this.fs = fs;
-      this.storageEngine = storageEngine;
-      this.tmpOutputPath = finalOutputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
+    HankDomainRecordWriter(DomainConfig domainConfig, FileSystem fs, String finalOutputPath) {
+      this.domainConfig = domainConfig;
+      this.storageEngine = domainConfig.getStorageEngine();
       this.finalOutputPath = finalOutputPath;
+      this.tmpOutputPath = finalOutputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
       this.tmpOutputStreamFactory = new HadoopFSOutputStreamFactory(fs, tmpOutputPath);
-      this.writer = null;
-      this.writerPartition = null;
+      this.fs = fs;
     }
 
     @Override
@@ -140,8 +94,8 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     }
 
     @Override
-    public void write(IntWritable partitionWritable,
-        HankRecordWritable record) throws IOException {
+    public void write(IntWritable partitionWritable, HankRecordWritable record)
+    throws IOException {
       Integer partition = Integer.valueOf(partitionWritable.get());
       // If writing a new partition, get a new writer
       if (writerPartition == null ||
@@ -161,10 +115,9 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
         throw new RuntimeException("Partition " + partition + " has already been written.");
       }
       // Set up new writer
-      // TODO: deal with versions
       // TODO: deal with base/non base
-      int versionNumber = 1;
-      writer = storageEngine.getWriter(tmpOutputStreamFactory, partition, versionNumber, true);
+      boolean isBase = true;
+      writer = storageEngine.getWriter(tmpOutputStreamFactory, partition, domainConfig.getVersion(), isBase);
       writerPartition = partition;
       writtenPartitions.add(partition);
     }
@@ -174,5 +127,51 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
         writer.close();
       }
     }
+  }
+
+  @Override
+  public void checkOutputSpecs(FileSystem fs, JobConf conf)
+  throws IOException {
+    String outputPath = conf.get(CONF_PARAM_HANK_OUTPUT_PATH);
+    if (outputPath != null && fs.exists(new Path(outputPath))) {
+      throw new FileAlreadyExistsException("Hank output path already exists: " + outputPath);
+    }
+  }
+
+  @Override
+  public RecordWriter<IntWritable, HankRecordWritable> getRecordWriter(
+      FileSystem fs, JobConf conf, String name, Progressable progressable)
+      throws IOException {
+    // Load configuration items
+    String domainName = getRequiredConfigurationItem(CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String outputPath = getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
+    String configuration = getRequiredConfigurationItem(CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", conf);
+    // Build configurator
+    YamlClientConfigurator configurator = new YamlClientConfigurator();
+    // Try to load configurator
+    try {
+      configurator.loadFromYaml(configuration);
+    } catch (InvalidConfigurationException e) {
+      throw new RuntimeException("Failed to load configuration!", e);
+    }
+    // Get Coordinator
+    Coordinator coordinator = configurator.getCoordinator();
+    // Try to get domain config
+    DomainConfig domainConfig;
+    try {
+      domainConfig = coordinator.getDomainConfig(domainName);
+    } catch (DataNotFoundException e) {
+      throw new RuntimeException("Failed to load domain config for domain " + domainName + "!", e);
+    }
+    // Build RecordWriter with the DomainConfig
+    return new HankDomainRecordWriter(domainConfig, fs, outputPath);
+  }
+
+  private String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
+    String result = conf.get(key);
+    if (result == null || result.equals("")) {
+      throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
+    }
+    return result;
   }
 }

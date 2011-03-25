@@ -43,11 +43,11 @@ public class HankRecordWritable implements WritableComparable{
   }
 
   public byte[] getKey() {
-    return key.getBytes();
+    return getBytesFromBytesWritable(key);
   }
 
   public byte[] getValue() {
-    return value.getBytes();
+    return getBytesFromBytesWritable(value);
   }
 
   @Override
@@ -75,5 +75,14 @@ public class HankRecordWritable implements WritableComparable{
   @Override
   public String toString() {
     return "<" + key.toString() + ", " + value.toString() + ">";
+  }
+
+  private static byte[] getBytesFromBytesWritable(BytesWritable bw) {
+    if (bw.getCapacity() == bw.getLength()) {
+      return bw.getBytes();
+    }
+    byte[] ret = new byte[bw.getLength()];
+    System.arraycopy(bw.getBytes(), 0, ret, 0, bw.getLength());
+    return ret;
   }
 }
