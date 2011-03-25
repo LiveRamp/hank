@@ -16,10 +16,8 @@
 package com.rapleaf.hank.config.yaml;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -39,15 +37,12 @@ public abstract class BaseYamlConfigurator implements Configurator {
   protected BaseYamlConfigurator() {}
 
   public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
-    loadFromInputStream(new FileInputStream(path));
+    config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
+    validate();
   }
 
   public void loadFromYaml(String yaml) throws InvalidConfigurationException {
-    loadFromInputStream(new ByteArrayInputStream(yaml.getBytes()));
-  }
-
-  public void loadFromInputStream(InputStream content) throws InvalidConfigurationException {
-    config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(content));
+    config = (Map<String, Object>) new Yaml().load(yaml);
     validate();
   }
 
