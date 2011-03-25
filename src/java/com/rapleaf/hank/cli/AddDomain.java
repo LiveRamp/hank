@@ -43,19 +43,19 @@ public class AddDomain {
   public static void main(String[] args) throws InterruptedException, ParseException, IOException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("n", "name", true,
-        "the name of the domain to be created");
+    "the name of the domain to be created");
     options.addOption("p", "num-parts", true,
-        "the number of partitions for this domain");
+    "the number of partitions for this domain");
     options.addOption("f", "storage-engine-factory", true,
-        "class name of the storage engine factory used by this domain");
+    "class name of the storage engine factory used by this domain");
     options.addOption("o", "storage-engine-options", true,
-        "path to a yaml file containing the options for the storage engine");
+    "path to a yaml file containing the options for the storage engine");
     options.addOption("t", "partitioner", true,
-        "class name of the partition used by this domain");
+    "class name of the partition used by this domain");
     options.addOption("v", "initial-version", true,
-        "initial version number of this domain");
+    "initial version number of this domain");
     options.addOption("c", "config", true,
-        "path of a valid config file with coordinator connection information");
+    "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
       Configurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));

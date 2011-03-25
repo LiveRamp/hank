@@ -55,7 +55,7 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
     // Set output path in conf
-    conf.set(HankDomainOutputFormat.CONF_PARAMETER_OUTPUT_PATH, outputPath);
+    conf.set(HankDomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
     // throw new RuntimeException("Not yet implemented");
     //    domainConfig.getStorageEngine().getWriter(streamFactory, partNum, versionNumber, base);
   }

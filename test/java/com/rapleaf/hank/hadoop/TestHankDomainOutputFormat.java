@@ -127,14 +127,14 @@ public class TestHankDomainOutputFormat extends HadoopTestCase {
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_DIR));
     try {
-      JobClient.runJob(BuildHankDomain.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR));
+      JobClient.runJob(HankDomainBuilder.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR));
       fail("Should fail when output exists");
     } catch (FileAlreadyExistsException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    BuildHankDomain.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
+    HankDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
     String p1 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
     String p2 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);

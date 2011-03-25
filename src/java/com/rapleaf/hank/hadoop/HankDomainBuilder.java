@@ -32,9 +32,9 @@ import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.log4j.Logger;
 
-public class BuildHankDomain {
+public class HankDomainBuilder {
 
-  private static final Logger LOG = Logger.getLogger(BuildHankDomain.class);
+  private static final Logger LOG = Logger.getLogger(HankDomainBuilder.class);
 
   public static final void run(String domainName, String configPath, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and configuration " + configPath);
@@ -87,7 +87,7 @@ public class BuildHankDomain {
 
   public static final void main(String[] args) throws IOException{
     if (args.length != 3) {
-      LOG.fatal("Usage: BuildHankDomain <domain name> <config path> <input path> <output_path>");
+      LOG.fatal("Usage: HankDomainBuilder <domain name> <config path> <input path> <output_path>");
       System.exit(1);
     }
     run(args[0], args[1], args[2], args[3]);

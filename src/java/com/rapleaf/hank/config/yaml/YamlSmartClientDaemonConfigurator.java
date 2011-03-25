@@ -29,8 +29,7 @@ public class YamlSmartClientDaemonConfigurator extends BaseYamlConfigurator impl
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";
 
   public YamlSmartClientDaemonConfigurator(String path) throws IOException, InvalidConfigurationException {
-    super();
-    loadFromFile(path);
+    super(path);
   }
 
   @Override

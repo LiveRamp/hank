@@ -28,8 +28,7 @@ public class YamlDataDeployerConfigurator extends BaseYamlConfigurator implement
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";
 
   public YamlDataDeployerConfigurator(String configPath) throws IOException, InvalidConfigurationException {
-    super();
-    loadFromFile(configPath);
+    super(configPath);
   }
 
   @Override

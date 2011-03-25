@@ -36,6 +36,10 @@ public abstract class BaseYamlConfigurator implements Configurator {
 
   protected BaseYamlConfigurator() {}
 
+  protected BaseYamlConfigurator(String configPath) throws FileNotFoundException, InvalidConfigurationException {
+    loadFromFile(configPath);
+  }
+
   public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
     config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
     validate();
