@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.FileInputFormat;
 import org.apache.hadoop.mapred.InputFormat;
@@ -75,14 +74,6 @@ public class HankDomainBuilder {
     conf.set(HankDomainOutputFormat.CONF_PARAM_HANK_CONFIGURATION, hankConfiguration);
     conf.set(HankDomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
     return conf;
-  }
-
-  private static class HankDomainBuilderDefaultMapper extends HankDomainBuilderMapper<BytesWritable, BytesWritable> {
-
-    @Override
-    protected HankRecordWritable buildHankRecord(BytesWritable key, BytesWritable value) {
-      return new HankRecordWritable(key, value);
-    }
   }
 
   public static final void main(String[] args) throws IOException{
