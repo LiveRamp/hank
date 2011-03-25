@@ -37,7 +37,8 @@ public class YamlPartservConfigurator extends BaseYamlConfigurator implements Pa
 
   public YamlPartservConfigurator(String path) throws IOException,
   InvalidConfigurationException {
-    super(path);
+    super();
+    loadFromFile(path);
   }
 
   @Override

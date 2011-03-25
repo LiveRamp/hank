@@ -16,8 +16,10 @@
 package com.rapleaf.hank.config.yaml;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
@@ -32,19 +34,27 @@ public abstract class BaseYamlConfigurator implements Configurator {
   private static final String COORDINATOR__FACTORY_KEY = "factory";
   private static final String COORDINATOR__OPTIONS_KEY = "options";
 
-  protected final Map<String, Object> config;
+  protected Map<String, Object> config;
 
-  protected BaseYamlConfigurator(String path) throws IOException, InvalidConfigurationException {
-    config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
-    if (config == null) {
-      throw new InvalidConfigurationException(
-          "Failed to load config from file " + path
-          + ": load resulted in a null config map!");
-    }
+  protected BaseYamlConfigurator() {}
+
+  public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
+    loadFromInputStream(new FileInputStream(path));
+  }
+
+  public void loadFromYaml(String yaml) throws InvalidConfigurationException {
+    loadFromInputStream(new ByteArrayInputStream(yaml.getBytes()));
+  }
+
+  public void loadFromInputStream(InputStream content) throws InvalidConfigurationException {
+    config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(content));
     validate();
   }
 
   protected void validate() throws InvalidConfigurationException {
+    if (config == null) {
+      throw new InvalidConfigurationException("Configuration is empty!");
+    }
     if (config.containsKey(COORDINATOR_SECTION_KEY)) {
       Map<String, Object> coordSection = (Map<String, Object>) config.get(COORDINATOR_SECTION_KEY);
       if (coordSection == null) {
@@ -63,6 +73,11 @@ public abstract class BaseYamlConfigurator implements Configurator {
 
   @Override
   public Coordinator getCoordinator() {
+    try {
+      validate();
+    } catch (InvalidConfigurationException e) {
+      throw new RuntimeException("Configuration is invalid!", e);
+    }
     Map<String, Object> coordSection = (Map<String, Object>) config.get(COORDINATOR_SECTION_KEY);
     String factoryClassName = (String) coordSection.get(COORDINATOR__FACTORY_KEY);
     Class<CoordinatorFactory> factoryClass;

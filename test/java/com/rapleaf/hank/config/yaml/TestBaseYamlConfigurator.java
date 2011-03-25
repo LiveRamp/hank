@@ -30,7 +30,8 @@ public class TestBaseYamlConfigurator extends BaseTestCase {
   private static class TestImplOfBaseYamlConfigurator extends BaseYamlConfigurator {
     public TestImplOfBaseYamlConfigurator(String path) throws IOException,
     InvalidConfigurationException {
-      super(path);
+      super();
+      loadFromFile(path);
     }
   }
 
