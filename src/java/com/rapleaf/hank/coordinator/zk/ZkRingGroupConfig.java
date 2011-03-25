@@ -237,6 +237,9 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
   }
 
   public static ZkRingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, IOException {
+    if (domainGroupConfig.getVersions().isEmpty()) {
+      throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
+    }
     zk.create(path, domainGroupConfig.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(path + "/updating_to_version", ("" + domainGroupConfig.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingGroupConfig(zk, path, domainGroupConfig);

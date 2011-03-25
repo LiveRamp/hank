@@ -49,7 +49,7 @@ public class AddRingGroup {
     }
   }
 
-  private static void addRingGroup(ClientConfigurator configurator, 
+  private static void addRingGroup(ClientConfigurator configurator,
       String ringGroupName,
       String domainGroupName)
   throws IOException {
