@@ -28,9 +28,6 @@ import cascading.tap.Tap;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
-import com.rapleaf.hank.hadoop.HankDomainOutputFormat;
-import com.rapleaf.hank.hadoop.HankRecordWritable;
-
 /**
  * A sink-only tap to write tuples to Hank Domains.
  */
@@ -44,7 +41,7 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
   //private DomainConfig domainConfig;
 
   public HankDomainTap(String keyFieldName, String valueFieldName, String outputPath) {
-    super(new HankDomainScheme(HankDomainAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName));
+    //    super(new HankDomainScheme(HankDomainAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName));
     this.keyFieldName = keyFieldName;
     this.valueFieldName = valueFieldName;
     this.outputPath = outputPath;
@@ -55,7 +52,7 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
     // Set output path in conf
-    conf.set(HankDomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
+    //    conf.set(DomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
     // throw new RuntimeException("Not yet implemented");
     //    domainConfig.getStorageEngine().getWriter(streamFactory, partNum, versionNumber, base);
   }
@@ -84,13 +81,13 @@ public class HankDomainTap extends Hfs /*implements FlowListener*/ {
       BytesWritable key = (BytesWritable) tupleEntry.get(keyFieldName);
       BytesWritable value = (BytesWritable) tupleEntry.get(valueFieldName);
 
-      HankRecordWritable record = new HankRecordWritable(key, value);
-      outputCollector.collect(partition, record);
+      //      HankRecordWritable record = new HankRecordWritable(key, value);
+      //      outputCollector.collect(partition, record);
     }
 
     @Override
     public void sinkInit(Tap tap, JobConf jobConf) throws IOException {
-      jobConf.setOutputFormat(HankDomainOutputFormat.class);
+      //      jobConf.setOutputFormat(DomainOutputFormat.class);
       // throw new RuntimeException("Not yet implemented");
     }
 

@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
@@ -23,12 +24,12 @@ import org.apache.hadoop.fs.Path;
 
 import com.rapleaf.hank.storage.OutputStreamFactory;
 
-public class HadoopFSOutputStreamFactory implements OutputStreamFactory {
+public class HDFSOutputStreamFactory implements OutputStreamFactory {
 
   private FileSystem fs;
   private String outputPath;
 
-  HadoopFSOutputStreamFactory(FileSystem fs, String outputPath) {
+  HDFSOutputStreamFactory(FileSystem fs, String outputPath) {
     this.fs = fs;
     this.outputPath = outputPath;
   }

@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputFormat;
@@ -39,13 +38,13 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 
 
-public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRecordWritable> {
+public class DomainOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
 
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
 
-  private static class HankDomainRecordWriter implements RecordWriter<IntWritable, HankRecordWritable> {
+  private static class HankDomainRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
 
     private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainRecordWriter";
 
@@ -55,7 +54,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     private Writer writer = null;
     private Integer writerPartition = null;
     private final Set<Integer> writtenPartitions = new HashSet<Integer>();
-    private final HadoopFSOutputStreamFactory tmpOutputStreamFactory;
+    private final HDFSOutputStreamFactory tmpOutputStreamFactory;
     private final String tmpOutputPath;
     private final String finalOutputPath;
 
@@ -64,7 +63,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
       this.storageEngine = domainConfig.getStorageEngine();
       this.finalOutputPath = finalOutputPath;
       this.tmpOutputPath = finalOutputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
-      this.tmpOutputStreamFactory = new HadoopFSOutputStreamFactory(fs, tmpOutputPath);
+      this.tmpOutputStreamFactory = new HDFSOutputStreamFactory(fs, tmpOutputPath);
       this.fs = fs;
     }
 
@@ -92,9 +91,9 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
     }
 
     @Override
-    public void write(IntWritable partitionWritable, HankRecordWritable record)
+    public void write(KeyAndPartitionWritable key, ValueWritable value)
     throws IOException {
-      Integer partition = Integer.valueOf(partitionWritable.get());
+      int partition = key.getPartition();
       // If writing a new partition, get a new writer
       if (writerPartition == null ||
           writerPartition != partition) {
@@ -102,7 +101,7 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
         setNewPartitionWriter(partition);
       }
       // Write record
-      writer.write(record.getKey(), record.getValue());
+      writer.write(key.getKey(), value.getAsByteBuffer());
     }
 
     private void setNewPartitionWriter(int partition) throws IOException {
@@ -137,13 +136,13 @@ public class HankDomainOutputFormat implements OutputFormat<IntWritable, HankRec
   }
 
   @Override
-  public RecordWriter<IntWritable, HankRecordWritable> getRecordWriter(
+  public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
     // Load configuration items
     String domainName = getRequiredConfigurationItem(CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     String outputPath = getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
-    Configurator configurator = new HadoopJobConfConfigurator(conf);
+    Configurator configurator = new JobConfConfigurator(conf);
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
     // Try to get domain config

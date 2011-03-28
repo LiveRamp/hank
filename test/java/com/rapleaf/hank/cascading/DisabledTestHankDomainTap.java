@@ -16,12 +16,9 @@
 package com.rapleaf.hank.cascading;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 import junit.framework.TestCase;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -39,11 +36,6 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.StorageEngine;
 
 public class DisabledTestHankDomainTap extends TestCase {
   private static final String INPUT = "/tmp/" + DisabledTestHankDomainTap.class.getName() + "-input";
@@ -97,70 +89,70 @@ public class DisabledTestHankDomainTap extends TestCase {
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, new Fields("key", "value"), new Identity());
     // TODO: get an actual domain config
-    DomainConfig domainConfig = new MockDomainConfig(2);
-    pipe = new HankDomainAssembly(domainConfig, pipe, "key", "value");
+    //    DomainConfig domainConfig = new MockDomainConfig(2);
+    //    pipe = new HankDomainAssembly(domainConfig, pipe, "key", "value");
     return pipe;
   }
 
-  private static class MockDomainConfig implements DomainConfig, Serializable {
-
-    private static final long serialVersionUID = 1L;
-    private final int numPartitions;
-
-    MockDomainConfig(int numPartitions) {
-      this.numPartitions = numPartitions;
-    }
-
-    @Override
-    public int getNumParts() {
-      return numPartitions;
-    }
-
-    @Override
-    public StorageEngine getStorageEngine() {
-      Integer keyHashSize = 2;
-      Hasher hasher = new Murmur64Hasher();
-      Integer valueSize = 2;
-      Integer hashIndexBits = 1;
-      Integer readBufferBytes = 1;
-      String remoteDomainRoot = "";
-//      return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
-      throw new NotImplementedException();
-    }
-
-    @Override
-    public Partitioner getPartitioner() {
-      return new MockPartitioner(getNumParts());
-    }
-
-    private static class MockPartitioner implements Partitioner, Serializable {
-
-      private static final long serialVersionUID = 1L;
-      private final int numPartitions;
-
-      MockPartitioner(int numPartitions) {
-        this.numPartitions = numPartitions;
-      }
-
-      @Override
-      public int partition(ByteBuffer key) {
-        return key.hashCode() % numPartitions;
-      }
-    }
-
-    @Override
-    public int getVersion() {
-      return 0;
-    }
-
-    @Override
-    public String getName() {
-      return null;
-    }
-
-    @Override
-    public int newVersion() throws IOException {
-      return 0;
-    }
-  }
+  //  private static class MockDomainConfig implements DomainConfig, Serializable {
+  //
+  //    private static final long serialVersionUID = 1L;
+  //    private final int numPartitions;
+  //
+  //    MockDomainConfig(int numPartitions) {
+  //      this.numPartitions = numPartitions;
+  //    }
+  //
+  //    @Override
+  //    public int getNumParts() {
+  //      return numPartitions;
+  //    }
+  //
+  //    @Override
+  //    public StorageEngine getStorageEngine() {
+  //      Integer keyHashSize = 2;
+  //      //      Hasher hasher = new Murmur64Hasher();
+  //      Integer valueSize = 2;
+  //      Integer hashIndexBits = 1;
+  //      Integer readBufferBytes = 1;
+  //      String remoteDomainRoot = "";
+  //      //      return new Cueball(keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, remoteDomainRoot);
+  //      throw new NotImplementedException();
+  //    }
+  //
+  //    @Override
+  //    public Partitioner getPartitioner() {
+  //      return new MockPartitioner(getNumParts());
+  //    }
+  //
+  //    private static class MockPartitioner implements Partitioner, Serializable {
+  //
+  //      private static final long serialVersionUID = 1L;
+  //      private final int numPartitions;
+  //
+  //      MockPartitioner(int numPartitions) {
+  //        this.numPartitions = numPartitions;
+  //      }
+  //
+  //      @Override
+  //      public int partition(ByteBuffer key) {
+  //        return key.hashCode() % numPartitions;
+  //      }
+  //    }
+  //
+  //    @Override
+  //    public int getVersion() {
+  //      return 0;
+  //    }
+  //
+  //    @Override
+  //    public String getName() {
+  //      return null;
+  //    }
+  //
+  //    @Override
+  //    public int newVersion() throws IOException {
+  //      return 0;
+  //    }
+  //  }
 }

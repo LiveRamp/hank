@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.hadoop;
 
 import java.io.DataInput;
@@ -21,77 +22,59 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-public class HankRecordWritable implements WritableComparable{
+import com.rapleaf.hank.partitioner.Partitioner;
 
+public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
-  private BytesWritable value;
+  private IntWritable partition;
 
-  public HankRecordWritable() {
+  public KeyAndPartitionWritable() {
     key = new BytesWritable();
-    value = new BytesWritable();
+    partition = new IntWritable();
   }
 
-  public HankRecordWritable(byte[] key, byte[] value) {
-    this.key = new BytesWritable(key);
-    this.value = new BytesWritable(value);
-  }
-
-  public HankRecordWritable(BytesWritable key, BytesWritable value) {
+  public KeyAndPartitionWritable(Partitioner partitioner, BytesWritable key) {
     this.key = key;
-    this.value = value;
+    int partition = partitioner.partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
+    this.partition = new IntWritable(partition);
   }
 
   public ByteBuffer getKey() {
     return ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
   }
 
-  public ByteBuffer getValue() {
-    return ByteBuffer.wrap(value.getBytes(), 0, value.getLength());
-  }
-
-  public byte[] getKeyCopy() {
-    return getBytesCopyFromBytesWritable(key);
-  }
-
-  public byte[] getValueCopy() {
-    return getBytesCopyFromBytesWritable(value);
+  public int getPartition() {
+    return partition.get();
   }
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
     key.readFields(dataInput);
-    value.readFields(dataInput);
+    partition.readFields(dataInput);
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     key.write(dataOutput);
-    value.write(dataOutput);
+    partition.write(dataOutput);
   }
 
   @Override
-  public int compareTo(Object otherO) {
-    HankRecordWritable other = (HankRecordWritable) otherO;
-    int ret = key.compareTo(other.key);
-    if (ret == 0) {
-      ret = value.compareTo(other.value);
+  public int compareTo(KeyAndPartitionWritable other) {
+    if (getPartition() < other.getPartition()) {
+      return -1;
+    } else if (getPartition() > other.getPartition()) {
+      return 1;
+    } else {
+      return key.compareTo(other.key);
     }
-    return ret;
   }
 
   @Override
   public String toString() {
-    return "<" + key.toString() + ", " + value.toString() + ">";
-  }
-
-  private static byte[] getBytesCopyFromBytesWritable(BytesWritable bw) {
-    if (bw.getCapacity() == bw.getLength()) {
-      return bw.getBytes();
-    }
-    byte[] ret = new byte[bw.getLength()];
-    System.arraycopy(bw.getBytes(), 0, ret, 0, bw.getLength());
-    return ret;
+    return "<key: " + key.toString() + ", partition: " + partition.toString() + ">";
   }
 }

@@ -41,12 +41,13 @@ import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 
-public class TestHankDomainOutputFormat extends HadoopTestCase {
+public class TestHadoopDomainBuilder extends HadoopTestCase {
 
   private final String DOMAIN_A_NAME = "a";
+  private final String DOMAIN_B_NAME = "b";
   private final String CONFIG_PATH = localTmpDir + "/config";
 
-  public TestHankDomainOutputFormat() throws IOException {
+  public TestHadoopDomainBuilder() throws IOException {
     super();
   }
 
@@ -117,41 +118,49 @@ public class TestHankDomainOutputFormat extends HadoopTestCase {
     super.setUp();
     // Create config
     PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
-    pw.write("coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHankDomainOutputFormat$LocalMockCoordinator$Factory\n  options:\n");
+    pw.write("coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHadoopDomainBuilder$LocalMockCoordinator$Factory\n  options:\n");
     pw.close();
 
-    // Create input
+    // Create inputs
     outputFile(fs, INPUT_DIR + "/" + DOMAIN_A_NAME, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
+    outputFile(fs, INPUT_DIR + "/" + DOMAIN_B_NAME, "4 v4\n1 v1\n2 v2\n0 v0\n3 v3");
   }
 
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_DIR));
     try {
-      JobClient.runJob(HankDomainBuilder.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR));
+      JobClient.runJob(HadoopDomainBuilder.createJobConfiguration(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR));
       fail("Should fail when output exists");
     } catch (FileAlreadyExistsException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    HankDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
-    String p1 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
-    String p2 = getContents(fs, HadoopFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
+    HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
+    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
+    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }
 
-  private static class TestMapper extends HankDomainBuilderMapper<LongWritable, Text> {
+  public void testSorted() throws IOException {
+    HadoopDomainBuilder.buildHankDomain(DOMAIN_B_NAME, INPUT_DIR + "/" + DOMAIN_B_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
+    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
+    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
+    assertEquals("0 v0\n2 v2\n4 v4\n", p1);
+    assertEquals("1 v1\n3 v3\n", p2);
+  }
 
-    // Converts text file lines "<partition> <key> <value>" to the corresponding
-    // HankRecordWritable object
+  private static class TestMapper extends DomainBuilderMapper<LongWritable, Text> {
+
+    // Converts text file lines "<key> <value>" to the corresponding object
     @Override
-    protected HankRecordWritable buildHankRecord(LongWritable key, Text value) {
+    protected KeyValuePair buildHankKeyValue(LongWritable key, Text value) {
       String[] splits = value.toString().split(" ");
       if (splits.length != 2) {
         throw new RuntimeException("Input text file must be lines like \"<key> <value>\"");
       }
-      return new HankRecordWritable(splits[0].getBytes(), splits[1].getBytes());
+      return new KeyValuePair(splits[0].getBytes(), splits[1].getBytes());
     }
   }
 }

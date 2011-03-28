@@ -18,7 +18,6 @@ package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
 
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -28,14 +27,14 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 
-public abstract class HankDomainBuilderMapper<K, V> implements Mapper<K, V, IntWritable, HankRecordWritable> {
+public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritable, ValueWritable> {
 
   private Partitioner partitioner;
 
   @Override
   public void configure(JobConf conf) {
-    Configurator configurator = new HadoopJobConfConfigurator(conf);
-    String domainName = HankDomainOutputFormat.getRequiredConfigurationItem(HankDomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    Configurator configurator = new JobConfConfigurator(conf);
+    String domainName = DomainOutputFormat.getRequiredConfigurationItem(DomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     try {
       partitioner = configurator.getCoordinator().getDomainConfig(domainName).getPartitioner();
     } catch (DataNotFoundException e) {
@@ -44,16 +43,16 @@ public abstract class HankDomainBuilderMapper<K, V> implements Mapper<K, V, IntW
   }
 
   @Override
-  public final void map(K key, V value, OutputCollector<IntWritable, HankRecordWritable> outputCollector, Reporter reporter) throws IOException {
-    HankRecordWritable hankRecord = this.buildHankRecord(key, value);
-    Integer partition = partitioner.partition(hankRecord.getKey());
-    outputCollector.collect(new IntWritable(partition), hankRecord);
+  public final void map(K key, V value, OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
+    KeyValuePair keyValue = buildHankKeyValue(key, value);
+    KeyAndPartitionWritable hankKeyWritable = new KeyAndPartitionWritable(partitioner, keyValue.getKey());
+    ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
+    outputCollector.collect(hankKeyWritable, hankValueWritable);
   }
 
   @Override
   public void close() throws IOException {
-
   }
 
-  protected abstract HankRecordWritable buildHankRecord(K key, V value);
+  protected abstract KeyValuePair buildHankKeyValue(K key, V value);
 }

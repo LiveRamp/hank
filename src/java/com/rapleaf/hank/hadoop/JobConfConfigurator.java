@@ -23,12 +23,12 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 
-public class HadoopJobConfConfigurator implements Configurator {
+public class JobConfConfigurator implements Configurator {
 
   private final YamlClientConfigurator baseConfigurator;
 
-  public HadoopJobConfConfigurator(JobConf jobConf) {
-    String configuration = HankDomainOutputFormat.getRequiredConfigurationItem(HankDomainOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
+  public JobConfConfigurator(JobConf jobConf) {
+    String configuration = DomainOutputFormat.getRequiredConfigurationItem(DomainOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
