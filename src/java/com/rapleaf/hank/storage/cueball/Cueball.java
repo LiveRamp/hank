@@ -145,10 +145,10 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public byte[] getComparableKey(ByteBuffer key) {
+  public ByteBuffer getComparableKey(ByteBuffer key) {
     byte[] keyHash = new byte[keyHashSize];
     hasher.hash(key, keyHash);
-    return keyHash;
+    return ByteBuffer.wrap(keyHash);
   }
 
   static String padVersion(int ver) {

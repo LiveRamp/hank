@@ -30,12 +30,12 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
   private IntWritable partition;
-  private BytesWritable comparableKey;
+  private ByteBuffer comparableKey;
 
   public KeyAndPartitionWritable() {
     key = new BytesWritable();
     partition = new IntWritable();
-    comparableKey = new BytesWritable();
+    comparableKey = null;
   }
 
   public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
@@ -43,7 +43,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     this.key = key;
     int partition = domainConfig.getPartitioner().partition(keyByteBuffer);
     this.partition = new IntWritable(partition);
-    this.comparableKey = new BytesWritable(domainConfig.getStorageEngine().getComparableKey(keyByteBuffer));
+    this.comparableKey = domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
   }
 
   public ByteBuffer getKey() {
@@ -58,14 +58,21 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
   public void readFields(DataInput dataInput) throws IOException {
     key.readFields(dataInput);
     partition.readFields(dataInput);
-    comparableKey.readFields(dataInput);
+    // Read size of comparable key
+    int comparableKeySize = dataInput.readInt();
+    // Allocate and read comparable key
+    comparableKey = ByteBuffer.allocate(comparableKeySize);
+    dataInput.readFully(comparableKey.array(), 0, comparableKeySize);
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     key.write(dataOutput);
     partition.write(dataOutput);
-    comparableKey.write(dataOutput);
+    // Write size of comparable key
+    dataOutput.writeInt(comparableKey.remaining());
+    // Write comparable key
+    dataOutput.write(comparableKey.array(), comparableKey.position(), comparableKey.remaining());
   }
 
   @Override

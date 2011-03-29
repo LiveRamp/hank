@@ -175,7 +175,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public byte[] getComparableKey(ByteBuffer key) {
+  public ByteBuffer getComparableKey(ByteBuffer key) {
     return cueballStorageEngine.getComparableKey(key);
   }
 

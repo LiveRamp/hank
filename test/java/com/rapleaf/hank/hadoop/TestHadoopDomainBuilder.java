@@ -98,10 +98,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     }
 
     @Override
-    public byte[] getComparableKey(ByteBuffer key) {
-      byte[] result = new byte[key.remaining()];
-      System.arraycopy(key.array(), key.position(), result, 0, key.remaining());
-      return result;
+    public ByteBuffer getComparableKey(ByteBuffer key) {
+      return key;
     }
   }
 

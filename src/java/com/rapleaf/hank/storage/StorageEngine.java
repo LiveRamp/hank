@@ -30,5 +30,5 @@ public interface StorageEngine {
 
   public Updater getUpdater(PartservConfigurator configurator, int partNum);
 
-  public byte[] getComparableKey(ByteBuffer key);
+  public ByteBuffer getComparableKey(ByteBuffer key);
 }

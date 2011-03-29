@@ -61,7 +61,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public byte[] getComparableKey(ByteBuffer key) {
+  public ByteBuffer getComparableKey(ByteBuffer key) {
     throw new UnsupportedOperationException();
   }
 }
