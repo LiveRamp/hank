@@ -39,7 +39,7 @@ public class TestJavaGzipCompressionCodec extends BaseTestCase {
 
       int compressedLength = codec.compress(testcase, 0, testcase.length, compressedBytes, 0);
 
-      byte[] decompressedBytes = new byte[testcase.length * 2];
+      byte[] decompressedBytes = new byte[testcase.length + 1];
       int decompressedLength = codec.decompress(compressedBytes, 0, compressedLength, decompressedBytes, 0);
       assertEquals(testcase.length, decompressedLength);
 
