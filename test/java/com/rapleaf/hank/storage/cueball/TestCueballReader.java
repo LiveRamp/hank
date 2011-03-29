@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.storage.Result;
 
 public class TestCueballReader extends AbstractCueballTest {
@@ -32,7 +33,7 @@ public class TestCueballReader extends AbstractCueballTest {
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 10, 1000);
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 10, 1000, new NoCompressionCodec());
 
     Result result = new Result();
     reader.get(ByteBuffer.wrap(KEY1), result);

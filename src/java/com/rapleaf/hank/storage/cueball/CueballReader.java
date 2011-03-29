@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
@@ -36,19 +37,22 @@ public class CueballReader implements Reader {
   private final FileChannel channel;
   private final int keyHashSize;
   private final int fullRecordSize;
+  private final CompressionCodec compressionCodec;
 
   public CueballReader(String partitionRoot,
       int keyHashSize,
       Hasher hasher,
       int valueSize,
       int hashIndexBits,
-      int readBufferBytes)
+      int readBufferBytes,
+      CompressionCodec compressionCodec)
   throws IOException {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.hashIndexBits = hashIndexBits;
     this.readBufferBytes = readBufferBytes;
+    this.compressionCodec = compressionCodec;
 
     this.fullRecordSize = valueSize + keyHashSize;
 

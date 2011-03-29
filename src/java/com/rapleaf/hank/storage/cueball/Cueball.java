@@ -26,6 +26,8 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -55,6 +57,7 @@ public class Cueball implements StorageEngine {
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
+    public static final String COMPRESSION_CODEC = "compression_codec";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         REMOTE_DOMAIN_ROOT_KEY,
@@ -83,6 +86,17 @@ public class Cueball implements StorageEngine {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+      
+      String compressionCodec = (String) options.get(COMPRESSION_CODEC);
+      Class<? extends CompressionCodec> compressionCodecClass = NoCompressionCodec.class;
+      if (compressionCodec != null) {
+        try {
+          compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodec);
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException("Failed to get CompressionCodec class '" + compressionCodec + "'!", e);
+        }
+      }
+
       return new Cueball((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
           (Integer)options.get(VALUE_SIZE_KEY),
@@ -90,6 +104,7 @@ public class Cueball implements StorageEngine {
           (Integer)options.get(READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
+          compressionCodecClass,
           domainName);
     }
   }
@@ -104,6 +119,8 @@ public class Cueball implements StorageEngine {
   private final String remoteDomainRoot;
   private final IFileOpsFactory fileOpsFactory;
 
+  private final Class<? extends CompressionCodec> compressionCodecClass;
+
   public Cueball(int keyHashSize,
       Hasher hasher,
       int valueSize,
@@ -111,6 +128,7 @@ public class Cueball implements StorageEngine {
       int readBufferBytes,
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
+      Class<? extends CompressionCodec> compressionCodecClass,
       String domainName)
   {
     this.keyHashSize = keyHashSize;
@@ -120,27 +138,37 @@ public class Cueball implements StorageEngine {
     this.readBufferBytes = readBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
+    this.compressionCodecClass = compressionCodecClass;
     this.domainName = domainName;
   }
 
   @Override
   public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
-    return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes);
+    return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, getCompressionCodec());
+  }
+
+  private CompressionCodec getCompressionCodec() throws IOException {
+    try {
+      return compressionCodecClass.newInstance();
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public Writer getWriter(OutputStreamFactory outputStream, int partNum, int versionNumber, boolean base) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize);
+    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec());
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) {
+  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     return new CueballUpdater(localDir,
         keyHashSize,
         valueSize,
         fileOpsFactory.getFileOps(localDir, remoteDomainRoot + "/" + partNum),
-        cueballFileSelector);
+        cueballFileSelector,
+        getCompressionCodec());
   }
 
   static String padVersion(int ver) {

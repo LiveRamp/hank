@@ -1,12 +1,10 @@
 package com.rapleaf.hank.storage.cueball;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.zip.GZIPOutputStream;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -25,7 +23,7 @@ public class PerformanceTestCueballWriter {
     FsUtils.rmrf(tmpDir);
     new File(tmpDir).mkdirs();
 
-    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, 16*1024, "/tmp/remote_domains_root", new LocalFileOps.Factory(), "domain0");
+    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, 16*1024, "/tmp/remote_domains_root", new LocalFileOps.Factory(), NoCompressionCodec.class, "domain0");
     OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
 //      @Override
 //      public OutputStream getOutputStream(int partNum, String name)

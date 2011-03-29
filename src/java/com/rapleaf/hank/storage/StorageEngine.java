@@ -27,5 +27,5 @@ public interface StorageEngine {
 
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
 
-  public Updater getUpdater(PartservConfigurator configurator, int partNum);
+  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException;
 }

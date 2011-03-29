@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Writer;
 
@@ -28,17 +29,19 @@ public class CueballWriter implements Writer {
   private final int keyHashSize;
   private final Hasher hasher;
   private final int valueSize;
+  private final CompressionCodec compressionCodec;
 
   public CueballWriter(OutputStream outputStream,
       int keyHashSize,
       Hasher hasher,
-      int valueSize)
+      int valueSize,
+      CompressionCodec compressionCodec)
   {
     this.stream = outputStream;
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
-
+    this.compressionCodec = compressionCodec;
   }
 
   @Override

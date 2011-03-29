@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.Updater;
 
 public class CueballUpdater implements Updater {
@@ -28,30 +29,35 @@ public class CueballUpdater implements Updater {
   private final int valueSize;
   private final IFetcher fetcher;
   private final ICueballMerger merger;
+  private final CompressionCodec compressionCodec;
 
   CueballUpdater(String localPartitionRoot,
       int keyHashSize,
       int valueSize,
-      IFetcher fetcher, ICueballMerger merger)
+      IFetcher fetcher, ICueballMerger merger,
+      CompressionCodec compressionCodec)
   {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
     this.fetcher = fetcher;
     this.merger = merger;
+    this.compressionCodec = compressionCodec;
   }
 
   public CueballUpdater(String localPartitionRoot,
       int keyHashSize,
       int valueSize,
       IFileOps fileOps,
-      IFileSelector fileSelector)
+      IFileSelector fileSelector,
+      CompressionCodec compressionCodec)
   {
     this(localPartitionRoot,
         keyHashSize,
         valueSize,
         new Fetcher(fileOps, fileSelector),
-        new CueballMerger());
+        new CueballMerger(),
+        compressionCodec);
   }
 
   @Override

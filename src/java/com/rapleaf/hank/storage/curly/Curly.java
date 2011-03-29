@@ -28,6 +28,7 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -96,7 +97,7 @@ public class Curly implements StorageEngine {
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
-          domainName);
+          null, domainName);
     }
   }
 
@@ -119,7 +120,7 @@ public class Curly implements StorageEngine {
       int recordFileReadBufferBytes,
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
-      String domainName)
+      Class<? extends CompressionCodec> compressionCodecClass, String domainName)
   {
     this.keyHashSize = keyHashSize;
     this.cueballReadBufferBytes = cueballReadBufferBytes;
@@ -136,6 +137,7 @@ public class Curly implements StorageEngine {
         cueballReadBufferBytes,
         remoteDomainRoot,
         fileOpsFactory,
+        compressionCodecClass,
         domainName);
   }
 

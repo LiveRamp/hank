@@ -17,12 +17,14 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
+
 
 public class TestCueballWriter extends AbstractCueballTest {
   public void testWriter() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
 
-    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5);
+    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec());
 
     cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1,2}));
     cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2,1}));
