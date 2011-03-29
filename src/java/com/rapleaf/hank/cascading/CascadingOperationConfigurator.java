@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.hadoop;
+package com.rapleaf.hank.cascading;
 
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
