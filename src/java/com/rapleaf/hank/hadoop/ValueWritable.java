@@ -36,6 +36,10 @@ public class ValueWritable implements WritableComparable<ValueWritable> {
     this.value = value;
   }
 
+  public BytesWritable getAsBytesWritable() {
+    return value;
+  }
+
   public ByteBuffer getAsByteBuffer() {
     return ByteBuffer.wrap(value.getBytes(), 0, value.getLength());
   }

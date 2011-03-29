@@ -27,7 +27,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
-import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.log4j.Logger;
 
 public class HadoopDomainBuilder {
@@ -62,8 +61,10 @@ public class HadoopDomainBuilder {
     FileInputFormat.setInputPaths(conf, inputPath);
     // Mapper class and key/value classes
     conf.setMapperClass(mapperClass);
+    conf.setMapOutputKeyClass(KeyAndPartitionWritableComparable.class);
+    conf.setMapOutputValueClass(ValueWritable.class);
     // Reducer class and key/value classes
-    conf.setReducerClass(IdentityReducer.class);
+    conf.setReducerClass(DomainBuilderReducer.class);
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format

@@ -30,20 +30,21 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
   private IntWritable partition;
-  private ByteBuffer comparableKey;
 
   public KeyAndPartitionWritable() {
     key = new BytesWritable();
     partition = new IntWritable();
-    comparableKey = null;
+  }
+
+  public KeyAndPartitionWritable(BytesWritable key, IntWritable partition) {
+    this.key = key;
+    this.partition = partition;
   }
 
   public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
-    ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
     this.key = key;
-    int partition = domainConfig.getPartitioner().partition(keyByteBuffer);
+    int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
     this.partition = new IntWritable(partition);
-    this.comparableKey = domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
   }
 
   public ByteBuffer getKey() {
@@ -58,32 +59,17 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
   public void readFields(DataInput dataInput) throws IOException {
     key.readFields(dataInput);
     partition.readFields(dataInput);
-    // Read size of comparable key
-    int comparableKeySize = dataInput.readInt();
-    // Allocate and read comparable key
-    comparableKey = ByteBuffer.allocate(comparableKeySize);
-    dataInput.readFully(comparableKey.array(), 0, comparableKeySize);
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     key.write(dataOutput);
     partition.write(dataOutput);
-    // Write size of comparable key
-    dataOutput.writeInt(comparableKey.remaining());
-    // Write comparable key
-    dataOutput.write(comparableKey.array(), comparableKey.position(), comparableKey.remaining());
   }
 
   @Override
   public int compareTo(KeyAndPartitionWritable other) {
-    if (getPartition() < other.getPartition()) {
-      return -1;
-    } else if (getPartition() > other.getPartition()) {
-      return 1;
-    } else {
-      return comparableKey.compareTo(other.comparableKey);
-    }
+    throw new RuntimeException("KeyAndPartitionWritable is not supposed to be compared! Use KeyAndPartitionWritableComparable for this purpose.");
   }
 
   @Override

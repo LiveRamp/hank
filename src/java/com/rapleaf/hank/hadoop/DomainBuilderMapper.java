@@ -27,7 +27,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
-public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritable, ValueWritable> {
+public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
   private DomainConfig domainConfig;
 
@@ -43,11 +43,11 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
   }
 
   @Override
-  public final void map(K key, V value, OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
+  public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
     KeyValuePair keyValue = buildHankKeyValue(key, value);
-    KeyAndPartitionWritable hankKeyWritable = new KeyAndPartitionWritable(domainConfig, keyValue.getKey());
+    KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domainConfig, keyValue.getKey());
     ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
-    outputCollector.collect(hankKeyWritable, hankValueWritable);
+    outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
   }
 
   @Override

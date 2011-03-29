@@ -118,7 +118,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     }
   }
 
-  static private String getConfiguration() {
+  static public String getConfiguration() {
     return "coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHadoopDomainBuilder$LocalMockCoordinator$Factory\n  options:\n";
   }
 

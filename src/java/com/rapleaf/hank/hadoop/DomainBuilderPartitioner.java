@@ -20,14 +20,14 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Partitioner;
 
 
-public class DomainBuilderPartitioner implements Partitioner<KeyAndPartitionWritable, ValueWritable> {
+public class DomainBuilderPartitioner implements Partitioner<KeyAndPartitionWritableComparable, ValueWritable> {
 
   @Override
   public void configure(JobConf conf) {
   }
 
   @Override
-  public int getPartition(KeyAndPartitionWritable key, ValueWritable value, int numPartitions) {
+  public int getPartition(KeyAndPartitionWritableComparable key, ValueWritable value, int numPartitions) {
     return key.getPartition() % numPartitions;
   }
 }
