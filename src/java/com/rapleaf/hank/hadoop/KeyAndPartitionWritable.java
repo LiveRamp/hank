@@ -25,21 +25,25 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.coordinator.DomainConfig;
 
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
   private IntWritable partition;
+  private BytesWritable comparableKey;
 
   public KeyAndPartitionWritable() {
     key = new BytesWritable();
     partition = new IntWritable();
+    comparableKey = new BytesWritable();
   }
 
-  public KeyAndPartitionWritable(Partitioner partitioner, BytesWritable key) {
+  public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
+    ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
     this.key = key;
-    int partition = partitioner.partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
+    int partition = domainConfig.getPartitioner().partition(keyByteBuffer);
     this.partition = new IntWritable(partition);
+    this.comparableKey = new BytesWritable(domainConfig.getStorageEngine().getComparableKey(keyByteBuffer));
   }
 
   public ByteBuffer getKey() {
@@ -54,12 +58,14 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
   public void readFields(DataInput dataInput) throws IOException {
     key.readFields(dataInput);
     partition.readFields(dataInput);
+    comparableKey.readFields(dataInput);
   }
 
   @Override
   public void write(DataOutput dataOutput) throws IOException {
     key.write(dataOutput);
     partition.write(dataOutput);
+    comparableKey.write(dataOutput);
   }
 
   @Override
@@ -69,7 +75,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     } else if (getPartition() > other.getPartition()) {
       return 1;
     } else {
-      return key.compareTo(other.key);
+      return comparableKey.compareTo(other.comparableKey);
     }
   }
 

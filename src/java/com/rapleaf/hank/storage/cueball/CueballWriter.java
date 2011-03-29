@@ -62,5 +62,4 @@ public class CueballWriter implements Writer {
     stream.flush();
     stream.close();
   }
-
 }

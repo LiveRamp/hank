@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage.curly;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -171,6 +172,11 @@ public class Curly implements StorageEngine {
         offsetSize,
         cueballReadBufferBytes,
         fileOpsFactory.getFileOps(localDir, remotePartRoot));
+  }
+
+  @Override
+  public byte[] getComparableKey(ByteBuffer key) {
+    return cueballStorageEngine.getComparableKey(key);
   }
 
   private String getLocalDir(PartservConfigurator configurator,

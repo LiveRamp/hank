@@ -16,6 +16,7 @@
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 
@@ -28,4 +29,6 @@ public interface StorageEngine {
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
 
   public Updater getUpdater(PartservConfigurator configurator, int partNum);
+
+  public byte[] getComparableKey(ByteBuffer key);
 }

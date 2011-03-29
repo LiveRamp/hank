@@ -16,6 +16,7 @@
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 
@@ -37,6 +38,11 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
       int versionNumber, boolean base) throws IOException {
+    return null;
+  }
+
+  @Override
+  public byte[] getComparableKey(ByteBuffer key) {
     return null;
   }
 }

@@ -16,6 +16,7 @@
 package com.rapleaf.hank.storage.cueball;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -141,6 +142,13 @@ public class Cueball implements StorageEngine {
         valueSize,
         fileOpsFactory.getFileOps(localDir, remoteDomainRoot + "/" + partNum),
         cueballFileSelector);
+  }
+
+  @Override
+  public byte[] getComparableKey(ByteBuffer key) {
+    byte[] keyHash = new byte[keyHashSize];
+    hasher.hash(key, keyHash);
+    return keyHash;
   }
 
   static String padVersion(int ver) {

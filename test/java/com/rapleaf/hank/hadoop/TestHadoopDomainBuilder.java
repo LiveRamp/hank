@@ -96,9 +96,16 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
         int versionNumber, boolean base) throws IOException {
       return new LocalMockWriter(streamFactory, partNum, versionNumber, base);
     }
+
+    @Override
+    public byte[] getComparableKey(ByteBuffer key) {
+      byte[] result = new byte[key.remaining()];
+      System.arraycopy(key.array(), key.position(), result, 0, key.remaining());
+      return result;
+    }
   }
 
-  private static class LocalMockCoordinator extends MockCoordinator {
+  public static class LocalMockCoordinator extends MockCoordinator {
 
     public static class Factory implements CoordinatorFactory {
       @Override
@@ -113,12 +120,16 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     }
   }
 
+  static private String getConfiguration() {
+    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHadoopDomainBuilder$LocalMockCoordinator$Factory\n  options:\n";
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
     // Create config
     PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
-    pw.write("coordinator:\n  factory: com.rapleaf.hank.hadoop.TestHadoopDomainBuilder$LocalMockCoordinator$Factory\n  options:\n");
+    pw.write(getConfiguration());
     pw.close();
 
     // Create inputs

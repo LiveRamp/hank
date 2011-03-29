@@ -16,6 +16,7 @@
 package com.rapleaf.hank.storage.constant;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -33,7 +34,7 @@ public class ConstantStorageEngine implements StorageEngine {
   public static class Factory implements StorageEngineFactory {
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
-        throws IOException {
+    throws IOException {
       return new ConstantStorageEngine(options);
     }
 
@@ -44,7 +45,7 @@ public class ConstantStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(PartservConfigurator configurator, int partNum)
-      throws IOException {
+  throws IOException {
     throw new NotImplementedException();
   }
 
@@ -56,6 +57,11 @@ public class ConstantStorageEngine implements StorageEngine {
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
       int versionNumber, boolean base) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public byte[] getComparableKey(ByteBuffer key) {
     throw new UnsupportedOperationException();
   }
 }
