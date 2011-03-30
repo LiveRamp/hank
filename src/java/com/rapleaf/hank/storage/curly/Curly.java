@@ -29,6 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -60,6 +61,8 @@ public class Curly implements StorageEngine {
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
+    private static final String CUEBALL_ENTRIES_IN_BLOCK = "cueball_entries_in_block";
+    private static final String COMPRESSION_CODEC = "compression_codec";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         REMOTE_DOMAIN_ROOT_KEY,
@@ -83,9 +86,17 @@ public class Curly implements StorageEngine {
 
       Hasher hasher;
       IFileOpsFactory fileOpsFactory;
+      Class<? extends CompressionCodec> compressionCodecClass;
       try {
         hasher = (Hasher)Class.forName((String)options.get(HASHER_KEY)).newInstance();
         fileOpsFactory = (IFileOpsFactory)Class.forName((String)options.get(FILE_OPS_FACTORY_KEY)).newInstance();
+
+        String compressionCodecClassName = (String)options.get(COMPRESSION_CODEC);
+        if (compressionCodecClassName == null) {
+          compressionCodecClass = NoCompressionCodec.class;
+        } else {
+          compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodecClassName);
+        }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -97,7 +108,9 @@ public class Curly implements StorageEngine {
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
-          null, domainName);
+          compressionCodecClass,
+          (Integer)options.get(CUEBALL_ENTRIES_IN_BLOCK),
+          domainName);
     }
   }
 
@@ -120,7 +133,9 @@ public class Curly implements StorageEngine {
       int recordFileReadBufferBytes,
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
-      Class<? extends CompressionCodec> compressionCodecClass, String domainName)
+      Class<? extends CompressionCodec> compressionCodecClass,
+      int cueballEntriesInBlock,
+      String domainName)
   {
     this.keyHashSize = keyHashSize;
     this.cueballReadBufferBytes = cueballReadBufferBytes;
@@ -138,6 +153,7 @@ public class Curly implements StorageEngine {
         remoteDomainRoot,
         fileOpsFactory,
         compressionCodecClass,
+        cueballEntriesInBlock,
         domainName);
   }
 

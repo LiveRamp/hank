@@ -58,6 +58,7 @@ public class Cueball implements StorageEngine {
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
     public static final String COMPRESSION_CODEC = "compression_codec";
+    public static final String ENTRIES_IN_BLOCK = "entries_in_block";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         REMOTE_DOMAIN_ROOT_KEY,
@@ -66,7 +67,8 @@ public class Cueball implements StorageEngine {
         HASHER_KEY,
         VALUE_SIZE_KEY,
         KEY_HASH_SIZE_KEY,
-        FILE_OPS_FACTORY_KEY
+        FILE_OPS_FACTORY_KEY,
+        ENTRIES_IN_BLOCK
     ));
 
     @Override
@@ -105,6 +107,7 @@ public class Cueball implements StorageEngine {
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
+          (Integer)options.get(ENTRIES_IN_BLOCK),
           domainName);
     }
   }
@@ -121,6 +124,8 @@ public class Cueball implements StorageEngine {
 
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
+  private final int entriesInBlock;
+
   public Cueball(int keyHashSize,
       Hasher hasher,
       int valueSize,
@@ -129,6 +134,7 @@ public class Cueball implements StorageEngine {
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
       Class<? extends CompressionCodec> compressionCodecClass,
+      int entriesInBlock,
       String domainName)
   {
     this.keyHashSize = keyHashSize;
@@ -139,6 +145,7 @@ public class Cueball implements StorageEngine {
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
+    this.entriesInBlock = entriesInBlock;
     this.domainName = domainName;
   }
 
@@ -157,7 +164,13 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Writer getWriter(OutputStreamFactory outputStream, int partNum, int versionNumber, boolean base) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec(), null);
+    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)),
+        keyHashSize,
+        hasher,
+        valueSize,
+        getCompressionCodec(),
+        hashIndexBits,
+        entriesInBlock);
   }
 
   @Override
