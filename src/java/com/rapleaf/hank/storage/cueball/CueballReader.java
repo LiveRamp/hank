@@ -25,121 +25,104 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.EncodingHelper;
 
 public class CueballReader implements Reader {
 
   private final Hasher hasher;
   private final int valueSize;
-  private final int hashIndexBits;
-  private final int readBufferBytes;
-
-  private final int[] hashIndex;
+  private final long[] hashIndex;
   private final FileChannel channel;
   private final int keyHashSize;
   private final int fullRecordSize;
   private final CompressionCodec compressionCodec;
+  private int maxUncompressedBufferSize;
+  private int maxCompressedBufferSize;
+  private final HashIndexPrefixCalculator prefixer;
+  private final int footerLength;
 
   public CueballReader(String partitionRoot,
       int keyHashSize,
       Hasher hasher,
       int valueSize,
       int hashIndexBits,
-      int readBufferBytes,
       CompressionCodec compressionCodec)
   throws IOException {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
-    this.hashIndexBits = hashIndexBits;
-    this.readBufferBytes = readBufferBytes;
     this.compressionCodec = compressionCodec;
-
     this.fullRecordSize = valueSize + keyHashSize;
+    this.prefixer = new HashIndexPrefixCalculator(hashIndexBits);
+    final int hashIndexSize = 1 << hashIndexBits;
+    footerLength = hashIndexSize * 8 + 8;
 
     channel = new FileInputStream(Cueball.getBases(partitionRoot).last()).getChannel();
-
-    hashIndex = new int[1 << hashIndexBits];
-    for (int i = 0; i < hashIndex.length; i++) {
-      hashIndex[i] = -1;
-    }
-    loadHashIndex();
-  }
-
-  // TODO: support persisting to/rereading from disk
-  private void loadHashIndex() throws IOException {
-    channel.position(0);
     long fileSize = channel.size();
-    int numChunks = (int)((fileSize + readBufferBytes - 1) / readBufferBytes);
 
-    byte[] chunkBytes = new byte[readBufferBytes];
-    ByteBuffer chunkBuffer = ByteBuffer.wrap(chunkBytes);
-
-    int lastHashPrefix = Integer.MIN_VALUE;
-    int keyfileRecordNum = 0;
-    for (int chunk = 0; chunk < numChunks; chunk++) {
-      int bytesRead = channel.read(chunkBuffer);
-      int recordsInChunk = bytesRead / fullRecordSize;
-      for (int record = 0; record < recordsInChunk; record++) {
-        int off = record * fullRecordSize;
-        int hashPrefix = getHashPrefix(chunkBytes, off);
-        if (lastHashPrefix != hashPrefix) {
-          hashIndex[hashPrefix] = keyfileRecordNum;
-          lastHashPrefix = hashPrefix;
-        }
-        keyfileRecordNum++;
-      }
+    byte[] footer = new byte[footerLength];
+    int read = channel.read(ByteBuffer.wrap(footer), fileSize - footerLength);
+    if (read != footerLength) {
+      throw new IOException("Tried to read " + footerLength + " bytes of footer, but only got " + read + " bytes!");
     }
-  }
 
-  private int getHashPrefix(final byte[] chunkBytes, int off) {
-    int lim = off + (hashIndexBits / 8);
-    int prefix = 0;
-    for (; off < lim; off++) {
-      prefix = (prefix << 8) | (chunkBytes[off] & 0xff);
+    hashIndex = new long[hashIndexSize];
+    for (int i = 0; i < hashIndex.length; i++) {
+      hashIndex[i] = EncodingHelper.decodeLittleEndianFixedWidthLong(footer, i * 8, 8);
     }
-    int bitsFromLastByte = hashIndexBits % 8;
-    prefix = (prefix << bitsFromLastByte) | ((chunkBytes[off] >> (8-bitsFromLastByte)) & (1 << bitsFromLastByte));
-    return prefix;
+
+    maxUncompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 8, 4);
+    maxCompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 4, 4);
   }
 
   @Override
   public void get(ByteBuffer key, Result result) throws IOException {
-    result.requiresBufferSize(readBufferBytes);
+    result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
     // TODO: want to reuse this.
     byte[] keyHash = new byte[keyHashSize];
     hasher.hash(key, keyHash);
 
-    int hashPrefix = getHashPrefix(keyHash, 0);
-    int baseOffset = hashIndex[hashPrefix] * fullRecordSize;
+    int hashPrefix = prefixer.getHashPrefix(keyHash, 0);
+    long baseOffset = hashIndex[hashPrefix];
 
     // by default, we didn't find what we were looking for
     result.notFound();
 
-    // baseOffset of 0 means that our hashPrefix doesn't map to any keys in the
-    // keyfile.
+    // baseOffset of -1 means that our hashPrefix doesn't map to any blocks
     if (baseOffset >= 0) {
       // set up to read a chunk from the datafile
       ByteBuffer buffer = result.getBuffer();
       buffer.rewind();
-      buffer.limit(readBufferBytes);
+      buffer.limit(maxCompressedBufferSize);
       int bytesRead = channel.read(buffer, baseOffset);
+
+      // decompress from the beginning of the buffer into the unoccupied end of
+      // the buffer
+      final int uncompressedStart = bytesRead;
+      int decompressedLength = compressionCodec.decompress(buffer.array(),
+          0,
+          bytesRead, buffer.array(),
+          uncompressedStart);
 
       // scan the chunk we read to find a matching key, if there is one,
       // returning the recordfile offset
-      int bufferOffset = getValueOffset(buffer.array(), bytesRead, ByteBuffer.wrap(keyHash));
+      int bufferOffset = getValueOffset(buffer.array(),
+          uncompressedStart,
+          uncompressedStart + decompressedLength,
+          ByteBuffer.wrap(keyHash));
 
       // -1 means that we didn't find the key
       if (bufferOffset > -1) {
         result.found();
-        buffer.position(bufferOffset);
         buffer.limit(bufferOffset + valueSize);
+        buffer.position(bufferOffset);
       }
     }
   }
 
-  private int getValueOffset(byte[] keyfileBufferChunk, int limit, ByteBuffer key) {
-    for (int off = 0; off < limit; off += fullRecordSize) {
+  private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, ByteBuffer key) {
+    for (; off < limit; off += fullRecordSize) {
       int comparison = Bytes.compareBytes(keyfileBufferChunk, off, 
           key.array(), key.arrayOffset() + key.position(),
           keyHashSize);

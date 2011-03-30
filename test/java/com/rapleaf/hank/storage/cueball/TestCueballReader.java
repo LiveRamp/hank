@@ -33,7 +33,7 @@ public class TestCueballReader extends AbstractCueballTest {
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 10, 1000, new NoCompressionCodec());
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 2, new NoCompressionCodec());
 
     Result result = new Result();
     reader.get(ByteBuffer.wrap(KEY1), result);
@@ -41,7 +41,8 @@ public class TestCueballReader extends AbstractCueballTest {
     assertEquals(ByteBuffer.wrap(new byte[]{1,2,1,2,1}), result.getBuffer());
 
     reader.get(ByteBuffer.wrap(KEY3), result);
-    assertFalse(result.isFound());
+    assertTrue(result.isFound());
+    assertEquals(ByteBuffer.wrap(new byte[]{0x4f,1,2,1,2}), result.getBuffer());
 
     reader.get(ByteBuffer.wrap(KEY1), result);
     assertTrue(result.isFound());
@@ -53,5 +54,9 @@ public class TestCueballReader extends AbstractCueballTest {
     reader.get(ByteBuffer.wrap(KEY2), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{2,1,2,1,2}), result.getBuffer());
+
+    // try a non-existent key in an occupied bucket
+
+    // try a non-existent key in an unoccupied bucket
   }
 }

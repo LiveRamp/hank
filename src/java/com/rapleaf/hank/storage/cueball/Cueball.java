@@ -152,7 +152,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
-    return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, readBufferBytes, getCompressionCodec());
+    return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec());
   }
 
   private CompressionCodec getCompressionCodec() throws IOException {
