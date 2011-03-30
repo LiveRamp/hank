@@ -48,7 +48,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   private final String CONFIG_PATH = localTmpDir + "/config";
 
   public TestHadoopDomainBuilder() throws IOException {
-    super();
+    super(TestHadoopDomainBuilder.class);
   }
 
   private static class LocalMockWriter implements Writer {
@@ -145,17 +145,17 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   }
 
   public void testOutput() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
-    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
-    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
+    HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_DIR + "/" + DOMAIN_A_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR + "/" + DOMAIN_A_NAME);
+    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_A_NAME, 0, "0.base"));
+    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_A_NAME, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }
 
   public void testSorted() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(DOMAIN_B_NAME, INPUT_DIR + "/" + DOMAIN_B_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR);
-    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 0, "0.base"));
-    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR, 1, "0.base"));
+    HadoopDomainBuilder.buildHankDomain(DOMAIN_B_NAME, INPUT_DIR + "/" + DOMAIN_B_NAME, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_DIR + "/" + DOMAIN_B_NAME);
+    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_B_NAME, 0, "0.base"));
+    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_B_NAME, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }

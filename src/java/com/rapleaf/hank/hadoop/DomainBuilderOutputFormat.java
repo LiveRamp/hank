@@ -38,7 +38,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 
 
-public class DomainOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
+public class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
 
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
@@ -158,7 +158,7 @@ public class DomainOutputFormat implements OutputFormat<KeyAndPartitionWritable,
 
   public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
     String result = conf.get(key);
-    if (result == null || result.equals("")) {
+    if (result == null) {
       throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
     }
     return result;

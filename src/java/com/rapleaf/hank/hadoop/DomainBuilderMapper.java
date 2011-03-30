@@ -34,7 +34,7 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
   @Override
   public void configure(JobConf conf) {
     Configurator configurator = new JobConfConfigurator(conf);
-    String domainName = DomainOutputFormat.getRequiredConfigurationItem(DomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String domainName = DomainBuilderOutputFormat.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     try {
       domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
     } catch (DataNotFoundException e) {

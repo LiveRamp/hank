@@ -68,13 +68,13 @@ public class HadoopDomainBuilder {
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(DomainOutputFormat.class);
+    conf.setOutputFormat(DomainBuilderOutputFormat.class);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_CONFIGURATION, hankConfiguration);
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, hankConfiguration);
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
     return conf;
   }
 

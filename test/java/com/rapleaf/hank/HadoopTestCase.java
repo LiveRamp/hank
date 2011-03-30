@@ -28,13 +28,16 @@ public class HadoopTestCase extends BaseTestCase {
 
   protected final FileSystem fs;
 
-  protected static final String TEST_DIR = "/tmp/test_" + HadoopTestCase.class.getName();
-  protected static final String INPUT_DIR = TEST_DIR + "/input";
-  protected static final String OUTPUT_DIR = TEST_DIR + "/output";
+  protected final String TEST_DIR;
+  protected final String INPUT_DIR;
+  protected final String OUTPUT_DIR;
 
-  public HadoopTestCase() throws IOException {
+  public HadoopTestCase(Class<? extends Object> cls) throws IOException {
     super();
     this.fs = FileSystem.get(new Configuration());
+    TEST_DIR = "/tmp/test_" + cls.getName();
+    INPUT_DIR = TEST_DIR + "/input";
+    OUTPUT_DIR = TEST_DIR + "/output";
   }
 
   @Override
