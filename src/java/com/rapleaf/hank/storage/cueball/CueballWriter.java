@@ -24,46 +24,82 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Writer;
 
 public class CueballWriter implements Writer {
-
   private final OutputStream stream;
   private final int keyHashSize;
   private final Hasher hasher;
   private final int valueSize;
   private final CompressionCodec compressionCodec;
 
+  private final byte[] uncompressedBuffer;
+  private final byte[] compressedBuffer;
+  private final byte[] keyHashBytes;
+
+  private final HashIndexPrefixCalculator prefixer;
+  private int lastHashPrefix = 0;
+  private int uncompressedOffset = 0;
+
   public CueballWriter(OutputStream outputStream,
       int keyHashSize,
       Hasher hasher,
       int valueSize,
-      CompressionCodec compressionCodec)
+      CompressionCodec compressionCodec,
+      int hashIndexBits, int entriesPerBlock)
   {
     this.stream = outputStream;
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
+
+    uncompressedBuffer = new byte[(keyHashSize + valueSize) * entriesPerBlock];
+    compressedBuffer = new byte[compressionCodec.getMaxCompressBufferSize(uncompressedBuffer.length)];
+    keyHashBytes = new byte[keyHashSize];
+
+    prefixer = new HashIndexPrefixCalculator(hashIndexBits);
   }
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
-    // TODO: reuse this buffer
-    byte[] keyHash = new byte[keyHashSize];
-    hasher.hash(key, keyHash);
-    writeHash(ByteBuffer.wrap(keyHash), value);
+    hasher.hash(key, keyHashBytes);
+    writeHash(ByteBuffer.wrap(keyHashBytes), value);
   }
 
   public void writeHash(ByteBuffer hashedKey, ByteBuffer value) throws IOException {
+    // check the first hashIndexBits of the hashedKey
+    int thisPrefix = prefixer.getHashPrefix(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position());
+
+    // if this prefix and the last one don't match, then it's time to clear the
+    // buffer.
+    if (thisPrefix != lastHashPrefix) {
+      // clear the uncompressed buffer
+      clearUncompressed();
+
+      // start over in the buffer
+      uncompressedOffset = 0;
+      lastHashPrefix = thisPrefix;
+    }
+
+    // at this point, we're guaranteed to be ready to write to the buffer.
+
     // write a subsequence of the key hash's bytes
-    stream.write(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), keyHashSize);
+    System.arraycopy(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
 
     // encode the value offset and write it out
-    stream.write(value.array(), value.arrayOffset() + value.position(), valueSize);
+    System.arraycopy(value.array(), value.arrayOffset() + value.position(), uncompressedBuffer, uncompressedOffset + keyHashSize, valueSize);
+    uncompressedOffset += keyHashSize + valueSize;
+  }
+
+  private void clearUncompressed() throws IOException {
+    int compressedSize = compressionCodec.compress(uncompressedBuffer, 0, uncompressedOffset, compressedBuffer, 0);
+    stream.write(compressedBuffer, 0, compressedSize);
   }
 
   @Override
   public void close() throws IOException {
+    if (uncompressedOffset > 0) {
+      clearUncompressed();
+    }
     stream.flush();
     stream.close();
   }
-
 }

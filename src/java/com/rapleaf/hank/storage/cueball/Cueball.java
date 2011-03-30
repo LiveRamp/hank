@@ -157,7 +157,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Writer getWriter(OutputStreamFactory outputStream, int partNum, int versionNumber, boolean base) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec());
+    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec(), null);
   }
 
   @Override

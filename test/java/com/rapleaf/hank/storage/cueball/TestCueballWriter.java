@@ -24,7 +24,7 @@ public class TestCueballWriter extends AbstractCueballTest {
   public void testWriter() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
 
-    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec());
+    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec(), 3, 5);
 
     cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1,2}));
     cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2,1}));
