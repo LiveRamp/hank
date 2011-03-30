@@ -48,6 +48,7 @@ public class TestCueballReader extends AbstractCueballTest {
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{1,2,1,2,1}), result.getBuffer());
 
+    // non-existent key in occupied bucket 10
     reader.get(ByteBuffer.wrap(KEY4), result);
     assertFalse(result.isFound());
 
@@ -55,8 +56,8 @@ public class TestCueballReader extends AbstractCueballTest {
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{2,1,2,1,2}), result.getBuffer());
 
-    // try a non-existent key in an occupied bucket
-
     // try a non-existent key in an unoccupied bucket
+    reader.get(ByteBuffer.wrap(KEY10), result);
+    assertFalse(result.isFound());
   }
 }

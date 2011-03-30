@@ -22,22 +22,18 @@ import com.rapleaf.hank.hasher.Hasher;
 
 
 public class MapHasher implements Hasher {
-
   private final Map<ByteBuffer, byte[]> staticHashes;
-
 
   public MapHasher(Map<ByteBuffer, byte[]> staticHashes) {
     this.staticHashes = staticHashes;
   }
 
-
   @Override
   public void hash(ByteBuffer val, byte[] hashBytes) {
     byte[] hsh = staticHashes.get(val);
     if (hsh == null) {
-      throw new RuntimeException();
+      throw new RuntimeException("No hash set for key!");
     }
     System.arraycopy(hsh, 0, hashBytes, 0, hashBytes.length);
   }
-
 }

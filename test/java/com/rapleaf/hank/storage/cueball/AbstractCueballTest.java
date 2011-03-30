@@ -44,22 +44,30 @@ public class AbstractCueballTest extends BaseTestCase {
   protected static final byte[] VALUE2 = new byte[]{2,1,2,1,2,1};
 
   protected static final byte[] KEY3 = new byte[]{0x4f,9,9};
+  protected static final byte[] KEY10 = new byte[]{(byte) 0xcf,9,9};
   protected static final byte[] KEY4 = new byte[]{10,10,10};
 
   protected static final Hasher HASHER = new MapHasher(new HashMap<ByteBuffer, byte[]>() {{
     byte[] hsh1 = new byte[20];
     Arrays.fill(hsh1, (byte)1);
     put(ByteBuffer.wrap(KEY1), hsh1);
+
     byte[] hsh2 = new byte[20];
     Arrays.fill(hsh2, (byte)2);
     put(ByteBuffer.wrap(KEY2), hsh2);
+
     byte[] hsh3 = new byte[20];
     Arrays.fill(hsh3, (byte)0x4f);
     put(ByteBuffer.wrap(KEY3), hsh3);
+
     byte[] hsh4 = new byte[20];
     Arrays.fill(hsh4, (byte)2);
     hsh4[0] = 1;
     put(ByteBuffer.wrap(KEY4), hsh4);
+
+    byte[] hsh5 = new byte[20];
+    Arrays.fill(hsh5, (byte)0xcf);
+    put(ByteBuffer.wrap(KEY10), hsh5);
   }});
 
   protected void set(byte[] hashBytes, int i) {
