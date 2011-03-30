@@ -39,11 +39,11 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
-  public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final long serialVersionUID = 1L;
+  public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
-  public DomainBuilderAssembly(
+  public DomainBuilderAssembly (
       String configuration,
       String domainName,
       Pipe outputPipe,
@@ -56,7 +56,7 @@ public class DomainBuilderAssembly extends SubAssembly {
         new AddPartitionAndComparableKeyFields(configuration, domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
-    // Group by partition id and secondary sort on SORTABLE_KEY_FIELD
+    // Group by partition id and secondary sort on comparable key
     outputPipe = new GroupBy(outputPipe, new Fields(PARTITION_FIELD_NAME), new Fields(
         COMPARABLE_KEY_FIELD_NAME));
 
