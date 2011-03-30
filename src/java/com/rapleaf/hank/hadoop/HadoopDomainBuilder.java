@@ -72,9 +72,7 @@ public class HadoopDomainBuilder {
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, hankConfiguration);
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
+    DomainBuilderOutputFormat.setProperties(conf, hankConfiguration, domainName, outputPath);
     return conf;
   }
 

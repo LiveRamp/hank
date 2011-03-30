@@ -92,10 +92,7 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     Pipe pipe = getPipe(configuration, "", outputTap);
 
     Properties properties = new Properties();
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, DOMAIN_A_NAME);
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, OUTPUT_PATH_A);
-
+    DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME, OUTPUT_PATH_A);
     new FlowConnector(properties).connect(inputTap, outputTap, pipe).complete();
 
     // Check output
