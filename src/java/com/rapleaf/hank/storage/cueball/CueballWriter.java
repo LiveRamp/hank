@@ -18,12 +18,19 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.EncodingHelper;
 
+/**
+ * Note that the current implementation does not support writing partitions with
+ * more than 20000 entries per block.
+ */
 public class CueballWriter implements Writer {
+  private static final int DEFAULT_NUMBER_OF_ENTRIES = 20000;
   private final OutputStream stream;
   private final int keyHashSize;
   private final Hasher hasher;
@@ -34,16 +41,22 @@ public class CueballWriter implements Writer {
   private final byte[] compressedBuffer;
   private final byte[] keyHashBytes;
 
+  private final long[] hashIndex;
+
   private final HashIndexPrefixCalculator prefixer;
-  private int lastHashPrefix = 0;
+  private int lastHashPrefix = -1;
   private int uncompressedOffset = 0;
+
+  private int bytesWritten = 0;
+  private long maxUncompressedBlockSize;
+  private long maxCompressedBlockSize;
 
   public CueballWriter(OutputStream outputStream,
       int keyHashSize,
       Hasher hasher,
       int valueSize,
       CompressionCodec compressionCodec,
-      int hashIndexBits, int entriesPerBlock)
+      int hashIndexBits)
   {
     this.stream = outputStream;
     this.keyHashSize = keyHashSize;
@@ -51,11 +64,14 @@ public class CueballWriter implements Writer {
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
 
-    uncompressedBuffer = new byte[(keyHashSize + valueSize) * entriesPerBlock];
+    uncompressedBuffer = new byte[(keyHashSize + valueSize) * DEFAULT_NUMBER_OF_ENTRIES];
     compressedBuffer = new byte[compressionCodec.getMaxCompressBufferSize(uncompressedBuffer.length)];
     keyHashBytes = new byte[keyHashSize];
 
     prefixer = new HashIndexPrefixCalculator(hashIndexBits);
+
+    hashIndex = new long[1 << hashIndexBits];
+    Arrays.fill(hashIndex, -1);
   }
 
   @Override
@@ -70,13 +86,16 @@ public class CueballWriter implements Writer {
 
     // if this prefix and the last one don't match, then it's time to clear the
     // buffer.
-    if (thisPrefix != lastHashPrefix) {
+    if (lastHashPrefix == -1 || thisPrefix != lastHashPrefix) {
       // clear the uncompressed buffer
       clearUncompressed();
 
       // start over in the buffer
       uncompressedOffset = 0;
       lastHashPrefix = thisPrefix;
+
+      // record the start index of the next block
+      hashIndex[thisPrefix] = bytesWritten;
     }
 
     // at this point, we're guaranteed to be ready to write to the buffer.
@@ -90,15 +109,43 @@ public class CueballWriter implements Writer {
   }
 
   private void clearUncompressed() throws IOException {
+    // compress the block
     int compressedSize = compressionCodec.compress(uncompressedBuffer, 0, uncompressedOffset, compressedBuffer, 0);
+    // write the compressed block to the data stream
     stream.write(compressedBuffer, 0, compressedSize);
+    bytesWritten += compressedSize;
+
+    // keep track of the max block sizes
+    if (uncompressedOffset > maxUncompressedBlockSize) {
+      maxUncompressedBlockSize = uncompressedOffset;
+    }
+
+    if (compressedSize > maxCompressedBlockSize) {
+      maxCompressedBlockSize = compressedSize;
+    }
   }
 
   @Override
   public void close() throws IOException {
+    // clear the last block, if there is one
     if (uncompressedOffset > 0) {
       clearUncompressed();
     }
+
+    // serialize the footer
+    byte[] footer = new byte[8 * hashIndex.length + 4 + 4];
+
+    for (int i = 0; i < hashIndex.length; i++) {
+      EncodingHelper.encodeLittleEndianFixedWidthLong(hashIndex[i], footer, i * 8, 8);
+    }
+
+    // write the buffer size hints
+    EncodingHelper.encodeLittleEndianFixedWidthLong(maxUncompressedBlockSize, footer, footer.length - 8, 4);
+    EncodingHelper.encodeLittleEndianFixedWidthLong(maxCompressedBlockSize, footer, footer.length - 4, 4);
+
+    stream.write(footer);
+
+    // flush everything and close
     stream.flush();
     stream.close();
   }

@@ -170,8 +170,7 @@ public class Cueball implements StorageEngine {
         hasher,
         valueSize,
         getCompressionCodec(),
-        hashIndexBits,
-        entriesInBlock);
+        hashIndexBits);
   }
 
   @Override
