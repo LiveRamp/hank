@@ -27,7 +27,6 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
-import org.apache.hadoop.mapred.lib.IdentityReducer;
 import org.apache.log4j.Logger;
 
 public class HadoopDomainBuilder {
@@ -62,18 +61,18 @@ public class HadoopDomainBuilder {
     FileInputFormat.setInputPaths(conf, inputPath);
     // Mapper class and key/value classes
     conf.setMapperClass(mapperClass);
+    conf.setMapOutputKeyClass(KeyAndPartitionWritableComparable.class);
+    conf.setMapOutputValueClass(ValueWritable.class);
     // Reducer class and key/value classes
-    conf.setReducerClass(IdentityReducer.class);
+    conf.setReducerClass(DomainBuilderReducer.class);
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(DomainOutputFormat.class);
+    conf.setOutputFormat(DomainBuilderOutputFormat.class);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_CONFIGURATION, hankConfiguration);
-    conf.set(DomainOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
+    DomainBuilderOutputFormat.setProperties(conf, hankConfiguration, domainName, outputPath);
     return conf;
   }
 

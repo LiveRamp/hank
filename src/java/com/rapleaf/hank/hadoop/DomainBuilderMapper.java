@@ -24,30 +24,30 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
 import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.partitioner.Partitioner;
 
-public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritable, ValueWritable> {
+public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
-  private Partitioner partitioner;
+  private DomainConfig domainConfig;
 
   @Override
   public void configure(JobConf conf) {
     Configurator configurator = new JobConfConfigurator(conf);
-    String domainName = DomainOutputFormat.getRequiredConfigurationItem(DomainOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String domainName = DomainBuilderOutputFormat.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     try {
-      partitioner = configurator.getCoordinator().getDomainConfig(domainName).getPartitioner();
+      domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
     } catch (DataNotFoundException e) {
       throw new RuntimeException("Failed to load domain config for domain: " + domainName, e);
     }
   }
 
   @Override
-  public final void map(K key, V value, OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
+  public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
     KeyValuePair keyValue = buildHankKeyValue(key, value);
-    KeyAndPartitionWritable hankKeyWritable = new KeyAndPartitionWritable(partitioner, keyValue.getKey());
+    KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domainConfig, keyValue.getKey());
     ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
-    outputCollector.collect(hankKeyWritable, hankValueWritable);
+    outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
   }
 
   @Override

@@ -25,7 +25,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.coordinator.DomainConfig;
 
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
@@ -36,9 +36,14 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     partition = new IntWritable();
   }
 
-  public KeyAndPartitionWritable(Partitioner partitioner, BytesWritable key) {
+  public KeyAndPartitionWritable(BytesWritable key, IntWritable partition) {
     this.key = key;
-    int partition = partitioner.partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
+    this.partition = partition;
+  }
+
+  public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
+    this.key = key;
+    int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
     this.partition = new IntWritable(partition);
   }
 
@@ -64,13 +69,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
 
   @Override
   public int compareTo(KeyAndPartitionWritable other) {
-    if (getPartition() < other.getPartition()) {
-      return -1;
-    } else if (getPartition() > other.getPartition()) {
-      return 1;
-    } else {
-      return key.compareTo(other.key);
-    }
+    throw new RuntimeException("KeyAndPartitionWritable is not supposed to be compared! Use KeyAndPartitionWritableComparable for this purpose.");
   }
 
   @Override

@@ -21,7 +21,6 @@ import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
 
@@ -35,6 +34,10 @@ public class ValueWritable implements WritableComparable<ValueWritable> {
 
   public ValueWritable(BytesWritable value) {
     this.value = value;
+  }
+
+  public BytesWritable getAsBytesWritable() {
+    return value;
   }
 
   public ByteBuffer getAsByteBuffer() {
@@ -54,7 +57,7 @@ public class ValueWritable implements WritableComparable<ValueWritable> {
   @Override
   public int compareTo(ValueWritable other) {
     // Not supposed to be compared
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override

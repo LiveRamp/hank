@@ -14,21 +14,18 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.hadoop;
-
-import org.apache.hadoop.mapred.JobConf;
+package com.rapleaf.hank.cascading;
 
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 
-public class JobConfConfigurator implements Configurator {
+public class CascadingOperationConfigurator implements Configurator {
 
   private final YamlClientConfigurator baseConfigurator;
 
-  public JobConfConfigurator(JobConf jobConf) {
-    String configuration = DomainBuilderOutputFormat.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
+  public CascadingOperationConfigurator(String configuration) {
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
