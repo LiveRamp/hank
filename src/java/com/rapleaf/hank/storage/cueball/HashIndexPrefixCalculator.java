@@ -13,8 +13,7 @@ public class HashIndexPrefixCalculator {
     for (; off < lim; off++) {
       prefix = (prefix << 8) | (chunkBytes[off] & 0xff);
     }
-    int bitsFromLastByte = numBits % 8;
-    prefix = (prefix << bitsFromLastByte) | ((chunkBytes[off] >> (8-bitsFromLastByte)) & (1 << bitsFromLastByte));
-    return prefix;
+    final int bitsFromLastByte = numBits % 8;
+    return (prefix << bitsFromLastByte) | (((chunkBytes[off] & 0xff) >> (8-bitsFromLastByte)));
   }
 }
