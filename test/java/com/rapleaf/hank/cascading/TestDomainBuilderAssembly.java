@@ -89,7 +89,7 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", OUTPUT_PATH_A);
     String configuration = TestHadoopDomainBuilder.getConfiguration();
-    Pipe pipe = getPipe(configuration, "", outputTap);
+    Pipe pipe = getPipe(configuration, DOMAIN_A_NAME, outputTap);
 
     Properties properties = new Properties();
     DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME, OUTPUT_PATH_A);
