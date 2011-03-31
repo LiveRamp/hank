@@ -28,9 +28,6 @@ final class Footer {
     hashIndex = new long[hashIndexSize];
     for (int i = 0; i < getHashIndex().length; i++) {
       final long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(footer, i * 8, 8);
-      if (offset < 0) {
-        throw new IOException("Hash index position " + i + " was negative! Did you misconfigure the number of index bits?");
-      }
       getHashIndex()[i] = offset;
     }
 

@@ -75,23 +75,51 @@ public final class StreamBuffer {
 
     // refill the buffer
 
-    // advance to the next block
+    // advance to the next non-empty block
     currentHashIndexIdx++;
+    while (currentHashIndexIdx < hashIndex.length) {
+      if (hashIndex[currentHashIndexIdx] != -1) {
+        break;
+      }
+      currentHashIndexIdx++;
+    }
 
     if (currentHashIndexIdx >= hashIndex.length) {
-      // we've already processed the last block in the file.
+      // there are no more blocks. we're all done
+      complete = true;
       return false;
     }
 
-    // special case: if we're on the last block in the file, then we need to
-    // compare the current offset to the data length to determine the compressed
-    // block size.
+    // there's at least one block left.
+    
     long upperOffset;
     if (currentHashIndexIdx == hashIndex.length - 1) {
+      // actually, there's *exactly* one block left. we need to compare the
+      // current offset to the data length to determine the compressed block
+      // size.
       upperOffset = dataLength;
     } else {
-      upperOffset = hashIndex[currentHashIndexIdx+1];
+      // so this isn't the last block in the index, but it might still be the
+      // last block in the file.
+      int nextHashIndexIdx = currentHashIndexIdx + 1;
+      while (nextHashIndexIdx < hashIndex.length) {
+        if (hashIndex[nextHashIndexIdx] != -1) {
+          break;
+        }
+        nextHashIndexIdx++;
+      }
+      // need to examine the "next" we got back...
+      if (nextHashIndexIdx == hashIndex.length) {
+        // turns out that it was the last block in the file, so we should
+        // compare against the end of the data length.
+        upperOffset = dataLength;
+      } else {
+        // sweet, there's another block there somewhere. use that offset as the
+        // one to determine our compressed block length.
+        upperOffset = hashIndex[nextHashIndexIdx];
+      }
     }
+
     final int blockLength = (int) (upperOffset - hashIndex[currentHashIndexIdx]);
     // read the compressed block from disk into the compressed buffer
     final int compressedBytesRead = readFully(channel, compressedBuffer, blockLength);
