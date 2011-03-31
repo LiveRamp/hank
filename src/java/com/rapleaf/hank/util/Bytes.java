@@ -24,6 +24,11 @@ public final class Bytes {
 
   public static int compareBytes(byte[] a, int aOff, byte[] b, int bOff, int len) {
     for (int i = 0; i < len; i++) {
+      // we want our comparison to be unsigned. if we just compare they bytes,
+      // it will be a signed comparison. to drop the sign, we convert the byte
+      // to an int, then mask off all the upper bits. if we don't do the
+      // masking, then the signed byte will just get sign-extended and remain
+      // negative.
       final int ab = a[aOff + i] & 0xff;
       final int bb = b[bOff + i] & 0xff;
       if (ab > bb) {
