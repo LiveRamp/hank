@@ -17,5 +17,5 @@ package com.rapleaf.hank.storage.cueball;
 
 
 public interface ValueTransformer {
-  public void transform(StreamBuffer buffer);
+  public void transform(byte[] buf, int off, int relIndex);
 }
