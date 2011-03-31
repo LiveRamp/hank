@@ -125,6 +125,8 @@ public class Curly implements StorageEngine {
   private final int keyHashSize;
   private final int cueballReadBufferBytes;
   private final IFileOpsFactory fileOpsFactory;
+  private final int hashIndexBits;
+  private final Class<? extends CompressionCodec> compressionCodecClass;
 
   public Curly(int keyHashSize,
       Hasher hasher,
@@ -139,10 +141,12 @@ public class Curly implements StorageEngine {
       String domainName)
   {
     this.keyHashSize = keyHashSize;
+    this.hashIndexBits = hashIndexBits;
     this.cueballReadBufferBytes = cueballReadBufferBytes;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
+    this.compressionCodecClass = compressionCodecClass;
     this.domainName = domainName;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
@@ -150,11 +154,9 @@ public class Curly implements StorageEngine {
         hasher,
         offsetSize,
         hashIndexBits,
-        cueballReadBufferBytes,
         remoteDomainRoot,
         fileOpsFactory,
         compressionCodecClass,
-        cueballEntriesInBlock,
         domainName);
   }
 
@@ -180,7 +182,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) {
+  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     new File(localDir).mkdirs();
     String remotePartRoot = remoteDomainRoot + "/" + partNum;
@@ -188,8 +190,17 @@ public class Curly implements StorageEngine {
         remotePartRoot,
         keyHashSize,
         offsetSize,
-        cueballReadBufferBytes,
-        fileOpsFactory.getFileOps(localDir, remotePartRoot));
+        fileOpsFactory.getFileOps(localDir, remotePartRoot),
+        getCompressionCodec(),
+        hashIndexBits);
+  }
+
+  private CompressionCodec getCompressionCodec() throws IOException {
+    try {
+      return compressionCodecClass.newInstance();
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

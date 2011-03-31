@@ -22,19 +22,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+
 public class MockCueballMerger implements ICueballMerger {
   public String latestBase;
   public SortedSet<String> deltas;
   public String newBasePath;
   public int keyHashSize;
   public int valueSize;
-  public int bufferSize;
   public boolean called = false;
   public ValueTransformer valueTransformer;
 
   @Override
   public void merge(String latestBase, SortedSet<String> deltas,
-      String newBasePath, int keyHashSize, int valueSize, int bufferSize, ValueTransformer transformer)
+      String newBasePath, int keyHashSize, int valueSize, ValueTransformer transformer, int hashIndexBits, CompressionCodec compressionCodec)
   throws IOException {
     this.called  = true;
     this.latestBase = latestBase;
@@ -42,7 +43,6 @@ public class MockCueballMerger implements ICueballMerger {
     this.newBasePath = newBasePath;
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
-    this.bufferSize = bufferSize;
     this.valueTransformer = transformer;
     new File(newBasePath).createNewFile();
   }

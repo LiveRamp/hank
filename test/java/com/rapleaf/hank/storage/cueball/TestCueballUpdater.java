@@ -36,7 +36,7 @@ public class TestCueballUpdater extends BaseTestCase {
 
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00000.base.cueball", "00001.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
-    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger, new NoCompressionCodec());
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger, new NoCompressionCodec(), 1);
 
     updater.update(1);
 
@@ -65,7 +65,7 @@ public class TestCueballUpdater extends BaseTestCase {
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.delta.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
-        merger, new NoCompressionCodec());
+        merger, new NoCompressionCodec(), 1);
 
     updater.update(7);
 
@@ -95,7 +95,7 @@ public class TestCueballUpdater extends BaseTestCase {
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.base.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
-        merger, new NoCompressionCodec());
+        merger, new NoCompressionCodec(), 1);
 
     updater.update(7);
 

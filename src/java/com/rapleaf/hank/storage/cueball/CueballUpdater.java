@@ -30,12 +30,15 @@ public class CueballUpdater implements Updater {
   private final IFetcher fetcher;
   private final ICueballMerger merger;
   private final CompressionCodec compressionCodec;
+  private final int hashIndexBits;
 
   CueballUpdater(String localPartitionRoot,
       int keyHashSize,
       int valueSize,
-      IFetcher fetcher, ICueballMerger merger,
-      CompressionCodec compressionCodec)
+      IFetcher fetcher,
+      ICueballMerger merger,
+      CompressionCodec compressionCodec,
+      int hashIndexBits)
   {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
@@ -43,6 +46,7 @@ public class CueballUpdater implements Updater {
     this.fetcher = fetcher;
     this.merger = merger;
     this.compressionCodec = compressionCodec;
+    this.hashIndexBits = hashIndexBits;
   }
 
   public CueballUpdater(String localPartitionRoot,
@@ -50,14 +54,16 @@ public class CueballUpdater implements Updater {
       int valueSize,
       IFileOps fileOps,
       IFileSelector fileSelector,
-      CompressionCodec compressionCodec)
+      CompressionCodec compressionCodec,
+      int hashIndexBits)
   {
     this(localPartitionRoot,
         keyHashSize,
         valueSize,
         new Fetcher(fileOps, fileSelector),
         new CueballMerger(),
-        compressionCodec);
+        compressionCodec,
+        hashIndexBits);
   }
 
   @Override
@@ -85,7 +91,10 @@ public class CueballUpdater implements Updater {
         relevantDeltas,
         newBasePath,
         keyHashSize,
-        valueSize, 32767, null);
+        valueSize,
+        null,
+        hashIndexBits,
+        compressionCodec);
 
     // delete all the old bases
     for (String oldBase : bases) {

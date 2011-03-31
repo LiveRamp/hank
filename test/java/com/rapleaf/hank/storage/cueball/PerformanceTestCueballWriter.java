@@ -23,7 +23,7 @@ public class PerformanceTestCueballWriter {
     FsUtils.rmrf(tmpDir);
     new File(tmpDir).mkdirs();
 
-    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, 16*1024, "/tmp/remote_domains_root", new LocalFileOps.Factory(), NoCompressionCodec.class, 2000, "domain0");
+    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root", new LocalFileOps.Factory(), NoCompressionCodec.class, "domain0");
     OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
 //      @Override
 //      public OutputStream getOutputStream(int partNum, String name)

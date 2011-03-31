@@ -104,11 +104,9 @@ public class Cueball implements StorageEngine {
           hasher,
           (Integer)options.get(VALUE_SIZE_KEY),
           (Integer)options.get(HASH_INDEX_BITS_KEY),
-          (Integer)options.get(READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
-          (Integer)options.get(ENTRIES_IN_BLOCK),
           domainName);
     }
   }
@@ -119,34 +117,27 @@ public class Cueball implements StorageEngine {
   private final Hasher hasher;
   private final int valueSize;
   private final int hashIndexBits;
-  private final int readBufferBytes;
   private final String remoteDomainRoot;
   private final IFileOpsFactory fileOpsFactory;
 
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
-  private final int entriesInBlock;
-
   public Cueball(int keyHashSize,
       Hasher hasher,
       int valueSize,
       int hashIndexBits,
-      int readBufferBytes,
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
       Class<? extends CompressionCodec> compressionCodecClass,
-      int entriesInBlock,
       String domainName)
   {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.hashIndexBits = hashIndexBits;
-    this.readBufferBytes = readBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
-    this.entriesInBlock = entriesInBlock;
     this.domainName = domainName;
   }
 
@@ -181,7 +172,8 @@ public class Cueball implements StorageEngine {
         valueSize,
         fileOpsFactory.getFileOps(localDir, remoteDomainRoot + "/" + partNum),
         cueballFileSelector,
-        getCompressionCodec());
+        getCompressionCodec(),
+        hashIndexBits);
   }
 
   @Override
@@ -231,9 +223,10 @@ public class Cueball implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Cueball [indexBits=" + hashIndexBits + ", hasher=" + hasher
-    + ", keyHashSize=" + keyHashSize + ", readBufferBytes="
-    + readBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
-    + ", valueSize=" + valueSize + "]";
+    return "Cueball [compressionCodecClass=" + compressionCodecClass
+        + ", domainName=" + domainName + ", fileOpsFactory=" + fileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
+        + ", keyHashSize=" + keyHashSize + ", remoteDomainRoot="
+        + remoteDomainRoot + ", valueSize=" + valueSize + "]";
   }
 }
