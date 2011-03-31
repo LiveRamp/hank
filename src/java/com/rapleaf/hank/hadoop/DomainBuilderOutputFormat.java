@@ -165,10 +165,9 @@ public class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWr
     return result;
   }
 
-  public static void setProperties(Properties properties, String configuration, String domainName, String outputPath) {
+  public static void setProperties(Properties properties, String configuration, String domainName) {
     properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
     properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
   }
 
   public static void setProperties(JobConf conf, String configuration, String domainName, String outputPath) {

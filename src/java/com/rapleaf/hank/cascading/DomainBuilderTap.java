@@ -39,14 +39,17 @@ import com.rapleaf.hank.hadoop.ValueWritable;
 public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
+  private final String outputPath;
 
   public DomainBuilderTap(String keyFieldName, String valueFieldName, String outputPath) {
     super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName), outputPath);
+    this.outputPath = outputPath;
   }
 
   @Override
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
   }
 
   @Override

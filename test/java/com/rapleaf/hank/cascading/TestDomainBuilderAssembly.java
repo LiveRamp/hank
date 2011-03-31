@@ -33,22 +33,19 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 
-import com.rapleaf.hank.HadoopTestCase;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
 import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
+import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
 
 public class TestDomainBuilderAssembly extends HadoopTestCase {
 
-  final String INPUT_PATH_A;
-  final String OUTPUT_PATH_A;
-  final String DOMAIN_A_NAME;
+  private final String DOMAIN_A_NAME = "a";
+  private final String INPUT_PATH_A = INPUT_DIR + "/" + DOMAIN_A_NAME;
+  private final String OUTPUT_PATH_A = OUTPUT_DIR + "/" + DOMAIN_A_NAME;
 
   public TestDomainBuilderAssembly() throws IOException {
     super(TestDomainBuilderAssembly.class);
-    DOMAIN_A_NAME = "a";
-    INPUT_PATH_A = INPUT_DIR + "/" + DOMAIN_A_NAME;
-    OUTPUT_PATH_A = OUTPUT_DIR + "/" + DOMAIN_A_NAME;
   }
 
   @Override
@@ -88,11 +85,11 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
   public void testMain() throws IOException {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", OUTPUT_PATH_A);
-    String configuration = TestHadoopDomainBuilder.getConfiguration();
-    Pipe pipe = getPipe(configuration, "", outputTap);
+    String configuration = TestHadoopDomainBuilder.getHadoopTestConfiguration();
+    Pipe pipe = getPipe(configuration, DOMAIN_A_NAME, outputTap);
 
     Properties properties = new Properties();
-    DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME, OUTPUT_PATH_A);
+    DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME);
     new FlowConnector(properties).connect(inputTap, outputTap, pipe).complete();
 
     // Check output
