@@ -25,7 +25,6 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
-import com.rapleaf.hank.util.EncodingHelper;
 
 public class CueballReader implements Reader {
 
@@ -39,7 +38,6 @@ public class CueballReader implements Reader {
   private int maxUncompressedBufferSize;
   private int maxCompressedBufferSize;
   private final HashIndexPrefixCalculator prefixer;
-  private final int footerLength;
 
   public CueballReader(String partitionRoot,
       int keyHashSize,
@@ -54,25 +52,14 @@ public class CueballReader implements Reader {
     this.compressionCodec = compressionCodec;
     this.fullRecordSize = valueSize + keyHashSize;
     this.prefixer = new HashIndexPrefixCalculator(hashIndexBits);
-    final int hashIndexSize = 1 << hashIndexBits;
-    footerLength = hashIndexSize * 8 + 8;
 
     channel = new FileInputStream(Cueball.getBases(partitionRoot).last()).getChannel();
-    long fileSize = channel.size();
 
-    byte[] footer = new byte[footerLength];
-    int read = channel.read(ByteBuffer.wrap(footer), fileSize - footerLength);
-    if (read != footerLength) {
-      throw new IOException("Tried to read " + footerLength + " bytes of footer, but only got " + read + " bytes!");
-    }
+    Footer footer = new Footer(channel, hashIndexBits);
 
-    hashIndex = new long[hashIndexSize];
-    for (int i = 0; i < hashIndex.length; i++) {
-      hashIndex[i] = EncodingHelper.decodeLittleEndianFixedWidthLong(footer, i * 8, 8);
-    }
-
-    maxUncompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 8, 4);
-    maxCompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 4, 4);
+    hashIndex = footer.getHashIndex();
+    maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();
+    maxCompressedBufferSize = footer.getMaxCompressedBufferSize();
   }
 
   @Override
