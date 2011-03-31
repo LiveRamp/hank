@@ -39,6 +39,7 @@ import com.rapleaf.hank.cli.AddDomainGroup;
 import com.rapleaf.hank.cli.AddDomainToDomainGroup;
 import com.rapleaf.hank.cli.AddRing;
 import com.rapleaf.hank.cli.AddRingGroup;
+import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.config.PartservConfigurator;
@@ -50,7 +51,9 @@ import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
@@ -234,6 +237,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_1_DATAFILES);
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
+    pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
     pw.close();
     AddDomain.main(new String[]{
         "--name", "domain1",
@@ -399,12 +403,27 @@ public class IntegrationTest extends ZkTestCase {
     versionMap.put("domain0", 1);
     versionMap.put("domain1", 2);
     LOG.info("----- stamping new dg1 version -----");
-    domainGroupConfig.createNewVersion(versionMap);
+    final DomainGroupConfigVersion newVersion = domainGroupConfig.createNewVersion(versionMap);
 
 //    dumpZk();
 
     // wait until the rings have been updated to the new version
-    Thread.sleep(15000);
+    coord = config.getCoordinator();
+    final RingGroupConfig ringGroupConfig = coord.getRingGroupConfig("rg1");
+    for (int i = 0; i < 30; i++) {
+      if (ringGroupConfig.isUpdating()) {
+        LOG.info("Ring group is still updating. Sleeping...");
+      } else {
+        if (ringGroupConfig.getCurrentVersion() == newVersion.getVersionNumber()) {
+          break;
+        } else {
+          LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
+        }
+      }
+      Thread.sleep(1000);
+    }
+
+    assertFalse("ring group failed to finish updating after 30secs", ringGroupConfig.isUpdating());
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1,1)), dumbClient.get("domain0", bb(1)));

@@ -35,7 +35,7 @@ public class JavaGzipCompressionCodec implements CompressionCodec {
       ByteArrayInputStream bytesIn = new ByteArrayInputStream(src, srcOffset, srcLength);
       GZIPInputStream gzip = new GZIPInputStream(bytesIn);
       int curOff = dstOff;
-      while (true) {
+      while (curOff < dst.length - dstOff) {
         int amtRead = gzip.read(dst, curOff, dst.length - curOff);
         if (amtRead == -1) {
           break;
