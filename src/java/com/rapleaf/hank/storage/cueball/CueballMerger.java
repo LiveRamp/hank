@@ -81,7 +81,7 @@ public final class CueballMerger implements ICueballMerger {
       }
 
       if (transformer != null) {
-        transformer.transform(least);
+        transformer.transform(least.getBuffer(), least.getCurrentOffset() + keyHashSize, least.getIndex());
       }
       final ByteBuffer keyHash = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset(), keyHashSize);
       final ByteBuffer valueBytes = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset() + keyHashSize, valueSize);
