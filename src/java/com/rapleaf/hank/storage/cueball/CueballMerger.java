@@ -15,41 +15,47 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.SortedSet;
+
+import com.rapleaf.hank.compress.CompressionCodec;
 
 
 public final class CueballMerger implements ICueballMerger {
-
   public void merge(final String latestBase,
       final SortedSet<String> deltas,
       final String newBasePath,
       final int keyHashSize,
       final int valueSize,
-      int bufferSize,
-      ValueTransformer transformer)
+      ValueTransformer transformer,
+      int hashIndexBits,
+      CompressionCodec compressionCodec)
   throws IOException {
     StreamBuffer[] sbs = new StreamBuffer[deltas.size() + 1];
 
     // open the current base
-    StreamBuffer base = new StreamBuffer(new FileInputStream(latestBase), 0,
-        keyHashSize, valueSize, bufferSize);
+    StreamBuffer base = new StreamBuffer(latestBase, 0,
+        keyHashSize, valueSize, hashIndexBits, compressionCodec);
     sbs[0] = base;
 
     // open all the deltas
     int i = 1;
     for (String deltaPath : deltas) {
-      StreamBuffer db = new StreamBuffer(new FileInputStream(deltaPath), i,
-          keyHashSize, valueSize, bufferSize);
+      StreamBuffer db = new StreamBuffer(deltaPath, i,
+          keyHashSize, valueSize, hashIndexBits, compressionCodec);
       sbs[i++] = db;
     }
 
-    OutputStream newBaseStream = new BufferedOutputStream(
-        new FileOutputStream(newBasePath), bufferSize);
+    // output stream for the new base to be written. intentionally unbuffered -
+    // the writer below will do that on its own.
+    OutputStream newBaseStream = new FileOutputStream(newBasePath);
+
+    // note that we intentionally omit the hasher here, since it will *not* be
+    // used
+    CueballWriter writer = new CueballWriter(newBaseStream, keyHashSize, null, valueSize, compressionCodec, hashIndexBits);
 
     while (true) {
       StreamBuffer least = null;
@@ -77,14 +83,16 @@ public final class CueballMerger implements ICueballMerger {
       if (transformer != null) {
         transformer.transform(least);
       }
-      newBaseStream.write(least.getBuffer(), least.getCurrentOffset(), valueSize + keyHashSize);
+      final ByteBuffer keyHash = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset(), keyHashSize);
+      final ByteBuffer valueBytes = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset() + keyHashSize, valueSize);
+      writer.writeHash(keyHash, valueBytes);
       least.consume();
     }
 
     for (StreamBuffer sb : sbs) {
       sb.close();
     }
-    newBaseStream.flush();
-    newBaseStream.close();
+
+    writer.close();
   }
 }

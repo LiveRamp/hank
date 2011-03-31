@@ -24,6 +24,8 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.TreeSet;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
+
 public class TestCueballMerger extends AbstractCueballTest {
   private final String LOCAL_ROOT = localTmpDir;
 
@@ -33,78 +35,124 @@ public class TestCueballMerger extends AbstractCueballTest {
 
   private final String BASE_FILE_PATH = LOCAL_ROOT + "/00000.base.cueball";
 
+  
+  // base   k1 v1 k5 v5 | k10 v10
+  // delta1 k1 v1 k2 v2 | k12 v12
+  // delta2 k3 v3 k4 v4 | k11 v11
+  
+  
   private static final byte[] BASE_DATA = {
     // key 1
-    1, 2, 3, 4, 5,
+    0x01,// 2, 3, 4, 5,
     // value 1
-    5, 4, 3, 2,
+    1, //4, 3, 2,
     // key 5
-    5, 6, 7, 8, 9, 
+    0x05,// 6, 7, 8, 9,
     // value 5
-    9, 8, 7, 6,
+    5, //8, 7, 6,
     // key 10
-    10, 11, 12, 13, 14,
+    (byte) 0x8a, //11, 12, 13, 14,
     // value 10
-    14, 13, 12, 11
+    10, //13, 12, 11,
+    // block 0 offset
+    0,0,0,0,0,0,0,0,
+    // block 1 offset
+    2,0,0,0,0,0,0,0,
+    // max uncompressed size
+    4,0,0,0,
+    // max compressed size
+    4,0,0,0,
   };
-  
+
   private static final byte[] DELTA_1_DATA = {
     // key 1
-    1, 2, 3, 4, 5,
-    // value 1
-    5, 4, 3, 2,
+    0x01, //2, 3, 4, 5,
+    // value 1 - new version!
+    2, //4, 3, 2,
     // key 2
-    2, 3, 4, 5, 6,
+    0x02, //3, 4, 5, 6,
     // value 2
-    6, 5, 4, 3
+    2, //5, 4, 3,
+    // key 12
+    (byte) 0x8c, //1, 2, 3, 4,
+    // value 12
+    12, //1, 2, 3,
+    // block 0 offset
+    0,0,0,0,0,0,0,0,
+    // block 1 offset
+    4,0,0,0,0,0,0,0,
+    // max uncompressed size
+    4,0,0,0,
+    // max compressed size
+    4,0,0,0,
   };
-  
+
   private static final byte[] DELTA_2_DATA = {
     // key 3
-    3, 4, 5, 6, 7,
+    0x03, //4, 5, 6, 7,
     // value 3
-    7, 6, 5, 4,
+    3, //6, 5, 4,
     // key 4
-    4, 5, 6, 7, 8,
+    0x04, //5, 6, 7, 8,
     // value 2
-    8, 7, 6, 5,
+    4, //7, 6, 5,
     // key 11
-    11, 12, 13, 14, 15,
+    (byte)0x8b, //12, 13, 14, 15,
     // value 11
-    15, 14, 13, 12
+    11, //14, 13, 12,
+    // block 0 offset
+    0,0,0,0,0,0,0,0,
+    // block 1 offset
+    4,0,0,0,0,0,0,0,
+    // max uncompressed size
+    4,0,0,0,
+    // max compressed size
+    4,0,0,0,
   };
 
   private final String NEW_BASE_PATH = LOCAL_ROOT + "/00002.base.cueball";
 
   private static final byte[] EXPECTED_MERGED_DATA = {
     // key 1
-    1, 2, 3, 4, 5,
+    0x01, //2, 3, 4, 5,
     // value 1
-    5, 4, 3, 2,
+    2, //4, 3, 2,
     // key 2
-    2, 3, 4, 5, 6,
+    0x02, //3, 4, 5, 6,
     // value 2
-    6, 5, 4, 3,
+    2, //5, 4, 3,
     // key 3
-    3, 4, 5, 6, 7,
+    0x03, //4, 5, 6, 7,
     // value 3
-    7, 6, 5, 4,
+    3, //6, 5, 4,
     // key 4
-    4, 5, 6, 7, 8,
+    0x04, //5, 6, 7, 8,
     // value 4
-    8, 7, 6, 5,
+    4, //7, 6, 5,
     // key 5
-    5, 6, 7, 8, 9, 
+    0x05, //6, 7, 8, 9, 
     // value 5
-    9, 8, 7, 6,
+    5, //8, 7, 6,
     // key 10
-    10, 11, 12, 13, 14,
+    (byte)0x8a, //11, 12, 13, 14,
     // value 10
-    14, 13, 12, 11,
+    10, //13, 12, 11,
     // key 11
-    11, 12, 13, 14, 15,
+    (byte)0x8b, //12, 13, 14, 15,
     // value 11
-    15, 14, 13, 12
+    11, //14, 13, 12,
+    // key 12
+    (byte) 0x8c, //1, 2, 3, 4,
+    // value 12
+    12, //1, 2, 3,
+    // block 0 offset
+    0,0,0,0,0,0,0,0,
+    // block 1 offset
+    10,0,0,0,0,0,0,0,
+    // max uncompressed size
+    10,0,0,0,
+    // max compressed size
+    10,0,0,0,
   };
 
   public void testMerge() throws Exception {
@@ -124,7 +172,14 @@ public class TestCueballMerger extends AbstractCueballTest {
     s.flush();
     s.close();
 
-    new CueballMerger().merge(BASE_FILE_PATH, new TreeSet<String>(Arrays.asList(DELTA_1_FILE_PATH, DELTA_2_FILE_PATH)), NEW_BASE_PATH, 5, 4, 32767, null);
+    new CueballMerger().merge(BASE_FILE_PATH,
+        new TreeSet<String>(Arrays.asList(DELTA_1_FILE_PATH, DELTA_2_FILE_PATH)),
+        NEW_BASE_PATH,
+        1,
+        1,
+        null,
+        1,
+        new NoCompressionCodec());
 
     DataInputStream in = new DataInputStream(new FileInputStream(NEW_BASE_PATH));
     int length = (int) new File(NEW_BASE_PATH).length();

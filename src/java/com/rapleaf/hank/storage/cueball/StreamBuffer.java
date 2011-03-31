@@ -18,31 +18,51 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.util.Bytes;
 
 public final class StreamBuffer {
-  private final InputStream stream;
   private final int relativeIndex;
   private final int keyHashSize;
-  private final byte[] buffer;
   private int currentOffset = 0;
   private int currentLimit = 0;
   private final int fullRecordSize;
 
   private boolean complete;
+  private final FileChannel channel;
 
-  public StreamBuffer(InputStream inputStream, int relativeIndex,
-      int keyHashSize, int valueSize, int bufferSize)
-  {
-    this.stream = inputStream;
+  private final long[] hashIndex;
+  private final byte[] uncompressedBuffer;
+  private final byte[] compressedBuffer;
+
+  private int currentHashIndexIdx = -1;
+  private final CompressionCodec compressionCodec;
+  private final long dataLength;
+
+  public StreamBuffer(String filePath,
+      int relativeIndex,
+      int keyHashSize,
+      int valueSize,
+      int hashIndexBits,
+      CompressionCodec compressionCodec)
+  throws IOException {
     this.relativeIndex = relativeIndex;
+    this.compressionCodec = compressionCodec;
+    this.channel = new FileInputStream(filePath).getChannel();
+
     this.keyHashSize = keyHashSize;
     this.fullRecordSize = valueSize + keyHashSize;
 
-    buffer = new byte[bufferSize / fullRecordSize * fullRecordSize];
+    Footer footer = new Footer(channel, hashIndexBits);
+    dataLength = footer.getDataLength();
+    hashIndex = footer.getHashIndex();
+    uncompressedBuffer = new byte[footer.getMaxUncompressedBufferSize()];
+    compressedBuffer = new byte[footer.getMaxCompressedBufferSize()];
   }
 
   public boolean anyRemaining() throws IOException {
@@ -54,16 +74,40 @@ public final class StreamBuffer {
     }
 
     // refill the buffer
+
+    // advance to the next block
+    currentHashIndexIdx++;
+
+    if (currentHashIndexIdx >= hashIndex.length) {
+      // we've already processed the last block in the file.
+      return false;
+    }
+
+    // special case: if we're on the last block in the file, then we need to
+    // compare the current offset to the data length to determine the compressed
+    // block size.
+    long upperOffset;
+    if (currentHashIndexIdx == hashIndex.length - 1) {
+      upperOffset = dataLength;
+    } else {
+      upperOffset = hashIndex[currentHashIndexIdx+1];
+    }
+    final int blockLength = (int) (upperOffset - hashIndex[currentHashIndexIdx]);
+    // read the compressed block from disk into the compressed buffer
+    final int compressedBytesRead = readFully(channel, compressedBuffer, blockLength);
+    // decompress the compressed block into the uncompressed buffer
+    final int decompressedSize = compressionCodec.decompress(compressedBuffer, 0, compressedBytesRead, uncompressedBuffer, 0);
+
+    // adjust the pointers 
     currentOffset = 0;
-    currentLimit = readFully(stream, buffer);
-    complete = currentLimit > 0;
-    return complete;
+    currentLimit = decompressedSize;
+    return true;
   }
 
   public int compareTo(StreamBuffer other) {
-    return Bytes.compareBytes(buffer,
+    return Bytes.compareBytes(uncompressedBuffer,
         currentOffset,
-        other.buffer,
+        other.uncompressedBuffer,
         other.getCurrentOffset(),
         keyHashSize);
   }
@@ -77,26 +121,18 @@ public final class StreamBuffer {
   }
 
   public byte[] getBuffer() {
-    return buffer;
+    return uncompressedBuffer;
   }
 
   public int getCurrentOffset() {
     return currentOffset;
   }
 
-  private static int readFully(InputStream s, byte[] buf) throws IOException {
-    int bytesRead = 0;
-    int total = 0;
-
-    while (total < buf.length && bytesRead != -1) {
-      bytesRead = s.read(buf, total, buf.length - total);
-      total += bytesRead;
-    }
-
-    return bytesRead == -1 ? total + 1 : total;
+  private static int readFully(FileChannel channel, byte[] buf, int readLength) throws IOException {
+    return channel.read(ByteBuffer.wrap(buf, 0, readLength));
   }
 
   public void close() throws IOException {
-    stream.close();
+    channel.close();
   }
 }
