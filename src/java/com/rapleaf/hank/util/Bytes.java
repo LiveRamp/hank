@@ -24,9 +24,11 @@ public final class Bytes {
 
   public static int compareBytes(byte[] a, int aOff, byte[] b, int bOff, int len) {
     for (int i = 0; i < len; i++) {
-      if (a[aOff + i] > b[bOff + i]) {
+      final int ab = a[aOff + i] & 0xff;
+      final int bb = b[bOff + i] & 0xff;
+      if (ab > bb) {
         return 1;
-      } else if (a[aOff + i] < b[bOff + i]) {
+      } else if (ab < bb) {
         return -1;
       }
     }
