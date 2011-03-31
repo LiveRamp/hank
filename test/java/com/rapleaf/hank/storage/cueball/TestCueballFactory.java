@@ -45,7 +45,6 @@ public class TestCueballFactory extends BaseTestCase {
     options.put(Cueball.Factory.FILE_OPS_FACTORY_KEY, LocalFileOps.Factory.class.getName());
     options.put(Cueball.Factory.HASH_INDEX_BITS_KEY, 5);
     options.put(Cueball.Factory.KEY_HASH_SIZE_KEY, 7);
-    options.put(Cueball.Factory.READ_BUFFER_BYTES_KEY, 32000);
     options.put(Cueball.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Cueball.Factory.VALUE_SIZE_KEY, 15);
     factory.getStorageEngine(options, "domain0");

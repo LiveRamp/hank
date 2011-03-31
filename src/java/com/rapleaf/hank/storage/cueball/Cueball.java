@@ -52,24 +52,20 @@ public class Cueball implements StorageEngine {
 
   public static class Factory implements StorageEngineFactory {
     public static final String REMOTE_DOMAIN_ROOT_KEY = "remote_domain_root";
-    public static final String READ_BUFFER_BYTES_KEY = "read_buffer_bytes";
     public static final String HASH_INDEX_BITS_KEY = "hash_index_bits";
     public static final String VALUE_SIZE_KEY = "value_size";
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
     public static final String COMPRESSION_CODEC = "compression_codec";
-    public static final String ENTRIES_IN_BLOCK = "entries_in_block";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         REMOTE_DOMAIN_ROOT_KEY,
-        READ_BUFFER_BYTES_KEY,
         HASH_INDEX_BITS_KEY,
         HASHER_KEY,
         VALUE_SIZE_KEY,
         KEY_HASH_SIZE_KEY,
-        FILE_OPS_FACTORY_KEY,
-        ENTRIES_IN_BLOCK
+        FILE_OPS_FACTORY_KEY
     ));
 
     @Override
@@ -89,7 +85,7 @@ public class Cueball implements StorageEngine {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-      
+
       String compressionCodec = (String) options.get(COMPRESSION_CODEC);
       Class<? extends CompressionCodec> compressionCodecClass = NoCompressionCodec.class;
       if (compressionCodec != null) {
