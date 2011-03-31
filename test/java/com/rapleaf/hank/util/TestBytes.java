@@ -23,6 +23,7 @@ public class TestBytes extends TestCase {
   private static final byte[] B = {1, 1, 3};
   private static final byte[] C = {1, 3, 3};
   private static final byte[] D = {1, 2, 4};
+  private static final byte[] E = {(byte) 0x80, 2, 4};
 
   public void testCompareBytes() throws Exception {
     assertEquals(-1, Bytes.compareBytes(B, 0, A, 0, 3));
@@ -30,5 +31,8 @@ public class TestBytes extends TestCase {
     assertEquals(-1, Bytes.compareBytes(A, 0, C, 0, 3));
     assertEquals(-1, Bytes.compareBytes(A, 1, C, 1, 2));
     assertEquals(0, Bytes.compareBytes(A, 1, D, 1, 1));
+
+    assertEquals(-1, Bytes.compareBytes(A, 0, E, 0, 3));
+    assertEquals(1, Bytes.compareBytes(E, 0, A, 0, 3));
   }
 }
