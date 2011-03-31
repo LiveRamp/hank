@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
@@ -28,29 +29,26 @@ import com.rapleaf.hank.storage.cueball.Fetcher;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
 import com.rapleaf.hank.storage.cueball.IFetcher;
 import com.rapleaf.hank.storage.cueball.IFileOps;
-import com.rapleaf.hank.storage.cueball.StreamBuffer;
 import com.rapleaf.hank.storage.cueball.ValueTransformer;
 import com.rapleaf.hank.util.EncodingHelper;
 
 public class CurlyUpdater implements Updater {
   public static final class OffsetTransformer implements ValueTransformer {
     private final long[] offsetAdjustments;
-    private final int keyHashSize;
     private final int offsetSize;
 
-    public OffsetTransformer(int keyHashSize, int offsetSize, long[] offsetAdjustments) {
-      this.keyHashSize = keyHashSize;
+    public OffsetTransformer(int offsetSize, long[] offsetAdjustments) {
       this.offsetSize = offsetSize;
       this.offsetAdjustments = offsetAdjustments;
     }
 
     @Override
-    public void transform(StreamBuffer buffer) {
-      long adjustment = offsetAdjustments[buffer.getIndex()];
+    public void transform(byte[] buf, int valueOff, int relIndex) {
+      long adjustment = offsetAdjustments[relIndex];
       if (adjustment != 0) {
-        long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(buffer.getBuffer(), buffer.getCurrentOffset() + keyHashSize, offsetSize);
+        long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(buf, valueOff, offsetSize);
         offset += adjustment;
-        EncodingHelper.encodeLittleEndianFixedWidthLong(offset, buffer.getBuffer(), buffer.getCurrentOffset() + keyHashSize, offsetSize);
+        EncodingHelper.encodeLittleEndianFixedWidthLong(offset, buf, valueOff, offsetSize);
       }
     }
   }
@@ -58,36 +56,40 @@ public class CurlyUpdater implements Updater {
   private final String localPartitionRoot;
   private final int keyHashSize;
   private final int offsetSize;
-  private final int bufferSize;
   private final IFetcher fetcher;
   private final ICurlyMerger curlyMerger;
   private final ICueballMerger cueballMerger;
+  private final int hashIndexBits;
+  private final CompressionCodec compressionCodec;
 
-  public CurlyUpdater(String localPartitionRoot, String remotePartitionRoot, int keyHashSize, int offsetSize, int bufferSize, IFileOps fileOps) {
+  public CurlyUpdater(String localPartitionRoot, String remotePartitionRoot, int keyHashSize, int offsetSize, IFileOps fileOps, CompressionCodec compressionCodec, int hashIndexBits) {
     this(localPartitionRoot,
         keyHashSize,
         offsetSize,
-        bufferSize,
         new Fetcher(fileOps, new CurlyFileSelector()),
         new CurlyMerger(),
-        new CueballMerger());
+        new CueballMerger(),
+        compressionCodec,
+        hashIndexBits);
   }
 
   CurlyUpdater(String localPartitionRoot,
       int keyHashSize,
       int offsetSize,
-      int bufferSize,
       IFetcher fetcher,
       ICurlyMerger curlyMerger,
-      ICueballMerger cueballMerger)
+      ICueballMerger cueballMerger,
+      CompressionCodec compressonCodec,
+      int hashIndexBits)
   {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
     this.offsetSize = offsetSize;
-    this.bufferSize = bufferSize;
     this.fetcher = fetcher;
     this.curlyMerger = curlyMerger;
     this.cueballMerger = cueballMerger;
+    this.compressionCodec = compressonCodec;
+    this.hashIndexBits = hashIndexBits;
   }
 
   @Override
@@ -133,8 +135,9 @@ public class CurlyUpdater implements Updater {
           newCueballBasePath,
           keyHashSize,
           offsetSize,
-          bufferSize,
-          new OffsetTransformer(keyHashSize, offsetSize, offsetAdjustments));
+          new OffsetTransformer(offsetSize, offsetAdjustments),
+          hashIndexBits,
+          compressionCodec);
   
       // rename the modified base to the current version
       String newCurlyBasePath = localPartitionRoot + "/"

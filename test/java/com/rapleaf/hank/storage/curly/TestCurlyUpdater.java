@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -25,9 +24,9 @@ import java.util.SortedSet;
 
 import junit.framework.TestCase;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.storage.cueball.MockCueballMerger;
 import com.rapleaf.hank.storage.cueball.MockFetcher;
-import com.rapleaf.hank.storage.cueball.StreamBuffer;
 import com.rapleaf.hank.util.FsUtils;
 
 public class TestCurlyUpdater extends TestCase {
@@ -44,13 +43,6 @@ public class TestCurlyUpdater extends TestCase {
     }
   }
 
-  private static final byte[] BUF = new byte[]{
-    // key     off
-    1,1,1,1,1, 1,0,0,
-    1,1,1,1,2, 50,0,0,
-    1,1,1,1,3, 100,0,0
-  };
-
   private static final String LOCAL_ROOT = "/tmp/TestCurlyUpdater_local";
 
   public void setUp() throws Exception {
@@ -60,27 +52,22 @@ public class TestCurlyUpdater extends TestCase {
 
   public void testOffsetTransformer() throws Exception {
     long[] offsetAdjustments = new long[]{0, 100, 1000};
-    CurlyUpdater.OffsetTransformer trans = new CurlyUpdater.OffsetTransformer(5, 3, offsetAdjustments);
+    CurlyUpdater.OffsetTransformer trans = new CurlyUpdater.OffsetTransformer(3, offsetAdjustments);
 
-    // in position 1, should increase by 100
-    StreamBuffer b = new StreamBuffer(new ByteArrayInputStream(BUF), 1, 5, 3, 32000);
-    b.anyRemaining();
-    trans.transform(b);
-    assertEquals(ByteBuffer.wrap(new byte[]{101,0,0}), ByteBuffer.wrap(b.getBuffer(), 5, 3));
-
-    b.consume();
-    trans.transform(b);
-    assertEquals(ByteBuffer.wrap(new byte[]{(byte)150,0,0}), ByteBuffer.wrap(b.getBuffer(), 13, 3));
+    byte[] buf = new byte[]{1,0,0,50,0,0};
+    trans.transform(buf, 0, 1);
+    assertEquals(ByteBuffer.wrap(new byte[]{101,0,0}), ByteBuffer.wrap(buf, 0, 3));
+ 
+    trans.transform(buf, 3, 1);
+    assertEquals(ByteBuffer.wrap(new byte[]{(byte)150,0,0}), ByteBuffer.wrap(buf, 3, 3));
 
     // in position 0, should remain exactly the same
-    b = new StreamBuffer(new ByteArrayInputStream(BUF), 0, 5, 3, 32000);
-    b.anyRemaining();
-    trans.transform(b);
-    assertEquals(ByteBuffer.wrap(new byte[]{1,0,0}), ByteBuffer.wrap(b.getBuffer(), 5, 3));
+    buf = new byte[]{1,0,0,50,0,0};
+    trans.transform(buf, 0, 0);
+    assertEquals(ByteBuffer.wrap(new byte[]{1,0,0}), ByteBuffer.wrap(buf, 0, 3));
 
-    b.consume();
-    trans.transform(b);
-    assertEquals(ByteBuffer.wrap(new byte[]{50,0,0}), ByteBuffer.wrap(b.getBuffer(), 13, 3));
+    trans.transform(buf, 3, 0);
+    assertEquals(ByteBuffer.wrap(new byte[]{50,0,0}), ByteBuffer.wrap(buf, 3, 3));
   }
 
   public void testBootstrap() throws Exception {
@@ -91,8 +78,8 @@ public class TestCurlyUpdater extends TestCase {
         "00001.delta.cueball", "00001.delta.curly");
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
     MockCueballMerger cueballMerger = new MockCueballMerger();
-    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
-        fetcher, curlyMerger, cueballMerger);
+    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
+        fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
     updater.update(1);
 
@@ -125,8 +112,8 @@ public class TestCurlyUpdater extends TestCase {
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.base.cueball", "00006.base.curly", "00007.delta.cueball", "00007.delta.curly");
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
     MockCueballMerger cueballMerger = new MockCueballMerger();
-    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
-        fetcher, curlyMerger, cueballMerger);
+    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
+        fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
     updater.update(7);
 
@@ -161,8 +148,8 @@ public class TestCurlyUpdater extends TestCase {
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.delta.cueball", "00006.delta.curly", "00007.delta.cueball", "00007.delta.curly");
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
     MockCueballMerger cueballMerger = new MockCueballMerger();
-    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5, 32767,
-        fetcher, curlyMerger, cueballMerger);
+    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
+        fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
     updater.update(7);
 
