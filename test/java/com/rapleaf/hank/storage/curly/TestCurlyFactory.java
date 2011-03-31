@@ -47,7 +47,6 @@ public class TestCurlyFactory extends BaseTestCase {
     options.put(Curly.Factory.FILE_OPS_FACTORY_KEY, LocalFileOps.Factory.class.getName());
     options.put(Curly.Factory.HASH_INDEX_BITS_KEY, 5);
     options.put(Curly.Factory.KEY_HASH_SIZE_KEY, 7);
-    options.put(Curly.Factory.CUEBALL_READ_BUFFER_BYTES_KEY, 32000);
     options.put(Curly.Factory.RECORD_FILE_READ_BUFFER_BYTES_KEY, 32000);
     options.put(Curly.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Curly.Factory.MAX_ALLOWED_PART_SIZE_KEY, 15000);

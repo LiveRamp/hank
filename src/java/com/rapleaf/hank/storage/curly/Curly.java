@@ -56,19 +56,16 @@ public class Curly implements StorageEngine {
   public static class Factory implements StorageEngineFactory {
     public static final String REMOTE_DOMAIN_ROOT_KEY = "remote_domain_root";
     public static final String RECORD_FILE_READ_BUFFER_BYTES_KEY = "record_file_read_buffer_bytes";
-    public static final String CUEBALL_READ_BUFFER_BYTES_KEY = "cueball_read_buffer_bytes";
     public static final String HASH_INDEX_BITS_KEY = "hash_index_bits";
     public static final String MAX_ALLOWED_PART_SIZE_KEY = "max_allowed_part_size";
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
-    private static final String CUEBALL_ENTRIES_IN_BLOCK = "cueball_entries_in_block";
     private static final String COMPRESSION_CODEC = "compression_codec";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(
         REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY,
-        CUEBALL_READ_BUFFER_BYTES_KEY,
         HASH_INDEX_BITS_KEY,
         MAX_ALLOWED_PART_SIZE_KEY,
         KEY_HASH_SIZE_KEY,
@@ -105,12 +102,10 @@ public class Curly implements StorageEngine {
           hasher,
           (Integer)options.get(MAX_ALLOWED_PART_SIZE_KEY),
           (Integer)options.get(HASH_INDEX_BITS_KEY),
-          (Integer)options.get(CUEBALL_READ_BUFFER_BYTES_KEY),
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
-          (Integer)options.get(CUEBALL_ENTRIES_IN_BLOCK),
           domainName);
     }
   }
@@ -123,7 +118,6 @@ public class Curly implements StorageEngine {
   private final Cueball cueballStorageEngine;
   private final String remoteDomainRoot;
   private final int keyHashSize;
-  private final int cueballReadBufferBytes;
   private final IFileOpsFactory fileOpsFactory;
   private final int hashIndexBits;
   private final Class<? extends CompressionCodec> compressionCodecClass;
@@ -132,17 +126,14 @@ public class Curly implements StorageEngine {
       Hasher hasher,
       int maxAllowedPartSize,
       int hashIndexBits,
-      int cueballReadBufferBytes,
       int recordFileReadBufferBytes,
       String remoteDomainRoot,
       IFileOpsFactory fileOpsFactory,
       Class<? extends CompressionCodec> compressionCodecClass,
-      int cueballEntriesInBlock,
       String domainName)
   {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
-    this.cueballReadBufferBytes = cueballReadBufferBytes;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
@@ -246,10 +237,12 @@ public class Curly implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Curly [domain=" + domainName + ", cueballReadBufferBytes=" + cueballReadBufferBytes
-    + ", " + cueballStorageEngine + ", keyHashSize="
-    + keyHashSize + ", offsetSize=" + offsetSize
-    + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
-    + ", remoteDomainRoot=" + remoteDomainRoot + "]";
+    return "Curly [compressionCodecClass=" + compressionCodecClass
+        + ", cueballStorageEngine=" + cueballStorageEngine + ", domainName="
+        + domainName + ", fileOpsFactory=" + fileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
+        + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
+        + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
+        + "]";
   }
 }
