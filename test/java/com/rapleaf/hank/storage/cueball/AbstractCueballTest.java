@@ -29,12 +29,10 @@ public class AbstractCueballTest extends BaseTestCase {
      1,2,1,2,1, // value 1 (truncated)
      2,2,2,2,2,2,2,2,2,2, // KEY2
      2,1,2,1,2,// value 2 (truncated)
-     0x4f,0x4f,0x4f,0x4f,0x4f,0x4f,0x4f,0x4f,0x4f,0x4f, // KEY3
-     0x4f,1,2,1,2,// value 3 (truncated)
-     0,0,0,0,0,0,0,0, // offset for hash prefix 00
-     30,0,0,0,0,0,0,0, // offset for hash prefix 01
-     -1,-1,-1,-1,-1,-1,-1,-1, // offset for hash prefix 10
-     -1,-1,-1,-1,-1,-1,-1,-1, // offset for hash prefix 11
+     (byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f,(byte)0x8f, // KEY3
+     (byte)0x8f,1,2,1,2,// value 3 (truncated)
+     0,0,0,0,0,0,0,0, // offset for hash prefix 0
+     30,0,0,0,0,0,0,0, // offset for hash prefix 1
      30,0,0,0, // max uncompressed block
      30,0,0,0, // max compressed block
   };
@@ -43,7 +41,7 @@ public class AbstractCueballTest extends BaseTestCase {
   protected static final byte[] KEY2 = new byte[]{4,5,6};
   protected static final byte[] VALUE2 = new byte[]{2,1,2,1,2,1};
 
-  protected static final byte[] KEY3 = new byte[]{0x4f,9,9};
+  protected static final byte[] KEY3 = new byte[]{(byte)0x8f,9,9};
   protected static final byte[] KEY10 = new byte[]{(byte) 0xcf,9,9};
   protected static final byte[] KEY4 = new byte[]{10,10,10};
 
@@ -57,7 +55,7 @@ public class AbstractCueballTest extends BaseTestCase {
     put(ByteBuffer.wrap(KEY2), hsh2);
 
     byte[] hsh3 = new byte[20];
-    Arrays.fill(hsh3, (byte)0x4f);
+    Arrays.fill(hsh3, (byte)0x8f);
     put(ByteBuffer.wrap(KEY3), hsh3);
 
     byte[] hsh4 = new byte[20];
