@@ -20,6 +20,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.ByteBuffer;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedMap;
@@ -62,6 +63,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.util.Bytes;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
@@ -187,7 +189,7 @@ public class IntegrationTest extends ZkTestCase {
   public void testItAll() throws Throwable {
     Logger.getLogger("com.rapleaf.hank.coordinator.zk").setLevel(Level.INFO);
     Logger.getLogger("com.rapleaf.hank.part_daemon").setLevel(Level.INFO);
-    Logger.getLogger("com.rapleaf.hank.storage").setLevel(Level.INFO);
+    Logger.getLogger("com.rapleaf.hank.storage").setLevel(Level.TRACE);
     create(domainsRoot);
     create(domainGroupsRoot);
     create(ringGroupsRoot);
@@ -209,8 +211,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
-    pw.println("hash_index_bits: 10");
-    pw.println("cueball_read_buffer_bytes: 10240");
+    pw.println("hash_index_bits: 1");
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_0_DATAFILES);
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
@@ -229,8 +230,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
-    pw.println("hash_index_bits: 10");
-    pw.println("cueball_read_buffer_bytes: 10240");
+    pw.println("hash_index_bits: 1");
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_1_DATAFILES);
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
@@ -254,6 +254,10 @@ public class IntegrationTest extends ZkTestCase {
     domain0DataItems.put(bb(2), bb(2, 2));
     domain0DataItems.put(bb(3), bb(3, 3));
     domain0DataItems.put(bb(4), bb(4, 4));
+    domain0DataItems.put(bb(5), bb(5, 1));
+    domain0DataItems.put(bb(6), bb(6, 2));
+    domain0DataItems.put(bb(7), bb(7, 3));
+    domain0DataItems.put(bb(8), bb(8, 4));
 
     writeOut(coord.getDomainConfig("domain0"), domain0DataItems, 1, true, DOMAIN_0_DATAFILES);
 
@@ -262,6 +266,10 @@ public class IntegrationTest extends ZkTestCase {
     domain1DataItems.put(bb(3), bb(2, 2));
     domain1DataItems.put(bb(2), bb(3, 3));
     domain1DataItems.put(bb(1), bb(4, 4));
+    domain1DataItems.put(bb(8), bb(5, 1));
+    domain1DataItems.put(bb(7), bb(6, 2));
+    domain1DataItems.put(bb(6), bb(7, 3));
+    domain1DataItems.put(bb(5), bb(8, 4));
 
     writeOut(coord.getDomainConfig("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
 
@@ -369,14 +377,14 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.value(bb(3,3)), dumbClient.get("domain0", bb(3)));
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain0", bb(4)));
 
-    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(5)));
+    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
     assertEquals(HankResponse.value(bb(1,1)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2,2)), dumbClient.get("domain1", bb(3)));
     assertEquals(HankResponse.value(bb(3,3)), dumbClient.get("domain1", bb(2)));
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain1", bb(1)));
 
-    assertEquals(HankResponse.not_found(true), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.not_found(true), dumbClient.get("domain1", bb(99)));
 
     assertEquals(HankResponse.no_such_domain(true), dumbClient.get("domain2", bb(1)));
 
@@ -397,7 +405,6 @@ public class IntegrationTest extends ZkTestCase {
 
     // wait until the rings have been updated to the new version
     Thread.sleep(15000);
-//    fail("not implemented");
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1,1)), dumbClient.get("domain0", bb(1)));
@@ -405,7 +412,7 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.value(bb(3,3)), dumbClient.get("domain0", bb(3)));
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain0", bb(4)));
 
-    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(5)));
+    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
     assertEquals(HankResponse.value(bb(6,6)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2,2)), dumbClient.get("domain1", bb(3)));
@@ -425,7 +432,7 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.value(bb(3,3)), dumbClient.get("domain0", bb(3)));
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain0", bb(4)));
 
-    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(5)));
+    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
     assertEquals(HankResponse.value(bb(6,6)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2,2)), dumbClient.get("domain1", bb(3)));
@@ -483,7 +490,7 @@ public class IntegrationTest extends ZkTestCase {
     partDaemonThreads.get(a).join();
   }
 
-  private void writeOut(DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {
+  private void writeOut(final DomainConfig domainConfig, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {
     // partition keys and values
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer,ByteBuffer>>();
     Partitioner p = domainConfig.getPartitioner();
@@ -491,7 +498,15 @@ public class IntegrationTest extends ZkTestCase {
       int partNum = p.partition(pair.getKey()) % domainConfig.getNumParts();
       SortedMap<ByteBuffer, ByteBuffer> part = sortedAndPartitioned.get(partNum);
       if (part == null) {
-        part = new TreeMap<ByteBuffer, ByteBuffer>();
+        part = new TreeMap<ByteBuffer, ByteBuffer>(new Comparator<ByteBuffer>() {
+          @Override
+          public int compare(ByteBuffer arg0, ByteBuffer arg1) {
+            final StorageEngine storageEngine = domainConfig.getStorageEngine();
+            final ByteBuffer keyL = storageEngine.getComparableKey(arg0);
+            final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
+            return Bytes.compareBytes(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.limit());
+          }
+        });
         sortedAndPartitioned.put(partNum, part);
       }
       part.put(pair.getKey(), pair.getValue());
@@ -502,7 +517,8 @@ public class IntegrationTest extends ZkTestCase {
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
       LOG.debug("Writing out part " + part.getKey() + " for domain " + domainConfig.getName() + " to root " + domainRoot);
       Writer writer = engine.getWriter(new LocalDiskOutputStreamFactory(domainRoot), part.getKey(), versionNumber, isBase);
-      for (Map.Entry<ByteBuffer, ByteBuffer> pair : part.getValue().entrySet()) {
+      final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
+      for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
         writer.write(pair.getKey(), pair.getValue());
       }
       writer.close();

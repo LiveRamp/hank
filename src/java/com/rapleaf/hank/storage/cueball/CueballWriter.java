@@ -87,6 +87,9 @@ public class CueballWriter implements Writer {
     // if this prefix and the last one don't match, then it's time to clear the
     // buffer.
     if (lastHashPrefix == -1 || thisPrefix != lastHashPrefix) {
+      if (thisPrefix < lastHashPrefix) {
+        throw new IOException("Just found a hash prefix inversion!");
+      }
       // clear the uncompressed buffer
       clearUncompressed();
 

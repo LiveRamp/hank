@@ -28,6 +28,9 @@ final class Footer {
     hashIndex = new long[hashIndexSize];
     for (int i = 0; i < getHashIndex().length; i++) {
       final long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(footer, i * 8, 8);
+      if (offset != -1 && i > 0 && hashIndex[i-1] != -1 && hashIndex[i-1] >= offset) {
+        throw new IOException(String.format("Discovered an offset inversion! block %d offset: %d, block %d offset: %d", i-1, hashIndex[i-1], i, offset));
+      }
       getHashIndex()[i] = offset;
     }
 
