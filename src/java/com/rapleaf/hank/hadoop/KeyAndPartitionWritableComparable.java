@@ -9,6 +9,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.util.Bytes;
 
 public class KeyAndPartitionWritableComparable implements WritableComparable<KeyAndPartitionWritableComparable> {
 
@@ -59,7 +60,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     } else if (keyAndPartitionWritable.getPartition() > other.keyAndPartitionWritable.getPartition()) {
       return 1;
     } else {
-      return comparableKey.compareTo(other.comparableKey);
+      return Bytes.compareBytes(comparableKey, other.comparableKey);
     }
   }
 
