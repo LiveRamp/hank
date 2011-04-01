@@ -37,7 +37,7 @@ public class CueballReader implements Reader {
   private final CompressionCodec compressionCodec;
   private int maxUncompressedBufferSize;
   private int maxCompressedBufferSize;
-  private final HashIndexPrefixCalculator prefixer;
+  private final HashPrefixCalculator prefixer;
 
   public CueballReader(String partitionRoot,
       int keyHashSize,
@@ -51,7 +51,7 @@ public class CueballReader implements Reader {
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
     this.fullRecordSize = valueSize + keyHashSize;
-    this.prefixer = new HashIndexPrefixCalculator(hashIndexBits);
+    this.prefixer = new HashPrefixCalculator(hashIndexBits);
 
     channel = new FileInputStream(Cueball.getBases(partitionRoot).last()).getChannel();
 

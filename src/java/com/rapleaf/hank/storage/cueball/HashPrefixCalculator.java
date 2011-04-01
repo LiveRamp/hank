@@ -1,13 +1,13 @@
 package com.rapleaf.hank.storage.cueball;
 
-public class HashIndexPrefixCalculator {
+public final class HashPrefixCalculator {
   private final int numBits;
 
-  public HashIndexPrefixCalculator(int numBits) {
+  public HashPrefixCalculator(int numBits) {
     this.numBits = numBits;
   }
 
-  public int getHashPrefix(final byte[] chunkBytes, int off) {
+  public final int getHashPrefix(final byte[] chunkBytes, int off) {
     int lim = off + (numBits / 8);
     int prefix = 0;
     for (; off < lim; off++) {

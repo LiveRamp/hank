@@ -43,7 +43,7 @@ public class CueballWriter implements Writer {
 
   private final long[] hashIndex;
 
-  private final HashIndexPrefixCalculator prefixer;
+  private final HashPrefixCalculator prefixer;
   private int lastHashPrefix = -1;
   private int uncompressedOffset = 0;
 
@@ -68,7 +68,7 @@ public class CueballWriter implements Writer {
     compressedBuffer = new byte[compressionCodec.getMaxCompressBufferSize(uncompressedBuffer.length)];
     keyHashBytes = new byte[keyHashSize];
 
-    prefixer = new HashIndexPrefixCalculator(hashIndexBits);
+    prefixer = new HashPrefixCalculator(hashIndexBits);
 
     hashIndex = new long[1 << hashIndexBits];
     Arrays.fill(hashIndex, -1);

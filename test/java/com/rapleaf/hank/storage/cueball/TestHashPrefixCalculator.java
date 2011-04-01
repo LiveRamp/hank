@@ -4,7 +4,7 @@ import com.rapleaf.hank.BaseTestCase;
 
 public class TestHashPrefixCalculator extends BaseTestCase {
   public void testLessThanEightBits() throws Exception {
-    HashIndexPrefixCalculator c = new HashIndexPrefixCalculator(2);
+    HashPrefixCalculator c = new HashPrefixCalculator(2);
 
     byte[] bytes = new byte[]{0, 0x3f, 0x40, (byte) 0x80, (byte) 0xcf};
 
@@ -16,7 +16,7 @@ public class TestHashPrefixCalculator extends BaseTestCase {
   }
 
   public void testAtLeastEightBits() throws Exception {
-    HashIndexPrefixCalculator c = new HashIndexPrefixCalculator(10);
+    HashPrefixCalculator c = new HashPrefixCalculator(10);
 
     byte[] bytes = new byte[]{0, 0x3f, 0x40, (byte) 0x80, (byte) 0xcf};
 
