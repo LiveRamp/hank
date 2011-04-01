@@ -28,6 +28,9 @@ final class Footer {
     hashIndex = new long[hashIndexSize];
     for (int i = 0; i < getHashIndex().length; i++) {
       final long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(footer, i * 8, 8);
+      if (offset < -1) {
+        throw new IOException(String.format("Read an unexpectedly negative block offset (%d) at block position %d!", offset, i));
+      }
       if (offset != -1 && i > 0 && hashIndex[i-1] != -1 && hashIndex[i-1] >= offset) {
         throw new IOException(String.format("Discovered an offset inversion! block %d offset: %d, block %d offset: %d", i-1, hashIndex[i-1], i, offset));
       }
@@ -35,7 +38,13 @@ final class Footer {
     }
 
     maxUncompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 8, 4);
+    if (maxUncompressedBufferSize < 0) {
+      throw new IOException(String.format("Read an invalid max uncompressed buffer size of %d!", maxUncompressedBufferSize));
+    }
     maxCompressedBufferSize = (int) EncodingHelper.decodeLittleEndianFixedWidthLong(footer, footer.length - 4, 4);
+    if (maxCompressedBufferSize < 0) {
+      throw new IOException(String.format("Read an invalid max uncompressed buffer size of %d!", maxCompressedBufferSize));
+    }
   }
 
   public long[] getHashIndex() {
