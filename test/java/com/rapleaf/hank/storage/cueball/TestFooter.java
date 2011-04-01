@@ -74,7 +74,7 @@ public class TestFooter extends BaseTestCase {
           (byte) 250,0,0,(byte) 0x80,
       }
   );
-  
+
   public void testInvalid() throws Exception {
     for (int i = 0; i < INVALID_CASES.size(); i++) {
       final FileOutputStream out = new FileOutputStream(filePath);
