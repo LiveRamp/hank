@@ -85,9 +85,7 @@ public class TestFooter extends BaseTestCase {
       try {
         new Footer(new FileInputStream(filePath).getChannel(), 2);
         fail("should have thrown an exception");
-      } catch (Exception e) {
-        
-      }
+      } catch (Exception e) {}
     }
   }
 }
