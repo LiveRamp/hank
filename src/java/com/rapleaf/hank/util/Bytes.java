@@ -16,6 +16,7 @@
 package com.rapleaf.hank.util;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
 
 public final class Bytes {
   private static final String CHARSET = "utf-8";
@@ -23,8 +24,11 @@ public final class Bytes {
   private Bytes() {}
 
   public static int compareBytes(byte[] a, int aOff, byte[] b, int bOff, int len) {
+    if (len > a.length - aOff || len > b.length - bOff) {
+      throw new RuntimeException("Not enough bytes left to compare!");
+    }
     for (int i = 0; i < len; i++) {
-      // we want our comparison to be unsigned. if we just compare they bytes,
+      // we want our comparison to be unsigned. if we just compare the bytes,
       // it will be a signed comparison. to drop the sign, we convert the byte
       // to an int, then mask off all the upper bits. if we don't do the
       // masking, then the signed byte will just get sign-extended and remain
@@ -40,19 +44,23 @@ public final class Bytes {
     return 0;
   }
 
+  public static int compareBytes(ByteBuffer a, ByteBuffer b) {
+    return compareBytes(a.array(), a.arrayOffset(), b.array(), b.arrayOffset(), a.remaining());
+  }
+
   public static byte[] intToBytes(int value) {
     return new byte[] {
-            (byte)(value >>> 24),
-            (byte)(value >>> 16),
-            (byte)(value >>> 8),
-            (byte)value};
+        (byte)(value >>> 24),
+        (byte)(value >>> 16),
+        (byte)(value >>> 8),
+        (byte)value};
   }
 
   public static int bytesToInt(byte[] b) {
     return (b[0] << 24)
-      + ((b[1] & 0xFF) << 16)
-      + ((b[2] & 0xFF) << 8)
-      + (b[3] & 0xFF);
+    + ((b[1] & 0xFF) << 16)
+    + ((b[2] & 0xFF) << 8)
+    + (b[3] & 0xFF);
   }
 
   public static String bytesToString(byte[] b) {
