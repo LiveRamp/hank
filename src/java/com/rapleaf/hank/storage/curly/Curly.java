@@ -100,7 +100,7 @@ public class Curly implements StorageEngine {
       }
       return new Curly((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
-          (Integer)options.get(MAX_ALLOWED_PART_SIZE_KEY),
+          (Long)options.get(MAX_ALLOWED_PART_SIZE_KEY),
           (Integer)options.get(HASH_INDEX_BITS_KEY),
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
@@ -124,7 +124,7 @@ public class Curly implements StorageEngine {
 
   public Curly(int keyHashSize,
       Hasher hasher,
-      int maxAllowedPartSize,
+      long maxAllowedPartSize,
       int hashIndexBits,
       int recordFileReadBufferBytes,
       String remoteDomainRoot,

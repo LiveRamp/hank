@@ -28,7 +28,7 @@ public class CurlyWriter implements Writer {
   private final OutputStream recordFileStream;
 
   private long currentRecordOffset;
-  private final int maxOffset;
+  private final long maxOffset;
   private final ByteBuffer offsetBuffer;
   private final byte[] lengthBuffer = new byte[5];;
 
@@ -38,7 +38,7 @@ public class CurlyWriter implements Writer {
   {
     this.recordFileStream = recordfileStream;
     this.keyfileWriter = keyfileWriter;
-    this.maxOffset = 1 << (offsetSize * 8);
+    this.maxOffset = 1L << (offsetSize * 8);
     this.currentRecordOffset = 0;
 
     offsetBuffer = ByteBuffer.wrap(new byte[offsetSize]);
