@@ -34,6 +34,15 @@ public class TestZkHostConfig extends ZkTestCase {
     @Override
     public void onCommandQueueChange(HostConfig hostConfig) {
       calledWith = hostConfig;
+      synchronized (this) {
+        notifyAll();
+      }
+    }
+
+    public void waitForNotification() throws Exception {
+      synchronized (this) {
+        this.wait(1000);
+      }
     }
   }
 
@@ -129,36 +138,43 @@ public class TestZkHostConfig extends ZkTestCase {
     assertNull(l2.calledWith);
 
     c.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.enqueueCommand(HostCommand.SERVE_DATA);
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.enqueueCommand(HostCommand.GO_TO_IDLE);
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.processNextCommand();
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.processNextCommand();
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.processNextCommand();
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
     c.processNextCommand();
+    l2.waitForNotification();
     assertNull(l1.calledWith);
     assertNull(l2.calledWith);
   }
