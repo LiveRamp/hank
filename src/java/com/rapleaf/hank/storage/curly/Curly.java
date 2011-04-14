@@ -98,9 +98,10 @@ public class Curly implements StorageEngine {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+      final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long)options.get(MAX_ALLOWED_PART_SIZE_KEY) : ((Integer)options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
       return new Curly((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
-          (Long)options.get(MAX_ALLOWED_PART_SIZE_KEY),
+          maxAllowedPartSize,
           (Integer)options.get(HASH_INDEX_BITS_KEY),
           (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
           (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
