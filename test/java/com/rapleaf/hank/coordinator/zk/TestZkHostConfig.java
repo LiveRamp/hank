@@ -77,6 +77,7 @@ public class TestZkHostConfig extends ZkTestCase {
     assertNotNull("mock listener should have received a call!", mockListener.calledWith);
     assertEquals(ADDRESS, mockListener.calledWith.getAddress());
     assertEquals(HostState.SERVING, mockListener.calledWith.getState());
+    c.close();
   }
 
   public void testSetState() throws Exception {
@@ -91,6 +92,7 @@ public class TestZkHostConfig extends ZkTestCase {
     host.setState(HostState.OFFLINE);
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(host.isOnline());
+    host.close();
   }
 
   public void testCommandQueue() throws Exception {
@@ -113,6 +115,7 @@ public class TestZkHostConfig extends ZkTestCase {
     c.completeCommand();
     assertNull(c.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), c.getCommandQueue());
+    c.close();
   }
 
   public void testCommandQueueListener() throws Exception {

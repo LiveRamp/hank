@@ -79,6 +79,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   private class StateChangeWatcher implements Watcher {
+    private boolean cancelled = false
+    ;
+
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeCreated:
@@ -87,11 +90,13 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
           for (HostStateChangeListener listener : stateListeners) {
             listener.onHostStateChange(ZkHostConfig.this);
           }
-          // reset callback
-          try {
-            setWatch();
-          } catch (Exception e) {
-            LOG.error("Failed to reset watch!", e);
+          if (!cancelled) {
+            // reset callback
+            try {
+              setWatch();
+            } catch (Exception e) {
+              LOG.error("Failed to reset watch!", e);
+            }
           }
       }
     }
@@ -101,6 +106,10 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
         zk.getData(hostPath + STATUS_PATH_SEGMENT, this, new Stat());
       }
     }
+
+    public void cancel() {
+      cancelled = true;
+    }
   }
 
   private final ZooKeeper zk;
@@ -108,6 +117,8 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private final PartDaemonAddress address;
 
   private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
+
+  private StateChangeWatcher stateChangeWatcher;
 
   public ZkHostConfig(ZooKeeper zk, String hostPath) throws KeeperException, InterruptedException {
     super(zk);
@@ -117,7 +128,8 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     String[] toks = hostPath.split("/");
     this.address = PartDaemonAddress.parse(toks[toks.length - 1]);
 
-    new StateChangeWatcher().setWatch();
+    stateChangeWatcher = new StateChangeWatcher();
+    stateChangeWatcher.setWatch();
   }
 
   @Override
@@ -351,5 +363,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     synchronized (stateListeners) {
       stateListeners.remove(listener);
     }
+  }
+
+  public void close() {
+    stateChangeWatcher.cancel();
   }
 }
