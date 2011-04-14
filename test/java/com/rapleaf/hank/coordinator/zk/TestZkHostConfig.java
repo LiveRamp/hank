@@ -41,7 +41,7 @@ public class TestZkHostConfig extends ZkTestCase {
 
     public void waitForNotification() throws Exception {
       synchronized (this) {
-        this.wait(1000);
+        this.wait(2000);
       }
     }
   }
