@@ -46,11 +46,15 @@ import com.rapleaf.hank.coordinator.RingStateChangeListener;
 public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher {
   private static final Logger LOG = Logger.getLogger(ZkRingConfig.class);
 
-  private final class StateChangeWatcher implements Watcher {
-    private final RingStateChangeListener listener;
+  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
+  private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
+  private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
+  private static final String STATUS_PATH_SEGMENT = "/status";
 
-    public StateChangeWatcher(RingStateChangeListener listener) throws KeeperException, InterruptedException {
-      this.listener = listener;
+  private final class StateChangeWatcher implements Watcher {
+    private boolean cancelled = false;
+
+    public StateChangeWatcher() throws KeeperException, InterruptedException {
       register();
     }
 
@@ -62,21 +66,23 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeDataChanged:
-          listener.onRingStateChange(ZkRingConfig.this);
-          try {
-            register();
-          } catch (Exception e) {
-            LOG.error("failed to reregister watch!", e);
+          for (RingStateChangeListener listener : stateChangeListeners) {
+            listener.onRingStateChange(ZkRingConfig.this);
+          }
+          if (!cancelled) {
+            try {
+              register();
+            } catch (Exception e) {
+              LOG.error("failed to reregister watch!", e);
+            }
           }
       }
     }
 
+    public void cancel() {
+      cancelled = true;
+    }
   }
-
-  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
-  private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
-  private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
-  private static final String STATUS_PATH_SEGMENT = "/status";
 
   private final int ringNumber;
   private final RingGroupConfig ringGroupConfig;
@@ -84,6 +90,8 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
   private final Map<PartDaemonAddress, HostConfig> hostConfigs = 
     new HashMap<PartDaemonAddress, HostConfig>();
+  private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
+  private final StateChangeWatcher stateChangeWatcher;
 
   public ZkRingConfig(ZooKeeper zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
     super(zk);
@@ -98,6 +106,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
     // enumerate hosts
     refreshAndRegister();
+    this.stateChangeWatcher = new StateChangeWatcher();
   }
 
   private void refreshHosts(ZooKeeper zk, String ringPath)
@@ -222,11 +231,11 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     }
   }
 
-  public static RingConfig create(ZooKeeper zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
+  public static ZkRingConfig create(ZooKeeper zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT); 
+    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingConfig(zk, ringPath, group);
   }
@@ -282,12 +291,14 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   }
 
   @Override
-  public void setStateChangeListener(RingStateChangeListener listener)
-  throws IOException {
-    try {
-      new StateChangeWatcher(listener);
-    } catch (Exception e) {
-      throw new IOException(e);
+  public void setStateChangeListener(RingStateChangeListener listener) throws IOException {
+    stateChangeListeners.add(listener);
+  }
+
+  public void close() {
+    stateChangeWatcher.cancel();
+    for (HostConfig hostConfig : getHosts()) {
+      ((ZkHostConfig)hostConfig).close();
     }
   }
 }

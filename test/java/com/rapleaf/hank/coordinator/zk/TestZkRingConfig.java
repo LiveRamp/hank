@@ -43,57 +43,57 @@ public class TestZkRingConfig extends ZkTestCase {
 
   private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
 
+  private final String ring_group_root = getRoot() + "/ring-group-one";
   private final String ring_root = getRoot() + "/ring-group-one/ring-1";
 
-  public void testLoadNotUpdating() throws Exception {
-    ZkHostConfig hostConfig = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
-    create(ring_root + "/current_version", "1");
+  public void testCreate() throws Exception {
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
 
-    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
-
-    assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
-    assertFalse("should not be updating", ringConf.isUpdatePending());
-    assertEquals("number of hosts", 1, ringConf.getHosts().size());
-    assertEquals("expected hosts", Collections.singleton(hostConfig), ringConf.getHosts());
+    assertEquals("ring number", 1, ringConf.getRingNumber());
+    assertNull("version number", ringConf.getVersionNumber());
+    assertEquals("updating to version", Integer.valueOf(1), ringConf.getUpdatingToVersionNumber());
+    assertEquals("number of hosts", 0, ringConf.getHosts().size());
+    assertEquals("initial state", RingState.DOWN, ringConf.getState());
+    ringConf.close();
   }
 
-  public void testLoadUpdating() throws Exception {
-    create(ring_root + "/current_version", "1");
-    create(ring_root + "/updating_to_version", "2");
+  public void testLoad() throws Exception {
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
+    ringConf.close();
 
-    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
+    ringConf = new ZkRingConfig(getZk(), ring_group_root + "/ring-1", null);
 
-    assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
-    assertTrue("should be updating", ringConf.isUpdatePending());
-    assertEquals("updating_to_version number", Integer.valueOf(2), ringConf.getUpdatingToVersionNumber());
+    assertEquals("ring number", 1, ringConf.getRingNumber());
+    assertNull("version number", ringConf.getVersionNumber());
+    assertEquals("updating to version", Integer.valueOf(1), ringConf.getUpdatingToVersionNumber());
+    assertEquals("number of hosts", 0, ringConf.getHosts().size());
+    assertEquals("initial state", RingState.DOWN, ringConf.getState());
+    ringConf.close();
   }
 
-  public void testUpdateComplete() throws Exception {
-    create(ring_root + "/current_version", "1");
-    create(ring_root + "/updating_to_version", "2");
+  public void testUpdatingSemantics() throws Exception {
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
 
-    RingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
-
-    assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", Integer.valueOf(1), ringConf.getVersionNumber());
     assertTrue("should be updating", ringConf.isUpdatePending());
-    assertEquals("updating_to_version number", Integer.valueOf(2), ringConf.getUpdatingToVersionNumber());
+    assertNull("current version", ringConf.getVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(1), ringConf.getUpdatingToVersionNumber());
 
     ringConf.updateComplete();
 
-    ringConf = new ZkRingConfig(getZk(), ring_root, null);
+    assertFalse("updating", ringConf.isUpdatePending());
+    assertEquals("current version", Integer.valueOf(1), ringConf.getVersionNumber());
+    assertNull("updating to version", ringConf.getUpdatingToVersionNumber());
 
-    assertEquals("expected ring number", 1, ringConf.getRingNumber());
-    assertEquals("version number", Integer.valueOf(2), ringConf.getVersionNumber());
-    assertFalse("should not be updating", ringConf.isUpdatePending());
+    ringConf.setUpdatingToVersion(7);
+    assertTrue("should be updating", ringConf.isUpdatePending());
+    assertEquals("current version", Integer.valueOf(1), ringConf.getVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(7), ringConf.getUpdatingToVersionNumber());
+
+    ringConf.close();
   }
 
   public void testHosts() throws Exception {
-    create(ring_root + "/current_version", "1");
-
-    ZkRingConfig ringConf = new ZkRingConfig(getZk(), ring_root, null);
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
     assertEquals(0, ringConf.getHosts().size());
 
     HostConfig hc = ringConf.addHost(LOCALHOST);
@@ -101,30 +101,42 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+    ringConf.close();
+
+    // assure that hosts reload well, too
+    ringConf = new ZkRingConfig(getZk(), ring_root, null);
+    assertEquals(1, ringConf.getHosts().size());
+
+    assertEquals(Collections.singleton(hc), ringConf.getHosts());
+
+    assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+    ringConf.close();
   }
 
   public void testCommandAll() throws Exception {
-    create(ring_root + "/current_version", "1");
-    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
+
+    HostConfig hc = ringConf.addHost(LOCALHOST);
     assertNull(hc.getCurrentCommand());
-    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
-    rc.commandAll(HostCommand.SERVE_DATA);
+
+    ringConf.commandAll(HostCommand.SERVE_DATA);
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
+    ringConf.close();
   }
 
   public void testGetOldestVersionOnHosts() throws Exception {
-    create(ring_root + "/current_version", "1");
-    ZkHostConfig hc = ZkHostConfig.create(getZk(), ring_root + "/hosts", LOCALHOST);
+    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
+    HostConfig hc = ringConf.addHost(LOCALHOST);
     HostDomainConfig d = hc.addDomain(0);
     d.addPartition(1, 1).setCurrentDomainGroupVersion(1);
     d = hc.addDomain(1);
     d.addPartition(1, 2).setCurrentDomainGroupVersion(2);
-    ZkRingConfig rc = new ZkRingConfig(getZk(), ring_root, null);
-    assertEquals(Integer.valueOf(1), rc.getOldestVersionOnHosts());
+    assertEquals(Integer.valueOf(1), ringConf.getOldestVersionOnHosts());
+    ringConf.close();
   }
 
   public void testGetHostsForDomainPartition() throws Exception {
-    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
+    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
     PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
     PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
     PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
@@ -141,6 +153,7 @@ public class TestZkRingConfig extends ZkTestCase {
     d.addPartition(0, 1);
 
     assertEquals(new HashSet<HostConfig>(Arrays.asList(hc1, hc3)), rc.getHostsForDomainPartition(1, 0));
+    rc.close();
   }
 
   public void testGetRingState() throws Exception {
@@ -197,7 +210,7 @@ public class TestZkRingConfig extends ZkTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     create(getRoot() + "/ring-group-one");
-    create(ring_root);
-    create(ring_root + "/hosts");
+//    create(ring_root);
+//    create(ring_root + "/hosts");
   }
 }
