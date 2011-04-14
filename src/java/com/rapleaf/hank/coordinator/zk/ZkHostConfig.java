@@ -343,4 +343,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkHostConfig(zk, hostPath);
   }
+
+  @Override
+  public String toString() {
+    return "ZkHostConfig [address=" + address + "]";
+  }
 }
