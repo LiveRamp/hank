@@ -42,7 +42,7 @@ import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(BaseTestCase.class);
 
-  private static final int TICK_TIME = 2000;
+  private static final int TICK_TIME = 100;
   private static final int CONNECTION_TIMEOUT = 30000;
 
   private final String zkRoot;
