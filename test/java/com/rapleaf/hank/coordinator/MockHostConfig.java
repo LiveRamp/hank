@@ -99,4 +99,10 @@ public class MockHostConfig implements HostConfig {
   public void setCommandQueueChangeListener(
       HostCommandQueueChangeListener listener) throws IOException {
   }
+
+  @Override
+  public void cancelStateChangeListener(HostStateChangeListener listener) {
+    // TODO Auto-generated method stub
+    
+  }
 }

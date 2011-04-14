@@ -59,6 +59,12 @@ public interface HostConfig {
   public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
 
   /**
+   * Removes the specified listener.
+   * @param listener
+   */
+  public void cancelStateChangeListener(HostStateChangeListener listener);
+
+  /**
    * Add a command to this host's command queue. Consecutive duplicate commands
    * will be ignored.
    * 

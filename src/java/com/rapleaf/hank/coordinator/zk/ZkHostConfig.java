@@ -43,6 +43,12 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private static final Logger LOG = Logger.getLogger(ZkHostConfig.class);
 
+  private static final String STATUS_PATH_SEGMENT = "/status";
+  private static final String COMPLETE_PATH_SEGMENT = "/.complete";
+  private static final String PARTS_PATH_SEGMENT = "/parts";
+  private static final String COMMAND_QUEUE_PATH_SEGMENT = "/command_queue";
+  private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
+
   private class CommandQueueWatcher implements Watcher {
     private final HostCommandQueueChangeListener listener;
 
@@ -72,25 +78,15 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
   }
 
-  private static final String STATUS_PATH_SEGMENT = "/status";
-  private static final String COMPLETE_PATH_SEGMENT = "/.complete";
-  private static final String PARTS_PATH_SEGMENT = "/parts";
-  private static final String COMMAND_QUEUE_PATH_SEGMENT = "/command_queue";
-  private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
-
   private class StateChangeWatcher implements Watcher {
-    private final HostStateChangeListener listener;
-
-    public StateChangeWatcher(HostStateChangeListener l) {
-      listener = l;
-    }
-
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeCreated:
         case NodeDeleted:
         case NodeDataChanged:
-          listener.onHostStateChange(ZkHostConfig.this);
+          for (HostStateChangeListener listener : stateListeners) {
+            listener.onHostStateChange(ZkHostConfig.this);
+          }
           // reset callback
           try {
             setWatch();
@@ -111,13 +107,17 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private final String hostPath;
   private final PartDaemonAddress address;
 
-  public ZkHostConfig(ZooKeeper zk, String hostPath) {
+  private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
+
+  public ZkHostConfig(ZooKeeper zk, String hostPath) throws KeeperException, InterruptedException {
     super(zk);
     this.zk = zk;
     this.hostPath = hostPath;
 
     String[] toks = hostPath.split("/");
     this.address = PartDaemonAddress.parse(toks[toks.length - 1]);
+
+    new StateChangeWatcher().setWatch();
   }
 
   @Override
@@ -148,13 +148,10 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
   @Override
   public void setStateChangeListener(final HostStateChangeListener listener) throws IOException {
-    try {
-      new StateChangeWatcher(listener).setWatch();
-    } catch (Exception e) {
-      throw new IOException(e);
+    synchronized (stateListeners) {
+      stateListeners.add(listener);
     }
   }
-
 
   @Override
   public int hashCode() {
@@ -347,5 +344,12 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   @Override
   public String toString() {
     return "ZkHostConfig [address=" + address + "]";
+  }
+
+  @Override
+  public void cancelStateChangeListener(HostStateChangeListener listener) {
+    synchronized (stateListeners) {
+      stateListeners.remove(listener);
+    }
   }
 }
