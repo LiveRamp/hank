@@ -66,7 +66,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
           try {
             register();
           } catch (Exception e) {
-            LOG.error("failed to reregister watch!");
+            LOG.error("failed to reregister watch!", e);
           }
       }
     }
