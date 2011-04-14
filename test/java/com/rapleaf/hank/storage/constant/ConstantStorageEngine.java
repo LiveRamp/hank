@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.storage.OutputStreamFactory;
