@@ -109,7 +109,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     this.stateChangeWatcher = new StateChangeWatcher();
   }
 
-  private void refreshHosts(ZooKeeper zk, String ringPath)
+  private void refreshHosts()
       throws InterruptedException, KeeperException {
     List<String> hosts = zk.getChildren(ringPath + "/hosts", false);
     for (String host : hosts) {
@@ -221,7 +221,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
   private void refreshAndRegister() {
     try {
-      refreshHosts(zk, ringPath);
+      refreshHosts();
       zk.getChildren(ringPath + "/hosts", this);
     } catch (InterruptedException e) {
       // eek.
