@@ -98,6 +98,12 @@ public class TestZkRingConfig extends ZkTestCase {
 
     HostConfig hc = ringConf.addHost(LOCALHOST);
     assertEquals(LOCALHOST, hc.getAddress());
+    for (int i = 0; i < 20; i++) {
+      if (!ringConf.getHosts().isEmpty()){
+        break;
+      }
+      Thread.sleep(100);
+    }
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
@@ -177,6 +183,9 @@ public class TestZkRingConfig extends ZkTestCase {
     hc2.setState(HostState.SERVING);
     HostConfig hc3 = rc.addHost(h3);
     hc3.setState(HostState.OFFLINE);
+
+    // wait for watchers to catch up
+    Thread.sleep(2000);
 
     assertEquals(Collections.singleton(hc1), rc.getHostsInState(HostState.IDLE));
     assertEquals(Collections.singleton(hc2), rc.getHostsInState(HostState.SERVING));
