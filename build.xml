@@ -16,7 +16,7 @@
   <property name="lib" location="lib" />
 
   <property name="test.junit.output.format" value="plain"/>
-  <property name="test.timeout" value="2000000"/>
+  <property name="test.timeout" value="300000"/>
   <property name="test.src.dir" location="${basedir}/test/java"/>
   <property name="test.log.dir" value="${build.test}/log"/>
   <property name="test.port" value="9090" />
