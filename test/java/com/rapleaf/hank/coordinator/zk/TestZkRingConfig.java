@@ -184,10 +184,13 @@ public class TestZkRingConfig extends ZkTestCase {
     HostConfig hc3 = rc.addHost(h3);
     hc3.setState(HostState.OFFLINE);
 
+    for (int i = 0; i < 50; i++) {
+      if (rc.getHosts().size() == 3) {
+        break;
+      }
+      Thread.sleep(100);
+    }
     assertEquals(3, rc.getHosts().size());
-
-    // wait for watchers to catch up
-    Thread.sleep(5000);
 
     assertEquals(Collections.singleton(hc1), rc.getHostsInState(HostState.IDLE));
     assertEquals(Collections.singleton(hc2), rc.getHostsInState(HostState.SERVING));
