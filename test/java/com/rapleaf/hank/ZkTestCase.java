@@ -93,7 +93,7 @@ public class ZkTestCase extends BaseTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    Logger.getLogger("org.apache.zookeeper").setLevel(Level.ERROR);
+//    Logger.getLogger("org.apache.zookeeper").setLevel(Level.ERROR);
 
     zkClientPort = setupZkServer();
 
