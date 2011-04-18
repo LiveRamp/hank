@@ -24,6 +24,7 @@ import java.io.Reader;
 import java.net.BindException;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -34,13 +35,14 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 
 public class ZkTestCase extends BaseTestCase {
-  private static final Logger LOG = Logger.getLogger(BaseTestCase.class);
+  private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
 
   private static final int TICK_TIME = 100;
   private static final int CONNECTION_TIMEOUT = 30000;
@@ -97,10 +99,31 @@ public class ZkTestCase extends BaseTestCase {
 
     zkClientPort = setupZkServer();
 
+    final Object lock = new Object();
+    final AtomicBoolean connected = new AtomicBoolean(false);
+
     zk = new ZooKeeper("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
       @Override
-      public void process(WatchedEvent event) {}
+      public void process(WatchedEvent event) {
+        switch (event.getType()) {
+          case None:
+            if (event.getState() == KeeperState.SyncConnected) {
+              connected.set(true);
+              synchronized (lock) {
+                lock.notifyAll();
+              }
+            }
+        }
+        LOG.debug(event.toString());
+      }
     });
+
+    synchronized (lock) {
+      lock.wait(2000);
+    }
+    if (!connected.get()) {
+      fail("timed out waiting for the zk client connection to come online!");
+    }
 
     deleteNodeRecursively(zkRoot);
     createNodeRecursively(zkRoot);
@@ -174,16 +197,19 @@ public class ZkTestCase extends BaseTestCase {
 
   public void shutdownZk() throws Exception {
     if (!startedZk) {
+      LOG.debug("No ZK instance to shut down, since we didn't start one!");
       return;
     }
 
     zk.close();
     zk = null;
 
+    LOG.debug("Shutting down ZK server...");
     standaloneServerFactory.shutdown();
     if (!waitForServerDown(zkClientPort, CONNECTION_TIMEOUT)) {
       throw new IOException("Waiting for shutdown of standalone server");
     }
+    LOG.debug("ZK server halted.");
 
     startedZk = false;
   }
@@ -262,17 +288,13 @@ public class ZkTestCase extends BaseTestCase {
   }
 
   protected void deleteNodeRecursively(String path) throws Exception {
-    try {
-      zk.delete(path, -1);
-    } catch (KeeperException.NotEmptyException e) {
-      List<String> children = zk.getChildren(path, null);
-      for (String child : children) {
-        deleteNodeRecursively(path + "/" + child);
-      }
-      zk.delete(path, -1);
-    } catch (KeeperException.NoNodeException e) {
-      // Silently return if the node has already been deleted.
+    if (zk.exists(path, null) == null) {
       return;
     }
+    List<String> children = zk.getChildren(path, null);
+    for (String child : children) {
+      deleteNodeRecursively(path + "/" + child);
+    }
+    zk.delete(path, -1);
   }
 }
