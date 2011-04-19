@@ -184,7 +184,7 @@ public class TestZkRingConfig extends ZkTestCase {
     HostConfig hc3 = rc.addHost(h3);
     hc3.setState(HostState.OFFLINE);
 
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 300; i++) {
       if (rc.getHosts().size() == 3) {
         break;
       }
