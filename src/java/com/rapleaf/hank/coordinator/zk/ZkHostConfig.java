@@ -30,6 +30,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.Watcher.Event.EventType;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -88,10 +89,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     private boolean cancelled = false;
 
     public void process(WatchedEvent event) {
-      switch (event.getState()) {
-        case Disconnected:
-        case Expired:
-          return;
+      if (event.getState() != KeeperState.SyncConnected) {
+        LOG.trace("Apparent disconnection! Not triggering listeners and not reregistering watch.");
+        return;
       }
       switch (event.getType()) {
         case NodeCreated:
