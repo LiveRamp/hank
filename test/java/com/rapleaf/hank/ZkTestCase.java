@@ -89,7 +89,7 @@ public class ZkTestCase extends BaseTestCase {
         break;
       }
       standaloneServerFactory.startup(server);
-  
+
       if (!waitForServerUp(clientPort, CONNECTION_TIMEOUT)) {
         throw new IOException("Waiting for startup of standalone server");
       }

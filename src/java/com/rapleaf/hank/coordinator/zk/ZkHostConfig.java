@@ -59,6 +59,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
 
     public void process(WatchedEvent event) {
+      LOG.trace(event);
       // connect/disconnect message
       if (event.getType() == EventType.None) {
         return;

@@ -41,10 +41,16 @@ public class TestZkHostConfig extends ZkTestCase {
 
     public void waitForNotification() throws Exception {
       synchronized (this) {
+        if (calledWith != null) {
+          return;
+        }
         long start = System.currentTimeMillis();
-        this.wait(2000);
+        this.wait(WAIT_TIME);
         long end = System.currentTimeMillis();
-        if (end-start > 2000) {
+        if (calledWith != null) {
+          return;
+        }
+        if (end-start > WAIT_TIME) {
           fail("timed out waiting for notification!");
         }
       }
