@@ -189,7 +189,7 @@ public class TestZkHostConfig extends ZkTestCase {
     l2.calledWith = null;
 
     c.processNextCommand();
-    l2.waitForNotification(false);
+    l2.waitForNotification(true);
     assertNull(l1.calledWith);
     assertNull(l2.calledWith);
   }
