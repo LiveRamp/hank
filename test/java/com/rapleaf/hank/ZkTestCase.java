@@ -249,7 +249,6 @@ public class ZkTestCase extends BaseTestCase {
     for (String child : children) {
       deleteNodeRecursively(path + "/" + child);
     }
-    LOG.debug("deleting " + path);
     zk.delete(path, -1);
   }
 
