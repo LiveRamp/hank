@@ -22,6 +22,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.net.BindException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -37,6 +38,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
@@ -44,52 +46,55 @@ import org.apache.zookeeper.server.NIOServerCnxn.Factory;
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
 
-  private static final int TICK_TIME = 100;
+  private static final int TICK_TIME = 2000;
   private static final int CONNECTION_TIMEOUT = 30000;
+
+  protected static final int WAIT_TIME = 10000;
+
+  private final static String zkDir = System.getProperty("zk_dir", "/tmp/zk_in_tests");
+  private static Factory standaloneServerFactory;
+  private static ZooKeeperServer server;
+  private static int zkClientPort;
 
   private final String zkRoot;
   private ZooKeeper zk;
-
-  private final String zkDir = System.getProperty("zk_dir", "/tmp/zk_in_tests");
-  private Factory standaloneServerFactory;
-
-  private int zkClientPort;
-
-  private boolean startedZk = false;
 
   public ZkTestCase() {
     super();
     zkRoot = "/" + getClass().getSimpleName();
   }
 
-  private int setupZkServer() throws Exception {
-    File zkDirFile = new File(zkDir);
-    FileUtils.deleteDirectory(zkDirFile);
-    zkDirFile.mkdirs();
+  public static void setupZkServer() throws Exception {
+    if (server == null) {
+      LOG.debug("deleting zk data dir (" + zkDir +")");
+      File zkDirFile = new File(zkDir);
+      FileUtils.deleteDirectory(zkDirFile);
+      zkDirFile.mkdirs();
 
-    ZooKeeperServer server = new ZooKeeperServer(zkDirFile, zkDirFile, TICK_TIME);
+      server = new ZooKeeperServer(zkDirFile, zkDirFile, TICK_TIME);
 
-    int clientPort = 2000;
-    while (true) {
-      try {
-        standaloneServerFactory =
-          new NIOServerCnxn.Factory(clientPort);
-      } catch (BindException e) {
-        LOG.trace("Failed binding ZK Server to client port: " + clientPort);
-        //this port is already in use. try to use another
-        clientPort++;
-        continue;
+      int clientPort = 2000;
+      while (true) {
+        LOG.debug("Trying to bind server to port " + clientPort);
+        try {
+          standaloneServerFactory =
+            new NIOServerCnxn.Factory(new InetSocketAddress(clientPort));
+        } catch (BindException e) {
+          LOG.trace("Failed binding ZK Server to client port: " + clientPort);
+          //this port is already in use. try to use another
+          clientPort++;
+          continue;
+        }
+        LOG.debug("Succeeded in binding ZK Server to client port " + clientPort);
+        break;
       }
-      LOG.trace("Succeeded in binding ZK Server to client port " + clientPort);
-      break;
+      standaloneServerFactory.startup(server);
+  
+      if (!waitForServerUp(clientPort, CONNECTION_TIMEOUT)) {
+        throw new IOException("Waiting for startup of standalone server");
+      }
+      zkClientPort = clientPort;
     }
-    standaloneServerFactory.startup(server);
-
-    if (!waitForServerUp(clientPort, CONNECTION_TIMEOUT)) {
-      throw new IOException("Waiting for startup of standalone server");
-    }
-    startedZk = true;
-    return clientPort;
   }
 
   @Override
@@ -97,7 +102,7 @@ public class ZkTestCase extends BaseTestCase {
     super.setUp();
     Logger.getLogger("org.apache.zookeeper").setLevel(Level.INFO);
 
-    zkClientPort = setupZkServer();
+    setupZkServer();
 
     final Object lock = new Object();
     final AtomicBoolean connected = new AtomicBoolean(false);
@@ -124,6 +129,7 @@ public class ZkTestCase extends BaseTestCase {
     if (!connected.get()) {
       fail("timed out waiting for the zk client connection to come online!");
     }
+    LOG.debug("session timeout: " + zk.getSessionTimeout());
 
     deleteNodeRecursively(zkRoot);
     createNodeRecursively(zkRoot);
@@ -177,70 +183,18 @@ public class ZkTestCase extends BaseTestCase {
     return zk;
   }
 
-  protected void create(String path) throws Exception {
-    create(path, (byte[]) null);
-  }
-
-  protected void create(String path, String data) throws Exception {
-    create(path, data.getBytes());
-  }
-
-  protected void create(String path, byte[] data) throws Exception {
-    getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-  }
-
   @Override
   protected void tearDown() throws Exception {
+    LOG.debug("teardown called");
     super.tearDown();
     shutdownZk();
   }
 
   public void shutdownZk() throws Exception {
-    if (!startedZk) {
-      LOG.debug("No ZK instance to shut down, since we didn't start one!");
-      return;
+    if (zk != null && zk.getState() == States.CONNECTED) {
+      zk.close();
     }
-
-    zk.close();
     zk = null;
-
-    LOG.debug("Shutting down ZK server...");
-    standaloneServerFactory.shutdown();
-    if (!waitForServerDown(zkClientPort, CONNECTION_TIMEOUT)) {
-      throw new IOException("Waiting for shutdown of standalone server");
-    }
-    LOG.debug("ZK server halted.");
-
-    startedZk = false;
-  }
-
-  // From o.a.zk.t.ClientBase
-  private boolean waitForServerDown(int port, long timeout) {
-    long start = System.currentTimeMillis();
-    while (true) {
-      try {
-        Socket sock = new Socket("localhost", port);
-        try {
-          OutputStream outstream = sock.getOutputStream();
-          outstream.write("stat".getBytes());
-          outstream.flush();
-        } finally {
-          sock.close();
-        }
-      } catch (IOException e) {
-        return true;
-      }
-
-      if (System.currentTimeMillis() > start + timeout) {
-        break;
-      }
-      try {
-        Thread.sleep(250);
-      } catch (InterruptedException e) {
-        // ignore
-      }
-    }
-    return false;
   }
 
   public int getZkClientPort() {
@@ -295,6 +249,19 @@ public class ZkTestCase extends BaseTestCase {
     for (String child : children) {
       deleteNodeRecursively(path + "/" + child);
     }
+    LOG.debug("deleting " + path);
     zk.delete(path, -1);
+  }
+
+  protected void create(String path) throws Exception {
+    create(path, (byte[]) null);
+  }
+
+  protected void create(String path, String data) throws Exception {
+    create(path, data.getBytes());
+  }
+
+  protected void create(String path, byte[] data) throws Exception {
+    getZk().create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 }
