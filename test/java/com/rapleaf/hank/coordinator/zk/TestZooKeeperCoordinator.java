@@ -71,7 +71,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
     c = coord2.getDomainGroupConfig("myDomainGroup2");
-    assertNotNull(c);
+    assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
   }
@@ -92,12 +92,15 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     super.setUp();
 
     create(domains_root);
-    ZkDomainConfig.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
     create(domain_groups_root);
+    create(ring_groups_root);
+
+    ZkDomainConfig.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
+
     ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(getZk(), domain_groups_root, "myDomainGroup");
     Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
     dgc.createNewVersion(domainIdToVersion);
-    create(ring_groups_root);
+
     ZkRingGroupConfig rg = ZkRingGroupConfig.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
     RingConfig rc = rg.addRing(1);
     rc.addHost(new PartDaemonAddress("localhost", 1));
