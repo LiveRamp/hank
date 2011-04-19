@@ -85,10 +85,14 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   private class StateChangeWatcher implements Watcher {
-    private boolean cancelled = false
-    ;
+    private boolean cancelled = false;
 
     public void process(WatchedEvent event) {
+      switch (event.getState()) {
+        case Disconnected:
+        case Expired:
+          return;
+      }
       switch (event.getType()) {
         case NodeCreated:
         case NodeDeleted:
