@@ -40,6 +40,10 @@ public class TestZkHostConfig extends ZkTestCase {
     }
 
     public void waitForNotification() throws Exception {
+      waitForNotification(false);
+    }
+
+    public void waitForNotification(boolean timeoutOk) throws Exception {
       synchronized (this) {
         if (calledWith != null) {
           return;
@@ -50,7 +54,7 @@ public class TestZkHostConfig extends ZkTestCase {
         if (calledWith != null) {
           return;
         }
-        if (end-start > WAIT_TIME) {
+        if (!timeoutOk && end-start > WAIT_TIME) {
           fail("timed out waiting for notification!");
         }
       }
@@ -185,7 +189,7 @@ public class TestZkHostConfig extends ZkTestCase {
     l2.calledWith = null;
 
     c.processNextCommand();
-    l2.waitForNotification();
+    l2.waitForNotification(false);
     assertNull(l1.calledWith);
     assertNull(l2.calledWith);
   }
