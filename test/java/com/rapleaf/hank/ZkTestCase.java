@@ -100,7 +100,7 @@ public class ZkTestCase extends BaseTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    Logger.getLogger("org.apache.zookeeper").setLevel(Level.INFO);
+    Logger.getLogger("org.apache.zookeeper").setLevel(Level.WARN);
 
     setupZkServer();
 

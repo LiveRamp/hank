@@ -109,9 +109,10 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     this.stateChangeWatcher = new StateChangeWatcher();
   }
 
-  private void refreshHosts()
+  private synchronized void refreshHosts()
       throws InterruptedException, KeeperException {
     List<String> hosts = zk.getChildren(ringPath + "/hosts", false);
+    LOG.trace("Refreshing hosts with host strings: " + hosts);
     for (String host : hosts) {
       HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
       hostConfigs.put(hostConf.getAddress(), hostConf);
