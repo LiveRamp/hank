@@ -29,6 +29,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException.Code;
+import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -58,6 +59,10 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
 
     public void process(WatchedEvent event) {
+      // connect/disconnect message
+      if (event.getType() == EventType.None) {
+        return;
+      }
       switch (event.getType()) {
         case NodeCreated:
         case NodeDeleted:
