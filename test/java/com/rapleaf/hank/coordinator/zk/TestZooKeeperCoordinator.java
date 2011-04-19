@@ -70,7 +70,14 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
-    c = coord2.getDomainGroupConfig("myDomainGroup2");
+    for (int i = 0; i < 300; i++) {
+      c = coord2.getDomainGroupConfig("myDomainGroup2");
+      if (c != null) {
+        break;
+      }
+      Thread.sleep(100);
+    }
+
     assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
