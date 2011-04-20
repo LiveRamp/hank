@@ -50,15 +50,13 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
-  private static int maxInstanceNumber = 0;
   private final class WatchForNewDomainGroups implements ZooKeeperWatcher {
-    private final int instanceNumber = maxInstanceNumber++;
     private boolean cancelled = false;
 
     @Override
     public void register() {
       try {
-        LOG.debug("Registering watch on " + domainGroupsRoot + " (instance number " + instanceNumber + ")");
+        LOG.debug("Registering watch on " + domainGroupsRoot);
         zk.getChildren(domainGroupsRoot, this);
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -70,11 +68,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       if (cancelled) {
         return;
       }
-      LOG.debug(getClass().getSimpleName() + " instance " + instanceNumber + " received notification! " + event);
-      if (zk.getState() != States.CONNECTED) {
-        LOG.debug("ZK client isn't connected, so we're assuming we're toast and not triggering the reload or resetting the watch.");
-        return;
-      }
+      LOG.debug(getClass().getSimpleName() + " received notification! " + event);
       switch (event.getType()) {
         case NodeChildrenChanged:
           // reload domain groups
