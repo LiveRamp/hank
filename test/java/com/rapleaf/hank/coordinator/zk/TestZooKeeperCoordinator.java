@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -60,7 +59,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddDomainGroup() throws Exception {
     // keep a second coordinator aside
-    Coordinator coord2 = getCoord();
+    ZooKeeperCoordinator coord2 = getCoord();
     coord.addDomainGroup("myDomainGroup2");
 
     DomainGroupConfig c = coord.getDomainGroupConfig("myDomainGroup2");
@@ -81,6 +80,8 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
+
+    coord2.close();
   }
 
   public void testAddRingGroup() throws Exception {
@@ -117,5 +118,12 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   private ZooKeeperCoordinator getCoord() throws Exception {
     return new ZooKeeperCoordinator(getZkConnectString(), 100000000, domains_root, domain_groups_root, ring_groups_root);
+  }
+
+  @Override
+  protected void tearDown() throws Exception {
+    coord.close();
+
+    super.tearDown();
   }
 }

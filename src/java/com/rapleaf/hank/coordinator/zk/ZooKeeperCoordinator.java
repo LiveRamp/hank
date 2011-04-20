@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper.States;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
@@ -49,11 +50,15 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+  private static int maxInstanceNumber = 0;
   private final class WatchForNewDomainGroups implements ZooKeeperWatcher {
+    private final int instanceNumber = maxInstanceNumber++;
+    private boolean cancelled = false;
+
     @Override
     public void register() {
       try {
-        LOG.debug("Registering watch on " + domainGroupsRoot);
+        LOG.debug("Registering watch on " + domainGroupsRoot + " (instance number " + instanceNumber + ")");
         zk.getChildren(domainGroupsRoot, this);
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -62,7 +67,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     @Override
     public void process(WatchedEvent event) {
-      LOG.debug(getClass().getSimpleName() + " received notification!");
+      if (cancelled) {
+        return;
+      }
+      LOG.debug(getClass().getSimpleName() + " instance " + instanceNumber + " received notification! " + event);
+      if (zk.getState() != States.CONNECTED) {
+        LOG.debug("ZK client isn't connected, so we're assuming we're toast and not triggering the reload or resetting the watch.");
+        return;
+      }
       switch (event.getType()) {
         case NodeChildrenChanged:
           // reload domain groups
@@ -76,6 +88,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         default:
           LOG.debug("Skipped message with event type: " + event.getType());
       }
+    }
+
+    public void cancel() {
+      cancelled = true;
     }
   }
 
@@ -113,6 +129,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private final String domainsRoot;
   private final String domainGroupsRoot;
   private final String ringGroupsRoot;
+  private WatchForNewDomainGroups watchForNewDomainGroups;
 
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
@@ -145,7 +162,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     loadAllDomains();
     loadAllDomainGroups();
     loadAllRingGroups();
-    WatchForNewDomainGroups watchForNewDomainGroups = new WatchForNewDomainGroups();
+    watchForNewDomainGroups = new WatchForNewDomainGroups();
     watchForNewDomainGroups.register();
     myWatchers.add(watchForNewDomainGroups);
   }
@@ -323,6 +340,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       return rg;
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  public void close() {
+    watchForNewDomainGroups.cancel();
+    try {
+      zk.close();
+    } catch (InterruptedException e) {
+      // TODO: uh oh!
+      LOG.warn("Interrupted while trying to close ZK connection!", e);
     }
   }
 }
