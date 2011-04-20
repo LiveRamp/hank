@@ -32,6 +32,7 @@ import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostCommand;
@@ -100,7 +101,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
           for (HostStateChangeListener listener : stateListeners) {
             listener.onHostStateChange(ZkHostConfig.this);
           }
-          if (!cancelled) {
+          if (!cancelled && zk.getState() == States.CONNECTED) {
             // reset callback
             try {
               setWatch();

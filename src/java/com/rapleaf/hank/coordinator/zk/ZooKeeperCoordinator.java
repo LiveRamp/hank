@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper.States;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
