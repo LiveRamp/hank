@@ -88,6 +88,26 @@
     <fail if="tests.failed">Tests failed!</fail>
   </target>
 
+  <target name="integration-test" depends="compile-test" description="Run the integration test suite">
+    <mkdir dir="${test.log.dir}"/>
+    <junit
+      printsummary="yes" showoutput="${test.output}" 
+      haltonfailure="no" fork="yes" maxmemory="512m"
+      errorProperty="tests.failed" failureProperty="tests.failed"
+      timeout="${test.timeout}"
+    >
+      <sysproperty key="build.test" value="${build.test}"/>
+      <sysproperty key="test.port" value="${test.port}" />
+      <classpath refid="test.classpath"/>
+      <formatter type="${test.junit.output.format}" />
+      <batchtest todir="${test.log.dir}" unless="testcase">
+        <fileset dir="${test.src.dir}" includes="**/IntegrationTest*.java" />
+      </batchtest>
+    </junit>
+    <fail if="tests.failed">Tests failed!</fail>
+  </target>
+
+
   <target name="debug-test" if="testcase" description="Run a single unit test specified via '-Dtestcase [testcase]', pausing for an external debugger to connect">
     <fileset id="selected.test.case" dir="${test.src.dir}" includes="**/${testcase}.java" />
     <pathconvert refid="selected.test.case" property="testcase.exists" setonempty="false" />
