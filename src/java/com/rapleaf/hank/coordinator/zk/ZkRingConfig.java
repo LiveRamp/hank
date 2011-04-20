@@ -29,8 +29,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -65,17 +65,17 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
     @Override
     public void process(WatchedEvent event) {
       switch (event.getType()) {
-        case NodeDataChanged:
-          for (RingStateChangeListener listener : stateChangeListeners) {
-            listener.onRingStateChange(ZkRingConfig.this);
+      case NodeDataChanged:
+        for (RingStateChangeListener listener : stateChangeListeners) {
+          listener.onRingStateChange(ZkRingConfig.this);
+        }
+        if (!cancelled) {
+          try {
+            register();
+          } catch (Exception e) {
+            LOG.error("failed to reregister watch!", e);
           }
-          if (!cancelled) {
-            try {
-              register();
-            } catch (Exception e) {
-              LOG.error("failed to reregister watch!", e);
-            }
-          }
+        }
       }
     }
 
@@ -88,7 +88,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   private final RingGroupConfig ringGroupConfig;
   private final String ringPath;
 
-  private final Map<PartDaemonAddress, HostConfig> hostConfigs = 
+  private final Map<PartDaemonAddress, HostConfig> hostConfigs =
     new HashMap<PartDaemonAddress, HostConfig>();
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
@@ -110,7 +110,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   }
 
   private synchronized void refreshHosts()
-      throws InterruptedException, KeeperException {
+  throws InterruptedException, KeeperException {
     List<String> hosts = zk.getChildren(ringPath + "/hosts", false);
     LOG.trace("Refreshing hosts with host strings: " + hosts);
     for (String host : hosts) {
@@ -214,9 +214,10 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
   @Override
   public void process(WatchedEvent event) {
+    LOG.debug(event);
     switch (event.getType()) {
-      case NodeChildrenChanged:
-        refreshAndRegister();
+    case NodeChildrenChanged:
+      refreshAndRegister();
     }
   }
 
