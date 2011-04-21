@@ -62,22 +62,24 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
     public void process(WatchedEvent event) {
       LOG.trace(event);
-      // connect/disconnect message
-      if (event.getType() == EventType.None) {
-        return;
-      }
-      switch (event.getType()) {
-        case NodeCreated:
-        case NodeDeleted:
-        case NodeDataChanged:
-        case NodeChildrenChanged:
-          listener.onCommandQueueChange(ZkHostConfig.this);
+      synchronized (this) {
+        // connect/disconnect message
+        if (event.getType() == EventType.None) {
+          return;
+        }
+        try {
           // reset callback
-          try {
-            setWatch();
-          } catch (Exception e) {
-            LOG.error("Failed to reset watch!", e);
-          }
+          setWatch();
+        } catch (Exception e) {
+          LOG.error("Failed to reset watch!", e);
+        }
+        switch (event.getType()) {
+          case NodeCreated:
+          case NodeDeleted:
+          case NodeDataChanged:
+          case NodeChildrenChanged:
+            listener.onCommandQueueChange(ZkHostConfig.this);
+        }
       }
     }
 
