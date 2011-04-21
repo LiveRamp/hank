@@ -26,12 +26,9 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException.Code;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostCommand;
@@ -77,26 +74,13 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
   }
 
-  private class StateChangeWatcher implements Watcher {
-    private boolean cancelled = false;
-
+  private class StateChangeWatcher extends HankWatcher {
     public StateChangeWatcher() throws KeeperException, InterruptedException {
-      setWatch();
+      super();
     }
 
-    public void process(WatchedEvent event) {
-      if (event.getState() != KeeperState.SyncConnected) {
-        LOG.trace("Apparent disconnection! Not triggering listeners and not reregistering watch.");
-        return;
-      }
-      if (!cancelled && zk.getState() == States.CONNECTED) {
-        // reset callback
-        try {
-          setWatch();
-        } catch (Exception e) {
-          LOG.error("Failed to reset watch!", e);
-        }
-      }
+    @Override
+    public void realProcess(WatchedEvent event) {
       switch (event.getType()) {
         case NodeCreated:
         case NodeDeleted:
@@ -107,14 +91,11 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
       }
     }
 
-    private void setWatch() throws KeeperException, InterruptedException {
+    @Override
+    public void setWatch() throws KeeperException, InterruptedException {
       if (zk.exists(hostPath + STATUS_PATH_SEGMENT, this) != null) {
         zk.getData(hostPath + STATUS_PATH_SEGMENT, this, new Stat());
       }
-    }
-
-    public void cancel() {
-      cancelled = true;
     }
   }
 
