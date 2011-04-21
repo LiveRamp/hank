@@ -220,6 +220,11 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(rc, mockListener.calledWith);
   }
 
+  // TODO
+//  public void testListenersPreservedWhenHostAdded() throws Exception {
+//    fail("test not implemented");
+//  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
