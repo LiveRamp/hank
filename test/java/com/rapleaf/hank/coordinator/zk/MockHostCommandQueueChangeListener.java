@@ -26,12 +26,12 @@ final class MockHostCommandQueueChangeListener implements HostCommandQueueChange
         return;
       }
       long start = System.currentTimeMillis();
-      this.wait(30000);
+      this.wait(15000);
       long end = System.currentTimeMillis();
       if (calledWith != null) {
         return;
       }
-      if (!timeoutOk && end-start > 30000) {
+      if (!timeoutOk && end-start > 15000) {
         TestZkHostConfig.fail("timed out waiting for notification!");
       }
     }
