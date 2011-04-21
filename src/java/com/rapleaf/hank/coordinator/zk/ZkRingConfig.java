@@ -216,15 +216,17 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   public void process(WatchedEvent event) {
     LOG.debug(event);
     switch (event.getType()) {
-    case NodeChildrenChanged:
-      refreshAndRegister();
+      case NodeChildrenChanged:
+        refreshAndRegister();
     }
   }
 
   private void refreshAndRegister() {
     try {
       refreshHosts();
+      LOG.trace("setting watch on " + ringPath + "/hosts...");
       zk.getChildren(ringPath + "/hosts", this);
+      LOG.trace("watch on " + ringPath + "/hosts set successfully");
     } catch (InterruptedException e) {
       // eek.
       LOG.error("Interrupted while trying to refesh hosts!", e);
