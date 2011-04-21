@@ -111,11 +111,19 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
 
   private synchronized void refreshHosts()
   throws InterruptedException, KeeperException {
+    // get the children and simultaneously reset the watch. this is important so
+    // we don't miss events.
     List<String> hosts = zk.getChildren(ringPath + "/hosts", this);
-    LOG.trace("Refreshing hosts with host strings: " + hosts);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Refreshing hosts with host strings: " + hosts);
+    }
     for (String host : hosts) {
-      HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
-      hostConfigs.put(hostConf.getAddress(), hostConf);
+      // only replace the HostConfig if we don't already have an instance.
+      // (otherwise we'll destroy their watches unnecessarily!)
+      if (!hostConfigs.containsKey(PartDaemonAddress.parse(host))) {
+        HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
+        hostConfigs.put(hostConf.getAddress(), hostConf);
+      }
     }
   }
 
@@ -224,9 +232,6 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   private void refreshAndRegister() {
     try {
       refreshHosts();
-//      LOG.trace("setting watch on " + ringPath + "/hosts...");
-//      zk.getChildren(ringPath + "/hosts", this);
-//      LOG.trace("watch on " + ringPath + "/hosts set successfully");
     } catch (InterruptedException e) {
       // eek.
       LOG.error("Interrupted while trying to refesh hosts!", e);

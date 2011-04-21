@@ -21,57 +21,11 @@ import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class TestZkHostConfig extends ZkTestCase {
-  private final class MockHostCommandQueueChangeListener implements HostCommandQueueChangeListener {
-    public HostConfig calledWith;
-    @Override
-    public void onCommandQueueChange(HostConfig hostConfig) {
-      calledWith = hostConfig;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-
-    public void waitForNotification() throws Exception {
-      waitForNotification(false);
-    }
-
-    public void waitForNotification(boolean timeoutOk) throws Exception {
-      synchronized (this) {
-        if (calledWith != null) {
-          return;
-        }
-        long start = System.currentTimeMillis();
-        this.wait(WAIT_TIME);
-        long end = System.currentTimeMillis();
-        if (calledWith != null) {
-          return;
-        }
-        if (!timeoutOk && end-start > WAIT_TIME) {
-          fail("timed out waiting for notification!");
-        }
-      }
-    }
-  }
-
-  private static final class MockHostStateChangeListener implements HostStateChangeListener {
-    private HostConfig calledWith;
-    @Override
-    public void onHostStateChange(HostConfig hostConfig) {
-      calledWith = hostConfig;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-  }
-
   private static final PartDaemonAddress ADDRESS = new PartDaemonAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {

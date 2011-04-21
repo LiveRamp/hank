@@ -220,16 +220,30 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(rc, mockListener.calledWith);
   }
 
-  // TODO
-//  public void testListenersPreservedWhenHostAdded() throws Exception {
-//    fail("test not implemented");
-//  }
+  public void testListenersPreservedWhenHostAdded() throws Exception {
+    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot() + "/ring-group-one", 1, null, 10);
+    HostConfig h1 = rc.addHost(new PartDaemonAddress("localhost", 1));
+    MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
+    h1.setCommandQueueChangeListener(l1);
+    MockHostStateChangeListener l2 = new MockHostStateChangeListener();
+    h1.setStateChangeListener(l2);
+
+    rc.addHost(new PartDaemonAddress("localhost", 2));
+
+    h1.setState(HostState.UPDATING);
+    synchronized (l2) {
+      l2.wait(WAIT_TIME);
+    }
+    assertEquals(h1, l2.calledWith);
+
+    h1.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    l1.waitForNotification();
+    assertEquals(h1, l1.calledWith);
+  }
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     create(getRoot() + "/ring-group-one");
-//    create(ring_root);
-//    create(ring_root + "/hosts");
   }
 }
