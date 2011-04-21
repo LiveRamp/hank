@@ -29,7 +29,6 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException.Code;
-import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper.States;
@@ -52,43 +51,29 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private static final String COMMAND_QUEUE_PATH_SEGMENT = "/command_queue";
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
 
-  private class CommandQueueWatcher implements Watcher {
-    private boolean cancelled = false;
-
-    public CommandQueueWatcher() throws KeeperException, InterruptedException {
-      setWatch();
+  private class CommandQueueWatcher extends HankWatcher {
+    protected CommandQueueWatcher()
+        throws KeeperException, InterruptedException {
+      super();
     }
 
-    public void process(WatchedEvent event) {
+    @Override
+    public void realProcess(WatchedEvent event) {
       LOG.trace(event);
-      synchronized (this) {
-        if (cancelled || event.getType() == EventType.None) {
-          return;
-        }
-        // reset watch immediately
-        try {
-          setWatch();
-        } catch (Exception e) {
-          LOG.error("Failed to reset watch!", e);
-        }
-        switch (event.getType()) {
-          case NodeCreated:
-          case NodeDeleted:
-          case NodeDataChanged:
-          case NodeChildrenChanged:
-            for (HostCommandQueueChangeListener listener : commandQueueListeners) {
-              listener.onCommandQueueChange(ZkHostConfig.this);
-            }
-        }
+      switch (event.getType()) {
+        case NodeCreated:
+        case NodeDeleted:
+        case NodeDataChanged:
+        case NodeChildrenChanged:
+          for (HostCommandQueueChangeListener listener : commandQueueListeners) {
+            listener.onCommandQueueChange(ZkHostConfig.this);
+          }
       }
     }
 
-    private void setWatch() throws KeeperException, InterruptedException {
+    @Override
+    public void setWatch() throws KeeperException, InterruptedException {
       zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, this);
-    }
-
-    public void cancel() {
-      cancelled = true;
     }
   }
 
