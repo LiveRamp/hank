@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.thrift.TException;
 
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 
 public class PartDaemonConnectionSet {
@@ -49,6 +50,6 @@ public class PartDaemonConnectionSet {
         clientBundle.unlock();
       }
     }
-    return HankResponse.zero_replicas(true);
+    return HankResponse.xception(HankExceptions.zero_replicas(true));
   }
 }

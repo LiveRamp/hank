@@ -45,6 +45,7 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.MapPartitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -135,9 +136,9 @@ public class TestHandler extends BaseTestCase {
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
 
-    assertEquals(HankResponse.wrong_host(true), handler.get((byte) 0, K2));
-    assertEquals(HankResponse.wrong_host(true), handler.get((byte) 0, K3));
-    assertEquals(HankResponse.wrong_host(true), handler.get((byte) 0, K4));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K2));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K3));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K4));
   }
 
   private static ByteBuffer bb(int i) {

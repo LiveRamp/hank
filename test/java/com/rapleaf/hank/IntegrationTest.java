@@ -55,6 +55,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.data_deployer.DataDeployer;
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.generated.HankResponse._Fields;
@@ -390,7 +391,7 @@ public class IntegrationTest extends ZkTestCase {
 
     assertEquals(HankResponse.not_found(true), dumbClient.get("domain1", bb(99)));
 
-    assertEquals(HankResponse.no_such_domain(true), dumbClient.get("domain2", bb(1)));
+    assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
     // push a new version of one of the domains
     Map<ByteBuffer, ByteBuffer> domain1Delta = new HashMap<ByteBuffer, ByteBuffer>();
@@ -439,7 +440,7 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain1", bb(1)));
     assertEquals(HankResponse.value(bb(5,5)), dumbClient.get("domain1", bb(5)));
 
-    assertEquals(HankResponse.no_such_domain(true), dumbClient.get("domain2", bb(1)));
+    assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
     // take down one of the nodes in one of the rings "unexpectedly"
     stopDaemons(new PartDaemonAddress("localhost", 50000));
@@ -459,7 +460,7 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.value(bb(4,4)), dumbClient.get("domain1", bb(1)));
     assertEquals(HankResponse.value(bb(5,5)), dumbClient.get("domain1", bb(5)));
 
-    assertEquals(HankResponse.no_such_domain(true), dumbClient.get("domain2", bb(1)));
+    assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
     // shut it all down
     stopDataDeployer();

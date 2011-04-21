@@ -56,6 +56,7 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.partitioner.MapPartitioner;
@@ -209,7 +210,7 @@ public class TestHankSmartClient extends BaseTestCase {
     try {
       HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup");
 
-      assertEquals(HankResponse.no_such_domain(true), c.get("nonexistent_domain", null));
+      assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), c.get("nonexistent_domain", null));
 
       assertEquals(HankResponse.value(VALUE_1), c.get("existent_domain", KEY_1));
       assertEquals(HankResponse.value(VALUE_2), c.get("existent_domain", KEY_2));

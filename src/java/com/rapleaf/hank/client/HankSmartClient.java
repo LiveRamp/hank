@@ -38,6 +38,7 @@ import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
@@ -133,20 +134,22 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       DomainConfig domainConfig = domainGroup.getDomainConfig(domainId);
       partition = domainConfig.getPartitioner().partition(key) % domainConfig.getNumParts();
     } catch (DataNotFoundException e) {
-      return HankResponse.no_such_domain(true);
+      return HankResponse.xception(HankExceptions.no_such_domain(true));
     }
 
     Map<Integer, PartDaemonConnectionSet> domainMap = domainPartToHost.get(domainId);
     if (domainMap == null) {
-      LOG.error(String.format("Got a null domain->part map for domain %s (%d)!", domain_name, domainId));
-      return HankResponse.internal_error(true);
+      String errMsg = String.format("Got a null domain->part map for domain %s (%d)!", domain_name, domainId);
+      LOG.error(errMsg);
+      return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
 
     PartDaemonConnectionSet hpc = domainMap.get(partition);
     if (hpc == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      LOG.error(String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domain_name, domainId, partition));
-      return HankResponse.internal_error(true);
+      String errMsg = String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domain_name, domainId, partition);
+      LOG.error(errMsg);
+      return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
 
     return hpc.get(domainId, key);

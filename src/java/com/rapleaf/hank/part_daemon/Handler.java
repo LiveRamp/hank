@@ -30,6 +30,7 @@ import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.storage.Reader;
@@ -92,7 +93,7 @@ class Handler implements Iface {
     Domain domain = getDomain(domainId & 0xff);
 
     if (domain == null) {
-      return HankResponse.no_such_domain(true);
+      return HankResponse.xception(HankExceptions.no_such_domain(true));
     }
 
     try {
@@ -103,15 +104,16 @@ class Handler implements Iface {
           return HankResponse.not_found(true);
         }
       } else {
-        return HankResponse.wrong_host(true);
+        return HankResponse.xception(HankExceptions.wrong_host(true));
       }
     } catch (IOException e) {
-      LOG.error(String.format("Exception during get! Domain: %d (%s) Key: %s",
+      String errMsg = String.format("Exception during get! Domain: %d (%s) Key: %s",
           domainId,
           domain.getName(),
-          stringifyKey(key)), e);
+          stringifyKey(key));
+      LOG.error(errMsg, e);
 
-      return HankResponse.internal_error(true);
+      return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
   }
 
