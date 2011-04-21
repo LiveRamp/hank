@@ -25,7 +25,6 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
@@ -49,31 +48,25 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
-  private final class WatchForNewDomainGroups implements ZooKeeperWatcher {
-    private boolean cancelled = false;
-
-    @Override
-    public void register() {
-      try {
-        LOG.debug("Registering watch on " + domainGroupsRoot);
-        zk.getChildren(domainGroupsRoot, this);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+  private final class WatchForNewDomainGroups extends HankWatcher {
+    public WatchForNewDomainGroups() throws KeeperException, InterruptedException {
+      super();
     }
 
     @Override
-    public void process(WatchedEvent event) {
-      if (cancelled) {
-        return;
-      }
+    public void setWatch() throws KeeperException, InterruptedException {
+      LOG.debug("Registering watch on " + domainGroupsRoot);
+      zk.getChildren(domainGroupsRoot, this);
+    }
+
+    @Override
+    public void realProcess(WatchedEvent event) {
       LOG.debug(getClass().getSimpleName() + " received notification! " + event);
       switch (event.getType()) {
         case NodeChildrenChanged:
           // reload domain groups
           try {
             loadAllDomainGroups();
-            register();
           } catch (Exception e) {
             throw new RuntimeException(e);
           }
@@ -81,10 +74,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         default:
           LOG.debug("Skipped message with event type: " + event.getType());
       }
-    }
-
-    public void cancel() {
-      cancelled = true;
     }
   }
 
@@ -109,7 +98,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * We save our watchers so that we can reregister them in case of session
    * expiry.
    */
-  private Set<ZooKeeperWatcher> myWatchers = new HashSet<ZooKeeperWatcher>();
+  private Set<HankWatcher> myWatchers = new HashSet<HankWatcher>();
   private boolean isSessionExpired = false;
 
   private final Map<String, ZkDomainConfig> domainConfigsByName =
@@ -156,7 +145,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     loadAllDomainGroups();
     loadAllRingGroups();
     watchForNewDomainGroups = new WatchForNewDomainGroups();
-    watchForNewDomainGroups.register();
     myWatchers.add(watchForNewDomainGroups);
   }
 
@@ -165,8 +153,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     // if the session expired, then we need to reregister all of our
     // StateChangeListeners
     if (isSessionExpired) {
-      for (ZooKeeperWatcher watcher : myWatchers) {
-        watcher.register();
+      for (HankWatcher watcher : myWatchers) {
+        try {
+          watcher.setWatch();
+        } catch (Exception e) {
+          LOG.error("Unable to reset watch " + watcher + " due to exception!", e);
+        }
       }
       isSessionExpired = false;
     }
@@ -249,17 +241,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       ZkDomainGroupConfig dgc = domainGroupConfigs.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroupConfigs.put(ringGroupName, new ZkRingGroupConfig(zk, ringGroupPath, dgc));
     }
-  }
-
-  /**
-   * Interface that extends {@link Watcher} to add a
-   * {@link ZooKeeperWatcher#register()} method that allows the
-   * <code>Watcher</code> to be easily re-registered in case of a session
-   * expiry. Also provides a uniform interface for all the different types of
-   * ZooKeeperWatchers.
-   */
-  private interface ZooKeeperWatcher extends Watcher {
-    public void register();
   }
 
   @Override
