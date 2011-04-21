@@ -53,22 +53,20 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
 
   private class CommandQueueWatcher implements Watcher {
-    private final HostCommandQueueChangeListener listener;
+    private boolean cancelled = false;
 
-    public CommandQueueWatcher(HostCommandQueueChangeListener listener) throws KeeperException, InterruptedException {
-      this.listener = listener;
+    public CommandQueueWatcher() throws KeeperException, InterruptedException {
       setWatch();
     }
 
     public void process(WatchedEvent event) {
       LOG.trace(event);
       synchronized (this) {
-        // connect/disconnect message
-        if (event.getType() == EventType.None) {
+        if (cancelled || event.getType() == EventType.None) {
           return;
         }
+        // reset watch immediately
         try {
-          // reset callback
           setWatch();
         } catch (Exception e) {
           LOG.error("Failed to reset watch!", e);
@@ -78,7 +76,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
           case NodeDeleted:
           case NodeDataChanged:
           case NodeChildrenChanged:
-            listener.onCommandQueueChange(ZkHostConfig.this);
+            for (HostCommandQueueChangeListener listener : commandQueueListeners) {
+              listener.onCommandQueueChange(ZkHostConfig.this);
+            }
         }
       }
     }
@@ -86,15 +86,31 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     private void setWatch() throws KeeperException, InterruptedException {
       zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, this);
     }
+
+    public void cancel() {
+      cancelled = true;
+    }
   }
 
   private class StateChangeWatcher implements Watcher {
     private boolean cancelled = false;
 
+    public StateChangeWatcher() throws KeeperException, InterruptedException {
+      setWatch();
+    }
+
     public void process(WatchedEvent event) {
       if (event.getState() != KeeperState.SyncConnected) {
         LOG.trace("Apparent disconnection! Not triggering listeners and not reregistering watch.");
         return;
+      }
+      if (!cancelled && zk.getState() == States.CONNECTED) {
+        // reset callback
+        try {
+          setWatch();
+        } catch (Exception e) {
+          LOG.error("Failed to reset watch!", e);
+        }
       }
       switch (event.getType()) {
         case NodeCreated:
@@ -102,14 +118,6 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
         case NodeDataChanged:
           for (HostStateChangeListener listener : stateListeners) {
             listener.onHostStateChange(ZkHostConfig.this);
-          }
-          if (!cancelled && zk.getState() == States.CONNECTED) {
-            // reset callback
-            try {
-              setWatch();
-            } catch (Exception e) {
-              LOG.error("Failed to reset watch!", e);
-            }
           }
       }
     }
@@ -130,8 +138,10 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private final PartDaemonAddress address;
 
   private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
+  private final StateChangeWatcher stateChangeWatcher;
 
-  private StateChangeWatcher stateChangeWatcher;
+  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
+  private final CommandQueueWatcher commandQueueWatcher;
 
   public ZkHostConfig(ZooKeeper zk, String hostPath) throws KeeperException, InterruptedException {
     super(zk);
@@ -143,6 +153,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();
+    commandQueueWatcher = new CommandQueueWatcher();
   }
 
   @Override
@@ -347,12 +358,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   }
 
   @Override
-  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener)
-  throws IOException {
-    try {
-      new CommandQueueWatcher(listener);
-    } catch (Exception e) {
-      throw new IOException(e);
+  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) {
+    synchronized (commandQueueListeners) {
+      commandQueueListeners.add(listener);
     }
   }
 
@@ -381,5 +389,6 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
   public void close() {
     stateChangeWatcher.cancel();
+    commandQueueWatcher.cancel();
   }
 }
