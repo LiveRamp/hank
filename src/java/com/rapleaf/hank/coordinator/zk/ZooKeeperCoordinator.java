@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,6 +49,52 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+  private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
+
+  /**
+   * Used to instantiate a ZooKeeperCoordinator generically.
+   */
+  public static final class Factory implements CoordinatorFactory {
+    private static final String RING_GROUPS_ROOT_KEY = "ring_groups_root";
+    private static final String DOMAIN_GROUPS_ROOT_KEY = "domain_groups_root";
+    private static final String DOMAINS_ROOT_KEY = "domains_root";
+    private static final String SESSION_TIMEOUT_KEY = "session_timeout";
+    private static final String CONNECT_STRING_KEY = "connect_string";
+    private static final List<String> REQUIRED_KEYS = Arrays.asList(
+        RING_GROUPS_ROOT_KEY,
+        DOMAIN_GROUPS_ROOT_KEY,
+        DOMAINS_ROOT_KEY,
+        SESSION_TIMEOUT_KEY,
+        CONNECT_STRING_KEY
+    );
+
+    @Override
+    public Coordinator getCoordinator(Map<String, Object> options) {
+      validateOptions(options);
+      try {
+        return new ZooKeeperCoordinator((String)options.get(CONNECT_STRING_KEY),
+            (Integer)options.get(SESSION_TIMEOUT_KEY),
+            (String)options.get(DOMAINS_ROOT_KEY),
+            (String)options.get(DOMAIN_GROUPS_ROOT_KEY),
+            (String)options.get(RING_GROUPS_ROOT_KEY));
+      } catch (Exception e) {
+        throw new RuntimeException("Couldn't make a ZooKeeperCoordinator from options " + options, e);
+      }
+    }
+
+    private void validateOptions(Map<String, Object> options) {
+      Set<String> missingKeys = new HashSet<String>();
+      for (String requiredKey : REQUIRED_KEYS) {
+        if (!options.containsKey(requiredKey)) {
+          missingKeys.add(requiredKey);
+        }
+      }
+      if (!missingKeys.isEmpty()) {
+        throw new RuntimeException("Options for ZooKeeperCoordinator was missing required keys: " + missingKeys);
+      }
+    }
+  }
+
   private final class WatchForNewDomainGroups extends HankWatcher {
     public WatchForNewDomainGroups() throws KeeperException, InterruptedException {
       super();
@@ -73,23 +120,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           break;
         default:
           LOG.debug("Skipped message with event type: " + event.getType());
-      }
-    }
-  }
-
-  private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
-
-  public static final class Factory implements CoordinatorFactory {
-    @Override
-    public Coordinator getCoordinator(Map<String, Object> options) {
-      try {
-        return new ZooKeeperCoordinator((String)options.get("connect_string"),
-            (Integer)options.get("session_timeout"),
-            (String)options.get("domains_root"),
-            (String)options.get("domain_groups_root"),
-            (String)options.get("ring_groups_root"));
-      } catch (Exception e) {
-        throw new RuntimeException("Couldn't make a ZooKeeperCoordinator from options " + options, e);
       }
     }
   }
