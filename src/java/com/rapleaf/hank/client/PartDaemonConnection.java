@@ -109,7 +109,7 @@ final class PartDaemonConnection implements HostStateChangeListener {
       TProtocol proto = new TCompactProtocol(transport);
       client = new PartDaemon.Client(proto);
       closed = false;
-      LOG.trace("Connection to " + hostConfig.getAddress() + "opened!");
+      LOG.trace("Connection to " + hostConfig.getAddress() + " opened!");
       lock.unlock();
     }
   }
