@@ -4,17 +4,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
+import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -31,8 +37,24 @@ public class StatusWebDaemonTester extends TestCase {
     final DomainConfig domainConfig2 = new MockDomainConfig("Domain 2", 1024, new Murmur64Partitioner(), new ConstantStorageEngine(null), 10);
     final DomainConfig domainConfig3 = new MockDomainConfig("Domain 3", 1024, new Murmur64Partitioner(), new ConstantStorageEngine(null), 10);
 
-    final DomainGroupConfig domainGroup1 = new MockDomainGroupConfig("Domain Group 1");
-    final DomainGroupConfig domainGroup2 = new MockDomainGroupConfig("Domain Group 2");
+    final DomainGroupConfig domainGroup1 = new MockDomainGroupConfig("Domain Group 1") {
+      @Override
+      public SortedSet<DomainGroupConfigVersion> getVersions() {
+        HashSet<DomainConfigVersion> domainVersions = new HashSet<DomainConfigVersion>(Arrays.asList(
+            new MockDomainConfigVersion(domainConfig1, 5),
+            new MockDomainConfigVersion(domainConfig3, 7))
+        );
+        return new TreeSet<DomainGroupConfigVersion>(Arrays.asList(
+            new MockDomainGroupConfigVersion(domainVersions, this, 1)
+        ));
+      }
+    };
+    final DomainGroupConfig domainGroup2 = new MockDomainGroupConfig("Domain Group 2") {
+      @Override
+      public SortedSet<DomainGroupConfigVersion> getVersions() {
+        return new TreeSet<DomainGroupConfigVersion>();
+      }
+    };
 
     final RingConfig ring1_1 = new MockRingConfig(null, null, 1, RingState.UP) {
       @Override

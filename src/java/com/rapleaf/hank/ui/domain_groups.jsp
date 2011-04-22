@@ -20,15 +20,36 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <a href="ring_groups.jsp">Ring Groups</a>
 
 <h1>Domain Groups</h1>
-<table border=1>
-  <tr>
-    <td>Name</td>
-  </tr>
+<table>
   <%
   for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {
     %>
     <tr>
-      <td><%= domainConfig.getName() %></td>
+      <td colspan=2><%= domainConfig.getName() %></td>
+    </tr>
+    <tr>
+      <td width=10>&nbsp;</td>
+      <td>
+	      <table>
+	        <% for (DomainGroupConfigVersion version : domainConfig.getVersions()) { %>
+	        <tr>
+	          <td colspan=2>v<%= version.getVersionNumber() %></td>
+	        </tr>
+	        <tr>
+            <td width=10>&nbsp;</td>
+	          <td>
+	            <table>
+	              <% for (DomainConfigVersion dcv : version.getDomainConfigVersions()) { %>
+	              <tr>
+	                <td><%= dcv.getDomainConfig().getName() %> @<%= dcv.getVersionNumber() %></td>
+	              </tr>
+	              <% } %>
+	            </table>
+	          </td>
+	        </tr>
+	        <% } %>
+	      </table>
+      </td>
     </tr>
     <%
   }
