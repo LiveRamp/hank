@@ -10,64 +10,36 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Hank Management UI</title>
+<title>Management Home (Hank)</title>
 </head>
 <body>
 
-<h1>Domains</h1>
+<a href="index.jsp">Home</a>
+<a href="domains.jsp">Domains</a>
+<a href="domain_groups.jsp">Domain Groups</a>
+<a href="ring_groups.jsp">Ring Groups</a>
 
-<table border=1>
-  <tr>
-    <td>Name</td>
-    <td>Storage Engine</td>
-    <td>Version</td>
-  </tr>
-  <%
-  for (DomainConfig domainConfig : coord.getDomainConfigs()) {
-    %>
-    <tr>
-      <td><%= domainConfig.getName() %></td>
-      <td><%= domainConfig.getStorageEngine().getClass().getSimpleName() %></td>
-      <td><%= domainConfig.getVersion() %></td>
-    </tr>
-    <%
-  }
-  %>
-</table>
+<h1>Hank</h1>
 
-<h1>Domain Groups</h1>
-<table border=1>
-  <tr>
-    <td>Name</td>
-  </tr>
-  <%
-  for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {
-    %>
-    <tr>
-      <td><%= domainConfig.getName() %></td>
-    </tr>
-    <%
-  }
-  %>
-</table>
+<div>
+<h3>System Summary</h3>
 
+<%= coord.getDomainConfigs().size() %> domains,
+<%= coord.getDomainGroupConfigs().size() %> domain groups,
+and <%= coord.getRingGroups().size() %> ring groups.
 
+</div>
 
-<h1>Ring Groups</h1>
-<table border=1>
-  <tr>
-    <td>Name</td>
-  </tr>
-  <%
-  for (RingGroupConfig ringGroupConfig : coord.getRingGroups()) {
-    %>
-    <tr>
-      <td><%= ringGroupConfig.getName() %></td>
-    </tr>
-    <%
-  }
-  %>
-</table>
+<div>
+<h3>Coordinator</h3>
+<%= coord %>
+</div>
+
+<div>
+<h3>Version Information</h3>
+software version info
+</div>
+
 
 </body>
 </html>
