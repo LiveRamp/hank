@@ -48,6 +48,8 @@ import com.rapleaf.hank.generated.SmartClient.Iface;
  * pool and detecting PartDaemon failures.
  */
 public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener {
+  private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankExceptions.no_such_domain(true));
+
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
   private final DomainGroupConfig domainGroup;
@@ -134,7 +136,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       DomainConfig domainConfig = domainGroup.getDomainConfig(domainId);
       partition = domainConfig.getPartitioner().partition(key) % domainConfig.getNumParts();
     } catch (DataNotFoundException e) {
-      return HankResponse.xception(HankExceptions.no_such_domain(true));
+      return NO_SUCH_DOMAIN;
     }
 
     Map<Integer, PartDaemonConnectionSet> domainMap = domainPartToHost.get(domainId);

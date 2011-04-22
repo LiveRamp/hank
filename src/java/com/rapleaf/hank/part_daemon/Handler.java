@@ -41,6 +41,12 @@ import com.rapleaf.hank.storage.StorageEngine;
  * Implements the actual data serving logic of the PartDaemon
  */
 class Handler implements Iface {
+  private static final HankResponse WRONG_HOST = HankResponse.xception(HankExceptions.wrong_host(true));
+
+  private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
+
+  private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankExceptions.no_such_domain(true));
+
   private final static Logger LOG = Logger.getLogger(Handler.class);
 
   private final Domain[] domains;
@@ -93,7 +99,7 @@ class Handler implements Iface {
     Domain domain = getDomain(domainId & 0xff);
 
     if (domain == null) {
-      return HankResponse.xception(HankExceptions.no_such_domain(true));
+      return NO_SUCH_DOMAIN;
     }
 
     try {
@@ -101,10 +107,10 @@ class Handler implements Iface {
         if (result.isFound()) {
           return HankResponse.value(result.getBuffer());
         } else {
-          return HankResponse.not_found(true);
+          return NOT_FOUND;
         }
       } else {
-        return HankResponse.xception(HankExceptions.wrong_host(true));
+        return WRONG_HOST;
       }
     } catch (IOException e) {
       String errMsg = String.format("Exception during get! Domain: %d (%s) Key: %s",
