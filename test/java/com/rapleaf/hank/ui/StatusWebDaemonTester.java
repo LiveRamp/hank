@@ -1,6 +1,7 @@
 package com.rapleaf.hank.ui;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,8 +14,11 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
@@ -27,8 +31,20 @@ public class StatusWebDaemonTester extends TestCase {
     final DomainGroupConfig domainGroup1 = new MockDomainGroupConfig("Domain Group 1");
     final DomainGroupConfig domainGroup2 = new MockDomainGroupConfig("Domain Group 2");
 
-    final RingGroupConfig ringGroup1 = new MockRingGroupConfig(domainGroup1, "Ring Group 1", null);
-    final RingGroupConfig ringGroup2 = new MockRingGroupConfig(domainGroup2, "Ring Group 2", null);
+    final RingConfig ring1_1 = new MockRingConfig(null, null, 1, RingState.UP);
+    final RingConfig ring1_2 = new MockRingConfig(null, null, 2, RingState.UP);
+    final RingGroupConfig ringGroup1 = new MockRingGroupConfig(domainGroup1, "Ring Group 1", null) {
+      @Override
+      public Set<RingConfig> getRingConfigs() {
+        return new HashSet<RingConfig>(Arrays.asList(ring1_1, ring1_2));
+      }
+    };
+    final RingGroupConfig ringGroup2 = new MockRingGroupConfig(domainGroup2, "Ring Group 2", null) {
+      @Override
+      public Set<RingConfig> getRingConfigs() {
+        return Collections.EMPTY_SET;
+      }
+    };
 
     final Coordinator coord = new MockCoordinator() {
       @Override
