@@ -11,11 +11,14 @@ import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.MockCoordinator;
 import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -31,7 +34,15 @@ public class StatusWebDaemonTester extends TestCase {
     final DomainGroupConfig domainGroup1 = new MockDomainGroupConfig("Domain Group 1");
     final DomainGroupConfig domainGroup2 = new MockDomainGroupConfig("Domain Group 2");
 
-    final RingConfig ring1_1 = new MockRingConfig(null, null, 1, RingState.UP);
+    final RingConfig ring1_1 = new MockRingConfig(null, null, 1, RingState.UP) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return new HashSet<HostConfig>(Arrays.asList(
+            new MockHostConfig(new PartDaemonAddress("h1r1g1.rapleaf.com", 6200)),
+            new MockHostConfig(new PartDaemonAddress("h2r1g1.rapleaf.com", 6200))
+        ));
+      }
+    };
     final RingConfig ring1_2 = new MockRingConfig(null, null, 2, RingState.UP);
     final RingGroupConfig ringGroup1 = new MockRingGroupConfig(domainGroup1, "Ring Group 1", null) {
       @Override

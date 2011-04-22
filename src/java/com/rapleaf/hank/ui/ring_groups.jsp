@@ -35,13 +35,28 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     </tr>
     <tr>
       <td colspan=2>
-        <table>
+        <table border=1>
           <tr><td colspan=2>Ring #</td><td>Status</td></tr>
           <% for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) { %>
           <tr>
             <td width=10>&nbsp;</td>
             <td><%= ringConfig.getRingNumber() %></td>
             <td align=center><%= ringConfig.getState() %></td>
+          </tr>
+          <tr>
+            <td width=10>&nbsp;</td>
+            <td colspan=2>
+              <table border=1>
+                <tr><td colspan=2>host</td><td>status</td></tr>
+                <% for (HostConfig hostConfig : ringConfig.getHosts()) { %>
+                <tr>
+                  <td width=10>&nbsp;</td>
+                  <td><%= hostConfig.getAddress() %></td>
+                  <td><%= hostConfig.getState() %></td>
+                </tr>
+                <% } %>
+              </table>
+            </td>
           </tr>
           <% } %>
         </table>
