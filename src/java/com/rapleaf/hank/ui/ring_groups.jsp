@@ -36,12 +36,14 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <tr>
       <td colspan=2>
         <table border=1>
-          <tr><td colspan=2>Ring #</td><td>Status</td></tr>
+          <tr><td colspan=2>Ring #</td><td>Status</td><td>Ver #</td><td>Upd #</td></tr>
           <% for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) { %>
           <tr>
             <td width=10>&nbsp;</td>
             <td><%= ringConfig.getRingNumber() %></td>
             <td align=center><%= ringConfig.getState() %></td>
+            <td><%= ringConfig.getVersionNumber() %></td>
+            <td><%= ringConfig.getUpdatingToVersionNumber() %></td>
           </tr>
           <tr>
             <td width=10>&nbsp;</td>

@@ -43,7 +43,15 @@ public class StatusWebDaemonTester extends TestCase {
         ));
       }
     };
-    final RingConfig ring1_2 = new MockRingConfig(null, null, 2, RingState.UP);
+    final RingConfig ring1_2 = new MockRingConfig(null, null, 2, RingState.UP) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return new HashSet<HostConfig>(Arrays.asList(
+            new MockHostConfig(new PartDaemonAddress("h1r2g1.rapleaf.com", 6200)),
+            new MockHostConfig(new PartDaemonAddress("h2r2g1.rapleaf.com", 6200))
+        ));
+      }
+    };
     final RingGroupConfig ringGroup1 = new MockRingGroupConfig(domainGroup1, "Ring Group 1", null) {
       @Override
       public Set<RingConfig> getRingConfigs() {
