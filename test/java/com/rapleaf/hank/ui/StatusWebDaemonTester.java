@@ -40,12 +40,17 @@ public class StatusWebDaemonTester extends TestCase {
     final DomainGroupConfig domainGroup1 = new MockDomainGroupConfig("Domain Group 1") {
       @Override
       public SortedSet<DomainGroupConfigVersion> getVersions() {
-        HashSet<DomainConfigVersion> domainVersions = new HashSet<DomainConfigVersion>(Arrays.asList(
+        HashSet<DomainConfigVersion> domainVersions1 = new HashSet<DomainConfigVersion>(Arrays.asList(
             new MockDomainConfigVersion(domainConfig1, 5),
             new MockDomainConfigVersion(domainConfig3, 7))
         );
+        HashSet<DomainConfigVersion> domainVersions2 = new HashSet<DomainConfigVersion>(Arrays.asList(
+            new MockDomainConfigVersion(domainConfig1, 6),
+            new MockDomainConfigVersion(domainConfig3, 8))
+        );
         return new TreeSet<DomainGroupConfigVersion>(Arrays.asList(
-            new MockDomainGroupConfigVersion(domainVersions, this, 1)
+            new MockDomainGroupConfigVersion(domainVersions1, this, 1),
+            new MockDomainGroupConfigVersion(domainVersions2, this, 2)
         ));
       }
     };
