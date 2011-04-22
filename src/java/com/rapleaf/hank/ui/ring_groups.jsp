@@ -23,8 +23,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <h1>Ring Groups</h1>
 <table border=1>
   <tr>
-    <td>Name</td>
-    <td>Domain Group</td>
+    <td><strong>Name</strong></td>
+    <td><strong>Domain Group</strong></td>
   </tr>
   <%
   for (RingGroupConfig ringGroupConfig : coord.getRingGroups()) {
@@ -47,7 +47,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
           </tr>
           <tr>
             <td width=10>&nbsp;</td>
-            <td colspan=2>
+            <td colspan=4>
               <table border=1>
                 <tr><td colspan=2>host</td><td>status</td></tr>
                 <% for (HostConfig hostConfig : ringConfig.getHosts()) { %>
