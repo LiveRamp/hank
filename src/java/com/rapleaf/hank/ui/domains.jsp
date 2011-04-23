@@ -21,6 +21,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
 <h1>Domains</h1>
 
+<a href="new_domain.jsp">Create a new domain</a>
 <table border=1>
   <tr>
     <td>Name</td>
