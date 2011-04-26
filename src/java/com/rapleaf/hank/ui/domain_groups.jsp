@@ -10,6 +10,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+
 <title>Hank: Domain Groups</title>
 </head>
 <body>
@@ -20,6 +21,10 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <a href="ring_groups.jsp">Ring Groups</a>
 
 <h1>Domain Groups</h1>
+<form action="/domain_group/create" method=post>
+Add a new domain group:<br/>
+<input type=text name="name" size=50/> <input type=submit value="Create"/>
+</form>
 <table>
   <%
   for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {

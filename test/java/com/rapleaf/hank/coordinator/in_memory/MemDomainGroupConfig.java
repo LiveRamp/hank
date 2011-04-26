@@ -3,6 +3,9 @@ package com.rapleaf.hank.coordinator.in_memory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
@@ -11,6 +14,11 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MemDomainGroupConfig implements DomainGroupConfig {
+  private final String name;
+
+  public MemDomainGroupConfig(String name) {
+    this.name = name;
+  }
 
   @Override
   public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
@@ -44,20 +52,16 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public String getName() {
-    // TODO Auto-generated method stub
-    return null;
+    return name;
   }
 
   @Override
   public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    return new TreeSet<DomainGroupConfigVersion>();
   }
 
   @Override
   public void setListener(DomainGroupChangeListener listener) {
-    // TODO Auto-generated method stub
-
+    throw new NotImplementedException();
   }
-
 }

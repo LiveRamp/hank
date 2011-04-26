@@ -28,8 +28,9 @@ public class InMemoryCoordinator implements Coordinator {
 
   @Override
   public DomainGroupConfig addDomainGroup(String name) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    MemDomainGroupConfig dgc = new MemDomainGroupConfig(name);
+    domain_groups.put(name, dgc);
+    return dgc;
   }
 
   @Override
