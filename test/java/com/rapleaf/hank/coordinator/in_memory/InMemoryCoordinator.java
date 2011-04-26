@@ -35,8 +35,9 @@ public class InMemoryCoordinator implements Coordinator {
 
   @Override
   public RingGroupConfig addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    MemRingGroupConfig rgc = new MemRingGroupConfig(ringGroupName, domain_groups.get(domainGroupName));
+    ring_groups.put(ringGroupName, rgc);
+    return rgc;
   }
 
   @Override

@@ -1,6 +1,7 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -11,6 +12,16 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MemRingGroupConfig implements RingGroupConfig {
+
+  private final String ringGroupName;
+  private final MemDomainGroupConfig memDomainGroupConfig;
+
+  public MemRingGroupConfig(String ringGroupName,
+      MemDomainGroupConfig memDomainGroupConfig)
+  {
+    this.ringGroupName = ringGroupName;
+    this.memDomainGroupConfig = memDomainGroupConfig;
+ }
 
   @Override
   public RingConfig addRing(int ringNum) throws IOException {
@@ -32,14 +43,12 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public DomainGroupConfig getDomainGroupConfig() {
-    // TODO Auto-generated method stub
-    return null;
+    return memDomainGroupConfig;
   }
 
   @Override
   public String getName() {
-    // TODO Auto-generated method stub
-    return null;
+    return ringGroupName;
   }
 
   @Override
@@ -56,8 +65,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public Set<RingConfig> getRingConfigs() {
-    // TODO Auto-generated method stub
-    return null;
+    return Collections.EMPTY_SET;
   }
 
   @Override
