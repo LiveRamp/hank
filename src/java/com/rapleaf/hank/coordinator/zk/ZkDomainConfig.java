@@ -152,4 +152,13 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkDomainConfig(zk, domainPath);
   }
+
+  @Override
+  public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
+    try {
+      return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

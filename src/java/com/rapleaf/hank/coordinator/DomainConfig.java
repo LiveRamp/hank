@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
 
 /**
  * Encapsulates all the information about a given Domain.
@@ -32,6 +33,8 @@ public interface DomainConfig {
    */
   public int getNumParts();
 
+  public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass();
+  
   public StorageEngine getStorageEngine();
 
   public Partitioner getPartitioner();

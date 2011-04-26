@@ -21,20 +21,27 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 
 public class StatusWebDaemon {
-  private final class ControllerServlet extends HttpServlet {
+  private static final class DomainControllerServlet extends HttpServlet {
 
-    public ControllerServlet(Coordinator coordinator) {
-      // TODO Auto-generated constructor stub
+    private final Coordinator coordinator;
+
+    public DomainControllerServlet(Coordinator coordinator) {
+      this.coordinator = coordinator;
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-      System.out.println("in doPost!");
-      resp.setContentType("text/html");
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.getWriter().println("hello world");
-    }
+      String domainName = req.getParameter("name");
+      int numParts = Integer.parseInt(req.getParameter("numParts"));
+      String storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
+      String storageEngineOptions = req.getParameter("storageEngineOptions");
+      String partitionerName = req.getParameter("partitionerName");
+//      int initialVersion = Integer.parseInt(req.getParameter("initialVersion"));
+      System.out.println(coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, 1));
 
+      resp.sendRedirect("/domains.jsp");
+      resp.setStatus(HttpServletResponse.SC_OK);
+    }
   }
 
   @SuppressWarnings("unused")
@@ -67,9 +74,8 @@ public class StatusWebDaemon {
     ServletContextHandler servletHandler = new ServletContextHandler();
     servletHandler.setContextPath("/");
 
-    ControllerServlet controllerServlet = new ControllerServlet(coordinator);
-    ServletHolder holder = new ServletHolder(controllerServlet);
-    servletHandler.addServlet(holder, "/controller/*");
+    DomainControllerServlet domainControllerServlet = new DomainControllerServlet(coordinator);
+    servletHandler.addServlet(new ServletHolder(domainControllerServlet), "/domain/*");
 
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();

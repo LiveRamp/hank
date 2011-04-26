@@ -34,8 +34,9 @@ public interface Coordinator {
 
   /**
    * Add a new domain.
+   * @return TODO
    */
-  public void addDomain(String domainName,
+  public DomainConfig addDomain(String domainName,
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,

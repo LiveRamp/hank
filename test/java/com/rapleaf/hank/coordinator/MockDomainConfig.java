@@ -19,6 +19,7 @@ import java.io.IOException;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
 
 public class MockDomainConfig implements DomainConfig {
 
@@ -72,5 +73,11 @@ public class MockDomainConfig implements DomainConfig {
   @Override
   public int newVersion() throws IOException {
     return 0;
+  }
+
+  @Override
+  public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

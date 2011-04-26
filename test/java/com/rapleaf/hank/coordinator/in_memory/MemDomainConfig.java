@@ -70,4 +70,22 @@ public class MemDomainConfig implements DomainConfig {
   public int newVersion() throws IOException {
     return ++version;
   }
+
+  @Override
+  public String toString() {
+    return "MemDomainConfig [name=" + name + ", numParts=" + numParts
+        + ", partitionerName=" + partitionerName
+        + ", storageEngineFactoryName=" + storageEngineFactoryName
+        + ", storageEngineOptions=" + storageEngineOptions + ", version="
+        + version + "]";
+  }
+
+  @Override
+  public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
+    try {
+      return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

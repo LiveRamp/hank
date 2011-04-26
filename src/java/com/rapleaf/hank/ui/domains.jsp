@@ -37,7 +37,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td><%= domainConfig.getName() %></td>
       <td><%= domainConfig.getPartitioner().getClass().getSimpleName() %></td>
       <td align=center><%= domainConfig.getNumParts() %></td>
-      <td><%= domainConfig.getStorageEngine().getClass().getSimpleName() %></td>
+      <td><%= domainConfig.getStorageEngineFactoryClass().getName() %></td>
       <td align=center><%= domainConfig.getVersion() %></td>
     </tr>
     <%

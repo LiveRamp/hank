@@ -299,7 +299,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void addDomain(String domainName,
+  public DomainConfig addDomain(String domainName,
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,
@@ -316,6 +316,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           partitionerName,
           initialVersion);
       domainConfigsByName.put(domainName, domain);
+      return domain;
     } catch (Exception e) {
       throw new IOException(e);
     }
