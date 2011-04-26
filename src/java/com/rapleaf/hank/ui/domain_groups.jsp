@@ -41,7 +41,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 	            <table>
 	              <% for (DomainConfigVersion dcv : version.getDomainConfigVersions()) { %>
 	              <tr>
-	                <td><%= dcv.getDomainConfig().getName() %> @<%= dcv.getVersionNumber() %></td>
+	                <td><%= dcv.getDomainConfig().getName() %> @v<%= dcv.getVersionNumber() %></td>
 	              </tr>
 	              <% } %>
 	            </table>

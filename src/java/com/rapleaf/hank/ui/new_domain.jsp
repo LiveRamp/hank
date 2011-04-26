@@ -15,7 +15,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <body>
 
 
-<form>
+<form action="/controller/new_domain" method=post>
 <h2>Create New Domain</h2>
 <table>
   <tr>
