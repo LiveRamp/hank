@@ -1,7 +1,9 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -21,6 +23,7 @@ public class MemRingConfig implements RingConfig {
   private RingState state;
   private Integer updatingToVersion;
   private Integer versionNumber;
+  private Map<PartDaemonAddress, MemHostConfig> hostConfigs = new HashMap<PartDaemonAddress, MemHostConfig>();
 
   public MemRingConfig(int ringNum) {
     this.ringNum = ringNum;
@@ -29,7 +32,9 @@ public class MemRingConfig implements RingConfig {
 
   @Override
   public HostConfig addHost(PartDaemonAddress address) throws IOException {
-    throw new NotImplementedException();
+    MemHostConfig hc = new MemHostConfig(address);
+    hostConfigs.put(address, hc);
+    return hc;
   }
 
   @Override
@@ -39,12 +44,12 @@ public class MemRingConfig implements RingConfig {
 
   @Override
   public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
-    throw new NotImplementedException();
+    return hostConfigs.get(address);
   }
 
   @Override
   public Set<HostConfig> getHosts() {
-    return Collections.EMPTY_SET;
+    return new HashSet<HostConfig>(hostConfigs.values());
   }
 
   @Override
