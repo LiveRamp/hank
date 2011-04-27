@@ -57,8 +57,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public RingConfig getRingConfig(int ringNumber) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-    return null;
+    return ringConfigs.get(ringNumber);
   }
 
   @Override

@@ -12,17 +12,6 @@ public List<RingGroupConfig> ringGroups(Coordinator coord) {
   return rgcs;
 }
 
-public List<RingConfig> sortedRcs(Collection<RingConfig> rcs) {
-  List<RingConfig> sortedList = new ArrayList<RingConfig>(rcs);
-  Collections.sort(sortedList, new RingConfigComparator());
-  return sortedList;
-}
-
-public List<HostConfig> sortedHcs(Collection<HostConfig> rcs) {
-  List<HostConfig> sortedList = new ArrayList<HostConfig>(rcs);
-  Collections.sort(sortedList, new HostConfigComparator());
-  return sortedList;
-}
 %>
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -42,6 +31,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <a href="ring_groups.jsp">Ring Groups</a>
 
 <h1>Ring Groups</h1>
+<a href="">Add a new Ring Group</a>
 <table>
   <tr>
     <td><strong>Name</strong></td>
@@ -52,40 +42,9 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
     %>
     <tr>
-      <td><%= ringGroupConfig.getName() %></td>
+      <td><a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
       <td><a href="domain_group.jsp?n=<%= URLEncoder.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
       <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
-    </tr>
-    <tr>
-      <td colspan=3>
-        <table>
-          <tr><td colspan=2>Ring #</td><td>Status</td><td>Ver #</td><td>Upd #</td></tr>
-          <% for (RingConfig ringConfig : sortedRcs(ringGroupConfig.getRingConfigs())) { %>
-          <tr>
-            <td width=10>&nbsp;</td>
-            <td>ring-<%= ringConfig.getRingNumber() %></td>
-            <td align=center><%= ringConfig.getState() %></td>
-            <td><%= ringConfig.getVersionNumber() %></td>
-            <td><%= ringConfig.getUpdatingToVersionNumber() %></td>
-          </tr>
-          <tr>
-            <td width=10>&nbsp;</td>
-            <td colspan=4>
-              <table>
-                <tr><td colspan=2>host</td><td>status</td></tr>
-                <% for (HostConfig hostConfig : sortedHcs(ringConfig.getHosts())) { %>
-                <tr>
-                  <td width=10>&nbsp;</td>
-                  <td><%= hostConfig.getAddress() %></td>
-                  <td><%= hostConfig.getState() %></td>
-                </tr>
-                <% } %>
-              </table>
-            </td>
-          </tr>
-          <% } %>
-        </table>
-      </td>
     </tr>
     <%
   }
