@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
  * A helper class representing a hostname and port number pair used to identify
  * a Part Daemon.
  */
-public final class PartDaemonAddress {
+public final class PartDaemonAddress implements Comparable<PartDaemonAddress> {
   private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("([^:]+):(\\d+)");
   private final String hostName;
   private final int portNumber;
@@ -80,5 +80,14 @@ public final class PartDaemonAddress {
     } else {
       throw new RuntimeException(s + " is not a properly formatted host:port pair.");
     }
+  }
+
+  @Override
+  public int compareTo(PartDaemonAddress arg0) {
+    int hostComparison = getHostName().compareTo(arg0.getHostName());
+    if (hostComparison == 0) {
+      return Integer.valueOf(getPortNumber()).compareTo(arg0.getPortNumber());
+    }
+    return hostComparison;
   }
 }

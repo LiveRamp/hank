@@ -12,9 +12,15 @@ public List<RingGroupConfig> ringGroups(Coordinator coord) {
   return rgcs;
 }
 
-public List<RingConfig> sorted(Collection<RingConfig> rcs) {
+public List<RingConfig> sortedRcs(Collection<RingConfig> rcs) {
   List<RingConfig> sortedList = new ArrayList<RingConfig>(rcs);
   Collections.sort(sortedList, new RingConfigComparator());
+  return sortedList;
+}
+
+public List<HostConfig> sortedHcs(Collection<HostConfig> rcs) {
+  List<HostConfig> sortedList = new ArrayList<HostConfig>(rcs);
+  Collections.sort(sortedList, new HostConfigComparator());
   return sortedList;
 }
 %>
@@ -54,7 +60,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td colspan=3>
         <table>
           <tr><td colspan=2>Ring #</td><td>Status</td><td>Ver #</td><td>Upd #</td></tr>
-          <% for (RingConfig ringConfig : sorted(ringGroupConfig.getRingConfigs())) { %>
+          <% for (RingConfig ringConfig : sortedRcs(ringGroupConfig.getRingConfigs())) { %>
           <tr>
             <td width=10>&nbsp;</td>
             <td>ring-<%= ringConfig.getRingNumber() %></td>
@@ -67,7 +73,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
             <td colspan=4>
               <table>
                 <tr><td colspan=2>host</td><td>status</td></tr>
-                <% for (HostConfig hostConfig : ringConfig.getHosts()) { %>
+                <% for (HostConfig hostConfig : sortedHcs(ringConfig.getHosts())) { %>
                 <tr>
                   <td width=10>&nbsp;</td>
                   <td><%= hostConfig.getAddress() %></td>
