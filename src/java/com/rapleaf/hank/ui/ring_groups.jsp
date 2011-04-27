@@ -2,7 +2,16 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="java.util.*"%>
 
+<%!
+
+public List<RingGroupConfig> ringGroups(Coordinator coord) {
+  List<RingGroupConfig> rgcs = new ArrayList<RingGroupConfig>(coord.getRingGroups());
+  Collections.sort(rgcs, new RingGroupConfigComparator());
+  return rgcs;
+}
+%>
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
@@ -28,7 +37,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <td><strong>Status</strong></td>
   </tr>
   <%
-  for (RingGroupConfig ringGroupConfig : coord.getRingGroups()) {
+  for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
     %>
     <tr>
       <td><%= ringGroupConfig.getName() %></td>

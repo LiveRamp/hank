@@ -1,7 +1,9 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -15,6 +17,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   private final String ringGroupName;
   private final MemDomainGroupConfig memDomainGroupConfig;
+  private Map<Integer, MemRingConfig> ringConfigs = new HashMap<Integer, MemRingConfig>();
 
   public MemRingGroupConfig(String ringGroupName,
       MemDomainGroupConfig memDomainGroupConfig)
@@ -25,8 +28,9 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public RingConfig addRing(int ringNum) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    MemRingConfig rc = new MemRingConfig(ringNum);
+    ringConfigs.put(ringNum, rc);
+    return rc;
   }
 
   @Override
@@ -65,7 +69,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public Set<RingConfig> getRingConfigs() {
-    return Collections.EMPTY_SET;
+    return new HashSet<RingConfig>(ringConfigs.values());
   }
 
   @Override
