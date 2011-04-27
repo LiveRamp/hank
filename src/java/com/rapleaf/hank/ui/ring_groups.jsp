@@ -11,6 +11,12 @@ public List<RingGroupConfig> ringGroups(Coordinator coord) {
   Collections.sort(rgcs, new RingGroupConfigComparator());
   return rgcs;
 }
+
+public List<RingConfig> sorted(Collection<RingConfig> rcs) {
+  List<RingConfig> sortedList = new ArrayList<RingConfig>(rcs);
+  Collections.sort(sortedList, new RingConfigComparator());
+  return sortedList;
+}
 %>
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -48,7 +54,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td colspan=3>
         <table>
           <tr><td colspan=2>Ring #</td><td>Status</td><td>Ver #</td><td>Upd #</td></tr>
-          <% for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) { %>
+          <% for (RingConfig ringConfig : sorted(ringGroupConfig.getRingConfigs())) { %>
           <tr>
             <td width=10>&nbsp;</td>
             <td>ring-<%= ringConfig.getRingNumber() %></td>
