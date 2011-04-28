@@ -43,7 +43,20 @@ status blob
 </div>
 
 <h3>Hosts</h3>
-<a href="">Add a new host</a>
+
+<form action="/ring/add_host" method=post>
+  Add a new host: <br/>
+  <input type=hidden name="rgName" value="<%= ringGroup.getName() %>"/>
+  <input type=hidden name="ringNum" value="<%= ring.getRingNumber() %>"/>
+  Host:
+  <input type=text size=30 name="hostname"/>
+  <br/>
+  Port:
+  <input type=text size=5 name="port" />
+  <br/>
+  <input type=submit value="Add"/>
+</form>
+
 <table width=500>
   <tr>
     <td><strong>Address</strong></td>
