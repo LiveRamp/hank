@@ -41,7 +41,6 @@ overall status blob
 </div>
 
 <h3>Rings</h3>
-<a href="">Add a new Ring</a>
 <table width=500>
   <tr>
     <td><strong>#</strong></td>
@@ -62,6 +61,6 @@ overall status blob
   </tr>
   <% } %>
 </table>
-
+<a href="/ring_group/add_ring?g=<%= URLEncoder.encode(ringGroup.getName()) %>">Add a new ring group</a>
 </body>
 </html>
