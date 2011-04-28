@@ -2,6 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="java.net.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -25,14 +26,21 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 Add a new domain group:<br/>
 <input type=text name="name" size=50/> <input type=submit value="Create"/>
 </form>
-<table>
+<table width=500>
+  <tr>
+    <td><strong>Name</strong></td>
+    <td><strong>Domains</strong></td>
+    <td><strong>Cur Ver #</strong></td>
+  </tr>
   <%
   for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {
     %>
     <tr>
-      <td colspan=2><%= domainConfig.getName() %></td>
+      <td><a href="/domain_group.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
+      <td>todo</td>
+      <td><%= domainConfig.getLatestVersion() %></td>
     </tr>
-    <tr>
+    <!-- <tr>
       <td width=10>&nbsp;</td>
       <td>
 	      <table>
@@ -56,6 +64,7 @@ Add a new domain group:<br/>
 	      </table>
       </td>
     </tr>
+     -->
     <%
   }
   %>

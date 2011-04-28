@@ -22,13 +22,13 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <h1>Domains</h1>
 
 <a href="new_domain.jsp">Create a new domain</a>
-<table border=1>
+<table>
   <tr>
-    <td>Name</td>
-    <td>Partitioner</td>
-    <td>Num Partitions</td>
-    <td>Storage Engine</td>
-    <td>Version</td>
+    <td><strong>Name</strong></td>
+    <td><strong>Partitioner</strong></td>
+    <td><strong>Num Partitions</strong></td>
+    <td><strong>Storage Engine</strong></td>
+    <td><strong>Version</strong></td>
   </tr>
   <%
   for (DomainConfig domainConfig : coord.getDomainConfigs()) {
