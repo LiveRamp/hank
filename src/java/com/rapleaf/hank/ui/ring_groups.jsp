@@ -31,7 +31,15 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <a href="ring_groups.jsp">Ring Groups</a>
 
 <h1>Ring Groups</h1>
-<a href="">Add a new Ring Group</a>
+<form action="/ring_group/create" method=post>
+  Add a new ring group: <br/>
+  <select name="dgName">
+    <% for (DomainGroupConfig dgc : coord.getDomainGroupConfigs()) { %>
+    <option><%= dgc.getName() %></option>
+    <% } %>
+  </select>
+  <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
+</form>
 <table>
   <tr>
     <td><strong>Name</strong></td>

@@ -2,6 +2,8 @@ package com.rapleaf.hank.ui;
 
 import java.net.URL;
 
+import javax.servlet.Servlet;
+
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -51,6 +53,9 @@ public class StatusWebDaemon {
     DomainGroupController dgController = new DomainGroupController(coordinator);
     servletHandler.addServlet(new ServletHolder(dgController), "/domain_group/*");
 
+    RingGroupController rgController = new RingGroupController(coordinator);
+    servletHandler.addServlet(new ServletHolder(rgController), "/ring_group/*");
+    
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();
     contexts.setHandlers(new Handler[] {servletHandler, webAppContext});
