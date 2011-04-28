@@ -28,7 +28,7 @@
   <fileset id="jars" dir="${lib}" includes="*.jar" />
 
   <path id="compile.classpath">
-    <fileset id="jars" dir="${lib}" includes="*.jar" />
+    <fileset id="jars" dir="${lib}" includes="**/*.jar" />
   </path>
 
   <target name="classpath">
