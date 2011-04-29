@@ -1,7 +1,9 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -63,5 +65,10 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   @Override
   public void setListener(DomainGroupChangeListener listener) {
     throw new NotImplementedException();
+  }
+
+  @Override
+  public Set<DomainConfig> getDomainConfigs() throws IOException {
+    return Collections.EMPTY_SET;
   }
 }

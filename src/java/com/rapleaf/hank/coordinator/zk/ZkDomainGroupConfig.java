@@ -20,12 +20,14 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -220,6 +222,11 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
     return zk.exists(path + "/.complete", false) != null;
+  }
+
+  @Override
+  public Set<DomainConfig> getDomainConfigs() throws IOException {
+    throw new NotImplementedException();
   }
 
   @Override
