@@ -29,11 +29,11 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Ring <%= ring.getRingNumber() %> in group <%= ringGroup.getName() %></title>
 
-  <jsp:include page="head.jsp" />
+  <jsp:include page="_head.jsp" />
 </head>
 <body>
   
-  <jsp:include page="top_nav.jsp" />
+  <jsp:include page="_top_nav.jsp" />
   
 
   <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
