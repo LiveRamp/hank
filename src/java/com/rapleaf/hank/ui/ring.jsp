@@ -15,7 +15,6 @@ public List<HostConfig> sortedHcs(Collection<HostConfig> rcs) {
 %>
 
 <%
-
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
@@ -32,9 +31,8 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
   <jsp:include page="_head.jsp" />
 </head>
 <body>
-  
+
   <jsp:include page="_top_nav.jsp" />
-  
 
   <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
 
