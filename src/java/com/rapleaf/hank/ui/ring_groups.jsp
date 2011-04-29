@@ -20,44 +20,45 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
 <%@page import="java.net.URLEncoder"%><html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Hank: Ring Groups</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <title>Hank: Ring Groups</title>
+
+  <jsp:include page="_head.jsp" />
 </head>
 <body>
+  
+  <jsp:include page="_top_nav.jsp" />
+  
 
-<a href="index.jsp">Home</a>
-<a href="domains.jsp">Domains</a>
-<a href="domain_groups.jsp">Domain Groups</a>
-<a href="ring_groups.jsp">Ring Groups</a>
-
-<h1>Ring Groups</h1>
-<form action="/ring_group/create" method=post>
-  Add a new ring group: <br/>
-  <select name="dgName">
-    <% for (DomainGroupConfig dgc : coord.getDomainGroupConfigs()) { %>
-    <option><%= dgc.getName() %></option>
-    <% } %>
-  </select>
-  <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
-</form>
-<table>
-  <tr>
-    <td><strong>Name</strong></td>
-    <td><strong>Domain Group</strong></td>
-    <td><strong>Status</strong></td>
-  </tr>
-  <%
-  for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
-    %>
+  <h1>Ring Groups</h1>
+  <form action="/ring_group/create" method=post>
+    Add a new ring group: <br/>
+    <select name="dgName">
+      <% for (DomainGroupConfig dgc : coord.getDomainGroupConfigs()) { %>
+      <option><%= dgc.getName() %></option>
+      <% } %>
+    </select>
+    <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
+  </form>
+  
+  <table class='table-blue'>
     <tr>
-      <td><a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
-      <td><a href="domain_group.jsp?n=<%= URLEncoder.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
-      <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
+      <th>Name</th>
+      <th>Domain Group</th>
+      <th>Status</th>
     </tr>
     <%
-  }
-  %>
-</table>
+    for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
+      %>
+      <tr>
+        <td><a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
+        <td><a href="domain_group.jsp?n=<%= URLEncoder.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
+        <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
+      </tr>
+      <%
+    }
+    %>
+  </table>
 
 </body>
 </html>
