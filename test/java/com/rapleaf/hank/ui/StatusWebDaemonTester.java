@@ -1,11 +1,13 @@
 package com.rapleaf.hank.ui;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-
-import org.apache.thrift.TException;
+import java.util.Map;
 
 import junit.framework.TestCase;
+
+import org.apache.thrift.TException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -15,7 +17,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
-import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -88,10 +89,26 @@ public class StatusWebDaemonTester extends TestCase {
       }
     };
     Iface mockClient = new Iface() {
+      private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>(){{
+        put("key1", ByteBuffer.wrap("value1".getBytes()));
+        put("key2", ByteBuffer.wrap("a really long value that you will just love!".getBytes()));
+      }};
+      
       @Override
       public HankResponse get(String domainName, ByteBuffer key) throws TException {
-        return HankResponse.xception(HankExceptions.internal_error("there was an internal error"));
-//        return HankResponse.value(ByteBuffer.wrap(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 'x', 'y', 'z'}));
+        String sKey = null;
+        try {
+          sKey = new String(key.array(), key.position(), key.limit(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+          throw new TException(e);
+        }
+
+        ByteBuffer v = values.get(sKey);
+        if (v != null) {
+          return HankResponse.value(v);
+        }
+
+        return HankResponse.not_found(true);
       }
     };
     StatusWebDaemon daemon = new StatusWebDaemon(mockConf, mockClient, 12345);

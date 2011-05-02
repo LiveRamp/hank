@@ -88,17 +88,17 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
         <br/>
         <select name="d">
           <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
-          <option><%= domainConfig.getName() %></option>
+          <option<%= request.getParameter("d") != null && URLDecoder.decode(request.getParameter("d")).equals(domainConfig.getName()) ? " selected" : "" %>><%= domainConfig.getName() %></option>
           <% } %>
         </select>
         <br/>
         Key
         <br/>
-        <textarea rows=2 cols=30 name="k"></textarea>
+        <textarea rows=2 cols=30 name="k"><%= request.getParameter("k") == null ? "" : request.getParameter("k") %></textarea>
         <br/>
         in <select name="f">
-          <option default>string</option>
-          <option>hex</option>
+          <option<%= request.getParameter("f") != null && request.getParameter("f").equals("string") ? " selected" : "" %>>string</option>
+          <option<%= request.getParameter("f") != null && request.getParameter("f").equals("hex") ? " selected" : "" %>>hex</option>
         </select>
         <br/>
         <input type=submit value="Get"/>
@@ -125,6 +125,12 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           <%= StringEscapeUtils.escapeHtml(hankResponse.toString()) %>
           </div>
           <%
+          } else if (hankResponse.isSet(HankResponse._Fields.NOT_FOUND)) {
+            %>
+            <div style="color:red; font-weight: bold">
+            Key was not found!
+            </div>
+            <%
           } else {
         %>
 
@@ -145,7 +151,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
              <%
              int baseOff = r * 16;
              %>
-             <td style="border-right: 1px solid black"><%= Integer.toString(baseOff, 16) %></td>
+             <td style="border-right: 1px solid black">0x<%= Integer.toString(baseOff, 16) %></td>
              <%
              for (int off = baseOff; off < baseOff + 16; off++) {
                if (off < value.limit() - value.position()) {
@@ -161,7 +167,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
              <%
              for (int off = baseOff; off < baseOff + 16 && off < value.limit() - value.position(); off++) {
                if (off < value.limit() - value.position()) {
-               %><td><%= new String(value.array(), value.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
+               %><td width=10><%= new String(value.array(), value.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
                } else {
                %>
                <td></td>
