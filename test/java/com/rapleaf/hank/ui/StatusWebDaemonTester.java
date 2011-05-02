@@ -1,6 +1,9 @@
 package com.rapleaf.hank.ui;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
+
+import org.apache.thrift.TException;
 
 import junit.framework.TestCase;
 
@@ -12,6 +15,9 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
 
@@ -81,7 +87,14 @@ public class StatusWebDaemonTester extends TestCase {
         return coord;
       }
     };
-    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, 12345);
+    Iface mockClient = new Iface() {
+      @Override
+      public HankResponse get(String domainName, ByteBuffer key) throws TException {
+        return HankResponse.xception(HankExceptions.internal_error("there was an internal error"));
+//        return HankResponse.value(ByteBuffer.wrap(new byte[]{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15, 'x', 'y', 'z'}));
+      }
+    };
+    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, mockClient, 12345);
     daemon.run();
   }
 

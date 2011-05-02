@@ -1,7 +1,8 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -17,6 +18,7 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MemDomainGroupConfig implements DomainGroupConfig {
   private final String name;
+  private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
 
   public MemDomainGroupConfig(String name) {
     this.name = name;
@@ -24,8 +26,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
-    // TODO Auto-generated method stub
-
+    this.domainConfigs.put(domainId, domainConfig);
   }
 
   @Override
@@ -36,8 +37,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
-    // TODO Auto-generated method stub
-    return null;
+    return domainConfigs.get(domainId);
   }
 
   @Override
@@ -69,6 +69,6 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public Set<DomainConfig> getDomainConfigs() throws IOException {
-    return Collections.EMPTY_SET;
+    return new HashSet<DomainConfig>(domainConfigs.values());
   }
 }

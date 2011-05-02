@@ -2,8 +2,6 @@ package com.rapleaf.hank.ui;
 
 import java.net.URL;
 
-import javax.servlet.Servlet;
-
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -15,6 +13,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.generated.SmartClient;
 
 public class StatusWebDaemon {
   @SuppressWarnings("unused")
@@ -23,8 +22,11 @@ public class StatusWebDaemon {
   private final ClientConfigurator cc;
   private final int port;
 
-  public StatusWebDaemon(ClientConfigurator cc, int port) {
+  private final SmartClient.Iface client;
+
+  public StatusWebDaemon(ClientConfigurator cc, SmartClient.Iface smartClient, int port) {
     this.cc = cc;
+    client = smartClient;
     this.port = port;
   }
 
@@ -42,6 +44,7 @@ public class StatusWebDaemon {
     final String warUrlString = warUrl.toExternalForm();
     WebAppContext webAppContext = new WebAppContext(warUrlString, "/");
     webAppContext.setAttribute("coordinator", coordinator);
+    webAppContext.setAttribute("client", client);
 
     // get the controller servlet (for the "controller" methods)
     ServletContextHandler servletHandler = new ServletContextHandler();
@@ -72,6 +75,6 @@ public class StatusWebDaemon {
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
     ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);
-    new StatusWebDaemon(cc, port).run();
+    new StatusWebDaemon(cc, null, port).run();
   }
 }
