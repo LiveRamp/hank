@@ -33,7 +33,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
   </tr>
   <% for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) { %>
   <tr>
-    <td><!-- <a href="/domain.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>" > --><%= domainConfig.getName() %><!--</a>--></td>
+    <td><a href="/domain.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
     <td><%= domainGroupConfig.getDomainId(domainConfig.getName()) %></td>
   </tr>
   <% } %>
