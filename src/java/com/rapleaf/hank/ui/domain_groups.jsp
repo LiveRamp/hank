@@ -24,7 +24,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   Add a new domain group:<br/>
   <input type=text name="name" size=50/> <input type=submit value="Create"/>
   </form>
-  
+
   <table class='table-blue'>
     <tr>
       <th>Name</th>
