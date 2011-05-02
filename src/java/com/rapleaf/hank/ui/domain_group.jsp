@@ -38,6 +38,21 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
   </tr>
   <% } %>
 </table>
+<form action="/domain_group/add_domain" method=post>
+  <input type=hidden name="n" value="<%= domainGroupConfig.getName() %>"/>
+
+  Add domain:
+  <br/>
+  <select>
+  <% Set<DomainConfig> s = coord.getDomainConfigs(); %>
+  <% s.removeAll(domainGroupConfig.getDomainConfigs()); %>
+  <% for (DomainConfig domainConfig : s) { %>
+    <option><%= domainConfig.getName() %></option>
+  <% } %>
+  </select>
+  <input type=submit value="Add"/>
+</form>
+
 
 <h2>Versions</h2>
 
