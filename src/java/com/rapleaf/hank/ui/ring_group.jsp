@@ -113,7 +113,12 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           ByteBuffer key = null;
           String dataFormat = request.getParameter("f");
           if (dataFormat.equals("hex")) {
-            throw new NotImplementedException("didn't implement this path yet!");
+            String hexString = request.getParameter("k");
+            byte[] bytes = new byte[hexString.length()/2];
+            for (int i = 0; i < hexString.length(); i+=2) {
+              bytes[i/2] = (byte)Integer.valueOf(hexString.substring(i,i+1), 16).intValue();
+            }
+            key = ByteBuffer.wrap(bytes);
           } else if (dataFormat.equals("string")) {
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
@@ -133,8 +138,8 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
             <%
           } else {
         %>
+          <div style="font-weight:bold; color:green">Found</div>
 
-        
           <table cellspacing=0>
             <tr>
               <td>off</td>
