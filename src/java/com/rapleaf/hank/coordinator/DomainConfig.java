@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -34,8 +35,10 @@ public interface DomainConfig {
   public int getNumParts();
 
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass();
-  
+
   public StorageEngine getStorageEngine();
+
+  public Map<String, Object> getStorageEngineOptions();
 
   public Partitioner getPartitioner();
 

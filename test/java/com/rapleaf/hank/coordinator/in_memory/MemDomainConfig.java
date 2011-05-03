@@ -88,4 +88,9 @@ public class MemDomainConfig implements DomainConfig {
       throw new RuntimeException(e);
     }
   }
+
+  @Override
+  public Map<String, Object> getStorageEngineOptions() {
+    return (Map<String, Object>) new Yaml().load(storageEngineOptions);
+  }
 }
