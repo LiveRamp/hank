@@ -36,7 +36,7 @@ import cascading.tuple.TupleEntryCollector;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
-import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
+import com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator;
 
 public class TestDomainBuilderAssembly extends HadoopTestCase {
 
@@ -85,7 +85,7 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
   public void testMain() throws IOException {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", OUTPUT_PATH_A);
-    String configuration = TestHadoopDomainBuilder.getHadoopTestConfiguration();
+    String configuration = IntStringKeyStorageEngineCoordinator.getConfiguration();
     Pipe pipe = getPipe(outputTap);
 
     new FlowConnector(DomainBuilderProperties.set(new Properties(), configuration, DOMAIN_A_NAME)).connect(inputTap, outputTap, pipe).complete();
