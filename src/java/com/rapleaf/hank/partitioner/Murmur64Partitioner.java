@@ -31,4 +31,8 @@ public class Murmur64Partitioner implements Partitioner {
         key.remaining(),
         1));
   }
+  
+  public boolean equals(Object other) {
+    return other instanceof Murmur64Partitioner;
+  }
 }
