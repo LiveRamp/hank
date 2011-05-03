@@ -1,5 +1,6 @@
 package com.rapleaf.hank.ui;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
+import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -88,12 +90,12 @@ public class StatusWebDaemonTester extends TestCase {
         return coord;
       }
     };
-    Iface mockClient = new Iface() {
+    final Iface mockClient = new Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>(){{
         put("key1", ByteBuffer.wrap("value1".getBytes()));
         put("key2", ByteBuffer.wrap("a really long value that you will just love!".getBytes()));
       }};
-      
+
       @Override
       public HankResponse get(String domainName, ByteBuffer key) throws TException {
         String sKey = null;
@@ -111,7 +113,13 @@ public class StatusWebDaemonTester extends TestCase {
         return HankResponse.not_found(true);
       }
     };
-    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, mockClient, 12345);
+    IClientCache clientCache = new IClientCache() {
+      @Override
+      public Iface getSmartClient(RingGroupConfig rgc) throws DataNotFoundException, IOException, TException {
+        return mockClient;
+      }
+    };
+    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, clientCache, 12345);
     daemon.run();
   }
 
