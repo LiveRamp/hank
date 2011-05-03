@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +28,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -226,7 +226,7 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
 
   @Override
   public Set<DomainConfig> getDomainConfigs() throws IOException {
-    throw new NotImplementedException();
+    return new HashSet<DomainConfig>(domainConfigs.values());
   }
 
   @Override

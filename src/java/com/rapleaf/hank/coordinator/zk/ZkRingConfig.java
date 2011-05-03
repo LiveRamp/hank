@@ -293,7 +293,7 @@ public class ZkRingConfig extends BaseZkConsumer implements RingConfig, Watcher 
   @Override
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
     try {
-      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + latestVersionNumber).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, Integer.toString(latestVersionNumber).getBytes("UTF-8"), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }

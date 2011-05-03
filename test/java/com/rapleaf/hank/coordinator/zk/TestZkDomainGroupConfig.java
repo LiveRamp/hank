@@ -16,7 +16,9 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.zookeeper.KeeperException;
 
@@ -27,7 +29,9 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
+import com.rapleaf.hank.storage.curly.Curly;
 
 public class TestZkDomainGroupConfig extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
@@ -46,18 +50,21 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   private final String domains_root = getRoot() + "/domains";
 
   public void testLoad() throws Exception {
-    create(domains_root + "/domain0");
-    create(domains_root + "/domain0/num_parts", "1");
-    create(domains_root + "/domain0/version", "1");
-    create(domains_root + "/domain0/storage_engine_options", "---");
-    create(domains_root + "/domain0/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
-    create(domains_root + "/domain0/partitioner_class", ConstantPartitioner.class.getName());
-    create(domains_root + "/domain1");
-    create(domains_root + "/domain1/num_parts", "1");
-    create(domains_root + "/domain1/version", "1");
-    create(domains_root + "/domain1/storage_engine_options", "---");
-    create(domains_root + "/domain1/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
-    create(domains_root + "/domain1/partitioner_class", ConstantPartitioner.class.getName());
+    DomainConfig d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    DomainConfig d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+
+//    create(domains_root + "/domain0");
+//    create(domains_root + "/domain0/num_parts", "1");
+//    create(domains_root + "/domain0/version", "1");
+//    create(domains_root + "/domain0/storage_engine_options", "---");
+//    create(domains_root + "/domain0/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
+//    create(domains_root + "/domain0/partitioner_class", ConstantPartitioner.class.getName());
+//    create(domains_root + "/domain1");
+//    create(domains_root + "/domain1/num_parts", "1");
+//    create(domains_root + "/domain1/version", "1");
+//    create(domains_root + "/domain1/storage_engine_options", "---");
+//    create(domains_root + "/domain1/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
+//    create(domains_root + "/domain1/partitioner_class", ConstantPartitioner.class.getName());
     create(dg_root + "/domains");
     create(dg_root + "/domains/0", domains_root + "/domain0");
     create(dg_root + "/domains/1", domains_root + "/domain1");
@@ -77,6 +84,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
     assertEquals(0, dgc.getDomainId("domain0"));
     assertEquals(1, dgc.getDomainId("domain1"));
+    assertEquals(new HashSet<DomainConfig>(Arrays.asList(d0, d1)), dgc.getDomainConfigs());
+
     assertEquals("domain0", dgc.getDomainConfig(0).getName());
     assertEquals("domain1", dgc.getDomainConfig(1).getName());
   }

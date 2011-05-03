@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -77,6 +78,12 @@ public class MockDomainConfig implements DomainConfig {
 
   @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Map<String, Object> getStorageEngineOptions() {
     // TODO Auto-generated method stub
     return null;
   }

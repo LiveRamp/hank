@@ -13,7 +13,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.generated.SmartClient;
 
 public class StatusWebDaemon {
   @SuppressWarnings("unused")
@@ -22,11 +21,11 @@ public class StatusWebDaemon {
   private final ClientConfigurator cc;
   private final int port;
 
-  private final SmartClient.Iface client;
+  private final IClientCache clientCache;
 
-  public StatusWebDaemon(ClientConfigurator cc, SmartClient.Iface smartClient, int port) {
+  public StatusWebDaemon(ClientConfigurator cc, IClientCache clientCache, int port) {
     this.cc = cc;
-    client = smartClient;
+    this.clientCache = clientCache;
     this.port = port;
   }
 
@@ -44,7 +43,7 @@ public class StatusWebDaemon {
     final String warUrlString = warUrl.toExternalForm();
     WebAppContext webAppContext = new WebAppContext(warUrlString, "/");
     webAppContext.setAttribute("coordinator", coordinator);
-    webAppContext.setAttribute("client", client);
+    webAppContext.setAttribute("clientCache", clientCache);
 
     // get the controller servlet (for the "controller" methods)
     ServletContextHandler servletHandler = new ServletContextHandler();

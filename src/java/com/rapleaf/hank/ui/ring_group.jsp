@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
@@ -108,7 +109,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           %>
         <h4>Result</h4>
           <%
-          SmartClient.Iface client = (SmartClient.Iface)getServletContext().getAttribute("client");
+          SmartClient.Iface client = ((IClientCache)getServletContext().getAttribute("clientCache")).getSmartClient(ringGroup);
 
           ByteBuffer key = null;
           String dataFormat = request.getParameter("f");
@@ -160,22 +161,22 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
              <%
              for (int off = baseOff; off < baseOff + 16; off++) {
                if (off < value.limit() - value.position()) {
-               %><td><%= Integer.toString(value.array()[value.position() + off] | 0x100 & 0x1ff, 16).substring(1) %></td> <%
+               %><td width=20 align=center><%= Integer.toString(value.array()[value.position() + off] | 0x100 & 0x1ff, 16).substring(1) %></td> <%
                } else {
                %>
-               <td></td>
+               <td width=20>&nbsp;</td>
                <%
                }
              }
              %>
              <td style="border-left: 1px solid black; border-right: 1px solid black"></td>
              <%
-             for (int off = baseOff; off < baseOff + 16 && off < value.limit() - value.position(); off++) {
+             for (int off = baseOff; off < baseOff + 16; off++) {
                if (off < value.limit() - value.position()) {
-               %><td width=10><%= new String(value.array(), value.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
+               %><td width=20 align=center><%= new String(value.array(), value.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
                } else {
                %>
-               <td></td>
+               <td width=20>&nbsp;</td>
                <%
                }
              }
