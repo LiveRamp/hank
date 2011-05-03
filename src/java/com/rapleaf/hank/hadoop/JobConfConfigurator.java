@@ -28,7 +28,7 @@ public class JobConfConfigurator implements Configurator {
   private final YamlClientConfigurator baseConfigurator;
 
   public JobConfConfigurator(JobConf jobConf) {
-    String configuration = DomainBuilderOutputFormat.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
+    String configuration = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
@@ -41,5 +41,13 @@ public class JobConfConfigurator implements Configurator {
   @Override
   public Coordinator getCoordinator() {
     return baseConfigurator.getCoordinator();
+  }
+
+  public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
+    String result = conf.get(key);
+    if (result == null) {
+      throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
+    }
+    return result;
   }
 }
