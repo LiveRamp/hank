@@ -44,6 +44,9 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <div class='box-section-content'>
       software version info
     </div>
+    <div>
+    Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
+    </div>
   </div>
 
 

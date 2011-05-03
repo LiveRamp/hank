@@ -24,7 +24,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   Add a new domain group:<br/>
   <input type=text name="name" size=50/> <input type=submit value="Create"/>
   </form>
-  
+
   <table class='table-blue'>
     <tr>
       <th>Name</th>
@@ -37,33 +37,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
         <td>todo</td>
-        <td><%= domainConfig.getLatestVersion() %></td>
+        <td><%= domainConfig.getLatestVersion() == null ? "" : domainConfig.getLatestVersion().getVersionNumber() %></td>
       </tr>
-      <!-- <tr>
-        <td width=10>&nbsp;</td>
-        <td>
-  	      <table>
-  	        <% for (DomainGroupConfigVersion version : domainConfig.getVersions()) { %>
-  	        <tr>
-  	          <td colspan=2>v<%= version.getVersionNumber() %></td>
-  	        </tr>
-  	        <tr>
-              <td width=10>&nbsp;</td>
-  	          <td>
-  	            <table>
-  	              <% for (DomainConfigVersion dcv : version.getDomainConfigVersions()) { %>
-  	              <tr>
-  	                <td><%= dcv.getDomainConfig().getName() %> @v<%= dcv.getVersionNumber() %></td>
-  	              </tr>
-  	              <% } %>
-  	            </table>
-  	          </td>
-  	        </tr>
-  	        <% } %>
-  	      </table>
-        </td>
-      </tr>
-       -->
       <%
     }
     %>

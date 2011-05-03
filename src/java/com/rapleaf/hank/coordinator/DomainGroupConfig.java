@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 import com.rapleaf.hank.exception.DataNotFoundException;
@@ -26,6 +27,13 @@ import com.rapleaf.hank.exception.DataNotFoundException;
  */
 public interface DomainGroupConfig {
   public String getName();
+
+  /**
+   * Return the set of domains that are assigned to this domain group.
+   * @return
+   * @throws IOException
+   */
+  public Set<DomainConfig> getDomainConfigs() throws IOException;
 
   /**
    * Get the DomainConfig for the domain with <i>domainId</i>
