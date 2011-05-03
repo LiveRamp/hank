@@ -145,7 +145,7 @@
         <!-- <include name="META-INF/*.txt" /> -->
       </fileset>
       <fileset dir="${src.java}">
-        <include name="**/*.java" />
+        <include name="**/*.*" />
       </fileset>
     </jar>
   </target>
