@@ -70,10 +70,10 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     coll.close();
   }
 
-  private Pipe getPipe(String configuration, String domainName, DomainBuilderTap outputTap) {
+  private Pipe getPipe(DomainBuilderTap outputTap) {
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, new Fields("key", "value"), new Identity());
-    pipe = new DomainBuilderAssembly(configuration, domainName, pipe, "key", "value");
+    pipe = new DomainBuilderAssembly(pipe, "key", "value");
     return pipe;
   }
 
@@ -86,7 +86,7 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", OUTPUT_PATH_A);
     String configuration = TestHadoopDomainBuilder.getHadoopTestConfiguration();
-    Pipe pipe = getPipe(configuration, DOMAIN_A_NAME, outputTap);
+    Pipe pipe = getPipe(outputTap);
 
     Properties properties = new Properties();
     DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME);

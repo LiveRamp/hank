@@ -36,6 +36,7 @@ import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -44,8 +45,6 @@ public class DomainBuilderAssembly extends SubAssembly {
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
   public DomainBuilderAssembly (
-      String configuration,
-      String domainName,
       Pipe outputPipe,
       String keyFieldName,
       String valueFieldName) {
@@ -53,7 +52,7 @@ public class DomainBuilderAssembly extends SubAssembly {
     // Add partition and comparable key fields
     outputPipe = new Each(outputPipe,
         new Fields(keyFieldName),
-        new AddPartitionAndComparableKeyFields(configuration, domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
+        new AddPartitionAndComparableKeyFields(PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
     // Group by partition id and secondary sort on comparable key
@@ -66,21 +65,17 @@ public class DomainBuilderAssembly extends SubAssembly {
   private static class AddPartitionAndComparableKeyFields extends BaseOperation<AddPartitionAndComparableKeyFields> implements Function<AddPartitionAndComparableKeyFields> {
 
     private static final long serialVersionUID = 1L;
-    private String configuration;
-    private String domainName;
     transient private DomainConfig domainConfig;
 
-    AddPartitionAndComparableKeyFields(String configuration, String domainName, String partitionFieldName, String comparableKeyFieldName) {
+    AddPartitionAndComparableKeyFields(String partitionFieldName, String comparableKeyFieldName) {
       super(1, new Fields(partitionFieldName, comparableKeyFieldName));
-      this.configuration = configuration;
-      this.domainName = domainName;
     }
 
     @Override
-    public void operate(FlowProcess process, FunctionCall<AddPartitionAndComparableKeyFields> call) {
+    public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
       // Load domain config lazily
       try {
-        loadDomainConfig();
+        loadDomainConfig(flowProcess);
       } catch (DataNotFoundException e) {
         throw new RuntimeException("Failed to load DomainConfig!", e);
       }
@@ -98,9 +93,10 @@ public class DomainBuilderAssembly extends SubAssembly {
       call.getOutputCollector().add(new Tuple(partition, comparableKeyBytesWritable));
     }
 
-    private void loadDomainConfig() throws DataNotFoundException {
+    private void loadDomainConfig(FlowProcess flowProcess) throws DataNotFoundException {
       if (domainConfig == null) {
-        Configurator configurator = new CascadingOperationConfigurator(configuration);
+        Configurator configurator = new CascadingOperationConfigurator(flowProcess);
+        String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
         domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
       }
     }

@@ -141,8 +141,8 @@ public class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWr
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
     // Load configuration items
-    String domainName = getRequiredConfigurationItem(CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
-    String outputPath = getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
+    String domainName = JobConfConfigurator.getRequiredConfigurationItem(CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
     Configurator configurator = new JobConfConfigurator(conf);
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
@@ -157,19 +157,13 @@ public class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWr
     return new HankDomainRecordWriter(domainConfig, fs, outputPath);
   }
 
-  public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
-    String result = conf.get(key);
-    if (result == null) {
-      throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
-    }
-    return result;
-  }
-
+  // For configuring Cascading jobs
   public static void setProperties(Properties properties, String configuration, String domainName) {
     properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
     properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
   }
 
+  // For configuring Hadoop M/R jobs
   public static void setProperties(JobConf conf, String configuration, String domainName, String outputPath) {
     conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
     conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
