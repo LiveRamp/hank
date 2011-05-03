@@ -14,7 +14,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>New Domain (Hank)</title>
 
-  <jsp:include page="head.jsp" />
+  <jsp:include page="_head.jsp" />
 </head>
 <body>
 

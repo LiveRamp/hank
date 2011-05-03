@@ -43,7 +43,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
 
   Add domain:
   <br/>
-  <select>
+  <select name="d">
   <% Set<DomainConfig> s = coord.getDomainConfigs(); %>
   <% s.removeAll(domainGroupConfig.getDomainConfigs()); %>
   <% for (DomainConfig domainConfig : s) { %>
