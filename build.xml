@@ -139,8 +139,12 @@
     </exec>
   </target>
 
+  <target name="capture-version">
+    <echo file="${build}/version.txt" message="${version}"/>
+  </target>
+
   <!-- TODO: need to build several jars here -->
-  <target name="dist" depends="compile,capture-git-commit" description="Build a distributable jar">
+  <target name="dist" depends="compile,capture-git-commit,capture-version" description="Build a distributable jar">
     <!-- <mkdir dir="${build}/META-INF"/> -->
     <!-- <copy file="${thrift.root}/LICENSE" tofile="${build}/META-INF/LICENSE.txt"/> -->
     <!-- <copy file="${thrift.root}/NOTICE" tofile="${build}/META-INF/NOTICE.txt"/> -->
@@ -149,7 +153,7 @@
         <include name="**/*.class" />
       </fileset>
       <fileset dir="${build}">
-        <include name="git-commit.txt" />
+        <include name="*.txt" />
       </fileset>
       <fileset dir="${src.java}">
         <include name="**/*.*" />
