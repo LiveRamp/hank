@@ -33,7 +33,7 @@ import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
 
-import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
@@ -88,9 +88,7 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     String configuration = TestHadoopDomainBuilder.getHadoopTestConfiguration();
     Pipe pipe = getPipe(outputTap);
 
-    Properties properties = new Properties();
-    DomainBuilderOutputFormat.setProperties(properties, configuration, DOMAIN_A_NAME);
-    new FlowConnector(properties).connect(inputTap, outputTap, pipe).complete();
+    new FlowConnector(DomainBuilderProperties.set(new Properties(), configuration, DOMAIN_A_NAME)).connect(inputTap, outputTap, pipe).complete();
 
     // Check output
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_A_NAME, 0, "0.base"));

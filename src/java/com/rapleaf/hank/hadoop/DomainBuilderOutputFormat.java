@@ -18,7 +18,6 @@ package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -155,18 +154,5 @@ public class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWr
     }
     // Build RecordWriter with the DomainConfig
     return new HankDomainRecordWriter(domainConfig, fs, outputPath);
-  }
-
-  // For configuring Cascading jobs
-  public static void setProperties(Properties properties, String configuration, String domainName) {
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
-    properties.setProperty(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-  }
-
-  // For configuring Hadoop M/R jobs
-  public static void setProperties(JobConf conf, String configuration, String domainName, String outputPath) {
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, configuration);
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
   }
 }
