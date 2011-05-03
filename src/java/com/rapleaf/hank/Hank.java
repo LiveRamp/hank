@@ -20,7 +20,7 @@ public final class Hank {
     InputStream s = Hank.class.getClassLoader().getResourceAsStream("git-commit.txt");
     if (s != null) {
       BufferedReader r = new BufferedReader(new InputStreamReader(s));
-      
+
       try {
         temp = r.readLine();
         r.close();
@@ -33,5 +33,28 @@ public final class Hank {
 
   public static String getGitCommit() {
     return GIT_COMMIT;
+  }
+
+  private final static String VERSION;
+
+  static {
+    String temp = "UNKNOWN";
+
+    InputStream s = Hank.class.getClassLoader().getResourceAsStream("version.txt");
+    if (s != null) {
+      BufferedReader r = new BufferedReader(new InputStreamReader(s));
+
+      try {
+        temp = r.readLine();
+        r.close();
+      } catch (IOException e) {
+        LOG.warn("couldn't load version.txt from the jar.", e);
+      }
+    }
+    VERSION = temp;
+  }
+
+  public static String getVersion() {
+    return VERSION;
   }
 }

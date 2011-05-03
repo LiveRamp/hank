@@ -42,10 +42,10 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <div class='box-section'>
     <h3>Version Information</h3>
     <div class='box-section-content'>
-      Hank commit <%= Hank.getGitCommit() %>
+      Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
     </div>
     <div>
-    Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
+      Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
     </div>
   </div>
 </body>
