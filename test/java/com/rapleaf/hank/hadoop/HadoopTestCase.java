@@ -17,9 +17,6 @@
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -28,16 +25,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.MockCoordinator;
-import com.rapleaf.hank.coordinator.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.MockStorageEngine;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Writer;
 
 public class HadoopTestCase extends BaseTestCase {
 
@@ -78,76 +65,5 @@ public class HadoopTestCase extends BaseTestCase {
     }
     in.close();
     return builder.toString();
-  }
-
-  private static class HadoopTestMockWriter implements Writer {
-
-    protected final OutputStream outputStream;
-
-    HadoopTestMockWriter(OutputStreamFactory streamFactory, int partNum,
-        int versionNumber, boolean base) throws IOException {
-      this.outputStream = streamFactory.getOutputStream(partNum, Integer.toString(versionNumber) + "." + (base ? "base" : "nobase"));
-    }
-
-    @Override
-    public void write(ByteBuffer key, ByteBuffer value) throws IOException {
-      this.outputStream.write(key.array(), key.position(), key.remaining());
-      outputStream.write(" ".getBytes());
-      outputStream.write(value.array(), value.position(), value.remaining());
-      outputStream.write("\n".getBytes());
-    }
-
-    @Override
-    public void close() throws IOException {
-      outputStream.close();
-    }
-  }
-
-  private static class IntStringKeyModPartitioner implements Partitioner {
-
-    private int numPartitions;
-
-    IntStringKeyModPartitioner(int numPartitions) {
-      this.numPartitions = numPartitions;
-    }
-
-    @Override
-    public int partition(ByteBuffer key) {
-      String keyString = new String(key.array(), key.position(), key.remaining());
-      Integer keyInteger = Integer.valueOf(keyString);
-      return keyInteger % numPartitions;
-    }
-  }
-
-  private static class HadoopTestMockStorageEngine extends MockStorageEngine {
-    @Override
-    public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-        int versionNumber, boolean base) throws IOException {
-      return new HadoopTestMockWriter(streamFactory, partNum, versionNumber, base);
-    }
-
-    @Override
-    public ByteBuffer getComparableKey(ByteBuffer key) {
-      return key;
-    }
-  }
-
-  public static class HadoopTestMockCoordinator extends MockCoordinator {
-
-    public static class Factory implements CoordinatorFactory {
-      @Override
-      public Coordinator getCoordinator(Map<String, Object> options) {
-        return new HadoopTestMockCoordinator();
-      }
-    }
-
-    @Override
-    public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
-      return new MockDomainConfig(domainName, 2, new IntStringKeyModPartitioner(2), new HadoopTestMockStorageEngine(), 0);
-    }
-  }
-
-  static public String getHadoopTestConfiguration() {
-    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.HadoopTestCase$HadoopTestMockCoordinator$Factory\n  options:\n";
   }
 }

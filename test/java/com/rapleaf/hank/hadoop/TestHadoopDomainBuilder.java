@@ -45,7 +45,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     super.setUp();
     // Create config
     PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
-    pw.write(getHadoopTestConfiguration());
+    pw.write(IntStringKeyStorageEngineCoordinator.getConfiguration());
     pw.close();
 
     // Create inputs
