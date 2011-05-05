@@ -49,10 +49,40 @@ public class HadoopDomainBuilder {
     return JobClient.runJob(createJobConfiguration(domainName, inputPath, inputFormatClass, mapperClass, hankConfiguration, outputPath));
   }
 
+  // Use a non-default output format
+  public static final RunningJob buildHankDomain(
+      String domainName,
+      String inputPath,
+      Class<? extends InputFormat> inputFormatClass,
+      Class<? extends DomainBuilderMapper> mapperClass,
+      Class<? extends DomainBuilderOutputFormat> outputFormatClass,
+      String hankConfigurationPath,
+      String outputPath) throws IOException {
+    String hankConfiguration = FileUtils.readFileToString(new File(hankConfigurationPath));
+    return JobClient.runJob(createJobConfiguration(domainName, inputPath, inputFormatClass, mapperClass, outputFormatClass, hankConfiguration, outputPath));
+  }
+
   public static final JobConf createJobConfiguration(String domainName,
       String inputPath,
       Class<? extends InputFormat> inputFormatClass,
       Class<? extends Mapper> mapperClass,
+      String hankConfiguration,
+      String outputPath) {
+    return createJobConfiguration(domainName,
+        inputPath,
+        inputFormatClass,
+        mapperClass,
+        DomainBuilderDefaultOutputFormat.class,
+        hankConfiguration,
+        outputPath);
+  }
+
+  // Use a non-default output format
+  public static final JobConf createJobConfiguration(String domainName,
+      String inputPath,
+      Class<? extends InputFormat> inputFormatClass,
+      Class<? extends Mapper> mapperClass,
+      Class<? extends DomainBuilderOutputFormat> outputFormatClass,
       String hankConfiguration,
       String outputPath) {
     JobConf conf = new JobConf();
@@ -68,7 +98,7 @@ public class HadoopDomainBuilder {
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(DomainBuilderDefaultOutputFormat.class);
+    conf.setOutputFormat(outputFormatClass);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration

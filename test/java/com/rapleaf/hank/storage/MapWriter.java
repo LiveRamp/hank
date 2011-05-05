@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {
@@ -39,6 +40,9 @@ public class MapWriter implements Writer {
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+    if (entries.containsKey(key)) {
+      throw new RuntimeException("Duplicate entry for key: " + key.toString());
+    }
     ByteBuffer keyCopy = Bytes.byteBufferDeepCopy(key);
     ByteBuffer valueCopy = Bytes.byteBufferDeepCopy(value);
     entries.put(keyCopy, valueCopy);

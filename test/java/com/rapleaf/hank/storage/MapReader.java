@@ -20,6 +20,9 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
+
 public class MapReader implements Reader {
 
   private final Map<ByteBuffer, byte[]> map;

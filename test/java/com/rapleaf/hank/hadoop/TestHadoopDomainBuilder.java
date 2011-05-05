@@ -78,7 +78,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     assertEquals("1 v1\n3 v3\n", p2);
   }
 
-  private static class TestMapper extends DomainBuilderMapper<LongWritable, Text> {
+  public static class TestMapper extends DomainBuilderMapper<LongWritable, Text> {
 
     // Converts text file lines "<key> <value>" to the corresponding object
     @Override
