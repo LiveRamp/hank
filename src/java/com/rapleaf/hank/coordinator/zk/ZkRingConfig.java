@@ -33,7 +33,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -224,17 +223,6 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
     } catch (Exception e) {
       throw new IOException(e);
     }
-  }
-
-  @Override
-  public Set<HostConfig> getHostsInState(HostState state) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hostConfig: getHosts()) {
-      if (hostConfig.getState() == state) {
-        results.add(hostConfig);
-      }
-    }
-    return results;
   }
 
   @Override

@@ -143,4 +143,25 @@ public class TestAbstractRingConfig extends BaseTestCase {
     assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(0, 2));
     assertEquals(Collections.EMPTY_SET, ringConf.getHostsForDomainPartition(0, 3));
   }
+
+  public void testGetHostsInState() throws Exception {
+    final MockHostConfig h1 = new MockHostConfig(new PartDaemonAddress("localhost", 1));
+    final MockHostConfig h2 = new MockHostConfig(new PartDaemonAddress("localhost", 2));
+    final MockHostConfig h3 = new MockHostConfig(new PartDaemonAddress("localhost", 3));
+
+    SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return new HashSet<HostConfig>(Arrays.asList(h1, h2, h3));
+      }
+    };
+
+    h1.setState(HostState.IDLE);
+    h2.setState(HostState.SERVING);
+    h3.setState(HostState.OFFLINE);
+
+    assertEquals(Collections.singleton(h1), rc.getHostsInState(HostState.IDLE));
+    assertEquals(Collections.singleton(h2), rc.getHostsInState(HostState.SERVING));
+    assertEquals(Collections.singleton(h3), rc.getHostsInState(HostState.OFFLINE));
+  }
 }

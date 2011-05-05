@@ -37,8 +37,13 @@ public abstract class AbstractRingConfig implements RingConfig {
 
   @Override
   public Set<HostConfig> getHostsInState(HostState state) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    Set<HostConfig> results = new HashSet<HostConfig>();
+    for (HostConfig hostConfig: getHosts()) {
+      if (hostConfig.getState() == state) {
+        results.add(hostConfig);
+      }
+    }
+    return results;
   }
 
   @Override

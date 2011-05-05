@@ -125,32 +125,6 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(RingState.UP, rc.getState());
   }
 
-  public void testGetNumHostsInState() throws Exception {
-    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
-    PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
-    PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
-    PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
-
-    HostConfig hc1 = rc.addHost(h1);
-    hc1.setState(HostState.IDLE);
-    HostConfig hc2 = rc.addHost(h2);
-    hc2.setState(HostState.SERVING);
-    HostConfig hc3 = rc.addHost(h3);
-    hc3.setState(HostState.OFFLINE);
-
-    for (int i = 0; i < 300; i++) {
-      if (rc.getHosts().size() == 3) {
-        break;
-      }
-      Thread.sleep(100);
-    }
-    assertEquals(3, rc.getHosts().size());
-
-    assertEquals(Collections.singleton(hc1), rc.getHostsInState(HostState.IDLE));
-    assertEquals(Collections.singleton(hc2), rc.getHostsInState(HostState.SERVING));
-    assertEquals(Collections.singleton(hc3), rc.getHostsInState(HostState.OFFLINE));
-  }
-
   public void testSetUpdatingToVersion() throws Exception {
     RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
     rc.updateComplete();
