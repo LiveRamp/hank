@@ -36,7 +36,7 @@ import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -96,7 +96,7 @@ public class DomainBuilderAssembly extends SubAssembly {
     private void loadDomainConfig(FlowProcess flowProcess) throws DataNotFoundException {
       if (domainConfig == null) {
         Configurator configurator = new CascadingOperationConfigurator(flowProcess);
-        String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
+        String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
         domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
       }
     }

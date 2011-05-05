@@ -68,7 +68,7 @@ public class HadoopDomainBuilder {
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(DomainBuilderOutputFormat.class);
+    conf.setOutputFormat(DomainBuilderDefaultOutputFormat.class);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration
