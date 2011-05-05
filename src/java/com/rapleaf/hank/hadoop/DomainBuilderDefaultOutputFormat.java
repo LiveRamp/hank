@@ -17,8 +17,6 @@
 package com.rapleaf.hank.hadoop;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.hadoop.fs.FileSystem;
@@ -26,15 +24,14 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
-import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.util.Progressable;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Writer;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
+
+  private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainBuilderDefaultOutputFormat";
 
   @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
@@ -51,39 +48,28 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       throws IOException {
     // Load configuration items
     String outputPath = JobConfConfigurator.getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
+    String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
     DomainConfig domainConfig = JobConfConfigurator.getDomainConfig(conf);
     // Build RecordWriter with the DomainConfig
-    return new DomainBuilderRecordWriter(domainConfig, fs, outputPath);
+    return new DomainBuilderDefaultRecordWriter(domainConfig, fs, tmpOutputPath, outputPath);
   }
 
-  private static class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
-
-    private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainRecordWriter";
+  private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
 
     private final FileSystem fs;
-    private final DomainConfig domainConfig;
-    private final StorageEngine storageEngine;
-    private Writer writer = null;
-    private Integer writerPartition = null;
-    private final Set<Integer> writtenPartitions = new HashSet<Integer>();
-    private final HDFSOutputStreamFactory tmpOutputStreamFactory;
     private final String tmpOutputPath;
     private final String finalOutputPath;
 
-    DomainBuilderRecordWriter(DomainConfig domainConfig, FileSystem fs, String finalOutputPath) {
-      this.domainConfig = domainConfig;
-      this.storageEngine = domainConfig.getStorageEngine();
-      this.finalOutputPath = finalOutputPath;
-      this.tmpOutputPath = finalOutputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
-      this.tmpOutputStreamFactory = new HDFSOutputStreamFactory(fs, tmpOutputPath);
+    DomainBuilderDefaultRecordWriter(DomainConfig domainConfig, FileSystem fs, String tmpOutputPath, String finalOutputPath) {
+      super(domainConfig, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
+      this.tmpOutputPath = tmpOutputPath;
+      this.finalOutputPath = finalOutputPath;
     }
 
     @Override
-    public void close(Reporter reporter) throws IOException {
-      // Close current writer
-      closeCurrentWriterIfNeeded();
+    protected void finalizeOutput() throws IOException {
       // Move output files from tmp output path to final output path
       for (Integer partition : writtenPartitions) {
         fs.rename(new Path(tmpOutputPath + "/" + partition),
@@ -100,41 +86,6 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       Path tmpOutputPathParent = tmpOutputPathObject.getParent();
       if (fs.listStatus(tmpOutputPathParent).length == 0) {
         fs.delete(tmpOutputPathParent);
-      }
-    }
-
-    @Override
-    public void write(KeyAndPartitionWritable key, ValueWritable value)
-    throws IOException {
-      int partition = key.getPartition();
-      // If writing a new partition, get a new writer
-      if (writerPartition == null ||
-          writerPartition != partition) {
-        // Set up new writer
-        setNewPartitionWriter(partition);
-      }
-      // Write record
-      writer.write(key.getKey(), value.getAsByteBuffer());
-    }
-
-    private void setNewPartitionWriter(int partition) throws IOException {
-      // First, close current writer
-      closeCurrentWriterIfNeeded();
-      // Check for existing partitions
-      if (writtenPartitions.contains(partition)) {
-        throw new RuntimeException("Partition " + partition + " has already been written.");
-      }
-      // Set up new writer
-      // TODO: deal with base/non base
-      boolean isBase = true;
-      writer = storageEngine.getWriter(tmpOutputStreamFactory, partition, domainConfig.getVersion(), isBase);
-      writerPartition = partition;
-      writtenPartitions.add(partition);
-    }
-
-    private void closeCurrentWriterIfNeeded() throws IOException {
-      if (writer != null) {
-        writer.close();
       }
     }
   }
