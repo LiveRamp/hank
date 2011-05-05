@@ -13,44 +13,41 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-
-package com.rapleaf.hank.storage.test;
+package com.rapleaf.hank.storage.mock;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.rapleaf.hank.storage.MapWriter;
-import com.rapleaf.hank.storage.MockStorageEngine;
+import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 
-// Storage engine used for testing. Stores key-value pairs in a static
-// partition map. It is not thread safe.
-public class MapStorageEngine extends MockStorageEngine {
+public class MockStorageEngine implements StorageEngine {
+  public boolean getReaderCalled;
 
-  private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions;
-
-  public MapStorageEngine() {
-    this.partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
+  @Override
+  public Reader getReader(PartservConfigurator configurator, int partNum)
+  throws IOException {
+    getReaderCalled = true;
+    return null;
   }
 
-  public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions() {
-    return partitions;
+  @Override
+  public Updater getUpdater(PartservConfigurator configurator, int partNum) {
+    return null;
   }
 
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
       int versionNumber, boolean base) throws IOException {
-    if (!partitions.containsKey(partNum)) {
-      partitions.put(partNum, new HashMap<ByteBuffer, ByteBuffer>());
-    }
-    return new MapWriter(partitions.get(partNum));
+    return null;
   }
 
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
-    return key;
+    return null;
   }
 }

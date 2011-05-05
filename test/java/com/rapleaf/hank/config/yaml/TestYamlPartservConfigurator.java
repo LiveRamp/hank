@@ -20,7 +20,7 @@ import java.io.PrintWriter;
 import java.util.Collections;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestYamlPartservConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";

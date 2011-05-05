@@ -22,7 +22,7 @@ import java.io.PrintWriter;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestBaseYamlConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/bad4.yml";

@@ -24,13 +24,13 @@ import java.util.Map;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.MockCoordinator;
-import com.rapleaf.hank.coordinator.MockDomainConfig;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 // Integer String key storage engine.
 // Store records (key, value) where key is an Integer's String representation

@@ -23,8 +23,8 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class TestZkDomainGroupConfigVersion extends ZkTestCase {

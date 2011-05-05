@@ -13,12 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.mock;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
 
 public class MockReader implements Reader {
 

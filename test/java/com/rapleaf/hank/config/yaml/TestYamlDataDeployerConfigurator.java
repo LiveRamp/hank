@@ -21,7 +21,7 @@ import java.io.PrintWriter;
 
 import junit.framework.TestCase;
 
-import com.rapleaf.hank.coordinator.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestYamlDataDeployerConfigurator extends TestCase {
   private static final String PATH = "/tmp/yaml_data_deployer_configurator.yml";

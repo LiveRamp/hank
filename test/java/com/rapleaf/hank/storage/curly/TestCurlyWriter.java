@@ -18,7 +18,7 @@ package com.rapleaf.hank.storage.curly;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.storage.MapWriter;
+import com.rapleaf.hank.storage.map.MapWriter;
 
 public class TestCurlyWriter extends AbstractCurlyTestBase {
   public void testWrite() throws Exception {

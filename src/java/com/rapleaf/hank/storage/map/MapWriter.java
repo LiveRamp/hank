@@ -13,13 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.map;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {

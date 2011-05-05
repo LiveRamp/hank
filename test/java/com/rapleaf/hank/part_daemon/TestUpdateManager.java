@@ -27,7 +27,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainConfig;
 import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
@@ -37,11 +36,12 @@ import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
-import com.rapleaf.hank.storage.MockStorageEngine;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
   private final class MRG extends MockRingGroupConfig {

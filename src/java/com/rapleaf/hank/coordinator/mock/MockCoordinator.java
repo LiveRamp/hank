@@ -13,12 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.coordinator;
+package com.rapleaf.hank.coordinator.mock;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockCoordinator implements Coordinator {

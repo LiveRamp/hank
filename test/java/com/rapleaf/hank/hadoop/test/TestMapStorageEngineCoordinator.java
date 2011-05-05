@@ -27,7 +27,7 @@ import com.rapleaf.hank.hadoop.DomainBuilderEmptyOutputFormat;
 import com.rapleaf.hank.hadoop.HadoopDomainBuilder;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
-import com.rapleaf.hank.storage.test.MapStorageEngine;
+import com.rapleaf.hank.storage.map.MapStorageEngine;
 import com.rapleaf.hank.util.Bytes;
 
 

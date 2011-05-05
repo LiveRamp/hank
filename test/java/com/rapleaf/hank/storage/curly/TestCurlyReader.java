@@ -19,8 +19,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 
-import com.rapleaf.hank.storage.MapReader;
 import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";

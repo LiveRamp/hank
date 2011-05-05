@@ -22,11 +22,11 @@ import java.util.Map;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.MockCoordinator;
-import com.rapleaf.hank.coordinator.MockDomainConfig;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.test.MapStorageEngine;
+import com.rapleaf.hank.storage.map.MapStorageEngine;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {

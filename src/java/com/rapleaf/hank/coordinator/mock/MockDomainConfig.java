@@ -13,11 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.coordinator;
+package com.rapleaf.hank.coordinator.mock;
 
 import java.io.IOException;
 import java.util.Map;
 
+import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
