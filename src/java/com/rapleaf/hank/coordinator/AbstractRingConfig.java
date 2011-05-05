@@ -14,8 +14,9 @@ public abstract class AbstractRingConfig implements RingConfig {
 
   @Override
   public void commandAll(HostCommand command) throws IOException {
-    // TODO Auto-generated method stub
-
+    for (HostConfig hc : getHosts()) {
+      hc.enqueueCommand(command);
+    }
   }
 
   @Override

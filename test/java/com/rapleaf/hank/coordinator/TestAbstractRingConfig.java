@@ -1,6 +1,8 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
@@ -73,5 +75,24 @@ public class TestAbstractRingConfig extends BaseTestCase {
         return null;
       }
     }.isUpdatePending());
+  }
+
+  public void testCommandAll() throws IOException {
+    final HostConfig hc = new MockHostConfig(new PartDaemonAddress("localhost", 1));
+
+    SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return Collections.singleton(hc);
+      }
+    };
+
+    assertNull(hc.getCurrentCommand());
+    assertTrue(hc.getCommandQueue().isEmpty());
+
+    rc.commandAll(HostCommand.SERVE_DATA);
+
+    assertNull(hc.getCurrentCommand());
+    assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
   }
 }
