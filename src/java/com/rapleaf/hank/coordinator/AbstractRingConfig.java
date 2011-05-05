@@ -1,6 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractRingConfig implements RingConfig {
@@ -21,8 +22,17 @@ public abstract class AbstractRingConfig implements RingConfig {
 
   @Override
   public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    Set<HostConfig> results = new HashSet<HostConfig>();
+    for (HostConfig hc : getHosts()) {
+      HostDomainConfig domainById = hc.getDomainById(domainId);
+      for (HostDomainPartitionConfig hdpc : domainById.getPartitions()) {
+        if (hdpc.getPartNum() == partition) {
+          results.add(hc);
+          break;
+        }
+      }
+    }
+    return results;
   }
 
   @Override

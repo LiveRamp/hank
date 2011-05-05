@@ -33,7 +33,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -216,20 +215,6 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
     zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRingConfig(zk, ringPath, group);
-  }
-
-  @Override
-  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hc : getHosts()) {
-      for (HostDomainPartitionConfig hdpc : hc.getDomainById(domainId).getPartitions()) {
-        if (hdpc.getPartNum() == partition) {
-          results.add(hc);
-          break;
-        }
-      }
-    }
-    return results;
   }
 
   @Override

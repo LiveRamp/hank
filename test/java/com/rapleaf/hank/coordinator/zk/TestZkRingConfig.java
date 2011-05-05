@@ -15,14 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -117,27 +114,6 @@ public class TestZkRingConfig extends ZkTestCase {
 
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
     ringConf.close();
-  }
-
-  public void testGetHostsForDomainPartition() throws Exception {
-    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
-    PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
-    PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
-    PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
-
-    HostConfig hc1 = rc.addHost(h1);
-    HostDomainConfig d = hc1.addDomain(1);
-    d.addPartition(0, 1);
-    HostConfig hc2 = rc.addHost(h2);
-    d = hc2.addDomain(1);
-    d.addPartition(1, 1);
-    HostConfig hc3 = rc.addHost(h3);
-    d = hc3.addDomain(1);
-    d.addPartition(2, 1);
-    d.addPartition(0, 1);
-
-    assertEquals(new HashSet<HostConfig>(Arrays.asList(hc1, hc3)), rc.getHostsForDomainPartition(1, 0));
-    rc.close();
   }
 
   public void testGetRingState() throws Exception {

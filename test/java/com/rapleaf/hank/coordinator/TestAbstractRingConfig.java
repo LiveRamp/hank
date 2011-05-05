@@ -103,44 +103,8 @@ public class TestAbstractRingConfig extends BaseTestCase {
     final HostConfig hc = new MockHostConfig(LOCALHOST) {
       @Override
       public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-        HostDomainConfig hd1 = new HostDomainConfig(){
-          @Override
-          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {
-            return null;
-          }
-
-          @Override
-          public int getDomainId() {
-            return 0;
-          }
-
-          @Override
-          public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
-            return new HashSet<HostDomainPartitionConfig>(Arrays.asList(
-                new MockHostDomainPartitionConfig(1, 1, 2),
-                new MockHostDomainPartitionConfig(1, 2, 2)
-            ));
-          }
-        };
-        HostDomainConfig hd2 = new HostDomainConfig(){
-          @Override
-          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {
-            return null;
-          }
-
-          @Override
-          public int getDomainId() {
-            return 1;
-          }
-
-          @Override
-          public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
-            return new HashSet<HostDomainPartitionConfig>(Arrays.asList(
-                new MockHostDomainPartitionConfig(1, 2, 2),
-                new MockHostDomainPartitionConfig(1, 2, 2)
-            ));
-          }
-        };
+        HostDomainConfig hd1 = new MockHostDomainConfig(0, 1, 1, 2, 2, 2, 2);
+        HostDomainConfig hd2 = new MockHostDomainConfig(1, 1, 2, 2, 2, 2, 2);
         return new HashSet<HostDomainConfig>(Arrays.asList(hd1, hd2));
       }
     };
@@ -151,5 +115,32 @@ public class TestAbstractRingConfig extends BaseTestCase {
       }
     };
     assertEquals(Integer.valueOf(1), ringConf.getOldestVersionOnHosts());
+  }
+
+  public void testGetHostsForDomainPartition() throws Exception {
+    final HostConfig hc = new MockHostConfig(LOCALHOST) {
+      HostDomainConfig hd1 = new MockHostDomainConfig(0, 1, 1, 2, 2, 2, 2);
+      HostDomainConfig hd2 = new MockHostDomainConfig(1, 1, 2, 2, 2, 2, 2);
+
+      @Override
+      public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+        return new HashSet<HostDomainConfig>(Arrays.asList(hd1, hd2));
+      }
+
+      @Override
+      public HostDomainConfig getDomainById(int domainId) {
+        return domainId == 0 ? hd1 : null;
+      }
+    };
+    SlightlyLessAbstractRingConfig ringConf = new SlightlyLessAbstractRingConfig(1, null) {
+      @Override
+      public Set<HostConfig> getHosts() {
+        return Collections.singleton(hc);
+      }
+    };
+
+    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(0, 1));
+    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(0, 2));
+    assertEquals(Collections.EMPTY_SET, ringConf.getHostsForDomainPartition(0, 3));
   }
 }
