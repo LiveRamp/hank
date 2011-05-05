@@ -20,7 +20,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {

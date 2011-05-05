@@ -32,11 +32,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
-import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -178,22 +174,6 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   }
 
   @Override
-  public Integer getOldestVersionOnHosts() throws IOException {
-    Integer min = null;
-    for (HostConfig host : hostConfigs.values()) {
-      for (HostDomainConfig hdc : host.getAssignedDomains()) {
-        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
-          Integer ver = hdpc.getCurrentDomainGroupVersion();
-          if (min == null || (ver != null && min > ver)) {
-            min = ver;
-          }
-        }
-      }
-    }
-    return min;
-  }
-
-  @Override
   public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
     return hostConfigs.get(address);
   }
@@ -237,43 +217,11 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hc : getHosts()) {
-      for (HostDomainPartitionConfig hdpc : hc.getDomainById(domainId).getPartitions()) {
-        if (hdpc.getPartNum() == partition) {
-          results.add(hc);
-          break;
-        }
-      }
-    }
-    return results;
-  }
-
-  @Override
   public void setState(RingState newState) throws IOException {
     try {
       zk.setString(ringPath + STATUS_PATH_SEGMENT, newState.toString());
     } catch (Exception e) {
       throw new IOException(e);
-    }
-  }
-
-  @Override
-  public Set<HostConfig> getHostsInState(HostState state) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hostConfig: getHosts()) {
-      if (hostConfig.getState() == state) {
-        results.add(hostConfig);
-      }
-    }
-    return results;
-  }
-
-  @Override
-  public void commandAll(HostCommand command) throws IOException {
-    for (HostConfig hostConfig : getHosts()) {
-      hostConfig.enqueueCommand(command);
     }
   }
 

@@ -15,14 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -119,49 +116,6 @@ public class TestZkRingConfig extends ZkTestCase {
     ringConf.close();
   }
 
-  public void testCommandAll() throws Exception {
-    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
-
-    HostConfig hc = ringConf.addHost(LOCALHOST);
-    assertNull(hc.getCurrentCommand());
-
-    ringConf.commandAll(HostCommand.SERVE_DATA);
-    assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
-    ringConf.close();
-  }
-
-  public void testGetOldestVersionOnHosts() throws Exception {
-    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
-    HostConfig hc = ringConf.addHost(LOCALHOST);
-    HostDomainConfig d = hc.addDomain(0);
-    d.addPartition(1, 1).setCurrentDomainGroupVersion(1);
-    d = hc.addDomain(1);
-    d.addPartition(1, 2).setCurrentDomainGroupVersion(2);
-    assertEquals(Integer.valueOf(1), ringConf.getOldestVersionOnHosts());
-    ringConf.close();
-  }
-
-  public void testGetHostsForDomainPartition() throws Exception {
-    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
-    PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
-    PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
-    PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
-
-    HostConfig hc1 = rc.addHost(h1);
-    HostDomainConfig d = hc1.addDomain(1);
-    d.addPartition(0, 1);
-    HostConfig hc2 = rc.addHost(h2);
-    d = hc2.addDomain(1);
-    d.addPartition(1, 1);
-    HostConfig hc3 = rc.addHost(h3);
-    d = hc3.addDomain(1);
-    d.addPartition(2, 1);
-    d.addPartition(0, 1);
-
-    assertEquals(new HashSet<HostConfig>(Arrays.asList(hc1, hc3)), rc.getHostsForDomainPartition(1, 0));
-    rc.close();
-  }
-
   public void testGetRingState() throws Exception {
     RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
     assertEquals(RingState.DOWN, rc.getState());
@@ -169,32 +123,6 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(RingState.UP, rc.getState());
     rc = new ZkRingConfig(getZk(), getRoot() + "/ring-1", null);
     assertEquals(RingState.UP, rc.getState());
-  }
-
-  public void testGetNumHostsInState() throws Exception {
-    RingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
-    PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);
-    PartDaemonAddress h2 = new PartDaemonAddress("localhost", 2);
-    PartDaemonAddress h3 = new PartDaemonAddress("localhost", 3);
-
-    HostConfig hc1 = rc.addHost(h1);
-    hc1.setState(HostState.IDLE);
-    HostConfig hc2 = rc.addHost(h2);
-    hc2.setState(HostState.SERVING);
-    HostConfig hc3 = rc.addHost(h3);
-    hc3.setState(HostState.OFFLINE);
-
-    for (int i = 0; i < 300; i++) {
-      if (rc.getHosts().size() == 3) {
-        break;
-      }
-      Thread.sleep(100);
-    }
-    assertEquals(3, rc.getHosts().size());
-
-    assertEquals(Collections.singleton(hc1), rc.getHostsInState(HostState.IDLE));
-    assertEquals(Collections.singleton(hc2), rc.getHostsInState(HostState.SERVING));
-    assertEquals(Collections.singleton(hc3), rc.getHostsInState(HostState.OFFLINE));
   }
 
   public void testSetUpdatingToVersion() throws Exception {
