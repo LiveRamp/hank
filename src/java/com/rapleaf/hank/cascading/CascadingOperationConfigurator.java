@@ -22,14 +22,14 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 
 public class CascadingOperationConfigurator implements Configurator {
 
   private final YamlClientConfigurator baseConfigurator;
 
   public CascadingOperationConfigurator(FlowProcess flowProcess) {
-    String configuration = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", flowProcess);
+    String configuration = getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", flowProcess);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {

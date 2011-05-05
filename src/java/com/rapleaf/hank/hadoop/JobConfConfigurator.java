@@ -22,6 +22,8 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class JobConfConfigurator implements Configurator {
 
@@ -49,5 +51,21 @@ public class JobConfConfigurator implements Configurator {
       throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
     }
     return result;
+  }
+
+  // Directly get the DomainConfig from the configuration
+  public static DomainConfig getDomainConfig(JobConf conf) {
+    String domainName = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    Configurator configurator = new JobConfConfigurator(conf);
+    // Get Coordinator
+    Coordinator coordinator = configurator.getCoordinator();
+    // Try to get domain config
+    DomainConfig domainConfig;
+    try {
+      domainConfig = coordinator.getDomainConfig(domainName);
+    } catch (DataNotFoundException e) {
+      throw new RuntimeException("Failed to load domain config for domain " + domainName + "!", e);
+    }
+    return domainConfig;
   }
 }

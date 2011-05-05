@@ -30,6 +30,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
 import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
 import com.rapleaf.hank.hadoop.ValueWritable;
 
@@ -40,9 +41,16 @@ public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
   private final String outputPath;
+  private static final Class<? extends DomainBuilderOutputFormat> DEFAULT_OUTPUT_FORMAT = DomainBuilderDefaultOutputFormat.class;
 
   public DomainBuilderTap(String keyFieldName, String valueFieldName, String outputPath) {
-    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName), outputPath);
+    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, DEFAULT_OUTPUT_FORMAT), outputPath);
+    this.outputPath = outputPath;
+  }
+
+  // Constructor that accepts a different output format
+  public DomainBuilderTap(String keyFieldName, String valueFieldName, String outputPath, Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
+    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, outputFormatClass), outputPath);
     this.outputPath = outputPath;
   }
 
@@ -63,12 +71,14 @@ public class DomainBuilderTap extends Hfs {
     private final String partitionFieldName;
     private final String keyFieldName;
     private final String valueFieldName;
+    private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
-    public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
+    public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName, Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
       super(new Fields(partitionFieldName, keyFieldName, valueFieldName), new Fields(keyFieldName, valueFieldName));
       this.partitionFieldName = partitionFieldName;
       this.keyFieldName = keyFieldName;
       this.valueFieldName = valueFieldName;
+      this.outputFormatClass = outputFormatClass;
     }
 
     @Override
@@ -83,7 +93,7 @@ public class DomainBuilderTap extends Hfs {
 
     @Override
     public void sinkInit(Tap tap, JobConf conf) throws IOException {
-      conf.setOutputFormat(DomainBuilderOutputFormat.class);
+      conf.setOutputFormat(this.outputFormatClass);
     }
 
     @Override
