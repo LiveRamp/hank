@@ -163,6 +163,9 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
     } catch (Exception e) {
       throw new IOException(e);
     }
+    if (vers.isEmpty()) {
+      return null;
+    }
     return vers.get(vers.lastKey());
   }
 
