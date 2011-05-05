@@ -357,4 +357,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       LOG.warn("Interrupted while trying to close ZK connection!", e);
     }
   }
+
+  @Override
+  public String toString() {
+    return "ZooKeeperCoordinator [quorum=" + getConnectString() 
+        + ", domainsRoot=" + domainsRoot 
+        + ", domainGroupsRoot=" + domainGroupsRoot
+        + ", ringGroupsRoot=" + ringGroupsRoot
+        + "]";
+  }
 }
