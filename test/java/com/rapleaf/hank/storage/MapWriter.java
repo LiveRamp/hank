@@ -31,6 +31,6 @@ public class MapWriter implements Writer {
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
     value.mark();
     map.put(key, (ByteBuffer)ByteBuffer.allocate(value.capacity()).put(value).flip());
-    value.rewind();
+    value.reset();
   }
 }
