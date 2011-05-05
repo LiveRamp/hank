@@ -119,17 +119,6 @@ public class TestZkRingConfig extends ZkTestCase {
     ringConf.close();
   }
 
-  public void testCommandAll() throws Exception {
-    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
-
-    HostConfig hc = ringConf.addHost(LOCALHOST);
-    assertNull(hc.getCurrentCommand());
-
-    ringConf.commandAll(HostCommand.SERVE_DATA);
-    assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
-    ringConf.close();
-  }
-
   public void testGetOldestVersionOnHosts() throws Exception {
     ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
     HostConfig hc = ringConf.addHost(LOCALHOST);

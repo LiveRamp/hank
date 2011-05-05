@@ -32,7 +32,6 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
-import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -268,13 +267,6 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
       }
     }
     return results;
-  }
-
-  @Override
-  public void commandAll(HostCommand command) throws IOException {
-    for (HostConfig hostConfig : getHosts()) {
-      hostConfig.enqueueCommand(command);
-    }
   }
 
   @Override
