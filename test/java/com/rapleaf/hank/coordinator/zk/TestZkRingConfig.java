@@ -119,17 +119,6 @@ public class TestZkRingConfig extends ZkTestCase {
     ringConf.close();
   }
 
-  public void testGetOldestVersionOnHosts() throws Exception {
-    ZkRingConfig ringConf = ZkRingConfig.create(getZk(), ring_group_root, 1, null, 1);
-    HostConfig hc = ringConf.addHost(LOCALHOST);
-    HostDomainConfig d = hc.addDomain(0);
-    d.addPartition(1, 1).setCurrentDomainGroupVersion(1);
-    d = hc.addDomain(1);
-    d.addPartition(1, 2).setCurrentDomainGroupVersion(2);
-    assertEquals(Integer.valueOf(1), ringConf.getOldestVersionOnHosts());
-    ringConf.close();
-  }
-
   public void testGetHostsForDomainPartition() throws Exception {
     ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot(), 1, null, 1);
     PartDaemonAddress h1 = new PartDaemonAddress("localhost", 1);

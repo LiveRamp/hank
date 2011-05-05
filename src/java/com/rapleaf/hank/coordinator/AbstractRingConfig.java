@@ -33,8 +33,18 @@ public abstract class AbstractRingConfig implements RingConfig {
 
   @Override
   public Integer getOldestVersionOnHosts() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    Integer min = null;
+    for (HostConfig host : getHosts()) {
+      for (HostDomainConfig hdc : host.getAssignedDomains()) {
+        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+          Integer ver = hdpc.getCurrentDomainGroupVersion();
+          if (min == null || (ver != null && min > ver)) {
+            min = ver;
+          }
+        }
+      }
+    }
+    return min;
   }
 
   @Override

@@ -33,7 +33,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -174,22 +173,6 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
     } catch (Exception e) {
       throw new IOException(e);
     }
-  }
-
-  @Override
-  public Integer getOldestVersionOnHosts() throws IOException {
-    Integer min = null;
-    for (HostConfig host : hostConfigs.values()) {
-      for (HostDomainConfig hdc : host.getAssignedDomains()) {
-        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
-          Integer ver = hdpc.getCurrentDomainGroupVersion();
-          if (min == null || (ver != null && min > ver)) {
-            min = ver;
-          }
-        }
-      }
-    }
-    return min;
   }
 
   @Override
