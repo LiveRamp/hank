@@ -35,13 +35,14 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.server.NIOServerCnxn;
 import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
+
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
@@ -57,7 +58,7 @@ public class ZkTestCase extends BaseTestCase {
   private static int zkClientPort;
 
   private final String zkRoot;
-  private ZooKeeper zk;
+  private ZooKeeperPlus zk;
 
   public ZkTestCase() {
     super();
@@ -107,7 +108,7 @@ public class ZkTestCase extends BaseTestCase {
     final Object lock = new Object();
     final AtomicBoolean connected = new AtomicBoolean(false);
 
-    zk = new ZooKeeper("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
+    zk = new ZooKeeperPlus("127.0.0.1:" + zkClientPort, 1000000, new Watcher() {
       @Override
       public void process(WatchedEvent event) {
         switch (event.getType()) {
@@ -131,7 +132,7 @@ public class ZkTestCase extends BaseTestCase {
     }
     LOG.debug("session timeout: " + zk.getSessionTimeout());
 
-    deleteNodeRecursively(zkRoot);
+    zk.deleteNodeRecursively(zkRoot);
     createNodeRecursively(zkRoot);
   }
 
@@ -179,7 +180,7 @@ public class ZkTestCase extends BaseTestCase {
     return zkRoot;
   }
 
-  public ZooKeeper getZk() {
+  public ZooKeeperPlus getZk() {
     return zk;
   }
 
@@ -227,7 +228,8 @@ public class ZkTestCase extends BaseTestCase {
     }
   }
 
-  // TODO: this is inefficient. tokenize on / and then just make all the nodes iteratively.
+  // TODO: this is inefficient. tokenize on / and then just make all the nodes
+  // iteratively.
   protected void createNodeRecursively(String path)
   throws InterruptedException {
     try {
@@ -239,17 +241,6 @@ public class ZkTestCase extends BaseTestCase {
     } catch (KeeperException e) {
       LOG.warn(e);
     }
-  }
-
-  protected void deleteNodeRecursively(String path) throws Exception {
-    if (zk.exists(path, null) == null) {
-      return;
-    }
-    List<String> children = zk.getChildren(path, null);
-    for (String child : children) {
-      deleteNodeRecursively(path + "/" + child);
-    }
-    zk.delete(path, -1);
   }
 
   protected void create(String path) throws Exception {

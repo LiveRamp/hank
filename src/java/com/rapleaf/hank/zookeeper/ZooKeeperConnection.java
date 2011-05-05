@@ -21,7 +21,6 @@ import java.util.concurrent.CountDownLatch;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 /**
@@ -38,7 +37,7 @@ public class ZooKeeperConnection implements Watcher {
   public static final int CONNECT_DELAY = 100; // ms
   public static final int MAX_CONNECT_DELAY = 7500; // ms
 
-  protected ZooKeeper zk;
+  protected ZooKeeperPlus zk;
 
   /**
    * Used to block while disconnected. Use {@link #waitForConnection()} in
@@ -122,11 +121,10 @@ public class ZooKeeperConnection implements Watcher {
     int delay = CONNECT_DELAY;
     while (true) {
       try {
-        zk = new ZooKeeper(connectString, sessionTimeout, this);
+        zk = new ZooKeeperPlus(connectString, sessionTimeout, this);
         // We return as soon as the assignment has succeeded.
         return;
-      }
-      catch (IOException e) {
+      } catch (IOException e) {
         //this means that we tried to connect to all the hosts, but they all failed
         attempts ++;
         // if maxConnectAttempts == 0, then try forever

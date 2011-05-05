@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
@@ -29,8 +28,9 @@ import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
+public class ZkDomainConfig implements DomainConfig {
   private static final String KEY_NUM_PARTS = "num_parts";
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
@@ -45,18 +45,19 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
 
   private StorageEngine storageEngine;
   private final String domainPath;
+  private final ZooKeeperPlus zk;
 
-  public ZkDomainConfig(ZooKeeper zk, String domainPath) throws DataNotFoundException, KeeperException, InterruptedException {
-    super(zk);
+  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath) throws DataNotFoundException, KeeperException, InterruptedException {
+    this.zk = zk;
     this.domainPath = domainPath;
 
     String[] toks = domainPath.split("/");
     this.name = toks[toks.length - 1];
-    this.numParts = getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.storageEngineOptions = (Map<String, Object>)new Yaml().load(getString(domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
-    this.storageEngineFactoryName = getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
+    this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
+    this.storageEngineOptions = (Map<String, Object>)new Yaml().load(zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
+    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
 
-    String partitionerClassName = getString(domainPath + '/' + KEY_PARTITIONER);
+    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
     try {
       partitioner = (Partitioner)((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
@@ -95,7 +96,7 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
   @Override
   public int getVersion() {
     try {
-      return getInt(domainPath + '/' + KEY_VERSION);
+      return zk.getInt(domainPath + '/' + KEY_VERSION);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -117,7 +118,7 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
   public int newVersion() throws IOException {
     int nextVersion = getVersion() + 1;
     try {
-      setInt(domainPath + "/" + KEY_VERSION, nextVersion);
+      zk.setInt(domainPath + "/" + KEY_VERSION, nextVersion);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -133,7 +134,7 @@ public class ZkDomainConfig extends BaseZkConsumer implements DomainConfig {
         + storageEngineOptions + "]";
   }
 
-  public static DomainConfig create(ZooKeeper zk,
+  public static DomainConfig create(ZooKeeperPlus zk,
       String domainsRoot,
       String domainName,
       int numParts,

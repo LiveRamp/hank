@@ -41,8 +41,9 @@ import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupConfig {
+public class ZkDomainGroupConfig implements DomainGroupConfig {
   private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
 
   private class StateChangeWatcher implements Watcher {
@@ -92,10 +93,10 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
   private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
     new TreeMap<Integer, DomainGroupConfigVersion>();
   private final String dgPath;
+  private final ZooKeeperPlus zk;
 
-  public ZkDomainGroupConfig(ZooKeeper zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
-    super(zk);
-
+  public ZkDomainGroupConfig(ZooKeeperPlus zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
+    this.zk = zk;
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
@@ -104,7 +105,7 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
     List<String> domainIds = zk.getChildren(dgPath + "/domains", false);
     for (String domainId : domainIds) {
       domainConfigs.put(Integer.parseInt(domainId), 
-          new ZkDomainConfig(zk, getString(dgPath + "/domains/" + domainId)));
+          new ZkDomainConfig(zk, zk.getString(dgPath + "/domains/" + domainId)));
     }
 
     // enumerate the versions subkey
@@ -236,7 +237,7 @@ public class ZkDomainGroupConfig extends BaseZkConsumer implements DomainGroupCo
         + domainGroupConfigVersions + ", groupName=" + groupName + "]";
   }
 
-  public static ZkDomainGroupConfig create(ZooKeeper zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
+  public static ZkDomainGroupConfig create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
     String domainGroupPath = dgRoot + "/" + domainGroupName;
     zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

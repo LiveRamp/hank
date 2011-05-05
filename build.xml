@@ -132,17 +132,28 @@
     </junit>
     <fail if="tests.failed">Tests failed!</fail>
   </target>
-  
-  
+
+  <target name="capture-git-commit">
+    <exec executable="/bin/sh" failonerror="true">
+      <arg line="src/bash/capture_git_commit.sh"/>
+    </exec>
+  </target>
+
+  <target name="capture-version">
+    <echo file="${build}/version.txt" message="${version}"/>
+  </target>
+
   <!-- TODO: need to build several jars here -->
-  <target name="dist" depends="compile" description="Build a distributable jar">
+  <target name="dist" depends="compile,capture-git-commit,capture-version" description="Build a distributable jar">
     <!-- <mkdir dir="${build}/META-INF"/> -->
     <!-- <copy file="${thrift.root}/LICENSE" tofile="${build}/META-INF/LICENSE.txt"/> -->
     <!-- <copy file="${thrift.root}/NOTICE" tofile="${build}/META-INF/NOTICE.txt"/> -->
     <jar jarfile="${jar.file}">
       <fileset dir="${build.classes}">
         <include name="**/*.class" />
-        <!-- <include name="META-INF/*.txt" /> -->
+      </fileset>
+      <fileset dir="${build}">
+        <include name="*.txt" />
       </fileset>
       <fileset dir="${src.java}">
         <include name="**/*.*" />

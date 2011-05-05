@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
@@ -38,8 +37,9 @@ import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
+public class ZkHostConfig implements HostConfig {
   private static final Logger LOG = Logger.getLogger(ZkHostConfig.class);
 
   private static final String STATUS_PATH_SEGMENT = "/status";
@@ -99,7 +99,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
   }
 
-  private final ZooKeeper zk;
+  private final ZooKeeperPlus zk;
   private final String hostPath;
   private final PartDaemonAddress address;
 
@@ -109,8 +109,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
 
-  public ZkHostConfig(ZooKeeper zk, String hostPath) throws KeeperException, InterruptedException {
-    super(zk);
+  public ZkHostConfig(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
 
@@ -134,7 +133,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
         return HostState.OFFLINE;
       }
       try {
-        return HostState.valueOf(getString(hostPath + STATUS_PATH_SEGMENT));
+        return HostState.valueOf(zk.getString(hostPath + STATUS_PATH_SEGMENT));
       } catch (KeeperException e) {
         if (e.code() == Code.NONODE) {
           // the node disappeared between our exists check and our get. must be
@@ -232,7 +231,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   @Override
   public HostCommand getCurrentCommand() throws IOException {
     try {
-      String commandString = getString(hostPath + CURRENT_COMMAND_PATH_SEGMENT);
+      String commandString = zk.getString(hostPath + CURRENT_COMMAND_PATH_SEGMENT);
       if (commandString == null) {
         return null;
       }
@@ -251,9 +250,9 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
   public void setState(HostState state) throws IOException {
     try {
       if (state == HostState.OFFLINE) {
-        deleteIfExists(hostPath + STATUS_PATH_SEGMENT);
+        zk.deleteIfExists(hostPath + STATUS_PATH_SEGMENT);
       } else {
-        setOrCreate(hostPath + STATUS_PATH_SEGMENT, state.toString(), CreateMode.EPHEMERAL);
+        zk.setOrCreate(hostPath + STATUS_PATH_SEGMENT, state.toString(), CreateMode.EPHEMERAL);
       }
     } catch (Exception e) {
       throw new IOException(e);
@@ -288,7 +287,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
       Collections.sort(children);
       List<HostCommand> queue = new ArrayList<HostCommand>();
       for (String child : children) {
-        queue.add(HostCommand.valueOf(getString(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child)));
+        queue.add(HostCommand.valueOf(zk.getString(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child)));
       }
       return queue;
     } catch (Exception e) {
@@ -310,7 +309,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
 
       // parse out the actual command
       String headOfQueuePath = hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + children.get(0);
-      HostCommand nextCommand = HostCommand.valueOf(getString(headOfQueuePath));
+      HostCommand nextCommand = HostCommand.valueOf(zk.getString(headOfQueuePath));
 
       // set the current command
       zk.setData(hostPath + CURRENT_COMMAND_PATH_SEGMENT, nextCommand.toString().getBytes(), -1);
@@ -330,7 +329,7 @@ public class ZkHostConfig extends BaseZkConsumer implements HostConfig {
     }
   }
 
-  public static ZkHostConfig create(ZooKeeper zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
+  public static ZkHostConfig create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
     String hostPath = root + "/" + partDaemonAddress.toString();
     LOG.trace("creating host " + hostPath);
     zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

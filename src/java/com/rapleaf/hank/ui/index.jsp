@@ -2,7 +2,7 @@
     pageEncoding="ISO-8859-1" %>
     
 <%@ page import="com.rapleaf.hank.coordinator.*" %>
-
+<%@ page import="com.rapleaf.hank.Hank" %>
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
@@ -42,13 +42,11 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <div class='box-section'>
     <h3>Version Information</h3>
     <div class='box-section-content'>
-      software version info
+      Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
     </div>
     <div>
-    Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
+      Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
     </div>
   </div>
-
-
 </body>
 </html>

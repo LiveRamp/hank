@@ -18,18 +18,19 @@ package com.rapleaf.hank.coordinator.zk;
 import java.io.IOException;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostDomainPartitionConfig {
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private final String path;
   private final int partNum;
+  private final ZooKeeperPlus zk;
 
-  public ZkHostDomainPartitionConfig(ZooKeeper zk, String path) {
-    super(zk);
+  public ZkHostDomainPartitionConfig(ZooKeeperPlus zk, String path) {
+    this.zk = zk;
     this.path = path;
     String[] toks = path.split("/");
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
@@ -39,7 +40,7 @@ public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostD
   public Integer getCurrentDomainGroupVersion() throws IOException {
     try {
       if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) != null) {
-        return getIntOrNull(path + CURRENT_VERSION_PATH_SEGMENT);
+        return zk.getIntOrNull(path + CURRENT_VERSION_PATH_SEGMENT);
       }
       return null;
     } catch (Exception e) {
@@ -56,7 +57,7 @@ public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostD
   public Integer getUpdatingToDomainGroupVersion() throws IOException {
     try {
       if (zk.exists(path + UPDATING_TO_VERSION_PATH_SEGMENT, false) != null) {
-        return getIntOrNull(path + UPDATING_TO_VERSION_PATH_SEGMENT);
+        return zk.getIntOrNull(path + UPDATING_TO_VERSION_PATH_SEGMENT);
       }
     } catch (Exception e) {
       throw new IOException(e);
@@ -68,7 +69,7 @@ public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostD
   public void setCurrentDomainGroupVersion(int version) throws IOException {
     try {
       String p = path + CURRENT_VERSION_PATH_SEGMENT;
-      setOrCreate(p, version, CreateMode.PERSISTENT);
+      zk.setOrCreate(p, version, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -82,13 +83,13 @@ public class ZkHostDomainPartitionConfig extends BaseZkConsumer implements HostD
         zk.delete(p, -1);
         return;
       }
-      setOrCreate(p, version, CreateMode.PERSISTENT);
+      zk.setOrCreate(p, version, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
-  public static ZkHostDomainPartitionConfig create(ZooKeeper zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
+  public static ZkHostDomainPartitionConfig create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
