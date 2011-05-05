@@ -26,7 +26,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -36,8 +35,9 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig {
+public class ZkRingGroupConfig implements RingGroupConfig {
   private static final Logger LOG = Logger.getLogger(ZkRingGroupConfig.class);
 
   private final class StateChangeListener implements Watcher {
@@ -102,9 +102,10 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
   private final String currentVerPath;
   private final String updatingToVersionPath;
   private final String dataDeployerOnlinePath;
+  private final ZooKeeperPlus zk;
 
-  public ZkRingGroupConfig(ZooKeeper zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
-    super(zk);
+  public ZkRingGroupConfig(ZooKeeperPlus zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
+    this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroupConfig = domainGroupConfig;
     String[] pathTokens = ringGroupPath.split("/");
@@ -187,7 +188,7 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
   @Override
   public Integer getCurrentVersion() throws IOException {
     try {
-      return getIntOrNull(ringGroupPath + "/current_version");
+      return zk.getIntOrNull(ringGroupPath + "/current_version");
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -236,7 +237,7 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
     }
   }
 
-  public static ZkRingGroupConfig create(ZooKeeper zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, IOException {
+  public static ZkRingGroupConfig create(ZooKeeperPlus zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, IOException {
     if (domainGroupConfig.getVersions().isEmpty()) {
       throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
     }
@@ -248,7 +249,7 @@ public class ZkRingGroupConfig extends BaseZkConsumer implements RingGroupConfig
   @Override
   public Integer getUpdatingToVersion() throws IOException {
     try {
-      return getIntOrNull(ringGroupPath + "/updating_to_version");
+      return zk.getIntOrNull(ringGroupPath + "/updating_to_version");
     } catch (Exception e) {
       throw new IOException(e);
     }

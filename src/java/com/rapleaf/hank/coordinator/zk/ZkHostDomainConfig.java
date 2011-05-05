@@ -21,18 +21,18 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkHostDomainConfig implements HostDomainConfig {
-  private final ZooKeeper zk;
+  private final ZooKeeperPlus zk;
   private final String root;
   private final int domainId;
 
-  public ZkHostDomainConfig(ZooKeeper zk, String partsRoot, int domainId) {
+  public ZkHostDomainConfig(ZooKeeperPlus zk, String partsRoot, int domainId) {
     this.zk = zk;
     this.domainId = domainId;
     this.root = partsRoot + "/" + (domainId & 0xff);
@@ -58,7 +58,7 @@ public class ZkHostDomainConfig implements HostDomainConfig {
     return results;
   }
 
-  public static HostDomainConfig create(ZooKeeper zk, String partsRoot, int domainId) throws IOException {
+  public static HostDomainConfig create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
     try {
       zk.create(partsRoot + "/" + (domainId & 0xff), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainConfig(zk, partsRoot, domainId);
