@@ -31,19 +31,19 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkRingConfig implements RingConfig, Watcher {
+public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   private static final Logger LOG = Logger.getLogger(ZkRingConfig.class);
 
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
@@ -84,8 +84,6 @@ public class ZkRingConfig implements RingConfig, Watcher {
     }
   }
 
-  private final int ringNumber;
-  private final RingGroupConfig ringGroupConfig;
   private final String ringPath;
 
   private final Map<PartDaemonAddress, HostConfig> hostConfigs =
@@ -96,19 +94,21 @@ public class ZkRingConfig implements RingConfig, Watcher {
   private final ZooKeeperPlus zk;
 
   public ZkRingConfig(ZooKeeperPlus zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
+    super(parseRingNum(ringPath), ringGroupConfig);
     this.zk = zk;
     this.ringPath = ringPath;
-    this.ringGroupConfig = ringGroupConfig;
-
-    String[] toks = ringPath.split("/");
-    String lastPathElement = toks[toks.length - 1];
-    Matcher matcher = RING_NUMBER_PATTERN.matcher(lastPathElement);
-    matcher.matches();
-    ringNumber = Integer.parseInt(matcher.group(1));
 
     // enumerate hosts
     refreshAndRegister();
     this.stateChangeWatcher = new StateChangeWatcher();
+  }
+
+  private static int parseRingNum(String ringPath) {
+    String[] toks = ringPath.split("/");
+    String lastPathElement = toks[toks.length - 1];
+    Matcher matcher = RING_NUMBER_PATTERN.matcher(lastPathElement);
+    matcher.matches();
+    return Integer.parseInt(matcher.group(1));
   }
 
   private synchronized void refreshHosts()
@@ -130,11 +130,6 @@ public class ZkRingConfig implements RingConfig, Watcher {
   }
 
   @Override
-  public int getRingNumber() {
-    return this.ringNumber;
-  }
-
-  @Override
   public RingState getState() throws IOException {
     String statusString = null;
     try {
@@ -148,11 +143,6 @@ public class ZkRingConfig implements RingConfig, Watcher {
   @Override
   public Set<HostConfig> getHosts() {
     return new HashSet<HostConfig>(hostConfigs.values());
-  }
-
-  @Override
-  public RingGroupConfig getRingGroupConfig() {
-    return ringGroupConfig;
   }
 
   @Override
@@ -171,11 +161,6 @@ public class ZkRingConfig implements RingConfig, Watcher {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-  }
-
-  @Override
-  public boolean isUpdatePending() {
-    return getUpdatingToVersionNumber() != null;
   }
 
   @Override
