@@ -78,4 +78,12 @@ public final class Bytes {
       throw new RuntimeException(e);
     }
   }
+
+  public static ByteBuffer byteBufferDeepCopy(ByteBuffer src) {
+    src.mark();
+    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src);
+    copy.flip();
+    src.reset();
+    return copy;
+  }
 }

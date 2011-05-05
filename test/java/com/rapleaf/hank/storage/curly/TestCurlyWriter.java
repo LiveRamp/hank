@@ -32,14 +32,14 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     writer.close();
 
     // verify the keyfile looks as expected
-    assertTrue(keyfileWriter.map.containsKey(KEY1));
-    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0}), keyfileWriter.map.get(KEY1));
-    assertTrue(keyfileWriter.map.containsKey(KEY2));
-    assertEquals(ByteBuffer.wrap(new byte[]{5, 0, 0}), keyfileWriter.map.get(KEY2));
-    assertTrue(keyfileWriter.map.containsKey(KEY3));
-    assertEquals(ByteBuffer.wrap(new byte[]{10, 0, 0}), keyfileWriter.map.get(KEY3));
+    assertTrue(keyfileWriter.entries.containsKey(KEY1));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0}), keyfileWriter.entries.get(KEY1));
+    assertTrue(keyfileWriter.entries.containsKey(KEY2));
+    assertEquals(ByteBuffer.wrap(new byte[]{5, 0, 0}), keyfileWriter.entries.get(KEY2));
+    assertTrue(keyfileWriter.entries.containsKey(KEY3));
+    assertEquals(ByteBuffer.wrap(new byte[]{10, 0, 0}), keyfileWriter.entries.get(KEY3));
 
-    assertFalse(keyfileWriter.map.containsKey(KEY4));
+    assertFalse(keyfileWriter.entries.containsKey(KEY4));
 
     // verify that the record stream looks as expected
     assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE), ByteBuffer.wrap(s.toByteArray()));

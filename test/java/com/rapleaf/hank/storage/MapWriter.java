@@ -20,17 +20,27 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rapleaf.hank.util.Bytes;
+
 public class MapWriter implements Writer {
-  public final Map<ByteBuffer, ByteBuffer> map =
-    new HashMap<ByteBuffer, ByteBuffer>();
+
+  public final Map<ByteBuffer, ByteBuffer> entries;
+
+  public MapWriter() {
+    entries = new HashMap<ByteBuffer, ByteBuffer>();
+  }
+
+  public MapWriter(Map<ByteBuffer, ByteBuffer> keysAndValues) {
+    this.entries = keysAndValues;
+  }
 
   @Override
   public void close() throws IOException {}
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
-    value.mark();
-    map.put(key, (ByteBuffer)ByteBuffer.allocate(value.capacity()).put(value).flip());
-    value.rewind();
+    ByteBuffer keyCopy = Bytes.byteBufferDeepCopy(key);
+    ByteBuffer valueCopy = Bytes.byteBufferDeepCopy(value);
+    entries.put(keyCopy, valueCopy);
   }
 }
