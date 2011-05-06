@@ -103,14 +103,19 @@ public class CueballWriter implements Writer {
 
     // at this point, we're guaranteed to be ready to write to the buffer.
 
-    // TODO: remove, this should be checked elsewhere
-    if (hashedKey.array().length - hashedKey.arrayOffset() + hashedKey.position() < keyHashSize ||
-        uncompressedBuffer.length - uncompressedOffset < keyHashSize) {
-      throw new RuntimeException("Could not copy hashedKey length: " + hashedKey.array().length + " offset: " + hashedKey.arrayOffset() + hashedKey.position() +
-          ", into uncompressed buffer length: " + uncompressedBuffer.length + " offset: " + uncompressedOffset + ", keyHashSize: " + keyHashSize);
-    }
-
     // write a subsequence of the key hash's bytes
+    if (uncompressedOffset + keyHashSize > uncompressedBuffer.length) {
+      throw new IOException("Out of room to write to uncompressed buffer for block "
+          + Integer.toString(thisPrefix, 16) + "! Buffer size: "
+          + uncompressedBuffer.length + ", offset: " + uncompressedOffset
+          + ", hash size: " + keyHashSize);
+    }
+    if (hashedKey.arrayOffset() + hashedKey.position() + keyHashSize > hashedKey.array().length) {
+      throw new IOException("Need to copy " + keyHashSize
+          + " from key, but there weren't enough bytes left! key buffer size: "
+          + hashedKey.array().length + ", offset: " + hashedKey.arrayOffset()
+          + hashedKey.position());
+    }
     System.arraycopy(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
 
     // encode the value offset and write it out
