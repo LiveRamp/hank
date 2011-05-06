@@ -103,6 +103,13 @@ public class CueballWriter implements Writer {
 
     // at this point, we're guaranteed to be ready to write to the buffer.
 
+    // TODO: remove, this should be checked elsewhere
+    if (hashedKey.array().length - hashedKey.arrayOffset() + hashedKey.position() < keyHashSize ||
+        uncompressedBuffer.length - uncompressedOffset < keyHashSize) {
+      throw new RuntimeException("Could not copy hashedKey length: " + hashedKey.array().length + " offset: " + hashedKey.arrayOffset() + hashedKey.position() +
+          ", into uncompressed buffer length: " + uncompressedBuffer.length + " offset: " + uncompressedOffset + ", keyHashSize: " + keyHashSize);
+    }
+
     // write a subsequence of the key hash's bytes
     System.arraycopy(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
 
