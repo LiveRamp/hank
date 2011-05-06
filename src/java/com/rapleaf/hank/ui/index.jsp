@@ -35,9 +35,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <div class='box-section'>
     <h3>Coordinator</h3>
     <div class='box-section-content'>
-      <pre>
-        <%= coord %>
-      </pre>
+      <pre><%= coord %></pre>
     </div>
   </div>
 
