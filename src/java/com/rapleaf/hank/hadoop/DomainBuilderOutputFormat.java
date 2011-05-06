@@ -23,7 +23,7 @@ import java.util.Set;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
-import org.eclipse.jetty.util.log.Log;
+import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -43,6 +43,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     private final DomainConfig domainConfig;
     private final StorageEngine storageEngine;
     private final OutputStreamFactory outputStreamFactory;
+    private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
     private Writer writer = null;
     private Integer writerPartition = null;
@@ -76,7 +77,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     }
 
     private final void setNewPartitionWriter(int partition) throws IOException {
-      Log.info("Setting up new writer for partition " + partition);
+      LOG.info("Setting up new writer for partition " + partition);
       // First, close current writer
       closeCurrentWriterIfNeeded();
       // Check for existing partitions
