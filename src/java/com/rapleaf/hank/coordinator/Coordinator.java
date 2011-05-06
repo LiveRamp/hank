@@ -68,7 +68,7 @@ public interface Coordinator {
    * @return
    * @throws Exception
    */
-  public boolean deleteDomainConfig(String domainName) throws Exception;
+  public boolean deleteDomainConfig(String domainName) throws IOException;
 
   //
   // DomainGroups

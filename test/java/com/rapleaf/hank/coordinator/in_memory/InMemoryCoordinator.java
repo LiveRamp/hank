@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -73,7 +71,7 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public boolean deleteDomainConfig(String domainName) throws Exception {
-    throw new NotImplementedException();
+  public boolean deleteDomainConfig(String domainName) {
+    return domains.remove(domainName) != null;
   }
 }

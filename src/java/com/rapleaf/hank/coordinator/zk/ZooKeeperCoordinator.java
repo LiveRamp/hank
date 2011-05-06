@@ -368,7 +368,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public boolean deleteDomainConfig(String domainName) throws Exception {
+  public boolean deleteDomainConfig(String domainName) throws IOException {
     ZkDomainConfig domainConfig = domainConfigsByName.remove(domainName);
     if (domainConfig == null) {
       return false;

@@ -99,7 +99,7 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public boolean deleteDomainConfig(String domainName) throws Exception {
+  public boolean deleteDomainConfig(String domainName) {
     return false;
   }
 }
