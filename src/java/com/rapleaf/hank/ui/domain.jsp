@@ -4,6 +4,7 @@
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
+<%@page import="org.yaml.snakeyaml.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -62,9 +63,15 @@ DomainConfig domainConfig = coord.getDomainConfig(URLDecoder.decode(request.getP
       Storage engine factory options:
     </td>
     <td>
-      <textarea rows="6" cols="30" disabled=true><%= domainConfig.getStorageEngineOptions() == null 
+      <% 
+      DumperOptions opts = new DumperOptions();
+      opts.setExplicitStart(true);
+      opts.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+      opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+      %>
+      <textarea rows="10" cols="80" disabled=true><%= domainConfig.getStorageEngineOptions() == null 
           ? ""
-          : new Yaml().dump(domainConfig.getStorageEngineOptions()) 
+          : new Yaml(opts).dump(domainConfig.getStorageEngineOptions()) 
           %>
       </textarea>
     </td>

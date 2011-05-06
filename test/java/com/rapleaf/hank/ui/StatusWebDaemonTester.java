@@ -28,7 +28,9 @@ public class StatusWebDaemonTester extends TestCase {
   public void testIt() throws Exception {
     final Coordinator coord = new InMemoryCoordinator();
 
-    final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
+
+    final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName(), 1);
     final DomainConfig d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
 
 
