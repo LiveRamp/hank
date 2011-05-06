@@ -216,4 +216,8 @@ public class ZooKeeperConnection implements Watcher {
    * Called when our session with the ZooKeeper service has expired.
    */
   protected void onSessionExpire() {}
+
+  public String getConnectString() {
+    return connectString;
+  }
 }

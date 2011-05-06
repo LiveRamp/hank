@@ -69,4 +69,9 @@ public class InMemoryCoordinator implements Coordinator {
   public Set<RingGroupConfig> getRingGroups() {
     return new HashSet<RingGroupConfig>(ring_groups.values());
   }
+
+  @Override
+  public boolean deleteDomainConfig(String domainName) {
+    return domains.remove(domainName) != null;
+  }
 }

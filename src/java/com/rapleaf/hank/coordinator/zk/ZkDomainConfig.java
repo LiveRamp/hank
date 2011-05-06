@@ -134,7 +134,7 @@ public class ZkDomainConfig implements DomainConfig {
         + storageEngineOptions + "]";
   }
 
-  public static DomainConfig create(ZooKeeperPlus zk,
+  public static ZkDomainConfig create(ZooKeeperPlus zk,
       String domainsRoot,
       String domainName,
       int numParts,
@@ -193,5 +193,19 @@ public class ZkDomainConfig implements DomainConfig {
     } else if (!name.equals(other.name))
       return false;
     return true;
+  }
+
+  public boolean delete() throws IOException {
+    try {
+      // first, delete the .complete so everyone knows it's gone
+      zk.delete(domainPath + "/.complete", -1);
+
+      // delete the rest
+      zk.deleteNodeRecursively(domainPath);
+
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

@@ -174,15 +174,9 @@
   <target name="tar" description="Generate a Hank deploy tarball" depends="dist">
     <delete dir="${build}/tar_temp" />
     <mkdir dir="${build}/tar_temp/hank" />
-    <mkdir dir="${build}/tar_temp/hank/bin" />
     <mkdir dir="${build}/tar_temp/hank/lib" />
     <mkdir dir="${build}/tar_temp/hank/conf" />
     <mkdir dir="${build}/tar_temp/hank/log" />
-
-    <!-- copy bash scripts to bin/ -->
-    <copy todir="${build}/tar_temp/hank/bin" >
-      <fileset dir="${src.bash}" includes="**/*" />
-    </copy>
 
     <!-- copy jars to lib/ -->
     <copy todir="${build}/tar_temp/hank/lib" >
@@ -199,7 +193,10 @@
     </copy>
 
     <!-- run tar command -->
-    <tar basedir="${build}/tar_temp" destfile="hank-deploy.tar.gz" compression="gzip"/>
+    <tar basedir="${build}/tar_temp" destfile="hank-deploy.tar.gz" compression="gzip">
+      <!-- copy bash scripts to bin/. note that we want the filemode set, so we have to use tarfileset -->
+      <tarfileset prefix="hank/bin" dir="${src.bash}" includes="**/*" filemode="555"/>
+    </tar>
     
     <!-- delete tar_temp -->
     <delete dir="${build}/tar_temp" />

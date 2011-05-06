@@ -97,4 +97,9 @@ public class MockCoordinator implements Coordinator {
       String domainGroupName) throws IOException {
     return null;
   }
+
+  @Override
+  public boolean deleteDomainConfig(String domainName) {
+    return false;
+  }
 }

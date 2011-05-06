@@ -3,9 +3,9 @@
 BINDIR=`dirname "$0"`
 CLASSPATH="$BINDIR/../build/tiamat.jar:$CLASSPATH"
 
-for i in "$BINDIR"/../lib/*.jar
+for i in `find $BINDIR/../lib -name "*.jar"`
 do
-	CLASSPATH="$i:$CLASSPATH"
+  CLASSPATH="$i:$CLASSPATH"
 done
 
 # echo $CLASSPATH

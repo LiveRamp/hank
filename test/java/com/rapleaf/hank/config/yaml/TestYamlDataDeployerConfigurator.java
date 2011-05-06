@@ -36,7 +36,7 @@ public class TestYamlDataDeployerConfigurator extends TestCase {
     pw.println("  ring_group_name: myRingGroup");
     pw.println("  sleep_interval: 1000");
     pw.println("coordinator:");
-    pw.println("  factory: com.rapleaf.hank.coordinator.MockCoordinator$Factory");
+    pw.println("  factory: " + MockCoordinator.Factory.class.getName());
     pw.println("  options:");
     pw.println("    blah: blah");
     pw.close();

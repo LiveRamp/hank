@@ -39,6 +39,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <td class='centered'><%= domainConfig.getNumParts() %></td>
         <td><%= domainConfig.getStorageEngineFactoryClass().getName() %></td>
         <td class='centered'><%= domainConfig.getVersion() %></td>
+        <td><a href="/domain/delete?name=<%= URLEncoder.encode(domainConfig.getName()) %>">delete</a></td>
       </tr>
       <%
     }
