@@ -95,6 +95,10 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertNull(rg.getCurrentVersion());
   }
 
+  public void testDeleteDomainConfig() throws Exception {
+    fail("not implemented");
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

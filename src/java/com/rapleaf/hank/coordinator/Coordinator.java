@@ -58,6 +58,18 @@ public interface Coordinator {
   public DomainConfig getDomainConfig(String domainName)
   throws DataNotFoundException;
 
+  
+  /**
+   * Delete the domain config with the given name. Please beware of removing a
+   * domain if it is referenced in any domain groups - you will probably break
+   * your installation if you remove one that's in use!
+   * 
+   * @param domainName
+   * @return
+   * @throws Exception
+   */
+  public boolean deleteDomainConfig(String domainName) throws Exception;
+
   //
   // DomainGroups
   //
