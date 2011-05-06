@@ -19,6 +19,20 @@ public class DomainControllerServlet extends HttpServlet {
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    String uri = req.getRequestURI();
+    if (uri.contains("create")) {
+      doCreate(req, resp);
+    } else if (uri.contains("delete")) {
+      doDeleteDomain(req, resp);
+    }
+  }
+
+  private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    coordinator.deleteDomainConfig(req.getParameter("name"));
+    resp.sendRedirect("/domains.jsp");
+  }
+
+  private void doCreate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String domainName = req.getParameter("name");
     int numParts = Integer.parseInt(req.getParameter("numParts"));
     String storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
@@ -28,5 +42,10 @@ public class DomainControllerServlet extends HttpServlet {
 
     resp.sendRedirect("/domains.jsp");
     resp.setStatus(HttpServletResponse.SC_OK);
+  }
+
+  @Override
+  protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    doPost(req, resp);
   }
 }
