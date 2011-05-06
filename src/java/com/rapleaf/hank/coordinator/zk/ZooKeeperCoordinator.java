@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -370,6 +369,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public boolean deleteDomainConfig(String domainName) throws Exception {
-    throw new NotImplementedException();
+    ZkDomainConfig domainConfig = domainConfigsByName.remove(domainName);
+    if (domainConfig == null) {
+      return false;
+    }
+    return domainConfig.delete();
   }
 }
