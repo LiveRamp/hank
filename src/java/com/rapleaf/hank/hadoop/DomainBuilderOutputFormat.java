@@ -23,6 +23,7 @@ import java.util.Set;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
+import org.eclipse.jetty.util.log.Log;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -75,6 +76,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     }
 
     private final void setNewPartitionWriter(int partition) throws IOException {
+      Log.info("Setting up new writer for partition " + partition);
       // First, close current writer
       closeCurrentWriterIfNeeded();
       // Check for existing partitions
