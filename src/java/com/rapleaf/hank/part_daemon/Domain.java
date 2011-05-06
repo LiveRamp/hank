@@ -44,8 +44,8 @@ class Domain {
    * @throws IOException
    */
   public boolean get(ByteBuffer key, Result result) throws IOException {
-    int partition = partitioner.partition(key);
-    Reader reader = parts[partition % parts.length];
+    int partition = partitioner.partition(key, parts.length);
+    Reader reader = parts[partition];
 
     if (reader == null) {
       return false;

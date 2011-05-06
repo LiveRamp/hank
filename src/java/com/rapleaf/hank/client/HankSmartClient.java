@@ -108,9 +108,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         }
 
         // establish connection to SERVING hosts in UP rings
-//        if (ringConfig.getState() == RingState.UP && hostConfig.getState() == HostState.SERVING) {
-          connectionCache.put(hostConfig.getAddress(), new PartDaemonConnection(hostConfig));
-//        }
+        //        if (ringConfig.getState() == RingState.UP && hostConfig.getState() == HostState.SERVING) {
+        connectionCache.put(hostConfig.getAddress(), new PartDaemonConnection(hostConfig));
+        //        }
       }
     }
 
@@ -134,7 +134,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     try {
       domainId = domainGroup.getDomainId(domain_name);
       DomainConfig domainConfig = domainGroup.getDomainConfig(domainId);
-      partition = domainConfig.getPartitioner().partition(key) % domainConfig.getNumParts();
+      partition = domainConfig.getPartitioner().partition(key, domainConfig.getNumParts());
     } catch (DataNotFoundException e) {
       return NO_SUCH_DOMAIN;
     }

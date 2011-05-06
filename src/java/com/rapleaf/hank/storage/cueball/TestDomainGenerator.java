@@ -13,16 +13,15 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 
 public class TestDomainGenerator {
 
   /**
    * @param args
-   * @throws Exception 
-   * @throws IllegalAccessException 
-   * @throws InstantiationException 
+   * @throws Exception
+   * @throws IllegalAccessException
+   * @throws InstantiationException
    */
   public static void main(String[] args) throws InstantiationException, IllegalAccessException, Exception {
     String outputPath = args[0];
@@ -50,7 +49,7 @@ public class TestDomainGenerator {
     for (int i = 0; i < totalNumRecords; i++) {
       byte[] key = new byte[keyLength];
       r.nextBytes(key);
-      final int partitionNumber = p.partition(ByteBuffer.wrap(key)) % numPartitions;
+      final int partitionNumber = p.partition(ByteBuffer.wrap(key), numPartitions);
       byte[] hash = new byte[hashLength];
       h.hash(ByteBuffer.wrap(key), hash);
       partitionedKeys.get(partitionNumber).add(hash);

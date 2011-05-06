@@ -22,7 +22,7 @@ import java.nio.ByteBuffer;
 
 public final class ConstantPartitioner implements Partitioner {
   @Override
-  public int partition(ByteBuffer key) {
+  public int partition(ByteBuffer key, int numPartitions) {
     return 0;
   }
 }

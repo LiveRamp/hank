@@ -57,8 +57,8 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.generated.HankResponse._Fields;
+import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -137,7 +137,7 @@ public class IntegrationTest extends ZkTestCase {
 
     public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
       String hostDotPort = addy.getHostName()
-                + "." + addy.getPortNumber();
+      + "." + addy.getPortNumber();
       this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
@@ -280,8 +280,8 @@ public class IntegrationTest extends ZkTestCase {
 
     // configure domain group
     AddDomainGroup.main(new String[]{
-       "--name", "dg1",
-       "--config", clientConfigYml,
+        "--name", "dg1",
+        "--config", clientConfigYml,
     });
 
     LOG.debug("-------- domain is created --------");
@@ -350,7 +350,7 @@ public class IntegrationTest extends ZkTestCase {
     // launch the data deployer
     startDataDeployer();
 
-//    Thread.sleep(100000000);
+    //    Thread.sleep(100000000);
 
     // launch a smart client server
     startSmartClientServer();
@@ -406,7 +406,7 @@ public class IntegrationTest extends ZkTestCase {
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupConfigVersion newVersion = domainGroupConfig.createNewVersion(versionMap);
 
-//    dumpZk();
+    //    dumpZk();
 
     // wait until the rings have been updated to the new version
     coord = config.getCoordinator();
@@ -473,8 +473,8 @@ public class IntegrationTest extends ZkTestCase {
   private void startSmartClientServer() throws Exception {
     LOG.debug("starting smart client server...");
     smartClientRunnable = new SmartClientRunnable();
-//    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
-//    smartClientThread.start();
+    //    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
+    //    smartClientThread.start();
     smartClientRunnable.run();
   }
 
@@ -515,7 +515,7 @@ public class IntegrationTest extends ZkTestCase {
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer,ByteBuffer>>();
     Partitioner p = domainConfig.getPartitioner();
     for (Map.Entry<ByteBuffer, ByteBuffer> pair : dataItems.entrySet()) {
-      int partNum = p.partition(pair.getKey()) % domainConfig.getNumParts();
+      int partNum = p.partition(pair.getKey(), domainConfig.getNumParts());
       SortedMap<ByteBuffer, ByteBuffer> part = sortedAndPartitioned.get(partNum);
       if (part == null) {
         part = new TreeMap<ByteBuffer, ByteBuffer>(new Comparator<ByteBuffer>() {

@@ -45,7 +45,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
-    return new MockDomainConfig(domainName, this.numPartitions, new ModPartitioner(this.numPartitions), new MapStorageEngine(), 0);
+    return new MockDomainConfig(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), 0);
   }
 
   static public String getConfiguration(int numPartitions) {
@@ -57,14 +57,8 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
 
   private static class ModPartitioner implements Partitioner {
 
-    private int numPartitions;
-
-    ModPartitioner(int numPartitions) {
-      this.numPartitions = numPartitions;
-    }
-
     @Override
-    public int partition(ByteBuffer key) {
+    public int partition(ByteBuffer key, int numPartitions) {
       return key.hashCode() % numPartitions;
     }
   }

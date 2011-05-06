@@ -28,5 +28,5 @@ public interface Partitioner {
    * @param key
    * @return
    */
-  public int partition(ByteBuffer key);
+  public int partition(ByteBuffer key, int numPartitions);
 }

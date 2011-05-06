@@ -43,7 +43,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
 
   public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
     this.key = key;
-    int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
+    int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()), domainConfig.getNumParts());
     this.partition = new IntWritable(partition);
   }
 

@@ -63,14 +63,8 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   private static class IntStringKeyModPartitioner implements Partitioner {
 
-    private int numPartitions;
-
-    IntStringKeyModPartitioner(int numPartitions) {
-      this.numPartitions = numPartitions;
-    }
-
     @Override
-    public int partition(ByteBuffer key) {
+    public int partition(ByteBuffer key, int numPartitions) {
       String keyString = new String(key.array(), key.position(), key.remaining());
       Integer keyInteger = Integer.valueOf(keyString);
       return keyInteger % numPartitions;
@@ -99,7 +93,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
-    return new MockDomainConfig(domainName, 2, new IntStringKeyModPartitioner(2), new IntStringKeyStorageEngine(), 0);
+    return new MockDomainConfig(domainName, 2, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), 0);
   }
 
   static public String getConfiguration() {

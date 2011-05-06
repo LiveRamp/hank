@@ -29,8 +29,10 @@ public class MapPartitioner implements Partitioner {
   }
 
   @Override
-  public int partition(ByteBuffer key) {
+  public int partition(ByteBuffer key, int numPartitions) {
+    if (!(map.get(key) < numPartitions)) {
+      throw new RuntimeException("Partition " + map.get(key) + " falls out of the range. Number of partitions: " + numPartitions);
+    }
     return map.get(key);
   }
-
 }

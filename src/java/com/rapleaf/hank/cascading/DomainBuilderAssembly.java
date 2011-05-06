@@ -83,7 +83,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       TupleEntry tupleEntry = call.getArguments();
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
-      IntWritable partition = new IntWritable(domainConfig.getPartitioner().partition(keyByteBuffer));
+      IntWritable partition = new IntWritable(domainConfig.getPartitioner().partition(keyByteBuffer, domainConfig.getNumParts()));
       ByteBuffer comparableKey =  domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
       //TODO: avoid this copy
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
