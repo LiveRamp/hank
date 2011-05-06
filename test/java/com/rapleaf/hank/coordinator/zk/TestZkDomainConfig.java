@@ -20,6 +20,7 @@ import org.yaml.snakeyaml.Yaml;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
 public class TestZkDomainConfig extends ZkTestCase {
@@ -59,5 +60,12 @@ public class TestZkDomainConfig extends ZkTestCase {
     assertEquals(2, dc.getVersion());
     assertEquals(3, dc.newVersion());
     assertEquals(3, dc.getVersion());
+  }
+
+  public void testDelete() throws Exception {
+    ZkDomainConfig dc = ZkDomainConfig.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    assertNotNull(getZk().exists(getRoot() + "/domain0", false));
+    assertTrue(dc.delete());
+    assertNull(getZk().exists(getRoot() + "/domain0", false));
   }
 }
