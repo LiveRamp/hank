@@ -63,7 +63,7 @@ public class TestDomainGenerator {
       Collections.sort(part.getValue(), new Comparator<byte[]>() {
         @Override
         public int compare(byte[] arg0, byte[] arg1) {
-          return Bytes.compareBytes(ByteBuffer.wrap(arg0), ByteBuffer.wrap(arg1));
+          return Bytes.compareBytesUnsigned(ByteBuffer.wrap(arg0), ByteBuffer.wrap(arg1));
         }
       });
       final CueballWriter writer = (CueballWriter) cueball.getWriter(new LocalDiskOutputStreamFactory(outputPath), part.getKey(), 0, true);

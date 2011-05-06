@@ -60,7 +60,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     } else if (keyAndPartitionWritable.getPartition() > other.keyAndPartitionWritable.getPartition()) {
       return 1;
     } else {
-      return Bytes.compareBytes(comparableKey, other.comparableKey);
+      return Bytes.compareBytesUnsigned(comparableKey, other.comparableKey);
     }
   }
 

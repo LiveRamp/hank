@@ -133,7 +133,7 @@ public final class StreamBuffer {
   }
 
   public int compareTo(StreamBuffer other) {
-    return Bytes.compareBytes(uncompressedBuffer,
+    return Bytes.compareBytesUnsigned(uncompressedBuffer,
         currentOffset,
         other.uncompressedBuffer,
         other.getCurrentOffset(),

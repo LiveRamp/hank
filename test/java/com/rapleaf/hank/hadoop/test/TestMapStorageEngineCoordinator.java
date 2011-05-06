@@ -62,10 +62,10 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
     assertEquals(5, MapStorageEngine.getPartitions().get(0).size());
 
     // Verify data
-    assertEquals(0, Bytes.compareBytes(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("0".getBytes()))));
-    assertEquals(0, Bytes.compareBytes(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("1".getBytes()))));
-    assertEquals(0, Bytes.compareBytes(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("2".getBytes()))));
-    assertEquals(0, Bytes.compareBytes(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("3".getBytes()))));
-    assertEquals(0, Bytes.compareBytes(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("4".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("0".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("1".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("2".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("3".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("4".getBytes()))));
   }
 }

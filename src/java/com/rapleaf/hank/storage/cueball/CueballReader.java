@@ -110,7 +110,7 @@ public class CueballReader implements Reader {
 
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, ByteBuffer key) {
     for (; off < limit; off += fullRecordSize) {
-      int comparison = Bytes.compareBytes(keyfileBufferChunk, off, 
+      int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off, 
           key.array(), key.arrayOffset() + key.position(),
           keyHashSize);
       // found match

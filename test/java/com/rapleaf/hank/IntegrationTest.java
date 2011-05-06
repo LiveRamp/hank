@@ -524,7 +524,7 @@ public class IntegrationTest extends ZkTestCase {
             final StorageEngine storageEngine = domainConfig.getStorageEngine();
             final ByteBuffer keyL = storageEngine.getComparableKey(arg0);
             final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
-            return Bytes.compareBytes(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.limit());
+            return Bytes.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.limit());
           }
         });
         sortedAndPartitioned.put(partNum, part);

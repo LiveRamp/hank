@@ -23,7 +23,7 @@ public final class Bytes {
 
   private Bytes() {}
 
-  public static int compareBytes(byte[] a, int aOff, byte[] b, int bOff, int len) {
+  public static int compareBytesUnsigned(byte[] a, int aOff, byte[] b, int bOff, int len) {
     if (len > a.length - aOff || len > b.length - bOff) {
       throw new RuntimeException("Not enough bytes left to compare!");
     }
@@ -44,8 +44,13 @@ public final class Bytes {
     return 0;
   }
 
-  public static int compareBytes(ByteBuffer a, ByteBuffer b) {
-    return compareBytes(a.array(), a.arrayOffset(), b.array(), b.arrayOffset(), a.remaining());
+  public static int compareBytesUnsigned(ByteBuffer a, ByteBuffer b) {
+    if (a.remaining() != b.remaining()) {
+      throw new RuntimeException("Cannot compare ByteBuffers that have a different number of remaining elements.");
+    }
+    return compareBytesUnsigned(a.array(), a.arrayOffset() + a.position(),
+        b.array(), b.arrayOffset() + b.position(),
+        a.remaining());
   }
 
   public static byte[] intToBytes(int value) {
