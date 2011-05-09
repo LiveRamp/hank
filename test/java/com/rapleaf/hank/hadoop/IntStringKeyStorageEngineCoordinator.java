@@ -49,7 +49,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
     @Override
     public void write(ByteBuffer key, ByteBuffer value) throws IOException {
-      this.outputStream.write(key.array(), key.position(), key.remaining());
+      outputStream.write(key.array(), key.position(), key.remaining());
       outputStream.write(" ".getBytes());
       outputStream.write(value.array(), value.position(), value.remaining());
       outputStream.write("\n".getBytes());
