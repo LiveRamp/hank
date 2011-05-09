@@ -22,6 +22,14 @@ import java.nio.ByteBuffer;
  * lookup. See http://murmurhash.googlepages.com/ for more details.
  */
 public final class Murmur64Hasher implements Hasher {
+  /**
+   * Note that we use a random initial seed here so that we are unlikely to get
+   * the "same" MurmurHash as anyone else. (For a while, we were mistakenly
+   * using the same exact hash in the Partitioner as the Hasher, leading to very
+   * strange behavior.)
+   */
+  private static final int INITIAL_SEED = 952336;
+
   public static long murmurHash64(byte[] data, int off, int length, int seed) {
     long m = 0xc6a4a7935bd1e995L;
     int r = 47;
@@ -74,7 +82,7 @@ public final class Murmur64Hasher implements Hasher {
 
   @Override
   public void hash(ByteBuffer val, byte[] hashBytes) {
-    int seed = 1;
+    int seed = INITIAL_SEED;
     long hashValue = 0;
     for (int i = 0; i < hashBytes.length - 8; i+=8) {
       hashValue = murmurHash64(val.array(), val.arrayOffset() + val.position(), val.arrayOffset() + val.limit(), seed);

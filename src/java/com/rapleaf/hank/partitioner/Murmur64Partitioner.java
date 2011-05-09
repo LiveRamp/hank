@@ -24,12 +24,19 @@ import com.rapleaf.hank.hasher.Murmur64Hasher;
  * partition number.
  */
 public class Murmur64Partitioner implements Partitioner {
+  /**
+   * Note that we use a wacky, unique seed here in order to make sure that no
+   * one else will accidentally use a matching MurmurHash somewhere that can
+   * screw us up. (Like in the Hasher for Curly, for instance.)
+   */
+  private static final int SEED = 645568;
+
   @Override
   public int partition(ByteBuffer key, int numPartitions) {
     return Math.abs((int) Murmur64Hasher.murmurHash64(key.array(),
         key.arrayOffset() + key.position(),
         key.remaining(),
-        1)) % numPartitions;
+        SEED)) % numPartitions;
   }
 
   @Override
