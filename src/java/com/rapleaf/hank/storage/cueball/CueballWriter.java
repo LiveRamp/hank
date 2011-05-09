@@ -76,6 +76,9 @@ public class CueballWriter implements Writer {
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+    if (value.remaining() > valueSize) {
+      throw new IOException("Size of value to be written is: " + value.remaining() + ", but configured value size is: " + valueSize);
+    }
     hasher.hash(key, keyHashBytes);
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
   }
