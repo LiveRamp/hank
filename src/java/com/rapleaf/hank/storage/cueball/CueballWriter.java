@@ -48,6 +48,7 @@ public class CueballWriter implements Writer {
   private final HashPrefixCalculator prefixer;
   private int lastHashPrefix = -1;
   private int uncompressedOffset = 0;
+  private int numEntriesInBlock = 0;
 
   private int bytesWritten = 0;
   private long maxUncompressedBlockSize;
@@ -118,6 +119,7 @@ public class CueballWriter implements Writer {
 
       // start over in the buffer
       uncompressedOffset = 0;
+      numEntriesInBlock = 0;
       lastHashPrefix = thisPrefix;
 
       // record the start index of the next block
@@ -131,19 +133,22 @@ public class CueballWriter implements Writer {
       throw new IOException("Out of room to write to uncompressed buffer for block "
           + Integer.toString(thisPrefix, 16) + "! Buffer size: "
           + uncompressedBuffer.length + ", offset: " + uncompressedOffset
-          + ", hash size: " + keyHashSize);
+          + ", hash size: " + keyHashSize
+          + ", num entries written in block: " + numEntriesInBlock);
     }
     if (hashedKey.arrayOffset() + hashedKey.position() + keyHashSize > hashedKey.array().length) {
       throw new IOException("Need to copy " + keyHashSize
           + " from key, but there weren't enough bytes left! key buffer size: "
           + hashedKey.array().length + ", offset: " + hashedKey.arrayOffset()
-          + hashedKey.position());
+          + hashedKey.position()
+          + ", num entries written in block: " + numEntriesInBlock);
     }
     System.arraycopy(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
 
     // encode the value offset and write it out
     System.arraycopy(value.array(), value.arrayOffset() + value.position(), uncompressedBuffer, uncompressedOffset + keyHashSize, valueSize);
     uncompressedOffset += keyHashSize + valueSize;
+    ++numEntriesInBlock;
   }
 
   private void clearUncompressed() throws IOException {
