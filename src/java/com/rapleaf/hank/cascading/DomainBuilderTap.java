@@ -30,7 +30,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
 import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
-import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
 import com.rapleaf.hank.hadoop.ValueWritable;
 
@@ -41,17 +41,10 @@ public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
   private final String outputPath;
-  private static final Class<? extends DomainBuilderOutputFormat> DEFAULT_OUTPUT_FORMAT = DomainBuilderDefaultOutputFormat.class;
 
-  public DomainBuilderTap(String keyFieldName, String valueFieldName, String outputPath) {
-    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, DEFAULT_OUTPUT_FORMAT), outputPath);
-    this.outputPath = outputPath;
-  }
-
-  // Constructor that accepts a different output format
-  public DomainBuilderTap(String keyFieldName, String valueFieldName, String outputPath, Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
-    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, outputFormatClass), outputPath);
-    this.outputPath = outputPath;
+  public DomainBuilderTap(String keyFieldName, String valueFieldName, DomainBuilderProperties properties) {
+    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, properties.getOutputFormatClass()), properties.getOutputPath());
+    this.outputPath = properties.getOutputPath();
   }
 
   @Override

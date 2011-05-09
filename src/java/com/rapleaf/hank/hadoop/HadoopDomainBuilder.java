@@ -33,58 +33,26 @@ public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static final void run(String domainName, String configPath, String inputPath, String outputPath) throws IOException {
-    LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and configuration " + configPath);
-    buildHankDomain(domainName, inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, configPath, outputPath);
+  public static final void run(String domainName, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
+    LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + coordinatorConfigurationPath);
+    String coordinatorConfiguration = FileUtils.readFileToString(new File(coordinatorConfigurationPath));
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, coordinatorConfiguration, outputPath);
+    buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
   public static final RunningJob buildHankDomain(
-      String domainName,
       String inputPath,
       Class<? extends InputFormat> inputFormatClass,
       Class<? extends DomainBuilderMapper> mapperClass,
-      String hankConfigurationPath,
-      String outputPath) throws IOException {
-    String hankConfiguration = FileUtils.readFileToString(new File(hankConfigurationPath));
-    return JobClient.runJob(createJobConfiguration(domainName, inputPath, inputFormatClass, mapperClass, hankConfiguration, outputPath));
+      DomainBuilderProperties properties) throws IOException {
+    return JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
   }
 
   // Use a non-default output format
-  public static final RunningJob buildHankDomain(
-      String domainName,
-      String inputPath,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends DomainBuilderMapper> mapperClass,
-      Class<? extends DomainBuilderOutputFormat> outputFormatClass,
-      String hankConfigurationPath,
-      String outputPath) throws IOException {
-    String hankConfiguration = FileUtils.readFileToString(new File(hankConfigurationPath));
-    return JobClient.runJob(createJobConfiguration(domainName, inputPath, inputFormatClass, mapperClass, outputFormatClass, hankConfiguration, outputPath));
-  }
-
-  public static final JobConf createJobConfiguration(String domainName,
-      String inputPath,
+  public static final JobConf createJobConfiguration(String inputPath,
       Class<? extends InputFormat> inputFormatClass,
       Class<? extends Mapper> mapperClass,
-      String hankConfiguration,
-      String outputPath) {
-    return createJobConfiguration(domainName,
-        inputPath,
-        inputFormatClass,
-        mapperClass,
-        DomainBuilderDefaultOutputFormat.class,
-        hankConfiguration,
-        outputPath);
-  }
-
-  // Use a non-default output format
-  public static final JobConf createJobConfiguration(String domainName,
-      String inputPath,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass,
-      Class<? extends DomainBuilderOutputFormat> outputFormatClass,
-      String hankConfiguration,
-      String outputPath) {
+      DomainBuilderProperties properties) {
     JobConf conf = new JobConf();
     // Input specification
     conf.setInputFormat(inputFormatClass);
@@ -98,11 +66,11 @@ public class HadoopDomainBuilder {
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(outputFormatClass);
+    conf.setOutputFormat(properties.getOutputFormatClass());
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Hank specific configuration
-    DomainBuilderProperties.set(conf, hankConfiguration, domainName, outputPath);
+    properties.setJobConfProperties(conf);
     return conf;
   }
 

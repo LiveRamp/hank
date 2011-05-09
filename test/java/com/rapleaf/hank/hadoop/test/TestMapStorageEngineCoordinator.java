@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import org.apache.hadoop.mapred.TextInputFormat;
 
 import com.rapleaf.hank.hadoop.DomainBuilderEmptyOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.HadoopDomainBuilder;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
@@ -55,7 +56,8 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
   }
 
   public void testOutput() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class, DomainBuilderEmptyOutputFormat.class, CONFIG_PATH, "");
+    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class,
+        new DomainBuilderProperties(DOMAIN_A_NAME, MapStorageEngineCoordinator.getConfiguration(1), "", DomainBuilderEmptyOutputFormat.class));
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions().size());

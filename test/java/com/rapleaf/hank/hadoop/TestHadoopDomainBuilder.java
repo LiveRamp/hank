@@ -15,9 +15,7 @@
  */
 package com.rapleaf.hank.hadoop;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
@@ -34,7 +32,6 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   private final String DOMAIN_B_NAME = "b";
   private final String INPUT_PATH_B = INPUT_DIR + "/" + DOMAIN_B_NAME;
   private final String OUTPUT_PATH_B = OUTPUT_DIR + "/" + DOMAIN_B_NAME;
-  private final String CONFIG_PATH = localTmpDir + "/config";
 
   public TestHadoopDomainBuilder() throws IOException {
     super(TestHadoopDomainBuilder.class);
@@ -43,11 +40,6 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    // Create config
-    PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
-    pw.write(IntStringKeyStorageEngineCoordinator.getConfiguration());
-    pw.close();
-
     // Create inputs
     outputFile(fs, INPUT_PATH_A, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
     outputFile(fs, INPUT_PATH_B, "4 v4\n1 v1\n2 v2\n0 v0\n3 v3");
@@ -56,14 +48,14 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_PATH_A));
     try {
-      HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_PATH_A, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_PATH_A);
+      HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A));
       fail("Should fail when output exists");
     } catch (FileAlreadyExistsException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(DOMAIN_A_NAME, INPUT_PATH_A, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_PATH_A);
+    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
@@ -71,7 +63,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   }
 
   public void testSorted() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(DOMAIN_B_NAME, INPUT_PATH_B, TextInputFormat.class, TestMapper.class, CONFIG_PATH, OUTPUT_PATH_B);
+    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_B, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_B_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_B));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);

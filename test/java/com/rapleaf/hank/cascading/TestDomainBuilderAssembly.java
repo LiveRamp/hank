@@ -83,12 +83,14 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
   }
 
   public void testMain() throws IOException {
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A);
+
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
-    DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", OUTPUT_PATH_A);
-    String configuration = IntStringKeyStorageEngineCoordinator.getConfiguration();
+    DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", properties);
+
     Pipe pipe = getPipe(outputTap);
 
-    new FlowConnector(DomainBuilderProperties.set(new Properties(), configuration, DOMAIN_A_NAME)).connect(inputTap, outputTap, pipe).complete();
+    new FlowConnector(properties.setCascadingProperties(new Properties())).connect(inputTap, outputTap, pipe).complete();
 
     // Check output
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_A_NAME, 0, "0.base"));
