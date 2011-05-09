@@ -17,15 +17,19 @@
 package com.rapleaf.hank.cascading;
 
 import java.nio.ByteBuffer;
+import java.util.Iterator;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
+import cascading.operation.Buffer;
+import cascading.operation.BufferCall;
 import cascading.operation.Function;
 import cascading.operation.FunctionCall;
 import cascading.pipe.Each;
+import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
 import cascading.pipe.SubAssembly;
@@ -37,6 +41,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
+import com.rapleaf.hank.util.Bytes;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -58,6 +63,12 @@ public class DomainBuilderAssembly extends SubAssembly {
     // Group by partition id and secondary sort on comparable key
     outputPipe = new GroupBy(outputPipe, new Fields(PARTITION_FIELD_NAME), new Fields(
         COMPARABLE_KEY_FIELD_NAME));
+
+    // Check output
+    outputPipe = new Every(outputPipe,
+        new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
+        new DetectDuplicateKeysBuffer(),
+        new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
     setTails(outputPipe);
   }
@@ -98,6 +109,30 @@ public class DomainBuilderAssembly extends SubAssembly {
         Configurator configurator = new CascadingOperationConfigurator(flowProcess);
         String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
         domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
+      }
+    }
+  }
+
+  private static class DetectDuplicateKeysBuffer extends BaseOperation<DetectDuplicateKeysBuffer> implements Buffer<DetectDuplicateKeysBuffer> {
+
+    public DetectDuplicateKeysBuffer() {
+      super(4);
+    }
+
+    @Override
+    public void operate(FlowProcess flowProcess, BufferCall<DetectDuplicateKeysBuffer> call) {
+      Iterator<TupleEntry> it = call.getArgumentsIterator();
+      ByteBuffer previousKeyByteBuffer = null;
+      while (it.hasNext()) {
+        Tuple tuple = it.next().getTuple();
+        BytesWritable key = (BytesWritable) tuple.get(0);
+
+        ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
+        if (previousKeyByteBuffer != null && 0 == Bytes.compareBytesUnsigned(keyByteBuffer, previousKeyByteBuffer)) {
+          throw new RuntimeException("Keys must be unique but two consecutive keys are equal.");
+        }
+        previousKeyByteBuffer = Bytes.byteBufferDeepCopy(keyByteBuffer);
+        call.getOutputCollector().add(tuple);
       }
     }
   }
