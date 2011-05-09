@@ -128,7 +128,8 @@ public class DomainBuilderAssembly extends SubAssembly {
         BytesWritable key = (BytesWritable) tuple.get(0);
 
         ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
-        if (previousKeyByteBuffer != null && 0 == Bytes.compareBytesUnsigned(keyByteBuffer, previousKeyByteBuffer)) {
+        if (previousKeyByteBuffer != null && keyByteBuffer.remaining() == previousKeyByteBuffer.remaining() &&
+            0 == Bytes.compareBytesUnsigned(keyByteBuffer, previousKeyByteBuffer)) {
           throw new RuntimeException("Keys must be unique but two consecutive keys are equal.");
         }
         previousKeyByteBuffer = Bytes.byteBufferDeepCopy(keyByteBuffer);
