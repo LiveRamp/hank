@@ -23,6 +23,7 @@ import java.util.Arrays;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 
 /**
@@ -40,6 +41,7 @@ public class CueballWriter implements Writer {
   private final byte[] uncompressedBuffer;
   private final byte[] compressedBuffer;
   private final byte[] keyHashBytes;
+  private final byte[] previousKeyHashBytes;
 
   private final long[] hashIndex;
 
@@ -67,6 +69,8 @@ public class CueballWriter implements Writer {
     uncompressedBuffer = new byte[(keyHashSize + valueSize) * DEFAULT_NUMBER_OF_ENTRIES];
     compressedBuffer = new byte[compressionCodec.getMaxCompressBufferSize(uncompressedBuffer.length)];
     keyHashBytes = new byte[keyHashSize];
+    previousKeyHashBytes = new byte[keyHashSize];
+    Arrays.fill(previousKeyHashBytes, (byte) 0);
 
     prefixer = new HashPrefixCalculator(hashIndexBits);
 
@@ -76,12 +80,28 @@ public class CueballWriter implements Writer {
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+    // Check that value size is compatible
     if (value.remaining() != valueSize) {
       throw new IOException("Size of value to be written is: " + value.remaining() + ", but configured value size is: " + valueSize);
     }
+    // Hash key
     hasher.hash(key, keyHashBytes);
+    // Compare with previous key hash
+    int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
+    // Check that there is not a key hash collision
+    if (0 == previousKeyHashComparision) {
+      throw new IOException("Two consecutive keys have the same hash value. It is very likely that these keys are duplicates.");
+    }
+    // Check key hash ordering
+    if (0 > previousKeyHashComparision) {
+      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash value, but detected a decreasing sequence.");
+    }
+    // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
+    // Save current key hash
+    System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
   }
+
 
   public void writeHash(ByteBuffer hashedKey, ByteBuffer value) throws IOException {
     // check the first hashIndexBits of the hashedKey

@@ -26,9 +26,9 @@ public class TestCueballWriter extends AbstractCueballTest {
 
     CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec(), 1);
 
-    cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1,2}));
-    cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2,1}));
-    cw.write(ByteBuffer.wrap(KEY3), ByteBuffer.wrap(new byte[]{(byte) 0x8f,1,2,1,2,1}));
+    cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1}));
+    cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2}));
+    cw.write(ByteBuffer.wrap(KEY3), ByteBuffer.wrap(new byte[]{(byte) 0x8f,1,2,1,2}));
     cw.close();
 
     byte[] result = s.toByteArray();
