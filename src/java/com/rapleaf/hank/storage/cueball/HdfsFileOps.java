@@ -10,6 +10,18 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 public class HdfsFileOps implements IFileOps {
+  public static final class Factory implements IFileOpsFactory {
+    @Override
+    public IFileOps getFileOps(String localPath, String remotePath) {
+      try {
+        return new HdfsFileOps(localPath, remotePath);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to instantiate "
+            + HdfsFileOps.class.getName() + " due to exception!", e);
+      }
+    }
+  }
+
   private final FileSystem fs;
   private final String localRoot;
   private final String remoteRoot;
