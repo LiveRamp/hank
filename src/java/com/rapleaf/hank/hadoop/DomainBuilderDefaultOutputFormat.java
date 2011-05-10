@@ -19,6 +19,7 @@ package com.rapleaf.hank.hadoop;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileAlreadyExistsException;
@@ -31,14 +32,14 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
 
-  private static final String TMP_DIRECTORY_NAME = "_tmp_HankDomainBuilderDefaultOutputFormat";
+  private static final String TMP_DIRECTORY_NAME = "_tmp_DomainBuilderDefaultOutputFormat";
 
   @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
   throws IOException {
     String outputPath = conf.get(CONF_PARAM_HANK_OUTPUT_PATH);
     if (outputPath != null && fs.exists(new Path(outputPath))) {
-      throw new FileAlreadyExistsException("Hank output path already exists: " + outputPath);
+      throw new FileAlreadyExistsException("Output path already exists: " + outputPath);
     }
   }
 
@@ -77,10 +78,13 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       }
       // Delete tmp output path
       Path tmpOutputPathObject = new Path(tmpOutputPath);
-      if (fs.listStatus(tmpOutputPathObject).length == 0) {
-        fs.delete(tmpOutputPathObject);
-      } else {
-        throw new RuntimeException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
+      FileStatus[] tmpOutputFiles = fs.listStatus(tmpOutputPathObject);
+      if (tmpOutputFiles != null) {
+        if (tmpOutputFiles.length == 0) {
+          fs.delete(tmpOutputPathObject);
+        } else {
+          throw new RuntimeException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
+        }
       }
       // Delete tmp output path parent if empty
       Path tmpOutputPathParent = tmpOutputPathObject.getParent();
