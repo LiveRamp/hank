@@ -35,10 +35,10 @@ public final class Murmur64Hasher implements Hasher {
     final int r = 47;
 
     long h = seed ^ (length * m);
-    int limit = length - (length % 8);
 
-    int i;
-    for (i = off; i < limit; i += 8) {
+    final int remainder = length & 7;
+    final int end = length - remainder;
+    for (int i = off; i < end; i += 8) {
       long k = data[i + 7];
       k = k << 8;
       k = k | (data[i + 6] & 0xff);
@@ -63,14 +63,14 @@ public final class Murmur64Hasher implements Hasher {
       h *= m;
     }
 
-    switch (length & 7) {
-    case 7: h ^= data[i+6] << 48;
-    case 6: h ^= data[i+5] << 40;
-    case 5: h ^= data[i+4] << 32;
-    case 4: h ^= data[i+3] << 24;
-    case 3: h ^= data[i+2] << 16;
-    case 2: h ^= data[i+1] << 8;
-    case 1: h ^= data[i];
+    switch (remainder) {
+    case 7: h ^= (long)(data[end+6] & 0xff) << 48;
+    case 6: h ^= (long)(data[end+5] & 0xff) << 40;
+    case 5: h ^= (long)(data[end+4] & 0xff) << 32;
+    case 4: h ^= (long)(data[end+3] & 0xff) << 24;
+    case 3: h ^= (long)(data[end+2] & 0xff) << 16;
+    case 2: h ^= (long)(data[end+1] & 0xff) << 8;
+    case 1: h ^= (long)(data[end] & 0xff);
     h *= m;
     }
 
