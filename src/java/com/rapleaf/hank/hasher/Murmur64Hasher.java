@@ -30,14 +30,15 @@ public final class Murmur64Hasher implements Hasher {
    */
   private static final int INITIAL_SEED = 952336;
 
-  public static long murmurHash64(byte[] data, int off, int length, int seed) {
-    long m = 0xc6a4a7935bd1e995L;
-    int r = 47;
+  public static long murmurHash64(final byte[] data, final int off, final int length, final int seed) {
+    final long m = 0xc6a4a7935bd1e995L;
+    final int r = 47;
 
     long h = seed ^ (length * m);
+    int limit = length - (length % 8);
 
     int i;
-    for (i = off; i < length / 8; i += 8) {
+    for (i = off; i < limit; i += 8) {
       long k = data[i + 7];
       k = k << 8;
       k = k | (data[i + 6] & 0xff);
@@ -102,20 +103,20 @@ public final class Murmur64Hasher implements Hasher {
       hashValue = murmurHash64(val.array(), val.arrayOffset() + val.position(), val.arrayOffset() + val.limit(), seed);
       int off = hashBytes.length - 1;
       switch (shortHashBytes) {
-        case 7:
-          hashBytes[off--] = (byte)((hashValue >>  8) & 0xff);
-        case 6:
-          hashBytes[off--] = (byte)((hashValue >> 16) & 0xff);
-        case 5:
-          hashBytes[off--] = (byte)((hashValue >> 24) & 0xff);
-        case 4:
-          hashBytes[off--] = (byte)((hashValue >> 32) & 0xff);
-        case 3:
-          hashBytes[off--] = (byte)((hashValue >> 40) & 0xff);
-        case 2:
-          hashBytes[off--] = (byte)((hashValue >> 48) & 0xff);
-        case 1:
-          hashBytes[off--] = (byte)((hashValue >> 56) & 0xff);
+      case 7:
+        hashBytes[off--] = (byte)((hashValue >>  8) & 0xff);
+      case 6:
+        hashBytes[off--] = (byte)((hashValue >> 16) & 0xff);
+      case 5:
+        hashBytes[off--] = (byte)((hashValue >> 24) & 0xff);
+      case 4:
+        hashBytes[off--] = (byte)((hashValue >> 32) & 0xff);
+      case 3:
+        hashBytes[off--] = (byte)((hashValue >> 40) & 0xff);
+      case 2:
+        hashBytes[off--] = (byte)((hashValue >> 48) & 0xff);
+      case 1:
+        hashBytes[off--] = (byte)((hashValue >> 56) & 0xff);
       }
     }
   }
