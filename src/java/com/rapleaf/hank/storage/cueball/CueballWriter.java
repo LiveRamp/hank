@@ -97,7 +97,11 @@ public class CueballWriter implements Writer {
     int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that there is not a key hash collision
     if (0 == previousKeyHashComparision) {
-      throw new IOException("Two consecutive keys have the same hash value. It is very likely that these keys are duplicates.");
+      throw new IOException("Two consecutive keys have the same hash value. It is very likely that these keys are duplicates." +
+          "\nkey: " + Bytes.bytesToHexString(key) +
+          "\nprevious key: " + Bytes.bytesToHexString(previousKey) +
+          "\nhash: " + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)) +
+          "\nprevious hash: " + Bytes.bytesToHexString(ByteBuffer.wrap(previousKeyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {

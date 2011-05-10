@@ -91,4 +91,16 @@ public final class Bytes {
     src.reset();
     return copy;
   }
+
+  public static String bytesToHexString(ByteBuffer b) {
+    StringBuilder result = new StringBuilder();
+    for (int i = 0; i < b.remaining(); ++i) {
+      final int v = b.array()[b.arrayOffset() + b.position() + i] & 0xff;
+      if (i > 0) {
+        result.append(" ");
+      }
+      result.append(Integer.toString(v, 16));
+    }
+    return result.toString();
+  }
 }
