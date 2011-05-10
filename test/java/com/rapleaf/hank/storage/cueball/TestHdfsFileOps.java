@@ -1,5 +1,6 @@
 package com.rapleaf.hank.storage.cueball;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -19,7 +20,10 @@ public class TestHdfsFileOps extends BaseTestCase {
   }
 
   public void testCopyToLocal() throws Exception {
-    fail();
+    assertFalse(new File(localTmpDir + "/file1.txt").exists());
+    HdfsFileOps hdfsFileOps = new HdfsFileOps(localTmpDir, ROOT);
+    hdfsFileOps.copyToLocal(ROOT + "/file1.txt");
+    assertTrue(new File(localTmpDir + "/file1.txt").exists());
   }
 
   @Override
