@@ -6,7 +6,7 @@ import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 
-public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion {
+public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion, Comparable<MemDomainGroupConfigVersion> {
 
   private final Set<DomainConfigVersion> domainIdToVersion;
   private final DomainGroupConfig parent;
@@ -31,5 +31,10 @@ public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion {
   @Override
   public int getVersionNumber() {
     return v;
+  }
+
+  @Override
+  public int compareTo(MemDomainGroupConfigVersion arg0) {
+    return Integer.valueOf(v).compareTo(arg0.v);
   }
 }
