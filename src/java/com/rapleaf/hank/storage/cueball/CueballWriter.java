@@ -42,6 +42,7 @@ public class CueballWriter implements Writer {
   private final byte[] compressedBuffer;
   private final byte[] keyHashBytes;
   private final byte[] previousKeyHashBytes;
+  private ByteBuffer previousKey = null;
 
   private final long[] hashIndex;
 
@@ -89,20 +90,27 @@ public class CueballWriter implements Writer {
     hasher.hash(key, keyHashBytes);
     // Compare with previous key hash
     int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
+    // Check that key is different from previous one
+    if (previousKey != null && previousKey.remaining() == key.remaining() &&
+        0 == Bytes.compareBytesUnsigned(key, previousKey)) {
+      throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal.");
+    }
     // Check that there is not a key hash collision
     if (0 == previousKeyHashComparision) {
-      throw new IOException("Two consecutive keys have the same hash value. It is very likely that these keys are duplicates." +
+      throw new IOException("Collision: two consecutive keys have the same hash value." +
           "\nKey: " + Bytes.bytesToHexString(key) +
+          "\nPrevious key: " + Bytes.bytesToHexString(previousKey) +
           "\nHash: " + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {
-      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash value, but a decreasing sequence was detected.");
+      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash (comparableKey) value, but a decreasing sequence was detected.");
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
     // Save current key and key hash
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
+    previousKey = Bytes.byteBufferDeepCopy(key, previousKey);
   }
 
 

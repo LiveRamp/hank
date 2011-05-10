@@ -92,6 +92,21 @@ public final class Bytes {
     return copy;
   }
 
+  // Does a deep copy of src into dst. Allocation is performed only if necessary.
+  // Return of this function should be assigned to dst.
+  public static ByteBuffer byteBufferDeepCopy(ByteBuffer src, ByteBuffer dst) {
+    if (dst == null || dst.capacity() < src.remaining()) {
+      dst = byteBufferDeepCopy(src);
+    } else {
+      dst.rewind();
+      src.mark();
+      dst.put(src);
+      src.reset();
+      dst.flip();
+    }
+    return dst;
+  }
+
   public static String bytesToHexString(ByteBuffer b) {
     StringBuilder result = new StringBuilder();
     for (int i = 0; i < b.remaining(); ++i) {
