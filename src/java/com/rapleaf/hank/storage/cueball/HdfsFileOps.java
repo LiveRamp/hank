@@ -31,7 +31,7 @@ public class HdfsFileOps implements IFileOps {
     FileStatus[] l = fs.listStatus(new Path(remoteRoot));
     List<String> results = new ArrayList<String>(l.length);
     for (FileStatus fileStatus : l) {
-      results.add(fileStatus.getPath().toString());
+      results.add(fileStatus.getPath().toUri().getPath());
     }
     return results;
   }
