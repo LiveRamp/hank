@@ -42,6 +42,7 @@ public class CueballWriter implements Writer {
   private final byte[] compressedBuffer;
   private final byte[] keyHashBytes;
   private final byte[] previousKeyHashBytes;
+  private ByteBuffer previousKey = null;
 
   private final long[] hashIndex;
 
@@ -85,6 +86,11 @@ public class CueballWriter implements Writer {
     if (value.remaining() != valueSize) {
       throw new IOException("Size of value to be written is: " + value.remaining() + ", but configured value size is: " + valueSize);
     }
+    // Check that key is different from previous one
+    if (previousKey != null && previousKey.remaining() == key.remaining() &&
+        0 == Bytes.compareBytesUnsigned(key, previousKey)) {
+      throw new IOException("Keys must be distinct but two consecutive keys are equal.");
+    }
     // Hash key
     hasher.hash(key, keyHashBytes);
     // Compare with previous key hash
@@ -99,7 +105,8 @@ public class CueballWriter implements Writer {
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
-    // Save current key hash
+    // Save current key and key hash
+    previousKey = Bytes.byteBufferDeepCopy(key);
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
   }
 
