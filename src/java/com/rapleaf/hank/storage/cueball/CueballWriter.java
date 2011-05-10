@@ -162,6 +162,7 @@ public class CueballWriter implements Writer {
     if (compressedSize > maxCompressedBlockSize) {
       maxCompressedBlockSize = compressedSize;
     }
+    // Reset offset and counter
     uncompressedOffset = 0;
     numEntriesInBlock = 0;
   }
