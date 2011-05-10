@@ -68,7 +68,6 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
       // attempt to claim the data deployer title
       if (ringGroupConfig.claimDataDeployer()) {
         claimedDataDeployer = true;
-        LOG.info("Attempted to claim data deployer status, but it was already claimed. Exiting.");
 
         // we are now *the* data deployer for this ring group.
         domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
