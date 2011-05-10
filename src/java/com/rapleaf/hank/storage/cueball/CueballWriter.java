@@ -42,7 +42,6 @@ public class CueballWriter implements Writer {
   private final byte[] compressedBuffer;
   private final byte[] keyHashBytes;
   private final byte[] previousKeyHashBytes;
-  private ByteBuffer previousKey = null;
 
   private final long[] hashIndex;
 
@@ -86,11 +85,6 @@ public class CueballWriter implements Writer {
     if (value.remaining() != valueSize) {
       throw new IOException("Size of value to be written is: " + value.remaining() + ", but configured value size is: " + valueSize);
     }
-    // Check that key is different from previous one
-    if (previousKey != null && previousKey.remaining() == key.remaining() &&
-        0 == Bytes.compareBytesUnsigned(key, previousKey)) {
-      throw new IOException("Keys must be distinct but two consecutive keys are equal.");
-    }
     // Hash key
     hasher.hash(key, keyHashBytes);
     // Compare with previous key hash
@@ -98,19 +92,16 @@ public class CueballWriter implements Writer {
     // Check that there is not a key hash collision
     if (0 == previousKeyHashComparision) {
       throw new IOException("Two consecutive keys have the same hash value. It is very likely that these keys are duplicates." +
-          "\nkey: " + Bytes.bytesToHexString(key) +
-          "\nprevious key: " + Bytes.bytesToHexString(previousKey) +
-          "\nhash: " + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)) +
-          "\nprevious hash: " + Bytes.bytesToHexString(ByteBuffer.wrap(previousKeyHashBytes)));
+          "\nKey: " + Bytes.bytesToHexString(key) +
+          "\nHash: " + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {
-      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash value, but detected a decreasing sequence.");
+      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash value, but a decreasing sequence was detected.");
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
     // Save current key and key hash
-    previousKey = Bytes.byteBufferDeepCopy(key);
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
   }
 
@@ -122,15 +113,9 @@ public class CueballWriter implements Writer {
     // if this prefix and the last one don't match, then it's time to clear the
     // buffer.
     if (lastHashPrefix == -1 || thisPrefix != lastHashPrefix) {
-      if (thisPrefix < lastHashPrefix) {
-        throw new IOException("Just found a hash prefix inversion!");
-      }
-      // clear the uncompressed buffer
+      // clear the uncompressed buffer and start over
       clearUncompressed();
 
-      // start over in the buffer
-      uncompressedOffset = 0;
-      numEntriesInBlock = 0;
       lastHashPrefix = thisPrefix;
 
       // record the start index of the next block
@@ -177,6 +162,8 @@ public class CueballWriter implements Writer {
     if (compressedSize > maxCompressedBlockSize) {
       maxCompressedBlockSize = compressedSize;
     }
+    uncompressedOffset = 0;
+    numEntriesInBlock = 0;
   }
 
   @Override

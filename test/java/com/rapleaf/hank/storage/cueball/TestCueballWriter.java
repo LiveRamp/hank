@@ -35,4 +35,20 @@ public class TestCueballWriter extends AbstractCueballTest {
     assertEquals(ByteBuffer.wrap(EXPECTED_DATA),
         ByteBuffer.wrap(result));
   }
+
+  public void testEnforceKeyOrdering() {
+    try {
+      ByteArrayOutputStream s = new ByteArrayOutputStream();
+
+      CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec(), 1);
+
+      cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2}));
+      cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1}));
+      cw.close();
+
+      fail("Invalid key ordering should throw an exception.");
+    } catch (Exception e) {
+
+    }
+  }
 }
