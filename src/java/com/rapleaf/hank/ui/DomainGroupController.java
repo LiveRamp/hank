@@ -2,6 +2,8 @@ package com.rapleaf.hank.ui;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class DomainGroupController extends HttpServlet {
@@ -26,9 +29,29 @@ public class DomainGroupController extends HttpServlet {
       doCreate(req, resp);
     } else if (req.getRequestURI().contains("add_domain")) {
       doAddDomain(req, resp);
+    } else if (req.getRequestURI().contains("add_version")) {
+      doAddVersion(req, resp);
     } else {
       System.out.println("Bad URI!" + req.getRequestURI());
       resp.sendError(404);
+    }
+  }
+
+  private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String dgName = URLDecoder.decode(req.getParameter("n"));
+    try {
+      DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
+
+      Map<String, Integer> domainVersions = new HashMap<String, Integer>();
+      for (DomainConfig domainConfig : dg.getDomainConfigs()) {
+        int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
+        domainVersions.put(domainConfig.getName(), v);
+      }
+      DomainGroupConfigVersion newVersion = dg.createNewVersion(domainVersions);
+
+      resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
+    } catch (DataNotFoundException e) {
+      throw new IOException(e);
     }
   }
 

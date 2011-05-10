@@ -228,7 +228,7 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   @Override
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
     try {
-      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, Integer.toString(latestVersionNumber).getBytes("UTF-8"), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.setOrCreate(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, latestVersionNumber, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }
