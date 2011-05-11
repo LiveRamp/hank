@@ -15,7 +15,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.ui.controllers.DomainController;
 import com.rapleaf.hank.ui.controllers.DomainGroupController;
 import com.rapleaf.hank.ui.controllers.HostController;
-import com.rapleaf.hank.ui.controllers.IClientCache;
 import com.rapleaf.hank.ui.controllers.RingController;
 import com.rapleaf.hank.ui.controllers.RingGroupController;
 

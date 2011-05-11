@@ -22,7 +22,6 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
-import com.rapleaf.hank.ui.controllers.IClientCache;
 
 public class StatusWebDaemonTester extends TestCase {
   public void testIt() throws Exception {
