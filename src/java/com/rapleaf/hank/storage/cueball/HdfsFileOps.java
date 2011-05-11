@@ -8,8 +8,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Logger;
 
 public class HdfsFileOps implements IFileOps {
+  private static final Logger LOG = Logger.getLogger(HdfsFileOps.class);
+
   public static final class Factory implements IFileOpsFactory {
     @Override
     public IFileOps getFileOps(String localPath, String remotePath) {
@@ -43,6 +46,7 @@ public class HdfsFileOps implements IFileOps {
     FileStatus[] l = fs.listStatus(new Path(remoteRoot));
     List<String> results = new ArrayList<String>(l.length);
     for (FileStatus fileStatus : l) {
+      LOG.trace(fileStatus.getPath());
       results.add(fileStatus.getPath().toUri().getPath());
     }
     return results;

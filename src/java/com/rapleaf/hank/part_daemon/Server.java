@@ -72,12 +72,25 @@ public class Server implements HostCommandQueueChangeListener {
     hostConfig.setCommandQueueChangeListener(this);
   }
 
+  private synchronized void processCommands() {
+    try {
+      if (hostConfig.getCurrentCommand() != null) {
+        processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
+      }
+      while (!hostConfig.getCommandQueue().isEmpty()) {
+        HostCommand nextCommand = hostConfig.processNextCommand();
+        processCurrentCommand(hostConfig, nextCommand);
+      }
+    } catch (IOException e) {
+      // TODO
+      LOG.error("Uh oh, failed to process all the commands in the queue, somehow...", e);
+    }
+  }
+
   public void run() throws IOException {
     hostConfig.setState(HostState.IDLE);
 
-    if (hostConfig.getCurrentCommand() != null) {
-      processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
-    }
+    processCommands();
     while (!goingDown) {
       try {
         Thread.sleep(1000);
@@ -207,22 +220,23 @@ public class Server implements HostCommandQueueChangeListener {
 
   @Override
   public void onCommandQueueChange(HostConfig hostConfig) {
-    synchronized(mutex) {
-      try {
-        if (this.hostConfig.getCurrentCommand() == null) {
-          HostCommand nextCommand = this.hostConfig.processNextCommand();
-          if (nextCommand == null) {
-            LOG.debug("Command queue was empty; doing nothing.");
-            return;
-          }
-          processCurrentCommand(hostConfig, nextCommand);
-        } else {
-          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
-        }
-      } catch (IOException e) {
-        LOG.error("Got an exception checking the current command!", e);
-      }
-    }
+    processCommands();
+//    synchronized(mutex) {
+//      try {
+//        if (this.hostConfig.getCurrentCommand() == null) {
+//          HostCommand nextCommand = this.hostConfig.processNextCommand();
+//          if (nextCommand == null) {
+//            LOG.debug("Command queue was empty; doing nothing.");
+//            return;
+//          }
+//          processCurrentCommand(hostConfig, nextCommand);
+//        } else {
+//          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
+//        }
+//      } catch (IOException e) {
+//        LOG.error("Got an exception checking the current command!", e);
+//      }
+//    }
   }
 
   private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
