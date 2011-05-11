@@ -1,4 +1,4 @@
-package com.rapleaf.hank.ui;
+package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
 
@@ -7,8 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.ui.controller.Action;
-import com.rapleaf.hank.ui.controller.Controller;
 
 public class RingController extends Controller {
 

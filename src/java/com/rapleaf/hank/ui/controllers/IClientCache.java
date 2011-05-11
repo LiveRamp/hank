@@ -1,4 +1,4 @@
-package com.rapleaf.hank.ui;
+package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
 

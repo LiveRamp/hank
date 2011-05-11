@@ -11,6 +11,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.ui.controllers.IClientCache;
 
 public final class ClientCache implements IClientCache {
   private static final Map<String, SmartClient.Iface> cachedClients = new HashMap<String, Iface>();

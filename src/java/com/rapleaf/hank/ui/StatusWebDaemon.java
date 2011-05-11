@@ -12,6 +12,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.ui.controllers.DomainController;
+import com.rapleaf.hank.ui.controllers.DomainGroupController;
+import com.rapleaf.hank.ui.controllers.HostController;
+import com.rapleaf.hank.ui.controllers.IClientCache;
+import com.rapleaf.hank.ui.controllers.RingController;
+import com.rapleaf.hank.ui.controllers.RingGroupController;
 
 public class StatusWebDaemon {
   @SuppressWarnings("unused")
@@ -48,7 +54,7 @@ public class StatusWebDaemon {
     ServletContextHandler servletHandler = new ServletContextHandler();
     servletHandler.setContextPath("/");
 
-    new DomainControllerServlet("domain", coordinator).addServlet(servletHandler);
+    new DomainController("domain", coordinator).addServlet(servletHandler);
     new DomainGroupController("domain_group", coordinator).addServlet(servletHandler);
     new RingGroupController("ring_group", coordinator).addServlet(servletHandler);
     new RingController("ring", coordinator).addServlet(servletHandler);

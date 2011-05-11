@@ -1,4 +1,4 @@
-package com.rapleaf.hank.ui;
+package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -12,8 +12,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.ui.controller.Action;
-import com.rapleaf.hank.ui.controller.Controller;
 
 public class DomainGroupController extends Controller {
 

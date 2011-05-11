@@ -1,4 +1,4 @@
-package com.rapleaf.hank.ui;
+package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
 
@@ -6,14 +6,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.ui.controller.Action;
-import com.rapleaf.hank.ui.controller.Controller;
 
-public class DomainControllerServlet extends Controller {
+public class DomainController extends Controller {
 
   private final Coordinator coordinator;
 
-  public DomainControllerServlet(String name, Coordinator coordinator) {
+  public DomainController(String name, Coordinator coordinator) {
     super(name);
     this.coordinator = coordinator;
     actions.put("create", new Action() {
@@ -24,14 +22,14 @@ public class DomainControllerServlet extends Controller {
         String storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
         String storageEngineOptions = req.getParameter("storageEngineOptions");
         String partitionerName = req.getParameter("partitionerName");
-        System.out.println(DomainControllerServlet.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, 1));
+        System.out.println(DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, 1));
         redirect("/domains.jsp", resp);
       }
     });
     actions.put("delete", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        DomainControllerServlet.this.coordinator.deleteDomainConfig(req.getParameter("name"));
+        DomainController.this.coordinator.deleteDomainConfig(req.getParameter("name"));
         redirect("/domains.jsp", resp);
       }
     });

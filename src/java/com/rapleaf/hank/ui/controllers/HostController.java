@@ -1,4 +1,4 @@
-package com.rapleaf.hank.ui;
+package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
 import java.net.URLDecoder;
@@ -14,8 +14,6 @@ import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.ui.controller.Action;
-import com.rapleaf.hank.ui.controller.Controller;
 
 public class HostController extends Controller {
 
