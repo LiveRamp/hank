@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.util;
 
+import java.nio.ByteBuffer;
+
 import junit.framework.TestCase;
 
 public class TestBytes extends TestCase {
@@ -47,5 +49,22 @@ public class TestBytes extends TestCase {
       fail("Should fail with an exception");
     } catch (Exception e) {
     }
+  }
+
+  public void testDeepCopy() {
+    // Without allocation
+    ByteBuffer copyA = Bytes.byteBufferDeepCopy(ByteBuffer.wrap(A));
+    assertEquals(0, Bytes.compareBytesUnsigned(copyA, ByteBuffer.wrap(A)));
+
+    // With allocation capable
+    ByteBuffer copyB = null;
+
+    byte[] v1 = {1};
+    copyB = Bytes.byteBufferDeepCopy(ByteBuffer.wrap(v1), copyB);
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap(v1), copyB));
+
+    byte[] v2 = {1, 2 , 3};
+    copyB = Bytes.byteBufferDeepCopy(ByteBuffer.wrap(v2), copyB);
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap(v2), copyB));
   }
 }

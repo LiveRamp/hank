@@ -97,6 +97,7 @@ public final class Bytes {
       dst = byteBufferDeepCopy(src);
     } else {
       dst.rewind();
+      dst.limit(src.remaining());
       dst.put(src.slice());
       dst.flip();
     }
