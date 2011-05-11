@@ -3,37 +3,35 @@ package com.rapleaf.hank.ui;
 import java.io.IOException;
 import java.net.URLDecoder;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.exception.DataNotFoundException;
+import com.rapleaf.hank.ui.controller.Action;
+import com.rapleaf.hank.ui.controller.Controller;
 
-public class RingGroupController extends HttpServlet {
+public class RingGroupController extends Controller {
 
   private final Coordinator coordinator;
 
-  public RingGroupController(Coordinator coordinator) {
+  public RingGroupController(String name, Coordinator coordinator) {
+    super(name);
     this.coordinator = coordinator;
-  }
 
-  @Override
-  protected void doGet(HttpServletRequest arg0, HttpServletResponse arg1) throws ServletException, IOException {
-    doPost(arg0, arg1);
-  }
-
-  @Override
-  protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-    if (req.getRequestURI().contains("create")) {
-      doCreate(req, resp);
-    } else if (req.getRequestURI().contains("add_ring")) {
-      doAddRing(req, resp);
-    } else {
-      resp.sendError(404);
-    }
+    actions.put("create", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCreate(req, resp);
+      }
+    });
+    actions.put("add_ring", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doAddRing(req, resp);
+      }
+    });
   }
 
   private void doAddRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {

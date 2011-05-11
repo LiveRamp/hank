@@ -7,7 +7,6 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import com.rapleaf.hank.config.ClientConfigurator;
@@ -49,17 +48,10 @@ public class StatusWebDaemon {
     ServletContextHandler servletHandler = new ServletContextHandler();
     servletHandler.setContextPath("/");
 
-    DomainControllerServlet domainControllerServlet = new DomainControllerServlet(coordinator);
-    servletHandler.addServlet(new ServletHolder(domainControllerServlet), "/domain/*");
-
-    DomainGroupController dgController = new DomainGroupController(coordinator);
-    servletHandler.addServlet(new ServletHolder(dgController), "/domain_group/*");
-
-    RingGroupController rgController = new RingGroupController(coordinator);
-    servletHandler.addServlet(new ServletHolder(rgController), "/ring_group/*");
-
-    RingController ringController = new RingController(coordinator);
-    servletHandler.addServlet(new ServletHolder(ringController), "/ring/*");
+    new DomainControllerServlet("domain", coordinator).addServlet(servletHandler);
+    new DomainGroupController("domain_group", coordinator).addServlet(servletHandler);
+    new RingGroupController("ring_group", coordinator).addServlet(servletHandler);
+    new RingController("ring", coordinator).addServlet(servletHandler);
 
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();
