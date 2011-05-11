@@ -75,6 +75,9 @@ public class Server implements HostCommandQueueChangeListener {
   public void run() throws IOException {
     hostConfig.setState(HostState.IDLE);
 
+    if (hostConfig.getCurrentCommand() != null) {
+      processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
+    }
     while (!goingDown) {
       try {
         Thread.sleep(1000);
@@ -212,24 +215,28 @@ public class Server implements HostCommandQueueChangeListener {
             LOG.debug("Command queue was empty; doing nothing.");
             return;
           }
-          HostState state = hostConfig.getState();
-          switch (nextCommand) {
-            case EXECUTE_UPDATE:
-              processExecuteUpdate(state);
-              break;
-            case GO_TO_IDLE:
-              processGoToIdle(state);
-              break;
-            case SERVE_DATA:
-              processServeData(state);
-              break;
-          }
+          processCurrentCommand(hostConfig, nextCommand);
         } else {
           LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
         }
       } catch (IOException e) {
         LOG.error("Got an exception checking the current command!", e);
       }
+    }
+  }
+
+  private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
+    HostState state = hostConfig.getState();
+    switch (nextCommand) {
+      case EXECUTE_UPDATE:
+        processExecuteUpdate(state);
+        break;
+      case GO_TO_IDLE:
+        processGoToIdle(state);
+        break;
+      case SERVE_DATA:
+        processServeData(state);
+        break;
     }
   }
 
