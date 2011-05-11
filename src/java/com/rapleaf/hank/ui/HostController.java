@@ -2,6 +2,7 @@ package com.rapleaf.hank.ui;
 
 import java.io.IOException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -32,6 +33,8 @@ public class HostController extends HttpServlet{
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
     if (req.getRequestURI().contains("add_domain_part")) {
       doAddDomainPart(req, resp);
+    } else {
+      resp.sendError(404);
     }
   }
 
@@ -45,7 +48,7 @@ public class HostController extends HttpServlet{
       d = hc.addDomain(dId);
     }
     HostDomainPartitionConfig p = d.addPartition(Integer.parseInt(req.getParameter("partNum")), Integer.parseInt(req.getParameter("initialVersion")));
-    
-    resp.sendRedirect(String.format("/host.jsp?g=%s&n=%s&h=%s", "", "", ""));
+
+    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEncoder.encode(hc.getAddress().toString())));
   }
 }

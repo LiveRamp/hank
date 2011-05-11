@@ -61,6 +61,9 @@ public class StatusWebDaemon {
     RingController ringController = new RingController(coordinator);
     servletHandler.addServlet(new ServletHolder(ringController), "/ring/*");
 
+    HostController hostController = new HostController(coordinator);
+    servletHandler.addServlet(new ServletHolder(hostController), "/host/*");
+
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();
     contexts.setHandlers(new Handler[] {servletHandler, webAppContext});
