@@ -72,6 +72,6 @@ public class StatusWebDaemon {
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
     ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);
-    new StatusWebDaemon(cc, null, port).run();
+    new StatusWebDaemon(cc, new ClientCache(cc.getCoordinator()), port).run();
   }
 }
