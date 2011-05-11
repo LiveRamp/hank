@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.ui.controller.Action;
 import com.rapleaf.hank.ui.controller.Controller;
 
@@ -31,11 +30,7 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
     String hostname = req.getParameter("hostname");
     int portNum = Integer.parseInt(req.getParameter("port"));
-    try {
-      coordinator.getRingGroupConfig(rgName).getRingConfig(ringNum).addHost(new PartDaemonAddress(hostname, portNum));
-    } catch (DataNotFoundException e) {
-      throw new IOException(e);
-    }
+    coordinator.getRingGroupConfig(rgName).getRingConfig(ringNum).addHost(new PartDaemonAddress(hostname, portNum));
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 }

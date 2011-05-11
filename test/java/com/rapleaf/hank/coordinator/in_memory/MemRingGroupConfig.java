@@ -11,7 +11,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MemRingGroupConfig implements RingGroupConfig {
 
@@ -56,12 +55,12 @@ public class MemRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) throws DataNotFoundException {
+  public RingConfig getRingConfig(int ringNumber) {
     return ringConfigs.get(ringNumber);
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) throws DataNotFoundException {
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
     // TODO Auto-generated method stub
     return null;
   }

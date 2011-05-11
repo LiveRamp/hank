@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 /**
  * Encapsulates the configuration and listening/modification of a domain group.
  */
@@ -42,7 +40,7 @@ public interface DomainGroupConfig {
    * @throws DataNotFoundException
    */
   public DomainConfig getDomainConfig(int domainId)
-  throws DataNotFoundException;
+  throws IOException;
 
   /**
    * Get the ID of the domain named <i>domainName</i>
@@ -50,7 +48,7 @@ public interface DomainGroupConfig {
    * @return
    * @throws DataNotFoundException
    */
-  public int getDomainId(String domainName) throws DataNotFoundException;
+  public Integer getDomainId(String domainName) throws IOException;
 
   /**
    * Get a set of DomainGroupConfigVersions ordered by version number

@@ -12,7 +12,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.ui.controller.Action;
 import com.rapleaf.hank.ui.controller.Controller;
 
@@ -46,43 +45,36 @@ public class DomainGroupController extends Controller {
 
   private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String dgName = URLDecoder.decode(req.getParameter("n"));
-    try {
-      DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
 
-      Map<String, Integer> domainVersions = new HashMap<String, Integer>();
-      for (DomainConfig domainConfig : dg.getDomainConfigs()) {
-        int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
-        domainVersions.put(domainConfig.getName(), v);
-      }
-      DomainGroupConfigVersion newVersion = dg.createNewVersion(domainVersions);
+    DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
 
-      resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
-    } catch (DataNotFoundException e) {
-      throw new IOException(e);
+    Map<String, Integer> domainVersions = new HashMap<String, Integer>();
+    for (DomainConfig domainConfig : dg.getDomainConfigs()) {
+      int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
+      domainVersions.put(domainConfig.getName(), v);
     }
+    DomainGroupConfigVersion newVersion = dg.createNewVersion(domainVersions);
+
+    resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 
   private void doAddDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String dgName = URLDecoder.decode(req.getParameter("n"));
     String dName = URLDecoder.decode(req.getParameter("d"));
-    try {
-      DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
-      DomainConfig domainConfig = coordinator.getDomainConfig(dName);
+    DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
+    DomainConfig domainConfig = coordinator.getDomainConfig(dName);
 
-      int domainId = -1;
-      for (DomainConfig dc : dg.getDomainConfigs()) {
-        int thisDomainId = dg.getDomainId(dc.getName());
-        if (thisDomainId > domainId) {
-          domainId = thisDomainId;
-        }
+    int domainId = -1;
+    for (DomainConfig dc : dg.getDomainConfigs()) {
+      int thisDomainId = dg.getDomainId(dc.getName());
+      if (thisDomainId > domainId) {
+        domainId = thisDomainId;
       }
-      domainId++;
-
-      dg.addDomain(domainConfig, domainId);
-      resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
-    } catch (DataNotFoundException e) {
-      throw new IOException(e);
     }
+    domainId++;
+
+    dg.addDomain(domainConfig, domainId);
+    resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 
   private void doCreate(HttpServletRequest req, HttpServletResponse response) throws IOException {

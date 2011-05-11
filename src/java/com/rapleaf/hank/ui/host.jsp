@@ -38,17 +38,22 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder
 
 <div>
   <h4>Domains + Parts</h4>
-  <form>
-  Add a domain/part:<br/>
-  <select>
-    <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
-    <option><%= domainConfig.getName() %></option>
-    <% } %>
-  </select>
-  Part:<input type=text/>
-  Initial Version:<input type=text/>
+  <form method="post" action="/host/add_domain_part">
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+
+    Add a domain/part:<br/>
+    <select name="domainId">
+      <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
+      <option value="<%= ringGroup.getDomainGroupConfig().getDomainId(domainConfig.getName()) %>"><%= domainConfig.getName() %></option>
+      <% } %>
+    </select>
+    Part:<input type=text size=4 name="partNum" />
+    Initial Version:<input type=text size=4 name="initialVersion"/>
+    <input type=submit value="Add"/>
   </form>
-  
+
   <table>
     <tr><td>domain</td><td>part #</td><td>cur ver #</td><td>upd ver #</td></tr>
   <% for (HostDomainConfig hdc : host.getAssignedDomains()) { %>

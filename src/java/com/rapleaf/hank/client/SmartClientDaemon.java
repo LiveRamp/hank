@@ -29,7 +29,6 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
 
 /**
@@ -58,12 +57,7 @@ public class SmartClientDaemon {
    */
   private void serve() throws IOException, TException {
     // set up the service handler
-    HankSmartClient handler;
-    try {
-      handler = new HankSmartClient(coord, ringGroupName);
-    } catch (DataNotFoundException e) {
-      throw new RuntimeException(e);
-    }
+    HankSmartClient handler = new HankSmartClient(coord, ringGroupName);
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getPortNumber());

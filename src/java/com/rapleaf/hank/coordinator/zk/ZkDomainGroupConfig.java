@@ -40,7 +40,6 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupConfig implements DomainGroupConfig {
@@ -95,7 +94,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   private final String dgPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainGroupConfig(ZooKeeperPlus zk, String dgPath) throws InterruptedException, DataNotFoundException, KeeperException {
+  public ZkDomainGroupConfig(ZooKeeperPlus zk, String dgPath) throws InterruptedException, KeeperException, IOException {
     this.zk = zk;
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
@@ -113,7 +112,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   }
 
   private SortedMap<Integer, DomainGroupConfigVersion> loadVersions()
-  throws KeeperException, InterruptedException, DataNotFoundException {
+  throws KeeperException, InterruptedException, IOException {
     SortedMap<Integer, DomainGroupConfigVersion> dgcvs = 
       new TreeMap<Integer, DomainGroupConfigVersion>();
 
@@ -134,25 +133,19 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
-    DomainConfig domain;
-    if ((domain = domainConfigs.get(domainId)) == null) {
-      throw new DataNotFoundException("Domain group " + groupName
-          + " does not have any domain with id " + domainId);
-    }
-    return domain;
+  public DomainConfig getDomainConfig(int domainId) {
+    return domainConfigs.get(domainId);
   }
 
   @Override
-  public int getDomainId(String domainName) throws DataNotFoundException {
+  public Integer getDomainId(String domainName) {
     // TODO: replace this with an inverted map
     for(Entry<Integer, DomainConfig> entry : domainConfigs.entrySet()) {
       if (entry.getValue().getName().equals(domainName)) {
         return entry.getKey();
       }
     }
-    throw new DataNotFoundException("The domain group " + groupName
-        + " does not have any domain with name " + domainName);
+    return null;
   }
 
   @Override
@@ -240,7 +233,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
         + domainGroupConfigVersions + ", groupName=" + groupName + "]";
   }
 
-  public static ZkDomainGroupConfig create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, DataNotFoundException, KeeperException {
+  public static ZkDomainGroupConfig create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
     String domainGroupPath = dgRoot + "/" + domainGroupName;
     zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

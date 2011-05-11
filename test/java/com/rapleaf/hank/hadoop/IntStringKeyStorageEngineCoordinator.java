@@ -26,7 +26,6 @@ import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
@@ -92,7 +91,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
+  public DomainConfig getDomainConfig(String domainName) {
     return new MockDomainConfig(domainName, 2, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), 0);
   }
 

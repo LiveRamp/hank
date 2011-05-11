@@ -19,8 +19,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 /**
  * The Coordinator is the top-level interface for wrapping up all the
  * configuration of the entire Hank cluster and data artifacts. It's not a
@@ -55,8 +53,7 @@ public interface Coordinator {
    * @return configuration information on the specified domain
    * @throws DataNotFoundException if no domain with the specified name exists
    */
-  public DomainConfig getDomainConfig(String domainName)
-  throws DataNotFoundException;
+  public DomainConfig getDomainConfig(String domainName);
 
   
   /**
@@ -91,8 +88,7 @@ public interface Coordinator {
    * @return configuration information on the specified domain group
    * @throws DataNotFoundException if no domain group with the specified name exists
    */
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
-  throws DataNotFoundException;
+  public DomainGroupConfig getDomainGroupConfig(String domainGroupName);
 
   //
   // RingGroups
@@ -111,7 +107,7 @@ public interface Coordinator {
    *           if no ring group with the specified name exists
    */
   public RingGroupConfig getRingGroupConfig(String ringGroupName)
-  throws DataNotFoundException;
+  throws IOException;
 
   /**
    * Add a new ring group. Note that the domain group must exist in advance.

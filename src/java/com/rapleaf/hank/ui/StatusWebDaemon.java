@@ -52,6 +52,7 @@ public class StatusWebDaemon {
     new DomainGroupController("domain_group", coordinator).addServlet(servletHandler);
     new RingGroupController("ring_group", coordinator).addServlet(servletHandler);
     new RingController("ring", coordinator).addServlet(servletHandler);
+    new HostController("host", coordinator).addServlet(servletHandler);
 
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();

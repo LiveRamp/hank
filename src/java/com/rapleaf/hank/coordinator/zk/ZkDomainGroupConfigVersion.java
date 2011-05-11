@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -32,7 +33,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
@@ -42,7 +42,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
   private final int versionNumber;
   private final HashSet<DomainConfigVersion> domainConfigVersions;
 
-  public ZkDomainGroupConfigVersion(ZooKeeperPlus zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, DataNotFoundException, KeeperException {
+  public ZkDomainGroupConfigVersion(ZooKeeperPlus zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException, IOException {
     this.domainGroupConfig = domainGroupConfig;
     String[] toks = versionPath.split("/");
     Matcher m = VERSION_NAME_PATTERN.matcher(toks[toks.length - 1]);
@@ -86,7 +86,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     return zk.exists(versionPath + "/" + COMPLETE_NODE_NAME, false) != null;
   }
 
-  public static DomainGroupConfigVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, DataNotFoundException {
+  public static DomainGroupConfigVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
     String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
     for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {

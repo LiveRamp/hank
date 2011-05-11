@@ -19,7 +19,7 @@ public class MockHostDomainConfig implements HostDomainConfig {
   }
 
   @Override
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {
+  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion)  {
     throw new NotImplementedException();
   }
 

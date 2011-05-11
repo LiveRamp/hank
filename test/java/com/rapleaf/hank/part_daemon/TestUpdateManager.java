@@ -37,7 +37,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
@@ -50,8 +49,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
-        throws DataNotFoundException {
+    public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
       return mockRingConfig;
     }
   }
@@ -106,7 +104,7 @@ public class TestUpdateManager extends BaseTestCase {
         }
 
         @Override
-        public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {return null;}
+        public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
       };
     }
   };

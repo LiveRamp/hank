@@ -18,8 +18,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 public class MockRingGroupConfig implements RingGroupConfig {
 
   private final DomainGroupConfig dcg;
@@ -45,13 +43,12 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) throws DataNotFoundException {
+  public RingConfig getRingConfig(int ringNumber) {
     return null;
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
-  throws DataNotFoundException {
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
     return null;
   }
 

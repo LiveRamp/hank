@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.ui.controller.Action;
 import com.rapleaf.hank.ui.controller.Controller;
 
@@ -37,13 +36,10 @@ public class RingGroupController extends Controller {
   private void doAddRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig ringGroupConfig;
     String encodedRingGroupName = req.getParameter("g");
-    try {
-      ringGroupConfig = coordinator.getRingGroupConfig(URLDecoder.decode(encodedRingGroupName));
-      if (ringGroupConfig == null) {
-        throw new IOException("couldn't find any ring group called " + URLDecoder.decode(encodedRingGroupName));
-      }
-    } catch (DataNotFoundException e) {
-      throw new IOException(e);
+
+    ringGroupConfig = coordinator.getRingGroupConfig(URLDecoder.decode(encodedRingGroupName));
+    if (ringGroupConfig == null) {
+      throw new IOException("couldn't find any ring group called " + URLDecoder.decode(encodedRingGroupName));
     }
     ringGroupConfig.addRing(ringGroupConfig.getRingConfigs().size() + 1);
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);

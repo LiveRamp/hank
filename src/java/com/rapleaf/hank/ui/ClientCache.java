@@ -9,7 +9,6 @@ import org.apache.thrift.TException;
 import com.rapleaf.hank.client.HankSmartClient;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 
@@ -21,7 +20,7 @@ public final class ClientCache implements IClientCache {
     this.coord = coord;
   }
 
-  public synchronized SmartClient.Iface getSmartClient(RingGroupConfig rgc) throws DataNotFoundException, IOException, TException {
+  public synchronized SmartClient.Iface getSmartClient(RingGroupConfig rgc) throws IOException, TException {
     Iface c = cachedClients.get(rgc.getName());
     if (c == null) {
       c = new HankSmartClient(coord, rgc.getName());

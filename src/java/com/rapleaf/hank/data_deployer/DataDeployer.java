@@ -31,7 +31,6 @@ import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);
@@ -48,7 +47,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
 
   private boolean goingDown = false;
 
-  public DataDeployer(DataDeployerConfigurator config) throws DataNotFoundException {
+  public DataDeployer(DataDeployerConfigurator config) {
     this(config, new RingGroupUpdateTransitionFunctionImpl());
   }
 

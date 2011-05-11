@@ -24,7 +24,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -47,7 +46,7 @@ public class ZkDomainConfig implements DomainConfig {
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath) throws DataNotFoundException, KeeperException, InterruptedException {
+  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
 
@@ -141,7 +140,7 @@ public class ZkDomainConfig implements DomainConfig {
       String storageEngineFactory,
       String storageEngineOpts,
       String partitioner,
-      int initVersion) throws KeeperException, InterruptedException, DataNotFoundException
+      int initVersion) throws KeeperException, InterruptedException
   {
     String domainPath = domainsRoot + "/" + domainName;
     zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

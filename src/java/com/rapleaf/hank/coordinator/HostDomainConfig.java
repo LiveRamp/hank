@@ -26,5 +26,5 @@ public interface HostDomainConfig {
 
   public Set<HostDomainPartitionConfig> getPartitions() throws IOException;
 
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception;
+  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws IOException;
 }

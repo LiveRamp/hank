@@ -18,8 +18,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 public interface RingGroupConfig {
   public String getName();
 
@@ -36,7 +34,7 @@ public interface RingGroupConfig {
    * @throws DataNotFoundException
    */
   public RingConfig getRingConfig(int ringNumber)
-  throws DataNotFoundException;
+  throws IOException;
 
   /**
    * Get the DomainGroupConfig for this Ring Group.
@@ -51,7 +49,7 @@ public interface RingGroupConfig {
    * @throws DataNotFoundException
    */
   public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
-  throws DataNotFoundException;
+  throws IOException;
 
   /**
    * Claim the title of Data Deployer for this ring group.

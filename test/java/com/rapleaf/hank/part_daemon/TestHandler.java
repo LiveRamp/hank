@@ -44,7 +44,6 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.MapPartitioner;
@@ -104,7 +103,7 @@ public class TestHandler extends BaseTestCase {
       }
 
       @Override
-      public int getDomainId(String domainName) throws DataNotFoundException {
+      public Integer getDomainId(String domainName) {
         assertEquals("myDomain", domainName);
         return 0;
       }
