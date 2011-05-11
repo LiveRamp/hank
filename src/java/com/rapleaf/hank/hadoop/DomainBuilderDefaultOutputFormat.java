@@ -88,7 +88,8 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       }
       // Delete tmp output path parent if empty
       Path tmpOutputPathParent = tmpOutputPathObject.getParent();
-      if (fs.listStatus(tmpOutputPathParent).length == 0) {
+      FileStatus[] tmpOutputParentFiles = fs.listStatus(tmpOutputPathParent);
+      if (tmpOutputParentFiles != null && tmpOutputParentFiles.length == 0) {
         fs.delete(tmpOutputPathParent);
       }
     }
