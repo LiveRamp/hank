@@ -48,7 +48,7 @@ public class StatusWebDaemonTester extends TestCase {
 
     RingGroupConfig rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     RingConfig r1 = rgAlpha.addRing(1);
-    r1.addHost(addy("alpha-1-1"));
+    r1.addHost(addy("alpha-1-1")).addDomain(0).addPartition(0, 1);
     r1.addHost(addy("alpha-1-2"));
     r1.addHost(addy("alpha-1-3"));
     RingConfig r2 = rgAlpha.addRing(2);

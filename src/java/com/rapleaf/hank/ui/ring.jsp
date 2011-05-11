@@ -37,7 +37,12 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
   <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
 
   <div>
-  status blob
+    Ring status: <%= ring.getState() %> <br/>
+    <% if (ring.isUpdatePending()) { %>
+    Currently updating from <%= ring.getVersionNumber() %> to <%= ring.getUpdatingToVersionNumber() %>
+    <% } else { %>
+    Currently up to date.
+    <% } %>
   </div>
 
   <h3>Hosts</h3>
@@ -64,10 +69,11 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
     </tr>
     <% for(HostConfig host : sortedHcs(ring.getHosts())) { %>
     <tr>
-      <td><%= host.getAddress() %></td>
+      <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEncoder.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
       <td><%= host.getState() %></td>
       <td><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
+      <td><a href="">remove from ring</a></td>
     </tr>
     <% } %>
   </table>

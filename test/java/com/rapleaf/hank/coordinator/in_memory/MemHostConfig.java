@@ -2,7 +2,10 @@ package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.HostCommand;
@@ -17,6 +20,7 @@ public class MemHostConfig implements HostConfig {
 
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
+  private final Map<Integer, HostDomainConfig> hdcs = new HashMap<Integer, HostDomainConfig>();
 
   public MemHostConfig(PartDaemonAddress address) {
     this.address = address;
@@ -24,8 +28,9 @@ public class MemHostConfig implements HostConfig {
 
   @Override
   public HostDomainConfig addDomain(int domainId) throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    MemHostDomainConfig hdc = new MemHostDomainConfig(domainId);
+    hdcs.put(domainId, hdc);
+    return hdc;
   }
 
   @Override
@@ -53,7 +58,7 @@ public class MemHostConfig implements HostConfig {
 
   @Override
   public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-    return Collections.EMPTY_SET;
+    return new HashSet<HostDomainConfig>(hdcs.values());
   }
 
   @Override
