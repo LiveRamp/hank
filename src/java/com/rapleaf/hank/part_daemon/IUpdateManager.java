@@ -17,8 +17,6 @@ package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 interface IUpdateManager {
-  public void update() throws DataNotFoundException, IOException;
+  public void update() throws IOException;
 }

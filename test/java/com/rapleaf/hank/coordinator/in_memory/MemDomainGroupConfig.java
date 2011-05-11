@@ -17,7 +17,6 @@ import com.rapleaf.hank.coordinator.DomainConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MemDomainGroupConfig implements DomainGroupConfig {
   private final String name;
@@ -55,19 +54,18 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
+  public DomainConfig getDomainConfig(int domainId) {
     return domainConfigs.get(domainId);
   }
 
   @Override
-  public int getDomainId(String domainName) throws DataNotFoundException {
+  public Integer getDomainId(String domainName) {
     for (Map.Entry<Integer, DomainConfig> dc : domainConfigs.entrySet()) {
       if (dc.getValue().getName().equals(domainName)) {
         return dc.getKey();
       }
     }
-    throw new DataNotFoundException("No domain named '" + domainName
-        + "' is configured for this domain group.");
+    return null;
   }
 
   @Override

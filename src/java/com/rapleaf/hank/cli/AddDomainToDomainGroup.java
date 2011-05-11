@@ -27,7 +27,6 @@ import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class AddDomainToDomainGroup {
   /**
@@ -38,7 +37,7 @@ public class AddDomainToDomainGroup {
    * @throws NumberFormatException 
    * @throws InvalidConfigurationException 
    */
-  public static void main(String[] args) throws IOException, ParseException, NumberFormatException, DataNotFoundException, InvalidConfigurationException {
+  public static void main(String[] args) throws IOException, ParseException, NumberFormatException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("g", "domain-group", true,
         "the name of the domain group");
@@ -65,7 +64,7 @@ public class AddDomainToDomainGroup {
       String domainGroupName,
       String domainName,
       int domainId)
-  throws IOException, DataNotFoundException {
+  throws IOException {
     Coordinator coord = configurator.getCoordinator();
     coord.getDomainGroupConfig(domainGroupName).addDomain(coord.getDomainConfig(domainName), domainId);
   }

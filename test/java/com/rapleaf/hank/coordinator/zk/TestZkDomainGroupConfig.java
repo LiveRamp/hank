@@ -27,7 +27,6 @@ import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -82,8 +81,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(1, dgc.getVersions().size());
     assertEquals(1, ((DomainGroupConfigVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
-    assertEquals(0, dgc.getDomainId("domain0"));
-    assertEquals(1, dgc.getDomainId("domain1"));
+    assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
+    assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));
     assertEquals(new HashSet<DomainConfig>(Arrays.asList(d0, d1)), dgc.getDomainConfigs());
 
     assertEquals("domain0", dgc.getDomainConfig(0).getName());
@@ -100,9 +99,9 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     DomainConfig d1 = createDomain("domain1", 3);
 
     dgc.addDomain(d0, 0);
-    assertEquals(0, dgc.getDomainId("domain0"));
+    assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
     dgc.addDomain(d1, 1);
-    assertEquals(1, dgc.getDomainId("domain1"));
+    assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));
 
     assertNull(listener.calledWith);
 
@@ -119,7 +118,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(dgc.getName(), listener.calledWith.getName());
   }
 
-  private DomainConfig createDomain(String domainName, int initVersion) throws KeeperException, InterruptedException, DataNotFoundException {
+  private DomainConfig createDomain(String domainName, int initVersion) throws KeeperException, InterruptedException {
     return ZkDomainConfig.create(getZk(),
         domains_root,
         domainName,

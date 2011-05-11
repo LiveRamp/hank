@@ -18,7 +18,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -117,7 +116,7 @@ public class StatusWebDaemonTester extends TestCase {
     };
     IClientCache clientCache = new IClientCache() {
       @Override
-      public Iface getSmartClient(RingGroupConfig rgc) throws DataNotFoundException, IOException, TException {
+      public Iface getSmartClient(RingGroupConfig rgc) throws IOException, TException {
         return mockClient;
       }
     };

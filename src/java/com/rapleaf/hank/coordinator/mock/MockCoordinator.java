@@ -24,7 +24,6 @@ import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class MockCoordinator implements Coordinator {
 
@@ -46,20 +45,17 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName)
-      throws DataNotFoundException {
+  public DomainConfig getDomainConfig(String domainName) {
     return null;
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName)
-      throws DataNotFoundException {
+  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) {
     return null;
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig(String ringGroupName)
-      throws DataNotFoundException {
+  public RingGroupConfig getRingGroupConfig(String ringGroupName) {
     return null;
   }
 

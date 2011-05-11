@@ -37,7 +37,6 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
@@ -70,7 +69,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * @throws IOException
    * @throws TException
    */
-  public HankSmartClient(Coordinator coord, String ringGroupName) throws DataNotFoundException, IOException, TException {
+  public HankSmartClient(Coordinator coord, String ringGroupName) throws IOException, TException {
     ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
     this.domainGroup = ringGroupConfig.getDomainGroupConfig();
 
@@ -81,7 +80,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
   }
 
-  private void loadCache() throws DataNotFoundException, IOException, TException {
+  private void loadCache() throws IOException, TException {
     // preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
 
@@ -130,12 +129,29 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   @Override
   public HankResponse get(String domain_name, ByteBuffer key) throws TException {
     int partition = -1;
-    int domainId = -1;
+    Integer domainId = null;
     try {
       domainId = domainGroup.getDomainId(domain_name);
-      DomainConfig domainConfig = domainGroup.getDomainConfig(domainId);
-      partition = domainConfig.getPartitioner().partition(key, domainConfig.getNumParts());
-    } catch (DataNotFoundException e) {
+    } catch (IOException e1) {
+      // TODO: this might be bad
+      LOG.error(e1);
+    }
+
+    if (domainId != null) {
+      DomainConfig domainConfig;
+      try {
+        domainConfig = domainGroup.getDomainConfig(domainId);
+      } catch (IOException e) {
+        // TODO: this might be bad.
+        LOG.error(e);
+        return NO_SUCH_DOMAIN;
+      }
+      if (domainConfig != null) {
+        partition = domainConfig.getPartitioner().partition(key, domainConfig.getNumParts());
+      } else {
+        return NO_SUCH_DOMAIN;
+      }
+    } else {
       return NO_SUCH_DOMAIN;
     }
 

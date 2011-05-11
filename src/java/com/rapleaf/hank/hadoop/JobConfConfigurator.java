@@ -23,7 +23,6 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class JobConfConfigurator implements Configurator {
 
@@ -60,12 +59,6 @@ public class JobConfConfigurator implements Configurator {
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
     // Try to get domain config
-    DomainConfig domainConfig;
-    try {
-      domainConfig = coordinator.getDomainConfig(domainName);
-    } catch (DataNotFoundException e) {
-      throw new RuntimeException("Failed to load domain config for domain " + domainName + "!", e);
-    }
-    return domainConfig;
+    return coordinator.getDomainConfig(domainName);
   }
 }

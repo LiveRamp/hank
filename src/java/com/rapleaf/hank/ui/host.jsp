@@ -45,8 +45,8 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder
       <option><%= domainConfig.getName() %></option>
       <% } %>
     </select>
-    Part:<input type=text/>
-    Initial Version:<input type=text/>
+    Part:<input type=text size=4/>
+    Initial Version:<input type=text size=4/>
     <input type=submit value="Add"/>
   </form>
 

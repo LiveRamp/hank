@@ -36,7 +36,6 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.HostUtils;
@@ -63,7 +62,7 @@ public class Server implements HostCommandQueueChangeListener {
 
   private final RingConfig ringConfig;
 
-  public Server(PartservConfigurator configurator, String hostName) throws IOException, DataNotFoundException {
+  public Server(PartservConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
@@ -93,7 +92,7 @@ public class Server implements HostCommandQueueChangeListener {
    * @throws IOException 
    * @throws DataNotFoundException 
    */
-  private void serve() throws TTransportException, DataNotFoundException, IOException {
+  private void serve() throws TTransportException, IOException {
     // set up the service handler
     Iface handler = getHandler();
 
@@ -109,7 +108,7 @@ public class Server implements HostCommandQueueChangeListener {
     LOG.debug("Thrift server exited.");
   }
 
-  protected Iface getHandler() throws DataNotFoundException, IOException {
+  protected Iface getHandler() throws IOException {
     return new Handler(hostAddress, configurator);
   }
 
@@ -199,7 +198,7 @@ public class Server implements HostCommandQueueChangeListener {
     updateThread.start();
   }
 
-  protected IUpdateManager getUpdateManager() throws DataNotFoundException, IOException {
+  protected IUpdateManager getUpdateManager() throws IOException {
     return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
   }
 

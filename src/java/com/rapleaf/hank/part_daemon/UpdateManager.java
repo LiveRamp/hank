@@ -33,7 +33,6 @@ import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.storage.StorageEngine;
 
 /**
@@ -79,14 +78,14 @@ class UpdateManager implements IUpdateManager {
   private final RingGroupConfig ringGroupConfig;
   private final RingConfig ringConfig;
 
-  public UpdateManager(PartservConfigurator configurator, HostConfig hostConfig, RingGroupConfig ringGroupConfig, RingConfig ringConfig) throws DataNotFoundException, IOException {
+  public UpdateManager(PartservConfigurator configurator, HostConfig hostConfig, RingGroupConfig ringGroupConfig, RingConfig ringConfig) throws IOException {
     this.configurator = configurator;
     this.hostConfig = hostConfig;
     this.ringGroupConfig = ringGroupConfig;
     this.ringConfig = ringConfig;
   }
 
-  public void update() throws DataNotFoundException, IOException {
+  public void update() throws IOException {
     ThreadFactory factory = new ThreadFactory() {
       private int x = 0;
 

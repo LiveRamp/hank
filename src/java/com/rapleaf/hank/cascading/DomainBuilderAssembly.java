@@ -35,7 +35,6 @@ import cascading.tuple.TupleEntry;
 
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 
 public class DomainBuilderAssembly extends SubAssembly {
@@ -74,11 +73,8 @@ public class DomainBuilderAssembly extends SubAssembly {
     @Override
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
       // Load domain config lazily
-      try {
-        loadDomainConfig(flowProcess);
-      } catch (DataNotFoundException e) {
-        throw new RuntimeException("Failed to load DomainConfig!", e);
-      }
+      loadDomainConfig(flowProcess);
+
       // Compute partition and comparable key
       TupleEntry tupleEntry = call.getArguments();
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
@@ -93,7 +89,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       call.getOutputCollector().add(new Tuple(partition, comparableKeyBytesWritable));
     }
 
-    private void loadDomainConfig(FlowProcess flowProcess) throws DataNotFoundException {
+    private void loadDomainConfig(FlowProcess flowProcess) {
       if (domainConfig == null) {
         Configurator configurator = new CascadingOperationConfigurator(flowProcess);
         String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);

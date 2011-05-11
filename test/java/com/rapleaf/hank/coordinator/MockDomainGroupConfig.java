@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-import com.rapleaf.hank.exception.DataNotFoundException;
-
 public class MockDomainGroupConfig implements DomainGroupConfig {
   private final String name;
 
@@ -30,13 +28,12 @@ public class MockDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public DomainConfig getDomainConfig(int domainId)
-      throws DataNotFoundException {
+  public DomainConfig getDomainConfig(int domainId) {
     return null;
   }
 
   @Override
-  public int getDomainId(String domainName) throws DataNotFoundException {
+  public Integer getDomainId(String domainName) {
     return 0;
   }
 

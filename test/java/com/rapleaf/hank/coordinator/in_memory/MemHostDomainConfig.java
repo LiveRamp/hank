@@ -16,7 +16,7 @@ public class MemHostDomainConfig implements HostDomainConfig {
   }
 
   @Override
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws Exception {
+  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {
     MemHostDomainPartitionConfig hdpc = new MemHostDomainPartitionConfig(partNum, initialVersion);
     parts.add(hdpc);
     return hdpc;

@@ -24,7 +24,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
@@ -99,12 +98,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   public void testDeleteDomainConfig() throws Exception {
     assertNotNull(coord.getDomainConfig("domain0"));
     assertTrue(coord.deleteDomainConfig("domain0"));
-    try {
-      coord.getDomainConfig("domain0");
-      fail("should have thrown an exception");
-    } catch (DataNotFoundException e) {
-      // expected
-    }
+    assertNull(coord.getDomainConfig("domain0"));
     assertFalse(coord.deleteDomainConfig("domain0"));
   }
 

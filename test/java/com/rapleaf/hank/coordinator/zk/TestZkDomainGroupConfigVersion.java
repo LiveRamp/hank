@@ -25,7 +25,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public class TestZkDomainGroupConfigVersion extends ZkTestCase {
   public TestZkDomainGroupConfigVersion() throws Exception {
@@ -38,7 +37,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
 
   private static final MockDomainGroupConfig mockDomainGroup = new MockDomainGroupConfig("myDomainGroup") {
     @Override
-    public DomainConfig getDomainConfig(int domainId) throws DataNotFoundException {
+    public DomainConfig getDomainConfig(int domainId) {
       switch (domainId) {
         case 1:
           return domain1;
@@ -52,7 +51,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
     }
 
     @Override
-    public int getDomainId(String domainName) throws DataNotFoundException {
+    public Integer getDomainId(String domainName) {
       if (domainName.equals("domain1")) {
         return 1;
       } else if (domainName.equals("domain2")) {

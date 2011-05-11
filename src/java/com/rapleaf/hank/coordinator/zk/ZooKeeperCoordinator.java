@@ -34,7 +34,6 @@ import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
@@ -200,28 +199,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
-    DomainConfig domain;
-    if ((domain = domainConfigsByName.get(domainName)) == null) {
-      throw new DataNotFoundException("The domain " + domainName + " does not exist");
-    }
-    return domain;
+  public DomainConfig getDomainConfig(String domainName) {
+    return domainConfigsByName.get(domainName);
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) throws DataNotFoundException {
-    LOG.trace("Looking up DomainGroupConfig " + domainGroupName);
+  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) {
     return domainGroupConfigs.get(domainGroupName);
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig(String ringGroupName) throws DataNotFoundException {
-    RingGroupConfig rg;
-    if ((rg = ringGroupConfigs.get(ringGroupName)) == null) {
-      throw new DataNotFoundException("The ring group " + ringGroupName
-          + " does not exist");
-    }
-    return rg;
+  public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+    return ringGroupConfigs.get(ringGroupName);
   }
 
   /**
@@ -234,31 +223,21 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      try {
-        domainConfigsByName.put(domainName, new ZkDomainConfig(zk, domainsRoot + "/" + domainName));
-      } catch (DataNotFoundException e) {
-        // Perhaps someone deleted the node while we were loading (unlikely)
-        LOG.warn("A node disappeared while we were loading domain configs into memory.", e);
-      }
+      domainConfigsByName.put(domainName, new ZkDomainConfig(zk, domainsRoot + "/" + domainName));
     }
   }
 
-  private void loadAllDomainGroups() throws InterruptedException, KeeperException {
+  private void loadAllDomainGroups() throws InterruptedException, KeeperException, IOException {
     LOG.debug("Reloading all domain groups...");
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
     synchronized(domainGroupConfigs) {
       for (String domainGroupName : domainGroupNameList) {
-        try {
-          String dgPath = domainGroupsRoot + "/" + domainGroupName;
-          boolean isComplete = ZkDomainGroupConfig.isComplete(zk, dgPath);
-          if (isComplete) {
-            domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, dgPath));
-          } else {
-            LOG.debug("Not opening domain group " + dgPath + " because it was incomplete."); 
-          }
-        } catch (DataNotFoundException e) {
-          // Perhaps someone deleted the node while we were loading (unlikely)
-          LOG.warn("A node disappeared while we were loading domain group configs into memory.", e);
+        String dgPath = domainGroupsRoot + "/" + domainGroupName;
+        boolean isComplete = ZkDomainGroupConfig.isComplete(zk, dgPath);
+        if (isComplete) {
+          domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, dgPath));
+        } else {
+          LOG.debug("Not opening domain group " + dgPath + " because it was incomplete."); 
         }
       }
     }

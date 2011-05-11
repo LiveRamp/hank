@@ -24,7 +24,6 @@ import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 
@@ -44,7 +43,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) throws DataNotFoundException {
+  public DomainConfig getDomainConfig(String domainName) {
     return new MockDomainConfig(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), 0);
   }
 

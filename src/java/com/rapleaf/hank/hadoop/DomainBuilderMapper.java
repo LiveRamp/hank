@@ -25,7 +25,6 @@ import org.apache.hadoop.mapred.Reporter;
 
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
@@ -35,11 +34,7 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
   public void configure(JobConf conf) {
     Configurator configurator = new JobConfConfigurator(conf);
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
-    try {
-      domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
-    } catch (DataNotFoundException e) {
-      throw new RuntimeException("Failed to load domain config for domain: " + domainName, e);
-    }
+    domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
   }
 
   @Override

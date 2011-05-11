@@ -34,7 +34,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkRingGroupConfig implements RingGroupConfig {
@@ -135,23 +134,18 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) throws DataNotFoundException {
-    if (!ringsByNumber.containsKey(ringNumber)) {
-      throw new DataNotFoundException("Ring group " + ringGroupName + " does not have ring number " + ringNumber);
-    }
+  public RingConfig getRingConfig(int ringNumber) {
     return ringsByNumber.get(ringNumber);
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress)
-  throws DataNotFoundException {
+  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
     for (RingConfig ring : ringsByNumber.values()) {
       if (ring.getHostConfigByAddress(hostAddress) != null) {
         return ring;
       }
     }
-    throw new DataNotFoundException("Could not find the host " + hostAddress
-        + " in ring group " + ringGroupName);
+    return null;
   }
 
   @Override

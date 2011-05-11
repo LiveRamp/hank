@@ -31,7 +31,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 
@@ -39,7 +38,7 @@ public class TestServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {
     public boolean updateCalled = false;
     @Override
-    public void update() throws DataNotFoundException, IOException {
+    public void update() throws IOException {
       updateCalled = true;
       try {
         Thread.sleep(1000);
@@ -78,7 +77,7 @@ public class TestServer extends BaseTestCase {
     final MockUpdateManager mockUpdateManager = new MockUpdateManager();
     final Server server = new Server(configurator, "localhost") {
       @Override
-      protected Iface getHandler() throws DataNotFoundException, IOException {
+      protected Iface getHandler() throws IOException {
         return new Iface() {
           @Override
           public HankResponse get(int domainId, ByteBuffer key) throws TException {return null;}

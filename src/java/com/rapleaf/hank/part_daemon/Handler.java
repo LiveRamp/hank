@@ -29,7 +29,6 @@ import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
-import com.rapleaf.hank.exception.DataNotFoundException;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
@@ -51,7 +50,7 @@ class Handler implements Iface {
 
   private final Domain[] domains;
 
-  public Handler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws DataNotFoundException, IOException {
+  public Handler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
     // find the ring config
     RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
