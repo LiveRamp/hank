@@ -85,10 +85,8 @@ public final class Bytes {
   }
 
   public static ByteBuffer byteBufferDeepCopy(ByteBuffer src) {
-    src.mark();
-    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src);
+    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src.slice());
     copy.flip();
-    src.reset();
     return copy;
   }
 
@@ -99,9 +97,7 @@ public final class Bytes {
       dst = byteBufferDeepCopy(src);
     } else {
       dst.rewind();
-      src.mark();
-      dst.put(src);
-      src.reset();
+      dst.put(src.slice());
       dst.flip();
     }
     return dst;
