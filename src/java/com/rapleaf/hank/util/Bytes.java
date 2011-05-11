@@ -85,11 +85,23 @@ public final class Bytes {
   }
 
   public static ByteBuffer byteBufferDeepCopy(ByteBuffer src) {
-    src.mark();
-    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src);
+    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src.slice());
     copy.flip();
-    src.reset();
     return copy;
+  }
+
+  // Does a deep copy of src into dst. Allocation is performed only if necessary.
+  // Return of this function should be assigned to dst.
+  public static ByteBuffer byteBufferDeepCopy(ByteBuffer src, ByteBuffer dst) {
+    if (dst == null || dst.capacity() < src.remaining()) {
+      dst = byteBufferDeepCopy(src);
+    } else {
+      dst.rewind();
+      dst.limit(src.remaining());
+      dst.put(src.slice());
+      dst.flip();
+    }
+    return dst;
   }
 
   public static String bytesToHexString(ByteBuffer b) {
