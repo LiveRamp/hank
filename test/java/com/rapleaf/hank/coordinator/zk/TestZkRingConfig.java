@@ -29,6 +29,7 @@ import com.rapleaf.hank.coordinator.RingStateChangeListener;
 public class TestZkRingConfig extends ZkTestCase {
   private static final class MockListener implements RingStateChangeListener {
     public RingConfig calledWith;
+
     @Override
     public void onRingStateChange(RingConfig ringConfig) {
       calledWith = ringConfig;
@@ -96,7 +97,7 @@ public class TestZkRingConfig extends ZkTestCase {
     HostConfig hc = ringConf.addHost(LOCALHOST);
     assertEquals(LOCALHOST, hc.getAddress());
     for (int i = 0; i < 20; i++) {
-      if (!ringConf.getHosts().isEmpty()){
+      if (!ringConf.getHosts().isEmpty()) {
         break;
       }
       Thread.sleep(100);
@@ -113,6 +114,11 @@ public class TestZkRingConfig extends ZkTestCase {
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
     assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+
+    assertTrue(ringConf.removeHost(LOCALHOST));
+    assertNull(ringConf.getHostConfigByAddress(LOCALHOST));
+    assertFalse(ringConf.removeHost(LOCALHOST));
+
     ringConf.close();
   }
 
@@ -149,7 +155,8 @@ public class TestZkRingConfig extends ZkTestCase {
   }
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
-    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot() + "/ring-group-one", 1, null, 10);
+    ZkRingConfig rc = ZkRingConfig.create(getZk(), getRoot()
+        + "/ring-group-one", 1, null, 10);
     HostConfig h1 = rc.addHost(new PartDaemonAddress("localhost", 1));
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);

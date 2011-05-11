@@ -25,6 +25,7 @@ public interface RingConfig {
 
   /**
    * Returns a set of all Part Daemon addresses.
+   * 
    * @return
    */
   public Set<HostConfig> getHosts();
@@ -49,6 +50,7 @@ public interface RingConfig {
 
   /**
    * TODO: this might be a dead method.
+   * 
    * @return
    * @throws IOException
    */
@@ -58,6 +60,7 @@ public interface RingConfig {
 
   /**
    * Return all the hosts that are in the requested state.
+   * 
    * @param state
    * @return
    * @throws IOException
@@ -66,15 +69,27 @@ public interface RingConfig {
 
   /**
    * Set the updating-to version number.
+   * 
    * @param latestVersionNumber
-   * @throws IOException 
+   * @throws IOException
    */
   public void setUpdatingToVersion(int latestVersionNumber) throws IOException;
 
   /**
    * Listener will be notified when the ring's state changes.
+   * 
    * @param listener
    * @throws IOException
    */
   public void setStateChangeListener(RingStateChangeListener listener) throws IOException;
+
+  /**
+   * Remove a host from this ring. Returns true if the host was removed, false
+   * if there was no such host.
+   * 
+   * @param address
+   * @return
+   * @throws IOException 
+   */
+  public boolean removeHost(PartDaemonAddress address) throws IOException;
 }

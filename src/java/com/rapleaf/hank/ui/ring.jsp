@@ -73,7 +73,14 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
       <td><%= host.getState() %></td>
       <td><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
-      <td><a href="">remove from ring</a></td>
+      <td>
+        <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">
+          <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+          <input type=hidden name="n" value="<%= ring.getRingNumber() %>"/>
+          <input type=hidden name="h" value="<%= host.getAddress() %>"/>
+          <a href="javascript:document.forms['remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>'].submit();">remove from ring</a>
+        </form>
+      </td>
     </tr>
     <% } %>
   </table>

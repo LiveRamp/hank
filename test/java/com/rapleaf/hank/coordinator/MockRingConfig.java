@@ -123,4 +123,10 @@ public class MockRingConfig implements RingConfig {
   public void setStateChangeListener(RingStateChangeListener listener)
       throws IOException {
   }
+
+  @Override
+  public boolean removeHost(PartDaemonAddress address) {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }

@@ -117,4 +117,9 @@ public class MemRingConfig implements RingConfig {
     versionNumber = updatingToVersion;
     updatingToVersion = null;
   }
+
+  @Override
+  public boolean removeHost(PartDaemonAddress address) {
+    return hostConfigs.remove(address) != null;
+  }
 }

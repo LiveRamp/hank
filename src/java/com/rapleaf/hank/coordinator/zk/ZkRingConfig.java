@@ -245,4 +245,25 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
       ((ZkHostConfig)hostConfig).close();
     }
   }
+
+  @Override
+  public boolean removeHost(PartDaemonAddress address) throws IOException {
+    if (hostConfigs.remove(address) == null) {
+      return false;
+    }
+    try {
+      String hostPath = ringPath + "/hosts/" + address;
+      if (zk.exists(hostPath, false) == null) {
+        return false;
+      }
+      zk.delete(hostPath + "/.complete", -1);
+      zk.deleteNodeRecursively(hostPath);
+
+      return true;
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
+  }
 }

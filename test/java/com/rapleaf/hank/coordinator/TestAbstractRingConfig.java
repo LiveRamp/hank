@@ -62,6 +62,12 @@ public class TestAbstractRingConfig extends BaseTestCase {
     @Override
     public void updateComplete() throws IOException {
     }
+
+    @Override
+    public boolean removeHost(PartDaemonAddress address) {
+      // TODO Auto-generated method stub
+      return false;
+    }
   }
 
   public void testIsUpdatePending() {
