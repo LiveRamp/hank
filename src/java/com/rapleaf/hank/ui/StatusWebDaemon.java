@@ -2,6 +2,7 @@ package com.rapleaf.hank.ui;
 
 import java.net.URL;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -69,6 +70,7 @@ public class StatusWebDaemon {
   }
 
   public static void main(String[] args) throws Exception {
+    Logger.getLogger("com.rapleaf.hank").setLevel(Level.TRACE);
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
     ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);

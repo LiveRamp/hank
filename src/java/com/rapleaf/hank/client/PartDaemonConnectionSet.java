@@ -20,12 +20,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 
 public class PartDaemonConnectionSet {
+  private static final Logger LOG = Logger.getLogger(PartDaemonConnectionSet.class);
+
   private final List<PartDaemonConnection> clients = new ArrayList<PartDaemonConnection>();
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
@@ -35,11 +38,13 @@ public class PartDaemonConnectionSet {
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     int numAttempts = 0;
+    LOG.debug("There are " + clients.size() + " connections for domain id " + domainId);
     while (numAttempts < clients.size()) {
       numAttempts++;
       int pos = nextIdx.getAndIncrement() % clients.size();
       PartDaemonConnection clientBundle = clients.get(pos);
       if (clientBundle.isClosed()) {
+        LOG.trace("Client " + clientBundle + " was closed, so skipped it.");
         continue;
       }
       clientBundle.lock();
