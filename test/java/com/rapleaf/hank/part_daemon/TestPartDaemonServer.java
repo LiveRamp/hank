@@ -34,7 +34,7 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 
-public class TestServer extends BaseTestCase {
+public class TestPartDaemonServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {
     public boolean updateCalled = false;
     @Override

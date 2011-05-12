@@ -132,7 +132,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   protected Iface getHandler() throws IOException {
-    return new Handler(hostAddress, configurator);
+    return new PartDaemonHandler(hostAddress, configurator);
   }
 
   /**

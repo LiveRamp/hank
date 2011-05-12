@@ -52,7 +52,7 @@ import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
-public class TestHandler extends BaseTestCase {
+public class TestPartDaemonHandler extends BaseTestCase {
   private static final ByteBuffer K1 = bb(1);
   private static final ByteBuffer K2 = bb(2);
   private static final ByteBuffer K3 = bb(3);
@@ -130,7 +130,7 @@ public class TestHandler extends BaseTestCase {
       }
     };
     PartservConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", "/tmp/local/data/dir");
-    Handler handler = new Handler(new PartDaemonAddress("localhost", 12345), config);
+    PartDaemonHandler handler = new PartDaemonHandler(new PartDaemonAddress("localhost", 12345), config);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));

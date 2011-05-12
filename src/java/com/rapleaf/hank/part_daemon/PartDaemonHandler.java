@@ -40,18 +40,18 @@ import com.rapleaf.hank.util.Bytes;
 /**
  * Implements the actual data serving logic of the PartDaemon
  */
-class Handler implements Iface {
+class PartDaemonHandler implements Iface {
   private static final HankResponse WRONG_HOST = HankResponse.xception(HankExceptions.wrong_host(true));
 
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankExceptions.no_such_domain(true));
 
-  private final static Logger LOG = Logger.getLogger(Handler.class);
+  private final static Logger LOG = Logger.getLogger(PartDaemonHandler.class);
 
   private final Domain[] domains;
 
-  public Handler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
+  public PartDaemonHandler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
     // find the ring config
     RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
