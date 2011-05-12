@@ -21,8 +21,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
@@ -68,7 +68,13 @@ public class Server implements HostCommandQueueChangeListener {
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
     ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
     ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
+    if (ringConfig == null) {
+      throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
+    }
     hostConfig = ringConfig.getHostConfigByAddress(hostAddress);
+    if (hostConfig == null) {
+      throw new RuntimeException("Could not get host configuration for host: " + hostAddress);
+    }
     hostConfig.setCommandQueueChangeListener(this);
   }
 
@@ -105,8 +111,8 @@ public class Server implements HostCommandQueueChangeListener {
   /**
    * start serving the thrift server. doesn't return.
    * @throws TTransportException
-   * @throws IOException 
-   * @throws DataNotFoundException 
+   * @throws IOException
+   * @throws DataNotFoundException
    */
   private void serve() throws TTransportException, IOException {
     // set up the service handler
@@ -221,84 +227,84 @@ public class Server implements HostCommandQueueChangeListener {
   @Override
   public void onCommandQueueChange(HostConfig hostConfig) {
     processCommands();
-//    synchronized(mutex) {
-//      try {
-//        if (this.hostConfig.getCurrentCommand() == null) {
-//          HostCommand nextCommand = this.hostConfig.processNextCommand();
-//          if (nextCommand == null) {
-//            LOG.debug("Command queue was empty; doing nothing.");
-//            return;
-//          }
-//          processCurrentCommand(hostConfig, nextCommand);
-//        } else {
-//          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
-//        }
-//      } catch (IOException e) {
-//        LOG.error("Got an exception checking the current command!", e);
-//      }
-//    }
+    //    synchronized(mutex) {
+    //      try {
+    //        if (this.hostConfig.getCurrentCommand() == null) {
+    //          HostCommand nextCommand = this.hostConfig.processNextCommand();
+    //          if (nextCommand == null) {
+    //            LOG.debug("Command queue was empty; doing nothing.");
+    //            return;
+    //          }
+    //          processCurrentCommand(hostConfig, nextCommand);
+    //        } else {
+    //          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
+    //        }
+    //      } catch (IOException e) {
+    //        LOG.error("Got an exception checking the current command!", e);
+    //      }
+    //    }
   }
 
   private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
     HostState state = hostConfig.getState();
     switch (nextCommand) {
-      case EXECUTE_UPDATE:
-        processExecuteUpdate(state);
-        break;
-      case GO_TO_IDLE:
-        processGoToIdle(state);
-        break;
-      case SERVE_DATA:
-        processServeData(state);
-        break;
+    case EXECUTE_UPDATE:
+      processExecuteUpdate(state);
+      break;
+    case GO_TO_IDLE:
+      processGoToIdle(state);
+      break;
+    case SERVE_DATA:
+      processServeData(state);
+      break;
     }
   }
 
   private void processServeData(HostState state) throws IOException {
     switch (state) {
-      case IDLE:
-        startServer();
-        setState(HostState.SERVING);
-        hostConfig.completeCommand();
-        break;
-      default:
-        LOG.debug("have command " + HostCommand.SERVE_DATA
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
+    case IDLE:
+      startServer();
+      setState(HostState.SERVING);
+      hostConfig.completeCommand();
+      break;
+    default:
+      LOG.debug("have command " + HostCommand.SERVE_DATA
+          + " but not compatible with current state " + state
+          + ". Ignoring.");
     }
   }
 
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
-      case SERVING:
-        stopServer();
-        setState(HostState.IDLE);
-        hostConfig.completeCommand();
-        break;
-      case UPDATING:
-        LOG.debug("received command " + HostCommand.GO_TO_IDLE
-            + " but current state is " + state
-            + ", which cannot be stopped. Will wait until completion.");
-        break;
-      default:
-        LOG.debug("have command " + HostCommand.GO_TO_IDLE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
+    case SERVING:
+      stopServer();
+      setState(HostState.IDLE);
+      hostConfig.completeCommand();
+      break;
+    case UPDATING:
+      LOG.debug("received command " + HostCommand.GO_TO_IDLE
+          + " but current state is " + state
+          + ", which cannot be stopped. Will wait until completion.");
+      break;
+    default:
+      LOG.debug("have command " + HostCommand.GO_TO_IDLE
+          + " but not compatible with current state " + state
+          + ". Ignoring.");
     }
   }
 
   private void processExecuteUpdate(HostState state) throws IOException {
     switch (state) {
-      case IDLE:
-        setState(HostState.UPDATING);
-        update();
-        break;
-      case SERVING:
-        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
-      default:
-        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
+    case IDLE:
+      setState(HostState.UPDATING);
+      update();
+      break;
+    case SERVING:
+      LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+    default:
+      LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
+          + " but not compatible with current state " + state
+          + ". Ignoring.");
     }
   }
 
@@ -306,10 +312,10 @@ public class Server implements HostCommandQueueChangeListener {
     try {
       String configPath = args[0];
       String log4jprops = args[1];
-  
+
       PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
       PropertyConfigurator.configure(log4jprops);
-  
+
       new Server(configurator, HostUtils.getHostName()).run();
     } catch (Throwable t) {
       System.err.println("usage: bin/part_daemon.sh <path to config.yml> <path to log4j properties>");
