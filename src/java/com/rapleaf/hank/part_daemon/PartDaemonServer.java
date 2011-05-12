@@ -44,8 +44,8 @@ import com.rapleaf.hank.util.HostUtils;
 /**
  * The main class of the Part Daemon.
  */
-public class Server implements HostCommandQueueChangeListener {
-  private static final Logger LOG = Logger.getLogger(Server.class);
+public class PartDaemonServer implements HostCommandQueueChangeListener {
+  private static final Logger LOG = Logger.getLogger(PartDaemonServer.class);
 
   private final PartservConfigurator configurator;
   private final Coordinator coord;
@@ -63,7 +63,7 @@ public class Server implements HostCommandQueueChangeListener {
 
   private final RingConfig ringConfig;
 
-  public Server(PartservConfigurator configurator, String hostName) throws IOException {
+  public PartDaemonServer(PartservConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
@@ -311,14 +311,14 @@ public class Server implements HostCommandQueueChangeListener {
 
   public static void main(String[] args) throws Throwable {
     try {
-      CommandLineChecker.check(args, new String[] {"configuration_file_path", "log4j_properties_file_path"}, Server.class);
+      CommandLineChecker.check(args, new String[] {"configuration_file_path", "log4j_properties_file_path"}, PartDaemonServer.class);
       String configPath = args[0];
       String log4jprops = args[1];
 
       PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
       PropertyConfigurator.configure(log4jprops);
 
-      new Server(configurator, HostUtils.getHostName()).run();
+      new PartDaemonServer(configurator, HostUtils.getHostName()).run();
     } catch (Throwable t) {
       System.err.println("usage: bin/part_daemon.sh <path to config.yml> <path to log4j properties>");
       throw t;

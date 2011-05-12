@@ -75,7 +75,7 @@ public class TestServer extends BaseTestCase {
 
   public void testColdStartAndShutDown() throws Exception {
     final MockUpdateManager mockUpdateManager = new MockUpdateManager();
-    final Server server = new Server(configurator, "localhost") {
+    final PartDaemonServer server = new PartDaemonServer(configurator, "localhost") {
       @Override
       protected Iface getHandler() throws IOException {
         return new Iface() {

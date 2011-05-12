@@ -132,7 +132,7 @@ public class IntegrationTest extends ZkTestCase {
     private final String configPath;
     @SuppressWarnings("unused")
     private Throwable throwable;
-    private com.rapleaf.hank.part_daemon.Server server;
+    private com.rapleaf.hank.part_daemon.PartDaemonServer server;
     private final PartservConfigurator configurator;
 
     public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
@@ -159,7 +159,7 @@ public class IntegrationTest extends ZkTestCase {
     @Override
     public void run() {
       try {
-        server = new com.rapleaf.hank.part_daemon.Server(configurator, "localhost");
+        server = new com.rapleaf.hank.part_daemon.PartDaemonServer(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
         LOG.fatal("crap, some exception...", t);
