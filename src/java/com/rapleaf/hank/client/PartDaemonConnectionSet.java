@@ -33,7 +33,7 @@ public class PartDaemonConnectionSet {
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
   public PartDaemonConnectionSet(List<PartDaemonConnection> connections) {
-    connections.addAll(connections);
+    this.connections.addAll(connections);
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
