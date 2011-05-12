@@ -55,6 +55,9 @@ public class PartDaemonConnectionSet {
         connection.unlock();
       }
     }
+    if (numAttempts == connections.size()) {
+      LOG.trace("None of the " + connections.size() + " connections are open.");
+    }
     return HankResponse.xception(HankExceptions.zero_replicas(true));
   }
 }
