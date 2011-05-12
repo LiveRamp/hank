@@ -29,30 +29,30 @@ import com.rapleaf.hank.generated.HankResponse;
 public class PartDaemonConnectionSet {
   private static final Logger LOG = Logger.getLogger(PartDaemonConnectionSet.class);
 
-  private final List<PartDaemonConnection> clients = new ArrayList<PartDaemonConnection>();
+  private final List<PartDaemonConnection> connections = new ArrayList<PartDaemonConnection>();
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
   public PartDaemonConnectionSet(List<PartDaemonConnection> clientBundles) {
-    clients.addAll(clientBundles);
+    connections.addAll(clientBundles);
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     int numAttempts = 0;
-    LOG.debug("There are " + clients.size() + " connections for domain id " + domainId);
-    while (numAttempts < clients.size()) {
+    LOG.debug("There are " + connections.size() + " connections for domain id " + domainId);
+    while (numAttempts < connections.size()) {
       numAttempts++;
-      int pos = nextIdx.getAndIncrement() % clients.size();
-      PartDaemonConnection clientBundle = clients.get(pos);
-      if (clientBundle.isClosed()) {
-        LOG.trace("Client " + clientBundle + " was closed, so skipped it.");
+      int pos = nextIdx.getAndIncrement() % connections.size();
+      PartDaemonConnection connection = connections.get(pos);
+      if (connection.isClosed()) {
+        LOG.trace("Connection " + connection + " was closed, so skipped it.");
         continue;
       }
-      clientBundle.lock();
+      connection.lock();
       try {
-        HankResponse result = clientBundle.client.get(domainId, key);
+        HankResponse result = connection.client.get(domainId, key);
         return result;
       } finally {
-        clientBundle.unlock();
+        connection.unlock();
       }
     }
     return HankResponse.xception(HankExceptions.zero_replicas(true));
