@@ -111,6 +111,9 @@ public final class Bytes {
       if (i > 0) {
         result.append(" ");
       }
+      if (v < 16) {
+        result.append("0");
+      }
       result.append(Integer.toString(v, 16));
     }
     return result.toString();
