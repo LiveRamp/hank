@@ -38,7 +38,7 @@ public class PartDaemonConnectionSet {
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     int numAttempts = 0;
-    LOG.debug("There are " + connections.size() + " connections for domain id " + domainId);
+    LOG.trace("There are " + connections.size() + " connections for domain id " + domainId);
     while (numAttempts < connections.size()) {
       numAttempts++;
       int pos = nextIdx.getAndIncrement() % connections.size();
