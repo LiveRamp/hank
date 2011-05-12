@@ -94,8 +94,24 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     hostConfig.setState(HostState.OFFLINE);
   }
 
+  public void stop() throws IOException {
+    // don't wait to be started again.
+    goingDown = true;
+    stopServingData();
+    setState(HostState.IDLE);
+  }
+
+  @Override
+  public void onCommandQueueChange(HostConfig hostConfig) {
+    processCommands();
+  }
+
   protected Iface getHandler() throws IOException {
     return new PartDaemonHandler(hostAddress, configurator);
+  }
+
+  protected IUpdateManager getUpdateManager() throws IOException {
+    return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
   }
 
   private synchronized void processCommands() {
@@ -186,13 +202,6 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     serverThread = null;
   }
 
-  public void stop() throws IOException {
-    // don't wait to be started again.
-    goingDown = true;
-    stopServingData();
-    setState(HostState.IDLE);
-  }
-
   private void setState(HostState state) throws IOException {
     hostConfig.setState(state);
   }
@@ -219,15 +228,6 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     };
     updateThread = new Thread(updateRunnable, "update manager thread");
     updateThread.start();
-  }
-
-  protected IUpdateManager getUpdateManager() throws IOException {
-    return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
-  }
-
-  @Override
-  public void onCommandQueueChange(HostConfig hostConfig) {
-    processCommands();
   }
 
   private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
