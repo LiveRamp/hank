@@ -79,21 +79,6 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     hostConfig.setCommandQueueChangeListener(this);
   }
 
-  private synchronized void processCommands() {
-    try {
-      if (hostConfig.getCurrentCommand() != null) {
-        processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
-      }
-      while (!hostConfig.getCommandQueue().isEmpty()) {
-        HostCommand nextCommand = hostConfig.processNextCommand();
-        processCurrentCommand(hostConfig, nextCommand);
-      }
-    } catch (IOException e) {
-      // TODO
-      LOG.error("Uh oh, failed to process all the commands in the queue, somehow...", e);
-    }
-  }
-
   public void run() throws IOException {
     hostConfig.setState(HostState.IDLE);
 
@@ -109,13 +94,32 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     hostConfig.setState(HostState.OFFLINE);
   }
 
+  protected Iface getHandler() throws IOException {
+    return new PartDaemonHandler(hostAddress, configurator);
+  }
+
+  private synchronized void processCommands() {
+    try {
+      if (hostConfig.getCurrentCommand() != null) {
+        processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
+      }
+      while (!hostConfig.getCommandQueue().isEmpty()) {
+        HostCommand nextCommand = hostConfig.processNextCommand();
+        processCurrentCommand(hostConfig, nextCommand);
+      }
+    } catch (IOException e) {
+      // TODO
+      LOG.error("Uh oh, failed to process all the commands in the queue, somehow...", e);
+    }
+  }
+
   /**
-   * start serving the thrift server. doesn't return.
+   * Start serving the thrift server. doesn't return.
    * @throws TTransportException
    * @throws IOException
    * @throws DataNotFoundException
    */
-  private void serve() throws TTransportException, IOException {
+  private void startThriftServer() throws TTransportException, IOException {
     // set up the service handler
     Iface handler = getHandler();
 
@@ -131,20 +135,16 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     LOG.debug("Thrift server exited.");
   }
 
-  protected Iface getHandler() throws IOException {
-    return new PartDaemonHandler(hostAddress, configurator);
-  }
-
   /**
-   * Start serving the Thrift server. Returns when the server is up.
+   * Start serving the data. Returns when the server is up.
    */
-  private void startServer() {
+  private void serveData() {
     if (server == null) {
       Runnable r = new Runnable(){
         @Override
         public void run() {
           try {
-            serve();
+            startThriftServer();
           } catch (Exception e) {
             // TODO deal with exception. server is probably going down unexpectedly
             LOG.fatal("Server thread died with exception!", e);
@@ -169,9 +169,9 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   /**
-   * blocks until thrift server is down
+   * Block until thrift server is down
    */
-  private void stopServer() {
+  private void stopServingData() {
     if (server == null) {
       return;
     }
@@ -189,7 +189,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   public void stop() throws IOException {
     // don't wait to be started again.
     goingDown = true;
-    stopServer();
+    stopServingData();
     setState(HostState.IDLE);
   }
 
@@ -228,22 +228,6 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   @Override
   public void onCommandQueueChange(HostConfig hostConfig) {
     processCommands();
-    //    synchronized(mutex) {
-    //      try {
-    //        if (this.hostConfig.getCurrentCommand() == null) {
-    //          HostCommand nextCommand = this.hostConfig.processNextCommand();
-    //          if (nextCommand == null) {
-    //            LOG.debug("Command queue was empty; doing nothing.");
-    //            return;
-    //          }
-    //          processCurrentCommand(hostConfig, nextCommand);
-    //        } else {
-    //          LOG.debug("Noticed a change to the command queue, but we're already working on something else, so ignoring it.");
-    //        }
-    //      } catch (IOException e) {
-    //        LOG.error("Got an exception checking the current command!", e);
-    //      }
-    //    }
   }
 
   private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
@@ -264,12 +248,12 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private void processServeData(HostState state) throws IOException {
     switch (state) {
     case IDLE:
-      startServer();
+      serveData();
       setState(HostState.SERVING);
       hostConfig.completeCommand();
       break;
     default:
-      LOG.debug("have command " + HostCommand.SERVE_DATA
+      LOG.debug("received command " + HostCommand.SERVE_DATA
           + " but not compatible with current state " + state
           + ". Ignoring.");
     }
@@ -278,7 +262,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
     case SERVING:
-      stopServer();
+      stopServingData();
       setState(HostState.IDLE);
       hostConfig.completeCommand();
       break;
@@ -288,7 +272,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
           + ", which cannot be stopped. Will wait until completion.");
       break;
     default:
-      LOG.debug("have command " + HostCommand.GO_TO_IDLE
+      LOG.debug("received command " + HostCommand.GO_TO_IDLE
           + " but not compatible with current state " + state
           + ". Ignoring.");
     }
