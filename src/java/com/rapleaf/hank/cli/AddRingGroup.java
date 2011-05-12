@@ -27,18 +27,20 @@ import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddRingGroup {
   public static void main(String[] args) throws IOException, ParseException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("r", "ring-group", true,
-        "the name of the ring group to be created");
+    "the name of the ring group to be created");
     options.addOption("d", "domain-group", true,
-        "the name of the domain group that this ring group will be linked to");
+    "the name of the domain group that this ring group will be linked to");
     options.addOption("c", "config", true,
-        "path of a valid config file with coordinator connection information");
+    "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
+      CommandLineChecker.check(line, options, new String[] {"config", "ring-group", "domain-group"}, AddRingGroup.class);
       ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addRingGroup(configurator,
           line.getOptionValue("ring-group"),

@@ -18,6 +18,7 @@ import com.rapleaf.hank.ui.controllers.DomainGroupController;
 import com.rapleaf.hank.ui.controllers.HostController;
 import com.rapleaf.hank.ui.controllers.RingController;
 import com.rapleaf.hank.ui.controllers.RingGroupController;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class StatusWebDaemon {
   @SuppressWarnings("unused")
@@ -70,6 +71,7 @@ public class StatusWebDaemon {
   }
 
   public static void main(String[] args) throws Exception {
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "port"}, StatusWebDaemon.class);
     Logger.getLogger("com.rapleaf.hank").setLevel(Level.TRACE);
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);

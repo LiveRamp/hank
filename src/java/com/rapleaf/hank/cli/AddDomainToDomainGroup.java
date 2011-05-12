@@ -27,28 +27,30 @@ import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddDomainToDomainGroup {
   /**
    * @param args
-   * @throws IOException 
-   * @throws ParseException 
-   * @throws DataNotFoundException 
-   * @throws NumberFormatException 
-   * @throws InvalidConfigurationException 
+   * @throws IOException
+   * @throws ParseException
+   * @throws DataNotFoundException
+   * @throws NumberFormatException
+   * @throws InvalidConfigurationException
    */
   public static void main(String[] args) throws IOException, ParseException, NumberFormatException, InvalidConfigurationException {
     Options options = new Options();
     options.addOption("g", "domain-group", true,
-        "the name of the domain group");
+    "the name of the domain group");
     options.addOption("d", "domain", true,
-        "the name of the domain to be added to the group");
+    "the name of the domain to be added to the group");
     options.addOption("i", "id", true,
-        "the id for the domain in this group");
+    "the id for the domain in this group");
     options.addOption("c", "config", true,
-        "path of a valid config file with coordinator connection information");
+    "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
+      CommandLineChecker.check(line, options, new String[] {"config", "domain-group", "domain"}, AddDomainToDomainGroup.class);
       ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addDomainToDomainGroup(configurator,
           line.getOptionValue("domain-group"),

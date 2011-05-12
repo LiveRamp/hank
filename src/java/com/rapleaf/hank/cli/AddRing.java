@@ -37,21 +37,23 @@ import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddRing {
 
   public static void main(String[] args) throws Exception {
     Options options = new Options();
     options.addOption("r", "ring-group", true,
-        "the name of the ring group");
+    "the name of the ring group");
     options.addOption("n", "ring-number", true,
-        "the number of the new ring you are creating");
+    "the number of the new ring you are creating");
     options.addOption("h", "hosts", true,
-        "a comma-separated list of host:port pairs");
+    "a comma-separated list of host:port pairs");
     options.addOption("c", "config", true,
-        "path of a valid config file with coordinator connection information");
+    "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
+      CommandLineChecker.check(line, options, new String[] {"config", "ring-group", "ring-number"}, AddRing.class);
       ClientConfigurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addRing(configurator,
           line.getOptionValue("ring-group"),

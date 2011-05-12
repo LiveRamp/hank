@@ -165,7 +165,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    CommandLineChecker.check(args, new String[]{"config_file_path", "log4j_properties_file"}, DataDeployer.class);
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, DataDeployer.class);
     String configPath = args[0];
     String log4jprops = args[1];
 

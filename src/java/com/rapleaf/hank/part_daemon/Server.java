@@ -38,6 +38,7 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
+import com.rapleaf.hank.util.CommandLineChecker;
 import com.rapleaf.hank.util.HostUtils;
 
 /**
@@ -310,6 +311,7 @@ public class Server implements HostCommandQueueChangeListener {
 
   public static void main(String[] args) throws Throwable {
     try {
+      CommandLineChecker.check(args, new String[] {"configuration_file_path", "log4j_properties_file_path"}, Server.class);
       String configPath = args[0];
       String log4jprops = args[1];
 
