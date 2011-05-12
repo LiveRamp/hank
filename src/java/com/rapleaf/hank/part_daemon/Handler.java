@@ -35,6 +35,7 @@ import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.util.Bytes;
 
 /**
  * Implements the actual data serving logic of the PartDaemon
@@ -115,28 +116,11 @@ class Handler implements Iface {
       String errMsg = String.format("Exception during get! Domain: %d (%s) Key: %s",
           domainId,
           domain.getName(),
-          stringifyKey(key));
+          Bytes.bytesToHexString(key));
       LOG.error(errMsg, e);
 
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
-  }
-
-  private static String stringifyKey(ByteBuffer key) {
-    int off = key.arrayOffset() + key.position();
-    int lim = key.limit();
-    if (key.remaining() > 64) {
-      lim = off + 64;
-    }
-
-    StringBuilder sb = new StringBuilder();
-    for (int i = off; i < lim; i++) {
-      sb.append(String.format("%x", key.array()[i] & 0xff));
-    }
-    if (key.remaining() > 64) {
-      sb.append(" (truncated)");
-    }
-    return sb.toString();
   }
 
   private Domain getDomain(int domainId) {
