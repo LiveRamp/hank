@@ -32,8 +32,8 @@ public class PartDaemonConnectionSet {
   private final List<PartDaemonConnection> connections = new ArrayList<PartDaemonConnection>();
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
-  public PartDaemonConnectionSet(List<PartDaemonConnection> clientBundles) {
-    connections.addAll(clientBundles);
+  public PartDaemonConnectionSet(List<PartDaemonConnection> connections) {
+    connections.addAll(connections);
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
