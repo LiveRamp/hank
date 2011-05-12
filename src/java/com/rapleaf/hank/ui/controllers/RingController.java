@@ -18,7 +18,7 @@ public class RingController extends Controller {
   public RingController(String name, Coordinator coordinator) {
     super(name);
     this.coordinator = coordinator;
-    actions.put("create", new Action() {
+    actions.put("add_host", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doAddHost(req, resp);
