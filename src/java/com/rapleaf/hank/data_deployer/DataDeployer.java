@@ -31,6 +31,7 @@ import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);
@@ -161,9 +162,10 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
 
   /**
    * @param args
-   * @throws Exception 
+   * @throws Exception
    */
   public static void main(String[] args) throws Exception {
+    CommandLineChecker.check(args, new String[]{"config_file_path", "log4j_properties_file"}, DataDeployer.class);
     String configPath = args[0];
     String log4jprops = args[1];
 

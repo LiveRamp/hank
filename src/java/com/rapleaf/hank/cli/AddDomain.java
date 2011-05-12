@@ -28,6 +28,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.util.FsUtils;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddDomain {
   public static void addDomain(Configurator configurator, String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)
@@ -58,6 +59,9 @@ public class AddDomain {
     "path of a valid config file with coordinator connection information");
     try {
       CommandLine line = new GnuParser().parse(options, args);
+      CommandLineChecker.check(line, options,
+          new String[] {"name", "num-parts", "storage-engine-factory", "storage-engine-options", "partitioner", "initial-version"},
+          AddDomain.class);
       Configurator configurator = new YamlClientConfigurator(line.getOptionValue("config"));
       addDomain(configurator,
           line.getOptionValue("name"),
