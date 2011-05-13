@@ -40,6 +40,7 @@ import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.util.Bytes;
 
 /**
  * HankSmartClient implements the logic of determining which PartDaemon to
@@ -169,7 +170,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       LOG.error(errMsg);
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
-
+    LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     return connectionSet.get(domainId, key);
   }
 
