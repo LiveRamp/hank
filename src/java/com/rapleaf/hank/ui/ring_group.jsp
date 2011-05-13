@@ -115,7 +115,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           ByteBuffer key = null;
           String dataFormat = request.getParameter("f");
           if (dataFormat.equals("hex")) {
-            key = Bytes.hexStringToByteBuffer(request.getParameter("k"));
+            key = Bytes.hexStringToBytes(request.getParameter("k"));
           } else if (dataFormat.equals("string")) {
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
@@ -137,6 +137,10 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
         %>
           <div style="font-weight:bold; color:green">Found</div>
 
+          <%
+          ByteBuffer value = hankResponse.buffer_for_value();
+          %>
+
           <table cellspacing=0>
             <tr>
               <td>off</td>
@@ -145,8 +149,6 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
               <td colspan=16 align=center style="border-bottom: 1px solid black"><strong>string</strong></td>
             </tr>
           <%
-          ByteBuffer value = hankResponse.buffer_for_value();
-
           for (int r = 0; r < (value.remaining() / 16) + 1; r++) {
           %>
             <tr>
@@ -180,6 +182,9 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
             </tr>
           <% } %>
           </table>
+          <div>Raw value in hex:
+            <%= Bytes.bytesToHexString(value) %>
+          </div>
 
         <% }} %>
       </form>

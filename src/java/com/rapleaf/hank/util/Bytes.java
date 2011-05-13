@@ -119,7 +119,7 @@ public final class Bytes {
     return result.toString();
   }
 
-  public static ByteBuffer hexStringToByteBuffer(String hexString) {
+  public static ByteBuffer hexStringToBytes(String hexString) {
     if (hexString.length() % 2 != 0) {
       throw new RuntimeException("Input string's size must be even.");
     }
