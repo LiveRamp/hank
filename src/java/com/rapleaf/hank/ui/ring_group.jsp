@@ -138,7 +138,9 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           <div style="font-weight:bold; color:green">Found</div>
 
           <%
-          ByteBuffer value = hankResponse.buffer_for_value();
+          ByteBuffer valueBuffer = hankResponse.buffer_for_value();
+          String valueString = Bytes.bytesToHexString(valueBuffer);
+          String[] valueStrings = valueString.split(" ");
           %>
 
           <table cellspacing=0>
@@ -149,7 +151,8 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
               <td colspan=16 align=center style="border-bottom: 1px solid black"><strong>string</strong></td>
             </tr>
           <%
-          for (int r = 0; r < (value.remaining() / 16) + 1; r++) {
+          int numBytes = valueStrings.length;
+          for (int r = 0; r < (numBytes / 16) + (numBytes % 16 == 0 ? 0 : 1); r++) {
           %>
             <tr>
              <%
@@ -158,8 +161,8 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
              <td style="border-right: 1px solid black">0x<%= Integer.toString(baseOff, 16) %></td>
              <%
              for (int off = baseOff; off < baseOff + 16; off++) {
-               if (off < value.limit() - value.position()) {
-               %><td width=20 align=center><%= Integer.toString(value.array()[value.position() + off] | 0x100 & 0x1ff, 16).substring(1) %></td> <%
+               if (off < numBytes) {
+               %><td width=20 align=center><%= valueStrings[off] %></td> <%
                } else {
                %>
                <td width=20>&nbsp;</td>
@@ -170,8 +173,8 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
              <td style="border-left: 1px solid black; border-right: 1px solid black"></td>
              <%
              for (int off = baseOff; off < baseOff + 16; off++) {
-               if (off < value.limit() - value.position()) {
-               %><td width=20 align=center><%= new String(value.array(), value.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
+               if (off < numBytes) {
+               %><td width=20 align=center><%= new String(valueBuffer.array(), valueBuffer.position() + off, 1).replaceAll("\\p{Cntrl}", ".") %></td> <%
                } else {
                %>
                <td width=20>&nbsp;</td>
@@ -182,8 +185,8 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
             </tr>
           <% } %>
           </table>
-          <div>Raw value in hex:
-            <%= Bytes.bytesToHexString(value) %>
+          <div style="padding-top:1em;">Raw value in hex:
+            <%= valueString %>
           </div>
 
         <% }} %>
