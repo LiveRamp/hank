@@ -118,4 +118,15 @@ public final class Bytes {
     }
     return result.toString();
   }
+
+  public static ByteBuffer hexStringToByteBuffer(String hexString) {
+    if (hexString.length() % 2 != 0) {
+      throw new RuntimeException("Input string's size must be even.");
+    }
+    byte[] result = new byte[hexString.length() / 2];
+    for (int i = 0; i < hexString.length(); i += 2) {
+      result[i / 2] = (byte) Integer.valueOf(hexString.substring(i,i + 2), 16).intValue();
+    }
+    return ByteBuffer.wrap(result);
+  }
 }

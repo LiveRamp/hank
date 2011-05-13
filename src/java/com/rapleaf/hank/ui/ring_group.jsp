@@ -4,6 +4,7 @@
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
+<%@page import="com.rapleaf.hank.util.Bytes"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
@@ -43,7 +44,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
       overall status blob
     </div>
   </div>
-  
+
   <div class='box-section'>
   	<h3>Configuration</h3>
   	<div class='box-section-content'>
@@ -104,7 +105,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
         <br/>
         <input type=submit value="Get"/>
 
-        <% 
+        <%
         if (request.getParameter("k") != null) {
           %>
         <h4>Result</h4>
@@ -114,12 +115,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           ByteBuffer key = null;
           String dataFormat = request.getParameter("f");
           if (dataFormat.equals("hex")) {
-            String hexString = request.getParameter("k");
-            byte[] bytes = new byte[hexString.length()/2];
-            for (int i = 0; i < hexString.length(); i+=2) {
-              bytes[i/2] = (byte)Integer.valueOf(hexString.substring(i,i+1), 16).intValue();
-            }
-            key = ByteBuffer.wrap(bytes);
+            key = Bytes.hexStringToByteBuffer(request.getParameter("k"));
           } else if (dataFormat.equals("string")) {
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
@@ -184,7 +180,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
             </tr>
           <% } %>
           </table>
-          
+
         <% }} %>
       </form>
     </div>
