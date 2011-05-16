@@ -33,7 +33,19 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder
   <h4>Status</h4>
   Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
   Current command: <%= host.getCurrentCommand() %> <br/>
-  Queued commands: <%= host.getCommandQueue() %>
+  Queued commands: <%= host.getCommandQueue() %> <br/>
+  <form action="/host/enqueue_command" method="post">
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+
+    <select name="command">
+    <% for (HostCommand cmd : HostCommand.values()) {%>
+      <option><%= cmd.name() %></option>
+    <% } %>
+    </select>
+    <input type="submit" value="Enqueue Command"/>
+  </form>
 </div>
 
 <div>

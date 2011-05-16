@@ -1,9 +1,9 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,10 +17,10 @@ import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class MemHostConfig implements HostConfig {
-
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
   private final Map<Integer, HostDomainConfig> hdcs = new HashMap<Integer, HostDomainConfig>();
+  private final List<HostCommand> commandQueue = new LinkedList<HostCommand>();
 
   public MemHostConfig(PartDaemonAddress address) {
     this.address = address;
@@ -41,14 +41,12 @@ public class MemHostConfig implements HostConfig {
 
   @Override
   public void completeCommand() throws IOException {
-    // TODO Auto-generated method stub
-
+    commandQueue.remove(0);
   }
 
   @Override
   public void enqueueCommand(HostCommand command) throws IOException {
-    // TODO Auto-generated method stub
-
+    commandQueue.add(command);
   }
 
   @Override
@@ -63,7 +61,7 @@ public class MemHostConfig implements HostConfig {
 
   @Override
   public List<HostCommand> getCommandQueue() throws IOException {
-    return Collections.EMPTY_LIST;
+    return commandQueue;
   }
 
   @Override

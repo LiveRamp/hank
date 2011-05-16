@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -28,6 +29,21 @@ public class HostController extends Controller {
         doAddDomainPart(req, resp);
       }
     });
+    actions.put("enqueue_command", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doEnqueueCommand(req, resp);
+      }
+    });
+  }
+
+  protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
+    HostConfig hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder.decode(req.getParameter("h"))));
+    hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
+
+    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEncoder.encode(hc.getAddress().toString())));
   }
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
