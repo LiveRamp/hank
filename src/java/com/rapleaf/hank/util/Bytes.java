@@ -104,6 +104,8 @@ public final class Bytes {
     return dst;
   }
 
+  // Each byte is converted to its hexadecimal 2 character string
+  // representation. Bytes are separated by spaces in the output.
   public static String bytesToHexString(ByteBuffer b) {
     StringBuilder result = new StringBuilder();
     for (int i = 0; i < b.remaining(); ++i) {
@@ -119,7 +121,10 @@ public final class Bytes {
     return result.toString();
   }
 
+  // Each sequence of 2 characters is considered to be the hexadecimal
+  // representation of a byte. Blanks are ignored.
   public static ByteBuffer hexStringToBytes(String hexString) {
+    hexString = hexString.replaceAll("\\W+", "");
     if (hexString.length() % 2 != 0) {
       throw new RuntimeException("Input string's size must be even.");
     }

@@ -67,4 +67,16 @@ public class TestBytes extends TestCase {
     copyB = Bytes.byteBufferDeepCopy(ByteBuffer.wrap(v2), copyB);
     assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap(v2), copyB));
   }
+
+  public void testBytesToHexString() {
+    byte[] b = {0x0, 0x1, 0x8, 0x10, (byte)0xf0, (byte)0xaf};
+    String s = Bytes.bytesToHexString(ByteBuffer.wrap(b));
+    assertEquals("00 01 08 10 f0 af", s);
+  }
+
+  public void testHexStringToBytes() {
+    String s = "00 01 08 10 f0 af";
+    ByteBuffer expectedB = ByteBuffer.wrap(new byte[] {0x0, 0x1, 0x8, 0x10, (byte)0xf0, (byte)0xaf});
+    assertEquals(expectedB, Bytes.hexStringToBytes(s));
+  }
 }
