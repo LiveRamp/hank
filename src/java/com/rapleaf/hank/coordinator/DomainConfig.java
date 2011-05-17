@@ -49,7 +49,7 @@ public interface DomainConfig {
    * order.
    * 
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public SortedSet<DomainVersionConfig> getVersions() throws IOException;
 
@@ -78,10 +78,10 @@ public interface DomainConfig {
   public void cancelNewVersion() throws IOException;
 
   /**
-   * Returns true if a new version is currently open.
+   * Returns a version number if a new version is currently open.
    * 
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public Integer getOpenVersionNumber() throws IOException;
 }

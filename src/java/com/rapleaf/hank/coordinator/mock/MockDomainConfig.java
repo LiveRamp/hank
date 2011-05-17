@@ -31,7 +31,7 @@ public class MockDomainConfig implements DomainConfig {
   private final int numParts;
   private final Partitioner part;
   private final StorageEngine storageEngine;
-  private final int version;
+  private int version;
 
   public MockDomainConfig(String name, int numParts, Partitioner part,
       StorageEngine storageEngine, int version) {
@@ -65,49 +65,41 @@ public class MockDomainConfig implements DomainConfig {
   @Override
   public String toString() {
     return "MockDomainConfig [name=" + name + ", numParts=" + numParts
-        + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
-        + version + "]";
+    + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
+    + version + "]";
   }
 
   @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Map<String, Object> getStorageEngineOptions() {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public void cancelNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    
   }
 
   @Override
   public boolean closeNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    return true;
   }
 
   @Override
   public SortedSet<DomainVersionConfig> getVersions() {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Integer getOpenVersionNumber() {
-    // TODO Auto-generated method stub
-    return null;
+    return version;
   }
 
   @Override
   public Integer openNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    return version;
   }
 }

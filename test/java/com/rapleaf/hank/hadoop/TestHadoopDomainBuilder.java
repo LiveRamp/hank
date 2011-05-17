@@ -20,7 +20,6 @@ import java.io.IOException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.TextInputFormat;
 
 
@@ -50,7 +49,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     try {
       HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A));
       fail("Should fail when output exists");
-    } catch (FileAlreadyExistsException e) {
+    } catch (IOException e) {
     }
   }
 
