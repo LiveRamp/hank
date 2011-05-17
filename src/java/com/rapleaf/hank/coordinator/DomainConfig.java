@@ -97,6 +97,7 @@ public interface DomainConfig {
    * Returns true if a new version is currently open.
    * 
    * @return
+   * @throws IOException 
    */
-  public boolean isNewVersionOpen();
+  public Integer getOpenVersionNumber() throws IOException;
 }

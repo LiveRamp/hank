@@ -110,7 +110,7 @@ public class MockDomainConfig implements DomainConfig {
   }
 
   @Override
-  public boolean isNewVersionOpen() {
+  public Integer getOpenVersionNumber() {
     // TODO Auto-generated method stub
     return false;
   }
