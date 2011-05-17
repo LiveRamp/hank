@@ -115,6 +115,7 @@ public class Cueball implements StorageEngine {
   private final int hashIndexBits;
   private final String remoteDomainRoot;
   private final IFileOpsFactory fileOpsFactory;
+  private final ByteBuffer keyHashBuffer;
 
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
@@ -133,6 +134,7 @@ public class Cueball implements StorageEngine {
     this.hashIndexBits = hashIndexBits;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
+    this.keyHashBuffer = ByteBuffer.allocate(keyHashSize);
     this.compressionCodecClass = compressionCodecClass;
     this.domainName = domainName;
   }
@@ -174,9 +176,8 @@ public class Cueball implements StorageEngine {
 
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
-    byte[] keyHash = new byte[keyHashSize];
-    hasher.hash(key, keyHash);
-    return ByteBuffer.wrap(keyHash);
+    hasher.hash(key, keyHashBuffer.array());
+    return keyHashBuffer;
   }
 
   static String padVersion(int ver) {
@@ -220,9 +221,9 @@ public class Cueball implements StorageEngine {
   @Override
   public String toString() {
     return "Cueball [compressionCodecClass=" + compressionCodecClass
-        + ", domainName=" + domainName + ", fileOpsFactory=" + fileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
-        + ", keyHashSize=" + keyHashSize + ", remoteDomainRoot="
-        + remoteDomainRoot + ", valueSize=" + valueSize + "]";
+    + ", domainName=" + domainName + ", fileOpsFactory=" + fileOpsFactory
+    + ", hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
+    + ", keyHashSize=" + keyHashSize + ", remoteDomainRoot="
+    + remoteDomainRoot + ", valueSize=" + valueSize + "]";
   }
 }
