@@ -63,20 +63,10 @@ public class MockDomainConfig implements DomainConfig {
   }
 
   @Override
-  public int getVersion() {
-    return version;
-  }
-
-  @Override
   public String toString() {
     return "MockDomainConfig [name=" + name + ", numParts=" + numParts
         + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
         + version + "]";
-  }
-
-  @Override
-  public int newVersion() throws IOException {
-    return 0;
   }
 
   @Override

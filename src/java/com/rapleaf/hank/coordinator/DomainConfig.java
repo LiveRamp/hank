@@ -45,23 +45,6 @@ public interface DomainConfig {
   public Partitioner getPartitioner();
 
   /**
-   * Get the latest version number.
-   * 
-   * @return
-   */
-  @Deprecated
-  public int getVersion();
-
-  /**
-   * Increment and return the version number.
-   * 
-   * @return
-   * @throws IOException
-   */
-  @Deprecated
-  public int newVersion() throws IOException;
-
-  /**
    * Returns the set of DomainVersionConfigs for this Domain in version-numbered
    * order.
    * 

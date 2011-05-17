@@ -118,15 +118,6 @@ public class ZkDomainConfig implements DomainConfig {
     }
   }
 
-  @Override
-  public int getVersion() {
-    try {
-      return zk.getInt(domainPath + '/' + KEY_VERSIONS);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public String getStorageEngineFactoryName() {
     return storageEngineFactoryName;
   }
@@ -137,17 +128,6 @@ public class ZkDomainConfig implements DomainConfig {
 
   public String getPath() {
     return domainPath;
-  }
-
-  @Override
-  public int newVersion() throws IOException {
-    int nextVersion = getVersion() + 1;
-    try {
-      zk.setInt(domainPath + "/" + KEY_VERSIONS, nextVersion);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-    return nextVersion;
   }
 
   @Override

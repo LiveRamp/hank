@@ -52,7 +52,6 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertNotNull(domainConfig);
     assertEquals("myDomain", domainConfig.getName());
     assertEquals(1234, domainConfig.getNumParts());
-    assertEquals(1, domainConfig.getVersion());
     assertTrue(domainConfig.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(domainConfig.getPartitioner() instanceof ConstantPartitioner);
   }

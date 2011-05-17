@@ -63,16 +63,6 @@ public class MemDomainConfig implements DomainConfig {
   }
 
   @Override
-  public int getVersion() {
-    return version;
-  }
-
-  @Override
-  public int newVersion() throws IOException {
-    return ++version;
-  }
-
-  @Override
   public String toString() {
     return "MemDomainConfig [name=" + name + ", numParts=" + numParts
         + ", partitionerName=" + partitionerName
