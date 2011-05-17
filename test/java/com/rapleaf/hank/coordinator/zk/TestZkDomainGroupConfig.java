@@ -49,8 +49,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   private final String domains_root = getRoot() + "/domains";
 
   public void testLoad() throws Exception {
-    DomainConfig d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
-    DomainConfig d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    DomainConfig d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    DomainConfig d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
 //    create(domains_root + "/domain0");
 //    create(domains_root + "/domain0/num_parts", "1");
@@ -95,8 +95,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     dgc.setListener(listener);
     assertNull(listener.calledWith);
 
-    DomainConfig d0 = createDomain("domain0", 1);
-    DomainConfig d1 = createDomain("domain1", 3);
+    DomainConfig d0 = createDomain("domain0");
+    DomainConfig d1 = createDomain("domain1");
 
     dgc.addDomain(d0, 0);
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
@@ -118,15 +118,14 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(dgc.getName(), listener.calledWith.getName());
   }
 
-  private DomainConfig createDomain(String domainName, int initVersion) throws KeeperException, InterruptedException {
+  private DomainConfig createDomain(String domainName) throws KeeperException, InterruptedException {
     return ZkDomainConfig.create(getZk(),
         domains_root,
         domainName,
         1,
         ConstantStorageEngine.Factory.class.getName(),
         "---\n",
-        ConstantPartitioner.class.getName(),
-        initVersion);
+        ConstantPartitioner.class.getName());
   }
 
   @Override
