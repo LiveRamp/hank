@@ -89,4 +89,8 @@ public class ZooKeeperPlus extends ZooKeeper {
       return;
     }
   }
+
+  public void create(String path, int v, CreateMode createMode) throws KeeperException, InterruptedException {
+    create(path, (""+v).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+  }
 }
