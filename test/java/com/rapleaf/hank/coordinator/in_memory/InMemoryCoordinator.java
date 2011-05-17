@@ -19,8 +19,8 @@ public class InMemoryCoordinator implements Coordinator {
 
 
   @Override
-  public DomainConfig addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName, int initialVersion) throws IOException {
-    MemDomainConfig domainConfig = new MemDomainConfig(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, initialVersion);
+  public DomainConfig addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
+    MemDomainConfig domainConfig = new MemDomainConfig(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
     domains.put(domainName, domainConfig);
     return domainConfig;
   }

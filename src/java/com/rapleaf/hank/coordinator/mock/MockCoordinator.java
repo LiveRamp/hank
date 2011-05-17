@@ -79,7 +79,7 @@ public class MockCoordinator implements Coordinator {
   @Override
   public DomainConfig addDomain(String domainName, int numParts,
       String storageEngineFactoryName, String storageEngineOptions,
-      String partitionerName, int initialVersion) {
+      String partitionerName) {
     return null;
   }
 

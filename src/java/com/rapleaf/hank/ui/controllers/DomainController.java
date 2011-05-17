@@ -22,7 +22,7 @@ public class DomainController extends Controller {
         String storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
         String storageEngineOptions = req.getParameter("storageEngineOptions");
         String partitionerName = req.getParameter("partitionerName");
-        System.out.println(DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, 1));
+        System.out.println(DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
         redirect("/domains.jsp", resp);
       }
     });

@@ -25,14 +25,13 @@ public class MemDomainConfig implements DomainConfig {
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,
-      String partitionerName, int initialVersion)
+      String partitionerName)
   {
     this.name = name;
     this.numParts = numParts;
     this.storageEngineFactoryName = storageEngineFactoryName;
     this.storageEngineOptions = storageEngineOptions;
     this.partitionerName = partitionerName;
-    this.version = initialVersion;
   }
 
   @Override

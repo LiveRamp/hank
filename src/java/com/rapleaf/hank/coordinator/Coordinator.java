@@ -38,8 +38,7 @@ public interface Coordinator {
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,
-      String partitionerName,
-      int initialVersion)
+      String partitionerName)
   throws IOException;
 
   /**

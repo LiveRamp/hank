@@ -29,8 +29,8 @@ public class StatusWebDaemonTester extends TestCase {
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName(), 1);
-    final DomainConfig d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
+    final DomainConfig d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
 
     DomainGroupConfig g1 = coord.addDomainGroup("Group_1");

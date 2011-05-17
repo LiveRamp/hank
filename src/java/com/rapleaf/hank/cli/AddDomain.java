@@ -37,8 +37,7 @@ public class AddDomain {
         Integer.parseInt(numParts),
         factoryName,
         FsUtils.readFileToString(new File(factoryOptions)),
-        partitionerName,
-        Integer.parseInt(version));
+        partitionerName);
   }
 
   public static void main(String[] args) throws InterruptedException, ParseException, IOException, InvalidConfigurationException {

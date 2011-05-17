@@ -282,8 +282,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,
-      String partitionerName,
-      int initialVersion)
+      String partitionerName)
   throws IOException {
     try {
       ZkDomainConfig domain = (ZkDomainConfig) ZkDomainConfig.create(zk,
@@ -292,8 +291,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           numParts,
           storageEngineFactoryName,
           storageEngineOptions,
-          partitionerName,
-          initialVersion);
+          partitionerName);
       domainConfigsByName.put(domainName, domain);
       return domain;
     } catch (Exception e) {

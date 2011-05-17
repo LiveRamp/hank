@@ -47,7 +47,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testAddDomain() throws Exception {
-    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
+    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
     DomainConfig domainConfig = coord.getDomainConfig("myDomain");
     assertNotNull(domainConfig);
     assertEquals("myDomain", domainConfig.getName());
@@ -110,7 +110,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     create(domain_groups_root);
     create(ring_groups_root);
 
-    ZkDomainConfig.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 1);
+    ZkDomainConfig.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
 
     ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(getZk(), domain_groups_root, "myDomainGroup");
     Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
