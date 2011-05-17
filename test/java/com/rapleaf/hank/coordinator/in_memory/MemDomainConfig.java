@@ -2,10 +2,12 @@ package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.SortedSet;
 
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainVersionConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -92,5 +94,35 @@ public class MemDomainConfig implements DomainConfig {
   @Override
   public Map<String, Object> getStorageEngineOptions() {
     return (Map<String, Object>) new Yaml().load(storageEngineOptions);
+  }
+
+  @Override
+  public void cancelNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public boolean closeNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public SortedSet<DomainVersionConfig> getVersions() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public boolean isNewVersionOpen() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Integer openNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+    return null;
   }
 }

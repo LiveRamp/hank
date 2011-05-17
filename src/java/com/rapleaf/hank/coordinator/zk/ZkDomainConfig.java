@@ -17,6 +17,8 @@ package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -24,6 +26,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.DomainVersionConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -46,22 +49,39 @@ public class ZkDomainConfig implements DomainConfig {
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
+  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath)
+      throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
 
     String[] toks = domainPath.split("/");
     this.name = toks[toks.length - 1];
     this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.storageEngineOptions = (Map<String, Object>)new Yaml().load(zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_OPTIONS));
-    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
+    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath
+        + '/' + KEY_STORAGE_ENGINE_OPTIONS));
+    this.storageEngineFactoryName = zk.getString(domainPath + '/'
+        + KEY_STORAGE_ENGINE_FACTORY);
 
-    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
+    String partitionerClassName = zk.getString(domainPath + '/'
+        + KEY_PARTITIONER);
     try {
-      partitioner = (Partitioner)((Class) Class.forName(partitionerClassName)).newInstance();
+      partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+      throw new RuntimeException("Could not instantiate partitioner "
+          + partitionerClassName, e);
     }
+  }
+
+  public static ZkDomainConfig create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
+    String domainPath = domainsRoot + "/" + domainName;
+    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+//    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkDomainConfig(zk, domainPath);
   }
 
   @Override
@@ -85,10 +105,11 @@ public class ZkDomainConfig implements DomainConfig {
       return storageEngine;
     }
     try {
-      StorageEngineFactory factory = (StorageEngineFactory)Class.forName(storageEngineFactoryName).newInstance();
+      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(storageEngineFactoryName).newInstance();
       return storageEngine = factory.getStorageEngine(storageEngineOptions, getName());
-    } catch (Exception e) { 
-      throw new RuntimeException("Could not instantiate storage engine from factory " + storageEngineFactoryName, e);
+    } catch (Exception e) {
+      throw new RuntimeException("Could not instantiate storage engine from factory "
+          + storageEngineFactoryName, e);
     }
   }
 
@@ -125,41 +146,64 @@ public class ZkDomainConfig implements DomainConfig {
   }
 
   @Override
-  public String toString() {
-    return "ZkDomainConfig [domainPath=" + domainPath + ", name=" + name
-        + ", numParts=" + numParts + ", partitioner=" + partitioner
-        + ", storageEngine=" + storageEngine + ", storageEngineFactoryName="
-        + storageEngineFactoryName + ", storageEngineOptions="
-        + storageEngineOptions + "]";
-  }
-
-  public static ZkDomainConfig create(ZooKeeperPlus zk,
-      String domainsRoot,
-      String domainName,
-      int numParts,
-      String storageEngineFactory,
-      String storageEngineOpts,
-      String partitioner,
-      int initVersion) throws KeeperException, InterruptedException
-  {
-    String domainPath = domainsRoot + "/" + domainName;
-    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkDomainConfig(zk, domainPath);
-  }
-
-  @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     try {
       return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public boolean delete() throws IOException {
+    try {
+      // first, delete the .complete so everyone knows it's gone
+      zk.delete(domainPath + "/.complete", -1);
+
+      // delete the rest
+      zk.deleteNodeRecursively(domainPath);
+
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void cancelNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+
+  }
+
+  @Override
+  public boolean closeNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public SortedSet<DomainVersionConfig> getVersions() {
+    return new TreeSet<DomainVersionConfig>();
+  }
+
+  @Override
+  public boolean isNewVersionOpen() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Integer openNewVersion() throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String toString() {
+    return "ZkDomainConfig [domainPath=" + domainPath + ", name=" + name
+        + ", numParts=" + numParts + ", partitioner=" + partitioner
+        + ", storageEngine=" + storageEngine + ", storageEngineFactoryName="
+        + storageEngineFactoryName + ", storageEngineOptions="
+        + storageEngineOptions + "]";
   }
 
   @Override
@@ -192,19 +236,5 @@ public class ZkDomainConfig implements DomainConfig {
     } else if (!name.equals(other.name))
       return false;
     return true;
-  }
-
-  public boolean delete() throws IOException {
-    try {
-      // first, delete the .complete so everyone knows it's gone
-      zk.delete(domainPath + "/.complete", -1);
-
-      // delete the rest
-      zk.deleteNodeRecursively(domainPath);
-
-      return true;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 }
