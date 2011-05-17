@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
@@ -87,9 +88,10 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       // Set up new writer
       // TODO: deal with base/non base
       boolean isBase = true;
-      writer = storageEngine.getWriter(outputStreamFactory, partition, domainConfig.getVersion(), isBase);
-      writerPartition = partition;
-      writtenPartitions.add(partition);
+      throw new NotImplementedException();
+//      writer = storageEngine.getWriter(outputStreamFactory, partition, domainConfig.getVersion(), isBase);
+//      writerPartition = partition;
+//      writtenPartitions.add(partition);
     }
 
     private final void closeCurrentWriterIfNeeded() throws IOException {
