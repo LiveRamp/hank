@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.SortedSet;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -30,6 +31,7 @@ public interface DomainConfig {
 
   /**
    * The number of partitions this domain is configured for.
+   * 
    * @return
    */
   public int getNumParts();
@@ -44,14 +46,57 @@ public interface DomainConfig {
 
   /**
    * Get the latest version number.
+   * 
    * @return
    */
+  @Deprecated
   public int getVersion();
 
   /**
    * Increment and return the version number.
+   * 
    * @return
    * @throws IOException
    */
+  @Deprecated
   public int newVersion() throws IOException;
+
+  /**
+   * Returns the set of DomainVersionConfigs for this Domain in version-numbered
+   * order.
+   * 
+   * @return
+   */
+  public SortedSet<DomainVersionConfig> getVersions();
+
+  /**
+   * Attempt to open a new version of this domain. If there isn't another
+   * version already open, the return value is the next version number that
+   * should be used. If there is another version open, then the return value is
+   * null, indicating that another writer has the version lock and you should
+   * try again later.
+   * 
+   * @return
+   */
+  public Integer openNewVersion() throws IOException;
+
+  /**
+   * Attempt to close the currently open version.
+   * 
+   * @return true is the close is successful, false if there is no open version.
+   */
+  public boolean closeNewVersion() throws IOException;
+
+  /**
+   * If there is an open version, then cancel it, returning the version number
+   * to the pool. If there is no open version, then this is a no-op.
+   */
+  public void cancelNewVersion() throws IOException;
+
+  /**
+   * Returns true if a new version is currently open.
+   * 
+   * @return
+   */
+  public boolean isNewVersionOpen();
 }
