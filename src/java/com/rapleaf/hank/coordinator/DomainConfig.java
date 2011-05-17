@@ -66,8 +66,9 @@ public interface DomainConfig {
    * order.
    * 
    * @return
+   * @throws IOException 
    */
-  public SortedSet<DomainVersionConfig> getVersions();
+  public SortedSet<DomainVersionConfig> getVersions() throws IOException;
 
   /**
    * Attempt to open a new version of this domain. If there isn't another
