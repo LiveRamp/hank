@@ -60,7 +60,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     domainConfigVersions = new HashSet<DomainGroupVersionDomainVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
-        domainConfigVersions.add(new ZkDomainConfigVersion(zk,
+        domainConfigVersions.add(new ZkDomainGroupVersionDomainVersion(zk,
             versionPath + "/" + child,
             domainGroupConfig.getDomainConfig(domainGroupConfig.getDomainId(child))));
       }

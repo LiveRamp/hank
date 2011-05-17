@@ -13,35 +13,25 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.coordinator.zk;
+package com.rapleaf.hank.coordinator;
 
-import org.apache.zookeeper.KeeperException;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-
-public class ZkDomainConfigVersion implements DomainGroupVersionDomainVersion {
-  private final DomainConfig domainConfig;
+public class MockDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
   private final int versionNumber;
-  public ZkDomainConfigVersion(ZooKeeperPlus zk, String path, DomainConfig domainConfig) throws KeeperException, InterruptedException {
-    this.domainConfig = domainConfig;
-    versionNumber = zk.getInt(path);
+  private final DomainConfig dc;
+
+  public MockDomainGroupVersionDomainVersion(DomainConfig dc, int versionNumber) {
+    this.dc = dc;
+    this.versionNumber = versionNumber;
   }
 
   @Override
   public DomainConfig getDomainConfig() {
-    return domainConfig;
+    return dc;
   }
 
   @Override
   public int getVersionNumber() {
     return versionNumber;
-  }
-
-  @Override
-  public String toString() {
-    return "ZkDomainConfigVersion [domainConfig=" + domainConfig
-        + ", versionNumber=" + versionNumber + "]";
   }
 }

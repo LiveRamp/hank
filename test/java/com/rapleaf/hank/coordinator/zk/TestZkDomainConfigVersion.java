@@ -27,7 +27,7 @@ public class TestZkDomainConfigVersion extends ZkTestCase {
 
   public void testLoad() throws Exception {
     create(path, "7");
-    DomainGroupVersionDomainVersion dcv = new ZkDomainConfigVersion(getZk(), path, null);
+    DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
     assertEquals(7, dcv.getVersionNumber());
   }
 }

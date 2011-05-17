@@ -31,7 +31,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
@@ -93,7 +93,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
       }
     };
     DomainConfig dc = new MockDomainConfig("myDomain", 5, partitioner, storageEngine, 1);
-    MockDomainConfigVersion dcv = new MockDomainConfigVersion(dc, 1);
+    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(dc, 1);
     final MockDomainGroupConfigVersion dcgv = new MockDomainGroupConfigVersion(Collections.singleton((DomainGroupVersionDomainVersion)dcv), null, 1);
 
     final MockDomainGroupConfig dcg = new MockDomainGroupConfig("myDomainGroup") {

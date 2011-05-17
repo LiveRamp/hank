@@ -42,7 +42,7 @@ import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
@@ -188,7 +188,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
-        return new MockDomainGroupConfigVersion(new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(new MockDomainConfigVersion(existentDomainConfig, 1))), this, 1);
+        return new MockDomainGroupConfigVersion(new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(new MockDomainGroupVersionDomainVersion(existentDomainConfig, 1))), this, 1);
       }
     };
     final MockRingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {

@@ -27,7 +27,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
@@ -134,7 +134,7 @@ public class TestUpdateManager extends BaseTestCase {
       final StorageEngine mockStorageEngine) 
   {
     return new MockDomainGroupConfigVersion(Collections.singleton(
-        (DomainGroupVersionDomainVersion)new MockDomainConfigVersion(
+        (DomainGroupVersionDomainVersion)new MockDomainGroupVersionDomainVersion(
             new MockDomainConfig("myDomain",
                 1,
                 new ConstantPartitioner(),

@@ -36,7 +36,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     Set<DomainGroupVersionDomainVersion> x = new HashSet<DomainGroupVersionDomainVersion>();
     for (Map.Entry<String, Integer> e : domainIdToVersion.entrySet()) {
-      x.add(new MemDomainConfigVersion(getByName(e.getKey()), e.getValue()));
+      x.add(new MemDomainGroupVersionDomainVersion(getByName(e.getKey()), e.getValue()));
     }
     int verNum = (versions.isEmpty() ? 0 : versions.lastKey()) + 1;
     DomainGroupConfigVersion v = new MemDomainGroupConfigVersion(x, this, verNum);
