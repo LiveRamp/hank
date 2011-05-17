@@ -31,6 +31,7 @@ public class MapStorageEngine extends MockStorageEngine {
 
   private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions;
 
+  @SuppressWarnings("static-access")
   public MapStorageEngine() {
     this.partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
   }

@@ -62,7 +62,10 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String tmpOutputPath;
     private final String finalOutputPath;
 
-    DomainBuilderDefaultRecordWriter(DomainConfig domainConfig, FileSystem fs, String tmpOutputPath, String finalOutputPath) {
+    DomainBuilderDefaultRecordWriter(DomainConfig domainConfig,
+        FileSystem fs,
+        String tmpOutputPath,
+        String finalOutputPath) {
       super(domainConfig, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
       this.tmpOutputPath = tmpOutputPath;

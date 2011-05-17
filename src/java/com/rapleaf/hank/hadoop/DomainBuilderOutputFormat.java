@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
@@ -41,16 +40,18 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
   // Base class of record writers used to build domains.
   protected static abstract class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
 
+    private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
+
     private final DomainConfig domainConfig;
     private final StorageEngine storageEngine;
     private final OutputStreamFactory outputStreamFactory;
-    private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
     private Writer writer = null;
     private Integer writerPartition = null;
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
-    DomainBuilderRecordWriter(DomainConfig domainConfig, OutputStreamFactory outputStreamFactory) {
+    DomainBuilderRecordWriter(DomainConfig domainConfig,
+        OutputStreamFactory outputStreamFactory) {
       this.domainConfig = domainConfig;
       this.storageEngine = domainConfig.getStorageEngine();
       this.outputStreamFactory = outputStreamFactory;
@@ -85,13 +86,16 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       if (writtenPartitions.contains(partition)) {
         throw new RuntimeException("Partition " + partition + " has already been written.");
       }
-      // Set up new writer
-      // TODO: deal with base/non base
+      // TODO: deal with base/non-base
       boolean isBase = true;
-      throw new NotImplementedException();
-//      writer = storageEngine.getWriter(outputStreamFactory, partition, domainConfig.getVersion(), isBase);
-//      writerPartition = partition;
-//      writtenPartitions.add(partition);
+      // Set up new writer
+      Integer openVersion = domainConfig.getOpenVersionNumber();
+      if (openVersion == null) {
+        throw new IOException("There is no version currently open for domain " + domainConfig.getName());
+      }
+      writer = storageEngine.getWriter(outputStreamFactory, partition, openVersion, isBase);
+      writerPartition = partition;
+      writtenPartitions.add(partition);
     }
 
     private final void closeCurrentWriterIfNeeded() throws IOException {

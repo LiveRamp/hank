@@ -25,9 +25,10 @@ import org.apache.hadoop.mapred.InputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.log4j.Logger;
+
+import com.rapleaf.hank.coordinator.DomainConfig;
 
 public class HadoopDomainBuilder {
 
@@ -40,12 +41,27 @@ public class HadoopDomainBuilder {
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
-  public static final RunningJob buildHankDomain(
+  public static final void buildHankDomain(
       String inputPath,
       Class<? extends InputFormat> inputFormatClass,
       Class<? extends DomainBuilderMapper> mapperClass,
       DomainBuilderProperties properties) throws IOException {
-    return JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
+    // Open new version and check for success
+    DomainConfig domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    Integer version = domainConfig.openNewVersion();
+    if (version == null) {
+      throw new IOException("Could not open a new version of domain " + properties.getDomainName());
+    }
+    // Try to build new version
+    try {
+      JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
+    } catch (Exception e) {
+      // In case of failure, cancel this new version
+      domainConfig.cancelNewVersion();
+      throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+    }
+    // Close the new version
+    domainConfig.closeNewVersion();
   }
 
   // Use a non-default output format

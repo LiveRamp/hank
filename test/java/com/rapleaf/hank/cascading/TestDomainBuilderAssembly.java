@@ -17,12 +17,10 @@
 package com.rapleaf.hank.cascading;
 
 import java.io.IOException;
-import java.util.Properties;
 
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
-import cascading.flow.FlowConnector;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
@@ -70,10 +68,9 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
     coll.close();
   }
 
-  private Pipe getPipe(DomainBuilderTap outputTap) {
+  private Pipe getPipe() {
     Pipe pipe = new Pipe("pipe");
     pipe = new Each(pipe, new Fields("key", "value"), new Identity());
-    pipe = new DomainBuilderAssembly(pipe, "key", "value");
     return pipe;
   }
 
@@ -83,14 +80,13 @@ public class TestDomainBuilderAssembly extends HadoopTestCase {
   }
 
   public void testMain() throws IOException {
-    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A);
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfiguration(), OUTPUT_PATH_A);
 
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
-    DomainBuilderTap outputTap = new DomainBuilderTap("key", "value", properties);
+    Pipe pipe = getPipe();
 
-    Pipe pipe = getPipe(outputTap);
-
-    new FlowConnector(properties.setCascadingProperties(new Properties())).connect(inputTap, outputTap, pipe).complete();
+    CascadingDomainBuilder.buildDomain(inputTap, pipe, "key", "value", properties);
 
     // Check output
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_DIR + "/" + DOMAIN_A_NAME, 0, "0.base"));
