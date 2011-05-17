@@ -1,13 +1,13 @@
 package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.ui.URLEnc;
 
 public class RingGroupController extends Controller {
 
@@ -35,9 +35,9 @@ public class RingGroupController extends Controller {
     RingGroupConfig ringGroupConfig;
     String encodedRingGroupName = req.getParameter("g");
 
-    ringGroupConfig = coordinator.getRingGroupConfig(URLDecoder.decode(encodedRingGroupName));
+    ringGroupConfig = coordinator.getRingGroupConfig(URLEnc.decode(encodedRingGroupName));
     if (ringGroupConfig == null) {
-      throw new IOException("couldn't find any ring group called " + URLDecoder.decode(encodedRingGroupName));
+      throw new IOException("couldn't find any ring group called " + URLEnc.decode(encodedRingGroupName));
     }
     ringGroupConfig.addRing(ringGroupConfig.getRingConfigs().size() + 1);
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);

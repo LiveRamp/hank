@@ -53,8 +53,6 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private TServer server;
   private boolean goingDown = false;
   private final PartDaemonAddress hostAddress;
-  private final Object mutex = new Object();
-
   private final HostConfig hostConfig;
 
   private Thread updateThread;

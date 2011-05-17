@@ -2,7 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
-<%@page import="java.net.*"%>
+<%@page import="com.rapleaf.hank.ui.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -35,7 +35,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {
       %>
       <tr>
-        <td><a href="/domain_group.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
+        <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
         <td>todo</td>
         <td><%= domainConfig.getLatestVersion() == null ? "" : domainConfig.getLatestVersion().getVersionNumber() %></td>
       </tr>
