@@ -36,7 +36,7 @@ public class TestZkDomainConfig extends ZkTestCase {
     assertTrue(dc.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(dc.getVersions().isEmpty());
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
-    assertFalse(dc.isNewVersionOpen());
+    assertNull(dc.getOpenVersionNumber());
   }
 
   public void testLoad() throws Exception {
@@ -50,32 +50,32 @@ public class TestZkDomainConfig extends ZkTestCase {
     assertTrue(dc.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(dc.getVersions().isEmpty());
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
-    assertFalse(dc.isNewVersionOpen());
+    assertNull(dc.getOpenVersionNumber());
   }
 
   public void testVersioning() throws Exception {
     ZkDomainConfig dc = ZkDomainConfig.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER);
 
     assertTrue(dc.getVersions().isEmpty());
-    assertFalse(dc.isNewVersionOpen());
+    assertNull(dc.getOpenVersionNumber());
 
     Integer vNum = dc.openNewVersion();
     assertEquals(Integer.valueOf(0), vNum);
-    assertTrue(dc.isNewVersionOpen());
+    assertEquals(vNum, dc.getOpenVersionNumber());
 
     assertTrue(dc.closeNewVersion());
     assertEquals(1, dc.getVersions().size());
-    assertFalse(dc.isNewVersionOpen());
+    assertNull(dc.getOpenVersionNumber());
 
     vNum = dc.openNewVersion();
     assertEquals(Integer.valueOf(1), vNum);
-    assertTrue(dc.isNewVersionOpen());
+    assertEquals(vNum, dc.getOpenVersionNumber());
 
     vNum = dc.openNewVersion();
     assertNull(vNum);
 
     dc.cancelNewVersion();
-    assertFalse(dc.isNewVersionOpen());
+    assertNull(dc.getOpenVersionNumber());
     assertEquals(1, dc.getVersions().size());
   }
 

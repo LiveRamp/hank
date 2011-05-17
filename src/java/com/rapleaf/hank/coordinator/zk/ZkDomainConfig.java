@@ -16,10 +16,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -33,11 +35,14 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainConfig implements DomainConfig {
+  private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
+
   private static final String KEY_NUM_PARTS = "num_parts";
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
-  private static final String KEY_VERSION = "version";
+  private static final String KEY_VERSIONS = "versions";
+  private static final String OPEN_VERSION_KEY = "/open_version";
 
   private String name;
   private int numParts;
@@ -79,7 +84,7 @@ public class ZkDomainConfig implements DomainConfig {
     zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-//    zk.create(domainPath + "/" + KEY_VERSION, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkDomainConfig(zk, domainPath);
   }
@@ -116,7 +121,7 @@ public class ZkDomainConfig implements DomainConfig {
   @Override
   public int getVersion() {
     try {
-      return zk.getInt(domainPath + '/' + KEY_VERSION);
+      return zk.getInt(domainPath + '/' + KEY_VERSIONS);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -138,7 +143,7 @@ public class ZkDomainConfig implements DomainConfig {
   public int newVersion() throws IOException {
     int nextVersion = getVersion() + 1;
     try {
-      zk.setInt(domainPath + "/" + KEY_VERSION, nextVersion);
+      zk.setInt(domainPath + "/" + KEY_VERSIONS, nextVersion);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -170,31 +175,79 @@ public class ZkDomainConfig implements DomainConfig {
 
   @Override
   public void cancelNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-
+    try {
+      zk.deleteIfExists(domainPath + OPEN_VERSION_KEY);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public boolean closeNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    try {
+      zk.create(domainPath + "/versions/version_" + getOpenVersionNumber(), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      // hmm... bad.
+      throw new IOException(e);
+    }
+
+    try {
+      zk.delete(domainPath + OPEN_VERSION_KEY, -1);
+    } catch (Exception e) {
+      // REALLY bad!
+      throw new IOException(e);
+    }
+    return true;
   }
 
   @Override
-  public SortedSet<DomainVersionConfig> getVersions() {
-    return new TreeSet<DomainVersionConfig>();
+  public SortedSet<DomainVersionConfig> getVersions() throws IOException {
+    TreeSet<DomainVersionConfig> result = new TreeSet<DomainVersionConfig>();
+
+    try {
+      List<String> children = zk.getChildren(domainPath + "/" + KEY_VERSIONS, false);
+      for (String child : children) {
+        result.add(new ZkDomainVersionConfig(zk, child));
+      }
+      return result;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
-  public boolean isNewVersionOpen() {
-    // TODO Auto-generated method stub
-    return false;
+  public Integer getOpenVersionNumber() throws IOException {
+    try {
+      if (zk.exists(domainPath + OPEN_VERSION_KEY, false) != null) {
+        return zk.getInt(domainPath + OPEN_VERSION_KEY);
+      }
+      return null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public Integer openNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    Integer nextVerNum = null;
+
+    if (getVersions().isEmpty()) {
+      nextVerNum = 0;
+    } else {
+      DomainVersionConfig last = getVersions().last();
+      nextVerNum = last.getVersionNumber() + 1;
+    }
+
+    try {
+      zk.create(domainPath + OPEN_VERSION_KEY, nextVerNum, CreateMode.EPHEMERAL);
+    } catch (Exception e) {
+      // pretty good chance that someone beat us to the punch.
+      LOG.warn("Got an exception when trying to open a version for domain "
+          + domainPath, e);
+      return null;
+    }
+
+    return nextVerNum;
   }
 
   @Override
