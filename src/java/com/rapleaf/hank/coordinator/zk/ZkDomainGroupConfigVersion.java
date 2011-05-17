@@ -30,7 +30,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -40,7 +40,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroupConfig domainGroupConfig;
   private final int versionNumber;
-  private final HashSet<DomainConfigVersion> domainConfigVersions;
+  private final HashSet<DomainGroupVersionDomainVersion> domainConfigVersions;
 
   public ZkDomainGroupConfigVersion(ZooKeeperPlus zk, String versionPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException, IOException {
     this.domainGroupConfig = domainGroupConfig;
@@ -57,7 +57,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     }
 
     List<String> children = zk.getChildren(versionPath, false);
-    domainConfigVersions = new HashSet<DomainConfigVersion>();
+    domainConfigVersions = new HashSet<DomainGroupVersionDomainVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
         domainConfigVersions.add(new ZkDomainConfigVersion(zk,
@@ -68,7 +68,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
   }
 
   @Override
-  public Set<DomainConfigVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
     return Collections.unmodifiableSet(domainConfigVersions);
   }
 

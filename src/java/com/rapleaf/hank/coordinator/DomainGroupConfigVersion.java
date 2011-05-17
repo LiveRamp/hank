@@ -27,5 +27,5 @@ public interface DomainGroupConfigVersion {
 
   public DomainGroupConfig getDomainGroupConfig();
 
-  public Set<DomainConfigVersion> getDomainConfigVersions();
+  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions();
 }

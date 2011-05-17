@@ -3,6 +3,7 @@ package com.rapleaf.hank.coordinator.in_memory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.yaml.snakeyaml.Yaml;
 
@@ -18,7 +19,6 @@ public class MemDomainConfig implements DomainConfig {
   private final String storageEngineFactoryName;
   private final String storageEngineOptions;
   private final String partitionerName;
-  private int version;
   private final String name;
 
   public MemDomainConfig(String name,
@@ -67,8 +67,7 @@ public class MemDomainConfig implements DomainConfig {
     return "MemDomainConfig [name=" + name + ", numParts=" + numParts
         + ", partitionerName=" + partitionerName
         + ", storageEngineFactoryName=" + storageEngineFactoryName
-        + ", storageEngineOptions=" + storageEngineOptions + ", version="
-        + version + "]";
+        + ", storageEngineOptions=" + storageEngineOptions + "]";
   }
 
   @Override
@@ -99,8 +98,7 @@ public class MemDomainConfig implements DomainConfig {
 
   @Override
   public SortedSet<DomainVersionConfig> getVersions() {
-    // TODO Auto-generated method stub
-    return null;
+    return new TreeSet<DomainVersionConfig>();
   }
 
   @Override

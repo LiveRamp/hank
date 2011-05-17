@@ -28,14 +28,6 @@ DomainConfig domainConfig = coord.getDomainConfig(URLDecoder.decode(request.getP
 <table>
   <tr>
     <td>
-      Current version number:
-    </td>
-    <td>
-      <%= domainConfig.getVersion() %>
-    </td>
-  </tr>
-  <tr>
-    <td>
       Number of partitions:
     </td>
     <td>
@@ -76,6 +68,21 @@ DomainConfig domainConfig = coord.getDomainConfig(URLDecoder.decode(request.getP
       </textarea>
     </td>
   </tr>
+</table>
+
+<h3>Versions</h3>
+
+<table>
+  <tr>
+    <td>#</td>
+    <td>closed at</td>
+  </tr>
+  <% for (DomainVersionConfig version : domainConfig.getVersions()) { %>
+  <tr>
+    <td><%= version.getVersionNumber() %></td>
+    <td>todo</td>
+  </tr>
+  <% } %>
 </table>
 
 </body>

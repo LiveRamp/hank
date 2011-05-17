@@ -2,24 +2,24 @@ package com.rapleaf.hank.coordinator.in_memory;
 
 import java.util.Set;
 
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 
 public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion, Comparable<MemDomainGroupConfigVersion> {
 
-  private final Set<DomainConfigVersion> domainIdToVersion;
+  private final Set<DomainGroupVersionDomainVersion> domainIdToVersion;
   private final DomainGroupConfig parent;
   private final int v;
 
-  public MemDomainGroupConfigVersion(Set<DomainConfigVersion> x, DomainGroupConfig parent, int v) {
+  public MemDomainGroupConfigVersion(Set<DomainGroupVersionDomainVersion> x, DomainGroupConfig parent, int v) {
     this.domainIdToVersion = x;
     this.parent = parent;
     this.v = v;
   }
 
   @Override
-  public Set<DomainConfigVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
     return domainIdToVersion;
   }
 

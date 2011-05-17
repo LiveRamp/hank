@@ -27,7 +27,7 @@ import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -104,7 +104,7 @@ class UpdateManager implements IUpdateManager {
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
     DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
-    for (DomainConfigVersion dcv : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
+    for (DomainGroupVersionDomainVersion dcv : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
       DomainConfig domainConfig = dcv.getDomainConfig();
       StorageEngine engine = domainConfig.getStorageEngine();
 

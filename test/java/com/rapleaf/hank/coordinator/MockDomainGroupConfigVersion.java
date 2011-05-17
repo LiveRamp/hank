@@ -20,9 +20,9 @@ import java.util.Set;
 public class MockDomainGroupConfigVersion implements DomainGroupConfigVersion, Comparable {
   private final int versionNumber;
   private final DomainGroupConfig dgc;
-  private final Set<DomainConfigVersion> domainVersions;
+  private final Set<DomainGroupVersionDomainVersion> domainVersions;
 
-  public MockDomainGroupConfigVersion(Set<DomainConfigVersion> domainVersions,
+  public MockDomainGroupConfigVersion(Set<DomainGroupVersionDomainVersion> domainVersions,
       DomainGroupConfig dgc, int versionNumber) {
     this.domainVersions = domainVersions;
     this.dgc = dgc;
@@ -30,7 +30,7 @@ public class MockDomainGroupConfigVersion implements DomainGroupConfigVersion, C
   }
 
   @Override
-  public Set<DomainConfigVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
     return domainVersions;
   }
 

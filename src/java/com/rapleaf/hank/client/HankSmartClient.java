@@ -27,7 +27,7 @@ import org.apache.thrift.TException;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
@@ -86,7 +86,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
-    for (DomainConfigVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
+    for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
       DomainConfig domainConfig = domainConfigVersion.getDomainConfig();
       HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
       domainPartToHostList.put(domainGroupConfig.getDomainId(domainConfig.getName()), partitionToAddress);

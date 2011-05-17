@@ -36,7 +36,7 @@ import org.apache.thrift.transport.TTransportException;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
@@ -188,7 +188,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
-        return new MockDomainGroupConfigVersion(new HashSet<DomainConfigVersion>(Arrays.asList(new MockDomainConfigVersion(existentDomainConfig, 1))), this, 1);
+        return new MockDomainGroupConfigVersion(new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(new MockDomainConfigVersion(existentDomainConfig, 1))), this, 1);
       }
     };
     final MockRingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {

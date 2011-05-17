@@ -28,7 +28,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Partitioner</th>
       <th>Num Partitions</th>
       <th>Storage Engine</th>
-      <th>Version</th>
     </tr>
     <%
     for (DomainConfig domainConfig : coord.getDomainConfigs()) {
@@ -38,7 +37,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <td><%= domainConfig.getPartitioner().getClass().getSimpleName() %></td>
         <td class='centered'><%= domainConfig.getNumParts() %></td>
         <td><%= domainConfig.getStorageEngineFactoryClass().getName() %></td>
-        <td class='centered'><%= domainConfig.getVersion() %></td>
         <td><a href="/domain/delete?name=<%= URLEncoder.encode(domainConfig.getName()) %>">delete</a></td>
       </tr>
       <%

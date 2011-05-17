@@ -26,7 +26,7 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
@@ -94,7 +94,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
     };
     DomainConfig dc = new MockDomainConfig("myDomain", 5, partitioner, storageEngine, 1);
     MockDomainConfigVersion dcv = new MockDomainConfigVersion(dc, 1);
-    final MockDomainGroupConfigVersion dcgv = new MockDomainGroupConfigVersion(Collections.singleton((DomainConfigVersion)dcv), null, 1);
+    final MockDomainGroupConfigVersion dcgv = new MockDomainGroupConfigVersion(Collections.singleton((DomainGroupVersionDomainVersion)dcv), null, 1);
 
     final MockDomainGroupConfig dcg = new MockDomainGroupConfig("myDomainGroup") {
       @Override

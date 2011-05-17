@@ -1,9 +1,9 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 
-public class MemDomainConfigVersion implements DomainConfigVersion {
+public class MemDomainConfigVersion implements DomainGroupVersionDomainVersion {
   private final DomainConfig domainConfig;
   private final Integer ver;
 

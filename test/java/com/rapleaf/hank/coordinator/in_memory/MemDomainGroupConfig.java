@@ -13,7 +13,7 @@ import java.util.TreeSet;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -34,7 +34,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
 
   @Override
   public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
-    Set<DomainConfigVersion> x = new HashSet<DomainConfigVersion>();
+    Set<DomainGroupVersionDomainVersion> x = new HashSet<DomainGroupVersionDomainVersion>();
     for (Map.Entry<String, Integer> e : domainIdToVersion.entrySet()) {
       x.add(new MemDomainConfigVersion(getByName(e.getKey()), e.getValue()));
     }

@@ -29,7 +29,7 @@ import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -87,7 +87,7 @@ public class AddRing {
     DomainGroupConfig domainGroupConfig = ringGroup.getDomainGroupConfig();
     DomainGroupConfigVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
-    for (DomainConfigVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
+    for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
       DomainConfig domainConfig = domainConfigVersion.getDomainConfig();
 
       Queue<HostDomainConfig> q = new LinkedList<HostDomainConfig>();

@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -134,7 +134,7 @@ public class TestUpdateManager extends BaseTestCase {
       final StorageEngine mockStorageEngine) 
   {
     return new MockDomainGroupConfigVersion(Collections.singleton(
-        (DomainConfigVersion)new MockDomainConfigVersion(
+        (DomainGroupVersionDomainVersion)new MockDomainConfigVersion(
             new MockDomainConfig("myDomain",
                 1,
                 new ConstantPartitioner(),

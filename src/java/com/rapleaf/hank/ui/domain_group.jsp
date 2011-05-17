@@ -91,7 +91,9 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
   <li>
     v<%= dgcv.getVersionNumber() %>:
     <ul>
-      <% for (DomainConfigVersion dcv : dgcv.getDomainConfigVersions()) { %>
+      <%
+        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainConfigVersions()) {
+      %>
       <li><%=dcv.getDomainConfig().getName() %> @ v<%=dcv.getVersionNumber() %></li>
       <% } %>
     </ul>

@@ -16,7 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 
-public class MockDomainConfigVersion implements DomainConfigVersion {
+public class MockDomainConfigVersion implements DomainGroupVersionDomainVersion {
   private final int versionNumber;
   private final DomainConfig dc;
 

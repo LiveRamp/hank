@@ -24,7 +24,7 @@ import org.apache.thrift.TException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.DomainConfig;
-import com.rapleaf.hank.coordinator.DomainConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -60,7 +60,7 @@ class PartDaemonHandler implements Iface {
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
-    for (DomainConfigVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
+    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
       int domainId = domainGroupConfig.getDomainId(dcv.getDomainConfig().getName());
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
@@ -70,7 +70,7 @@ class PartDaemonHandler implements Iface {
     domains = new Domain[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainConfigVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
+    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
       DomainConfig domainConfig = dcv.getDomainConfig();
       StorageEngine eng = domainConfig.getStorageEngine();
 
