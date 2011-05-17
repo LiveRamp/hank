@@ -74,7 +74,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
         <%= domainConfig.getName() %>
       </td>
       <td>
-        <input type=text size=5 name="<%=domainConfig.getName() %>_version" value="<%= domainConfig.getVersion() %>"/>
+        <input type=text size=5 name="<%=domainConfig.getName() %>_version" value="<%= domainConfig.getVersions().last().getVersionNumber() %>"/>
       </td>
     </tr>
   <%
