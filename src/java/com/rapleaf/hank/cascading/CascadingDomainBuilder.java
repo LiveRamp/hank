@@ -17,6 +17,7 @@
 package com.rapleaf.hank.cascading;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 
 import cascading.flow.FlowConnector;
@@ -56,5 +57,16 @@ public class CascadingDomainBuilder {
     }
     // Close the new version
     domainConfig.closeNewVersion();
+  }
+
+  public static void buildDomain(Tap inputTap,
+      Pipe pipe,
+      String keyFieldName,
+      String valueFieldName,
+      DomainBuilderProperties properties,
+      Map<Object, Object> cascadingProperties) throws IOException {
+    Properties newCascadingProperties = new Properties();
+    newCascadingProperties.putAll(cascadingProperties);
+    buildDomain(inputTap, pipe, keyFieldName, valueFieldName, properties, newCascadingProperties);
   }
 }
