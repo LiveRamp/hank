@@ -52,16 +52,20 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
     Add a new host: <br/>
     <input type=hidden name="rgName" value="<%= ringGroup.getName() %>"/>
     <input type=hidden name="ringNum" value="<%= ring.getRingNumber() %>"/>
-    Host:
-    <input type=text size=30 name="hostname"/>
-    <br/>
-    Port:
-    <input type=text size=5 name="port" />
-    <br/>
+    <table>
+      <tr>
+        <td>Host:</td>
+        <td><input type=text size=30 name="hostname"/></td>
+      </tr>
+      <tr>
+        <td>Port:</td>
+        <td><input type=text size=5 name="port" /></td>
+      </tr>
+    </table>
     <input type=submit value="Add"/>
   </form>
 
-  <table width=500>
+  <table width=800>
     <tr>
       <td><strong>Address</strong></td>
       <td><strong>Status</strong></td>
