@@ -33,7 +33,8 @@ public class CascadingDomainBuilder {
       Pipe pipe,
       String keyFieldName,
       String valueFieldName,
-      DomainBuilderProperties properties) throws IOException {
+      DomainBuilderProperties properties,
+      Properties cascadingProperties) throws IOException {
 
     DomainBuilderTap outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, properties);
 
@@ -47,7 +48,7 @@ public class CascadingDomainBuilder {
     }
     // Try to build new version
     try {
-      new FlowConnector(properties.setCascadingProperties(new Properties())).connect(inputTap, outputTap, pipe).complete();
+      new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " + properties.getDomainName(), inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
       domainConfig.cancelNewVersion();
