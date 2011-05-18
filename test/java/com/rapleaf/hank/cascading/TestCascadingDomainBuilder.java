@@ -19,6 +19,7 @@ package com.rapleaf.hank.cascading;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -86,6 +87,10 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
 
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     Pipe pipe = getPipe();
+
+    // Simulate that another version is presetn
+    fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/0/other"));
+    fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/1/other"));
 
     CascadingDomainBuilder.buildDomain(inputTap, pipe, "key", "value", properties, new Properties());
 
