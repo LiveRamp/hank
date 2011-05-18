@@ -22,7 +22,6 @@ import java.util.UUID;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.FileAlreadyExistsException;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
@@ -37,10 +36,8 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
   @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
   throws IOException {
-    String outputPath = conf.get(CONF_PARAM_HANK_OUTPUT_PATH);
-    if (outputPath != null && fs.exists(new Path(outputPath))) {
-      throw new FileAlreadyExistsException("Output path already exists: " + outputPath);
-    }
+    // No need to check if the output path exists. It probably will since
+    // we store all versions in the same root directory.
   }
 
   @Override
