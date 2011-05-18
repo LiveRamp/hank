@@ -21,8 +21,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
@@ -78,7 +78,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   public void run() throws IOException {
-    hostConfig.setState(HostState.IDLE);
+    setState(HostState.IDLE);
 
     processCommands();
     while (!goingDown) {
@@ -89,7 +89,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
         break;
       }
     }
-    hostConfig.setState(HostState.OFFLINE);
+    setState(HostState.OFFLINE);
   }
 
   public void stop() throws IOException {
@@ -200,7 +200,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     serverThread = null;
   }
 
-  private void setState(HostState state) throws IOException {
+  private synchronized void setState(HostState state) throws IOException {
     hostConfig.setState(state);
   }
 
