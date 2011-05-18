@@ -2,10 +2,10 @@ package com.rapleaf.hank.coordinator.zk;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.rapleaf.hank.coordinator.DomainVersionConfig;
+import com.rapleaf.hank.coordinator.AbstractDomainVersionConfig;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainVersionConfig implements DomainVersionConfig {
+public class ZkDomainVersionConfig extends AbstractDomainVersionConfig {
   private final int versionNumber;
   private final long closedAt;
 
