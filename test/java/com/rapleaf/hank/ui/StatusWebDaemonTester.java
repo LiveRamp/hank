@@ -32,6 +32,7 @@ public class StatusWebDaemonTester extends TestCase {
     final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
     d0.openNewVersion();
     d0.closeNewVersion();
+    d0.openNewVersion();
     final DomainConfig d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     d1.openNewVersion();
     d1.closeNewVersion();
