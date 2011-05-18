@@ -67,10 +67,10 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
 
   <table width=800 class='table-blue'>
     <tr>
-      <td><strong>Address</strong></td>
-      <td><strong>Status</strong></td>
-      <td><strong>Cur. Cmd.</strong></td>
-      <td><strong>Queue</strong></td>
+      <th><strong>Address</strong></th>
+      <th><strong>Status</strong></th>
+      <th><strong>Cur. Cmd.</strong></th>
+      <th><strong>Queue</strong></th>
     </tr>
     <% for(HostConfig host : sortedHcs(ring.getHosts())) { %>
     <tr>

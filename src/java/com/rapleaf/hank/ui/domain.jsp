@@ -81,8 +81,8 @@ Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
 
 <table class='table-blue'>
   <tr>
-    <td>#</td>
-    <td>closed at</td>
+    <th>#</th>
+    <th>closed at</th>
   </tr>
   <%
   SortedSet<DomainVersionConfig> revSorted = new TreeSet<DomainVersionConfig>(new ReverseComparator<DomainVersionConfig>());
@@ -91,7 +91,7 @@ Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
   <% for (DomainVersionConfig version : revSorted) { %>
   <tr>
     <td><%= version.getVersionNumber() %></td>
-    <td><%= version.getClosedAt() %></td>
+    <td><%= new Date(version.getClosedAt()) %></td>
   </tr>
   <% } %>
 </table>
