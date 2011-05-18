@@ -73,8 +73,22 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     protected void finalizeOutput() throws IOException {
       // Move output files from tmp output path to final output path
       for (Integer partition : writtenPartitions) {
-        fs.rename(new Path(tmpOutputPath + "/" + partition),
-            new Path(finalOutputPath + "/" + partition));
+        // Move partition files
+        Path partitionPath = new Path(tmpOutputPath + "/" + partition);
+        FileStatus[] partitionFiles = fs.listStatus(partitionPath);
+        for (FileStatus partitionFile : partitionFiles) {
+          fs.rename(partitionFile.getPath(),
+              new Path(finalOutputPath + "/" + partition + "/" + partitionFile.getPath().getName()));
+        }
+        // Check that partition is now empty and delete it
+        partitionFiles = fs.listStatus(partitionPath);
+        if (partitionFiles != null) {
+          if (partitionFiles.length == 0) {
+            fs.delete(partitionPath);
+          } else {
+            throw new IOException("Temporary partition directory was not empty after moving its contents: " + partitionPath);
+          }
+        }
       }
       // Delete tmp output path
       Path tmpOutputPathObject = new Path(tmpOutputPath);
@@ -83,7 +97,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
         if (tmpOutputFiles.length == 0) {
           fs.delete(tmpOutputPathObject, true);
         } else {
-          throw new RuntimeException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
+          throw new IOException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
         }
       }
       // Delete tmp output path parent if empty
