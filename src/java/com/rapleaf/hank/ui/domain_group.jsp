@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
+<%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 
@@ -69,16 +70,32 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
     </tr>
   <%
   for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) {
+    if (!domainConfig.getVersions().isEmpty()) {
   %>
     <tr>
       <td>
         <%= domainConfig.getName() %>
       </td>
       <td>
-        <input type=text size=5 name="<%=domainConfig.getName() %>_version" value="<%= domainConfig.getVersions().last().getVersionNumber() %>"/>
+        <select name="<%=domainConfig.getName() %>_version">
+          <%
+          SortedSet<DomainVersionConfig> revSorted = new TreeSet<DomainVersionConfig>(new ReverseComparator<DomainVersionConfig>());
+          revSorted.addAll(domainConfig.getVersions());
+          %>
+          <%
+          boolean first = true;
+          for (DomainVersionConfig ver : revSorted) { 
+          %>
+          <option<%= first ? " selected" : "" %>><%= ver.getVersionNumber() %></option>
+          <%
+          first = false;
+          } 
+          %>
+        </select>
       </td>
     </tr>
   <%
+    }
   }
   %>
 

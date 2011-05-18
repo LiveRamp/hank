@@ -20,6 +20,8 @@ public class MemDomainConfig implements DomainConfig {
   private final String storageEngineOptions;
   private final String partitionerName;
   private final String name;
+  private final SortedSet<DomainVersionConfig> versions = new TreeSet<DomainVersionConfig>();
+  private Integer nextVer;
 
   public MemDomainConfig(String name,
       int numParts,
@@ -86,30 +88,37 @@ public class MemDomainConfig implements DomainConfig {
 
   @Override
   public void cancelNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    
+    nextVer = null;
   }
 
   @Override
   public boolean closeNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return false;
+    versions.add(new MemDomainVersionConfig(nextVer));
+    nextVer = null;
+    return true;
   }
 
   @Override
   public SortedSet<DomainVersionConfig> getVersions() {
-    return new TreeSet<DomainVersionConfig>();
+    return versions;
   }
 
   @Override
   public Integer getOpenVersionNumber() {
-    // TODO Auto-generated method stub
-    return null;
+    return nextVer;
   }
 
   @Override
   public Integer openNewVersion() throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    if (nextVer != null) {
+      return null;
+    }
+
+    nextVer = 0;
+    if (!getVersions().isEmpty()) {
+      nextVer = getVersions().last().getVersionNumber() + 1;
+    }
+
+    return nextVer;
   }
 }
