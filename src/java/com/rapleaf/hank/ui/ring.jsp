@@ -65,7 +65,7 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
     <input type=submit value="Add"/>
   </form>
 
-  <table width=800>
+  <table width=800 class='table-blue'>
     <tr>
       <td><strong>Address</strong></td>
       <td><strong>Status</strong></td>

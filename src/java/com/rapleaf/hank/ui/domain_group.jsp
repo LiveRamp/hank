@@ -28,7 +28,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
 <h1>Domain Group <%= domainGroupConfig.getName() %></h1>
 
 <h2>Domains + Ids</h2>
-<table width=300>
+<table width=300 class='table-blue'>
   <tr>
     <td><strong>Name</strong></td>
     <td><strong>ID</strong></td>
@@ -66,7 +66,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
 
   Add a new version:<br/>
 
-  <table>
+  <table class='table-blue'>
     <tr>
       <td>Domain</td>
       <td>Version (default: most recent)</td>

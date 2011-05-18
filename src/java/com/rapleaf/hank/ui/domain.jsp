@@ -79,7 +79,7 @@ No open version.
 Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
 <% } %>
 
-<table>
+<table class='table-blue'>
   <tr>
     <td>#</td>
     <td>closed at</td>
