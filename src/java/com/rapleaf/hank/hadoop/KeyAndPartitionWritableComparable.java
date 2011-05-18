@@ -23,7 +23,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
 
   public KeyAndPartitionWritableComparable(DomainConfig domainConfig, BytesWritable key) {
     this.keyAndPartitionWritable = new KeyAndPartitionWritable(domainConfig, key);
-    this.comparableKey = domainConfig.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()));
+    this.comparableKey = Bytes.byteBufferDeepCopy(domainConfig.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
   }
 
   public KeyAndPartitionWritable getKeyAndPartitionWritable() {
