@@ -37,14 +37,14 @@ import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator;
 
-public class TestDomainBuilderAssembly extends HadoopTestCase {
+public class TestCascadingDomainBuilder extends HadoopTestCase {
 
   private final String DOMAIN_A_NAME = "a";
   private final String INPUT_PATH_A = INPUT_DIR + "/" + DOMAIN_A_NAME;
   private final String OUTPUT_PATH_A = OUTPUT_DIR + "/" + DOMAIN_A_NAME;
 
-  public TestDomainBuilderAssembly() throws IOException {
-    super(TestDomainBuilderAssembly.class);
+  public TestCascadingDomainBuilder() throws IOException {
+    super(TestCascadingDomainBuilder.class);
   }
 
   @Override
