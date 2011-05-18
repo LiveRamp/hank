@@ -5,12 +5,11 @@
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
-<%@page import="java.net.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.decode(request.getParameter("n")));
+DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request.getParameter("n")));
 %>
 
 
@@ -28,10 +27,10 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
 <h1>Domain Group <%= domainGroupConfig.getName() %></h1>
 
 <h2>Domains + Ids</h2>
-<table width=300>
+<table width=300 class='table-blue'>
   <tr>
-    <td><strong>Name</strong></td>
-    <td><strong>ID</strong></td>
+    <th>Name</th>
+    <th>ID</th>
   </tr>
   <% for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) { %>
   <tr>
@@ -40,21 +39,24 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
   </tr>
   <% } %>
 </table>
+
+<% Set<DomainConfig> s = coord.getDomainConfigs(); %>
+<% s.removeAll(domainGroupConfig.getDomainConfigs()); %>
+
+<% if (!s.isEmpty()) { %>
 <form action="/domain_group/add_domain" method=post>
   <input type=hidden name="n" value="<%= domainGroupConfig.getName() %>"/>
 
   Add domain:
   <br/>
   <select name="d">
-  <% Set<DomainConfig> s = coord.getDomainConfigs(); %>
-  <% s.removeAll(domainGroupConfig.getDomainConfigs()); %>
   <% for (DomainConfig domainConfig : s) { %>
     <option><%= domainConfig.getName() %></option>
   <% } %>
   </select>
   <input type=submit value="Add"/>
 </form>
-
+<% } %>
 
 <h2>Versions</h2>
 
@@ -63,10 +65,10 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
 
   Add a new version:<br/>
 
-  <table>
+  <table class='table-blue'>
     <tr>
-      <td>Domain</td>
-      <td>Version (default: most recent)</td>
+      <th>Domain</th>
+      <th>Version (default: most recent)</th>
     </tr>
   <%
   for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) {

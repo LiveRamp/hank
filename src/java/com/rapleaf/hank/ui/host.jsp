@@ -17,8 +17,9 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.dec
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>Host: <%= host.getAddress() %></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+  <title>Host: <%= host.getAddress() %></title>
+  <jsp:include page="_head.jsp" />
 </head>
 <body>
 
@@ -30,7 +31,7 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.dec
 </h3>
 
 <div>
-  <h4>Status</h4>
+  <h3>Status</h3>
   Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
   Current command: <%= host.getCurrentCommand() %> <br/>
   Queued commands: <%= host.getCommandQueue() %> <br/>
@@ -66,11 +67,11 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.dec
     <input type=submit value="Add"/>
   </form>
 
-  <table>
-    <tr><td>domain</td><td>part #</td><td>cur ver #</td><td>upd ver #</td></tr>
+  <table class="table-blue">
+    <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th></tr>
   <% for (HostDomainConfig hdc : host.getAssignedDomains()) { %>
     <tr>
-      <td><%= ringGroup.getDomainGroupConfig().getDomainConfig(hdc.getDomainId()).getName() %></td>
+      <th><%= ringGroup.getDomainGroupConfig().getDomainConfig(hdc.getDomainId()).getName() %></td>
     </tr>
     <% for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) { %>
     <tr>

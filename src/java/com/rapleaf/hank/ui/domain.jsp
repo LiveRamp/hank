@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
+<%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
 <%@page import="org.yaml.snakeyaml.*"%>
 
@@ -72,15 +73,25 @@ DomainConfig domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParam
 
 <h3>Versions</h3>
 
-<table>
+<% if (domainConfig.getOpenVersionNumber() == null) { %>
+No open version.
+<% } else { %>
+Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
+<% } %>
+
+<table class='table-blue'>
   <tr>
-    <td>#</td>
-    <td>closed at</td>
+    <th>#</th>
+    <th>closed at</th>
   </tr>
-  <% for (DomainVersionConfig version : domainConfig.getVersions()) { %>
+  <%
+  SortedSet<DomainVersionConfig> revSorted = new TreeSet<DomainVersionConfig>(new ReverseComparator<DomainVersionConfig>());
+  revSorted.addAll(domainConfig.getVersions());
+  %>
+  <% for (DomainVersionConfig version : revSorted) { %>
   <tr>
     <td><%= version.getVersionNumber() %></td>
-    <td>todo</td>
+    <td><%= new Date(version.getClosedAt()) %></td>
   </tr>
   <% } %>
 </table>
