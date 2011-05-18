@@ -41,7 +41,16 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
   <div class='box-section'>
     <h3>Status</h3>
     <div class='box-section-content'>
-      overall status blob
+      <div>
+        <% if(ringGroup.isUpdating()) { %>
+        An update from version <%= ringGroup.getCurrentVersion() %> to <%= ringGroup.getUpdatingToVersion() %> is in progress.
+        <% } else { %>
+        No updates in progress.
+        <% } %>
+      </div>
+      <div>
+        Data Deployer is <%= ringGroup.isDataDeployerOnline() ? "online" : "offline" %>
+      </div>
     </div>
   </div>
 

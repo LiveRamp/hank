@@ -106,4 +106,10 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   }
 
+  @Override
+  public boolean isDataDeployerOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
 }

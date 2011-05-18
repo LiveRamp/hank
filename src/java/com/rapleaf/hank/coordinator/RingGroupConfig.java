@@ -62,6 +62,8 @@ public interface RingGroupConfig {
 
   public void releaseDataDeployer() throws IOException;
 
+  public boolean isDataDeployerOnline() throws IOException;
+
   public boolean isUpdating() throws IOException;
 
   public Integer getCurrentVersion() throws IOException;
