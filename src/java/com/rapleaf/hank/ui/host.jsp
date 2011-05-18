@@ -1,8 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
-<%@page import="java.net.*"%>
 
 <%
 
@@ -11,7 +11,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
 RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("r")));
-HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder.decode(request.getParameter("h"))));
+HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(request.getParameter("h"))));
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -24,9 +24,9 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLDecoder
 
 <h3>
   <a href="/ring_group.jsp?name=<%=ringGroup.getName() %>"><%= ringGroup.getName() %></a>
-  > 
+  &gt; 
   <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">ring <%= ring.getRingNumber() %></a>
-  > <%= host.getAddress() %>
+  &gt; <%= host.getAddress() %>
 </h3>
 
 <div>

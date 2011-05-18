@@ -25,8 +25,6 @@ public class TestZkDomainConfig extends ZkTestCase {
   private static final String STORAGE_ENGINE_FACTORY = ConstantStorageEngine.Factory.class.getName();
   private static final String STORAGE_ENGINE_OPTS = "---\n";
 
-  private final String DOMAIN_PATH = getRoot() + "/test_domain_config";
-
   public void testCreate() throws Exception {
     ZkDomainConfig dc = ZkDomainConfig.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     assertEquals("domain0", dc.getName());

@@ -185,9 +185,10 @@ public class ZkDomainConfig implements DomainConfig {
     TreeSet<DomainVersionConfig> result = new TreeSet<DomainVersionConfig>();
 
     try {
-      List<String> children = zk.getChildren(domainPath + "/" + KEY_VERSIONS, false);
+      String basePath = domainPath + "/" + KEY_VERSIONS;
+      List<String> children = zk.getChildren(basePath, false);
       for (String child : children) {
-        result.add(new ZkDomainVersionConfig(zk, child));
+        result.add(new ZkDomainVersionConfig(zk, basePath + "/" + child));
       }
       return result;
     } catch (Exception e) {

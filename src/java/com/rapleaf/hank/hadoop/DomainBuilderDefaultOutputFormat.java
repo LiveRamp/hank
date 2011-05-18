@@ -84,7 +84,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       FileStatus[] tmpOutputFiles = fs.listStatus(tmpOutputPathObject);
       if (tmpOutputFiles != null) {
         if (tmpOutputFiles.length == 0) {
-          fs.delete(tmpOutputPathObject);
+          fs.delete(tmpOutputPathObject, true);
         } else {
           throw new RuntimeException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
         }
@@ -93,7 +93,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       Path tmpOutputPathParent = tmpOutputPathObject.getParent();
       FileStatus[] tmpOutputParentFiles = fs.listStatus(tmpOutputPathParent);
       if (tmpOutputParentFiles != null && tmpOutputParentFiles.length == 0) {
-        fs.delete(tmpOutputPathParent);
+        fs.delete(tmpOutputPathParent, true);
       }
     }
   }

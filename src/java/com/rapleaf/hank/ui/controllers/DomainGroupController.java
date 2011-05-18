@@ -1,7 +1,6 @@
 package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.ui.URLEnc;
 
 public class DomainGroupController extends Controller {
 
@@ -42,7 +41,7 @@ public class DomainGroupController extends Controller {
   }
 
   private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    String dgName = URLDecoder.decode(req.getParameter("n"));
+    String dgName = URLEnc.decode(req.getParameter("n"));
 
     DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
 
@@ -51,14 +50,14 @@ public class DomainGroupController extends Controller {
       int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
       domainVersions.put(domainConfig.getName(), v);
     }
-    DomainGroupConfigVersion newVersion = dg.createNewVersion(domainVersions);
+    dg.createNewVersion(domainVersions);
 
     resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 
   private void doAddDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    String dgName = URLDecoder.decode(req.getParameter("n"));
-    String dName = URLDecoder.decode(req.getParameter("d"));
+    String dgName = URLEnc.decode(req.getParameter("n"));
+    String dName = URLEnc.decode(req.getParameter("d"));
     DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
     DomainConfig domainConfig = coordinator.getDomainConfig(dName);
 

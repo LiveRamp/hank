@@ -1,7 +1,6 @@
 package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
-import java.net.URLDecoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,6 +9,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.ui.URLEnc;
 
 public class RingController extends Controller {
 
@@ -36,7 +36,7 @@ public class RingController extends Controller {
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     RingConfig ringConfig = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
-    boolean deleted = ringConfig.removeHost(PartDaemonAddress.parse(URLDecoder.decode(req.getParameter("h"))));
+    ringConfig.removeHost(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));
   }

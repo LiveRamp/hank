@@ -522,13 +522,14 @@ public class IntegrationTest extends ZkTestCase {
           @Override
           public int compare(ByteBuffer arg0, ByteBuffer arg1) {
             final StorageEngine storageEngine = domainConfig.getStorageEngine();
-            final ByteBuffer keyL = storageEngine.getComparableKey(arg0);
+            final ByteBuffer keyL = Bytes.byteBufferDeepCopy(storageEngine.getComparableKey(arg0));
             final ByteBuffer keyR = storageEngine.getComparableKey(arg1);
-            return Bytes.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.limit());
+            return Bytes.compareBytesUnsigned(keyL.array(), keyL.position(), keyR.array(), keyR.position(), keyL.remaining());
           }
         });
         sortedAndPartitioned.put(partNum, part);
       }
+      LOG.trace(String.format("putting %s -> %s into partition %d", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue()), partNum));
       part.put(pair.getKey(), pair.getValue());
     }
 
@@ -539,6 +540,7 @@ public class IntegrationTest extends ZkTestCase {
       Writer writer = engine.getWriter(new LocalDiskOutputStreamFactory(domainRoot), part.getKey(), versionNumber, isBase);
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
+        LOG.trace(String.format("writing %s -> %s", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue())));
         writer.write(pair.getKey(), pair.getValue());
       }
       writer.close();

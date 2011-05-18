@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="java.util.*"%>
 
@@ -51,8 +52,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
       %>
       <tr>
-        <td><a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
-        <td><a href="domain_group.jsp?n=<%= URLEncoder.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
+        <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
+        <td><a href="domain_group.jsp?n=<%= URLEnc.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
         <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
       </tr>
       <%

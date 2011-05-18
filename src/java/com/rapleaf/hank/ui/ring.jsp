@@ -2,6 +2,7 @@
     pageEncoding="ISO-8859-1"%>
     
 
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
@@ -34,7 +35,7 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
 
   <jsp:include page="_top_nav.jsp" />
 
-  <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEncoder.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
+  <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
 
   <div>
     Ring status: <%= ring.getState() %> <br/>
@@ -69,7 +70,7 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
     </tr>
     <% for(HostConfig host : sortedHcs(ring.getHosts())) { %>
     <tr>
-      <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEncoder.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
+      <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
       <td><%= host.getState() %></td>
       <td><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>

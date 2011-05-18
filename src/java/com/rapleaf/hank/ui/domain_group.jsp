@@ -2,6 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 
@@ -33,7 +34,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
   </tr>
   <% for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) { %>
   <tr>
-    <td><a href="/domain.jsp?n=<%= URLEncoder.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
+    <td><a href="/domain.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
     <td><%= domainGroupConfig.getDomainId(domainConfig.getName()) %></td>
   </tr>
   <% } %>
@@ -74,7 +75,7 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLDecoder.deco
         <%= domainConfig.getName() %>
       </td>
       <td>
-        <input type=text size=5 name="<%=domainConfig.getName() %>_version" value="<%= domainConfig.getVersion() %>"/>
+        <input type=text size=5 name="<%=domainConfig.getName() %>_version" value="<%= domainConfig.getVersions().last().getVersionNumber() %>"/>
       </td>
     </tr>
   <%

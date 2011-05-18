@@ -2,14 +2,14 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
-<%@page import="java.net.*"%>
 <%@page import="org.yaml.snakeyaml.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-DomainConfig domainConfig = coord.getDomainConfig(URLDecoder.decode(request.getParameter("n")));
+DomainConfig domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("n")));
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 

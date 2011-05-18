@@ -17,6 +17,8 @@ package com.rapleaf.hank.storage;
 
 import java.nio.ByteBuffer;
 
+import com.rapleaf.hank.util.Bytes;
+
 public class Result {
   private boolean isFound = false;
 
@@ -50,5 +52,17 @@ public class Result {
 
   public ByteBuffer getBuffer() {
     return buffer;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder("Result [found=");
+    sb.append(isFound);
+    if (isFound) {
+      sb.append(", data=");
+      sb.append(Bytes.bytesToHexString(buffer));
+    }
+    sb.append("]");
+    return sb.toString();
   }
 }

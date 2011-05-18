@@ -48,7 +48,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
   <div class='box-section'>
   	<h3>Configuration</h3>
   	<div class='box-section-content'>
-      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%= URLEncoder.encode(ringGroup.getDomainGroupConfig().getName()) %>"><%= ringGroup.getDomainGroupConfig().getName() %></a>
+      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%= URLEnc.encode(ringGroup.getDomainGroupConfig().getName()) %>"><%= ringGroup.getDomainGroupConfig().getName() %></a>
     </div>
   </div>
 
@@ -56,7 +56,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
   <div class='box-section'>
   <h3>Rings</h3>
   <div class='box-section-content'>
-  <a href="/ring_group/add_ring?g=<%= URLEncoder.encode(ringGroup.getName()) %>">Add a new ring group</a>
+  <a href="/ring_group/add_ring?g=<%= URLEnc.encode(ringGroup.getName()) %>">Add a new ring group</a>
   <table class='table-blue'>
     <tr>
       <th>#</th>
@@ -73,7 +73,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
       <td><%= ring.getVersionNumber() %></td>
       <td><%= ring.getUpdatingToVersionNumber() %></td>
       <td><%= ring.getHosts().size() %></td>
-      <td><a href="/ring.jsp?g=<%= URLEncoder.encode(ringGroup.getName()) %>&n=<%= ring.getRingNumber() %>">details</a></td>
+      <td><a href="/ring.jsp?g=<%= URLEnc.encode(ringGroup.getName()) %>&n=<%= ring.getRingNumber() %>">details</a></td>
     </tr>
     <% } %>
   </table>
@@ -90,7 +90,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
         <br/>
         <select name="d">
           <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
-          <option<%= request.getParameter("d") != null && URLDecoder.decode(request.getParameter("d")).equals(domainConfig.getName()) ? " selected" : "" %>><%= domainConfig.getName() %></option>
+          <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(domainConfig.getName()) ? " selected" : "" %>><%= domainConfig.getName() %></option>
           <% } %>
         </select>
         <br/>
@@ -119,7 +119,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
           } else if (dataFormat.equals("string")) {
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
-          HankResponse hankResponse = client.get(URLDecoder.decode(request.getParameter("d")), key);
+          HankResponse hankResponse = client.get(URLEnc.decode(request.getParameter("d")), key);
           if (hankResponse.isSet(HankResponse._Fields.XCEPTION)) {
             // uh oh!
           %>
