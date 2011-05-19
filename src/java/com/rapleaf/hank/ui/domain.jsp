@@ -75,9 +75,16 @@ DomainConfig domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParam
 
 <% if (domainConfig.getOpenVersionNumber() == null) { %>
 No open version.
+<form method="post" action="/domain/new_version">
+  <input type="hidden" name="n" value="<%= domainConfig.getName() %>"/>
+  You can force a new version to be created. Note that this will only write the metadata, not any actual data. You should only use this if you know what you're doing!<br/>
+  <input type="submit" value="I understand. Open and close a new version."/>
+</form>
 <% } else { %>
 Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
 <% } %>
+
+
 
 <table class='table-blue'>
   <tr>
