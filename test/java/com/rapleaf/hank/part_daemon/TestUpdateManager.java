@@ -21,15 +21,16 @@ import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -73,7 +74,7 @@ public class TestUpdateManager extends BaseTestCase {
       return new HostDomainConfig() {
         @Override
         public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
-          return Collections.singleton((HostDomainPartitionConfig)new HostDomainPartitionConfig() {
+          return Collections.singleton((HostDomainPartitionConfig)new AbstractHostDomainPartitionConfig() {
             @Override
             public void setUpdatingToDomainGroupVersion(Integer version)
             throws IOException {}
