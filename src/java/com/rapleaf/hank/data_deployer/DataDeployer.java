@@ -60,7 +60,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   }
 
   public void run() throws IOException {
-    LOG.info("Data Deployer Daemon for ring " + ringGroupName + " starting.");
+    LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " starting.");
     boolean claimedDataDeployer = false;
     try {
       ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
