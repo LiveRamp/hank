@@ -8,25 +8,23 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
+import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 
-public class MemRingConfig implements RingConfig {
-
-  private final int ringNum;
+public class MemRingConfig extends AbstractRingConfig {
   private RingState state;
   private Integer updatingToVersion;
   private Integer versionNumber;
   private Map<PartDaemonAddress, MemHostConfig> hostConfigs = new HashMap<PartDaemonAddress, MemHostConfig>();
 
-  public MemRingConfig(int ringNum) {
-    this.ringNum = ringNum;
+  public MemRingConfig(int ringNum, RingGroupConfig ringGroupConfig) {
+    super(ringNum, ringGroupConfig);
     state = RingState.DOWN;
   }
 
@@ -68,16 +66,6 @@ public class MemRingConfig implements RingConfig {
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig() {
-    throw new NotImplementedException();
-  }
-
-  @Override
-  public int getRingNumber() {
-    return ringNum;
-  }
-
-  @Override
   public RingState getState() throws IOException {
     return state;
   }
@@ -90,11 +78,6 @@ public class MemRingConfig implements RingConfig {
   @Override
   public Integer getVersionNumber() {
     return versionNumber;
-  }
-
-  @Override
-  public boolean isUpdatePending() {
-    return getUpdatingToVersionNumber() != null;
   }
 
   @Override

@@ -34,22 +34,20 @@ import com.rapleaf.hank.coordinator.RingState;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MRC extends MockRingConfig {
-    private final boolean updatePending;
     private final int curVer;
     private final int nextVer;
 
     public boolean updateCompleteCalled;
 
-    public MRC(int number, RingState state, boolean updatePending, int curVer, int nextVer, PartDaemonAddress... hosts) {
+    public MRC(int number,
+        RingState state,
+        boolean updatePending,
+        int curVer,
+        int nextVer,
+        PartDaemonAddress... hosts) {
       super(new LinkedHashSet<PartDaemonAddress>(Arrays.asList(hosts)), null, number, state);
-      this.updatePending = updatePending;
       this.curVer = curVer;
       this.nextVer = nextVer;
-    }
-
-    @Override
-    public boolean isUpdatePending() {
-      return updatePending;
     }
 
     @Override
@@ -71,9 +69,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     public Set<HostConfig> getHostsInState(HostState state) {
       return Collections.EMPTY_SET;
     }
-    
-  }
 
+  }
 
   private class MRG extends MockRingGroupConfig {
     private final int curVer;
@@ -126,7 +123,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownsNothingIfSomethingIsAlreadyDown() throws Exception {
-    for(RingState s : EnumSet.of(RingState.GOING_DOWN, RingState.COMING_UP, RingState.UPDATING, RingState.DOWN)) {
+    for (RingState s : EnumSet.of(RingState.GOING_DOWN, RingState.COMING_UP, RingState.UPDATING, RingState.DOWN)) {
       MRC r1 = new MRC(1, s, true, 1, 2);
       MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
       MRG rg = new MRG(1, 2, r1, r2);
@@ -214,7 +211,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
       @Override
       public Set<HostConfig> getHostsInState(HostState state) {
-        switch(state) {
+        switch (state) {
           case SERVING:
             return getHosts();
           case OFFLINE:

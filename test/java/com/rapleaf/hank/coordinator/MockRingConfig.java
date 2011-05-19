@@ -19,40 +19,27 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MockRingConfig implements RingConfig {
+public class MockRingConfig extends AbstractRingConfig {
 
   private RingState state;
-  private final int number;
-  private final RingGroupConfig rgc;
   private final Set<HostConfig> hosts;
   public HostCommand allCommanded;
   public Integer updatingToVersion;
 
   public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
+    super(number, rgc);
     this.hosts = new HashSet<HostConfig>();
     if (hosts != null) {
       for (PartDaemonAddress addy : hosts) {
         this.hosts.add(new MockHostConfig(addy));
       }
     }
-    this.rgc = rgc;
-    this.number = number;
     this.state = state;
   }
 
   @Override
   public Set<HostConfig> getHosts() {
     return hosts;
-  }
-
-  @Override
-  public RingGroupConfig getRingGroupConfig() {
-    return rgc;
-  }
-
-  @Override
-  public int getRingNumber() {
-    return number;
   }
 
   @Override
@@ -68,11 +55,6 @@ public class MockRingConfig implements RingConfig {
   @Override
   public Integer getUpdatingToVersionNumber() {
     return 0;
-  }
-
-  @Override
-  public boolean isUpdatePending() {
-    return false;
   }
 
   @Override

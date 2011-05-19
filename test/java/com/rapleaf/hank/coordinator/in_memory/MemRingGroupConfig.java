@@ -27,7 +27,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   @Override
   public RingConfig addRing(int ringNum) throws IOException {
-    MemRingConfig rc = new MemRingConfig(ringNum);
+    MemRingConfig rc = new MemRingConfig(ringNum, this);
     ringConfigs.put(ringNum, rc);
     return rc;
   }
