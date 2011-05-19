@@ -92,4 +92,12 @@ public interface RingConfig {
    * @throws IOException 
    */
   public boolean removeHost(PartDaemonAddress address) throws IOException;
+
+  /**
+   * Get the set of partition IDs that are not currently assigned to a host.
+   * @param domainConfig
+   * @return
+   * @throws IOException 
+   */
+  public Set<Integer> getUnassignedPartitions(DomainConfig domainConfig) throws IOException;
 }

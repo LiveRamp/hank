@@ -1,7 +1,10 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public abstract class AbstractRingConfig implements RingConfig {
@@ -75,5 +78,27 @@ public abstract class AbstractRingConfig implements RingConfig {
   @Override
   public final boolean isUpdatePending() {
     return getUpdatingToVersionNumber() != null;
+  }
+
+  @Override
+  public Set<Integer> getUnassignedPartitions(DomainConfig domainConfig) throws IOException {
+    Integer domainId = getRingGroupConfig().getDomainGroupConfig().getDomainId(domainConfig.getName());
+
+    Set<Integer> unassignedParts = new HashSet<Integer>();
+    for (int i = 0; i < domainConfig.getNumParts(); i++) {
+      unassignedParts.add(i);
+    }
+
+    for (HostConfig hc : getHosts()) {
+      HostDomainConfig hdc = hc.getDomainById(domainId);
+      if (hdc == null) {
+        continue;
+      }
+      for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+        unassignedParts.remove(hdpc.getPartNum());
+      }
+    }
+
+    return unassignedParts;
   }
 }

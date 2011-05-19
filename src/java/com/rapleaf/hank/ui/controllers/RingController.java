@@ -3,7 +3,6 @@ package com.rapleaf.hank.ui.controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -14,7 +13,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -55,20 +53,13 @@ public class RingController extends Controller {
     RingConfig ringConfig = rgc.getRingConfig(ringNum);
 
     for (DomainConfig dc : rgc.getDomainGroupConfig().getDomainConfigs()) {
+      Set<Integer> unassignedParts = ringConfig.getUnassignedPartitions(dc);
       Integer domainId = rgc.getDomainGroupConfig().getDomainId(dc.getName());
-
-      Set<Integer> unassignedParts = new HashSet<Integer>();
-      for (int i = 0; i < dc.getNumParts(); i++) {
-        unassignedParts.add(i);
-      }
 
       for (HostConfig hc : ringConfig.getHosts()) {
         HostDomainConfig hdc = hc.getDomainById(domainId);
         if (hdc == null) {
           hdc = hc.addDomain(domainId);
-        }
-        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
-          unassignedParts.remove(hdpc.getPartNum());
         }
       }
 
