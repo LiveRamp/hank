@@ -17,7 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
-public class MockHostDomainPartitionConfig implements HostDomainPartitionConfig {
+public class MockHostDomainPartitionConfig extends AbstractHostDomainPartitionConfig {
 
   private final int partNum;
   private final int curVer;

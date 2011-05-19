@@ -20,9 +20,9 @@ import java.io.IOException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-public class ZkHostDomainPartitionConfig implements HostDomainPartitionConfig {
+public class ZkHostDomainPartitionConfig extends AbstractHostDomainPartitionConfig {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private final String path;
