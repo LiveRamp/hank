@@ -88,7 +88,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     Pipe pipe = getPipe();
 
-    // Simulate that another version is presetn
+    // Simulate that another version is present
     fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/0/other"));
     fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/1/other"));
 
