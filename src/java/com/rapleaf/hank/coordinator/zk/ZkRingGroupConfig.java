@@ -259,4 +259,13 @@ public class ZkRingGroupConfig implements RingGroupConfig {
       throw new IOException(e);
     }
   }
+
+  @Override
+  public boolean isDataDeployerOnline() throws IOException {
+    try {
+      return zk.exists(dataDeployerOnlinePath, false) != null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }

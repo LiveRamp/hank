@@ -14,7 +14,6 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
 public class MemDomainConfig implements DomainConfig {
-
   private final int numParts;
   private final String storageEngineFactoryName;
   private final String storageEngineOptions;

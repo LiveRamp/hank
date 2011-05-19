@@ -98,4 +98,10 @@ public class MockRingGroupConfig implements RingGroupConfig {
   public RingConfig addRing(int ringNum) throws IOException {
     return null;
   }
+
+  @Override
+  public boolean isDataDeployerOnline() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
 }

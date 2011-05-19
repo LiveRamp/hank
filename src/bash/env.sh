@@ -1,7 +1,7 @@
 #!/bin/sh
 
 BINDIR=`dirname "$0"`
-CLASSPATH="$BINDIR/../build/tiamat.jar:$CLASSPATH"
+# CLASSPATH="$CLASSPATH"
 
 for i in `find $BINDIR/../lib -name "*.jar"`
 do

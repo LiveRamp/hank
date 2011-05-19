@@ -20,7 +20,7 @@ import java.io.IOException;
 /**
  * Info about a partition within a given HostDomain.
  */
-public interface HostDomainPartitionConfig {
+public interface HostDomainPartitionConfig extends Comparable<HostDomainPartitionConfig> {
   public int getPartNum();
   public Integer getCurrentDomainGroupVersion() throws IOException;
   public void setCurrentDomainGroupVersion(int version) throws IOException;
