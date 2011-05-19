@@ -72,8 +72,7 @@ public class MemHostConfig implements HostConfig {
 
   @Override
   public HostDomainConfig getDomainById(int domainId) {
-    // TODO Auto-generated method stub
-    return null;
+    return hdcs.get(domainId);
   }
 
   @Override

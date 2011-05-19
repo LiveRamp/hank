@@ -90,5 +90,12 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
     <% } %>
   </table>
 
+  <h3>Utilities</h3>
+  <form action="/ring/assign_all" method=post>
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="submit" value="Randomly assign all unassigned partitions"/>
+  </form>
+
 </body>
 </html>
