@@ -76,7 +76,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     create(dg_root + "/versions/v2/domain0", "1");
     create(dg_root + "/versions/v2/domain1", "1");
 
-    ZkDomainGroupConfig dgc = new ZkDomainGroupConfig(getZk(), dg_root);
+    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root);
 
     assertEquals(1, dgc.getVersions().size());
     assertEquals(1, ((DomainGroupConfigVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
@@ -90,7 +90,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   }
 
   public void testDomainsAndListener() throws Exception {
-    DomainGroup dgc = ZkDomainGroupConfig.create(getZk(), dg_root, "myDomainGroup");
+    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup");
     MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
     dgc.setListener(listener);
     assertNull(listener.calledWith);

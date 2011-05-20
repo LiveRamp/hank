@@ -132,8 +132,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   private final Map<String, ZkDomain> domainConfigsByName =
     new HashMap<String, ZkDomain>();;
-  private final Map<String, ZkDomainGroupConfig> domainGroupConfigs =
-    new HashMap<String, ZkDomainGroupConfig>();
+  private final Map<String, ZkDomainGroup> domainGroupConfigs =
+    new HashMap<String, ZkDomainGroup>();
   private final Map<String, ZkRingGroupConfig> ringGroupConfigs =
     new HashMap<String, ZkRingGroupConfig>();
 
@@ -233,9 +233,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     synchronized(domainGroupConfigs) {
       for (String domainGroupName : domainGroupNameList) {
         String dgPath = domainGroupsRoot + "/" + domainGroupName;
-        boolean isComplete = ZkDomainGroupConfig.isComplete(zk, dgPath);
+        boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
-          domainGroupConfigs.put(domainGroupName, new ZkDomainGroupConfig(zk, dgPath));
+          domainGroupConfigs.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
         } else {
           LOG.debug("Not opening domain group " + dgPath + " because it was incomplete."); 
         }
@@ -247,7 +247,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
-      ZkDomainGroupConfig dgc = domainGroupConfigs.get(new String(zk.getData(ringGroupPath, false, null)));
+      ZkDomainGroup dgc = domainGroupConfigs.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroupConfigs.put(ringGroupName, new ZkRingGroupConfig(zk, ringGroupPath, dgc));
     }
   }
@@ -270,7 +270,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
-    domainGroupConfigs.put(newDomainGroup.getName(), (ZkDomainGroupConfig) newDomainGroup);
+    domainGroupConfigs.put(newDomainGroup.getName(), (ZkDomainGroup) newDomainGroup);
   }
 
   @Override
@@ -302,7 +302,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
-      ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(zk, domainGroupsRoot, name);
+      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name);
       synchronized(domainGroupConfigs) {
         domainGroupConfigs.put(name, dgc);
       }
@@ -317,7 +317,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       String domainGroupName)
   throws IOException {
     try {
-      RingGroupConfig rg = ZkRingGroupConfig.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroupConfig) getDomainGroupConfig(domainGroupName));
+      RingGroupConfig rg = ZkRingGroupConfig.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroup) getDomainGroupConfig(domainGroupName));
       ringGroupConfigs.put(ringGroupName, (ZkRingGroupConfig) rg);
       return rg;
     } catch (Exception e) {

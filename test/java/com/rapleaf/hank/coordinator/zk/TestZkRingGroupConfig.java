@@ -61,7 +61,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   public void testVersionStuff() throws Exception {
-    ZkDomainGroupConfig dgc = (ZkDomainGroupConfig) ZkDomainGroupConfig.create(getZk(), getRoot() + "/domain_groups", "blah");
+    ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
     DomainGroupConfigVersion version = dgc.createNewVersion(Collections.EMPTY_MAP);
     RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
     assertNull(rgc.getCurrentVersion());
@@ -72,7 +72,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   public void testListener() throws Exception {
-    ZkDomainGroupConfig dgc = (ZkDomainGroupConfig) ZkDomainGroupConfig.create(getZk(), getRoot() + "/domain_groups", "blah");
+    ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
     dgc.createNewVersion(Collections.EMPTY_MAP);
     RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
     rgc.updateComplete();
@@ -106,7 +106,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   public void testClaimDataDeployer() throws Exception {
-    ZkDomainGroupConfig dgc = (ZkDomainGroupConfig) ZkDomainGroupConfig.create(getZk(), dg_root, "blah");
+    ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
     dgc.createNewVersion(Collections.EMPTY_MAP);
     RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), ring_group, dgc);
     create(ring_group + "/data_deployer_online");

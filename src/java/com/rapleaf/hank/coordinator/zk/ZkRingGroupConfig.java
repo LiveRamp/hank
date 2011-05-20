@@ -231,7 +231,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     }
   }
 
-  public static ZkRingGroupConfig create(ZooKeeperPlus zk, String path, ZkDomainGroupConfig domainGroupConfig) throws KeeperException, InterruptedException, IOException {
+  public static ZkRingGroupConfig create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
     if (domainGroupConfig.getVersions().isEmpty()) {
       throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
     }

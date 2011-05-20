@@ -37,12 +37,12 @@ import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupConfig implements DomainGroup {
+public class ZkDomainGroup implements DomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   private class StateChangeWatcher implements Watcher {
@@ -61,7 +61,7 @@ public class ZkDomainGroupConfig implements DomainGroup {
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeChildrenChanged:
-          listener.onDomainGroupChange(ZkDomainGroupConfig.this);
+          listener.onDomainGroupChange(ZkDomainGroup.this);
           try {
             register();
           } catch (Exception e) {
@@ -94,7 +94,7 @@ public class ZkDomainGroupConfig implements DomainGroup {
   private final String dgPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainGroupConfig(ZooKeeperPlus zk, String dgPath) throws InterruptedException, KeeperException, IOException {
+  public ZkDomainGroup(ZooKeeperPlus zk, String dgPath) throws InterruptedException, KeeperException, IOException {
     this.zk = zk;
     this.dgPath = dgPath;
     String[] toks = dgPath.split("/");
@@ -233,13 +233,13 @@ public class ZkDomainGroupConfig implements DomainGroup {
         + domainGroupConfigVersions + ", groupName=" + groupName + "]";
   }
 
-  public static ZkDomainGroupConfig create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
+  public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
     String domainGroupPath = dgRoot + "/" + domainGroupName;
     zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.setData(domainGroupPath, new byte[]{1}, -1);
-    return new ZkDomainGroupConfig(zk, domainGroupPath);
+    return new ZkDomainGroup(zk, domainGroupPath);
   }
 }
