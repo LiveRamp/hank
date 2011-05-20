@@ -32,17 +32,17 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
+public class ZkDomainGroupVersion implements DomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroup domainGroupConfig;
   private final int versionNumber;
   private final HashSet<DomainGroupVersionDomainVersion> domainConfigVersions;
 
-  public ZkDomainGroupConfigVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException, IOException {
+  public ZkDomainGroupVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException, IOException {
     this.domainGroupConfig = domainGroupConfig;
     String[] toks = versionPath.split("/");
     Matcher m = VERSION_NAME_PATTERN.matcher(toks[toks.length - 1]);
@@ -86,7 +86,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     return zk.exists(versionPath + "/" + COMPLETE_NODE_NAME, false) != null;
   }
 
-  public static DomainGroupConfigVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
+  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
     String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
     for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {
@@ -95,7 +95,7 @@ public class ZkDomainGroupConfigVersion implements DomainGroupConfigVersion {
     zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     // touch it again to notify watchers
     zk.setData(actualPath, new byte[1], -1);
-    return new ZkDomainGroupConfigVersion(zk, actualPath, domainGroupConfig);
+    return new ZkDomainGroupVersion(zk, actualPath, domainGroupConfig);
   }
 
   @Override

@@ -17,12 +17,12 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Set;
 
-public class MockDomainGroupConfigVersion implements DomainGroupConfigVersion, Comparable {
+public class MockDomainGroupVersion implements DomainGroupVersion, Comparable {
   private final int versionNumber;
   private final DomainGroup dgc;
   private final Set<DomainGroupVersionDomainVersion> domainVersions;
 
-  public MockDomainGroupConfigVersion(Set<DomainGroupVersionDomainVersion> domainVersions,
+  public MockDomainGroupVersion(Set<DomainGroupVersionDomainVersion> domainVersions,
       DomainGroup dgc, int versionNumber) {
     this.domainVersions = domainVersions;
     this.dgc = dgc;
@@ -46,7 +46,7 @@ public class MockDomainGroupConfigVersion implements DomainGroupConfigVersion, C
 
   @Override
   public int compareTo(Object arg0) {
-    MockDomainGroupConfigVersion other = (MockDomainGroupConfigVersion)arg0;
+    MockDomainGroupVersion other = (MockDomainGroupVersion)arg0;
     return Integer.valueOf(versionNumber).compareTo(Integer.valueOf(other.getVersionNumber()));
   }
 }

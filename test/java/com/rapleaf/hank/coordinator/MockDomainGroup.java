@@ -38,7 +38,7 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion getLatestVersion() {
+  public DomainGroupVersion getLatestVersion() {
     return null;
   }
 
@@ -48,7 +48,7 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
-  public SortedSet<DomainGroupConfigVersion> getVersions() {
+  public SortedSet<DomainGroupVersion> getVersions() {
     return null;
   }
 
@@ -66,7 +66,7 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion createNewVersion(
+  public DomainGroupVersion createNewVersion(
       Map<String, Integer> domainIdToVersion) {
     return null;
   }

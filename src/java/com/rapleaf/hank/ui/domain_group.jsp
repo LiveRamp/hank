@@ -123,7 +123,9 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
 
 
 <ul>
-  <% for (DomainGroupConfigVersion dgcv : domainGroupConfig.getVersions()) { %>
+  <%
+    for (DomainGroupVersion dgcv : domainGroupConfig.getVersions()) {
+  %>
   <li>
     v<%= dgcv.getVersionNumber() %>:
     <ul>

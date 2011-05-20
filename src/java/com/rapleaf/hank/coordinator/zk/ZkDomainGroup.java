@@ -39,7 +39,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroup implements DomainGroup {
@@ -72,9 +72,9 @@ public class ZkDomainGroup implements DomainGroup {
     }
   }
 
-  private final class DGCVComparator implements Comparator<DomainGroupConfigVersion> {
+  private final class DGCVComparator implements Comparator<DomainGroupVersion> {
     @Override
-    public int compare(DomainGroupConfigVersion arg0, DomainGroupConfigVersion arg1) {
+    public int compare(DomainGroupVersion arg0, DomainGroupVersion arg1) {
       int vLeft = arg0.getVersionNumber();
       int vRight = arg1.getVersionNumber();
       if (vLeft < vRight) {
@@ -89,8 +89,8 @@ public class ZkDomainGroup implements DomainGroup {
 
   private final String groupName;
   private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
-  private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
-    new TreeMap<Integer, DomainGroupConfigVersion>();
+  private final SortedMap<Integer, DomainGroupVersion> domainGroupConfigVersions = 
+    new TreeMap<Integer, DomainGroupVersion>();
   private final String dgPath;
   private final ZooKeeperPlus zk;
 
@@ -111,16 +111,16 @@ public class ZkDomainGroup implements DomainGroup {
     loadVersions();
   }
 
-  private SortedMap<Integer, DomainGroupConfigVersion> loadVersions()
+  private SortedMap<Integer, DomainGroupVersion> loadVersions()
   throws KeeperException, InterruptedException, IOException {
-    SortedMap<Integer, DomainGroupConfigVersion> dgcvs = 
-      new TreeMap<Integer, DomainGroupConfigVersion>();
+    SortedMap<Integer, DomainGroupVersion> dgcvs = 
+      new TreeMap<Integer, DomainGroupVersion>();
 
     List<String> versions = zk.getChildren(dgPath + "/versions", false);
     for (String version : versions) {
       String versionPath = dgPath + "/versions/" + version;
-      if (ZkDomainGroupConfigVersion.isComplete(versionPath, zk)) {
-        ZkDomainGroupConfigVersion ver = new ZkDomainGroupConfigVersion(zk, versionPath, this);
+      if (ZkDomainGroupVersion.isComplete(versionPath, zk)) {
+        ZkDomainGroupVersion ver = new ZkDomainGroupVersion(zk, versionPath, this);
         dgcvs.put(ver.getVersionNumber(), ver);
       }
     }
@@ -149,8 +149,8 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion getLatestVersion() throws IOException {
-    SortedMap<Integer, DomainGroupConfigVersion> vers;
+  public DomainGroupVersion getLatestVersion() throws IOException {
+    SortedMap<Integer, DomainGroupVersion> vers;
     try {
       vers = loadVersions();
     } catch (Exception e) {
@@ -163,8 +163,8 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   @Override
-  public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException {
-    TreeSet<DomainGroupConfigVersion> s = new TreeSet<DomainGroupConfigVersion>(new DGCVComparator());
+  public SortedSet<DomainGroupVersion> getVersions() throws IOException {
+    TreeSet<DomainGroupVersion> s = new TreeSet<DomainGroupVersion>(new DGCVComparator());
     try {
       s.addAll(loadVersions().values());
     } catch (Exception e) {
@@ -203,9 +203,9 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     try {
-      DomainGroupConfigVersion version = ZkDomainGroupConfigVersion.create(zk, dgPath + "/versions", domainIdToVersion, this);
+      DomainGroupVersion version = ZkDomainGroupVersion.create(zk, dgPath + "/versions", domainIdToVersion, this);
       domainGroupConfigVersions.put(version.getVersionNumber(), version);
       return version;
     } catch (Exception e) {

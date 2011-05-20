@@ -24,12 +24,12 @@ import junit.framework.TestCase;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
@@ -53,8 +53,8 @@ public class TestDataDeployer extends TestCase {
   public void testTriggersUpdates() throws Exception {
     final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
-      public DomainGroupConfigVersion getLatestVersion() {
-        return new MockDomainGroupConfigVersion(null, null, 2);
+      public DomainGroupVersion getLatestVersion() {
+        return new MockDomainGroupVersion(null, null, 2);
       }
     };
 
@@ -136,8 +136,8 @@ public class TestDataDeployer extends TestCase {
   public void testKeepsExistingUpdatesGoing() throws Exception {
     final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
-      public DomainGroupConfigVersion getLatestVersion() {
-        return new MockDomainGroupConfigVersion(null, null, 2);
+      public DomainGroupVersion getLatestVersion() {
+        return new MockDomainGroupVersion(null, null, 2);
       }
     };
 

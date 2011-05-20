@@ -31,7 +31,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -85,7 +85,7 @@ public class AddRing {
 
     // assign all the domains to the hosts
     DomainGroup domainGroupConfig = ringGroup.getDomainGroupConfig();
-    DomainGroupConfigVersion latestVersion = domainGroupConfig.getLatestVersion();
+    DomainGroupVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
     for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
       Domain domainConfig = domainConfigVersion.getDomainConfig();

@@ -51,7 +51,7 @@ import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.data_deployer.DataDeployer;
@@ -404,7 +404,7 @@ public class IntegrationTest extends ZkTestCase {
     versionMap.put("domain0", 1);
     versionMap.put("domain1", 2);
     LOG.info("----- stamping new dg1 version -----");
-    final DomainGroupConfigVersion newVersion = domainGroupConfig.createNewVersion(versionMap);
+    final DomainGroupVersion newVersion = domainGroupConfig.createNewVersion(versionMap);
 
     //    dumpZk();
 

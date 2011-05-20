@@ -57,18 +57,18 @@ public interface DomainGroup {
    * @return
    * @throws IOException 
    */
-  public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException;
+  public SortedSet<DomainGroupVersion> getVersions() throws IOException;
 
   /**
    * Convenience method to get the most recent version of the domain group.
    * @return
    * @throws IOException 
    */
-  public DomainGroupConfigVersion getLatestVersion() throws IOException;
+  public DomainGroupVersion getLatestVersion() throws IOException;
 
   public void setListener(DomainGroupChangeListener listener);
 
   public void addDomain(Domain domainConfig, int domainId) throws IOException;
 
-  public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException;
+  public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException;
 }

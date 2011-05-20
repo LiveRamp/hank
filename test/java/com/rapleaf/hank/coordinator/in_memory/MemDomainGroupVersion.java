@@ -4,15 +4,15 @@ import java.util.Set;
 
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 
-public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion, Comparable<MemDomainGroupConfigVersion> {
+public class MemDomainGroupVersion implements DomainGroupVersion, Comparable<MemDomainGroupVersion> {
 
   private final Set<DomainGroupVersionDomainVersion> domainIdToVersion;
   private final DomainGroup parent;
   private final int v;
 
-  public MemDomainGroupConfigVersion(Set<DomainGroupVersionDomainVersion> x, DomainGroup parent, int v) {
+  public MemDomainGroupVersion(Set<DomainGroupVersionDomainVersion> x, DomainGroup parent, int v) {
     this.domainIdToVersion = x;
     this.parent = parent;
     this.v = v;
@@ -34,7 +34,7 @@ public class MemDomainGroupConfigVersion implements DomainGroupConfigVersion, Co
   }
 
   @Override
-  public int compareTo(MemDomainGroupConfigVersion arg0) {
+  public int compareTo(MemDomainGroupVersion arg0) {
     return Integer.valueOf(v).compareTo(arg0.v);
   }
 }

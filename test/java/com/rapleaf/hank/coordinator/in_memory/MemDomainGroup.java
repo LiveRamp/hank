@@ -15,13 +15,13 @@ import org.apache.commons.lang.NotImplementedException;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 
 public class MemDomainGroup implements DomainGroup {
   private final String name;
   private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
-  private final SortedMap<Integer, DomainGroupConfigVersion> versions = new TreeMap<Integer, DomainGroupConfigVersion>();
+  private final SortedMap<Integer, DomainGroupVersion> versions = new TreeMap<Integer, DomainGroupVersion>();
 
   public MemDomainGroup(String name) {
     this.name = name;
@@ -33,13 +33,13 @@ public class MemDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     Set<DomainGroupVersionDomainVersion> x = new HashSet<DomainGroupVersionDomainVersion>();
     for (Map.Entry<String, Integer> e : domainIdToVersion.entrySet()) {
       x.add(new MemDomainGroupVersionDomainVersion(getByName(e.getKey()), e.getValue()));
     }
     int verNum = (versions.isEmpty() ? 0 : versions.lastKey()) + 1;
-    DomainGroupConfigVersion v = new MemDomainGroupConfigVersion(x, this, verNum);
+    DomainGroupVersion v = new MemDomainGroupVersion(x, this, verNum);
     versions.put(verNum, v);
     return v;
   }
@@ -69,7 +69,7 @@ public class MemDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupConfigVersion getLatestVersion() throws IOException {
+  public DomainGroupVersion getLatestVersion() throws IOException {
     if (versions.isEmpty()) {
       return null;
     }
@@ -82,8 +82,8 @@ public class MemDomainGroup implements DomainGroup {
   }
 
   @Override
-  public SortedSet<DomainGroupConfigVersion> getVersions() throws IOException {
-    return new TreeSet<DomainGroupConfigVersion>(versions.values());
+  public SortedSet<DomainGroupVersion> getVersions() throws IOException {
+    return new TreeSet<DomainGroupVersion>(versions.values());
   }
 
   @Override

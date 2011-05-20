@@ -18,7 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -62,7 +62,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
 
   public void testVersionStuff() throws Exception {
     ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
-    DomainGroupConfigVersion version = dgc.createNewVersion(Collections.EMPTY_MAP);
+    DomainGroupVersion version = dgc.createNewVersion(Collections.EMPTY_MAP);
     RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
     assertNull(rgc.getCurrentVersion());
     assertEquals(Integer.valueOf(version.getVersionNumber()), rgc.getUpdatingToVersion());

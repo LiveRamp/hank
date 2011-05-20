@@ -23,13 +23,13 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
@@ -131,10 +131,10 @@ public class TestUpdateManager extends BaseTestCase {
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
   }
 
-  private static DomainGroupConfigVersion getMockDomainGroupConfigVersion(
+  private static DomainGroupVersion getMockDomainGroupConfigVersion(
       final StorageEngine mockStorageEngine) 
   {
-    return new MockDomainGroupConfigVersion(Collections.singleton(
+    return new MockDomainGroupVersion(Collections.singleton(
         (DomainGroupVersionDomainVersion)new MockDomainGroupVersionDomainVersion(
             new MockDomain("myDomain",
                 1,
@@ -150,7 +150,7 @@ public class TestUpdateManager extends BaseTestCase {
       final StorageEngine mockStorageEngine) {
     DomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
-      public DomainGroupConfigVersion getLatestVersion() {
+      public DomainGroupVersion getLatestVersion() {
         return getMockDomainGroupConfigVersion(mockStorageEngine);
       }
     };
