@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -49,7 +49,7 @@ public class HostController extends Controller {
     RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
-    HostDomainConfig d = hc.getDomainById(dId);
+    HostDomain d = hc.getDomainById(dId);
     if (d == null) {
       d = hc.addDomain(dId);
     }

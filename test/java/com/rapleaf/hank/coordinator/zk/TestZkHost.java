@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
@@ -153,7 +153,7 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(0, c.getAssignedDomains().size());
 
     c.addDomain((byte) 0);
-    HostDomainConfig hostDomainConf = (HostDomainConfig) c.getAssignedDomains().toArray()[0];
+    HostDomain hostDomainConf = (HostDomain) c.getAssignedDomains().toArray()[0];
     assertEquals(0, hostDomainConf.getDomainId());
 
     assertEquals(0, c.getDomainById(0).getDomainId());

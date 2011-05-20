@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * Info about a given host's view of a domain.
  */
-public interface HostDomainConfig {
+public interface HostDomain {
   public int getDomainId();
 
   public Set<HostDomainPartitionConfig> getPartitions() throws IOException;

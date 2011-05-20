@@ -33,7 +33,7 @@ import org.apache.zookeeper.data.Stat;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -186,22 +186,22 @@ public class ZkHost implements Host {
   }
 
   @Override
-  public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+  public Set<HostDomain> getAssignedDomains() throws IOException {
     List<String> domains;
     try {
       domains = zk.getChildren(hostPath + PARTS_PATH_SEGMENT, false);
     } catch (Exception e) {
       throw new IOException(e);
     }
-    Set<HostDomainConfig> results = new HashSet<HostDomainConfig>();
+    Set<HostDomain> results = new HashSet<HostDomain>();
     for (String domain : domains) {
-      results.add(new ZkHostDomainConfig(zk, hostPath + PARTS_PATH_SEGMENT, Integer.parseInt(domain)));
+      results.add(new ZkHostDomain(zk, hostPath + PARTS_PATH_SEGMENT, Integer.parseInt(domain)));
     }
     return results;
   }
 
   @Override
-  public HostDomainConfig addDomain(int domainId) throws IOException {
+  public HostDomain addDomain(int domainId) throws IOException {
     try {
       if (zk.exists(hostPath + PARTS_PATH_SEGMENT + "/" + domainId, false) != null) {
         throw new IOException("Domain " + domainId + " is already assigned to this host!");
@@ -209,15 +209,15 @@ public class ZkHost implements Host {
     } catch (Exception e) {
       throw new IOException(e);
     }
-    HostDomainConfig hdc = ZkHostDomainConfig.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
+    HostDomain hdc = ZkHostDomain.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
     return hdc;
   }
 
   @Override
-  public HostDomainConfig getDomainById(int domainId) {
+  public HostDomain getDomainById(int domainId) {
     // TODO: this should be done with a map and caching
     try {
-      for (HostDomainConfig hdc : getAssignedDomains()) {
+      for (HostDomain hdc : getAssignedDomains()) {
         if (hdc.getDomainId() == domainId) {
           return hdc;
         }

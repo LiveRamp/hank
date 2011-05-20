@@ -27,7 +27,7 @@ public abstract class AbstractRingConfig implements RingConfig {
   public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
     Set<Host> results = new HashSet<Host>();
     for (Host hc : getHosts()) {
-      HostDomainConfig domainById = hc.getDomainById(domainId);
+      HostDomain domainById = hc.getDomainById(domainId);
       for (HostDomainPartitionConfig hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
           results.add(hc);
@@ -53,7 +53,7 @@ public abstract class AbstractRingConfig implements RingConfig {
   public Integer getOldestVersionOnHosts() throws IOException {
     Integer min = null;
     for (Host host : getHosts()) {
-      for (HostDomainConfig hdc : host.getAssignedDomains()) {
+      for (HostDomain hdc : host.getAssignedDomains()) {
         for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
           Integer ver = hdpc.getCurrentDomainGroupVersion();
           if (min == null || (ver != null && min > ver)) {
@@ -90,7 +90,7 @@ public abstract class AbstractRingConfig implements RingConfig {
     }
 
     for (Host hc : getHosts()) {
-      HostDomainConfig hdc = hc.getDomainById(domainId);
+      HostDomain hdc = hc.getDomainById(domainId);
       if (hdc == null) {
         continue;
       }

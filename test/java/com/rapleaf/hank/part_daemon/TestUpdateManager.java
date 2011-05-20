@@ -26,7 +26,7 @@ import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
@@ -70,8 +70,8 @@ public class TestUpdateManager extends BaseTestCase {
 
   private static final Host mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1)) {
     @Override
-    public HostDomainConfig getDomainById(int domainId) {
-      return new HostDomainConfig() {
+    public HostDomain getDomainById(int domainId) {
+      return new HostDomain() {
         @Override
         public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
           return Collections.singleton((HostDomainPartitionConfig)new AbstractHostDomainPartitionConfig() {

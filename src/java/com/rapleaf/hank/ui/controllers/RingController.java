@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -57,7 +57,7 @@ public class RingController extends Controller {
       Integer domainId = rgc.getDomainGroupConfig().getDomainId(dc.getName());
 
       for (Host hc : ringConfig.getHosts()) {
-        HostDomainConfig hdc = hc.getDomainById(domainId);
+        HostDomain hdc = hc.getDomainById(domainId);
         if (hdc == null) {
           hdc = hc.addDomain(domainId);
         }

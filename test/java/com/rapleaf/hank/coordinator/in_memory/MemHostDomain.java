@@ -4,14 +4,14 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 
-public class MemHostDomainConfig implements HostDomainConfig {
+public class MemHostDomain implements HostDomain {
   private final int domainId;
   private final Set<HostDomainPartitionConfig> parts = new HashSet<HostDomainPartitionConfig>();
 
-  public MemHostDomainConfig(int domainId) {
+  public MemHostDomain(int domainId) {
     this.domainId = domainId;
   }
 

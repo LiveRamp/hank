@@ -26,7 +26,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
@@ -62,8 +62,8 @@ public class TestDataDeployer extends TestCase {
 
     final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("locahost", 12345)) {
       @Override
-      public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
+      public Set<HostDomain> getAssignedDomains() throws IOException {
+        return Collections.singleton((HostDomain)new HostDomain() {
           @Override
           public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
 

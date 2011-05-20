@@ -29,7 +29,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
@@ -62,8 +62,8 @@ public class TestPartDaemonHandler extends BaseTestCase {
   private static final Host mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 12345)) {
 
     @Override
-    public HostDomainConfig getDomainById(int domainId) {
-      return new HostDomainConfig() {
+    public HostDomain getDomainById(int domainId) {
+      return new HostDomain() {
         @Override
         public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
 

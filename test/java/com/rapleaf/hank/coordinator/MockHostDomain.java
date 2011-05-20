@@ -6,11 +6,11 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-public class MockHostDomainConfig implements HostDomainConfig {
+public class MockHostDomain implements HostDomain {
   private final int domainId;
   private final Set<HostDomainPartitionConfig> parts = new HashSet<HostDomainPartitionConfig>();
 
-  public MockHostDomainConfig(int domainId, int... triples) {
+  public MockHostDomain(int domainId, int... triples) {
     this.domainId = domainId;
 
     for (int i = 0; i < triples.length; i += 3) {

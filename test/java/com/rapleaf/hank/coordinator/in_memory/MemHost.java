@@ -11,7 +11,7 @@ import java.util.Set;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -19,7 +19,7 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 public class MemHost implements Host {
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
-  private final Map<Integer, HostDomainConfig> hdcs = new HashMap<Integer, HostDomainConfig>();
+  private final Map<Integer, HostDomain> hdcs = new HashMap<Integer, HostDomain>();
   private final List<HostCommand> commandQueue = new LinkedList<HostCommand>();
 
   public MemHost(PartDaemonAddress address) {
@@ -27,8 +27,8 @@ public class MemHost implements Host {
   }
 
   @Override
-  public HostDomainConfig addDomain(int domainId) throws IOException {
-    MemHostDomainConfig hdc = new MemHostDomainConfig(domainId);
+  public HostDomain addDomain(int domainId) throws IOException {
+    MemHostDomain hdc = new MemHostDomain(domainId);
     hdcs.put(domainId, hdc);
     return hdc;
   }
@@ -55,8 +55,8 @@ public class MemHost implements Host {
   }
 
   @Override
-  public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-    return new HashSet<HostDomainConfig>(hdcs.values());
+  public Set<HostDomain> getAssignedDomains() throws IOException {
+    return new HashSet<HostDomain>(hdcs.values());
   }
 
   @Override
@@ -71,7 +71,7 @@ public class MemHost implements Host {
   }
 
   @Override
-  public HostDomainConfig getDomainById(int domainId) {
+  public HostDomain getDomainById(int domainId) {
     return hdcs.get(domainId);
   }
 

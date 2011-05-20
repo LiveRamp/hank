@@ -70,7 +70,9 @@ Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(re
 
   <table class="table-blue">
     <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th></tr>
-  <% for (HostDomainConfig hdc : host.getAssignedDomains()) { %>
+  <%
+    for (HostDomain hdc : host.getAssignedDomains()) {
+  %>
     <tr>
       <th><%= ringGroup.getDomainGroupConfig().getDomainConfig(hdc.getDomainId()).getName() %></td>
     </tr>

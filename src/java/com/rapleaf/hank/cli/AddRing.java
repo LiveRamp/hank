@@ -33,7 +33,7 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -90,13 +90,13 @@ public class AddRing {
     for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
       Domain domainConfig = domainConfigVersion.getDomainConfig();
 
-      Queue<HostDomainConfig> q = new LinkedList<HostDomainConfig>();
+      Queue<HostDomain> q = new LinkedList<HostDomain>();
       for (Host hostConfig : hostConfigs) {
         q.add(hostConfig.addDomain(domainGroupConfig.getDomainId(domainConfig.getName())));
       }
 
       for (int i = 0; i < domainConfig.getNumParts(); i++) {
-        HostDomainConfig hdc = q.poll();
+        HostDomain hdc = q.poll();
         hdc.addPartition(i, verNum);
         q.add(hdc);
       }

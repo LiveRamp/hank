@@ -31,7 +31,7 @@ public class MockHost implements Host {
   }
 
   @Override
-  public HostDomainConfig addDomain(int domainId) throws IOException {
+  public HostDomain addDomain(int domainId) throws IOException {
     return null;
   }
 
@@ -41,12 +41,12 @@ public class MockHost implements Host {
   }
 
   @Override
-  public Set<HostDomainConfig> getAssignedDomains() throws IOException {
+  public Set<HostDomain> getAssignedDomains() throws IOException {
     return null;
   }
 
   @Override
-  public HostDomainConfig getDomainById(int domainId) {
+  public HostDomain getDomainById(int domainId) {
     return null;
   }
 

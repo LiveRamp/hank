@@ -116,7 +116,7 @@ public interface Host {
    * @return
    * @throws IOException
    */
-  public Set<HostDomainConfig> getAssignedDomains() throws IOException;
+  public Set<HostDomain> getAssignedDomains() throws IOException;
 
   /**
    * Add a new domain to this host.
@@ -124,12 +124,12 @@ public interface Host {
    * @return
    * @throws IOException
    */
-  public HostDomainConfig addDomain(int domainId) throws IOException;
+  public HostDomain addDomain(int domainId) throws IOException;
 
   /**
    * Get the HostDomainConfig for the provided domainId.
    * @param domainId
    * @return
    */
-  public HostDomainConfig getDomainById(int domainId);
+  public HostDomain getDomainById(int domainId);
 }

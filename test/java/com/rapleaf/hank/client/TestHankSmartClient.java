@@ -39,7 +39,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainConfig;
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
@@ -226,8 +226,8 @@ public class TestHankSmartClient extends BaseTestCase {
   private Host getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
     MockHost hc = new MockHost(address) {
       @Override
-      public Set<HostDomainConfig> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
+      public Set<HostDomain> getAssignedDomains() throws IOException {
+        return Collections.singleton((HostDomain)new HostDomain() {
           @Override
           public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {
             return null;
