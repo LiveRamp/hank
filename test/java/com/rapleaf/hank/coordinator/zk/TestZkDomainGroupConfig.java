@@ -49,8 +49,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   private final String domains_root = getRoot() + "/domains";
 
   public void testLoad() throws Exception {
-    Domain d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    Domain d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
 //    create(domains_root + "/domain0");
 //    create(domains_root + "/domain0/num_parts", "1");
@@ -119,7 +119,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   }
 
   private Domain createDomain(String domainName) throws KeeperException, InterruptedException {
-    return ZkDomainConfig.create(getZk(),
+    return ZkDomain.create(getZk(),
         domains_root,
         domainName,
         1,

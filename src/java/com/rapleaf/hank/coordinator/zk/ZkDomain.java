@@ -34,8 +34,8 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainConfig implements Domain {
-  private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
+public class ZkDomain implements Domain {
+  private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   private static final String KEY_NUM_PARTS = "num_parts";
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
@@ -54,7 +54,7 @@ public class ZkDomainConfig implements Domain {
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainConfig(ZooKeeperPlus zk, String domainPath)
+  public ZkDomain(ZooKeeperPlus zk, String domainPath)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
@@ -77,7 +77,7 @@ public class ZkDomainConfig implements Domain {
     }
   }
 
-  public static ZkDomainConfig create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
+  public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
     String domainPath = domainsRoot + "/" + domainName;
     zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -86,7 +86,7 @@ public class ZkDomainConfig implements Domain {
     zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkDomainConfig(zk, domainPath);
+    return new ZkDomain(zk, domainPath);
   }
 
   @Override
@@ -258,7 +258,7 @@ public class ZkDomainConfig implements Domain {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    ZkDomainConfig other = (ZkDomainConfig) obj;
+    ZkDomain other = (ZkDomain) obj;
     if (domainPath == null) {
       if (other.domainPath != null)
         return false;

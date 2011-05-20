@@ -130,8 +130,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private Set<HankWatcher> myWatchers = new HashSet<HankWatcher>();
   private boolean isSessionExpired = false;
 
-  private final Map<String, ZkDomainConfig> domainConfigsByName =
-    new HashMap<String, ZkDomainConfig>();;
+  private final Map<String, ZkDomain> domainConfigsByName =
+    new HashMap<String, ZkDomain>();;
   private final Map<String, ZkDomainGroupConfig> domainGroupConfigs =
     new HashMap<String, ZkDomainGroupConfig>();
   private final Map<String, ZkRingGroupConfig> ringGroupConfigs =
@@ -223,7 +223,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      domainConfigsByName.put(domainName, new ZkDomainConfig(zk, domainsRoot + "/" + domainName));
+      domainConfigsByName.put(domainName, new ZkDomain(zk, domainsRoot + "/" + domainName));
     }
   }
 
@@ -285,7 +285,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       String partitionerName)
   throws IOException {
     try {
-      ZkDomainConfig domain = (ZkDomainConfig) ZkDomainConfig.create(zk,
+      ZkDomain domain = (ZkDomain) ZkDomain.create(zk,
           domainsRoot,
           domainName,
           numParts,
@@ -346,7 +346,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public boolean deleteDomainConfig(String domainName) throws IOException {
-    ZkDomainConfig domainConfig = domainConfigsByName.remove(domainName);
+    ZkDomain domainConfig = domainConfigsByName.remove(domainName);
     if (domainConfig == null) {
       return false;
     }
