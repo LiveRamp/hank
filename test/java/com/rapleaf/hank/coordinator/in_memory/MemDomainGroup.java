@@ -13,17 +13,17 @@ import java.util.TreeSet;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 
-public class MemDomainGroupConfig implements DomainGroup {
+public class MemDomainGroup implements DomainGroup {
   private final String name;
   private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
   private final SortedMap<Integer, DomainGroupConfigVersion> versions = new TreeMap<Integer, DomainGroupConfigVersion>();
 
-  public MemDomainGroupConfig(String name) {
+  public MemDomainGroup(String name) {
     this.name = name;
   }
 

@@ -14,7 +14,7 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 public class InMemoryCoordinator implements Coordinator {
 
   private final Map<String, MemDomain> domains = new HashMap<String, MemDomain>();
-  private final Map<String, MemDomainGroupConfig> domain_groups = new HashMap<String, MemDomainGroupConfig>();
+  private final Map<String, MemDomainGroup> domain_groups = new HashMap<String, MemDomainGroup>();
   private final Map<String, MemRingGroupConfig> ring_groups = new HashMap<String, MemRingGroupConfig>();
 
 
@@ -27,7 +27,7 @@ public class InMemoryCoordinator implements Coordinator {
 
   @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
-    MemDomainGroupConfig dgc = new MemDomainGroupConfig(name);
+    MemDomainGroup dgc = new MemDomainGroup(name);
     domain_groups.put(name, dgc);
     return dgc;
   }

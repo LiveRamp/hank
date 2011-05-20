@@ -19,7 +19,7 @@ import java.util.Collections;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
@@ -49,7 +49,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
     createRing(2);
     createRing(3);
 
-    MockDomainGroupConfig dgc = new MockDomainGroupConfig("myDomainGroup");
+    MockDomainGroup dgc = new MockDomainGroup("myDomainGroup");
     ZkRingGroupConfig ringGroupConf = new ZkRingGroupConfig(getZk(), ring_group, dgc);
 
     assertEquals("ring group name", "myRingGroup", ringGroupConf.getName());

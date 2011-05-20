@@ -20,10 +20,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-public class MockDomainGroupConfig implements DomainGroup {
+public class MockDomainGroup implements DomainGroup {
   private final String name;
 
-  public MockDomainGroupConfig(String name) {
+  public MockDomainGroup(String name) {
     this.name = name;
   }
 

@@ -28,7 +28,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
@@ -51,7 +51,7 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testTriggersUpdates() throws Exception {
-    final MockDomainGroupConfig domainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+    final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
         return new MockDomainGroupConfigVersion(null, null, 2);
@@ -134,7 +134,7 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
-    final MockDomainGroupConfig domainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+    final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
         return new MockDomainGroupConfigVersion(null, null, 2);

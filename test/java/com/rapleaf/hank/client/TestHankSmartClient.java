@@ -43,7 +43,7 @@ import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
 import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
@@ -167,7 +167,7 @@ public class TestHankSmartClient extends BaseTestCase {
     };
 
     final MockDomain existentDomainConfig = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
-    MockDomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+    MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>() {{
         put(1, existentDomainConfig);
       }};

@@ -28,7 +28,7 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHostConfig;
@@ -148,7 +148,7 @@ public class TestUpdateManager extends BaseTestCase {
 
   private DomainGroup getMockDomainGroupConfig(
       final StorageEngine mockStorageEngine) {
-    DomainGroup mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+    DomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
         return getMockDomainGroupConfigVersion(mockStorageEngine);

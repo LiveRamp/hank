@@ -15,11 +15,11 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 public class MemRingGroupConfig implements RingGroupConfig {
 
   private final String ringGroupName;
-  private final MemDomainGroupConfig memDomainGroupConfig;
+  private final MemDomainGroup memDomainGroupConfig;
   private Map<Integer, MemRingConfig> ringConfigs = new HashMap<Integer, MemRingConfig>();
 
   public MemRingGroupConfig(String ringGroupName,
-      MemDomainGroupConfig memDomainGroupConfig)
+      MemDomainGroup memDomainGroupConfig)
   {
     this.ringGroupName = ringGroupName;
     this.memDomainGroupConfig = memDomainGroupConfig;

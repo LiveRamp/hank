@@ -23,7 +23,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkDomainGroupConfigVersion extends ZkTestCase {
@@ -35,7 +35,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
   private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, 5);
   private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, 5);
 
-  private static final MockDomainGroupConfig mockDomainGroup = new MockDomainGroupConfig("myDomainGroup") {
+  private static final MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
     @Override
     public Domain getDomainConfig(int domainId) {
       switch (domainId) {
@@ -98,7 +98,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
     Map<String, Integer> map = new HashMap<String, Integer>();
     map.put("domain1", 2);
     map.put("domain4", 7);
-    DomainGroup dgc = new MockDomainGroupConfig("blah");
+    DomainGroup dgc = new MockDomainGroup("blah");
     DomainGroupConfigVersion ver = ZkDomainGroupConfigVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(2, ver.getDomainConfigVersions().size());
