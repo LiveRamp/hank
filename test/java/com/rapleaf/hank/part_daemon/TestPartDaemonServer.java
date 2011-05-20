@@ -59,7 +59,7 @@ public class TestPartDaemonServer extends BaseTestCase {
 
   private static final RingGroup mockRingGroupConfig = new MockRingGroup(null, "myRingGroup", null) {
     @Override
-    public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+    public Ring getRingForHost(PartDaemonAddress hostAddress) {
       return mockRingConfig;
     }
   };

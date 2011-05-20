@@ -38,7 +38,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
     boolean anyDownOrUpdating = false;
     Queue<Ring> downable = new LinkedList<Ring>();
 
-    for (Ring ring : ringGroup.getRingConfigs()) {
+    for (Ring ring : ringGroup.getRings()) {
       if (ring.isUpdatePending()) {
         anyUpdatesPending = true;
 

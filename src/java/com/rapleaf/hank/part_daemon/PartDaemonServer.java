@@ -66,7 +66,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
     ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
-    ringConfig = ringGroupConfig.getRingConfigForHost(hostAddress);
+    ringConfig = ringGroupConfig.getRingForHost(hostAddress);
     if (ringConfig == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
     }

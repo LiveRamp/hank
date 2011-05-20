@@ -50,7 +50,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+    public Ring getRingForHost(PartDaemonAddress hostAddress) {
       return mockRingConfig;
     }
   }

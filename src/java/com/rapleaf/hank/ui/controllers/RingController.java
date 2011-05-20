@@ -50,11 +50,11 @@ public class RingController extends Controller {
   protected void doAssignAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
-    Ring ringConfig = rgc.getRingConfig(ringNum);
+    Ring ringConfig = rgc.getRing(ringNum);
 
-    for (Domain dc : rgc.getDomainGroupConfig().getDomainConfigs()) {
+    for (Domain dc : rgc.getDomainGroup().getDomainConfigs()) {
       Set<Integer> unassignedParts = ringConfig.getUnassignedPartitions(dc);
-      Integer domainId = rgc.getDomainGroupConfig().getDomainId(dc.getName());
+      Integer domainId = rgc.getDomainGroup().getDomainId(dc.getName());
 
       for (Host hc : ringConfig.getHosts()) {
         HostDomain hdc = hc.getDomainById(domainId);
@@ -69,7 +69,7 @@ public class RingController extends Controller {
 
       List<Host> hosts = new ArrayList<Host>(ringConfig.getHosts());
       for (int i = 0; i < unassignedParts.size(); i++) {
-        hosts.get(i % hosts.size()).getDomainById(domainId).addPartition(i, rgc.getDomainGroupConfig().getLatestVersion().getVersionNumber());
+        hosts.get(i % hosts.size()).getDomainById(domainId).addPartition(i, rgc.getDomainGroup().getLatestVersion().getVersionNumber());
       }
     }
 
@@ -78,7 +78,7 @@ public class RingController extends Controller {
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
-    Ring ringConfig = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
+    Ring ringConfig = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     ringConfig.removeHost(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));
@@ -89,7 +89,7 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
     String hostname = req.getParameter("hostname");
     int portNum = Integer.parseInt(req.getParameter("port"));
-    coordinator.getRingGroupConfig(rgName).getRingConfig(ringNum).addHost(new PartDaemonAddress(hostname, portNum));
+    coordinator.getRingGroupConfig(rgName).getRing(ringNum).addHost(new PartDaemonAddress(hostname, portNum));
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 }

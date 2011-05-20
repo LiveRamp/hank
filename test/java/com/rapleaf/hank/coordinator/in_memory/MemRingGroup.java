@@ -44,7 +44,7 @@ public class MemRingGroup implements RingGroup {
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return memDomainGroupConfig;
   }
 
@@ -54,18 +54,18 @@ public class MemRingGroup implements RingGroup {
   }
 
   @Override
-  public Ring getRingConfig(int ringNumber) {
+  public Ring getRing(int ringNumber) {
     return ringConfigs.get(ringNumber);
   }
 
   @Override
-  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingForHost(PartDaemonAddress hostAddress) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Set<Ring> getRingConfigs() {
+  public Set<Ring> getRings() {
     return new HashSet<Ring>(ringConfigs.values());
   }
 

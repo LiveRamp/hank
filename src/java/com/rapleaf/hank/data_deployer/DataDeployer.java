@@ -70,7 +70,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         claimedDataDeployer = true;
 
         // we are now *the* data deployer for this ring group.
-        domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
+        domainGroupConfig = ringGroupConfig.getDomainGroup();
 
         // set a watch on the ring group
         ringGroupConfig.setListener(this);
@@ -126,7 +126,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         // set the ring group's updating version to the new domain group version
         // this will mark all the subordinate rings and hosts for update as well.
         LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
-        for (Ring ringConfig : ringGroup.getRingConfigs()) {
+        for (Ring ringConfig : ringGroup.getRings()) {
           for (Host hostConfig : ringConfig.getHosts()) {
             for (HostDomain hdc : hostConfig.getAssignedDomains()) {
               for (HostDomainPartition hdpc : hdc.getPartitions()) {

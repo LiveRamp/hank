@@ -72,18 +72,18 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    */
   public HankSmartClient(Coordinator coord, String ringGroupName) throws IOException, TException {
     ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
-    this.domainGroup = ringGroupConfig.getDomainGroupConfig();
+    this.domainGroup = ringGroupConfig.getDomainGroup();
 
     loadCache();
     ringGroupConfig.setListener(this);
-    for (Ring ringConfig : ringGroupConfig.getRingConfigs()) {
+    for (Ring ringConfig : ringGroupConfig.getRings()) {
       ringConfig.setStateChangeListener(this);
     }
   }
 
   private void loadCache() throws IOException, TException {
     // preprocess the config to create skeleton domain -> part -> [hosts] map
-    DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
+    DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
     for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
@@ -97,7 +97,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     // populate the skeleton, while also establishing connections to online hosts
-    for (Ring ringConfig : ringGroupConfig.getRingConfigs()) {
+    for (Ring ringConfig : ringGroupConfig.getRings()) {
       for (Host hostConfig : ringConfig.getHosts()) {
         for (HostDomain hdc : hostConfig.getAssignedDomains()) {
           Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());

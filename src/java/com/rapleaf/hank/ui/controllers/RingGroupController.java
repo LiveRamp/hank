@@ -39,7 +39,7 @@ public class RingGroupController extends Controller {
     if (ringGroupConfig == null) {
       throw new IOException("couldn't find any ring group called " + URLEnc.decode(encodedRingGroupName));
     }
-    ringGroupConfig.addRing(ringGroupConfig.getRingConfigs().size() + 1);
+    ringGroupConfig.addRing(ringGroupConfig.getRings().size() + 1);
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 

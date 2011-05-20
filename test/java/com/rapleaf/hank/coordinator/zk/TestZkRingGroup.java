@@ -52,11 +52,11 @@ public class TestZkRingGroup extends ZkTestCase {
     ZkRingGroup ringGroupConf = new ZkRingGroup(getZk(), ring_group, dgc);
 
     assertEquals("ring group name", "myRingGroup", ringGroupConf.getName());
-    assertEquals("num rings", 3, ringGroupConf.getRingConfigs().size());
-    assertEquals("domain group config", dgc, ringGroupConf.getDomainGroupConfig());
+    assertEquals("num rings", 3, ringGroupConf.getRings().size());
+    assertEquals("domain group config", dgc, ringGroupConf.getDomainGroup());
 
-    assertEquals("ring group for localhost:2", 2, ringGroupConf.getRingConfigForHost(new PartDaemonAddress("localhost", 2)).getRingNumber());
-    assertEquals("ring group by number", 3, ringGroupConf.getRingConfig(3).getRingNumber());
+    assertEquals("ring group for localhost:2", 2, ringGroupConf.getRingForHost(new PartDaemonAddress("localhost", 2)).getRingNumber());
+    assertEquals("ring group by number", 3, ringGroupConf.getRing(3).getRingNumber());
   }
 
   public void testVersionStuff() throws Exception {
@@ -100,8 +100,8 @@ public class TestZkRingGroup extends ZkTestCase {
       listener.wait(1000);
     }
     assertNotNull(listener.calledWith);
-    assertEquals(1, listener.calledWith.getRingConfigs().size());
-    assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRingConfigs().toArray()[0]).getRingNumber());
+    assertEquals(1, listener.calledWith.getRings().size());
+    assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRings().toArray()[0]).getRingNumber());
   }
 
   public void testClaimDataDeployer() throws Exception {

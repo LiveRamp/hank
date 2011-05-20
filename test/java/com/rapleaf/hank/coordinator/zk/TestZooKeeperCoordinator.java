@@ -89,7 +89,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     dg.createNewVersion(domainIdToVersion);
     RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
-    assertEquals(0, rg.getRingConfigs().size());
+    assertEquals(0, rg.getRings().size());
     assertEquals(Integer.valueOf(dg.getLatestVersion().getVersionNumber()), rg.getUpdatingToVersion());
     assertNull(rg.getCurrentVersion());
   }

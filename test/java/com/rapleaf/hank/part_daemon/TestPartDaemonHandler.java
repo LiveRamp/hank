@@ -123,7 +123,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
         assertEquals("myRingGroupName", ringGroupName);
         return new MockRingGroup(dcg, "myRingGroupName", null) {
           @Override
-          public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+          public Ring getRingForHost(PartDaemonAddress hostAddress) {
             return mockRingConfig;
           }
         };

@@ -33,7 +33,7 @@ public class MockRingGroup implements RingGroup {
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return dcg;
   }
 
@@ -43,17 +43,17 @@ public class MockRingGroup implements RingGroup {
   }
 
   @Override
-  public Ring getRingConfig(int ringNumber) {
+  public Ring getRing(int ringNumber) {
     return null;
   }
 
   @Override
-  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingForHost(PartDaemonAddress hostAddress) {
     return null;
   }
 
   @Override
-  public Set<Ring> getRingConfigs() {
+  public Set<Ring> getRings() {
     return ringConfigs;
   }
 

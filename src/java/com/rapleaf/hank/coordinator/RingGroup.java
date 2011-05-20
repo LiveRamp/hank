@@ -25,7 +25,7 @@ public interface RingGroup {
    * Get a Set of all RingConfigs in this Ring Group.
    * @return
    */
-  public Set<Ring> getRingConfigs();
+  public Set<Ring> getRings();
 
   /**
    * Get a RingConfig by the ring number.
@@ -33,14 +33,14 @@ public interface RingGroup {
    * @return
    * @throws DataNotFoundException
    */
-  public Ring getRingConfig(int ringNumber)
+  public Ring getRing(int ringNumber)
   throws IOException;
 
   /**
    * Get the DomainGroupConfig for this Ring Group.
    * @return
    */
-  public DomainGroup getDomainGroupConfig();
+  public DomainGroup getDomainGroup();
 
   /**
    * Find the RingConfig that applies to a given host
@@ -48,7 +48,7 @@ public interface RingGroup {
    * @return
    * @throws DataNotFoundException
    */
-  public Ring getRingConfigForHost(PartDaemonAddress hostAddress)
+  public Ring getRingForHost(PartDaemonAddress hostAddress)
   throws IOException;
 
   /**

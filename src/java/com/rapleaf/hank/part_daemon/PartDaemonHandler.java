@@ -53,10 +53,10 @@ class PartDaemonHandler implements Iface {
 
   public PartDaemonHandler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
     // find the ring config
-    Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
+    Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingForHost(hostAndPort);
 
     // get the domain group config for the ring
-    DomainGroup domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroupConfig();
+    DomainGroup domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroup();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;

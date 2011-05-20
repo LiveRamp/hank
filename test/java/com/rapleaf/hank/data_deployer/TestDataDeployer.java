@@ -87,7 +87,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
-      public DomainGroup getDomainGroupConfig() {
+      public DomainGroup getDomainGroup() {
         return domainGroupConfig;
       }
 
@@ -97,7 +97,7 @@ public class TestDataDeployer extends TestCase {
       }
 
       @Override
-      public Set<Ring> getRingConfigs() {
+      public Set<Ring> getRings() {
         return Collections.singleton((Ring)mockRingConfig);
       }
     };
@@ -143,7 +143,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
-      public DomainGroup getDomainGroupConfig() {
+      public DomainGroup getDomainGroup() {
         return domainGroupConfig;
       }
 

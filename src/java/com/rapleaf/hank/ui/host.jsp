@@ -9,7 +9,7 @@
 
 RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
-Ring ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("r")));
+Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("r")));
 Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(request.getParameter("h"))));
 %>
 
@@ -58,10 +58,12 @@ Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(re
     Add a domain/part:<br/>
     <select name="domainId">
       <%
-        for (Domain domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
+        for (Domain domainConfig : ringGroup.getDomainGroup().getDomainConfigs()) {
       %>
-      <option value="<%= ringGroup.getDomainGroupConfig().getDomainId(domainConfig.getName()) %>"><%= domainConfig.getName() %></option>
-      <% } %>
+      <option value="<%=ringGroup.getDomainGroup().getDomainId(domainConfig.getName())%>"><%=domainConfig.getName()%></option>
+      <%
+        }
+      %>
     </select>
     Part:<input type=text size=4 name="partNum" />
     Initial Version:<input type=text size=4 name="initialVersion"/>
@@ -74,7 +76,7 @@ Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(re
     for (HostDomain hdc : host.getAssignedDomains()) {
   %>
     <tr>
-      <th><%= ringGroup.getDomainGroupConfig().getDomainConfig(hdc.getDomainId()).getName() %></td>
+      <th><%=ringGroup.getDomainGroup().getDomainConfig(hdc.getDomainId()).getName()%></td>
     </tr>
     <%
       for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {

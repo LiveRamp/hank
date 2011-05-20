@@ -193,7 +193,7 @@ public class TestHankSmartClient extends BaseTestCase {
     };
     final MockRingGroup mockRingGroupConfig = new MockRingGroup(mockDomainGroupConfig, "myRingGroup", null) {
       @Override
-      public Set<Ring> getRingConfigs() {
+      public Set<Ring> getRings() {
         return Collections.singleton((Ring)mockRingConfig);
       }
     };

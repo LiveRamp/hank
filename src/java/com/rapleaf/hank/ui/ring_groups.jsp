@@ -53,7 +53,7 @@
     %>
       <tr>
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
-        <td><a href="domain_group.jsp?n=<%= URLEnc.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>
+        <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroupConfig.getDomainGroup().getName())%>"><%=ringGroupConfig.getDomainGroup().getName()%></a></td>
         <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
       </tr>
       <%

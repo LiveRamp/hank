@@ -84,7 +84,7 @@ public class AddRing {
     }
 
     // assign all the domains to the hosts
-    DomainGroup domainGroupConfig = ringGroup.getDomainGroupConfig();
+    DomainGroup domainGroupConfig = ringGroup.getDomainGroup();
     DomainGroupVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
     for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {

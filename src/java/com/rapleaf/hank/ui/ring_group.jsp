@@ -58,7 +58,7 @@ RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
   <div class='box-section'>
   	<h3>Configuration</h3>
   	<div class='box-section-content'>
-      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroupConfig().getName())%>"><%=ringGroup.getDomainGroupConfig().getName()%></a>
+      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
     </div>
   </div>
 
@@ -77,17 +77,19 @@ RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
       <th></th>
     </tr>
     <%
-      for (Ring ring : sortedRcs(ringGroup.getRingConfigs())) {
+      for (Ring ring : sortedRcs(ringGroup.getRings())) {
     %>
     <tr>
-      <td><%= ring.getRingNumber() %></td>
-      <td><%= ring.getState() %></td>
-      <td><%= ring.getVersionNumber() %></td>
-      <td><%= ring.getUpdatingToVersionNumber() %></td>
-      <td><%= ring.getHosts().size() %></td>
-      <td><a href="/ring.jsp?g=<%= URLEnc.encode(ringGroup.getName()) %>&n=<%= ring.getRingNumber() %>">details</a></td>
+      <td><%=ring.getRingNumber()%></td>
+      <td><%=ring.getState()%></td>
+      <td><%=ring.getVersionNumber()%></td>
+      <td><%=ring.getUpdatingToVersionNumber()%></td>
+      <td><%=ring.getHosts().size()%></td>
+      <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">details</a></td>
     </tr>
-    <% } %>
+    <%
+      }
+    %>
   </table>
   </div>
   </div>
@@ -96,13 +98,13 @@ RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
     <h3>Query</h3>
     <div class='box-section-content'>
       <form action="/ring_group.jsp" method=post>
-        <input type=hidden name="name" value="<%= ringGroup.getName() %>"/>
+        <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
 
         Domain
         <br/>
         <select name="d">
           <%
-            for (Domain domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
+            for (Domain domainConfig : ringGroup.getDomainGroup().getDomainConfigs()) {
           %>
           <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(domainConfig.getName()) ? " selected" : "" %>><%= domainConfig.getName() %></option>
           <% } %>

@@ -124,7 +124,7 @@ public class ZkRingGroup implements RingGroup {
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return domainGroupConfig;
   }
 
@@ -134,12 +134,12 @@ public class ZkRingGroup implements RingGroup {
   }
 
   @Override
-  public Ring getRingConfig(int ringNumber) {
+  public Ring getRing(int ringNumber) {
     return ringsByNumber.get(ringNumber);
   }
 
   @Override
-  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingForHost(PartDaemonAddress hostAddress) {
     for (Ring ring : ringsByNumber.values()) {
       if (ring.getHostConfigByAddress(hostAddress) != null) {
         return ring;
@@ -149,7 +149,7 @@ public class ZkRingGroup implements RingGroup {
   }
 
   @Override
-  public Set<Ring> getRingConfigs() {
+  public Set<Ring> getRings() {
     return new HashSet<Ring>(ringsByNumber.values());
   }
 
