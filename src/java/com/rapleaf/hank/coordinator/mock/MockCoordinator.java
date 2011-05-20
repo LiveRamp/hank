@@ -23,7 +23,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 
 public class MockCoordinator implements Coordinator {
 
@@ -55,7 +55,7 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+  public RingGroup getRingGroupConfig(String ringGroupName) {
     return null;
   }
 
@@ -68,7 +68,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public Set<RingGroupConfig> getRingGroups() {
+  public Set<RingGroup> getRingGroups() {
     return null;
   }
 
@@ -89,7 +89,7 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public RingGroupConfig addRingGroup(String ringGroupName,
+  public RingGroup addRingGroup(String ringGroupName,
       String domainGroupName) throws IOException {
     return null;
   }

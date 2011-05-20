@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface Ring {
-  public RingGroupConfig getRingGroupConfig();
+  public RingGroup getRingGroupConfig();
 
   public int getRingNumber();
 

@@ -33,10 +33,10 @@ import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -44,7 +44,7 @@ import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
-  private final class MRG extends MockRingGroupConfig {
+  private final class MRG extends MockRingGroup {
     private MRG(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
       super(dcg, name, ringConfigs);
     }
@@ -124,7 +124,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     DomainGroup mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
 
-    final RingGroupConfig mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
+    final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
 
     UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup", "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
     ud.update();

@@ -7,7 +7,7 @@
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
+RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
 Ring ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("r")));
 Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(request.getParameter("h"))));

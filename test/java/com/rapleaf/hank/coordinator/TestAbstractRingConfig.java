@@ -13,7 +13,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
 
   private static class SlightlyLessAbstractRing extends AbstractRing {
     protected SlightlyLessAbstractRing(int ringNum,
-        RingGroupConfig ringGroupConfig) {
+        RingGroup ringGroupConfig) {
       super(ringNum, ringGroupConfig);
     }
 

@@ -48,10 +48,10 @@ import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -191,7 +191,7 @@ public class TestHankSmartClient extends BaseTestCase {
         return new MockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(new MockDomainGroupVersionDomainVersion(existentDomainConfig, 1))), this, 1);
       }
     };
-    final MockRingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(mockDomainGroupConfig, "myRingGroup", null) {
+    final MockRingGroup mockRingGroupConfig = new MockRingGroup(mockDomainGroupConfig, "myRingGroup", null) {
       @Override
       public Set<Ring> getRingConfigs() {
         return Collections.singleton((Ring)mockRingConfig);
@@ -199,7 +199,7 @@ public class TestHankSmartClient extends BaseTestCase {
     };
     Coordinator mockCoord = new MockCoordinator() {
       @Override
-      public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+      public RingGroup getRingGroupConfig(String ringGroupName) {
         return mockRingGroupConfig;
       }
     };

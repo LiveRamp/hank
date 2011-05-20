@@ -18,14 +18,14 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-public class MockRingGroupConfig implements RingGroupConfig {
+public class MockRingGroup implements RingGroup {
 
   private final DomainGroup dcg;
   private final String name;
   private final Set<Ring> ringConfigs;
   public int updateToVersion;
 
-  public MockRingGroupConfig(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
+  public MockRingGroup(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;

@@ -9,16 +9,15 @@ import java.util.Set;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
 
-public class MemRingGroupConfig implements RingGroupConfig {
-
+public class MemRingGroup implements RingGroup {
   private final String ringGroupName;
   private final MemDomainGroup memDomainGroupConfig;
   private Map<Integer, MemRing> ringConfigs = new HashMap<Integer, MemRing>();
 
-  public MemRingGroupConfig(String ringGroupName,
+  public MemRingGroup(String ringGroupName,
       MemDomainGroup memDomainGroupConfig)
   {
     this.ringGroupName = ringGroupName;

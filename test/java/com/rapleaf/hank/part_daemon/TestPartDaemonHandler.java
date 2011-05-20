@@ -37,10 +37,10 @@ import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -108,7 +108,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
         return 0;
       }
     };
-    final MockRingGroupConfig rgc = new MockRingGroupConfig(dcg, "myRingGroupName", null);
+    final MockRingGroup rgc = new MockRingGroup(dcg, "myRingGroupName", null);
 
     final MockRing mockRingConfig = new MockRing(null, rgc, 1, RingState.UP) {
       @Override
@@ -119,9 +119,9 @@ public class TestPartDaemonHandler extends BaseTestCase {
 
     Coordinator mockCoordinator = new MockCoordinator() {
       @Override
-      public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+      public RingGroup getRingGroupConfig(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
-        return new MockRingGroupConfig(dcg, "myRingGroupName", null) {
+        return new MockRingGroup(dcg, "myRingGroupName", null) {
           @Override
           public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
             return mockRingConfig;

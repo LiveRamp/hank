@@ -9,13 +9,13 @@ import java.util.Set;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 
 public class InMemoryCoordinator implements Coordinator {
 
   private final Map<String, MemDomain> domains = new HashMap<String, MemDomain>();
   private final Map<String, MemDomainGroup> domain_groups = new HashMap<String, MemDomainGroup>();
-  private final Map<String, MemRingGroupConfig> ring_groups = new HashMap<String, MemRingGroupConfig>();
+  private final Map<String, MemRingGroup> ring_groups = new HashMap<String, MemRingGroup>();
 
 
   @Override
@@ -33,8 +33,8 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public RingGroupConfig addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
-    MemRingGroupConfig rgc = new MemRingGroupConfig(ringGroupName, domain_groups.get(domainGroupName));
+  public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
+    MemRingGroup rgc = new MemRingGroup(ringGroupName, domain_groups.get(domainGroupName));
     ring_groups.put(ringGroupName, rgc);
     return rgc;
   }
@@ -60,13 +60,13 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+  public RingGroup getRingGroupConfig(String ringGroupName) {
     return ring_groups.get(ringGroupName);
   }
 
   @Override
-  public Set<RingGroupConfig> getRingGroups() {
-    return new HashSet<RingGroupConfig>(ring_groups.values());
+  public Set<RingGroup> getRingGroups() {
+    return new HashSet<RingGroup>(ring_groups.values());
   }
 
   @Override

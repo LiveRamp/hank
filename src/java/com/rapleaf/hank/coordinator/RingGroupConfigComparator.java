@@ -2,9 +2,9 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Comparator;
 
-public class RingGroupConfigComparator implements Comparator<RingGroupConfig> {
+public class RingGroupConfigComparator implements Comparator<RingGroup> {
   @Override
-  public int compare(RingGroupConfig arg0, RingGroupConfig arg1) {
+  public int compare(RingGroup arg0, RingGroup arg1) {
     return arg0.getName().compareTo(arg1.getName());
   }
 }

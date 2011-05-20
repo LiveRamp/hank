@@ -35,7 +35,7 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
@@ -53,7 +53,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
   private final DomainGroup domainGroup;
-  private final RingGroupConfig ringGroupConfig;
+  private final RingGroup ringGroupConfig;
 
   private final Map<PartDaemonAddress, PartDaemonConnection> connectionCache = new HashMap<PartDaemonAddress, PartDaemonConnection>();
 
@@ -175,7 +175,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   @Override
-  public void onRingGroupChange(RingGroupConfig newRingGroup) {
+  public void onRingGroupChange(RingGroup newRingGroup) {
     LOG.debug("Smart Client notified of ring group change!");
   }
 

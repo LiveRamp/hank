@@ -27,7 +27,7 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingState;
@@ -72,7 +72,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   }
 
-  private class MRG extends MockRingGroupConfig {
+  private class MRG extends MockRingGroup {
     private final int curVer;
     @SuppressWarnings("unused")
     private final int toVer;

@@ -13,7 +13,7 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 
@@ -23,7 +23,7 @@ public class MemRing extends AbstractRing {
   private Integer versionNumber;
   private Map<PartDaemonAddress, MemHost> hostConfigs = new HashMap<PartDaemonAddress, MemHost>();
 
-  public MemRing(int ringNum, RingGroupConfig ringGroupConfig) {
+  public MemRing(int ringNum, RingGroup ringGroupConfig) {
     super(ringNum, ringGroupConfig);
     state = RingState.DOWN;
   }

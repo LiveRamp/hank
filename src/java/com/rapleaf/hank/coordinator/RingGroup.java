@@ -18,7 +18,7 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-public interface RingGroupConfig {
+public interface RingGroup {
   public String getName();
 
   /**

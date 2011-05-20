@@ -22,16 +22,15 @@ import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
 
-public class TestZkRingGroupConfig extends ZkTestCase {
-
+public class TestZkRingGroup extends ZkTestCase {
   public final class MockRingGroupChangeListener implements RingGroupChangeListener {
-    public RingGroupConfig calledWith;
+    public RingGroup calledWith;
 
     @Override
-    public void onRingGroupChange(RingGroupConfig newRingGroup) {
+    public void onRingGroupChange(RingGroup newRingGroup) {
       this.calledWith = newRingGroup;
       synchronized (this) {
         notifyAll();
@@ -50,7 +49,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
     createRing(3);
 
     MockDomainGroup dgc = new MockDomainGroup("myDomainGroup");
-    ZkRingGroupConfig ringGroupConf = new ZkRingGroupConfig(getZk(), ring_group, dgc);
+    ZkRingGroup ringGroupConf = new ZkRingGroup(getZk(), ring_group, dgc);
 
     assertEquals("ring group name", "myRingGroup", ringGroupConf.getName());
     assertEquals("num rings", 3, ringGroupConf.getRingConfigs().size());
@@ -63,7 +62,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   public void testVersionStuff() throws Exception {
     ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
     DomainGroupVersion version = dgc.createNewVersion(Collections.EMPTY_MAP);
-    RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
+    RingGroup rgc = ZkRingGroup.create(getZk(), getRoot() + "/my_ring_group", dgc);
     assertNull(rgc.getCurrentVersion());
     assertEquals(Integer.valueOf(version.getVersionNumber()), rgc.getUpdatingToVersion());
     rgc.updateComplete();
@@ -74,7 +73,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   public void testListener() throws Exception {
     ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
     dgc.createNewVersion(Collections.EMPTY_MAP);
-    RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), getRoot() + "/my_ring_group", dgc);
+    RingGroup rgc = ZkRingGroup.create(getZk(), getRoot() + "/my_ring_group", dgc);
     rgc.updateComplete();
 
     MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
@@ -108,7 +107,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   public void testClaimDataDeployer() throws Exception {
     ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
     dgc.createNewVersion(Collections.EMPTY_MAP);
-    RingGroupConfig rgc = ZkRingGroupConfig.create(getZk(), ring_group, dgc);
+    RingGroup rgc = ZkRingGroup.create(getZk(), ring_group, dgc);
     create(ring_group + "/data_deployer_online");
     assertFalse(rgc.claimDataDeployer());
     getZk().delete(ring_group + "/data_deployer_online", -1);

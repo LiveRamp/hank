@@ -53,7 +53,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
@@ -410,7 +410,7 @@ public class IntegrationTest extends ZkTestCase {
 
     // wait until the rings have been updated to the new version
     coord = config.getCoordinator();
-    final RingGroupConfig ringGroupConfig = coord.getRingGroupConfig("rg1");
+    final RingGroup ringGroupConfig = coord.getRingGroupConfig("rg1");
     for (int i = 0; i < 30; i++) {
       if (ringGroupConfig.isUpdating()) {
         LOG.info("Ring group is still updating. Sleeping...");

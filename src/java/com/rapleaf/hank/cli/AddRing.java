@@ -36,7 +36,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddRing {
@@ -72,7 +72,7 @@ public class AddRing {
   throws Exception {
     // create the ring
     Coordinator coord = configurator.getCoordinator();
-    RingGroupConfig ringGroup = coord.getRingGroupConfig(ringGroupName);
+    RingGroup ringGroup = coord.getRingGroupConfig(ringGroupName);
     Ring newRing = ringGroup.addRing(ringNumber);
 
     // add all the hosts to the ring

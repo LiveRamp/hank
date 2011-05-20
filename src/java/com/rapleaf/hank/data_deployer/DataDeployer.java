@@ -30,7 +30,7 @@ import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
@@ -41,7 +41,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   private final Coordinator coord;
   private final Object lock = new Object();
 
-  private RingGroupConfig ringGroupConfig;
+  private RingGroup ringGroupConfig;
   private DomainGroup domainGroupConfig;
 
   private final RingGroupUpdateTransitionFunction transFunc;
@@ -84,7 +84,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
           while (!goingDown) {
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
-            RingGroupConfig snapshotRingGroupConfig;
+            RingGroup snapshotRingGroupConfig;
             DomainGroup snapshotDomainGroupConfig;
             synchronized (lock) {
               snapshotRingGroupConfig = ringGroupConfig;
@@ -110,7 +110,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
     LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " shutting down.");
   }
 
-  void processUpdates(RingGroupConfig ringGroup, DomainGroup domainGroup) throws IOException {
+  void processUpdates(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
     if (ringGroup.isUpdating()) {
       LOG.info("Ring group " + ringGroupName
           + " is currently updating from version "
@@ -145,7 +145,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
 
 
   @Override
-  public void onRingGroupChange(RingGroupConfig newRingGroup) {
+  public void onRingGroupChange(RingGroup newRingGroup) {
     synchronized(lock) {
       LOG.debug("Got an updated ring group config version!");
       ringGroupConfig = newRingGroup;

@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.ui.URLEnc;
 
 public class RingGroupController extends Controller {
@@ -32,7 +32,7 @@ public class RingGroupController extends Controller {
   }
 
   private void doAddRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroupConfig ringGroupConfig;
+    RingGroup ringGroupConfig;
     String encodedRingGroupName = req.getParameter("g");
 
     ringGroupConfig = coordinator.getRingGroupConfig(URLEnc.decode(encodedRingGroupName));

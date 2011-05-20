@@ -6,9 +6,9 @@ import java.util.Set;
 
 public abstract class AbstractRing implements Ring {
   private final int ringNum;
-  private final RingGroupConfig ringGroupConfig;
+  private final RingGroup ringGroupConfig;
 
-  protected AbstractRing(int ringNum, RingGroupConfig ringGroupConfig) {
+  protected AbstractRing(int ringNum, RingGroup ringGroupConfig) {
     this.ringNum = ringNum;
     this.ringGroupConfig = ringGroupConfig;
   }
@@ -63,7 +63,7 @@ public abstract class AbstractRing implements Ring {
   }
 
   @Override
-  public final RingGroupConfig getRingGroupConfig() {
+  public final RingGroup getRingGroupConfig() {
     return ringGroupConfig;
   }
 

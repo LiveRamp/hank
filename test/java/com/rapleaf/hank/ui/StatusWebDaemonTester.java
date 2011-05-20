@@ -16,7 +16,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
@@ -51,7 +51,7 @@ public class StatusWebDaemonTester extends TestCase {
     DomainGroup g2 = coord.addDomainGroup("Group_2");
     g2.addDomain(d1, 0);
 
-    RingGroupConfig rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
+    RingGroup rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     Ring r1 = rgAlpha.addRing(1);
     r1.addHost(addy("alpha-1-1")).addDomain(0).addPartition(0, 1);
     r1.addHost(addy("alpha-1-2"));
@@ -65,7 +65,7 @@ public class StatusWebDaemonTester extends TestCase {
     r3.addHost(addy("alpha-3-2"));
     r3.addHost(addy("alpha-3-3"));
 
-    RingGroupConfig rgBeta = coord.addRingGroup("RG_Beta", g1.getName());
+    RingGroup rgBeta = coord.addRingGroup("RG_Beta", g1.getName());
     r1 = rgBeta.addRing(1);
     r1.addHost(addy("beta-1-1"));
     r1.addHost(addy("beta-1-2"));
@@ -87,7 +87,7 @@ public class StatusWebDaemonTester extends TestCase {
     r4.addHost(addy("beta-4-3"));
     r4.addHost(addy("beta-4-4"));
 
-    RingGroupConfig rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
+    RingGroup rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
 
@@ -122,7 +122,7 @@ public class StatusWebDaemonTester extends TestCase {
     };
     IClientCache clientCache = new IClientCache() {
       @Override
-      public Iface getSmartClient(RingGroupConfig rgc) throws IOException, TException {
+      public Iface getSmartClient(RingGroup rgc) throws IOException, TException {
         return mockClient;
       }
     };

@@ -23,7 +23,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
@@ -87,7 +87,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
     Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
     dg.createNewVersion(domainIdToVersion);
-    RingGroupConfig rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
+    RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
     assertEquals(0, rg.getRingConfigs().size());
     assertEquals(Integer.valueOf(dg.getLatestVersion().getVersionNumber()), rg.getUpdatingToVersion());
@@ -115,7 +115,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
     dgc.createNewVersion(domainIdToVersion);
 
-    ZkRingGroupConfig rg = ZkRingGroupConfig.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
+    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
     Ring rc = rg.addRing(1);
     rc.addHost(new PartDaemonAddress("localhost", 1));
 

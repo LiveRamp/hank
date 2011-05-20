@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 
 public class RingGroupUpdateTransitionFunctionImpl implements
@@ -33,7 +33,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
   @Override
-  public void manageTransitions(RingGroupConfig ringGroup) throws IOException {
+  public void manageTransitions(RingGroup ringGroup) throws IOException {
     boolean anyUpdatesPending = false;
     boolean anyDownOrUpdating = false;
     Queue<Ring> downable = new LinkedList<Ring>();

@@ -35,7 +35,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.util.CommandLineChecker;
@@ -57,7 +57,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
 
   private Thread updateThread;
 
-  private final RingGroupConfig ringGroupConfig;
+  private final RingGroup ringGroupConfig;
 
   private final Ring ringConfig;
 

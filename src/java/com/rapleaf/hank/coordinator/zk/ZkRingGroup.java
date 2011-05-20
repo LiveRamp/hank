@@ -33,11 +33,11 @@ import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkRingGroupConfig implements RingGroupConfig {
-  private static final Logger LOG = Logger.getLogger(ZkRingGroupConfig.class);
+public class ZkRingGroup implements RingGroup {
+  private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
   private final class StateChangeListener implements Watcher {
     private final RingGroupChangeListener listener;
@@ -74,7 +74,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     }
 
     private void fireListener() {
-      listener.onRingGroupChange(ZkRingGroupConfig.this);
+      listener.onRingGroupChange(ZkRingGroup.this);
       try {
         reregister();
       } catch (Exception e) {
@@ -103,7 +103,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   private final String dataDeployerOnlinePath;
   private final ZooKeeperPlus zk;
 
-  public ZkRingGroupConfig(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroupConfig = domainGroupConfig;
@@ -231,13 +231,13 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     }
   }
 
-  public static ZkRingGroupConfig create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
     if (domainGroupConfig.getVersions().isEmpty()) {
       throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
     }
     zk.create(path, domainGroupConfig.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(path + "/updating_to_version", ("" + domainGroupConfig.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkRingGroupConfig(zk, path, domainGroupConfig);
+    return new ZkRingGroup(zk, path, domainGroupConfig);
   }
 
   @Override

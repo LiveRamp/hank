@@ -17,8 +17,8 @@ package com.rapleaf.hank.data_deployer;
 
 import java.io.IOException;
 
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 
 public interface RingGroupUpdateTransitionFunction {
-  public void manageTransitions(RingGroupConfig ringGroup) throws IOException;
+  public void manageTransitions(RingGroup ringGroup) throws IOException;
 }

@@ -5,17 +5,13 @@
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="java.util.*"%>
 
-<%!
-
-public List<RingGroupConfig> ringGroups(Coordinator coord) {
-  List<RingGroupConfig> rgcs = new ArrayList<RingGroupConfig>(coord.getRingGroups());
+<%!public List<RingGroup> ringGroups(Coordinator coord) {
+  List<RingGroup> rgcs = new ArrayList<RingGroup>(coord.getRingGroups());
   Collections.sort(rgcs, new RingGroupConfigComparator());
   return rgcs;
-}
-
-%>
+}%>
 <%
-Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -38,8 +34,10 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <%
         for (DomainGroup dgc : coord.getDomainGroupConfigs()) {
       %>
-      <option><%= dgc.getName() %></option>
-      <% } %>
+      <option><%=dgc.getName()%></option>
+      <%
+        }
+      %>
     </select>
     <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
   </form>
@@ -51,8 +49,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Status</th>
     </tr>
     <%
-    for (RingGroupConfig ringGroupConfig : ringGroups(coord)) {
-      %>
+      for (RingGroup ringGroupConfig : ringGroups(coord)) {
+    %>
       <tr>
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
         <td><a href="domain_group.jsp?n=<%= URLEnc.encode(ringGroupConfig.getDomainGroupConfig().getName()) %>"><%= ringGroupConfig.getDomainGroupConfig().getName() %></a></td>

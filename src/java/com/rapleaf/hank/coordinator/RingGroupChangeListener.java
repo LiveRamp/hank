@@ -31,5 +31,5 @@ public interface RingGroupChangeListener {
    * @param newRingGroup
    *          the latest configuration information for a ring group
    */
-  public void onRingGroupChange(RingGroupConfig newRingGroup);
+  public void onRingGroupChange(RingGroup newRingGroup);
 }

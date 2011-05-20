@@ -33,18 +33,18 @@ import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroupConfig;
+import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
-    public RingGroupConfig calledWithRingGroup;
+    public RingGroup calledWithRingGroup;
 
     @Override
-    public void manageTransitions(RingGroupConfig ringGroup) {
+    public void manageTransitions(RingGroup ringGroup) {
       calledWithRingGroup = ringGroup;
     }
 
@@ -85,7 +85,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    final MockRingGroupConfig mockRingGroupConf = new MockRingGroupConfig(null, "myRingGroup", Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroupConfig() {
         return domainGroupConfig;
@@ -117,7 +117,7 @@ public class TestDataDeployer extends TestCase {
       public Coordinator getCoordinator() {
         return new MockCoordinator(){
           @Override
-          public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+          public RingGroup getRingGroupConfig(String ringGroupName) {
             return mockRingGroupConf;
           }
         };
@@ -141,7 +141,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    final MockRingGroupConfig mockRingGroupConf = new MockRingGroupConfig(null, "myRingGroup", Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroupConfig() {
         return domainGroupConfig;
@@ -173,7 +173,7 @@ public class TestDataDeployer extends TestCase {
       public Coordinator getCoordinator() {
         return new MockCoordinator(){
           @Override
-          public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+          public RingGroup getRingGroupConfig(String ringGroupName) {
             return mockRingGroupConf;
           }
         };

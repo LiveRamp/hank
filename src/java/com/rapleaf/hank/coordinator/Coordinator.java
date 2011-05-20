@@ -97,7 +97,7 @@ public interface Coordinator {
    * Get the set of known RingGroupConfigs.
    * @return
    */
-  public Set<RingGroupConfig> getRingGroups();
+  public Set<RingGroup> getRingGroups();
 
   /**
    * @param ringGroupName
@@ -105,7 +105,7 @@ public interface Coordinator {
    * @throws DataNotFoundException
    *           if no ring group with the specified name exists
    */
-  public RingGroupConfig getRingGroupConfig(String ringGroupName)
+  public RingGroup getRingGroupConfig(String ringGroupName)
   throws IOException;
 
   /**
@@ -115,6 +115,6 @@ public interface Coordinator {
    * @return
    * @throws IOException
    */
-  public RingGroupConfig addRingGroup(String ringGroupName, String domainGroupName)
+  public RingGroup addRingGroup(String ringGroupName, String domainGroupName)
   throws IOException;
 }

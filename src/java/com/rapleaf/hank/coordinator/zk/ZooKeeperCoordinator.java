@@ -33,7 +33,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
@@ -134,8 +134,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     new HashMap<String, ZkDomain>();;
   private final Map<String, ZkDomainGroup> domainGroupConfigs =
     new HashMap<String, ZkDomainGroup>();
-  private final Map<String, ZkRingGroupConfig> ringGroupConfigs =
-    new HashMap<String, ZkRingGroupConfig>();
+  private final Map<String, ZkRingGroup> ringGroupConfigs =
+    new HashMap<String, ZkRingGroup>();
 
   private final String domainsRoot;
   private final String domainGroupsRoot;
@@ -209,7 +209,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public RingGroupConfig getRingGroupConfig(String ringGroupName) {
+  public RingGroup getRingGroupConfig(String ringGroupName) {
     return ringGroupConfigs.get(ringGroupName);
   }
 
@@ -248,7 +248,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
       ZkDomainGroup dgc = domainGroupConfigs.get(new String(zk.getData(ringGroupPath, false, null)));
-      ringGroupConfigs.put(ringGroupName, new ZkRingGroupConfig(zk, ringGroupPath, dgc));
+      ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc));
     }
   }
 
@@ -264,8 +264,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  public Set<RingGroupConfig> getRingGroups() {
-    return new HashSet<RingGroupConfig>(ringGroupConfigs.values());
+  public Set<RingGroup> getRingGroups() {
+    return new HashSet<RingGroup>(ringGroupConfigs.values());
   }
 
   @Override
@@ -274,7 +274,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void onRingGroupChange(RingGroupConfig newRingGroup) {
+  public void onRingGroupChange(RingGroup newRingGroup) {
   }
 
   @Override
@@ -313,12 +313,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public RingGroupConfig addRingGroup(String ringGroupName,
+  public RingGroup addRingGroup(String ringGroupName,
       String domainGroupName)
   throws IOException {
     try {
-      RingGroupConfig rg = ZkRingGroupConfig.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroup) getDomainGroupConfig(domainGroupName));
-      ringGroupConfigs.put(ringGroupName, (ZkRingGroupConfig) rg);
+      RingGroup rg = ZkRingGroup.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroup) getDomainGroupConfig(domainGroupName));
+      ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {
       throw new IOException(e);

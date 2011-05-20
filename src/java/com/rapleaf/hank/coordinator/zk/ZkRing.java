@@ -34,7 +34,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import com.rapleaf.hank.coordinator.AbstractRing;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingGroupConfig;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -89,7 +89,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final ZooKeeperPlus zk;
 
-  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroupConfig) throws InterruptedException, KeeperException {
     super(parseRingNum(ringPath), ringGroupConfig);
     this.zk = zk;
     this.ringPath = ringPath;
@@ -207,7 +207,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     }
   }
 
-  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
+  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
