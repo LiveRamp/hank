@@ -9,15 +9,19 @@
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
-<%!public List<Ring> sortedRcs(Collection<Ring> rcs) {
+<%!
+public List<Ring> sortedRcs(Collection<Ring> rcs) {
   List<Ring> sortedList = new ArrayList<Ring>(rcs);
   Collections.sort(sortedList);
   return sortedList;
-}%>
+}
+%>
 <%
-  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+
+Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
+
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
