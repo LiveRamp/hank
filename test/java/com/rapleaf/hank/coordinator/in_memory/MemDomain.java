@@ -13,7 +13,7 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
-public class MemDomainConfig implements Domain {
+public class MemDomain implements Domain {
   private final int numParts;
   private final String storageEngineFactoryName;
   private final String storageEngineOptions;
@@ -22,7 +22,7 @@ public class MemDomainConfig implements Domain {
   private final SortedSet<DomainVersionConfig> versions = new TreeSet<DomainVersionConfig>();
   private Integer nextVer;
 
-  public MemDomainConfig(String name,
+  public MemDomain(String name,
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,

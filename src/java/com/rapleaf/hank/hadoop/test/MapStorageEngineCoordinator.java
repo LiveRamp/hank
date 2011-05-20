@@ -23,7 +23,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 
@@ -44,7 +44,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public Domain getDomainConfig(String domainName) {
-    return new MockDomainConfig(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), 0);
+    return new MockDomain(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), 0);
   }
 
   static public String getConfiguration(int numPartitions) {

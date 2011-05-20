@@ -54,7 +54,7 @@ import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon;
@@ -166,7 +166,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomainConfig existentDomainConfig = new MockDomainConfig("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
+    final MockDomain existentDomainConfig = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
     MockDomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
       private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>() {{
         put(1, existentDomainConfig);

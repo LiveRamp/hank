@@ -13,14 +13,14 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class InMemoryCoordinator implements Coordinator {
 
-  private final Map<String, MemDomainConfig> domains = new HashMap<String, MemDomainConfig>();
+  private final Map<String, MemDomain> domains = new HashMap<String, MemDomain>();
   private final Map<String, MemDomainGroupConfig> domain_groups = new HashMap<String, MemDomainGroupConfig>();
   private final Map<String, MemRingGroupConfig> ring_groups = new HashMap<String, MemRingGroupConfig>();
 
 
   @Override
   public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
-    MemDomainConfig domainConfig = new MemDomainConfig(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
+    MemDomain domainConfig = new MemDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
     domains.put(domainName, domainConfig);
     return domainConfig;
   }

@@ -24,16 +24,16 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
-import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkDomainGroupConfigVersion extends ZkTestCase {
   public TestZkDomainGroupConfigVersion() throws Exception {
     super();
   }
 
-  private static final MockDomainConfig domain1 = new MockDomainConfig("domain1", 1, null, null, 5);
-  private static final MockDomainConfig domain2 = new MockDomainConfig("domain2", 1, null, null, 5);
-  private static final MockDomainConfig domain3 = new MockDomainConfig("domain3", 1, null, null, 5);
+  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, 5);
+  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, 5);
+  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, 5);
 
   private static final MockDomainGroupConfig mockDomainGroup = new MockDomainGroupConfig("myDomainGroup") {
     @Override

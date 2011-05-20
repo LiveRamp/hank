@@ -25,15 +25,14 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
-public class MockDomainConfig implements Domain {
-
+public class MockDomain implements Domain {
   private final String name;
   private final int numParts;
   private final Partitioner part;
   private final StorageEngine storageEngine;
   private int version;
 
-  public MockDomainConfig(String name, int numParts, Partitioner part,
+  public MockDomain(String name, int numParts, Partitioner part,
       StorageEngine storageEngine, int version) {
     this.name = name;
     this.numParts = numParts;
