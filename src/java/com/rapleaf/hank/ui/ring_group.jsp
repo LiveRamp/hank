@@ -11,7 +11,7 @@
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%!public List<Ring> sortedRcs(Collection<Ring> rcs) {
   List<Ring> sortedList = new ArrayList<Ring>(rcs);
-  Collections.sort(sortedList, new RingConfigComparator());
+  Collections.sort(sortedList, new RingComparator());
   return sortedList;
 }%>
 <%
