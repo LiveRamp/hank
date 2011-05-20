@@ -18,7 +18,7 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-public interface Ring {
+public interface Ring extends Comparable<Ring> {
   public RingGroup getRingGroup();
 
   public int getRingNumber();

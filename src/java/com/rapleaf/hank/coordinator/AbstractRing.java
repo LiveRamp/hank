@@ -98,4 +98,9 @@ public abstract class AbstractRing implements Ring {
 
     return unassignedParts;
   }
+
+  @Override
+  public int compareTo(Ring other) {
+    return Integer.valueOf(ringNum).compareTo(other.getRingNumber());
+  }
 }
