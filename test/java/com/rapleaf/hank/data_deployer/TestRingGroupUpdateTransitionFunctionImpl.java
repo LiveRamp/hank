@@ -24,7 +24,7 @@ import java.util.Set;
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -66,7 +66,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     @Override
-    public Set<HostConfig> getHostsInState(HostState state) {
+    public Set<Host> getHostsInState(HostState state) {
       return Collections.EMPTY_SET;
     }
 
@@ -145,7 +145,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testUpdatingToComingUp() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public Set<HostConfig> getHostsInState(HostState state) {
+      public Set<Host> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
             return Collections.EMPTY_SET;
@@ -166,7 +166,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public Set<HostConfig> getHostsInState(HostState state) {
+      public Set<Host> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
             return Collections.EMPTY_SET;
@@ -188,7 +188,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testUpdatedToComingUp() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATED, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
-      public Set<HostConfig> getHostsInState(HostState state) {
+      public Set<Host> getHostsInState(HostState state) {
         switch (state) {
           case OFFLINE:
             return Collections.EMPTY_SET;
@@ -210,7 +210,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRC r1 = new MRC(1, RingState.COMING_UP, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
 
       @Override
-      public Set<HostConfig> getHostsInState(HostState state) {
+      public Set<Host> getHostsInState(HostState state) {
         switch (state) {
           case SERVING:
             return getHosts();

@@ -20,13 +20,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class MockHostConfig implements HostConfig {
+public class MockHost implements Host {
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
 
-  public MockHostConfig(PartDaemonAddress address) {
+  public MockHost(PartDaemonAddress address) {
     this.address = address;
   }
 

@@ -25,7 +25,7 @@ import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -127,7 +127,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         // this will mark all the subordinate rings and hosts for update as well.
         LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
         for (RingConfig ringConfig : ringGroup.getRingConfigs()) {
-          for (HostConfig hostConfig : ringConfig.getHosts()) {
+          for (Host hostConfig : ringConfig.getHosts()) {
             for (HostDomainConfig hdc : hostConfig.getAssignedDomains()) {
               for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
                 hdpc.setUpdatingToDomainGroupVersion(latestVersionNumber);

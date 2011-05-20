@@ -10,7 +10,7 @@ import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -21,7 +21,7 @@ public class MemRingConfig extends AbstractRingConfig {
   private RingState state;
   private Integer updatingToVersion;
   private Integer versionNumber;
-  private Map<PartDaemonAddress, MemHostConfig> hostConfigs = new HashMap<PartDaemonAddress, MemHostConfig>();
+  private Map<PartDaemonAddress, MemHost> hostConfigs = new HashMap<PartDaemonAddress, MemHost>();
 
   public MemRingConfig(int ringNum, RingGroupConfig ringGroupConfig) {
     super(ringNum, ringGroupConfig);
@@ -29,8 +29,8 @@ public class MemRingConfig extends AbstractRingConfig {
   }
 
   @Override
-  public HostConfig addHost(PartDaemonAddress address) throws IOException {
-    MemHostConfig hc = new MemHostConfig(address);
+  public Host addHost(PartDaemonAddress address) throws IOException {
+    MemHost hc = new MemHost(address);
     hostConfigs.put(address, hc);
     return hc;
   }
@@ -41,22 +41,22 @@ public class MemRingConfig extends AbstractRingConfig {
   }
 
   @Override
-  public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+  public Host getHostConfigByAddress(PartDaemonAddress address) {
     return hostConfigs.get(address);
   }
 
   @Override
-  public Set<HostConfig> getHosts() {
-    return new HashSet<HostConfig>(hostConfigs.values());
+  public Set<Host> getHosts() {
+    return new HashSet<Host>(hostConfigs.values());
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+  public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
     throw new NotImplementedException();
   }
 
   @Override
-  public Set<HostConfig> getHostsInState(HostState state) throws IOException {
+  public Set<Host> getHostsInState(HostState state) throws IOException {
     throw new NotImplementedException();
   }
 

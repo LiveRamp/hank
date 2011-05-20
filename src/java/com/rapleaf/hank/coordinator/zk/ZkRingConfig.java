@@ -32,7 +32,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractRingConfig;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
@@ -82,8 +82,8 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
 
   private final String ringPath;
 
-  private final Map<PartDaemonAddress, HostConfig> hostConfigs =
-    new HashMap<PartDaemonAddress, HostConfig>();
+  private final Map<PartDaemonAddress, Host> hostConfigs =
+    new HashMap<PartDaemonAddress, Host>();
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
 
@@ -119,7 +119,7 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
       // only replace the HostConfig if we don't already have an instance.
       // (otherwise we'll destroy their watches unnecessarily!)
       if (!hostConfigs.containsKey(PartDaemonAddress.parse(host))) {
-        HostConfig hostConf = new ZkHostConfig(zk, ringPath + "/hosts/" + host);
+        Host hostConf = new ZkHost(zk, ringPath + "/hosts/" + host);
         hostConfigs.put(hostConf.getAddress(), hostConf);
       }
     }
@@ -137,8 +137,8 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   }
 
   @Override
-  public Set<HostConfig> getHosts() {
-    return new HashSet<HostConfig>(hostConfigs.values());
+  public Set<Host> getHosts() {
+    return new HashSet<Host>(hostConfigs.values());
   }
 
   @Override
@@ -174,14 +174,14 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
   }
 
   @Override
-  public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+  public Host getHostConfigByAddress(PartDaemonAddress address) {
     return hostConfigs.get(address);
   }
 
   @Override
-  public HostConfig addHost(PartDaemonAddress address) throws IOException {
+  public Host addHost(PartDaemonAddress address) throws IOException {
     try {
-      return ZkHostConfig.create(zk, ringPath + "/hosts", address);
+      return ZkHost.create(zk, ringPath + "/hosts", address);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -241,8 +241,8 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
 
   public void close() {
     stateChangeWatcher.cancel();
-    for (HostConfig hostConfig : getHosts()) {
-      ((ZkHostConfig)hostConfig).close();
+    for (Host hostConfig : getHosts()) {
+      ((ZkHost)hostConfig).close();
     }
   }
 

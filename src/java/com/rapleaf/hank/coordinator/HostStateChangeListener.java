@@ -19,5 +19,5 @@ package com.rapleaf.hank.coordinator;
  * Listener for being notified of changes to a given host's state.
  */
 public interface HostStateChangeListener {
-  public void onHostStateChange(HostConfig hostConfig);
+  public void onHostStateChange(Host hostConfig);
 }

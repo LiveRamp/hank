@@ -2,9 +2,9 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.Comparator;
 
-public class HostConfigComparator implements Comparator<HostConfig> {
+public class HostConfigComparator implements Comparator<Host> {
   @Override
-  public int compare(HostConfig arg0, HostConfig arg1) {
+  public int compare(Host arg0, Host arg1) {
     return arg0.getAddress().compareTo(arg1.getAddress());
   }
 }

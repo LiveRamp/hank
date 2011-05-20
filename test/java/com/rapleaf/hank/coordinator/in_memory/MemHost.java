@@ -8,21 +8,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
-public class MemHostConfig implements HostConfig {
+public class MemHost implements Host {
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
   private final Map<Integer, HostDomainConfig> hdcs = new HashMap<Integer, HostDomainConfig>();
   private final List<HostCommand> commandQueue = new LinkedList<HostCommand>();
 
-  public MemHostConfig(PartDaemonAddress address) {
+  public MemHost(PartDaemonAddress address) {
     this.address = address;
   }
 

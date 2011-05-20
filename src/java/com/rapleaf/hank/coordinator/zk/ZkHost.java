@@ -32,15 +32,15 @@ import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkHostConfig implements HostConfig {
-  private static final Logger LOG = Logger.getLogger(ZkHostConfig.class);
+public class ZkHost implements Host {
+  private static final Logger LOG = Logger.getLogger(ZkHost.class);
 
   private static final String STATUS_PATH_SEGMENT = "/status";
   private static final String COMPLETE_PATH_SEGMENT = "/.complete";
@@ -63,7 +63,7 @@ public class ZkHostConfig implements HostConfig {
         case NodeDataChanged:
         case NodeChildrenChanged:
           for (HostCommandQueueChangeListener listener : commandQueueListeners) {
-            listener.onCommandQueueChange(ZkHostConfig.this);
+            listener.onCommandQueueChange(ZkHost.this);
           }
       }
     }
@@ -86,7 +86,7 @@ public class ZkHostConfig implements HostConfig {
         case NodeDeleted:
         case NodeDataChanged:
           for (HostStateChangeListener listener : stateListeners) {
-            listener.onHostStateChange(ZkHostConfig.this);
+            listener.onHostStateChange(ZkHost.this);
           }
       }
     }
@@ -109,7 +109,7 @@ public class ZkHostConfig implements HostConfig {
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
 
-  public ZkHostConfig(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
+  public ZkHost(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
 
@@ -171,7 +171,7 @@ public class ZkHostConfig implements HostConfig {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    ZkHostConfig other = (ZkHostConfig) obj;
+    ZkHost other = (ZkHost) obj;
     if (address == null) {
       if (other.address != null)
         return false;
@@ -329,7 +329,7 @@ public class ZkHostConfig implements HostConfig {
     }
   }
 
-  public static ZkHostConfig create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
+  public static ZkHost create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
     String hostPath = root + "/" + partDaemonAddress.toString();
     LOG.trace("creating host " + hostPath);
     zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -337,7 +337,7 @@ public class ZkHostConfig implements HostConfig {
     zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkHostConfig(zk, hostPath);
+    return new ZkHost(zk, hostPath);
   }
 
   @Override

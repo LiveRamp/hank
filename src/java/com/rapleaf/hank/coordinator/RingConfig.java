@@ -28,11 +28,11 @@ public interface RingConfig {
    * 
    * @return
    */
-  public Set<HostConfig> getHosts();
+  public Set<Host> getHosts();
 
-  public HostConfig getHostConfigByAddress(PartDaemonAddress address);
+  public Host getHostConfigByAddress(PartDaemonAddress address);
 
-  public HostConfig addHost(PartDaemonAddress address) throws IOException;
+  public Host addHost(PartDaemonAddress address) throws IOException;
 
   public RingState getState() throws IOException;
 
@@ -56,7 +56,7 @@ public interface RingConfig {
    */
   public Integer getOldestVersionOnHosts() throws IOException;
 
-  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException;
+  public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException;
 
   /**
    * Return all the hosts that are in the requested state.
@@ -65,7 +65,7 @@ public interface RingConfig {
    * @return
    * @throws IOException
    */
-  public Set<HostConfig> getHostsInState(HostState state) throws IOException;
+  public Set<Host> getHostsInState(HostState state) throws IOException;
 
   /**
    * Set the updating-to version number.

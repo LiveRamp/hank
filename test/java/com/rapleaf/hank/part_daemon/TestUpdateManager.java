@@ -25,13 +25,13 @@ import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -68,7 +68,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
   }
 
-  private static final HostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("localhost", 1)) {
+  private static final Host mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1)) {
     @Override
     public HostDomainConfig getDomainById(int domainId) {
       return new HostDomainConfig() {
@@ -112,7 +112,7 @@ public class TestUpdateManager extends BaseTestCase {
 
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
     @Override
-    public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+    public Host getHostConfigByAddress(PartDaemonAddress address) {
       return mockHostConfig;
     }
   };

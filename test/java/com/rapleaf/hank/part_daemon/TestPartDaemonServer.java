@@ -22,9 +22,9 @@ import org.apache.thrift.TException;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -48,11 +48,11 @@ public class TestPartDaemonServer extends BaseTestCase {
     }
   }
 
-  private static final MockHostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("localhost", 1));
+  private static final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1));
 
   private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
     @Override
-    public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+    public Host getHostConfigByAddress(PartDaemonAddress address) {
       return mockHostConfig;
     }
   };

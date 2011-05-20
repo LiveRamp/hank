@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -38,7 +38,7 @@ public class HostController extends Controller {
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
-    HostConfig hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
     resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEnc.encode(hc.getAddress().toString())));
@@ -47,7 +47,7 @@ public class HostController extends Controller {
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
-    HostConfig hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
     HostDomainConfig d = hc.getDomainById(dId);
     if (d == null) {

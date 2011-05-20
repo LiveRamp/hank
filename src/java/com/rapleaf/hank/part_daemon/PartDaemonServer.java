@@ -31,7 +31,7 @@ import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -53,7 +53,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private TServer server;
   private boolean goingDown = false;
   private final PartDaemonAddress hostAddress;
-  private final HostConfig hostConfig;
+  private final Host hostConfig;
 
   private Thread updateThread;
 
@@ -100,7 +100,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   @Override
-  public void onCommandQueueChange(HostConfig hostConfig) {
+  public void onCommandQueueChange(Host hostConfig) {
     processCommands();
   }
 
@@ -228,7 +228,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     updateThread.start();
   }
 
-  private void processCurrentCommand(HostConfig hostConfig, HostCommand nextCommand) throws IOException {
+  private void processCurrentCommand(Host hostConfig, HostCommand nextCommand) throws IOException {
     HostState state = hostConfig.getState();
     switch (nextCommand) {
     case EXECUTE_UPDATE:

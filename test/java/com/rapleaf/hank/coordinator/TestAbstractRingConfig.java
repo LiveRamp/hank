@@ -18,17 +18,17 @@ public class TestAbstractRingConfig extends BaseTestCase {
     }
 
     @Override
-    public HostConfig addHost(PartDaemonAddress address) throws IOException {
+    public Host addHost(PartDaemonAddress address) throws IOException {
       return null;
     }
 
     @Override
-    public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+    public Host getHostConfigByAddress(PartDaemonAddress address) {
       return null;
     }
 
     @Override
-    public Set<HostConfig> getHosts() {
+    public Set<Host> getHosts() {
       return null;
     }
 
@@ -87,11 +87,11 @@ public class TestAbstractRingConfig extends BaseTestCase {
   }
 
   public void testCommandAll() throws IOException {
-    final HostConfig hc = new MockHostConfig(LOCALHOST);
+    final Host hc = new MockHost(LOCALHOST);
 
     SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
       @Override
-      public Set<HostConfig> getHosts() {
+      public Set<Host> getHosts() {
         return Collections.singleton(hc);
       }
     };
@@ -106,7 +106,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
   }
 
   public void testGetOldestVersionOnHosts() throws Exception {
-    final HostConfig hc = new MockHostConfig(LOCALHOST) {
+    final Host hc = new MockHost(LOCALHOST) {
       @Override
       public Set<HostDomainConfig> getAssignedDomains() throws IOException {
         HostDomainConfig hd1 = new MockHostDomainConfig(0, 1, 1, 2, 2, 2, 2);
@@ -116,7 +116,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
     };
     SlightlyLessAbstractRingConfig ringConf = new SlightlyLessAbstractRingConfig(1, null) {
       @Override
-      public Set<HostConfig> getHosts() {
+      public Set<Host> getHosts() {
         return Collections.singleton(hc);
       }
     };
@@ -124,7 +124,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
   }
 
   public void testGetHostsForDomainPartition() throws Exception {
-    final HostConfig hc = new MockHostConfig(LOCALHOST) {
+    final Host hc = new MockHost(LOCALHOST) {
       HostDomainConfig hd1 = new MockHostDomainConfig(0, 1, 1, 2, 2, 2, 2);
       HostDomainConfig hd2 = new MockHostDomainConfig(1, 1, 2, 2, 2, 2, 2);
 
@@ -140,7 +140,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
     };
     SlightlyLessAbstractRingConfig ringConf = new SlightlyLessAbstractRingConfig(1, null) {
       @Override
-      public Set<HostConfig> getHosts() {
+      public Set<Host> getHosts() {
         return Collections.singleton(hc);
       }
     };
@@ -151,14 +151,14 @@ public class TestAbstractRingConfig extends BaseTestCase {
   }
 
   public void testGetHostsInState() throws Exception {
-    final MockHostConfig h1 = new MockHostConfig(new PartDaemonAddress("localhost", 1));
-    final MockHostConfig h2 = new MockHostConfig(new PartDaemonAddress("localhost", 2));
-    final MockHostConfig h3 = new MockHostConfig(new PartDaemonAddress("localhost", 3));
+    final MockHost h1 = new MockHost(new PartDaemonAddress("localhost", 1));
+    final MockHost h2 = new MockHost(new PartDaemonAddress("localhost", 2));
+    final MockHost h3 = new MockHost(new PartDaemonAddress("localhost", 3));
 
     SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
       @Override
-      public Set<HostConfig> getHosts() {
-        return new HashSet<HostConfig>(Arrays.asList(h1, h2, h3));
+      public Set<Host> getHosts() {
+        return new HashSet<Host>(Arrays.asList(h1, h2, h3));
       }
     };
 

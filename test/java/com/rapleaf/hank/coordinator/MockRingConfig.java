@@ -22,23 +22,23 @@ import java.util.Set;
 public class MockRingConfig extends AbstractRingConfig {
 
   private RingState state;
-  private final Set<HostConfig> hosts;
+  private final Set<Host> hosts;
   public HostCommand allCommanded;
   public Integer updatingToVersion;
 
   public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
     super(number, rgc);
-    this.hosts = new HashSet<HostConfig>();
+    this.hosts = new HashSet<Host>();
     if (hosts != null) {
       for (PartDaemonAddress addy : hosts) {
-        this.hosts.add(new MockHostConfig(addy));
+        this.hosts.add(new MockHost(addy));
       }
     }
     this.state = state;
   }
 
   @Override
-  public Set<HostConfig> getHosts() {
+  public Set<Host> getHosts() {
     return hosts;
   }
 
@@ -66,17 +66,17 @@ public class MockRingConfig extends AbstractRingConfig {
   }
 
   @Override
-  public HostConfig addHost(PartDaemonAddress address) throws IOException {
+  public Host addHost(PartDaemonAddress address) throws IOException {
     return null;
   }
 
   @Override
-  public HostConfig getHostConfigByAddress(PartDaemonAddress address) {
+  public Host getHostConfigByAddress(PartDaemonAddress address) {
     return null;
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(int domainId,
+  public Set<Host> getHostsForDomainPartition(int domainId,
       int partition) throws IOException {
     return null;
   }
@@ -87,7 +87,7 @@ public class MockRingConfig extends AbstractRingConfig {
   }
 
   @Override
-  public Set<HostConfig> getHostsInState(HostState state) {
+  public Set<Host> getHostsInState(HostState state) {
     return null;
   }
 

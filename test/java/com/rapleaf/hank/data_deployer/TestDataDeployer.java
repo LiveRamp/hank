@@ -25,12 +25,12 @@ import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -60,7 +60,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockHostDomainPartitionConfig mockHostDomainPartitionConfig = new MockHostDomainPartitionConfig(0, 0, 1);
 
-    final MockHostConfig mockHostConfig = new MockHostConfig(new PartDaemonAddress("locahost", 12345)) {
+    final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("locahost", 12345)) {
       @Override
       public Set<HostDomainConfig> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomainConfig)new HostDomainConfig() {
@@ -80,8 +80,8 @@ public class TestDataDeployer extends TestCase {
 
     final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, null) {
       @Override
-      public Set<HostConfig> getHosts() {
-        return Collections.singleton((HostConfig)mockHostConfig);
+      public Set<Host> getHosts() {
+        return Collections.singleton((Host)mockHostConfig);
       }
     };
 

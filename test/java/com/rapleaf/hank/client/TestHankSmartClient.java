@@ -38,14 +38,14 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockHostConfig;
+import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
@@ -144,12 +144,12 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread thread2 = new Thread(new ServerRunnable(server2), "mock part daemon #2");
     thread2.start();
 
-    final HostConfig hostConfig1 = getHostConfig(new PartDaemonAddress("localhost", server1Port), 0);
-    final HostConfig hostConfig2 = getHostConfig(new PartDaemonAddress("localhost", server2Port), 1);
+    final Host hostConfig1 = getHostConfig(new PartDaemonAddress("localhost", server1Port), 0);
+    final Host hostConfig2 = getHostConfig(new PartDaemonAddress("localhost", server2Port), 1);
 
     final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, RingState.UP) {
       @Override
-      public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+      public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
         assertEquals(1, domainId);
         if (partition == 0) {
           return Collections.singleton(hostConfig1);
@@ -161,8 +161,8 @@ public class TestHankSmartClient extends BaseTestCase {
       }
 
       @Override
-      public Set<HostConfig> getHosts() {
-        return new HashSet<HostConfig>(Arrays.asList(hostConfig1, hostConfig2));
+      public Set<Host> getHosts() {
+        return new HashSet<Host>(Arrays.asList(hostConfig1, hostConfig2));
       }
     };
 
@@ -223,8 +223,8 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private HostConfig getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
-    MockHostConfig hc = new MockHostConfig(address) {
+  private Host getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
+    MockHost hc = new MockHost(address) {
       @Override
       public Set<HostDomainConfig> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomainConfig)new HostDomainConfig() {

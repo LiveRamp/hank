@@ -29,7 +29,7 @@ import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -74,11 +74,11 @@ class UpdateManager implements IUpdateManager {
   }
 
   private final PartservConfigurator configurator;
-  private final HostConfig hostConfig;
+  private final Host hostConfig;
   private final RingGroupConfig ringGroupConfig;
   private final RingConfig ringConfig;
 
-  public UpdateManager(PartservConfigurator configurator, HostConfig hostConfig, RingGroupConfig ringGroupConfig, RingConfig ringConfig) throws IOException {
+  public UpdateManager(PartservConfigurator configurator, Host hostConfig, RingGroupConfig ringGroupConfig, RingConfig ringConfig) throws IOException {
     this.configurator = configurator;
     this.hostConfig = hostConfig;
     this.ringGroupConfig = ringGroupConfig;

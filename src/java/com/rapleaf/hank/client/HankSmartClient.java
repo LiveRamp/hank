@@ -29,7 +29,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -98,7 +98,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     // populate the skeleton, while also establishing connections to online hosts
     for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) {
-      for (HostConfig hostConfig : ringConfig.getHosts()) {
+      for (Host hostConfig : ringConfig.getHosts()) {
         for (HostDomainConfig hdc : hostConfig.getAssignedDomains()) {
           Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
           for (HostDomainPartitionConfig hdcp : hdc.getPartitions()) {

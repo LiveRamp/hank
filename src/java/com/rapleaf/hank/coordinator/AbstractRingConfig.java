@@ -18,15 +18,15 @@ public abstract class AbstractRingConfig implements RingConfig {
 
   @Override
   public void commandAll(HostCommand command) throws IOException {
-    for (HostConfig hc : getHosts()) {
+    for (Host hc : getHosts()) {
       hc.enqueueCommand(command);
     }
   }
 
   @Override
-  public Set<HostConfig> getHostsForDomainPartition(int domainId, int partition) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hc : getHosts()) {
+  public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+    Set<Host> results = new HashSet<Host>();
+    for (Host hc : getHosts()) {
       HostDomainConfig domainById = hc.getDomainById(domainId);
       for (HostDomainPartitionConfig hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
@@ -39,9 +39,9 @@ public abstract class AbstractRingConfig implements RingConfig {
   }
 
   @Override
-  public Set<HostConfig> getHostsInState(HostState state) throws IOException {
-    Set<HostConfig> results = new HashSet<HostConfig>();
-    for (HostConfig hostConfig: getHosts()) {
+  public Set<Host> getHostsInState(HostState state) throws IOException {
+    Set<Host> results = new HashSet<Host>();
+    for (Host hostConfig: getHosts()) {
       if (hostConfig.getState() == state) {
         results.add(hostConfig);
       }
@@ -52,7 +52,7 @@ public abstract class AbstractRingConfig implements RingConfig {
   @Override
   public Integer getOldestVersionOnHosts() throws IOException {
     Integer min = null;
-    for (HostConfig host : getHosts()) {
+    for (Host host : getHosts()) {
       for (HostDomainConfig hdc : host.getAssignedDomains()) {
         for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
           Integer ver = hdpc.getCurrentDomainGroupVersion();
@@ -89,7 +89,7 @@ public abstract class AbstractRingConfig implements RingConfig {
       unassignedParts.add(i);
     }
 
-    for (HostConfig hc : getHosts()) {
+    for (Host hc : getHosts()) {
       HostDomainConfig hdc = hc.getDomainById(domainId);
       if (hdc == null) {
         continue;

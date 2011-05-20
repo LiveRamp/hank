@@ -28,7 +28,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Client;
@@ -41,13 +41,13 @@ final class PartDaemonConnection implements HostStateChangeListener {
   public TTransport transport;
   public Client client;
 
-  private final HostConfig hostConfig;
+  private final Host hostConfig;
 
   private final Object stateChangeMutex = new Object();
 
   private boolean closed = true;
 
-  public PartDaemonConnection(HostConfig hostConfig) throws TException, IOException {
+  public PartDaemonConnection(Host hostConfig) throws TException, IOException {
     this.hostConfig = hostConfig;
     hostConfig.setStateChangeListener(this);
     onHostStateChange(hostConfig);
@@ -66,7 +66,7 @@ final class PartDaemonConnection implements HostStateChangeListener {
   }
 
   @Override
-  public void onHostStateChange(HostConfig hostConfig) {
+  public void onHostStateChange(Host hostConfig) {
     synchronized (stateChangeMutex) {
       try {
         switch (hostConfig.getState()) {

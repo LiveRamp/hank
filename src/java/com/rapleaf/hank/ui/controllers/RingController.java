@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostConfig;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -56,7 +56,7 @@ public class RingController extends Controller {
       Set<Integer> unassignedParts = ringConfig.getUnassignedPartitions(dc);
       Integer domainId = rgc.getDomainGroupConfig().getDomainId(dc.getName());
 
-      for (HostConfig hc : ringConfig.getHosts()) {
+      for (Host hc : ringConfig.getHosts()) {
         HostDomainConfig hdc = hc.getDomainById(domainId);
         if (hdc == null) {
           hdc = hc.addDomain(domainId);
@@ -67,7 +67,7 @@ public class RingController extends Controller {
       randomizedUnassigned.addAll(unassignedParts);
       Collections.shuffle(randomizedUnassigned);
 
-      List<HostConfig> hosts = new ArrayList<HostConfig>(ringConfig.getHosts());
+      List<Host> hosts = new ArrayList<Host>(ringConfig.getHosts());
       for (int i = 0; i < unassignedParts.size(); i++) {
         hosts.get(i % hosts.size()).getDomainById(domainId).addPartition(i, rgc.getDomainGroupConfig().getLatestVersion().getVersionNumber());
       }

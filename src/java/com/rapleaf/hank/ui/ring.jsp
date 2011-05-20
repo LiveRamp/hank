@@ -7,16 +7,14 @@
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 
-<%!
-public List<HostConfig> sortedHcs(Collection<HostConfig> rcs) {
-  List<HostConfig> sortedList = new ArrayList<HostConfig>(rcs);
+<%!public List<Host> sortedHcs(Collection<Host> rcs) {
+  List<Host> sortedList = new ArrayList<Host>(rcs);
   Collections.sort(sortedList, new HostConfigComparator());
   return sortedList;
-}
-%>
+}%>
 
 <%
-Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
@@ -27,7 +25,7 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <title>Ring <%= ring.getRingNumber() %> in group <%= ringGroup.getName() %></title>
+  <title>Ring <%=ring.getRingNumber()%> in group <%=ringGroup.getName()%></title>
 
   <jsp:include page="_head.jsp" />
 </head>
@@ -35,23 +33,29 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
 
   <jsp:include page="_top_nav.jsp" />
 
-  <h1>Ring <%= ring.getRingNumber() %> in group <a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></h1>
+  <h1>Ring <%=ring.getRingNumber()%> in group <a href="/ring_group.jsp?name=<%=URLEnc.encode(ringGroup.getName())%>"><%=ringGroup.getName()%></a></h1>
 
   <div>
-    Ring status: <%= ring.getState() %> <br/>
-    <% if (ring.isUpdatePending()) { %>
-    Currently updating from <%= ring.getVersionNumber() %> to <%= ring.getUpdatingToVersionNumber() %>
-    <% } else { %>
+    Ring status: <%=ring.getState()%> <br/>
+    <%
+      if (ring.isUpdatePending()) {
+    %>
+    Currently updating from <%=ring.getVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
+    <%
+      } else {
+    %>
     Currently up to date.
-    <% } %>
+    <%
+      }
+    %>
   </div>
 
   <h3>Hosts</h3>
 
   <form action="/ring/add_host" method=post>
     Add a new host: <br/>
-    <input type=hidden name="rgName" value="<%= ringGroup.getName() %>"/>
-    <input type=hidden name="ringNum" value="<%= ring.getRingNumber() %>"/>
+    <input type=hidden name="rgName" value="<%=ringGroup.getName()%>"/>
+    <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
     <table>
       <tr>
         <td>Host:</td>
@@ -72,7 +76,9 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
       <th><strong>Cur. Cmd.</strong></th>
       <th><strong>Queue</strong></th>
     </tr>
-    <% for(HostConfig host : sortedHcs(ring.getHosts())) { %>
+    <%
+      for(Host host : sortedHcs(ring.getHosts())) {
+    %>
     <tr>
       <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
       <td><%= host.getState() %></td>
