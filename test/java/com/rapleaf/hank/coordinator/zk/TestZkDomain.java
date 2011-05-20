@@ -20,7 +20,7 @@ import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 
-public class TestZkDomainConfig extends ZkTestCase {
+public class TestZkDomain extends ZkTestCase {
   private static final String CONST_PARTITIONER = ConstantPartitioner.class.getName();
   private static final String STORAGE_ENGINE_FACTORY = ConstantStorageEngine.Factory.class.getName();
   private static final String STORAGE_ENGINE_OPTS = "---\n";
