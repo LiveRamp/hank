@@ -26,7 +26,7 @@ public class MockDomainGroupVersionDomainVersion implements DomainGroupVersionDo
   }
 
   @Override
-  public Domain getDomainConfig() {
+  public Domain getDomain() {
     return dc;
   }
 

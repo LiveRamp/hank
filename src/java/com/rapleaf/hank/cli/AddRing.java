@@ -87,8 +87,8 @@ public class AddRing {
     DomainGroup domainGroupConfig = ringGroup.getDomainGroup();
     DomainGroupVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
-    for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
-      Domain domainConfig = domainConfigVersion.getDomainConfig();
+    for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainVersions()) {
+      Domain domainConfig = domainConfigVersion.getDomain();
 
       Queue<HostDomain> q = new LinkedList<HostDomain>();
       for (Host hostConfig : hostConfigs) {

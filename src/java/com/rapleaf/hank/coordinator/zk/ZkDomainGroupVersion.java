@@ -62,18 +62,18 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
       if (!child.equals(COMPLETE_NODE_NAME)) {
         domainConfigVersions.add(new ZkDomainGroupVersionDomainVersion(zk,
             versionPath + "/" + child,
-            domainGroupConfig.getDomainConfig(domainGroupConfig.getDomainId(child))));
+            domainGroupConfig.getDomain(domainGroupConfig.getDomainId(child))));
       }
     }
   }
 
   @Override
-  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
     return Collections.unmodifiableSet(domainConfigVersions);
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return domainGroupConfig;
   }
 

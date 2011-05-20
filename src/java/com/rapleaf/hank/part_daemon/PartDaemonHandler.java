@@ -60,8 +60,8 @@ class PartDaemonHandler implements Iface {
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
-    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      int domainId = domainGroupConfig.getDomainId(dcv.getDomainConfig().getName());
+    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainVersions()) {
+      int domainId = domainGroupConfig.getDomainId(dcv.getDomain().getName());
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
       }
@@ -70,8 +70,8 @@ class PartDaemonHandler implements Iface {
     domains = new DomainReaderSet[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      Domain domainConfig = dcv.getDomainConfig();
+    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainVersions()) {
+      Domain domainConfig = dcv.getDomain();
       StorageEngine eng = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());

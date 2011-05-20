@@ -52,7 +52,7 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("n"));
     Ring ringConfig = rgc.getRing(ringNum);
 
-    for (Domain dc : rgc.getDomainGroup().getDomainConfigs()) {
+    for (Domain dc : rgc.getDomainGroup().getDomains()) {
       Set<Integer> unassignedParts = ringConfig.getUnassignedPartitions(dc);
       Integer domainId = rgc.getDomainGroup().getDomainId(dc.getName());
 

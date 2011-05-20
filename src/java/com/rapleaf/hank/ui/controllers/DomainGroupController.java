@@ -46,7 +46,7 @@ public class DomainGroupController extends Controller {
     DomainGroup dg = coordinator.getDomainGroupConfig(dgName);
 
     Map<String, Integer> domainVersions = new HashMap<String, Integer>();
-    for (Domain domainConfig : dg.getDomainConfigs()) {
+    for (Domain domainConfig : dg.getDomains()) {
       int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
       domainVersions.put(domainConfig.getName(), v);
     }
@@ -62,7 +62,7 @@ public class DomainGroupController extends Controller {
     Domain domainConfig = coordinator.getDomainConfig(dName);
 
     int domainId = -1;
-    for (Domain dc : dg.getDomainConfigs()) {
+    for (Domain dc : dg.getDomains()) {
       int thisDomainId = dg.getDomainId(dc.getName());
       if (thisDomainId > domainId) {
         domainId = thisDomainId;

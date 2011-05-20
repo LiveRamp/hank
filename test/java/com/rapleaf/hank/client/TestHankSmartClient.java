@@ -173,7 +173,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }};
 
       @Override
-      public Domain getDomainConfig(int domainId) {
+      public Domain getDomain(int domainId) {
         return domainConfigs.get(domainId);
       }
 

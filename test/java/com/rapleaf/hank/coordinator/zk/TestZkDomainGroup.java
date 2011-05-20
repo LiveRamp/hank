@@ -83,10 +83,10 @@ public class TestZkDomainGroup extends ZkTestCase {
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
     assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));
-    assertEquals(new HashSet<Domain>(Arrays.asList(d0, d1)), dgc.getDomainConfigs());
+    assertEquals(new HashSet<Domain>(Arrays.asList(d0, d1)), dgc.getDomains());
 
-    assertEquals("domain0", dgc.getDomainConfig(0).getName());
-    assertEquals("domain1", dgc.getDomainConfig(1).getName());
+    assertEquals("domain0", dgc.getDomain(0).getName());
+    assertEquals("domain1", dgc.getDomain(1).getName());
   }
 
   public void testDomainsAndListener() throws Exception {

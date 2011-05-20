@@ -30,7 +30,7 @@ public class ZkDomainGroupVersionDomainVersion implements DomainGroupVersionDoma
   }
 
   @Override
-  public Domain getDomainConfig() {
+  public Domain getDomain() {
     return domainConfig;
   }
 

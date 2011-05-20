@@ -30,12 +30,12 @@ public class MockDomainGroupVersion implements DomainGroupVersion, Comparable {
   }
 
   @Override
-  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
     return domainVersions;
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return dgc;
   }
 

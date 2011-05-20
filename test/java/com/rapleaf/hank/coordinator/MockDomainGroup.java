@@ -28,7 +28,7 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
-  public Domain getDomainConfig(int domainId) {
+  public Domain getDomain(int domainId) {
     return null;
   }
 
@@ -72,7 +72,7 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
-  public Set<Domain> getDomainConfigs() throws IOException {
+  public Set<Domain> getDomains() throws IOException {
     // TODO Auto-generated method stub
     return null;
   }

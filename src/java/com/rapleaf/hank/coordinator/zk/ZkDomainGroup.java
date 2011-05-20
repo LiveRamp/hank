@@ -133,7 +133,7 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   @Override
-  public Domain getDomainConfig(int domainId) {
+  public Domain getDomain(int domainId) {
     return domainConfigs.get(domainId);
   }
 
@@ -222,7 +222,7 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   @Override
-  public Set<Domain> getDomainConfigs() throws IOException {
+  public Set<Domain> getDomains() throws IOException {
     return new HashSet<Domain>(domainConfigs.values());
   }
 

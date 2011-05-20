@@ -33,7 +33,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
     <th>ID</th>
   </tr>
   <%
-    for (Domain domainConfig : domainGroupConfig.getDomainConfigs()) {
+    for (Domain domainConfig : domainGroupConfig.getDomains()) {
   %>
   <tr>
     <td><a href="/domain.jsp?n=<%=URLEnc.encode(domainConfig.getName())%>"><%=domainConfig.getName()%></a></td>
@@ -48,7 +48,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
   Set<Domain> s = coord.getDomainConfigs();
 %>
 <%
-  s.removeAll(domainGroupConfig.getDomainConfigs());
+  s.removeAll(domainGroupConfig.getDomains());
 %>
 
 <%
@@ -87,8 +87,8 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
       <th>Version (default: most recent)</th>
     </tr>
   <%
-    for (Domain domainConfig : domainGroupConfig.getDomainConfigs()) {
-      if (!domainConfig.getVersions().isEmpty()) {
+    for (Domain domainConfig : domainGroupConfig.getDomains()) {
+    if (!domainConfig.getVersions().isEmpty()) {
   %>
     <tr>
       <td>
@@ -130,9 +130,9 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
     v<%= dgcv.getVersionNumber() %>:
     <ul>
       <%
-        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainConfigVersions()) {
+        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersions()) {
       %>
-      <li><%=dcv.getDomainConfig().getName() %> @ v<%=dcv.getVersionNumber() %></li>
+      <li><%=dcv.getDomain().getName()%> @ v<%=dcv.getVersionNumber() %></li>
       <% } %>
     </ul>
   </li>

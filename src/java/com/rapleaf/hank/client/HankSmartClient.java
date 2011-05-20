@@ -86,8 +86,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
-    for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      Domain domainConfig = domainConfigVersion.getDomainConfig();
+    for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainVersions()) {
+      Domain domainConfig = domainConfigVersion.getDomain();
       HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
       domainPartToHostList.put(domainGroupConfig.getDomainId(domainConfig.getName()), partitionToAddress);
 
@@ -141,7 +141,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     if (domainId != null) {
       Domain domainConfig;
       try {
-        domainConfig = domainGroup.getDomainConfig(domainId);
+        domainConfig = domainGroup.getDomain(domainId);
       } catch (IOException e) {
         // TODO: this might be bad.
         LOG.error(e);

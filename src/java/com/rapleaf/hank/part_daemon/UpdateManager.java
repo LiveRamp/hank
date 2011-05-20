@@ -104,8 +104,8 @@ class UpdateManager implements IUpdateManager {
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
     DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
-    for (DomainGroupVersionDomainVersion dcv : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      Domain domainConfig = dcv.getDomainConfig();
+    for (DomainGroupVersionDomainVersion dcv : domainGroupConfig.getLatestVersion().getDomainVersions()) {
+      Domain domainConfig = dcv.getDomain();
       StorageEngine engine = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());

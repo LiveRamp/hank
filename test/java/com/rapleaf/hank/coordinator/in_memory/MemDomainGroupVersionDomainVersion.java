@@ -13,7 +13,7 @@ public class MemDomainGroupVersionDomainVersion implements DomainGroupVersionDom
   }
 
   @Override
-  public Domain getDomainConfig() {
+  public Domain getDomain() {
     return domainConfig;
   }
 

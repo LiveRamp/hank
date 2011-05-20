@@ -19,12 +19,12 @@ public class MemDomainGroupVersion implements DomainGroupVersion, Comparable<Mem
   }
 
   @Override
-  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions() {
+  public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
     return domainIdToVersion;
   }
 
   @Override
-  public DomainGroup getDomainGroupConfig() {
+  public DomainGroup getDomainGroup() {
     return parent;
   }
 

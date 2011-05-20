@@ -25,7 +25,7 @@ import java.util.Set;
 public interface DomainGroupVersion {
   public int getVersionNumber();
 
-  public DomainGroup getDomainGroupConfig();
+  public DomainGroup getDomainGroup();
 
-  public Set<DomainGroupVersionDomainVersion> getDomainConfigVersions();
+  public Set<DomainGroupVersionDomainVersion> getDomainVersions();
 }
