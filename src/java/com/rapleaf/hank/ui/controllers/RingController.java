@@ -14,7 +14,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.ui.URLEnc;
 
@@ -50,7 +50,7 @@ public class RingController extends Controller {
   protected void doAssignAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
-    RingConfig ringConfig = rgc.getRingConfig(ringNum);
+    Ring ringConfig = rgc.getRingConfig(ringNum);
 
     for (Domain dc : rgc.getDomainGroupConfig().getDomainConfigs()) {
       Set<Integer> unassignedParts = ringConfig.getUnassignedPartitions(dc);
@@ -78,7 +78,7 @@ public class RingController extends Controller {
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
-    RingConfig ringConfig = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
+    Ring ringConfig = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
     ringConfig.removeHost(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));

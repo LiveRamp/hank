@@ -31,7 +31,7 @@ import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -95,8 +95,8 @@ public class ZkRingGroupConfig implements RingGroupConfig {
 
   private final String ringGroupName;
   private DomainGroup domainGroupConfig;
-  private final HashMap<Integer,RingConfig> ringsByNumber =
-    new HashMap<Integer, RingConfig>();
+  private final HashMap<Integer,Ring> ringsByNumber =
+    new HashMap<Integer, Ring>();
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
@@ -114,7 +114,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
     List<String> ringNames = zk.getChildren(ringGroupPath, false);
     for (String ringName : ringNames) {
       if (ringName.matches("ring-\\d+")) {
-        RingConfig rc = new ZkRingConfig(zk, ringGroupPath + "/" + ringName, this);
+        Ring rc = new ZkRing(zk, ringGroupPath + "/" + ringName, this);
         ringsByNumber.put(rc.getRingNumber(), rc);
       }
     }
@@ -134,13 +134,13 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) {
+  public Ring getRingConfig(int ringNumber) {
     return ringsByNumber.get(ringNumber);
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
-    for (RingConfig ring : ringsByNumber.values()) {
+  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
+    for (Ring ring : ringsByNumber.values()) {
       if (ring.getHostConfigByAddress(hostAddress) != null) {
         return ring;
       }
@@ -149,8 +149,8 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public Set<RingConfig> getRingConfigs() {
-    return new HashSet<RingConfig>(ringsByNumber.values());
+  public Set<Ring> getRingConfigs() {
+    return new HashSet<Ring>(ringsByNumber.values());
   }
 
   @Override
@@ -250,9 +250,9 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig addRing(int ringNum) throws IOException {
+  public Ring addRing(int ringNum) throws IOException {
     try {
-      RingConfig rc = ZkRingConfig.create(zk, ringGroupPath, ringNum, this, isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
+      Ring rc = ZkRing.create(zk, ringGroupPath, ringNum, this, isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
       ringsByNumber.put(rc.getRingNumber(), rc);
       return rc;
     } catch (Exception e) {

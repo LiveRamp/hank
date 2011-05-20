@@ -15,7 +15,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
@@ -52,15 +52,15 @@ public class StatusWebDaemonTester extends TestCase {
     g2.addDomain(d1, 0);
 
     RingGroupConfig rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
-    RingConfig r1 = rgAlpha.addRing(1);
+    Ring r1 = rgAlpha.addRing(1);
     r1.addHost(addy("alpha-1-1")).addDomain(0).addPartition(0, 1);
     r1.addHost(addy("alpha-1-2"));
     r1.addHost(addy("alpha-1-3"));
-    RingConfig r2 = rgAlpha.addRing(2);
+    Ring r2 = rgAlpha.addRing(2);
     r2.addHost(addy("alpha-2-1"));
     r2.addHost(addy("alpha-2-2"));
     r2.addHost(addy("alpha-2-3"));
-    RingConfig r3 = rgAlpha.addRing(3);
+    Ring r3 = rgAlpha.addRing(3);
     r3.addHost(addy("alpha-3-1"));
     r3.addHost(addy("alpha-3-2"));
     r3.addHost(addy("alpha-3-3"));
@@ -81,7 +81,7 @@ public class StatusWebDaemonTester extends TestCase {
     r3.addHost(addy("beta-3-2"));
     r3.addHost(addy("beta-3-3"));
     r3.addHost(addy("beta-3-4"));
-    RingConfig r4 = rgBeta.addRing(4);
+    Ring r4 = rgBeta.addRing(4);
     r4.addHost(addy("beta-4-1"));
     r4.addHost(addy("beta-4-2"));
     r4.addHost(addy("beta-4-3"));

@@ -33,7 +33,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
@@ -76,7 +76,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     loadCache();
     ringGroupConfig.setListener(this);
-    for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) {
+    for (Ring ringConfig : ringGroupConfig.getRingConfigs()) {
       ringConfig.setStateChangeListener(this);
     }
   }
@@ -97,7 +97,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     // populate the skeleton, while also establishing connections to online hosts
-    for (RingConfig ringConfig : ringGroupConfig.getRingConfigs()) {
+    for (Ring ringConfig : ringGroupConfig.getRingConfigs()) {
       for (Host hostConfig : ringConfig.getHosts()) {
         for (HostDomain hdc : hostConfig.getAssignedDomains()) {
           Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
@@ -180,6 +180,6 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   @Override
-  public void onRingStateChange(RingConfig ringConfig) {
+  public void onRingStateChange(Ring ringConfig) {
   }
 }

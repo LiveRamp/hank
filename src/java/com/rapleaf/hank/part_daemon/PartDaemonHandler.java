@@ -28,7 +28,7 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
@@ -53,7 +53,7 @@ class PartDaemonHandler implements Iface {
 
   public PartDaemonHandler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
     // find the ring config
-    RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
+    Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
     // get the domain group config for the ring
     DomainGroup domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroupConfig();

@@ -1,17 +1,14 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractRingConfig implements RingConfig {
+public abstract class AbstractRing implements Ring {
   private final int ringNum;
   private final RingGroupConfig ringGroupConfig;
 
-  protected AbstractRingConfig(int ringNum, RingGroupConfig ringGroupConfig) {
+  protected AbstractRing(int ringNum, RingGroupConfig ringGroupConfig) {
     this.ringNum = ringNum;
     this.ringGroupConfig = ringGroupConfig;
   }

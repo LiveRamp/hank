@@ -9,47 +9,48 @@
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
-<%!
-
-public List<RingConfig> sortedRcs(Collection<RingConfig> rcs) {
-  List<RingConfig> sortedList = new ArrayList<RingConfig>(rcs);
+<%!public List<Ring> sortedRcs(Collection<Ring> rcs) {
+  List<Ring> sortedList = new ArrayList<Ring>(rcs);
   Collections.sort(sortedList, new RingConfigComparator());
   return sortedList;
-}
-%>
+}%>
 <%
-
-Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
-
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
 <%@page import="org.apache.commons.lang.NotImplementedException"%><html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <title>Ring Group <%= ringGroup.getName() %></title>
+  <title>Ring Group <%=ringGroup.getName()%></title>
 
   <jsp:include page="_head.jsp" />
 </head>
 <body>
   <jsp:include page="_top_nav.jsp" />
 
-  <h1>Ring Group <%= ringGroup.getName() %></h1>
+  <h1>Ring Group <%=ringGroup.getName()%></h1>
 
   <div class='box-section'>
     <h3>Status</h3>
     <div class='box-section-content'>
       <div>
-        <% if(ringGroup.isUpdating()) { %>
-        An update from version <%= ringGroup.getCurrentVersion() %> to <%= ringGroup.getUpdatingToVersion() %> is in progress.
-        <% } else { %>
+        <%
+          if(ringGroup.isUpdating()) {
+        %>
+        An update from version <%=ringGroup.getCurrentVersion()%> to <%=ringGroup.getUpdatingToVersion()%> is in progress.
+        <%
+          } else {
+        %>
         No updates in progress.
-        <% } %>
+        <%
+          }
+        %>
       </div>
       <div>
-        Data Deployer is <%= ringGroup.isDataDeployerOnline() ? "online" : "offline" %>
+        Data Deployer is <%=ringGroup.isDataDeployerOnline() ? "online" : "offline"%>
       </div>
     </div>
   </div>
@@ -57,7 +58,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
   <div class='box-section'>
   	<h3>Configuration</h3>
   	<div class='box-section-content'>
-      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%= URLEnc.encode(ringGroup.getDomainGroupConfig().getName()) %>"><%= ringGroup.getDomainGroupConfig().getName() %></a>
+      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroupConfig().getName())%>"><%=ringGroup.getDomainGroupConfig().getName()%></a>
     </div>
   </div>
 
@@ -65,7 +66,7 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
   <div class='box-section'>
   <h3>Rings</h3>
   <div class='box-section-content'>
-  <a href="/ring_group/add_ring?g=<%= URLEnc.encode(ringGroup.getName()) %>">Add a new ring group</a>
+  <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring group</a>
   <table class='table-blue'>
     <tr>
       <th>#</th>
@@ -75,7 +76,9 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
       <th># hosts</th>
       <th></th>
     </tr>
-    <% for (RingConfig ring : sortedRcs(ringGroup.getRingConfigs())) { %>
+    <%
+      for (Ring ring : sortedRcs(ringGroup.getRingConfigs())) {
+    %>
     <tr>
       <td><%= ring.getRingNumber() %></td>
       <td><%= ring.getState() %></td>

@@ -25,10 +25,10 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockRingConfig;
+import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
@@ -50,7 +50,7 @@ public class TestPartDaemonServer extends BaseTestCase {
 
   private static final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1));
 
-  private static final RingConfig mockRingConfig = new MockRingConfig(null, null, 0, null) {
+  private static final Ring mockRingConfig = new MockRing(null, null, 0, null) {
     @Override
     public Host getHostConfigByAddress(PartDaemonAddress address) {
       return mockHostConfig;
@@ -59,7 +59,7 @@ public class TestPartDaemonServer extends BaseTestCase {
 
   private static final RingGroupConfig mockRingGroupConfig = new MockRingGroupConfig(null, "myRingGroup", null) {
     @Override
-    public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
+    public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
       return mockRingConfig;
     }
   };

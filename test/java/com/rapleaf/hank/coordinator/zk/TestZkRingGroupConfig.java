@@ -21,7 +21,7 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
@@ -96,13 +96,13 @@ public class TestZkRingGroupConfig extends ZkTestCase {
     assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersion());
 
     listener.calledWith = null;
-    RingConfig newRing = rgc.addRing(1);
+    Ring newRing = rgc.addRing(1);
     synchronized (listener) {
       listener.wait(1000);
     }
     assertNotNull(listener.calledWith);
     assertEquals(1, listener.calledWith.getRingConfigs().size());
-    assertEquals(newRing.getRingNumber(), ((RingConfig) listener.calledWith.getRingConfigs().toArray()[0]).getRingNumber());
+    assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRingConfigs().toArray()[0]).getRingNumber());
   }
 
   public void testClaimDataDeployer() throws Exception {
@@ -119,7 +119,7 @@ public class TestZkRingGroupConfig extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    RingConfig rc = ZkRingConfig.create(getZk(), ring_group, ringNum, null, 1);
+    Ring rc = ZkRing.create(getZk(), ring_group, ringNum, null, 1);
     rc.addHost(new PartDaemonAddress("localhost", ringNum));
   }
 

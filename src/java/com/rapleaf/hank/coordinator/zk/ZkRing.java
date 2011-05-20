@@ -31,7 +31,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.AbstractRingConfig;
+import com.rapleaf.hank.coordinator.AbstractRing;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -39,8 +39,8 @@ import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkRingConfig extends AbstractRingConfig implements Watcher {
-  private static final Logger LOG = Logger.getLogger(ZkRingConfig.class);
+public class ZkRing extends AbstractRing implements Watcher {
+  private static final Logger LOG = Logger.getLogger(ZkRing.class);
 
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
@@ -63,7 +63,7 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
       switch (event.getType()) {
       case NodeDataChanged:
         for (RingStateChangeListener listener : stateChangeListeners) {
-          listener.onRingStateChange(ZkRingConfig.this);
+          listener.onRingStateChange(ZkRing.this);
         }
         if (!cancelled) {
           try {
@@ -89,7 +89,7 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
 
   private final ZooKeeperPlus zk;
 
-  public ZkRingConfig(ZooKeeperPlus zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroupConfig ringGroupConfig) throws InterruptedException, KeeperException {
     super(parseRingNum(ringPath), ringGroupConfig);
     this.zk = zk;
     this.ringPath = ringPath;
@@ -207,13 +207,13 @@ public class ZkRingConfig extends AbstractRingConfig implements Watcher {
     }
   }
 
-  public static ZkRingConfig create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
+  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroupConfig group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkRingConfig(zk, ringPath, group);
+    return new ZkRing(zk, ringPath, group);
   }
 
   @Override

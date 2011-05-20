@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 
@@ -36,9 +36,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements
   public void manageTransitions(RingGroupConfig ringGroup) throws IOException {
     boolean anyUpdatesPending = false;
     boolean anyDownOrUpdating = false;
-    Queue<RingConfig> downable = new LinkedList<RingConfig>();
+    Queue<Ring> downable = new LinkedList<Ring>();
 
-    for (RingConfig ring : ringGroup.getRingConfigs()) {
+    for (Ring ring : ringGroup.getRingConfigs()) {
       if (ring.isUpdatePending()) {
         anyUpdatesPending = true;
 
@@ -155,7 +155,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
     // as long as we didn't encounter any down or updating rings, we can take
     // down one of the currently up and not-yet-updated ones.
     if (!anyDownOrUpdating && !downable.isEmpty()) {
-      RingConfig toDown = downable.poll();
+      Ring toDown = downable.poll();
 
       LOG.debug("There were " + downable.size()
           + " candidates for the next ring to update. Selecting ring "

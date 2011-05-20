@@ -18,7 +18,7 @@
 
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
-RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("n")));
+Ring ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("n")));
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">

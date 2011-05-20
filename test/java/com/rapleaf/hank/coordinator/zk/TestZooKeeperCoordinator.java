@@ -22,7 +22,7 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -116,7 +116,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     dgc.createNewVersion(domainIdToVersion);
 
     ZkRingGroupConfig rg = ZkRingGroupConfig.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
-    RingConfig rc = rg.addRing(1);
+    Ring rc = rg.addRing(1);
     rc.addHost(new PartDaemonAddress("localhost", 1));
 
     coord = getCoord();

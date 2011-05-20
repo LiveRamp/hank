@@ -9,7 +9,7 @@
 
 RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
-RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("r")));
+Ring ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter("r")));
 Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(request.getParameter("h"))));
 %>
 

@@ -11,8 +11,8 @@ import com.rapleaf.hank.BaseTestCase;
 public class TestAbstractRingConfig extends BaseTestCase {
   private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
 
-  private static class SlightlyLessAbstractRingConfig extends AbstractRingConfig {
-    protected SlightlyLessAbstractRingConfig(int ringNum,
+  private static class SlightlyLessAbstractRing extends AbstractRing {
+    protected SlightlyLessAbstractRing(int ringNum,
         RingGroupConfig ringGroupConfig) {
       super(ringNum, ringGroupConfig);
     }
@@ -71,14 +71,14 @@ public class TestAbstractRingConfig extends BaseTestCase {
   }
 
   public void testIsUpdatePending() {
-    assertTrue(new SlightlyLessAbstractRingConfig(1, null) {
+    assertTrue(new SlightlyLessAbstractRing(1, null) {
       @Override
       public Integer getUpdatingToVersionNumber() {
         return 5;
       }
     }.isUpdatePending());
 
-    assertFalse(new SlightlyLessAbstractRingConfig(1, null) {
+    assertFalse(new SlightlyLessAbstractRing(1, null) {
       @Override
       public Integer getUpdatingToVersionNumber() {
         return null;
@@ -89,7 +89,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
   public void testCommandAll() throws IOException {
     final Host hc = new MockHost(LOCALHOST);
 
-    SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
+    SlightlyLessAbstractRing rc = new SlightlyLessAbstractRing(1, null) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton(hc);
@@ -114,7 +114,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
         return new HashSet<HostDomain>(Arrays.asList(hd1, hd2));
       }
     };
-    SlightlyLessAbstractRingConfig ringConf = new SlightlyLessAbstractRingConfig(1, null) {
+    SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton(hc);
@@ -138,7 +138,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
         return domainId == 0 ? hd1 : null;
       }
     };
-    SlightlyLessAbstractRingConfig ringConf = new SlightlyLessAbstractRingConfig(1, null) {
+    SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton(hc);
@@ -155,7 +155,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
     final MockHost h2 = new MockHost(new PartDaemonAddress("localhost", 2));
     final MockHost h3 = new MockHost(new PartDaemonAddress("localhost", 3));
 
-    SlightlyLessAbstractRingConfig rc = new SlightlyLessAbstractRingConfig(1, null) {
+    SlightlyLessAbstractRing rc = new SlightlyLessAbstractRing(1, null) {
       @Override
       public Set<Host> getHosts() {
         return new HashSet<Host>(Arrays.asList(h1, h2, h3));

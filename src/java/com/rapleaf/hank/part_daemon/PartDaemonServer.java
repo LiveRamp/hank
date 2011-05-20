@@ -34,7 +34,7 @@ import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
@@ -59,7 +59,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
 
   private final RingGroupConfig ringGroupConfig;
 
-  private final RingConfig ringConfig;
+  private final Ring ringConfig;
 
   public PartDaemonServer(PartservConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;

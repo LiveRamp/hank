@@ -32,10 +32,10 @@ import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRingConfig;
+import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
@@ -78,7 +78,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    final MockRingConfig mockRingConfig = new MockRingConfig(null, null, 1, null) {
+    final MockRing mockRingConfig = new MockRing(null, null, 1, null) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton((Host)mockHostConfig);
@@ -97,8 +97,8 @@ public class TestDataDeployer extends TestCase {
       }
 
       @Override
-      public Set<RingConfig> getRingConfigs() {
-        return Collections.singleton((RingConfig)mockRingConfig);
+      public Set<Ring> getRingConfigs() {
+        return Collections.singleton((Ring)mockRingConfig);
       }
     };
 

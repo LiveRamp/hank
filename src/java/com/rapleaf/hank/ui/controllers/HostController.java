@@ -10,7 +10,7 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.ui.URLEnc;
 
@@ -37,7 +37,7 @@ public class HostController extends Controller {
 
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
-    RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
+    Ring rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
@@ -46,7 +46,7 @@ public class HostController extends Controller {
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroupConfig rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
-    RingConfig rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
+    Ring rc = rgc.getRingConfig(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
     HostDomain d = hc.getDomainById(dId);

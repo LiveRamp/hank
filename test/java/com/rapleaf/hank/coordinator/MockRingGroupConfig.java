@@ -22,10 +22,10 @@ public class MockRingGroupConfig implements RingGroupConfig {
 
   private final DomainGroup dcg;
   private final String name;
-  private final Set<RingConfig> ringConfigs;
+  private final Set<Ring> ringConfigs;
   public int updateToVersion;
 
-  public MockRingGroupConfig(DomainGroup dcg, String name, Set<RingConfig> ringConfigs) {
+  public MockRingGroupConfig(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;
@@ -43,17 +43,17 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) {
+  public Ring getRingConfig(int ringNumber) {
     return null;
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
     return null;
   }
 
   @Override
-  public Set<RingConfig> getRingConfigs() {
+  public Set<Ring> getRingConfigs() {
     return ringConfigs;
   }
 
@@ -95,7 +95,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig addRing(int ringNum) throws IOException {
+  public Ring addRing(int ringNum) throws IOException {
     return null;
   }
 

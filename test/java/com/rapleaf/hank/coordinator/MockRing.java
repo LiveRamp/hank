@@ -19,14 +19,13 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MockRingConfig extends AbstractRingConfig {
-
+public class MockRing extends AbstractRing {
   private RingState state;
   private final Set<Host> hosts;
   public HostCommand allCommanded;
   public Integer updatingToVersion;
 
-  public MockRingConfig(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
+  public MockRing(Set<PartDaemonAddress> hosts, RingGroupConfig rgc, int number, RingState state) {
     super(number, rgc);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {

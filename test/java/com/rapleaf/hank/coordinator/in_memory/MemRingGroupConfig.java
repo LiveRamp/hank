@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
@@ -16,7 +16,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
 
   private final String ringGroupName;
   private final MemDomainGroup memDomainGroupConfig;
-  private Map<Integer, MemRingConfig> ringConfigs = new HashMap<Integer, MemRingConfig>();
+  private Map<Integer, MemRing> ringConfigs = new HashMap<Integer, MemRing>();
 
   public MemRingGroupConfig(String ringGroupName,
       MemDomainGroup memDomainGroupConfig)
@@ -26,8 +26,8 @@ public class MemRingGroupConfig implements RingGroupConfig {
  }
 
   @Override
-  public RingConfig addRing(int ringNum) throws IOException {
-    MemRingConfig rc = new MemRingConfig(ringNum, this);
+  public Ring addRing(int ringNum) throws IOException {
+    MemRing rc = new MemRing(ringNum, this);
     ringConfigs.put(ringNum, rc);
     return rc;
   }
@@ -55,19 +55,19 @@ public class MemRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public RingConfig getRingConfig(int ringNumber) {
+  public Ring getRingConfig(int ringNumber) {
     return ringConfigs.get(ringNumber);
   }
 
   @Override
-  public RingConfig getRingConfigForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingConfigForHost(PartDaemonAddress hostAddress) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public Set<RingConfig> getRingConfigs() {
-    return new HashSet<RingConfig>(ringConfigs.values());
+  public Set<Ring> getRingConfigs() {
+    return new HashSet<Ring>(ringConfigs.values());
   }
 
   @Override

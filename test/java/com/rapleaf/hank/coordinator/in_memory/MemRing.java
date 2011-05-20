@@ -8,7 +8,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.rapleaf.hank.coordinator.AbstractRingConfig;
+import com.rapleaf.hank.coordinator.AbstractRing;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
@@ -17,13 +17,13 @@ import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.RingStateChangeListener;
 
-public class MemRingConfig extends AbstractRingConfig {
+public class MemRing extends AbstractRing {
   private RingState state;
   private Integer updatingToVersion;
   private Integer versionNumber;
   private Map<PartDaemonAddress, MemHost> hostConfigs = new HashMap<PartDaemonAddress, MemHost>();
 
-  public MemRingConfig(int ringNum, RingGroupConfig ringGroupConfig) {
+  public MemRing(int ringNum, RingGroupConfig ringGroupConfig) {
     super(ringNum, ringGroupConfig);
     state = RingState.DOWN;
   }

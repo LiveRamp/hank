@@ -26,14 +26,14 @@ import junit.framework.TestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockRingConfig;
+import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingConfig;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingState;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
-  private class MRC extends MockRingConfig {
+  private class MRC extends MockRing {
     private final int curVer;
     private final int nextVer;
 
@@ -77,8 +77,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     @SuppressWarnings("unused")
     private final int toVer;
 
-    public MRG(int curVer, int toVer, RingConfig... ringConfigs) {
-      super(null, "myRingGroup", new LinkedHashSet<RingConfig>(Arrays.asList(ringConfigs)));
+    public MRG(int curVer, int toVer, Ring... ringConfigs) {
+      super(null, "myRingGroup", new LinkedHashSet<Ring>(Arrays.asList(ringConfigs)));
       this.curVer = curVer;
       this.toVer = toVer;
     }
