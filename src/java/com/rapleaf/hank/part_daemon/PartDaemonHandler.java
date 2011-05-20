@@ -56,7 +56,7 @@ class PartDaemonHandler implements Iface {
     Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingForHost(hostAndPort);
 
     // get the domain group config for the ring
-    DomainGroup domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroup();
+    DomainGroup domainGroupConfig = ringConfig.getRingGroup().getDomainGroup();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
@@ -75,7 +75,7 @@ class PartDaemonHandler implements Iface {
       StorageEngine eng = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      Set<HostDomainPartition> partitions = ringConfig.getHostConfigByAddress(hostAndPort).getDomainById(domainId).getPartitions();
+      Set<HostDomainPartition> partitions = ringConfig.getHostByAddress(hostAndPort).getDomainById(domainId).getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(),
           domainConfig.getNumParts(),

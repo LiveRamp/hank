@@ -141,7 +141,7 @@ public class ZkRingGroup implements RingGroup {
   @Override
   public Ring getRingForHost(PartDaemonAddress hostAddress) {
     for (Ring ring : ringsByNumber.values()) {
-      if (ring.getHostConfigByAddress(hostAddress) != null) {
+      if (ring.getHostByAddress(hostAddress) != null) {
         return ring;
       }
     }

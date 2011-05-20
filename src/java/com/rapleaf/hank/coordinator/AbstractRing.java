@@ -63,7 +63,7 @@ public abstract class AbstractRing implements Ring {
   }
 
   @Override
-  public final RingGroup getRingGroupConfig() {
+  public final RingGroup getRingGroup() {
     return ringGroupConfig;
   }
 
@@ -79,7 +79,7 @@ public abstract class AbstractRing implements Ring {
 
   @Override
   public Set<Integer> getUnassignedPartitions(Domain domainConfig) throws IOException {
-    Integer domainId = getRingGroupConfig().getDomainGroup().getDomainId(domainConfig.getName());
+    Integer domainId = getRingGroup().getDomainGroup().getDomainId(domainConfig.getName());
 
     Set<Integer> unassignedParts = new HashSet<Integer>();
     for (int i = 0; i < domainConfig.getNumParts(); i++) {

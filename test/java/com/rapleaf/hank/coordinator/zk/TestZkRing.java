@@ -104,7 +104,7 @@ public class TestZkRing extends ZkTestCase {
     }
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
-    assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+    assertEquals(LOCALHOST, ringConf.getHostByAddress(LOCALHOST).getAddress());
     ringConf.close();
 
     // assure that hosts reload well, too
@@ -113,10 +113,10 @@ public class TestZkRing extends ZkTestCase {
 
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
 
-    assertEquals(LOCALHOST, ringConf.getHostConfigByAddress(LOCALHOST).getAddress());
+    assertEquals(LOCALHOST, ringConf.getHostByAddress(LOCALHOST).getAddress());
 
     assertTrue(ringConf.removeHost(LOCALHOST));
-    assertNull(ringConf.getHostConfigByAddress(LOCALHOST));
+    assertNull(ringConf.getHostByAddress(LOCALHOST));
     assertFalse(ringConf.removeHost(LOCALHOST));
 
     ringConf.close();

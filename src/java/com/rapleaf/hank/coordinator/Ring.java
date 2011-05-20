@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface Ring {
-  public RingGroup getRingGroupConfig();
+  public RingGroup getRingGroup();
 
   public int getRingNumber();
 
@@ -30,7 +30,7 @@ public interface Ring {
    */
   public Set<Host> getHosts();
 
-  public Host getHostConfigByAddress(PartDaemonAddress address);
+  public Host getHostByAddress(PartDaemonAddress address);
 
   public Host addHost(PartDaemonAddress address) throws IOException;
 

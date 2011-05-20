@@ -70,7 +70,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     if (ringConfig == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
     }
-    hostConfig = ringConfig.getHostConfigByAddress(hostAddress);
+    hostConfig = ringConfig.getHostByAddress(hostAddress);
     if (hostConfig == null) {
       throw new RuntimeException("Could not get host configuration for host: " + hostAddress);
     }

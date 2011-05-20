@@ -38,7 +38,7 @@ public class HostController extends Controller {
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
     resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEnc.encode(hc.getAddress().toString())));
@@ -47,7 +47,7 @@ public class HostController extends Controller {
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
     HostDomain d = hc.getDomainById(dId);
     if (d == null) {

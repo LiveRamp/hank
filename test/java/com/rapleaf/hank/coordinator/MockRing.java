@@ -70,7 +70,7 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
-  public Host getHostConfigByAddress(PartDaemonAddress address) {
+  public Host getHostByAddress(PartDaemonAddress address) {
     return null;
   }
 

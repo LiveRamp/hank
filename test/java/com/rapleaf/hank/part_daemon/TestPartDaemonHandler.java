@@ -112,7 +112,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
 
     final MockRing mockRingConfig = new MockRing(null, rgc, 1, RingState.UP) {
       @Override
-      public Host getHostConfigByAddress(PartDaemonAddress address) {
+      public Host getHostByAddress(PartDaemonAddress address) {
         return mockHostConfig;
       }
     };

@@ -23,7 +23,7 @@ public class TestAbstractRingConfig extends BaseTestCase {
     }
 
     @Override
-    public Host getHostConfigByAddress(PartDaemonAddress address) {
+    public Host getHostByAddress(PartDaemonAddress address) {
       return null;
     }
 
