@@ -23,8 +23,8 @@ import java.util.Set;
 
 import junit.framework.TestCase;
 
-import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
@@ -35,15 +35,14 @@ import com.rapleaf.hank.coordinator.RingState;
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MRC extends MockRing {
     private final int curVer;
-    private final int nextVer;
+    private Integer nextVer;
 
     public boolean updateCompleteCalled;
 
     public MRC(int number,
         RingState state,
-        boolean updatePending,
         int curVer,
-        int nextVer,
+        Integer nextVer,
         PartDaemonAddress... hosts) {
       super(new LinkedHashSet<PartDaemonAddress>(Arrays.asList(hosts)), null, number, state);
       this.curVer = curVer;
@@ -95,8 +94,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownsFirstAvailableRing() throws Exception {
-    MRC r1 = new MRC(1, RingState.UP, true, 1, 2);
-    MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
+    MRC r1 = new MRC(1, RingState.UP, 1, 2);
+    MRC r2 = new MRC(2, RingState.UP, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
@@ -111,8 +110,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownsOnlyAvailableRing() throws Exception {
-    MRC r1 = new MRC(1, RingState.UP, false, 2, 2);
-    MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
+    MRC r1 = new MRC(1, RingState.UP, 2, null);
+    MRC r2 = new MRC(2, RingState.UP, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
     getFunc().manageTransitions(rg);
 
@@ -124,8 +123,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   public void testDownsNothingIfSomethingIsAlreadyDown() throws Exception {
     for (RingState s : EnumSet.of(RingState.GOING_DOWN, RingState.COMING_UP, RingState.UPDATING, RingState.DOWN)) {
-      MRC r1 = new MRC(1, s, true, 1, 2);
-      MRC r2 = new MRC(2, RingState.UP, true, 1, 2);
+      MRC r1 = new MRC(1, s, 1, 2);
+      MRC r2 = new MRC(2, RingState.UP, 1, 2);
       MRG rg = new MRG(1, 2, r1, r2);
       getFunc().manageTransitions(rg);
 
@@ -134,7 +133,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDownToUpdating() throws Exception {
-    MRC r1 = new MRC(1, RingState.DOWN, true, 1, 2);
+    MRC r1 = new MRC(1, RingState.DOWN, 1, 2);
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
@@ -143,7 +142,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testUpdatingToComingUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -164,7 +163,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATING, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -186,7 +185,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   // this case will only occur when the data deployer has died or something.
   public void testUpdatedToComingUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATED, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATED, 1, 2, new PartDaemonAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -207,7 +206,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testComingUpToUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.COMING_UP, true, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.COMING_UP, 1, 2, new PartDaemonAddress("localhost", 1)) {
 
       @Override
       public Set<Host> getHostsInState(HostState state) {
