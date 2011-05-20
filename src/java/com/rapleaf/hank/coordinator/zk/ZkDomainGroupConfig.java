@@ -38,11 +38,11 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupConfig implements DomainGroupConfig {
+public class ZkDomainGroupConfig implements DomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   private class StateChangeWatcher implements Watcher {

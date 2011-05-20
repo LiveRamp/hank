@@ -25,7 +25,7 @@ import org.apache.thrift.TException;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -56,7 +56,7 @@ class PartDaemonHandler implements Iface {
     RingConfig ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingConfigForHost(hostAndPort);
 
     // get the domain group config for the ring
-    DomainGroupConfig domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroupConfig();
+    DomainGroup domainGroupConfig = ringConfig.getRingGroupConfig().getDomainGroupConfig();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;

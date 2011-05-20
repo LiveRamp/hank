@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
@@ -45,7 +45,7 @@ public class MemRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig() {
+  public DomainGroup getDomainGroupConfig() {
     return memDomainGroupConfig;
   }
 

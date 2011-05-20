@@ -20,12 +20,12 @@ import java.util.Set;
 
 public class MockRingGroupConfig implements RingGroupConfig {
 
-  private final DomainGroupConfig dcg;
+  private final DomainGroup dcg;
   private final String name;
   private final Set<RingConfig> ringConfigs;
   public int updateToVersion;
 
-  public MockRingGroupConfig(DomainGroupConfig dcg, String name, Set<RingConfig> ringConfigs) {
+  public MockRingGroupConfig(DomainGroup dcg, String name, Set<RingConfig> ringConfigs) {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;
@@ -33,7 +33,7 @@ public class MockRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig() {
+  public DomainGroup getDomainGroupConfig() {
     return dcg;
   }
 

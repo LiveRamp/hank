@@ -35,7 +35,9 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <form action="/ring_group/create" method=post>
     Add a new ring group: <br/>
     <select name="dgName">
-      <% for (DomainGroupConfig dgc : coord.getDomainGroupConfigs()) { %>
+      <%
+        for (DomainGroup dgc : coord.getDomainGroupConfigs()) {
+      %>
       <option><%= dgc.getName() %></option>
       <% } %>
     </select>

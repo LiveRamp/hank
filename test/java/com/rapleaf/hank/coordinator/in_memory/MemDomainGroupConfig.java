@@ -15,10 +15,10 @@ import org.apache.commons.lang.NotImplementedException;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 
-public class MemDomainGroupConfig implements DomainGroupConfig {
+public class MemDomainGroupConfig implements DomainGroup {
   private final String name;
   private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
   private final SortedMap<Integer, DomainGroupConfigVersion> versions = new TreeMap<Integer, DomainGroupConfigVersion>();

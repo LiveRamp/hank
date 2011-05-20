@@ -13,7 +13,7 @@ import org.apache.thrift.TException;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -39,7 +39,7 @@ public class StatusWebDaemonTester extends TestCase {
     d1.openNewVersion();
     d1.closeNewVersion();
 
-    DomainGroupConfig g1 = coord.addDomainGroup("Group_1");
+    DomainGroup g1 = coord.addDomainGroup("Group_1");
     g1.addDomain(d0, 0);
     g1.addDomain(d1, 1);
 
@@ -48,7 +48,7 @@ public class StatusWebDaemonTester extends TestCase {
       put(d1.getName(), 1);
     }});
 
-    DomainGroupConfig g2 = coord.addDomainGroup("Group_2");
+    DomainGroup g2 = coord.addDomainGroup("Group_2");
     g2.addDomain(d1, 0);
 
     RingGroupConfig rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());

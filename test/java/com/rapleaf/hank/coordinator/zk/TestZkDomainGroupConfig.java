@@ -25,7 +25,7 @@ import org.apache.zookeeper.KeeperException;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -34,10 +34,10 @@ import com.rapleaf.hank.storage.curly.Curly;
 
 public class TestZkDomainGroupConfig extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
-    public DomainGroupConfig calledWith;
+    public DomainGroup calledWith;
 
     @Override
-    public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
+    public void onDomainGroupChange(DomainGroup newDomainGroup) {
       this.calledWith = newDomainGroup;
       synchronized (this) {
         notifyAll();
@@ -90,7 +90,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   }
 
   public void testDomainsAndListener() throws Exception {
-    DomainGroupConfig dgc = ZkDomainGroupConfig.create(getZk(), dg_root, "myDomainGroup");
+    DomainGroup dgc = ZkDomainGroupConfig.create(getZk(), dg_root, "myDomainGroup");
     MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
     dgc.setListener(listener);
     assertNull(listener.calledWith);

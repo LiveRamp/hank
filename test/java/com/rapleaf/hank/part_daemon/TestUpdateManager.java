@@ -22,7 +22,7 @@ import java.util.Set;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -45,7 +45,7 @@ import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
   private final class MRG extends MockRingGroupConfig {
-    private MRG(DomainGroupConfig dcg, String name, Set<RingConfig> ringConfigs) {
+    private MRG(DomainGroup dcg, String name, Set<RingConfig> ringConfigs) {
       super(dcg, name, ringConfigs);
     }
 
@@ -122,7 +122,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     StorageEngine mockStorageEngine = new MSE(mockUpdater);
 
-    DomainGroupConfig mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
+    DomainGroup mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
 
     final RingGroupConfig mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
 
@@ -146,9 +146,9 @@ public class TestUpdateManager extends BaseTestCase {
         0);
   }
 
-  private DomainGroupConfig getMockDomainGroupConfig(
+  private DomainGroup getMockDomainGroupConfig(
       final StorageEngine mockStorageEngine) {
-    DomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
+    DomainGroup mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
       @Override
       public DomainGroupConfigVersion getLatestVersion() {
         return getMockDomainGroupConfigVersion(mockStorageEngine);

@@ -23,7 +23,7 @@ import junit.framework.TestCase;
 
 import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
@@ -87,7 +87,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockRingGroupConfig mockRingGroupConf = new MockRingGroupConfig(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
-      public DomainGroupConfig getDomainGroupConfig() {
+      public DomainGroup getDomainGroupConfig() {
         return domainGroupConfig;
       }
 
@@ -143,7 +143,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockRingGroupConfig mockRingGroupConf = new MockRingGroupConfig(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
-      public DomainGroupConfig getDomainGroupConfig() {
+      public DomainGroup getDomainGroupConfig() {
         return domainGroupConfig;
       }
 

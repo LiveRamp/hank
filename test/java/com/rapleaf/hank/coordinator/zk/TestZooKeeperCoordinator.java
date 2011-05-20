@@ -20,7 +20,7 @@ import java.util.Map;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -61,7 +61,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     ZooKeeperCoordinator coord2 = getCoord();
     coord.addDomainGroup("myDomainGroup2");
 
-    DomainGroupConfig c = coord.getDomainGroupConfig("myDomainGroup2");
+    DomainGroup c = coord.getDomainGroupConfig("myDomainGroup2");
     assertNotNull(c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
@@ -84,7 +84,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testAddRingGroup() throws Exception {
-    DomainGroupConfig dg = coord.addDomainGroup("myDomainGroup2");
+    DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
     Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
     dg.createNewVersion(domainIdToVersion);
     RingGroupConfig rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");

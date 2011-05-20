@@ -24,7 +24,7 @@ import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -42,7 +42,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   private final Object lock = new Object();
 
   private RingGroupConfig ringGroupConfig;
-  private DomainGroupConfig domainGroupConfig;
+  private DomainGroup domainGroupConfig;
 
   private final RingGroupUpdateTransitionFunction transFunc;
 
@@ -85,7 +85,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
             RingGroupConfig snapshotRingGroupConfig;
-            DomainGroupConfig snapshotDomainGroupConfig;
+            DomainGroup snapshotDomainGroupConfig;
             synchronized (lock) {
               snapshotRingGroupConfig = ringGroupConfig;
               snapshotDomainGroupConfig = domainGroupConfig;
@@ -110,7 +110,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
     LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " shutting down.");
   }
 
-  void processUpdates(RingGroupConfig ringGroup, DomainGroupConfig domainGroup) throws IOException {
+  void processUpdates(RingGroupConfig ringGroup, DomainGroup domainGroup) throws IOException {
     if (ringGroup.isUpdating()) {
       LOG.info("Ring group " + ringGroupName
           + " is currently updating from version "
@@ -153,7 +153,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   }
 
   @Override
-  public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
+  public void onDomainGroupChange(DomainGroup newDomainGroup) {
     synchronized (lock) {
       LOG.debug("Got an updated domain group config version: " + newDomainGroup + "!" );
       domainGroupConfig = newDomainGroup;

@@ -28,7 +28,7 @@ import org.apache.thrift.TException;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.HostConfig;
 import com.rapleaf.hank.coordinator.HostDomainConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -52,7 +52,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
-  private final DomainGroupConfig domainGroup;
+  private final DomainGroup domainGroup;
   private final RingGroupConfig ringGroupConfig;
 
   private final Map<PartDaemonAddress, PartDaemonConnection> connectionCache = new HashMap<PartDaemonAddress, PartDaemonConnection>();
@@ -83,7 +83,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private void loadCache() throws IOException, TException {
     // preprocess the config to create skeleton domain -> part -> [hosts] map
-    DomainGroupConfig domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
+    DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroupConfig();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
     for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {

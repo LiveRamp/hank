@@ -23,7 +23,7 @@ import java.util.SortedSet;
 /**
  * Encapsulates the configuration and listening/modification of a domain group.
  */
-public interface DomainGroupConfig {
+public interface DomainGroup {
   public String getName();
 
   /**

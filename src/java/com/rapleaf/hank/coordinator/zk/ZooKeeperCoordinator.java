@@ -31,7 +31,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
@@ -204,7 +204,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroupConfig(String domainGroupName) {
     return domainGroupConfigs.get(domainGroupName);
   }
 
@@ -258,9 +258,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public Set<DomainGroupConfig> getDomainGroupConfigs() {
+  public Set<DomainGroup> getDomainGroupConfigs() {
     synchronized(domainGroupConfigs) {
-      return new HashSet<DomainGroupConfig>(domainGroupConfigs.values());
+      return new HashSet<DomainGroup>(domainGroupConfigs.values());
     }
   }
 
@@ -269,7 +269,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public void onDomainGroupChange(DomainGroupConfig newDomainGroup) {
+  public void onDomainGroupChange(DomainGroup newDomainGroup) {
     domainGroupConfigs.put(newDomainGroup.getName(), (ZkDomainGroupConfig) newDomainGroup);
   }
 
@@ -300,7 +300,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public DomainGroupConfig addDomainGroup(String name) throws IOException {
+  public DomainGroup addDomainGroup(String name) throws IOException {
     try {
       ZkDomainGroupConfig dgc = ZkDomainGroupConfig.create(zk, domainGroupsRoot, name);
       synchronized(domainGroupConfigs) {

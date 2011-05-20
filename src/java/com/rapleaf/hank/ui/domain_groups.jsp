@@ -32,8 +32,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Cur Ver #</th>
     </tr>
     <%
-    for (DomainGroupConfig domainConfig : coord.getDomainGroupConfigs()) {
-      %>
+      for (DomainGroup domainConfig : coord.getDomainGroupConfigs()) {
+    %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
         <td>todo</td>

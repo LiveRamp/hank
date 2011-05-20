@@ -22,7 +22,7 @@ import java.util.Set;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class MockCoordinator implements Coordinator {
@@ -50,7 +50,7 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroupConfig(String domainGroupName) {
     return null;
   }
 
@@ -64,7 +64,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public Set<DomainGroupConfig> getDomainGroupConfigs() {
+  public Set<DomainGroup> getDomainGroupConfigs() {
     return null;
   }
 
@@ -84,7 +84,7 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainGroupConfig addDomainGroup(String name) throws IOException {
+  public DomainGroup addDomainGroup(String name) throws IOException {
     return null;
   }
 

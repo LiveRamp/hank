@@ -7,9 +7,9 @@
 <%@page import="java.util.*"%>
 
 <%
-Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request.getParameter("n")));
+DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request.getParameter("n")));
 %>
 
 

@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
 public class InMemoryCoordinator implements Coordinator {
@@ -26,7 +26,7 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainGroupConfig addDomainGroup(String name) throws IOException {
+  public DomainGroup addDomainGroup(String name) throws IOException {
     MemDomainGroupConfig dgc = new MemDomainGroupConfig(name);
     domain_groups.put(name, dgc);
     return dgc;
@@ -50,13 +50,13 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroupConfig(String domainGroupName) {
     return domain_groups.get(domainGroupName);
   }
 
   @Override
-  public Set<DomainGroupConfig> getDomainGroupConfigs() {
-    return new HashSet<DomainGroupConfig>(domain_groups.values());
+  public Set<DomainGroup> getDomainGroupConfigs() {
+    return new HashSet<DomainGroup>(domain_groups.values());
   }
 
   @Override

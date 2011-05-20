@@ -74,20 +74,20 @@ public interface Coordinator {
    * Add a new domain group. (You will be able to add domains to the new group
    * once it is created.)
    */
-  public DomainGroupConfig addDomainGroup(String name) throws IOException;
+  public DomainGroup addDomainGroup(String name) throws IOException;
 
   /**
    * Get the set of known DomainGroupConfigs.
    * @return
    */
-  public Set<DomainGroupConfig> getDomainGroupConfigs();
+  public Set<DomainGroup> getDomainGroupConfigs();
 
   /**
    * @param domainGroupName
    * @return configuration information on the specified domain group
    * @throws DataNotFoundException if no domain group with the specified name exists
    */
-  public DomainGroupConfig getDomainGroupConfig(String domainGroupName);
+  public DomainGroup getDomainGroupConfig(String domainGroupName);
 
   //
   // RingGroups

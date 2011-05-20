@@ -40,7 +40,7 @@ public interface RingGroupConfig {
    * Get the DomainGroupConfig for this Ring Group.
    * @return
    */
-  public DomainGroupConfig getDomainGroupConfig();
+  public DomainGroup getDomainGroupConfig();
 
   /**
    * Find the RingConfig that applies to a given host

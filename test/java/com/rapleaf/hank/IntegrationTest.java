@@ -50,7 +50,7 @@ import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
@@ -302,7 +302,7 @@ public class IntegrationTest extends ZkTestCase {
     });
 
     // simulate publisher pushing out a new version
-    DomainGroupConfig domainGroupConfig = null;
+    DomainGroup domainGroupConfig = null;
     coord = config.getCoordinator();
     for (int i = 0; i < 15; i++) {
       domainGroupConfig = coord.getDomainGroupConfig("dg1");

@@ -29,5 +29,5 @@ public interface DomainGroupChangeListener {
    * @param newDomainGroup
    *          the latest configuration information for a domain group
    */
-  public void onDomainGroupChange(DomainGroupConfig newDomainGroup);
+  public void onDomainGroupChange(DomainGroup newDomainGroup);
 }

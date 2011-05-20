@@ -21,7 +21,7 @@ import java.util.Map;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupConfig;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -98,7 +98,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
     Map<String, Integer> map = new HashMap<String, Integer>();
     map.put("domain1", 2);
     map.put("domain4", 7);
-    DomainGroupConfig dgc = new MockDomainGroupConfig("blah");
+    DomainGroup dgc = new MockDomainGroupConfig("blah");
     DomainGroupConfigVersion ver = ZkDomainGroupConfigVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(2, ver.getDomainConfigVersions().size());

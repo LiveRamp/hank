@@ -29,7 +29,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.DomainGroupConfig;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
@@ -94,7 +94,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   private final String ringGroupName;
-  private DomainGroupConfig domainGroupConfig;
+  private DomainGroup domainGroupConfig;
   private final HashMap<Integer,RingConfig> ringsByNumber =
     new HashMap<Integer, RingConfig>();
   private final String ringGroupPath;
@@ -103,7 +103,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   private final String dataDeployerOnlinePath;
   private final ZooKeeperPlus zk;
 
-  public ZkRingGroupConfig(ZooKeeperPlus zk, String ringGroupPath, DomainGroupConfig domainGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRingGroupConfig(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroupConfig = domainGroupConfig;
@@ -124,7 +124,7 @@ public class ZkRingGroupConfig implements RingGroupConfig {
   }
 
   @Override
-  public DomainGroupConfig getDomainGroupConfig() {
+  public DomainGroup getDomainGroupConfig() {
     return domainGroupConfig;
   }
 
