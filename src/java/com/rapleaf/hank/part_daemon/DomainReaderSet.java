@@ -25,12 +25,12 @@ import com.rapleaf.hank.storage.Result;
 /**
  * Class that manages serving on behalf of a particular Domain.
  */
-class Domain {
+class DomainReaderSet {
   private final Reader[] parts;
   private final Partitioner partitioner;
   private final String name;
 
-  public Domain(String name, Reader[] partitions, Partitioner partitioner) {
+  public DomainReaderSet(String name, Reader[] partitions, Partitioner partitioner) {
     this.name = name;
     this.parts = partitions;
     this.partitioner = partitioner;

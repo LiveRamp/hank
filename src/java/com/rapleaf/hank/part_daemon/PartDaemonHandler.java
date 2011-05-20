@@ -49,7 +49,7 @@ class PartDaemonHandler implements Iface {
 
   private final static Logger LOG = Logger.getLogger(PartDaemonHandler.class);
 
-  private final Domain[] domains;
+  private final DomainReaderSet[] domains;
 
   public PartDaemonHandler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
     // find the ring config
@@ -67,7 +67,7 @@ class PartDaemonHandler implements Iface {
       }
     }
 
-    domains = new Domain[maxDomainId + 1];
+    domains = new DomainReaderSet[maxDomainId + 1];
 
     // loop over the domains and get set up
     for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
@@ -89,14 +89,14 @@ class PartDaemonHandler implements Iface {
       }
 
       // configure and store the Domain wrapper
-      domains[domainId] = new Domain(domainConfig.getName(), readers, domainConfig.getPartitioner());
+      domains[domainId] = new DomainReaderSet(domainConfig.getName(), readers, domainConfig.getPartitioner());
     }
   }
 
   @Override
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
-    Domain domain = getDomain(domainId & 0xff);
+    DomainReaderSet domain = getDomain(domainId & 0xff);
 
     if (domain == null) {
       return NO_SUCH_DOMAIN;
@@ -123,7 +123,7 @@ class PartDaemonHandler implements Iface {
     }
   }
 
-  private Domain getDomain(int domainId) {
+  private DomainReaderSet getDomain(int domainId) {
     if (domains.length <= domainId) {
       return null;
     }
