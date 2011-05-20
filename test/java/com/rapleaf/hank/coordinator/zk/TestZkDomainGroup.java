@@ -26,13 +26,13 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
 
-public class TestZkDomainGroupConfig extends ZkTestCase {
+public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
     public DomainGroup calledWith;
 
@@ -79,7 +79,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root);
 
     assertEquals(1, dgc.getVersions().size());
-    assertEquals(1, ((DomainGroupConfigVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
+    assertEquals(1, ((DomainGroupVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
     assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));
