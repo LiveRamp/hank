@@ -24,7 +24,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkHostDomain implements HostDomain {
@@ -44,16 +44,16 @@ public class ZkHostDomain implements HostDomain {
   }
 
   @Override
-  public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
+  public Set<HostDomainPartition> getPartitions() throws IOException {
     List<String> partStrs;
     try {
       partStrs = zk.getChildren(root, false);
     } catch (Exception e) {
       throw new IOException(e);
     }
-    Set<HostDomainPartitionConfig> results = new HashSet<HostDomainPartitionConfig>();
+    Set<HostDomainPartition> results = new HashSet<HostDomainPartition>();
     for (String partStr : partStrs) {
-      results.add(new ZkHostDomainPartitionConfig(zk, root + "/" + partStr));
+      results.add(new ZkHostDomainPartition(zk, root + "/" + partStr));
     }
     return results;
   }
@@ -68,7 +68,7 @@ public class ZkHostDomain implements HostDomain {
   }
 
   @Override
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws IOException {
-    return ZkHostDomainPartitionConfig.create(zk, root, partNum, initialVersion);
+  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
+    return ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
   }
 }

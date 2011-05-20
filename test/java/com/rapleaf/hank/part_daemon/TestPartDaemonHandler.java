@@ -30,12 +30,12 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -65,7 +65,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
     public HostDomain getDomainById(int domainId) {
       return new HostDomain() {
         @Override
-        public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
+        public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
 
         @Override
         public int getDomainId() {
@@ -73,11 +73,11 @@ public class TestPartDaemonHandler extends BaseTestCase {
         }
 
         @Override
-        public Set<HostDomainPartitionConfig> getPartitions()
+        public Set<HostDomainPartition> getPartitions()
         throws IOException {
-          return new HashSet<HostDomainPartitionConfig>(Arrays.asList(
-              new MockHostDomainPartitionConfig(0, 1, 2),
-              new MockHostDomainPartitionConfig(4, 1, 2)));
+          return new HashSet<HostDomainPartition>(Arrays.asList(
+              new MockHostDomainPartition(0, 1, 2),
+              new MockHostDomainPartition(4, 1, 2)));
         }
       };
     }

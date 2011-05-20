@@ -17,7 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 
 public class TestZkHostDomain extends ZkTestCase {
 
@@ -28,6 +28,6 @@ public class TestZkHostDomain extends ZkTestCase {
 
     hdc.addPartition(1, 1);
     assertEquals(1, hdc.getPartitions().size());
-    assertEquals(1, ((HostDomainPartitionConfig)hdc.getPartitions().toArray()[0]).getPartNum());
+    assertEquals(1, ((HostDomainPartition)hdc.getPartitions().toArray()[0]).getPartNum());
   }
 }

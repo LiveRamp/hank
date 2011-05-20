@@ -5,19 +5,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 
 public class MemHostDomain implements HostDomain {
   private final int domainId;
-  private final Set<HostDomainPartitionConfig> parts = new HashSet<HostDomainPartitionConfig>();
+  private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
 
   public MemHostDomain(int domainId) {
     this.domainId = domainId;
   }
 
   @Override
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {
-    MemHostDomainPartitionConfig hdpc = new MemHostDomainPartitionConfig(partNum, initialVersion);
+  public HostDomainPartition addPartition(int partNum, int initialVersion) {
+    MemHostDomainPartition hdpc = new MemHostDomainPartition(partNum, initialVersion);
     parts.add(hdpc);
     return hdpc;
   }
@@ -28,7 +28,7 @@ public class MemHostDomain implements HostDomain {
   }
 
   @Override
-  public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
+  public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
   }
 }

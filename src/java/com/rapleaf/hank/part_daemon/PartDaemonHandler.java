@@ -26,7 +26,7 @@ import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.generated.HankExceptions;
@@ -75,7 +75,7 @@ class PartDaemonHandler implements Iface {
       StorageEngine eng = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      Set<HostDomainPartitionConfig> partitions = ringConfig.getHostConfigByAddress(hostAndPort).getDomainById(domainId).getPartitions();
+      Set<HostDomainPartition> partitions = ringConfig.getHostConfigByAddress(hostAndPort).getDomainById(domainId).getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(),
           domainConfig.getNumParts(),
@@ -83,7 +83,7 @@ class PartDaemonHandler implements Iface {
 
       // instantiate all the readers
       Reader[] readers = new Reader[domainConfig.getNumParts()];
-      for (HostDomainPartitionConfig part : partitions) {
+      for (HostDomainPartition part : partitions) {
         LOG.debug(String.format("Instantiating reader for part num %d", part.getPartNum()));
         readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
       }

@@ -17,14 +17,14 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
-public class MockHostDomainPartitionConfig extends AbstractHostDomainPartitionConfig {
+public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
   private final int curVer;
   private final int nextVer;
   public int updatingToVersion;
 
-  public MockHostDomainPartitionConfig(int partNum, int curVer, int nextVer) {
+  public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
     this.curVer = curVer;
     this.nextVer = nextVer;

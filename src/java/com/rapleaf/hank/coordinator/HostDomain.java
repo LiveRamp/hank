@@ -24,7 +24,7 @@ import java.util.Set;
 public interface HostDomain {
   public int getDomainId();
 
-  public Set<HostDomainPartitionConfig> getPartitions() throws IOException;
+  public Set<HostDomainPartition> getPartitions() throws IOException;
 
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) throws IOException;
+  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException;
 }

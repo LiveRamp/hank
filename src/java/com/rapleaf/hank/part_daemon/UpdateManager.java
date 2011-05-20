@@ -30,7 +30,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.RingConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -46,10 +46,10 @@ class UpdateManager implements IUpdateManager {
     private final int partNum;
     private final Queue<Throwable> exceptionQueue;
     private final int toVersion;
-    private final HostDomainPartitionConfig part;
+    private final HostDomainPartition part;
     private final String domainName;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartitionConfig part, String domainName) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartition part, String domainName) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
@@ -109,7 +109,7 @@ class UpdateManager implements IUpdateManager {
       StorageEngine engine = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
-      for (HostDomainPartitionConfig part : hostConfig.getDomainById(domainId).getPartitions()) {
+      for (HostDomainPartition part : hostConfig.getDomainById(domainId).getPartitions()) {
         if (part.getUpdatingToDomainGroupVersion() != null) {
           LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
               ringGroupConfig.getName(),

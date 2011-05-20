@@ -20,16 +20,16 @@ import java.io.IOException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-public class ZkHostDomainPartitionConfig extends AbstractHostDomainPartitionConfig {
+public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
 
-  public ZkHostDomainPartitionConfig(ZooKeeperPlus zk, String path) {
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) {
     this.zk = zk;
     this.path = path;
     String[] toks = path.split("/");
@@ -89,12 +89,12 @@ public class ZkHostDomainPartitionConfig extends AbstractHostDomainPartitionConf
     }
   }
 
-  public static ZkHostDomainPartitionConfig create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
+  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initialDomainGroupVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      return new ZkHostDomainPartitionConfig(zk, hdpPath);
+      return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
       throw new IOException(e);
     }

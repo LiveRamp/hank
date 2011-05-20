@@ -76,7 +76,9 @@ Host host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.decode(re
     <tr>
       <th><%= ringGroup.getDomainGroupConfig().getDomainConfig(hdc.getDomainId()).getName() %></td>
     </tr>
-    <% for (HostDomainPartitionConfig hdpc : new TreeSet<HostDomainPartitionConfig>(hdc.getPartitions())) { %>
+    <%
+      for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
+    %>
     <tr>
       <td></td>
       <td><%= hdpc.getPartNum() %></td>

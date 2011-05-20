@@ -2,14 +2,14 @@ package com.rapleaf.hank.coordinator.in_memory;
 
 import java.io.IOException;
 
-import com.rapleaf.hank.coordinator.AbstractHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 
-public class MemHostDomainPartitionConfig extends AbstractHostDomainPartitionConfig {
+public class MemHostDomainPartition extends AbstractHostDomainPartition {
   private final int partNum;
   private Integer updatingToVersion;
   private Integer currentDomainGroupVersion;
 
-  public MemHostDomainPartitionConfig(int partNum, int initialVersion) {
+  public MemHostDomainPartition(int partNum, int initialVersion) {
     this.partNum = partNum;
     this.updatingToVersion = initialVersion;
   }

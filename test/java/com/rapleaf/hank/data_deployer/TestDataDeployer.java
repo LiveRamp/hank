@@ -27,11 +27,11 @@ import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -58,21 +58,21 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    final MockHostDomainPartitionConfig mockHostDomainPartitionConfig = new MockHostDomainPartitionConfig(0, 0, 1);
+    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0, 1);
 
     final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("locahost", 12345)) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain)new HostDomain() {
           @Override
-          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {return null;}
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
 
           @Override
           public int getDomainId() {return 0;}
 
           @Override
-          public Set<HostDomainPartitionConfig> getPartitions() {
-            return Collections.singleton((HostDomainPartitionConfig)mockHostDomainPartitionConfig);
+          public Set<HostDomainPartition> getPartitions() {
+            return Collections.singleton((HostDomainPartition)mockHostDomainPartitionConfig);
           }
         });
       }

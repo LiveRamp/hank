@@ -8,18 +8,18 @@ import org.apache.commons.lang.NotImplementedException;
 
 public class MockHostDomain implements HostDomain {
   private final int domainId;
-  private final Set<HostDomainPartitionConfig> parts = new HashSet<HostDomainPartitionConfig>();
+  private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
 
   public MockHostDomain(int domainId, int... triples) {
     this.domainId = domainId;
 
     for (int i = 0; i < triples.length; i += 3) {
-      parts.add(new MockHostDomainPartitionConfig(triples[i], triples[i+1], triples[i+2]));
+      parts.add(new MockHostDomainPartition(triples[i], triples[i+1], triples[i+2]));
     }
   }
 
   @Override
-  public HostDomainPartitionConfig addPartition(int partNum, int initialVersion)  {
+  public HostDomainPartition addPartition(int partNum, int initialVersion)  {
     throw new NotImplementedException();
   }
 
@@ -29,7 +29,7 @@ public class MockHostDomain implements HostDomain {
   }
 
   @Override
-  public Set<HostDomainPartitionConfig> getPartitions() throws IOException {
+  public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
   }
 }

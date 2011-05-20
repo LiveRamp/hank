@@ -40,13 +40,13 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartitionConfig;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRingConfig;
 import com.rapleaf.hank.coordinator.MockRingGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -229,7 +229,7 @@ public class TestHankSmartClient extends BaseTestCase {
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain)new HostDomain() {
           @Override
-          public HostDomainPartitionConfig addPartition(int partNum, int initialVersion) {
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {
             return null;
           }
 
@@ -239,8 +239,8 @@ public class TestHankSmartClient extends BaseTestCase {
           }
 
           @Override
-          public Set<HostDomainPartitionConfig> getPartitions() {
-            return Collections.singleton((HostDomainPartitionConfig)new MockHostDomainPartitionConfig(partNum, 1, -1));
+          public Set<HostDomainPartition> getPartitions() {
+            return Collections.singleton((HostDomainPartition)new MockHostDomainPartition(partNum, 1, -1));
           }
         });
       }

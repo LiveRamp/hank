@@ -28,7 +28,7 @@ public abstract class AbstractRingConfig implements RingConfig {
     Set<Host> results = new HashSet<Host>();
     for (Host hc : getHosts()) {
       HostDomain domainById = hc.getDomainById(domainId);
-      for (HostDomainPartitionConfig hdpc : domainById.getPartitions()) {
+      for (HostDomainPartition hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
           results.add(hc);
           break;
@@ -54,7 +54,7 @@ public abstract class AbstractRingConfig implements RingConfig {
     Integer min = null;
     for (Host host : getHosts()) {
       for (HostDomain hdc : host.getAssignedDomains()) {
-        for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+        for (HostDomainPartition hdpc : hdc.getPartitions()) {
           Integer ver = hdpc.getCurrentDomainGroupVersion();
           if (min == null || (ver != null && min > ver)) {
             min = ver;
@@ -94,7 +94,7 @@ public abstract class AbstractRingConfig implements RingConfig {
       if (hdc == null) {
         continue;
       }
-      for (HostDomainPartitionConfig hdpc : hdc.getPartitions()) {
+      for (HostDomainPartition hdpc : hdc.getPartitions()) {
         unassignedParts.remove(hdpc.getPartNum());
       }
     }
