@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.SortedSet;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersionConfig;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -88,7 +88,7 @@ public class MockDomain implements Domain {
   }
 
   @Override
-  public SortedSet<DomainVersionConfig> getVersions() {
+  public SortedSet<DomainVersion> getVersions() {
     return null;
   }
 

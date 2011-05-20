@@ -28,7 +28,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersionConfig;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -181,14 +181,14 @@ public class ZkDomain implements Domain {
   }
 
   @Override
-  public SortedSet<DomainVersionConfig> getVersions() throws IOException {
-    TreeSet<DomainVersionConfig> result = new TreeSet<DomainVersionConfig>();
+  public SortedSet<DomainVersion> getVersions() throws IOException {
+    TreeSet<DomainVersion> result = new TreeSet<DomainVersion>();
 
     try {
       String basePath = domainPath + "/" + KEY_VERSIONS;
       List<String> children = zk.getChildren(basePath, false);
       for (String child : children) {
-        result.add(new ZkDomainVersionConfig(zk, basePath + "/" + child));
+        result.add(new ZkDomainVersion(zk, basePath + "/" + child));
       }
       return result;
     } catch (Exception e) {
@@ -215,7 +215,7 @@ public class ZkDomain implements Domain {
     if (getVersions().isEmpty()) {
       nextVerNum = 0;
     } else {
-      DomainVersionConfig last = getVersions().last();
+      DomainVersion last = getVersions().last();
       nextVerNum = last.getVersionNumber() + 1;
     }
 

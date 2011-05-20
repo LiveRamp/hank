@@ -92,10 +92,12 @@ Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
     <th>closed at</th>
   </tr>
   <%
-  SortedSet<DomainVersionConfig> revSorted = new TreeSet<DomainVersionConfig>(new ReverseComparator<DomainVersionConfig>());
-  revSorted.addAll(domainConfig.getVersions());
+    SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
+    revSorted.addAll(domainConfig.getVersions());
   %>
-  <% for (DomainVersionConfig version : revSorted) { %>
+  <%
+    for (DomainVersion version : revSorted) {
+  %>
   <tr>
     <td><%= version.getVersionNumber() %></td>
     <td><%= new Date(version.getClosedAt()) %></td>

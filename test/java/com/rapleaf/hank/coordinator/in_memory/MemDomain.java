@@ -8,7 +8,7 @@ import java.util.TreeSet;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersionConfig;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -19,7 +19,7 @@ public class MemDomain implements Domain {
   private final String storageEngineOptions;
   private final String partitionerName;
   private final String name;
-  private final SortedSet<DomainVersionConfig> versions = new TreeSet<DomainVersionConfig>();
+  private final SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>();
   private Integer nextVer;
 
   public MemDomain(String name,
@@ -92,13 +92,13 @@ public class MemDomain implements Domain {
 
   @Override
   public boolean closeNewVersion() throws IOException {
-    versions.add(new MemDomainVersionConfig(nextVer));
+    versions.add(new MemDomainVersion(nextVer));
     nextVer = null;
     return true;
   }
 
   @Override
-  public SortedSet<DomainVersionConfig> getVersions() {
+  public SortedSet<DomainVersion> getVersions() {
     return versions;
   }
 

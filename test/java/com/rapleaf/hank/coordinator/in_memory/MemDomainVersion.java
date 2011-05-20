@@ -1,11 +1,11 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
-import com.rapleaf.hank.coordinator.AbstractDomainVersionConfig;
+import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 
-public class MemDomainVersionConfig extends AbstractDomainVersionConfig {
+public class MemDomainVersion extends AbstractDomainVersion {
   private final int ver;
 
-  public MemDomainVersionConfig(int ver) {
+  public MemDomainVersion(int ver) {
     this.ver = ver;
   }
 

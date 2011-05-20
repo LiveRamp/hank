@@ -97,12 +97,12 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
       <td>
         <select name="<%=domainConfig.getName() %>_version">
           <%
-          SortedSet<DomainVersionConfig> revSorted = new TreeSet<DomainVersionConfig>(new ReverseComparator<DomainVersionConfig>());
-          revSorted.addAll(domainConfig.getVersions());
+            SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
+                revSorted.addAll(domainConfig.getVersions());
           %>
           <%
-          boolean first = true;
-          for (DomainVersionConfig ver : revSorted) { 
+            boolean first = true;
+                for (DomainVersion ver : revSorted) {
           %>
           <option<%= first ? " selected" : "" %>><%= ver.getVersionNumber() %></option>
           <%

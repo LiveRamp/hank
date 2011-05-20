@@ -2,14 +2,14 @@ package com.rapleaf.hank.coordinator.zk;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.rapleaf.hank.coordinator.AbstractDomainVersionConfig;
+import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainVersionConfig extends AbstractDomainVersionConfig {
+public class ZkDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;
   private final long closedAt;
 
-  public ZkDomainVersionConfig(ZooKeeperPlus zk, String path) throws KeeperException, InterruptedException {
+  public ZkDomainVersion(ZooKeeperPlus zk, String path) throws KeeperException, InterruptedException {
     String[] toks = path.split("/");
     String last = toks[toks.length-1];
     toks = last.split("_");

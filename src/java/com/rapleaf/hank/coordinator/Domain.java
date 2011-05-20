@@ -51,7 +51,7 @@ public interface Domain {
    * @return
    * @throws IOException
    */
-  public SortedSet<DomainVersionConfig> getVersions() throws IOException;
+  public SortedSet<DomainVersion> getVersions() throws IOException;
 
   /**
    * Attempt to open a new version of this domain. If there isn't another
