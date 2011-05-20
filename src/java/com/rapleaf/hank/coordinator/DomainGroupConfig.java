@@ -31,7 +31,7 @@ public interface DomainGroupConfig {
    * @return
    * @throws IOException
    */
-  public Set<DomainConfig> getDomainConfigs() throws IOException;
+  public Set<Domain> getDomainConfigs() throws IOException;
 
   /**
    * Get the DomainConfig for the domain with <i>domainId</i>
@@ -39,7 +39,7 @@ public interface DomainGroupConfig {
    * @return
    * @throws DataNotFoundException
    */
-  public DomainConfig getDomainConfig(int domainId)
+  public Domain getDomainConfig(int domainId)
   throws IOException;
 
   /**
@@ -68,7 +68,7 @@ public interface DomainGroupConfig {
 
   public void setListener(DomainGroupChangeListener listener);
 
-  public void addDomain(DomainConfig domainConfig, int domainId) throws IOException;
+  public void addDomain(Domain domainConfig, int domainId) throws IOException;
 
   public DomainGroupConfigVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException;
 }

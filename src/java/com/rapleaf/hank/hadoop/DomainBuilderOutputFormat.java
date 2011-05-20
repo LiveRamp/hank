@@ -25,7 +25,7 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
@@ -42,7 +42,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
-    private final DomainConfig domainConfig;
+    private final Domain domainConfig;
     private final StorageEngine storageEngine;
     private final OutputStreamFactory outputStreamFactory;
 
@@ -50,7 +50,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     private Integer writerPartition = null;
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
-    DomainBuilderRecordWriter(DomainConfig domainConfig,
+    DomainBuilderRecordWriter(Domain domainConfig,
         OutputStreamFactory outputStreamFactory) {
       this.domainConfig = domainConfig;
       this.storageEngine = domainConfig.getStorageEngine();

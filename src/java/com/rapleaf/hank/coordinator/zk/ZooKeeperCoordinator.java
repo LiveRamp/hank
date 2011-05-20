@@ -29,7 +29,7 @@ import org.apache.zookeeper.WatchedEvent;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
@@ -199,7 +199,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) {
+  public Domain getDomainConfig(String domainName) {
     return domainConfigsByName.get(domainName);
   }
 
@@ -253,8 +253,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public Set<DomainConfig> getDomainConfigs() {
-    return new HashSet<DomainConfig>(domainConfigsByName.values());
+  public Set<Domain> getDomainConfigs() {
+    return new HashSet<Domain>(domainConfigsByName.values());
   }
 
   @Override
@@ -278,7 +278,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public DomainConfig addDomain(String domainName,
+  public Domain addDomain(String domainName,
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,

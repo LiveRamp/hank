@@ -24,7 +24,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 
 // This class is intended to be used for testing. It does not output anything but
@@ -38,13 +38,13 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
   @Override
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    DomainConfig domainConfig = JobConfConfigurator.getDomainConfig(conf);
+    Domain domainConfig = JobConfConfigurator.getDomainConfig(conf);
     return new DomainBuilderEmptyOutputRecordWriter(domainConfig);
   }
 
   private static class DomainBuilderEmptyOutputRecordWriter extends DomainBuilderRecordWriter {
 
-    DomainBuilderEmptyOutputRecordWriter(DomainConfig domainConfig) {
+    DomainBuilderEmptyOutputRecordWriter(Domain domainConfig) {
       // Always return a no-op OutputStream
       super(domainConfig, new OutputStreamFactory() {
         @Override

@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -37,7 +37,7 @@ public class TestZkDomainGroupConfigVersion extends ZkTestCase {
 
   private static final MockDomainGroupConfig mockDomainGroup = new MockDomainGroupConfig("myDomainGroup") {
     @Override
-    public DomainConfig getDomainConfig(int domainId) {
+    public Domain getDomainConfig(int domainId) {
       switch (domainId) {
         case 1:
           return domain1;

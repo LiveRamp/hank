@@ -19,13 +19,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersionConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
-public class MockDomainConfig implements DomainConfig {
+public class MockDomainConfig implements Domain {
 
   private final String name;
   private final int numParts;

@@ -35,7 +35,7 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -168,12 +168,12 @@ public class TestHankSmartClient extends BaseTestCase {
 
     final MockDomainConfig existentDomainConfig = new MockDomainConfig("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
     MockDomainGroupConfig mockDomainGroupConfig = new MockDomainGroupConfig("myDomainGroup") {
-      private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>() {{
+      private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>() {{
         put(1, existentDomainConfig);
       }};
 
       @Override
-      public DomainConfig getDomainConfig(int domainId) {
+      public Domain getDomainConfig(int domainId) {
         return domainConfigs.get(domainId);
       }
 

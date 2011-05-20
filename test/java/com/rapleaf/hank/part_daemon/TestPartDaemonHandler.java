@@ -25,7 +25,7 @@ import java.util.Set;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -92,7 +92,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
         return new MockReader(configurator, partNum, V1);
       }
     };
-    DomainConfig dc = new MockDomainConfig("myDomain", 5, partitioner, storageEngine, 1);
+    Domain dc = new MockDomainConfig("myDomain", 5, partitioner, storageEngine, 1);
     MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(dc, 1);
     final MockDomainGroupConfigVersion dcgv = new MockDomainGroupConfigVersion(Collections.singleton((DomainGroupVersionDomainVersion)dcv), null, 1);
 

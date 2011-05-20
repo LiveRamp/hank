@@ -98,7 +98,9 @@ RingGroupConfig ringGroup = coord.getRingGroupConfig(request.getParameter("name"
         Domain
         <br/>
         <select name="d">
-          <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
+          <%
+            for (Domain domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
+          %>
           <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(domainConfig.getName()) ? " selected" : "" %>><%= domainConfig.getName() %></option>
           <% } %>
         </select>

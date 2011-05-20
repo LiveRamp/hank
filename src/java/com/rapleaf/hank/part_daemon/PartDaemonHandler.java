@@ -23,7 +23,7 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostDomainPartitionConfig;
@@ -71,7 +71,7 @@ class PartDaemonHandler implements Iface {
 
     // loop over the domains and get set up
     for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      DomainConfig domainConfig = dcv.getDomainConfig();
+      Domain domainConfig = dcv.getDomainConfig();
       StorageEngine eng = domainConfig.getStorageEngine();
 
       int domainId = domainGroupConfig.getDomainId(domainConfig.getName());

@@ -93,11 +93,11 @@ RingConfig ring = ringGroup.getRingConfig(Integer.parseInt(request.getParameter(
   <h3>Utilities</h3>
   
   <%
-  int total = 0;
-  for (DomainConfig dc : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
-    total += ring.getUnassignedPartitions(dc).size();
-  }
-  %>
+      int total = 0;
+      for (Domain dc : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
+        total += ring.getUnassignedPartitions(dc).size();
+      }
+    %>
   There are <%= total %> unassigned partitions in <%= ringGroup.getDomainGroupConfig().getDomainConfigs().size() %> domains.
   <form action="/ring/assign_all" method=post>
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>

@@ -29,5 +29,5 @@ public interface DomainChangeListener {
    * @param newDomain
    *          the latest configuration information for a domain
    */
-  public void onDomainChange(DomainConfig newDomain);
+  public void onDomainChange(Domain newDomain);
 }

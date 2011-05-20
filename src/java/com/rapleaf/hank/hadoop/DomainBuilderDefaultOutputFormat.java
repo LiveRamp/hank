@@ -26,7 +26,7 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
@@ -48,7 +48,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     String outputPath = JobConfConfigurator.getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
     String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
-    DomainConfig domainConfig = JobConfConfigurator.getDomainConfig(conf);
+    Domain domainConfig = JobConfConfigurator.getDomainConfig(conf);
     // Build RecordWriter with the DomainConfig
     return new DomainBuilderDefaultRecordWriter(domainConfig, fs, tmpOutputPath, outputPath);
   }
@@ -59,7 +59,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String tmpOutputPath;
     private final String finalOutputPath;
 
-    DomainBuilderDefaultRecordWriter(DomainConfig domainConfig,
+    DomainBuilderDefaultRecordWriter(Domain domainConfig,
         FileSystem fs,
         String tmpOutputPath,
         String finalOutputPath) {

@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.HostConfig;
@@ -87,7 +87,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
     for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainConfigVersions()) {
-      DomainConfig domainConfig = domainConfigVersion.getDomainConfig();
+      Domain domainConfig = domainConfigVersion.getDomainConfig();
       HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
       domainPartToHostList.put(domainGroupConfig.getDomainId(domainConfig.getName()), partitionToAddress);
 
@@ -139,7 +139,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     if (domainId != null) {
-      DomainConfig domainConfig;
+      Domain domainConfig;
       try {
         domainConfig = domainGroup.getDomainConfig(domainId);
       } catch (IOException e) {

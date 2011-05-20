@@ -22,7 +22,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public class JobConfConfigurator implements Configurator {
 
@@ -53,7 +53,7 @@ public class JobConfConfigurator implements Configurator {
   }
 
   // Directly get the DomainConfig from the configuration
-  public static DomainConfig getDomainConfig(JobConf conf) {
+  public static Domain getDomainConfig(JobConf conf) {
     String domainName = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     Configurator configurator = new JobConfConfigurator(conf);
     // Get Coordinator

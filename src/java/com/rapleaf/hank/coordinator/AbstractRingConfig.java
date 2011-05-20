@@ -81,7 +81,7 @@ public abstract class AbstractRingConfig implements RingConfig {
   }
 
   @Override
-  public Set<Integer> getUnassignedPartitions(DomainConfig domainConfig) throws IOException {
+  public Set<Integer> getUnassignedPartitions(Domain domainConfig) throws IOException {
     Integer domainId = getRingGroupConfig().getDomainGroupConfig().getDomainId(domainConfig.getName());
 
     Set<Integer> unassignedParts = new HashSet<Integer>();

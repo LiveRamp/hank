@@ -34,7 +34,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
 import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 
 public class DomainBuilderAssembly extends SubAssembly {
@@ -64,7 +64,7 @@ public class DomainBuilderAssembly extends SubAssembly {
   private static class AddPartitionAndComparableKeyFields extends BaseOperation<AddPartitionAndComparableKeyFields> implements Function<AddPartitionAndComparableKeyFields> {
 
     private static final long serialVersionUID = 1L;
-    transient private DomainConfig domainConfig;
+    transient private Domain domainConfig;
 
     AddPartitionAndComparableKeyFields(String partitionFieldName, String comparableKeyFieldName) {
       super(1, new Fields(partitionFieldName, comparableKeyFieldName));

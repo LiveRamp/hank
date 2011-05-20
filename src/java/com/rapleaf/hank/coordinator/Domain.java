@@ -26,7 +26,7 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 /**
  * Encapsulates all the information about a given Domain.
  */
-public interface DomainConfig {
+public interface Domain {
   public String getName();
 
   /**

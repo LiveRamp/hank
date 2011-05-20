@@ -7,13 +7,13 @@ import java.util.TreeSet;
 
 import org.yaml.snakeyaml.Yaml;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersionConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
-public class MemDomainConfig implements DomainConfig {
+public class MemDomainConfig implements Domain {
   private final int numParts;
   private final String storageEngineFactoryName;
   private final String storageEngineOptions;

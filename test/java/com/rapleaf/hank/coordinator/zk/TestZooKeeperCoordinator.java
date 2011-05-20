@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -48,7 +48,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddDomain() throws Exception {
     coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
-    DomainConfig domainConfig = coord.getDomainConfig("myDomain");
+    Domain domainConfig = coord.getDomainConfig("myDomain");
     assertNotNull(domainConfig);
     assertEquals("myDomain", domainConfig.getName());
     assertEquals(1234, domainConfig.getNumParts());

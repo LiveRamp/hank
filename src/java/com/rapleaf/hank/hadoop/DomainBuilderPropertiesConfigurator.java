@@ -22,7 +22,7 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public class DomainBuilderPropertiesConfigurator implements Configurator {
 
@@ -53,7 +53,7 @@ public class DomainBuilderPropertiesConfigurator implements Configurator {
   }
 
   // Directly get the DomainConfig from the configuration
-  public static DomainConfig getDomainConfig(DomainBuilderProperties properties) {
+  public static Domain getDomainConfig(DomainBuilderProperties properties) {
     String domainName = properties.getDomainName();
     if (domainName == null) {
       throw new RuntimeException("Domain name must be set within DomainBuilderProperties.");

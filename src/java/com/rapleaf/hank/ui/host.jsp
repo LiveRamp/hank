@@ -58,7 +58,9 @@ HostConfig host = ring.getHostConfigByAddress(PartDaemonAddress.parse(URLEnc.dec
 
     Add a domain/part:<br/>
     <select name="domainId">
-      <% for (DomainConfig domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) { %>
+      <%
+        for (Domain domainConfig : ringGroup.getDomainGroupConfig().getDomainConfigs()) {
+      %>
       <option value="<%= ringGroup.getDomainGroupConfig().getDomainId(domainConfig.getName()) %>"><%= domainConfig.getName() %></option>
       <% } %>
     </select>

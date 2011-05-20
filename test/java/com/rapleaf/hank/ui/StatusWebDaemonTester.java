@@ -12,7 +12,7 @@ import org.apache.thrift.TException;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.RingConfig;
@@ -29,11 +29,11 @@ public class StatusWebDaemonTester extends TestCase {
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final DomainConfig d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
+    final Domain d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
     d0.openNewVersion();
     d0.closeNewVersion();
     d0.openNewVersion();
-    final DomainConfig d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    final Domain d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     d1.openNewVersion();
     d1.closeNewVersion();
     d1.openNewVersion();

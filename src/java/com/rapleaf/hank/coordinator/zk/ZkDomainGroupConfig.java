@@ -36,7 +36,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -88,7 +88,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   }
 
   private final String groupName;
-  private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
+  private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
   private final SortedMap<Integer, DomainGroupConfigVersion> domainGroupConfigVersions = 
     new TreeMap<Integer, DomainGroupConfigVersion>();
   private final String dgPath;
@@ -133,14 +133,14 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public DomainConfig getDomainConfig(int domainId) {
+  public Domain getDomainConfig(int domainId) {
     return domainConfigs.get(domainId);
   }
 
   @Override
   public Integer getDomainId(String domainName) {
     // TODO: replace this with an inverted map
-    for(Entry<Integer, DomainConfig> entry : domainConfigs.entrySet()) {
+    for(Entry<Integer, Domain> entry : domainConfigs.entrySet()) {
       if (entry.getValue().getName().equals(domainName)) {
         return entry.getKey();
       }
@@ -173,7 +173,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
     return s;
   }
 
-  Map<Integer, DomainConfig> getDomainConfigMap() {
+  Map<Integer, Domain> getDomainConfigMap() {
     return domainConfigs;
   }
 
@@ -188,7 +188,7 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
 
 
   @Override
-  public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
+  public void addDomain(Domain domainConfig, int domainId) throws IOException {
     String path = dgPath + "/domains/" + domainId;
     try {
       if (zk.exists(path, false) != null) {
@@ -222,8 +222,8 @@ public class ZkDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public Set<DomainConfig> getDomainConfigs() throws IOException {
-    return new HashSet<DomainConfig>(domainConfigs.values());
+  public Set<Domain> getDomainConfigs() throws IOException {
+    return new HashSet<Domain>(domainConfigs.values());
   }
 
   @Override

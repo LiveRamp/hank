@@ -17,20 +17,20 @@ package com.rapleaf.hank.coordinator.zk;
 
 import org.apache.zookeeper.KeeperException;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
-  private final DomainConfig domainConfig;
+  private final Domain domainConfig;
   private final int versionNumber;
-  public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, DomainConfig domainConfig) throws KeeperException, InterruptedException {
+  public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domainConfig) throws KeeperException, InterruptedException {
     this.domainConfig = domainConfig;
     versionNumber = zk.getInt(path);
   }
 
   @Override
-  public DomainConfig getDomainConfig() {
+  public Domain getDomainConfig() {
     return domainConfig;
   }
 

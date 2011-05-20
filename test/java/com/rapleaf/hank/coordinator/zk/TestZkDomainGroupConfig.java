@@ -23,7 +23,7 @@ import java.util.HashSet;
 import org.apache.zookeeper.KeeperException;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -49,8 +49,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
   private final String domains_root = getRoot() + "/domains";
 
   public void testLoad() throws Exception {
-    DomainConfig d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    DomainConfig d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    Domain d0 = ZkDomainConfig.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    Domain d1 = ZkDomainConfig.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
 //    create(domains_root + "/domain0");
 //    create(domains_root + "/domain0/num_parts", "1");
@@ -83,7 +83,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
     assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));
-    assertEquals(new HashSet<DomainConfig>(Arrays.asList(d0, d1)), dgc.getDomainConfigs());
+    assertEquals(new HashSet<Domain>(Arrays.asList(d0, d1)), dgc.getDomainConfigs());
 
     assertEquals("domain0", dgc.getDomainConfig(0).getName());
     assertEquals("domain1", dgc.getDomainConfig(1).getName());
@@ -95,8 +95,8 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     dgc.setListener(listener);
     assertNull(listener.calledWith);
 
-    DomainConfig d0 = createDomain("domain0");
-    DomainConfig d1 = createDomain("domain1");
+    Domain d0 = createDomain("domain0");
+    Domain d1 = createDomain("domain1");
 
     dgc.addDomain(d0, 0);
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
@@ -118,7 +118,7 @@ public class TestZkDomainGroupConfig extends ZkTestCase {
     assertEquals(dgc.getName(), listener.calledWith.getName());
   }
 
-  private DomainConfig createDomain(String domainName) throws KeeperException, InterruptedException {
+  private Domain createDomain(String domainName) throws KeeperException, InterruptedException {
     return ZkDomainConfig.create(getZk(),
         domains_root,
         domainName,

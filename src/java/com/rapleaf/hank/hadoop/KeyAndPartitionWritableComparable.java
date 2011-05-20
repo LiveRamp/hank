@@ -8,7 +8,7 @@ import java.nio.ByteBuffer;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.util.Bytes;
 
 public class KeyAndPartitionWritableComparable implements WritableComparable<KeyAndPartitionWritableComparable> {
@@ -21,7 +21,7 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     comparableKey = null;
   }
 
-  public KeyAndPartitionWritableComparable(DomainConfig domainConfig, BytesWritable key) {
+  public KeyAndPartitionWritableComparable(Domain domainConfig, BytesWritable key) {
     this.keyAndPartitionWritable = new KeyAndPartitionWritable(domainConfig, key);
     this.comparableKey = Bytes.byteBufferDeepCopy(domainConfig.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
   }

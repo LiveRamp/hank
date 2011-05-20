@@ -28,7 +28,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public class HadoopDomainBuilder {
 
@@ -47,7 +47,7 @@ public class HadoopDomainBuilder {
       Class<? extends DomainBuilderMapper> mapperClass,
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
-    DomainConfig domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
     Integer version = domainConfig.openNewVersion();
     if (version == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());

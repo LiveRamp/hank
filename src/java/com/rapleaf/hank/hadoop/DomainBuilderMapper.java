@@ -24,11 +24,11 @@ import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
 import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
-  private DomainConfig domainConfig;
+  private Domain domainConfig;
 
   @Override
   public void configure(JobConf conf) {

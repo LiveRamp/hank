@@ -20,7 +20,7 @@ package com.rapleaf.hank.coordinator;
  * version.
  */
 public interface DomainGroupVersionDomainVersion {
-  public DomainConfig getDomainConfig();
+  public Domain getDomainConfig();
 
   /**
    * The domain version that this domain is within the domain group version. 

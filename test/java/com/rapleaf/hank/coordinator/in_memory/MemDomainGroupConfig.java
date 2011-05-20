@@ -12,7 +12,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
@@ -20,7 +20,7 @@ import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
 
 public class MemDomainGroupConfig implements DomainGroupConfig {
   private final String name;
-  private final Map<Integer, DomainConfig> domainConfigs = new HashMap<Integer, DomainConfig>();
+  private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>();
   private final SortedMap<Integer, DomainGroupConfigVersion> versions = new TreeMap<Integer, DomainGroupConfigVersion>();
 
   public MemDomainGroupConfig(String name) {
@@ -28,7 +28,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public void addDomain(DomainConfig domainConfig, int domainId) throws IOException {
+  public void addDomain(Domain domainConfig, int domainId) throws IOException {
     this.domainConfigs.put(domainId, domainConfig);
   }
 
@@ -44,8 +44,8 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
     return v;
   }
 
-  private DomainConfig getByName(String key) {
-    for (Map.Entry<Integer, DomainConfig> dc : domainConfigs.entrySet()) {
+  private Domain getByName(String key) {
+    for (Map.Entry<Integer, Domain> dc : domainConfigs.entrySet()) {
       if (dc.getValue().getName().equals(key)) {
         return dc.getValue();
       }
@@ -54,13 +54,13 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public DomainConfig getDomainConfig(int domainId) {
+  public Domain getDomainConfig(int domainId) {
     return domainConfigs.get(domainId);
   }
 
   @Override
   public Integer getDomainId(String domainName) {
-    for (Map.Entry<Integer, DomainConfig> dc : domainConfigs.entrySet()) {
+    for (Map.Entry<Integer, Domain> dc : domainConfigs.entrySet()) {
       if (dc.getValue().getName().equals(domainName)) {
         return dc.getKey();
       }
@@ -92,7 +92,7 @@ public class MemDomainGroupConfig implements DomainGroupConfig {
   }
 
   @Override
-  public Set<DomainConfig> getDomainConfigs() throws IOException {
-    return new HashSet<DomainConfig>(domainConfigs.values());
+  public Set<Domain> getDomainConfigs() throws IOException {
+    return new HashSet<Domain>(domainConfigs.values());
   }
 }

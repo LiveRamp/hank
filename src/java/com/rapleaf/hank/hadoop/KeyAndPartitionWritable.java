@@ -25,7 +25,7 @@ import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
@@ -41,7 +41,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     this.partition = partition;
   }
 
-  public KeyAndPartitionWritable(DomainConfig domainConfig, BytesWritable key) {
+  public KeyAndPartitionWritable(Domain domainConfig, BytesWritable key) {
     this.key = key;
     int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()), domainConfig.getNumParts());
     this.partition = new IntWritable(partition);

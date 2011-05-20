@@ -8,7 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.ui.URLEnc;
 
@@ -46,7 +46,7 @@ public class DomainGroupController extends Controller {
     DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
 
     Map<String, Integer> domainVersions = new HashMap<String, Integer>();
-    for (DomainConfig domainConfig : dg.getDomainConfigs()) {
+    for (Domain domainConfig : dg.getDomainConfigs()) {
       int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
       domainVersions.put(domainConfig.getName(), v);
     }
@@ -59,10 +59,10 @@ public class DomainGroupController extends Controller {
     String dgName = URLEnc.decode(req.getParameter("n"));
     String dName = URLEnc.decode(req.getParameter("d"));
     DomainGroupConfig dg = coordinator.getDomainGroupConfig(dgName);
-    DomainConfig domainConfig = coordinator.getDomainConfig(dName);
+    Domain domainConfig = coordinator.getDomainConfig(dName);
 
     int domainId = -1;
-    for (DomainConfig dc : dg.getDomainConfigs()) {
+    for (Domain dc : dg.getDomainConfigs()) {
       int thisDomainId = dg.getDomainId(dc.getName());
       if (thisDomainId > domainId) {
         domainId = thisDomainId;

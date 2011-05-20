@@ -24,7 +24,7 @@ import cascading.flow.FlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
 
@@ -42,7 +42,7 @@ public class CascadingDomainBuilder {
     pipe = new DomainBuilderAssembly(pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
-    DomainConfig domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
     Integer version = domainConfig.openNewVersion();
     if (version == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());

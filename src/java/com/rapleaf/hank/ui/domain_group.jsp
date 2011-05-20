@@ -32,36 +32,52 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(r
     <th>Name</th>
     <th>ID</th>
   </tr>
-  <% for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) { %>
+  <%
+    for (Domain domainConfig : domainGroupConfig.getDomainConfigs()) {
+  %>
   <tr>
-    <td><a href="/domain.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
-    <td><%= domainGroupConfig.getDomainId(domainConfig.getName()) %></td>
+    <td><a href="/domain.jsp?n=<%=URLEnc.encode(domainConfig.getName())%>"><%=domainConfig.getName()%></a></td>
+    <td><%=domainGroupConfig.getDomainId(domainConfig.getName())%></td>
   </tr>
-  <% } %>
+  <%
+    }
+  %>
 </table>
 
-<% Set<DomainConfig> s = coord.getDomainConfigs(); %>
-<% s.removeAll(domainGroupConfig.getDomainConfigs()); %>
+<%
+  Set<Domain> s = coord.getDomainConfigs();
+%>
+<%
+  s.removeAll(domainGroupConfig.getDomainConfigs());
+%>
 
-<% if (!s.isEmpty()) { %>
+<%
+  if (!s.isEmpty()) {
+%>
 <form action="/domain_group/add_domain" method=post>
-  <input type=hidden name="n" value="<%= domainGroupConfig.getName() %>"/>
+  <input type=hidden name="n" value="<%=domainGroupConfig.getName()%>"/>
 
   Add domain:
   <br/>
   <select name="d">
-  <% for (DomainConfig domainConfig : s) { %>
-    <option><%= domainConfig.getName() %></option>
-  <% } %>
+  <%
+    for (Domain domainConfig : s) {
+  %>
+    <option><%=domainConfig.getName()%></option>
+  <%
+    }
+  %>
   </select>
   <input type=submit value="Add"/>
 </form>
-<% } %>
+<%
+  }
+%>
 
 <h2>Versions</h2>
 
 <form method="post" action="/domain_group/add_version">
-  <input type=hidden name="n" value="<%= domainGroupConfig.getName() %>"/>
+  <input type=hidden name="n" value="<%=domainGroupConfig.getName()%>"/>
 
   Add a new version:<br/>
 
@@ -71,8 +87,8 @@ DomainGroupConfig domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(r
       <th>Version (default: most recent)</th>
     </tr>
   <%
-  for (DomainConfig domainConfig : domainGroupConfig.getDomainConfigs()) {
-    if (!domainConfig.getVersions().isEmpty()) {
+    for (Domain domainConfig : domainGroupConfig.getDomainConfigs()) {
+      if (!domainConfig.getVersions().isEmpty()) {
   %>
     <tr>
       <td>

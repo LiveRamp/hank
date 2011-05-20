@@ -28,7 +28,7 @@ import org.apache.commons.cli.ParseException;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.DomainGroupConfigVersion;
@@ -88,7 +88,7 @@ public class AddRing {
     DomainGroupConfigVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
     for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainConfigVersions()) {
-      DomainConfig domainConfig = domainConfigVersion.getDomainConfig();
+      Domain domainConfig = domainConfigVersion.getDomainConfig();
 
       Queue<HostDomainConfig> q = new LinkedList<HostDomainConfig>();
       for (HostConfig hostConfig : hostConfigs) {

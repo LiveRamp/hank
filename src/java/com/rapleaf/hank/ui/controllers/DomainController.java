@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 
 public class DomainController extends Controller {
 
@@ -37,7 +37,7 @@ public class DomainController extends Controller {
     actions.put("new_version", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        DomainConfig domainConfig = DomainController.this.coordinator.getDomainConfig(req.getParameter("n"));
+        Domain domainConfig = DomainController.this.coordinator.getDomainConfig(req.getParameter("n"));
         if (domainConfig.openNewVersion() != null) {
           domainConfig.closeNewVersion();
         }

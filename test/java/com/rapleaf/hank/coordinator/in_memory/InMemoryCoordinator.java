@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupConfig;
 import com.rapleaf.hank.coordinator.RingGroupConfig;
 
@@ -19,7 +19,7 @@ public class InMemoryCoordinator implements Coordinator {
 
 
   @Override
-  public DomainConfig addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
+  public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
     MemDomainConfig domainConfig = new MemDomainConfig(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
     domains.put(domainName, domainConfig);
     return domainConfig;
@@ -40,13 +40,13 @@ public class InMemoryCoordinator implements Coordinator {
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) {
+  public Domain getDomainConfig(String domainName) {
     return domains.get(domainName);
   }
 
   @Override
-  public Set<DomainConfig> getDomainConfigs() {
-    return new HashSet<DomainConfig>(domains.values());
+  public Set<Domain> getDomainConfigs() {
+    return new HashSet<Domain>(domains.values());
   }
 
   @Override

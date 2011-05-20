@@ -34,7 +34,7 @@ public interface Coordinator {
    * Add a new domain.
    * @return TODO
    */
-  public DomainConfig addDomain(String domainName,
+  public Domain addDomain(String domainName,
       int numParts,
       String storageEngineFactoryName,
       String storageEngineOptions,
@@ -45,14 +45,14 @@ public interface Coordinator {
    * Get the set of known DomainConfigs.
    * @return
    */
-  public Set<DomainConfig> getDomainConfigs();
+  public Set<Domain> getDomainConfigs();
 
   /**
    * @param domainName
    * @return configuration information on the specified domain
    * @throws DataNotFoundException if no domain with the specified name exists
    */
-  public DomainConfig getDomainConfig(String domainName);
+  public Domain getDomainConfig(String domainName);
 
   
   /**

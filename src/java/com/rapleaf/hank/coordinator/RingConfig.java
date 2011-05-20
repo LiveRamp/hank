@@ -99,5 +99,5 @@ public interface RingConfig {
    * @return
    * @throws IOException 
    */
-  public Set<Integer> getUnassignedPartitions(DomainConfig domainConfig) throws IOException;
+  public Set<Integer> getUnassignedPartitions(Domain domainConfig) throws IOException;
 }

@@ -18,15 +18,15 @@ package com.rapleaf.hank.coordinator;
 
 public class MockDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
   private final int versionNumber;
-  private final DomainConfig dc;
+  private final Domain dc;
 
-  public MockDomainGroupVersionDomainVersion(DomainConfig dc, int versionNumber) {
+  public MockDomainGroupVersionDomainVersion(Domain dc, int versionNumber) {
     this.dc = dc;
     this.versionNumber = versionNumber;
   }
 
   @Override
-  public DomainConfig getDomainConfig() {
+  public Domain getDomainConfig() {
     return dc;
   }
 

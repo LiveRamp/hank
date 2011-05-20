@@ -23,7 +23,7 @@ import java.util.Map;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomainConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -91,7 +91,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
   }
 
   @Override
-  public DomainConfig getDomainConfig(String domainName) {
+  public Domain getDomainConfig(String domainName) {
     return new MockDomainConfig(domainName, 2, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), 0);
   }
 

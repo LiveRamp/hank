@@ -27,14 +27,14 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
-import com.rapleaf.hank.coordinator.DomainConfig;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersionConfig;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainConfig implements DomainConfig {
+public class ZkDomainConfig implements Domain {
   private static final Logger LOG = Logger.getLogger(ZkDomainConfig.class);
 
   private static final String KEY_NUM_PARTS = "num_parts";
