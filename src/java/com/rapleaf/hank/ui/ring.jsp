@@ -9,7 +9,7 @@
 
 <%!public List<Host> sortedHcs(Collection<Host> rcs) {
   List<Host> sortedList = new ArrayList<Host>(rcs);
-  Collections.sort(sortedList, new HostConfigComparator());
+  Collections.sort(sortedList, new HostComparator());
   return sortedList;
 }%>
 
