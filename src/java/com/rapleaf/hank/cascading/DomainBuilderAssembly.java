@@ -16,11 +16,6 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.nio.ByteBuffer;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -32,10 +27,13 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+
+import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -43,7 +41,7 @@ public class DomainBuilderAssembly extends SubAssembly {
   public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
-  public DomainBuilderAssembly (
+  public DomainBuilderAssembly(
       Pipe outputPipe,
       String keyFieldName,
       String valueFieldName) {
@@ -70,7 +68,6 @@ public class DomainBuilderAssembly extends SubAssembly {
       super(1, new Fields(partitionFieldName, comparableKeyFieldName));
     }
 
-    @Override
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
       // Load domain config lazily
       loadDomainConfig(flowProcess);
@@ -80,7 +77,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
       IntWritable partition = new IntWritable(domainConfig.getPartitioner().partition(keyByteBuffer, domainConfig.getNumParts()));
-      ByteBuffer comparableKey =  domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
+      ByteBuffer comparableKey = domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
       System.arraycopy(comparableKey.array(), comparableKey.arrayOffset() + comparableKey.position(),
           comparableKeyBuffer, 0, comparableKey.remaining());
