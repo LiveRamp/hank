@@ -16,13 +16,6 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.io.IOException;
-import java.util.Properties;
-
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-
 import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
@@ -32,11 +25,16 @@ import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
-
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+
+import java.io.IOException;
+import java.util.Properties;
 
 public class TestCascadingDomainBuilder extends HadoopTestCase {
 
@@ -58,16 +56,23 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     }
   }
 
+  private void writeSequenceFile(String path, Fields fields, Tuple... tuples) throws IOException {
+    Tap tap = new Hfs(new SequenceFile(fields), path);
+    TupleEntryCollector coll = tap.openForWrite(new JobConf());
+    for (Tuple t : tuples) {
+      coll.add(t);
+    }
+    coll.close();
+  }
+
   private void createInputs() throws IOException {
     // A
-    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
-    TupleEntryCollector coll = inputTap.openForWrite(new JobConf());
-    coll.add(getTT("2", "v2"));
-    coll.add(getTT("0", "v0"));
-    coll.add(getTT("3", "v3"));
-    coll.add(getTT("1", "v1"));
-    coll.add(getTT("4", "v4"));
-    coll.close();
+    writeSequenceFile(INPUT_PATH_A, new Fields("key", "value"),
+        getTT("2", "v2"),
+        getTT("0", "v0"),
+        getTT("3", "v3"),
+        getTT("1", "v1"),
+        getTT("4", "v4"));
   }
 
   private Pipe getPipe() {
