@@ -99,17 +99,19 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <h3>Utilities</h3>
 
   <%
-      int total = 0;
-      for (Domain dc : ringGroup.getDomainGroup().getDomains()) {
-        total += ring.getUnassignedPartitions(dc).size();
-      }
-    %>
+  int total = 0;
+  for (Domain dc : ringGroup.getDomainGroup().getDomains()) {
+    total += ring.getUnassignedPartitions(dc).size();
+  }
+  %>
+  <% if (total > 0) { %>
   There are <%=total%> unassigned partitions in <%=ringGroup.getDomainGroup().getDomains().size()%> domains.
   <form action="/ring/assign_all" method=post>
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
     <input type="submit" value="Randomly assign all unassigned partitions"/>
   </form>
+  <% } %>
 
   <h3>Assignment visualization</h3>
   <%
