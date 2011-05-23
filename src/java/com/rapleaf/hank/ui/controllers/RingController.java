@@ -66,10 +66,9 @@ public class RingController extends Controller {
       List<Integer> randomizedUnassigned = new ArrayList<Integer>();
       randomizedUnassigned.addAll(unassignedParts);
       Collections.shuffle(randomizedUnassigned);
-
       List<Host> hosts = new ArrayList<Host>(ringConfig.getHosts());
       for (int i = 0; i < unassignedParts.size(); i++) {
-        hosts.get(i % hosts.size()).getDomainById(domainId).addPartition(i, rgc.getDomainGroup().getLatestVersion().getVersionNumber());
+        hosts.get(i % hosts.size()).getDomainById(domainId).addPartition(randomizedUnassigned.get(i), rgc.getDomainGroup().getLatestVersion().getVersionNumber());
       }
     }
 

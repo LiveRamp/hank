@@ -97,7 +97,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   </table>
 
   <h3>Utilities</h3>
-  
+
   <%
       int total = 0;
       for (Domain dc : ringGroup.getDomainGroup().getDomains()) {
@@ -110,6 +110,31 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
     <input type="submit" value="Randomly assign all unassigned partitions"/>
   </form>
+
+  <h3>Assignment visualization</h3>
+  <%
+  for (Domain d : ringGroup.getDomainGroup().getDomains()) { 
+    Set<Integer> unassignedParts = ring.getUnassignedPartitions(d);
+
+    int squareDim = (int)Math.floor(Math.sqrt(d.getNumParts()));
+  %>
+    <div style="float:left">
+      <div><%= d.getName() %></div>
+      <table>
+        <% for (int i = 0; i < d.getNumParts(); i++) { %>
+          <% if (i % squareDim == 0) { %>
+          <tr>
+          <% } %>
+
+          <td title="<%= i %>" style="font-size: 1pt; width: 3px; height: 3px; background-color: <%= unassignedParts.contains(i) ? "red" : "green" %>">&nbsp;</td>
+
+          <% if (i % squareDim == squareDim - 1) { %>
+          </tr>
+          <% } %>
+        <% } %>
+      </table>
+    </div>
+  <% } %>
 
 </body>
 </html>
