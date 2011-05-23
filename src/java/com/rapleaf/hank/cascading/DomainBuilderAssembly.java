@@ -29,7 +29,6 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 
@@ -41,15 +40,15 @@ public class DomainBuilderAssembly extends SubAssembly {
   public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
-  public DomainBuilderAssembly(
-      Pipe outputPipe,
-      String keyFieldName,
-      String valueFieldName) {
+  public DomainBuilderAssembly(String domainName,
+                               Pipe outputPipe,
+                               String keyFieldName,
+                               String valueFieldName) {
 
     // Add partition and comparable key fields
     outputPipe = new Each(outputPipe,
         new Fields(keyFieldName),
-        new AddPartitionAndComparableKeyFields(PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
+        new AddPartitionAndComparableKeyFields(domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
     // Group by partition id and secondary sort on comparable key
@@ -63,9 +62,11 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private static final long serialVersionUID = 1L;
     transient private Domain domainConfig;
+    private String domainName;
 
-    AddPartitionAndComparableKeyFields(String partitionFieldName, String comparableKeyFieldName) {
+    AddPartitionAndComparableKeyFields(String domainName, String partitionFieldName, String comparableKeyFieldName) {
       super(1, new Fields(partitionFieldName, comparableKeyFieldName));
+      this.domainName = domainName;
     }
 
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
@@ -88,8 +89,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private void loadDomainConfig(FlowProcess flowProcess) {
       if (domainConfig == null) {
-        Configurator configurator = new CascadingOperationConfigurator(flowProcess);
-        String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
+        Configurator configurator = new CascadingOperationConfigurator(domainName, flowProcess);
         domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
       }
     }

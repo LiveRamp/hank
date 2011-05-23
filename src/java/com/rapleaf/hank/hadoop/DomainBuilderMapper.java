@@ -16,28 +16,25 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.coordinator.Domain;
+import java.io.IOException;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
   private Domain domainConfig;
 
-  @Override
   public void configure(JobConf conf) {
-    Configurator configurator = new JobConfConfigurator(conf);
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    Configurator configurator = new JobConfConfigurator(conf);
     domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
   }
 
-  @Override
   public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
     KeyValuePair keyValue = buildHankKeyValue(key, value);
     KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domainConfig, keyValue.getKey());
@@ -45,7 +42,6 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
     outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
   }
 
-  @Override
   public void close() throws IOException {
   }
 

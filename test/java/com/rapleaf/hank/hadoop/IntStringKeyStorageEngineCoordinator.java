@@ -16,11 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
@@ -31,22 +26,32 @@ import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 // Integer String key storage engine.
 // Store records (key, value) where key is an Integer's String representation
 // The partition is key % numPartitions
 // Format is "key value\n"
 public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
+  private final int numPartitions;
+
+  public IntStringKeyStorageEngineCoordinator(int numPartitions) {
+    this.numPartitions = numPartitions;
+  }
+
   private static class IntStringKeyWriter implements Writer {
 
     protected final OutputStream outputStream;
 
     IntStringKeyWriter(OutputStreamFactory streamFactory, int partNum,
-        int versionNumber, boolean base) throws IOException {
+                       int versionNumber, boolean base) throws IOException {
       this.outputStream = streamFactory.getOutputStream(partNum, Integer.toString(versionNumber) + "." + (base ? "base" : "nobase"));
     }
 
-    @Override
     public void write(ByteBuffer key, ByteBuffer value) throws IOException {
       outputStream.write(key.array(), key.position(), key.remaining());
       outputStream.write(" ".getBytes());
@@ -54,7 +59,6 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
       outputStream.write("\n".getBytes());
     }
 
-    @Override
     public void close() throws IOException {
       outputStream.close();
     }
@@ -62,7 +66,6 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   private static class IntStringKeyModPartitioner implements Partitioner {
 
-    @Override
     public int partition(ByteBuffer key, int numPartitions) {
       String keyString = new String(key.array(), key.position(), key.remaining());
       Integer keyInteger = Integer.valueOf(keyString);
@@ -73,7 +76,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
   private static class IntStringKeyStorageEngine extends MockStorageEngine {
     @Override
     public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-        int versionNumber, boolean base) throws IOException {
+                            int versionNumber, boolean base) throws IOException {
       return new IntStringKeyWriter(streamFactory, partNum, versionNumber, base);
     }
 
@@ -84,18 +87,22 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
   }
 
   public static class Factory implements CoordinatorFactory {
-    @Override
     public Coordinator getCoordinator(Map<String, Object> options) {
-      return new IntStringKeyStorageEngineCoordinator();
+      Integer numPartitions = (Integer) options.get("num_partitions");
+      if (numPartitions != null) {
+        return new IntStringKeyStorageEngineCoordinator(numPartitions);
+      } else {
+        return new IntStringKeyStorageEngineCoordinator(1);
+      }
     }
   }
 
   @Override
   public Domain getDomainConfig(String domainName) {
-    return new MockDomain(domainName, 2, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), 0);
+    return new MockDomain(domainName, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), 0);
   }
 
-  static public String getConfiguration() {
-    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator$Factory\n  options:\n";
+  static public String getConfiguration(int numPartitions) {
+    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator$Factory\n  options:\n    num_partitions: " + numPartitions + "\n";
   }
 }

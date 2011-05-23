@@ -15,24 +15,22 @@
  */
 package com.rapleaf.hank.cascading;
 
-import java.io.IOException;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputCollector;
-
 import cascading.scheme.Scheme;
 import cascading.tap.Hfs;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-
 import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
 import com.rapleaf.hank.hadoop.ValueWritable;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.OutputCollector;
+
+import java.io.IOException;
 
 /**
  * A sink-only tap to write tuples to Hank Domains.
@@ -40,17 +38,25 @@ import com.rapleaf.hank.hadoop.ValueWritable;
 public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
+  private final String domainName;
   private final String outputPath;
 
   public DomainBuilderTap(String keyFieldName, String valueFieldName, DomainBuilderProperties properties) {
     super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, properties.getOutputFormatClass()), properties.getOutputPath());
+    this.domainName = properties.getDomainName();
     this.outputPath = properties.getOutputPath();
   }
 
   @Override
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, outputPath);
+    if (conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME) != null) {
+      throw new RuntimeException("Trying to set domain name configuration parameter to " + domainName +
+          " but it was previously set to " + conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME));
+    }
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
+    conf.set(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH), outputPath);
   }
 
   @Override
