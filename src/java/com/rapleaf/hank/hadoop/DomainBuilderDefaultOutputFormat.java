@@ -17,6 +17,7 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -47,14 +48,14 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
         "Hank output path", conf);
-    boolean isDelta = Boolean.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_IS_DELTA),
-        "Hank delta/non-delta", conf));
+    VersionType versionType = VersionType.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
+        "Hank base/delta", conf));
     String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
     Domain domainConfig = JobConfConfigurator.getDomainConfig(domainName, conf);
     // Build RecordWriter with the DomainConfig
-    return new DomainBuilderDefaultRecordWriter(domainConfig, isDelta, fs, tmpOutputPath, outputPath);
+    return new DomainBuilderDefaultRecordWriter(domainConfig, versionType, fs, tmpOutputPath, outputPath);
   }
 
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
@@ -64,11 +65,11 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String finalOutputPath;
 
     DomainBuilderDefaultRecordWriter(Domain domainConfig,
-                                     boolean isDelta,
+                                     VersionType versionType,
                                      FileSystem fs,
                                      String tmpOutputPath,
                                      String finalOutputPath) {
-      super(domainConfig, isDelta, new HDFSOutputStreamFactory(fs, tmpOutputPath));
+      super(domainConfig, versionType, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
       this.tmpOutputPath = tmpOutputPath;
       this.finalOutputPath = finalOutputPath;

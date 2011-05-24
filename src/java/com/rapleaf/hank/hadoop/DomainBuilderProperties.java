@@ -1,5 +1,6 @@
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.util.Properties;
@@ -10,17 +11,17 @@ public class DomainBuilderProperties {
 
   private final String domainName;
   private final String coordinatorConfiguration;
-  private final boolean isDelta;
+  private final VersionType versionType;
   private final String outputPath;
   private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
   // With a default output format
   public DomainBuilderProperties(String domainName,
-                                 boolean isDelta,
+                                 VersionType versionType,
                                  String coordinatorConfiguration,
                                  String outputPath) {
     this.domainName = domainName;
-    this.isDelta = isDelta;
+    this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
     this.outputPath = outputPath;
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
@@ -28,12 +29,12 @@ public class DomainBuilderProperties {
 
   // With a specific output format
   public DomainBuilderProperties(String domainName,
-                                 boolean isDelta,
+                                 VersionType versionType,
                                  String coordinatorConfiguration,
                                  String outputPath,
                                  Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
     this.domainName = domainName;
-    this.isDelta = isDelta;
+    this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
     this.outputPath = outputPath;
     this.outputFormatClass = outputFormatClass;
@@ -47,8 +48,8 @@ public class DomainBuilderProperties {
     return coordinatorConfiguration;
   }
 
-  public boolean getIsDelta() {
-    return isDelta;
+  public VersionType getVersionType() {
+    return versionType;
   }
 
   public String getOutputPath() {
@@ -65,9 +66,9 @@ public class DomainBuilderProperties {
     // Configuration
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION), getCoordinatorConfiguration());
-    // Is delta
+    // Version type
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_IS_DELTA), Boolean.toString(isDelta));
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
     // Output path is set in DomainBuilderTap
     return properties;
   }
@@ -80,9 +81,9 @@ public class DomainBuilderProperties {
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
         getCoordinatorConfiguration());
-    // Is delta
+    // Version type
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_IS_DELTA), Boolean.toString(isDelta));
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
     // Output path
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),

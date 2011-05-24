@@ -19,6 +19,7 @@ package com.rapleaf.hank.hadoop;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -35,7 +36,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
-  public static final String CONF_PARAM_HANK_IS_DELTA = "com.rapleaf.hank.is_delta";
+  public static final String CONF_PARAM_HANK_VERSION_TYPE = "com.rapleaf.hank.version_type";
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;
@@ -48,7 +49,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private final Domain domainConfig;
     private final StorageEngine storageEngine;
-    private final boolean isDelta;
+    private final VersionType versionType;
     private final OutputStreamFactory outputStreamFactory;
 
     private Writer writer = null;
@@ -56,11 +57,11 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domainConfig,
-                              boolean isDelta,
+                              VersionType versionType,
                               OutputStreamFactory outputStreamFactory) {
       this.domainConfig = domainConfig;
       this.storageEngine = domainConfig.getStorageEngine();
-      this.isDelta = isDelta;
+      this.versionType = versionType;
       this.outputStreamFactory = outputStreamFactory;
     }
 
@@ -96,12 +97,13 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       if (openVersion == null) {
         throw new IOException("There is no version currently open for domain " + domainConfig.getName());
       }
-      writer = storageEngine.getWriter(outputStreamFactory, partition, openVersion, !isDelta);
+      writer = storageEngine.getWriter(outputStreamFactory, partition, openVersion,
+          versionType.equals(VersionType.BASE));
       writerPartition = partition;
       writtenPartitions.add(partition);
     }
 
-    private final void closeCurrentWriterIfNeeded() throws IOException {
+    private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
         writer.close();
       }

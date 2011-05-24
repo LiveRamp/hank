@@ -17,6 +17,7 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
@@ -28,10 +29,10 @@ public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static final void run(String domainName, boolean isDelta, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
+  public static final void run(String domainName, VersionType versionType, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + coordinatorConfigurationPath);
     String coordinatorConfiguration = FileUtils.readFileToString(new File(coordinatorConfigurationPath));
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, isDelta, coordinatorConfiguration, outputPath);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, coordinatorConfiguration, outputPath);
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
@@ -86,10 +87,9 @@ public class HadoopDomainBuilder {
 
   public static final void main(String[] args) throws IOException {
     if (args.length != 5) {
-      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <config path> <input path> <output_path> ['delta']");
+      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
       System.exit(1);
     }
-    boolean isDelta = args[4].equals("delta");
-    run(args[0], isDelta, args[1], args[2], args[3]);
+    run(args[0], VersionType.fromString(args[1]), args[2], args[3], args[4]);
   }
 }
