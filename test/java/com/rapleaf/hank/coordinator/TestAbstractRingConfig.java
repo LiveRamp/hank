@@ -105,24 +105,6 @@ public class TestAbstractRingConfig extends BaseTestCase {
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
   }
 
-  public void testGetOldestVersionOnHosts() throws Exception {
-    final Host hc = new MockHost(LOCALHOST) {
-      @Override
-      public Set<HostDomain> getAssignedDomains() throws IOException {
-        HostDomain hd1 = new MockHostDomain(0, 1, 1, 2, 2, 2, 2);
-        HostDomain hd2 = new MockHostDomain(1, 1, 2, 2, 2, 2, 2);
-        return new HashSet<HostDomain>(Arrays.asList(hd1, hd2));
-      }
-    };
-    SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {
-      @Override
-      public Set<Host> getHosts() {
-        return Collections.singleton(hc);
-      }
-    };
-    assertEquals(Integer.valueOf(1), ringConf.getOldestVersionOnHosts());
-  }
-
   public void testGetHostsForDomainPartition() throws Exception {
     final Host hc = new MockHost(LOCALHOST) {
       HostDomain hd1 = new MockHostDomain(0, 1, 1, 2, 2, 2, 2);
