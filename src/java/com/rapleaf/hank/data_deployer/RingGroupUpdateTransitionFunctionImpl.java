@@ -27,8 +27,7 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 
-public class RingGroupUpdateTransitionFunctionImpl implements
-    RingGroupUpdateTransitionFunction {
+public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
@@ -58,19 +57,15 @@ public class RingGroupUpdateTransitionFunctionImpl implements
 
             // let's check if the ring is fully down or not.
             int numHostsIdle = ring.getHostsInState(HostState.IDLE).size();
-            int numHostsOffline = ring.getHostsInState(HostState.OFFLINE).size();
-            if (numHostsIdle + numHostsOffline == ring.getHosts().size()) {
+            if (numHostsIdle == ring.getHosts().size()) {
               // sweet, everyone's either offline or idle.
               LOG.debug("Ring "
                   + ring.getRingNumber()
                   + " is currently GOING_DOWN, and has nothing but IDLE or OFFLINE hosts. It's down!");
               ring.setState(RingState.DOWN);
             } else {
-              LOG.debug("Ring "
-                  + ring.getRingNumber()
-                  + " is currently GOING_DOWN, but has only "
-                  + (numHostsIdle + numHostsOffline)
-                  + "idle/offline hosts, so it isn't fully DOWN yet.");
+              LOG.debug(String.format("Ring %d is currently GOING_DOWN, but has only %d idle hosts, so it isn't fully DOWN yet.",
+                  ring.getRingNumber(), numHostsIdle));
               break;
             }
             // note that we are intentionally falling through here - we can take
@@ -81,8 +76,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
 
             // we just finished stopping
             // start up all the updaters
-            LOG.debug("Ring "
-                + ring.getRingNumber()
+            LOG.debug("Ring " + ring.getRingNumber()
                 + " is DOWN, so we're going to start it updating.");
             ring.commandAll(HostCommand.EXECUTE_UPDATE);
             ring.setState(RingState.UPDATING);
@@ -111,7 +105,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements
               ring.setState(RingState.UPDATED);
             }
 
-            // note that we are intentionally falling through here so that we 
+            // note that we are intentionally falling through here so that we
             // can go right into starting the hosts again.
 
           case UPDATED:
@@ -130,25 +124,23 @@ public class RingGroupUpdateTransitionFunctionImpl implements
 
             // let's check if we're all the way online yet
             int numHostsServing = ring.getHostsInState(HostState.SERVING).size();
-            numHostsOffline = ring.getHostsInState(HostState.OFFLINE).size();
-            if (numHostsServing + numHostsOffline == ring.getHosts().size()) {
+            if (numHostsServing == ring.getHosts().size()) {
               // yay! we're all online!
-              LOG.debug("Ring " + ring.getRingNumber() + " is fully online. Completing update.");
+              LOG.debug("Ring " + ring.getRingNumber()
+                  + " is fully online. Completing update.");
               ring.setState(RingState.UP);
               ring.updateComplete();
             } else {
-              LOG.debug("Ring " + ring.getRingNumber() + " still has "
-                  + numHostsOffline
-                  + " offline hosts. Waiting for them to come up.");
+              LOG.debug("Ring " + ring.getRingNumber() + " still has  offline hosts. Waiting for them to come up.");
             }
 
             break;
         }
-        // if we saw a down or updating state, break out of the loop, since 
+        // if we saw a down or updating state, break out of the loop, since
         // we've seen enough.
-//        if (anyDownOrUpdating) {
-//          break;
-//        }
+        // if (anyDownOrUpdating) {
+        // break;
+        // }
       }
     }
 

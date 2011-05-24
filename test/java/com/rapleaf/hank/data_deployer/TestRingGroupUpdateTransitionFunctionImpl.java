@@ -68,7 +68,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     public Set<Host> getHostsInState(HostState state) {
       return Collections.EMPTY_SET;
     }
-
   }
 
   private class MRG extends MockRingGroup {
@@ -109,7 +108,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     return new RingGroupUpdateTransitionFunctionImpl();
   }
 
-  public void testDownsOnlyAvailableRing() throws Exception {
+  public void testDownsOnlyNotYetUpdatedRing() throws Exception {
+    // this ring is fully updated
     MRC r1 = new MRC(1, RingState.UP, 2, null);
     MRC r2 = new MRC(2, RingState.UP, 1, 2);
     MRG rg = new MRG(1, 2, r1, r2);
