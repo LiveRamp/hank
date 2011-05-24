@@ -1,8 +1,8 @@
 package com.rapleaf.hank.hadoop;
 
-import java.util.Properties;
-
 import org.apache.hadoop.mapred.JobConf;
+
+import java.util.Properties;
 
 public class DomainBuilderProperties {
 
@@ -45,16 +45,22 @@ public class DomainBuilderProperties {
 
   // To configure cascading jobs
   public Properties setCascadingProperties(Properties properties) {
-    properties.setProperty(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION, getCoordinatorConfiguration());
-    properties.setProperty(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
+    // Domain Name is set in DomainBuilderTap
+    properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION), getCoordinatorConfiguration());
+    // Output Path is set in DomainBuilderTap
     return properties;
   }
 
   // To configure Hadoop M/R jobs
   public JobConf setJobConfProperties(JobConf conf) {
-    conf.set(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION, getCoordinatorConfiguration());
     conf.set(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
-    conf.set(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH, getOutputPath());
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
+        getCoordinatorConfiguration());
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
+        getOutputPath());
     return conf;
   }
 }

@@ -16,11 +16,6 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.nio.ByteBuffer;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -32,10 +27,12 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+
+import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -43,15 +40,15 @@ public class DomainBuilderAssembly extends SubAssembly {
   public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
-  public DomainBuilderAssembly (
-      Pipe outputPipe,
-      String keyFieldName,
-      String valueFieldName) {
+  public DomainBuilderAssembly(String domainName,
+                               Pipe outputPipe,
+                               String keyFieldName,
+                               String valueFieldName) {
 
     // Add partition and comparable key fields
     outputPipe = new Each(outputPipe,
         new Fields(keyFieldName),
-        new AddPartitionAndComparableKeyFields(PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
+        new AddPartitionAndComparableKeyFields(domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
     // Group by partition id and secondary sort on comparable key
@@ -65,12 +62,13 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private static final long serialVersionUID = 1L;
     transient private Domain domainConfig;
+    private String domainName;
 
-    AddPartitionAndComparableKeyFields(String partitionFieldName, String comparableKeyFieldName) {
+    AddPartitionAndComparableKeyFields(String domainName, String partitionFieldName, String comparableKeyFieldName) {
       super(1, new Fields(partitionFieldName, comparableKeyFieldName));
+      this.domainName = domainName;
     }
 
-    @Override
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
       // Load domain config lazily
       loadDomainConfig(flowProcess);
@@ -80,7 +78,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
       IntWritable partition = new IntWritable(domainConfig.getPartitioner().partition(keyByteBuffer, domainConfig.getNumParts()));
-      ByteBuffer comparableKey =  domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
+      ByteBuffer comparableKey = domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
       System.arraycopy(comparableKey.array(), comparableKey.arrayOffset() + comparableKey.position(),
           comparableKeyBuffer, 0, comparableKey.remaining());
@@ -91,8 +89,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private void loadDomainConfig(FlowProcess flowProcess) {
       if (domainConfig == null) {
-        Configurator configurator = new CascadingOperationConfigurator(flowProcess);
-        String domainName = CascadingOperationConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", flowProcess);
+        Configurator configurator = new CascadingOperationConfigurator(domainName, flowProcess);
         domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
       }
     }

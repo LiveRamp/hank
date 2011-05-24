@@ -16,29 +16,27 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.OutputStreamFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import java.io.IOException;
+import java.io.OutputStream;
 
 // This class is intended to be used for testing. It does not output anything but
 // still forwards key,value pairs to the underlying Writer from the DomainConfig.
 public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
 
-  @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf) throws IOException {
   }
 
-  @Override
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    Domain domainConfig = JobConfConfigurator.getDomainConfig(conf);
+    String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    Domain domainConfig = JobConfConfigurator.getDomainConfig(domainName, conf);
     return new DomainBuilderEmptyOutputRecordWriter(domainConfig);
   }
 
@@ -47,13 +45,13 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
     DomainBuilderEmptyOutputRecordWriter(Domain domainConfig) {
       // Always return a no-op OutputStream
       super(domainConfig, new OutputStreamFactory() {
-        @Override
         public OutputStream getOutputStream(int partNum, String name)
-        throws IOException {
+            throws IOException {
           return new OutputStream() {
             @Override
             public void write(int x) throws IOException {
-            }};
+            }
+          };
         }
       });
     }

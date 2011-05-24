@@ -16,40 +16,85 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-
 import cascading.flow.FlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
-
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class CascadingDomainBuilder {
 
-  public static void buildDomain(Tap inputTap,
-      Pipe pipe,
-      String keyFieldName,
-      String valueFieldName,
-      DomainBuilderProperties properties,
-      Properties cascadingProperties) throws IOException {
 
-    DomainBuilderTap outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, properties);
+  private final static Logger LOG = Logger.getLogger(CascadingDomainBuilder.class);
 
-    pipe = new DomainBuilderAssembly(pipe, keyFieldName, valueFieldName);
+  private final Domain domain;
+  private final Tap outputTap;
+  private final DomainBuilderProperties properties;
+  private Pipe pipe;
+  private final String keyFieldName;
+  private final String valueFieldName;
+  private Integer version = null;
+
+  public CascadingDomainBuilder(DomainBuilderProperties properties,
+                                Pipe pipe,
+                                String keyFieldName,
+                                String valueFieldName) {
+    // Load domain
+    this.domain = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    // Create Tap
+    this.outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, properties);
+    this.properties = properties;
+    this.pipe = pipe;
+    this.keyFieldName = keyFieldName;
+    this.valueFieldName = valueFieldName;
+  }
+
+  public void openNewVersion() throws IOException {
+    version = domain.openNewVersion();
+    if (version == null) {
+      throw new IOException("Could not open a new version of domain " + properties.getDomainName());
+    }
+    LOG.info("Opened new version #" + version + " of domain " + properties.getDomainName());
+  }
+
+  public void cancelNewVersion() throws IOException {
+    if (version != null) {
+      LOG.info("Cancelling new version #" + version + " of domain " + properties.getDomainName());
+      domain.cancelNewVersion();
+      version = null;
+    }
+  }
+
+  public void closeNewVersion() throws IOException {
+    if (version != null) {
+      LOG.info("Closing new version #" + version + " of domain " + properties.getDomainName());
+      domain.closeNewVersion();
+      version = null;
+    }
+  }
+
+  // Build a single domain
+  public void build(Properties cascadingProperties,
+                    Tap inputTap) throws IOException {
+
+    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
     Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
-    Integer version = domainConfig.openNewVersion();
+    openNewVersion();
     if (version == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
     try {
-      new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " + properties.getDomainName() + " version " +  version, inputTap, outputTap, pipe).complete();
+      new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " + properties.getDomainName() + " version " + version, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
       domainConfig.cancelNewVersion();
@@ -59,14 +104,110 @@ public class CascadingDomainBuilder {
     domainConfig.closeNewVersion();
   }
 
-  public static void buildDomain(Tap inputTap,
-      Pipe pipe,
-      String keyFieldName,
-      String valueFieldName,
-      DomainBuilderProperties properties,
-      Map<Object, Object> cascadingProperties) throws IOException {
-    Properties newCascadingProperties = new Properties();
-    newCascadingProperties.putAll(cascadingProperties);
-    buildDomain(inputTap, pipe, keyFieldName, valueFieldName, properties, newCascadingProperties);
+  // Build multiple domains
+  public static void buildDomains(Properties cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  Map<String, Tap> otherSinks,
+                                  Pipe[] otherTails,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+
+    // Info output
+    for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+      LOG.info("Building domain with " + domainBuilder.toString());
+    }
+
+    try {
+      // Open new versions
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        domainBuilder.openNewVersion();
+      }
+
+      // Create tails
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        domainBuilder.pipe = new DomainBuilderAssembly(domainBuilder.properties.getDomainName(),
+            domainBuilder.pipe,
+            domainBuilder.keyFieldName,
+            domainBuilder.valueFieldName);
+      }
+
+      // Update properties
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        domainBuilder.properties.setCascadingProperties(cascadingProperties);
+      }
+
+      // Construct tails array
+      Pipe[] tails = new Pipe[domainBuilders.length + otherTails.length];
+      // Copy tails from domain builders
+      for (int i = 0; i < domainBuilders.length; ++i) {
+        tails[i] = domainBuilders[i].pipe;
+      }
+      // Copy extra tails
+      for (int i = 0; i < otherTails.length; ++i) {
+        tails[i + domainBuilders.length] = otherTails[i];
+      }
+
+      // Construct sinks map
+      Map<String, Tap> sinks = new HashMap<String, Tap>();
+      // Add domain builder sinks
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        sinks.put(domainBuilder.properties.getDomainName(), domainBuilder.outputTap);
+      }
+      // Add extra sinks
+      sinks.putAll(otherSinks);
+
+      // Build new versions
+      new FlowConnector(cascadingProperties)
+          .connect("HankCascadingDomainBuilder", sources, sinks, tails).complete();
+
+    } catch (Exception e) {
+      // In case of failure, cancel new versions
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        domainBuilder.cancelNewVersion();
+      }
+      throw new IOException("Failed at building domains. Cancelling open versions.", e);
+    }
+    // Close new versions
+    for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+      domainBuilder.closeNewVersion();
+    }
+  }
+
+  // Build a single domain
+  public void build(Map<Object, Object> cascadingProperties,
+                    Tap inputTap) throws IOException {
+    build(mapToProperties(cascadingProperties), inputTap);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Properties cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(cascadingProperties, sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Map<Object, Object> cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(mapToProperties(cascadingProperties), sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Map<Object, Object> cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  Map<String, Tap> otherSinks,
+                                  Pipe[] otherTails,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
+  }
+
+  public String toString() {
+    return "CascadingDomainBuilder: Domain: " + properties.getDomainName() + ", Output Tap: " + outputTap;
+  }
+
+  private static Properties mapToProperties(Map<Object, Object> properties) {
+    Properties newProperties = new Properties();
+    newProperties.putAll(properties);
+    return newProperties;
   }
 }

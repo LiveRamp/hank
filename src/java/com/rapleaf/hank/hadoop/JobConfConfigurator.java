@@ -16,20 +16,21 @@
 
 package com.rapleaf.hank.hadoop;
 
-import org.apache.hadoop.mapred.JobConf;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
+import org.apache.hadoop.mapred.JobConf;
 
 public class JobConfConfigurator implements Configurator {
 
   private final YamlClientConfigurator baseConfigurator;
 
   public JobConfConfigurator(JobConf jobConf) {
-    String configuration = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", jobConf);
+    String domainName = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", jobConf);
+    String configuration = getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION), "Hank configuration", jobConf);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
@@ -39,7 +40,6 @@ public class JobConfConfigurator implements Configurator {
     }
   }
 
-  @Override
   public Coordinator getCoordinator() {
     return baseConfigurator.getCoordinator();
   }
@@ -53,8 +53,7 @@ public class JobConfConfigurator implements Configurator {
   }
 
   // Directly get the DomainConfig from the configuration
-  public static Domain getDomainConfig(JobConf conf) {
-    String domainName = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+  public static Domain getDomainConfig(String domainName, JobConf conf) {
     Configurator configurator = new JobConfConfigurator(conf);
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();

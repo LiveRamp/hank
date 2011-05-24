@@ -16,19 +16,18 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.OutputFormat;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Writer;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
@@ -36,6 +35,10 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
+
+  public static String createConfParamName(String domainName, String confParamName) {
+    return domainName + "#" + confParamName;
+  }
 
   // Base class of record writers used to build domains.
   protected static abstract class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
@@ -51,22 +54,20 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domainConfig,
-        OutputStreamFactory outputStreamFactory) {
+                              OutputStreamFactory outputStreamFactory) {
       this.domainConfig = domainConfig;
       this.storageEngine = domainConfig.getStorageEngine();
       this.outputStreamFactory = outputStreamFactory;
     }
 
-    @Override
     public final void close(Reporter reporter) throws IOException {
       // Close current writer
       closeCurrentWriterIfNeeded();
       finalizeOutput();
     }
 
-    @Override
     public final void write(KeyAndPartitionWritable key, ValueWritable value)
-    throws IOException {
+        throws IOException {
       int partition = key.getPartition();
       // If writing a new partition, get a new writer
       if (writerPartition == null ||
@@ -78,7 +79,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       writer.write(key.getKey(), value.getAsByteBuffer());
     }
 
-    private final void setNewPartitionWriter(int partition) throws IOException {
+    private void setNewPartitionWriter(int partition) throws IOException {
       LOG.info("Setting up new writer for partition " + partition);
       // First, close current writer
       closeCurrentWriterIfNeeded();

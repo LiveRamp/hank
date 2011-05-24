@@ -16,25 +16,20 @@
 
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.mock.MockStorageEngine;
-
 // Storage engine used for testing. Stores key-value pairs in a static
 // partition map. It is not thread safe.
 public class MapStorageEngine extends MockStorageEngine {
 
-  private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions;
-
-  @SuppressWarnings("static-access")
-  public MapStorageEngine() {
-    this.partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
-  }
+  private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
 
   public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions() {
     return partitions;
@@ -42,7 +37,7 @@ public class MapStorageEngine extends MockStorageEngine {
 
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-      int versionNumber, boolean base) throws IOException {
+                          int versionNumber, boolean base) throws IOException {
     if (!partitions.containsKey(partNum)) {
       partitions.put(partNum, new HashMap<ByteBuffer, ByteBuffer>());
     }

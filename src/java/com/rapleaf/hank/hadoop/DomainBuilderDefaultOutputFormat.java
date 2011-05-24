@@ -16,9 +16,7 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.util.UUID;
-
+import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -26,29 +24,34 @@ import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.Domain;
+import java.io.IOException;
+import java.util.UUID;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
 
   private static final String TMP_DIRECTORY_NAME = "_tmp_DomainBuilderDefaultOutputFormat";
 
-  @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
-  throws IOException {
+      throws IOException {
     // No need to check if the output path exists. It probably will since
     // we store all versions in the same root directory.
   }
 
-  @Override
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
     // Load configuration items
-    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(CONF_PARAM_HANK_OUTPUT_PATH, "Hank output path", conf);
+    String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
+        "Hank domain name",
+        conf);
+    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
+        "Hank output path",
+        conf);
     String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
-    Domain domainConfig = JobConfConfigurator.getDomainConfig(conf);
+    Domain domainConfig = JobConfConfigurator.getDomainConfig(domainName, conf);
     // Build RecordWriter with the DomainConfig
     return new DomainBuilderDefaultRecordWriter(domainConfig, fs, tmpOutputPath, outputPath);
   }
@@ -60,9 +63,9 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String finalOutputPath;
 
     DomainBuilderDefaultRecordWriter(Domain domainConfig,
-        FileSystem fs,
-        String tmpOutputPath,
-        String finalOutputPath) {
+                                     FileSystem fs,
+                                     String tmpOutputPath,
+                                     String finalOutputPath) {
       super(domainConfig, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
       this.tmpOutputPath = tmpOutputPath;

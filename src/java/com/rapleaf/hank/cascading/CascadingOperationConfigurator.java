@@ -17,7 +17,6 @@
 package com.rapleaf.hank.cascading;
 
 import cascading.flow.FlowProcess;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
@@ -28,8 +27,12 @@ public class CascadingOperationConfigurator implements Configurator {
 
   private final YamlClientConfigurator baseConfigurator;
 
-  public CascadingOperationConfigurator(FlowProcess flowProcess) {
-    String configuration = getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION, "Hank configuration", flowProcess);
+  public CascadingOperationConfigurator(String domainName, FlowProcess flowProcess) {
+    // Get configuration from FlowProcess
+    String configuration = getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.createConfParamName(domainName,
+        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
+        "Hank configuration",
+        flowProcess);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
@@ -39,7 +42,6 @@ public class CascadingOperationConfigurator implements Configurator {
     }
   }
 
-  @Override
   public Coordinator getCoordinator() {
     return baseConfigurator.getCoordinator();
   }
