@@ -44,7 +44,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
 
     DomainBuilderEmptyOutputRecordWriter(Domain domainConfig) {
       // Always return a no-op OutputStream
-      super(domainConfig, new OutputStreamFactory() {
+      super(domainConfig, false, new OutputStreamFactory() {
         public OutputStream getOutputStream(int partNum, String name)
             throws IOException {
           return new OutputStream() {

@@ -43,17 +43,18 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       throws IOException {
     // Load configuration items
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
-        "Hank domain name",
-        conf);
+        "Hank domain name", conf);
     String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
-        "Hank output path",
-        conf);
+        "Hank output path", conf);
+    boolean isDelta = Boolean.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_IS_DELTA),
+        "Hank delta/non-delta", conf));
     String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
     Domain domainConfig = JobConfConfigurator.getDomainConfig(domainName, conf);
     // Build RecordWriter with the DomainConfig
-    return new DomainBuilderDefaultRecordWriter(domainConfig, fs, tmpOutputPath, outputPath);
+    return new DomainBuilderDefaultRecordWriter(domainConfig, isDelta, fs, tmpOutputPath, outputPath);
   }
 
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
@@ -63,10 +64,11 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String finalOutputPath;
 
     DomainBuilderDefaultRecordWriter(Domain domainConfig,
+                                     boolean isDelta,
                                      FileSystem fs,
                                      String tmpOutputPath,
                                      String finalOutputPath) {
-      super(domainConfig, new HDFSOutputStreamFactory(fs, tmpOutputPath));
+      super(domainConfig, isDelta, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
       this.tmpOutputPath = tmpOutputPath;
       this.finalOutputPath = finalOutputPath;

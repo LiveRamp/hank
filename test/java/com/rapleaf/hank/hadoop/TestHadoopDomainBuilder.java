@@ -47,14 +47,14 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_PATH_A));
     try {
-      HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A));
+      HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, false, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A));
       fail("Should fail when output exists");
     } catch (IOException e) {
     }
   }
 
   public void testOutput() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A));
+    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_A_NAME, false, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
@@ -62,7 +62,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   }
 
   public void testSorted() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_B, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_B_NAME, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_B));
+    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_B, TextInputFormat.class, TestMapper.class, new DomainBuilderProperties(DOMAIN_B_NAME, false, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_B));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);

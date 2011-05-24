@@ -35,6 +35,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
+  public static final String CONF_PARAM_HANK_IS_DELTA = "com.rapleaf.hank.is_delta";
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;
@@ -47,6 +48,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private final Domain domainConfig;
     private final StorageEngine storageEngine;
+    private final boolean isDelta;
     private final OutputStreamFactory outputStreamFactory;
 
     private Writer writer = null;
@@ -54,9 +56,11 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domainConfig,
+                              boolean isDelta,
                               OutputStreamFactory outputStreamFactory) {
       this.domainConfig = domainConfig;
       this.storageEngine = domainConfig.getStorageEngine();
+      this.isDelta = isDelta;
       this.outputStreamFactory = outputStreamFactory;
     }
 
@@ -87,14 +91,12 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       if (writtenPartitions.contains(partition)) {
         throw new RuntimeException("Partition " + partition + " has already been written.");
       }
-      // TODO: deal with base/non-base
-      boolean isBase = true;
       // Set up new writer
       Integer openVersion = domainConfig.getOpenVersionNumber();
       if (openVersion == null) {
         throw new IOException("There is no version currently open for domain " + domainConfig.getName());
       }
-      writer = storageEngine.getWriter(outputStreamFactory, partition, openVersion, isBase);
+      writer = storageEngine.getWriter(outputStreamFactory, partition, openVersion, !isDelta);
       writerPartition = partition;
       writtenPartitions.add(partition);
     }

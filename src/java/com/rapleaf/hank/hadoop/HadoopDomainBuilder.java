@@ -16,28 +16,22 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.File;
-import java.io.IOException;
-
+import com.rapleaf.hank.coordinator.Domain;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.Domain;
+import java.io.File;
+import java.io.IOException;
 
 public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static final void run(String domainName, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
+  public static final void run(String domainName, boolean isDelta, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + coordinatorConfigurationPath);
     String coordinatorConfiguration = FileUtils.readFileToString(new File(coordinatorConfigurationPath));
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, coordinatorConfiguration, outputPath);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, isDelta, coordinatorConfiguration, outputPath);
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
@@ -66,9 +60,9 @@ public class HadoopDomainBuilder {
 
   // Use a non-default output format
   public static final JobConf createJobConfiguration(String inputPath,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass,
-      DomainBuilderProperties properties) {
+                                                     Class<? extends InputFormat> inputFormatClass,
+                                                     Class<? extends Mapper> mapperClass,
+                                                     DomainBuilderProperties properties) {
     JobConf conf = new JobConf();
     // Input specification
     conf.setInputFormat(inputFormatClass);
@@ -90,11 +84,12 @@ public class HadoopDomainBuilder {
     return conf;
   }
 
-  public static final void main(String[] args) throws IOException{
-    if (args.length != 3) {
-      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <config path> <input path> <output_path>");
+  public static final void main(String[] args) throws IOException {
+    if (args.length != 5) {
+      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <config path> <input path> <output_path> ['delta']");
       System.exit(1);
     }
-    run(args[0], args[1], args[2], args[3]);
+    boolean isDelta = args[4].equals("delta");
+    run(args[0], isDelta, args[1], args[2], args[3]);
   }
 }
