@@ -104,21 +104,6 @@ public class CascadingDomainBuilder {
     domainConfig.closeNewVersion();
   }
 
-  // Build a single domain
-  public void build(Map<Object, Object> cascadingProperties,
-                    Tap inputTap) throws IOException {
-    Properties newCascadingProperties = new Properties();
-    newCascadingProperties.putAll(cascadingProperties);
-    build(newCascadingProperties, inputTap);
-  }
-
-  // Build multiple domains
-  public static void buildDomains(Properties cascadingProperties,
-                                  Map<String, Tap> sources,
-                                  CascadingDomainBuilder... domainBuilders) throws IOException {
-    buildDomains(cascadingProperties, sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
-  }
-
   // Build multiple domains
   public static void buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
@@ -187,7 +172,42 @@ public class CascadingDomainBuilder {
     }
   }
 
+  // Build a single domain
+  public void build(Map<Object, Object> cascadingProperties,
+                    Tap inputTap) throws IOException {
+    build(mapToProperties(cascadingProperties), inputTap);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Properties cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(cascadingProperties, sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Map<Object, Object> cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(mapToProperties(cascadingProperties), sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+  }
+
+  // Build multiple domains
+  public static void buildDomains(Map<Object, Object> cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  Map<String, Tap> otherSinks,
+                                  Pipe[] otherTails,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
+    buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
+  }
+
   public String toString() {
     return "CascadingDomainBuilder: Domain: " + properties.getDomainName() + ", Output Tap: " + outputTap;
+  }
+
+  private static Properties mapToProperties(Map<Object, Object> properties) {
+    Properties newProperties = new Properties();
+    newProperties.putAll(properties);
+    return newProperties;
   }
 }
