@@ -90,7 +90,11 @@ public class ZooKeeperPlus extends ZooKeeper {
     }
   }
 
-  public void create(String path, int v, CreateMode createMode) throws KeeperException, InterruptedException {
-    create(path, (""+v).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+  public void create(String path, long numBytes, CreateMode createMode) throws KeeperException, InterruptedException {
+    create(path, (""+numBytes).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+  }
+
+  public long getLong(String path) throws KeeperException, InterruptedException {
+    return Long.parseLong(new String(getData(path, false, new Stat())));
   }
 }
