@@ -5,4 +5,9 @@ public abstract class AbstractDomainVersion implements DomainVersion {
   public int compareTo(DomainVersion arg0) {
     return Integer.valueOf(getVersionNumber()).compareTo(arg0.getVersionNumber());
   }
+
+  @Override
+  public final boolean isClosed() {
+    return getClosedAt() != null;
+  }
 }
