@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 public abstract class AbstractDomainVersion implements DomainVersion {
   @Override
   public int compareTo(DomainVersion arg0) {
@@ -7,7 +9,7 @@ public abstract class AbstractDomainVersion implements DomainVersion {
   }
 
   @Override
-  public final boolean isClosed() {
+  public final boolean isClosed() throws IOException {
     return getClosedAt() != null;
   }
 }

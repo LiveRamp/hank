@@ -22,8 +22,26 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertFalse(dv.isClosed());
   }
 
-  public void testVersioning() {
-    fail();
+  public void testCancelVersion() throws Exception {
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    assertEquals(1, dv.getVersionNumber());
+    assertNull(dv.getClosedAt());
+    assertFalse(dv.isClosed());
+
+    dv.cancel();
+    assertNull(getZk().exists(getRoot() + "/versions/version_1", false));
+  }
+
+  public void testCloseVersion() throws Exception {
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    assertEquals(1, dv.getVersionNumber());
+    assertNull(dv.getClosedAt());
+    assertFalse(dv.isClosed());
+
+    dv.close();
+
+    assertNotNull(dv.getClosedAt());
+    assertTrue(dv.isClosed());
   }
 
   @Override

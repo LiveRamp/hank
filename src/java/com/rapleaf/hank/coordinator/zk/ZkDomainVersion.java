@@ -1,11 +1,13 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
@@ -14,7 +16,8 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;
-  private final Long closedAt;
+  private final ZooKeeperPlus zk;
+  private final String path;
 
   public static DomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
     String versionPath = domainPath + "/versions/version_" + nextVerNum;
@@ -26,16 +29,22 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   public ZkDomainVersion(ZooKeeperPlus zk, String path)
   throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.path = path;
     String[] toks = path.split("/");
     String last = toks[toks.length - 1];
     toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
-    this.closedAt = zk.getLongOrNull(path + "/closed_at");
   }
 
   @Override
-  public Long getClosedAt() {
-    return closedAt;
+  public Long getClosedAt() throws IOException {
+    try {
+      Stat stat = zk.exists(path + "/closed", false);
+      return stat == null ? null : stat.getCtime();
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -54,12 +63,22 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   }
 
   @Override
-  public void cancel() {
-    throw new NotImplementedException();
+  public void cancel() throws IOException {
+    if (!isClosed()) {
+      try {
+        zk.deleteNodeRecursively(path);
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
   }
 
   @Override
-  public void close() {
-    throw new NotImplementedException();
+  public void close() throws IOException {
+    try {
+      zk.create(path + "/closed", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }
