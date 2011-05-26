@@ -11,7 +11,7 @@
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
+  Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -75,16 +75,16 @@ Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
 <h3>Versions</h3>
 
 <div>
-<% if (domain.getOpenedVersion() == null) { %>
-No open version.
-<form method="post" action="/domain/new_version">
-  <input type="hidden" name="n" value="<%= domain.getName() %>"/>
-  You can force a new version to be created. Note that this will only write the metadata, not any actual data. You should only use this if you know what you're doing!<br/>
-  <input type="submit" value="I understand. Open and close a new version."/>
-</form>
-<% } else { %>
-Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
-<% } %>
+  <% if (domain.getOpenedVersion() == null) { %>
+  No open version.
+  <form method="post" action="/domain/new_version">
+    <input type="hidden" name="n" value="<%= domain.getName() %>"/>
+    You can force a new version to be created. Note that this will only write the metadata, not any actual data. You should only use this if you know what you're doing!<br/>
+    <input type="submit" value="I understand. Open and close a new version."/>
+  </form>
+  <% } else { %>
+  Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
+  <% } %>
 </div>
 
 <div>
@@ -94,7 +94,7 @@ Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
 <table class='table-blue'>
   <tr>
     <th>#</th>
-    <th>closed at</th>
+    <th>status</th>
     <th>size</th>
     <th># records</th>
   </tr>
@@ -107,7 +107,13 @@ Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
   %>
   <tr>
     <td><%= version.getVersionNumber() %></td>
-    <td><%= new Date(version.getClosedAt()) %></td>
+    <td>
+      <% if (version.isClosed()) { %>
+      Closed <%= new Date(version.getClosedAt())%>
+      <% } else { %>
+      Open - <%= version.getPartitionInfos().size() %>/<%= domain.getNumParts() %> complete
+      <% } %>
+    </td>
     <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
     <td><%= version.getTotalNumRecords() %></td>
   </tr>

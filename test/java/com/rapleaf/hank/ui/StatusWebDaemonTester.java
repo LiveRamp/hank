@@ -35,10 +35,12 @@ public class StatusWebDaemonTester extends ZkTestCase {
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
     final Domain d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
-    d0.openNewVersion().close();
-    d0.openNewVersion();
+    DomainVersion ver = d0.openNewVersion();
+    ver.close();
+    ver = d0.openNewVersion();
+    ver.addPartitionInfo(0, 1024, 55);
     final Domain d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    DomainVersion ver = d1.openNewVersion();
+    ver = d1.openNewVersion();
     dumpZk();
     ver.addPartitionInfo(0, 1024, 55);
     ver.addPartitionInfo(1, 32555, 700);
