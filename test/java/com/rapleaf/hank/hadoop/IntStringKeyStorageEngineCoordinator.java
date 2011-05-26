@@ -63,6 +63,12 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
     public void close() throws IOException {
       outputStream.close();
     }
+
+    @Override
+    public long getNumBytesWritten() {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 
   private static class IntStringKeyModPartitioner implements Partitioner {
