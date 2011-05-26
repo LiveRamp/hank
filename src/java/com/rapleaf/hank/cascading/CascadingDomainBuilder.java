@@ -156,17 +156,19 @@ public class CascadingDomainBuilder {
       // Add extra sinks
       sinks.putAll(otherSinks);
 
-      // Build new versions
-      StringBuilder domainsBuildersString = new StringBuilder();
+      // Create job name String
+      StringBuilder jobName = new StringBuilder("HankCascadingDomainBuilder ");
       for (int i = 0; i < domainBuilders.length; ++i) {
         if (i != 0) {
-          domainsBuildersString.append(", ");
+          jobName.append(", ");
         }
         CascadingDomainBuilder domainBuilder = domainBuilders[i];
-        domainsBuildersString.append(domainBuilder.domain.getName()).append(" version ").append(domainBuilder.version);
+        jobName.append(domainBuilder.domain.getName()).append(" version ").append(domainBuilder.version);
       }
+
+      // Build new versions
       new FlowConnector(cascadingProperties)
-          .connect("HankCascadingDomainBuilder " + domainsBuildersString, sources, sinks, tails).complete();
+          .connect(jobName.toString(), sources, sinks, tails).complete();
 
     } catch (Exception e) {
       // In case of failure, cancel new versions
