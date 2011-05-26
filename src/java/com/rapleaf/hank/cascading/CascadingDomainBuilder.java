@@ -90,20 +90,17 @@ public class CascadingDomainBuilder {
     // Open new version and check for success
     Domain domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
     openNewVersion();
-    if (domainVersion == null) {
-      throw new IOException("Could not open a new version of domain " + properties.getDomainName());
-    }
     // Try to build new version
     try {
       new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " +
           properties.getDomainName() + " version " + domainVersion, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domain.getVersions().last().cancel();
+      cancelNewVersion();
       throw new IOException("Failed at building version " + domainVersion + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domain.getVersions().last().close();
+    closeNewVersion();
   }
 
   // Build multiple domains
