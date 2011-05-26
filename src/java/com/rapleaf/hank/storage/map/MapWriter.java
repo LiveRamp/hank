@@ -25,6 +25,7 @@ import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {
   public final Map<ByteBuffer, ByteBuffer> entries;
+  private long recordsWritten;
 
   public MapWriter() {
     entries = new HashMap<ByteBuffer, ByteBuffer>();
@@ -40,6 +41,7 @@ public class MapWriter implements Writer {
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+    recordsWritten++;
     if (entries.containsKey(key)) {
       throw new RuntimeException("Duplicate entry for key: " + key.toString());
     }
@@ -56,7 +58,6 @@ public class MapWriter implements Writer {
 
   @Override
   public long getNumRecordsWritten() {
-    // TODO Auto-generated method stub
-    return 0;
+    return recordsWritten;
   }
 }

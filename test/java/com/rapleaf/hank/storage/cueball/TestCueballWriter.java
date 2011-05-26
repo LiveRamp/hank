@@ -29,6 +29,8 @@ public class TestCueballWriter extends AbstractCueballTest {
     cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1}));
     cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2}));
     cw.write(ByteBuffer.wrap(KEY3), ByteBuffer.wrap(new byte[]{(byte) 0x8f,1,2,1,2}));
+    assertTrue(cw.getNumBytesWritten() > 0);
+    assertEquals(3, cw.getNumRecordsWritten());
     cw.close();
 
     byte[] result = s.toByteArray();
