@@ -19,7 +19,6 @@ package com.rapleaf.hank.hadoop;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
@@ -41,9 +40,6 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
 
     // Implicitely relies on the FileOutputCommitter
     String outputPath = conf.get("mapred.work.output.dir");
-    // TODO: remove
-    System.out.println(FileOutputFormat.getWorkOutputPath(conf));
-
     if (outputPath == null) {
       throw new RuntimeException("Path was not set in mapred.work.output.dir");
     }
