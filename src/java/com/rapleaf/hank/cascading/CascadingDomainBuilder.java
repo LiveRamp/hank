@@ -94,7 +94,8 @@ public class CascadingDomainBuilder {
     }
     // Try to build new version
     try {
-      new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " + properties.getDomainName() + " version " + version, inputTap, outputTap, pipe).complete();
+      new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " +
+          properties.getDomainName() + " version " + version, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
       domainConfig.cancelNewVersion();
@@ -156,8 +157,16 @@ public class CascadingDomainBuilder {
       sinks.putAll(otherSinks);
 
       // Build new versions
+      StringBuilder domainsBuildersString = new StringBuilder();
+      for (int i = 0; i < domainBuilders.length; ++i) {
+        if (i != 0) {
+          domainsBuildersString.append(", ");
+        }
+        CascadingDomainBuilder domainBuilder = domainBuilders[i];
+        domainsBuildersString.append(domainBuilder.domain.getName()).append(" version ").append(domainBuilder.version);
+      }
       new FlowConnector(cascadingProperties)
-          .connect("HankCascadingDomainBuilder", sources, sinks, tails).complete();
+          .connect("HankCascadingDomainBuilder " + domainsBuildersString, sources, sinks, tails).complete();
 
     } catch (Exception e) {
       // In case of failure, cancel new versions
