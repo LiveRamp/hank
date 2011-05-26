@@ -25,7 +25,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Returns a set of all Part Daemon addresses.
-   * 
+   *
    * @return
    */
   public Set<Host> getHosts();
@@ -41,14 +41,14 @@ public interface Ring extends Comparable<Ring> {
   /**
    * Get the current domain group version number of this ring. If no data has
    * been deployed yet, this will be null.
-   * 
+   *
    * @return
    */
   public Integer getVersionNumber();
 
   /**
    * Is an update ready to begin?
-   * 
+   *
    * @return
    */
   public boolean isUpdatePending();
@@ -56,7 +56,7 @@ public interface Ring extends Comparable<Ring> {
   /**
    * Get the next domain group version number for this Ring. If no update is
    * planned, then this will be null.
-   * 
+   *
    * @return
    */
   public Integer getUpdatingToVersionNumber();
@@ -64,14 +64,14 @@ public interface Ring extends Comparable<Ring> {
   /**
    * Report that a planned update has succeeded, setting current version to
    * updating version and removing the updating version.
-   * 
+   *
    * @throws IOException
    */
   public void updateComplete() throws IOException;
 
   /**
    * Enqueue <i>command</i> to all Hosts in this Ring.
-   * 
+   *
    * @param command
    * @throws IOException
    */
@@ -88,7 +88,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Return all the hosts that are in the requested state.
-   * 
+   *
    * @param state
    * @return
    * @throws IOException
@@ -97,7 +97,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Set the updating-to version number.
-   * 
+   *
    * @param latestVersionNumber
    * @throws IOException
    */
@@ -105,7 +105,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Listener will be notified when the ring's state changes.
-   * 
+   *
    * @param listener
    * @throws IOException
    */
@@ -114,7 +114,7 @@ public interface Ring extends Comparable<Ring> {
   /**
    * Remove a host from this ring. Returns true if the host was removed, false
    * if there was no such host.
-   * 
+   *
    * @param address
    * @return
    * @throws IOException
@@ -123,10 +123,10 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Get the set of partition IDs that are not currently assigned to a host.
-   * 
-   * @param domainConfig
+   *
+   * @param domain
    * @return
    * @throws IOException
    */
-  public Set<Integer> getUnassignedPartitions(Domain domainConfig) throws IOException;
+  public Set<Integer> getUnassignedPartitions(Domain domain) throws IOException;
 }

@@ -68,7 +68,7 @@ public class AddDomainToDomainGroup {
       int domainId)
   throws IOException {
     Coordinator coord = configurator.getCoordinator();
-    coord.getDomainGroupConfig(domainGroupName).addDomain(coord.getDomainConfig(domainName), domainId);
+    coord.getDomainGroupConfig(domainGroupName).addDomain(coord.getDomain(domainName), domainId);
   }
 
 }

@@ -27,27 +27,22 @@ public class MockDomainGroup implements DomainGroup {
     this.name = name;
   }
 
-  @Override
   public Domain getDomain(int domainId) {
     return null;
   }
 
-  @Override
   public Integer getDomainId(String domainName) {
     return 0;
   }
 
-  @Override
   public DomainGroupVersion getLatestVersion() {
     return null;
   }
 
-  @Override
   public String getName() {
     return name;
   }
 
-  @Override
   public SortedSet<DomainGroupVersion> getVersions() {
     return null;
   }
@@ -57,21 +52,17 @@ public class MockDomainGroup implements DomainGroup {
     return "MockDomainGroupConfig [name=" + name + "]";
   }
 
-  @Override
   public void setListener(DomainGroupChangeListener listener) {
   }
 
-  @Override
-  public void addDomain(Domain domainConfig, int domainId) {
+  public void addDomain(Domain domain, int domainId) {
   }
 
-  @Override
   public DomainGroupVersion createNewVersion(
       Map<String, Integer> domainIdToVersion) {
     return null;
   }
 
-  @Override
   public Set<Domain> getDomains() throws IOException {
     // TODO Auto-generated method stub
     return null;

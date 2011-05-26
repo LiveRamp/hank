@@ -88,7 +88,7 @@ public class CascadingDomainBuilder {
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
-    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomain(properties);
+    Domain domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
     openNewVersion();
     if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
@@ -99,11 +99,11 @@ public class CascadingDomainBuilder {
           properties.getDomainName() + " version " + domainVersion, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domainConfig.getVersions().last().cancel();
+      domain.getVersions().last().cancel();
       throw new IOException("Failed at building version " + domainVersion + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domainConfig.getVersions().last().close();
+    domain.getVersions().last().close();
   }
 
   // Build multiple domains

@@ -61,7 +61,7 @@ public class DomainBuilderAssembly extends SubAssembly {
   private static class AddPartitionAndComparableKeyFields extends BaseOperation<AddPartitionAndComparableKeyFields> implements Function<AddPartitionAndComparableKeyFields> {
 
     private static final long serialVersionUID = 1L;
-    transient private Domain domainConfig;
+    transient private Domain domain;
     private String domainName;
 
     AddPartitionAndComparableKeyFields(String domainName, String partitionFieldName, String comparableKeyFieldName) {
@@ -77,8 +77,8 @@ public class DomainBuilderAssembly extends SubAssembly {
       TupleEntry tupleEntry = call.getArguments();
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
-      IntWritable partition = new IntWritable(domainConfig.getPartitioner().partition(keyByteBuffer, domainConfig.getNumParts()));
-      ByteBuffer comparableKey = domainConfig.getStorageEngine().getComparableKey(keyByteBuffer);
+      IntWritable partition = new IntWritable(domain.getPartitioner().partition(keyByteBuffer, domain.getNumParts()));
+      ByteBuffer comparableKey = domain.getStorageEngine().getComparableKey(keyByteBuffer);
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
       System.arraycopy(comparableKey.array(), comparableKey.arrayOffset() + comparableKey.position(),
           comparableKeyBuffer, 0, comparableKey.remaining());
@@ -88,9 +88,9 @@ public class DomainBuilderAssembly extends SubAssembly {
     }
 
     private void loadDomainConfig(FlowProcess flowProcess) {
-      if (domainConfig == null) {
+      if (domain == null) {
         Configurator configurator = new CascadingOperationConfigurator(domainName, flowProcess);
-        domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
+        domain = configurator.getCoordinator().getDomain(domainName);
       }
     }
   }

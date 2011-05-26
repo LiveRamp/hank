@@ -87,15 +87,15 @@ public class AddRing {
     DomainGroup domainGroupConfig = ringGroup.getDomainGroup();
     DomainGroupVersion latestVersion = domainGroupConfig.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
-    for (DomainGroupVersionDomainVersion domainConfigVersion : latestVersion.getDomainVersions()) {
-      Domain domainConfig = domainConfigVersion.getDomain();
+    for (DomainGroupVersionDomainVersion domainVersion : latestVersion.getDomainVersions()) {
+      Domain domain = domainVersion.getDomain();
 
       Queue<HostDomain> q = new LinkedList<HostDomain>();
       for (Host hostConfig : hostConfigs) {
-        q.add(hostConfig.addDomain(domainGroupConfig.getDomainId(domainConfig.getName())));
+        q.add(hostConfig.addDomain(domainGroupConfig.getDomainId(domain.getName())));
       }
 
-      for (int i = 0; i < domainConfig.getNumParts(); i++) {
+      for (int i = 0; i < domain.getNumParts(); i++) {
         HostDomain hdc = q.poll();
         hdc.addPartition(i, verNum);
         q.add(hdc);

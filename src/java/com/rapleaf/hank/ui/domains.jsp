@@ -12,7 +12,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Hank: Domains</title>
-  
+
   <jsp:include page="_head.jsp" />
 </head>
 <body>
@@ -31,14 +31,14 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Storage Engine</th>
     </tr>
     <%
-      for (Domain domainConfig : coord.getDomainConfigs()) {
+      for (Domain domain : coord.getDomains()) {
     %>
       <tr>
-        <td><a href="/domain.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
-        <td><%= domainConfig.getPartitioner().getClass().getSimpleName() %></td>
-        <td class='centered'><%= domainConfig.getNumParts() %></td>
-        <td><%= domainConfig.getStorageEngineFactoryClass().getName() %></td>
-        <td><a href="/domain/delete?name=<%= URLEnc.encode(domainConfig.getName()) %>">delete</a></td>
+        <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>
+        <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
+        <td class='centered'><%= domain.getNumParts() %></td>
+        <td><%= domain.getStorageEngineFactoryClass().getName() %></td>
+        <td><a href="/domain/delete?name=<%= URLEnc.encode(domain.getName()) %>">delete</a></td>
       </tr>
       <%
     }

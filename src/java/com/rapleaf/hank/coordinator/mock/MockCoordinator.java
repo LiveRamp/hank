@@ -39,7 +39,7 @@ public class MockCoordinator implements Coordinator {
     options = null;
   }
 
-  public Domain getDomainConfig(String domainName) {
+  public Domain getDomain(String domainName) {
     return null;
   }
 
@@ -51,11 +51,11 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public Set<Domain> getDomainConfigs() {
+  public Set<Domain> getDomains() {
     return null;
   }
 
-  public Set<DomainGroup> getDomainGroupConfigs() {
+  public Set<DomainGroup> getDomainGroups() {
     return null;
   }
 
@@ -83,7 +83,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public boolean deleteDomainConfig(String domainName) {
+  public boolean deleteDomain(String domainName) {
     return false;
   }
 }

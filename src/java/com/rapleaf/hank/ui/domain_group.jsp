@@ -33,11 +33,11 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
     <th>ID</th>
   </tr>
   <%
-    for (Domain domainConfig : domainGroupConfig.getDomains()) {
+    for (Domain domain : domainGroupConfig.getDomains()) {
   %>
   <tr>
-    <td><a href="/domain.jsp?n=<%=URLEnc.encode(domainConfig.getName())%>"><%=domainConfig.getName()%></a></td>
-    <td><%=domainGroupConfig.getDomainId(domainConfig.getName())%></td>
+    <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
+    <td><%=domainGroupConfig.getDomainId(domain.getName())%></td>
   </tr>
   <%
     }
@@ -45,7 +45,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
 </table>
 
 <%
-  Set<Domain> s = coord.getDomainConfigs();
+  Set<Domain> s = coord.getDomains();
 %>
 <%
   s.removeAll(domainGroupConfig.getDomains());
@@ -61,9 +61,9 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
   <br/>
   <select name="d">
   <%
-    for (Domain domainConfig : s) {
+    for (Domain domain : s) {
   %>
-    <option><%=domainConfig.getName()%></option>
+    <option><%=domain.getName()%></option>
   <%
     }
   %>
@@ -87,18 +87,18 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
       <th>Version (default: most recent)</th>
     </tr>
   <%
-    for (Domain domainConfig : domainGroupConfig.getDomains()) {
-    if (!domainConfig.getVersions().isEmpty()) {
+    for (Domain domain : domainGroupConfig.getDomains()) {
+    if (!domain.getVersions().isEmpty()) {
   %>
     <tr>
       <td>
-        <%= domainConfig.getName() %>
+        <%= domain.getName() %>
       </td>
       <td>
-        <select name="<%=domainConfig.getName() %>_version">
+        <select name="<%=domain.getName() %>_version">
           <%
             SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
-                revSorted.addAll(domainConfig.getVersions());
+                revSorted.addAll(domain.getVersions());
           %>
           <%
             boolean first = true;
@@ -107,7 +107,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
           <option<%= first ? " selected" : "" %>><%= ver.getVersionNumber() %></option>
           <%
           first = false;
-          } 
+          }
           %>
         </select>
       </td>

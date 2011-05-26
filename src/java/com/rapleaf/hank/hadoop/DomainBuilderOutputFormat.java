@@ -48,7 +48,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
-    private final Domain domainConfig;
+    private final Domain domain;
     private final StorageEngine storageEngine;
     private final VersionType versionType;
     private final OutputStreamFactory outputStreamFactory;
@@ -57,11 +57,11 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     private Integer writerPartition = null;
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
-    DomainBuilderRecordWriter(Domain domainConfig,
+    DomainBuilderRecordWriter(Domain domain,
                               VersionType versionType,
                               OutputStreamFactory outputStreamFactory) {
-      this.domainConfig = domainConfig;
-      this.storageEngine = domainConfig.getStorageEngine();
+      this.domain = domain;
+      this.storageEngine = domain.getStorageEngine();
       this.versionType = versionType;
       this.outputStreamFactory = outputStreamFactory;
     }
@@ -94,9 +94,9 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
         throw new RuntimeException("Partition " + partition + " has already been written.");
       }
       // Set up new writer
-      DomainVersion domainVersion = domainConfig.getOpenedVersion();
+      DomainVersion domainVersion = domain.getOpenedVersion();
       if (domainVersion == null) {
-        throw new IOException("There is no version currently open for domain " + domainConfig.getName());
+        throw new IOException("There is no version currently open for domain " + domain.getName());
       }
       writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(),
           versionType.equals(VersionType.BASE));

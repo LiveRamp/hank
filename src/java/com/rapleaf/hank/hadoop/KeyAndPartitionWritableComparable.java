@@ -21,9 +21,9 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     comparableKey = null;
   }
 
-  public KeyAndPartitionWritableComparable(Domain domainConfig, BytesWritable key) {
-    this.keyAndPartitionWritable = new KeyAndPartitionWritable(domainConfig, key);
-    this.comparableKey = Bytes.byteBufferDeepCopy(domainConfig.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
+  public KeyAndPartitionWritableComparable(Domain domain, BytesWritable key) {
+    this.keyAndPartitionWritable = new KeyAndPartitionWritable(domain, key);
+    this.comparableKey = Bytes.byteBufferDeepCopy(domain.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
   }
 
   public KeyAndPartitionWritable getKeyAndPartitionWritable() {
@@ -34,7 +34,6 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     return keyAndPartitionWritable.getPartition();
   }
 
-  @Override
   public void readFields(DataInput dataInput) throws IOException {
     keyAndPartitionWritable.readFields(dataInput);
     // Read size of comparable key
@@ -44,7 +43,6 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     dataInput.readFully(comparableKey.array(), 0, comparableKeySize);
   }
 
-  @Override
   public void write(DataOutput dataOutput) throws IOException {
     keyAndPartitionWritable.write(dataOutput);
     // Write size of comparable key
@@ -53,7 +51,6 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     dataOutput.write(comparableKey.array(), comparableKey.position(), comparableKey.remaining());
   }
 
-  @Override
   public int compareTo(KeyAndPartitionWritableComparable other) {
     if (keyAndPartitionWritable.getPartition() < other.keyAndPartitionWritable.getPartition()) {
       return -1;

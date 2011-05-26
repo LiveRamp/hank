@@ -54,6 +54,6 @@ public class DomainBuilderPropertiesConfigurator implements Configurator {
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
     // Try to get domain config
-    return coordinator.getDomainConfig(domainName);
+    return coordinator.getDomain(domainName);
   }
 }

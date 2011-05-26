@@ -130,9 +130,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private Set<HankWatcher> myWatchers = new HashSet<HankWatcher>();
   private boolean isSessionExpired = false;
 
-  private final Map<String, ZkDomain> domainConfigsByName =
+  private final Map<String, ZkDomain> domainsByName =
     new HashMap<String, ZkDomain>();;
-  private final Map<String, ZkDomainGroup> domainGroupConfigs =
+  private final Map<String, ZkDomainGroup> domainGroups =
     new HashMap<String, ZkDomainGroup>();
   private final Map<String, ZkRingGroup> ringGroupConfigs =
     new HashMap<String, ZkRingGroup>();
@@ -145,24 +145,24 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
    * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
-   * 
+   *
    * Package-private constructor that is mainly used for testing. The last
    * boolean flag allows you to prevent the ZooKeeperCoordinator from
    * immediately trying to cache all the configuration information from the
    * ZooKeeper service, which is useful if you don't want to have to setup your
    * entire configuration just to run a few simple tests.
-   * 
+   *
    * @param zkConnectString
    *          comma separated host:port pairs, each corresponding to a ZooKeeper
    *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
    * @param sessionTimeoutMs
    *          session timeout in milliseconds
-   * @param domainsRoot 
-   * @param domainGroupsRoot 
-   * @param ringGroupsRoot 
+   * @param domainsRoot
+   * @param domainGroupsRoot
+   * @param ringGroupsRoot
    * @throws InterruptedException
-   * @throws KeeperException 
-   * @throws IOException 
+   * @throws KeeperException
+   * @throws IOException
    */
   ZooKeeperCoordinator(String zkConnectString, int sessionTimeoutMs, String domainsRoot, String domainGroupsRoot, String ringGroupsRoot) throws InterruptedException, KeeperException, IOException {
     super(zkConnectString, sessionTimeoutMs);
@@ -198,17 +198,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     isSessionExpired = true;
   }
 
-  @Override
-  public Domain getDomainConfig(String domainName) {
-    return domainConfigsByName.get(domainName);
+  public Domain getDomain(String domainName) {
+    return domainsByName.get(domainName);
   }
 
-  @Override
   public DomainGroup getDomainGroupConfig(String domainGroupName) {
-    return domainGroupConfigs.get(domainGroupName);
+    return domainGroups.get(domainGroupName);
   }
 
-  @Override
   public RingGroup getRingGroupConfig(String ringGroupName) {
     return ringGroupConfigs.get(ringGroupName);
   }
@@ -216,28 +213,28 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   /**
    * Completely reloads the config information stored in ZooKeeper into memory.
    * Discards all existing config information.
-   * 
+   *
    * @throws InterruptedException
-   * @throws KeeperException 
+   * @throws KeeperException
    */
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      domainConfigsByName.put(domainName, new ZkDomain(zk, domainsRoot + "/" + domainName));
+      domainsByName.put(domainName, new ZkDomain(zk, domainsRoot + "/" + domainName));
     }
   }
 
   private void loadAllDomainGroups() throws InterruptedException, KeeperException, IOException {
     LOG.debug("Reloading all domain groups...");
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
-    synchronized(domainGroupConfigs) {
+    synchronized(domainGroups) {
       for (String domainGroupName : domainGroupNameList) {
         String dgPath = domainGroupsRoot + "/" + domainGroupName;
         boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
-          domainGroupConfigs.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
+          domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
         } else {
-          LOG.debug("Not opening domain group " + dgPath + " because it was incomplete."); 
+          LOG.debug("Not opening domain group " + dgPath + " because it was incomplete.");
         }
       }
     }
@@ -247,20 +244,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
-      ZkDomainGroup dgc = domainGroupConfigs.get(new String(zk.getData(ringGroupPath, false, null)));
+      ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc));
     }
   }
 
-  @Override
-  public Set<Domain> getDomainConfigs() {
-    return new HashSet<Domain>(domainConfigsByName.values());
+  public Set<Domain> getDomains() {
+    return new HashSet<Domain>(domainsByName.values());
   }
 
-  @Override
-  public Set<DomainGroup> getDomainGroupConfigs() {
-    synchronized(domainGroupConfigs) {
-      return new HashSet<DomainGroup>(domainGroupConfigs.values());
+  public Set<DomainGroup> getDomainGroups() {
+    synchronized(domainGroups) {
+      return new HashSet<DomainGroup>(domainGroups.values());
     }
   }
 
@@ -268,16 +263,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return new HashSet<RingGroup>(ringGroupConfigs.values());
   }
 
-  @Override
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
-    domainGroupConfigs.put(newDomainGroup.getName(), (ZkDomainGroup) newDomainGroup);
+    domainGroups.put(newDomainGroup.getName(), (ZkDomainGroup) newDomainGroup);
   }
 
-  @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
   }
 
-  @Override
   public Domain addDomain(String domainName,
       int numParts,
       String storageEngineFactoryName,
@@ -292,19 +284,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           storageEngineFactoryName,
           storageEngineOptions,
           partitionerName);
-      domainConfigsByName.put(domainName, domain);
+      domainsByName.put(domainName, domain);
       return domain;
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
-  @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
       ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name);
-      synchronized(domainGroupConfigs) {
-        domainGroupConfigs.put(name, dgc);
+      synchronized(domainGroups) {
+        domainGroups.put(name, dgc);
       }
       return dgc;
     } catch (Exception e) {
@@ -312,7 +303,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  @Override
   public RingGroup addRingGroup(String ringGroupName,
       String domainGroupName)
   throws IOException {
@@ -337,19 +327,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public String toString() {
-    return "ZooKeeperCoordinator [quorum=" + getConnectString() 
-        + ", domainsRoot=" + domainsRoot 
+    return "ZooKeeperCoordinator [quorum=" + getConnectString()
+        + ", domainsRoot=" + domainsRoot
         + ", domainGroupsRoot=" + domainGroupsRoot
         + ", ringGroupsRoot=" + ringGroupsRoot
         + "]";
   }
 
-  @Override
-  public boolean deleteDomainConfig(String domainName) throws IOException {
-    ZkDomain domainConfig = domainConfigsByName.remove(domainName);
-    if (domainConfig == null) {
+  public boolean deleteDomain(String domainName) throws IOException {
+    ZkDomain domain = domainsByName.remove(domainName);
+    if (domain == null) {
       return false;
     }
-    return domainConfig.delete();
+    return domain.delete();
   }
 }

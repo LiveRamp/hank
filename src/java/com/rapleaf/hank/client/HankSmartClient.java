@@ -63,7 +63,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * Create a new HankSmartClient that uses the supplied coordinator and works
    * with the requested ring group. Note that a given HankSmartClient can only
    * contact one ring group.
-   * 
+   *
    * @param coord
    * @param ringGroupName
    * @throws DataNotFoundException
@@ -86,12 +86,12 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
-    for (DomainGroupVersionDomainVersion domainConfigVersion : domainGroupConfig.getLatestVersion().getDomainVersions()) {
-      Domain domainConfig = domainConfigVersion.getDomain();
+    for (DomainGroupVersionDomainVersion domainVersion : domainGroupConfig.getLatestVersion().getDomainVersions()) {
+      Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
-      domainPartToHostList.put(domainGroupConfig.getDomainId(domainConfig.getName()), partitionToAddress);
+      domainPartToHostList.put(domainGroupConfig.getDomainId(domain.getName()), partitionToAddress);
 
-      for (int i = 0; i < domainConfig.getNumParts(); i++) {
+      for (int i = 0; i < domain.getNumParts(); i++) {
         partitionToAddress.put(i, new ArrayList<PartDaemonAddress>());
       }
     }
@@ -139,16 +139,16 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     if (domainId != null) {
-      Domain domainConfig;
+      Domain domain;
       try {
-        domainConfig = domainGroup.getDomain(domainId);
+        domain = domainGroup.getDomain(domainId);
       } catch (IOException e) {
         // TODO: this might be bad.
         LOG.error(e);
         return NO_SUCH_DOMAIN;
       }
-      if (domainConfig != null) {
-        partition = domainConfig.getPartitioner().partition(key, domainConfig.getNumParts());
+      if (domain != null) {
+        partition = domain.getPartitioner().partition(key, domain.getNumParts());
       } else {
         return NO_SUCH_DOMAIN;
       }

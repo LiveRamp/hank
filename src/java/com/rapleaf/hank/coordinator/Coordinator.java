@@ -32,39 +32,40 @@ public interface Coordinator {
 
   /**
    * Add a new domain.
+   *
    * @return TODO
    */
   public Domain addDomain(String domainName,
-      int numParts,
-      String storageEngineFactoryName,
-      String storageEngineOptions,
-      String partitionerName)
-  throws IOException;
+                          int numParts,
+                          String storageEngineFactoryName,
+                          String storageEngineOptions,
+                          String partitionerName)
+      throws IOException;
 
   /**
-   * Get the set of known DomainConfigs.
+   * Get the set of known Domains.
+   *
    * @return
    */
-  public Set<Domain> getDomainConfigs();
+  public Set<Domain> getDomains();
 
   /**
    * @param domainName
    * @return configuration information on the specified domain
-   * @throws DataNotFoundException if no domain with the specified name exists
    */
-  public Domain getDomainConfig(String domainName);
+  public Domain getDomain(String domainName);
 
-  
+
   /**
    * Delete the domain config with the given name. Please beware of removing a
    * domain if it is referenced in any domain groups - you will probably break
    * your installation if you remove one that's in use!
-   * 
+   *
    * @param domainName
    * @return
-   * @throws Exception
+   * @throws IOException
    */
-  public boolean deleteDomainConfig(String domainName) throws IOException;
+  public boolean deleteDomain(String domainName) throws IOException;
 
   //
   // DomainGroups
@@ -78,14 +79,14 @@ public interface Coordinator {
 
   /**
    * Get the set of known DomainGroupConfigs.
+   *
    * @return
    */
-  public Set<DomainGroup> getDomainGroupConfigs();
+  public Set<DomainGroup> getDomainGroups();
 
   /**
    * @param domainGroupName
    * @return configuration information on the specified domain group
-   * @throws DataNotFoundException if no domain group with the specified name exists
    */
   public DomainGroup getDomainGroupConfig(String domainGroupName);
 
@@ -95,6 +96,7 @@ public interface Coordinator {
 
   /**
    * Get the set of known RingGroupConfigs.
+   *
    * @return
    */
   public Set<RingGroup> getRingGroups();
@@ -102,19 +104,18 @@ public interface Coordinator {
   /**
    * @param ringGroupName
    * @return configuration information on the specified ring group
-   * @throws DataNotFoundException
-   *           if no ring group with the specified name exists
    */
   public RingGroup getRingGroupConfig(String ringGroupName)
-  throws IOException;
+      throws IOException;
 
   /**
    * Add a new ring group. Note that the domain group must exist in advance.
+   *
    * @param ringGroupName
    * @param domainGroupName
    * @return
    * @throws IOException
    */
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName)
-  throws IOException;
+      throws IOException;
 }

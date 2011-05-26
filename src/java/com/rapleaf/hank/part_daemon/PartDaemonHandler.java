@@ -71,29 +71,28 @@ class PartDaemonHandler implements Iface {
 
     // loop over the domains and get set up
     for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainVersions()) {
-      Domain domainConfig = dcv.getDomain();
-      StorageEngine eng = domainConfig.getStorageEngine();
+      Domain domain = dcv.getDomain();
+      StorageEngine eng = domain.getStorageEngine();
 
-      int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
+      int domainId = domainGroupConfig.getDomainId(domain.getName());
       Set<HostDomainPartition> partitions = ringConfig.getHostByAddress(hostAndPort).getDomainById(domainId).getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(),
-          domainConfig.getNumParts(),
-          domainConfig.getName()));
+          domain.getNumParts(),
+          domain.getName()));
 
       // instantiate all the readers
-      Reader[] readers = new Reader[domainConfig.getNumParts()];
+      Reader[] readers = new Reader[domain.getNumParts()];
       for (HostDomainPartition part : partitions) {
         LOG.debug(String.format("Instantiating reader for part num %d", part.getPartNum()));
         readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
       }
 
       // configure and store the Domain wrapper
-      domains[domainId] = new DomainReaderSet(domainConfig.getName(), readers, domainConfig.getPartitioner());
+      domains[domainId] = new DomainReaderSet(domain.getName(), readers, domain.getPartitioner());
     }
   }
 
-  @Override
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
     DomainReaderSet domain = getDomain(domainId & 0xff);

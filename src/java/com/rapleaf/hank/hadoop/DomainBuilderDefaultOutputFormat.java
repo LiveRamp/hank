@@ -53,9 +53,9 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
         "Hank base/delta", conf));
     String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
-    Domain domainConfig = JobConfConfigurator.getDomainConfig(domainName, conf);
-    // Build RecordWriter with the DomainConfig
-    return new DomainBuilderDefaultRecordWriter(domainConfig, versionType, fs, tmpOutputPath, outputPath);
+    Domain domain = JobConfConfigurator.getDomain(domainName, conf);
+    // Build RecordWriter with the Domain
+    return new DomainBuilderDefaultRecordWriter(domain, versionType, fs, tmpOutputPath, outputPath);
   }
 
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
@@ -64,12 +64,12 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     private final String tmpOutputPath;
     private final String finalOutputPath;
 
-    DomainBuilderDefaultRecordWriter(Domain domainConfig,
+    DomainBuilderDefaultRecordWriter(Domain domain,
                                      VersionType versionType,
                                      FileSystem fs,
                                      String tmpOutputPath,
                                      String finalOutputPath) {
-      super(domainConfig, versionType, new HDFSOutputStreamFactory(fs, tmpOutputPath));
+      super(domain, versionType, new HDFSOutputStreamFactory(fs, tmpOutputPath));
       this.fs = fs;
       this.tmpOutputPath = tmpOutputPath;
       this.finalOutputPath = finalOutputPath;

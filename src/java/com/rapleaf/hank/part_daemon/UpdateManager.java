@@ -105,16 +105,16 @@ class UpdateManager implements IUpdateManager {
 
     DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
     for (DomainGroupVersionDomainVersion dcv : domainGroupConfig.getLatestVersion().getDomainVersions()) {
-      Domain domainConfig = dcv.getDomain();
-      StorageEngine engine = domainConfig.getStorageEngine();
+      Domain domain = dcv.getDomain();
+      StorageEngine engine = domain.getStorageEngine();
 
-      int domainId = domainGroupConfig.getDomainId(domainConfig.getName());
+      int domainId = domainGroupConfig.getDomainId(domain.getName());
       for (HostDomainPartition part : hostConfig.getDomainById(domainId).getPartitions()) {
         if (part.getUpdatingToDomainGroupVersion() != null) {
           LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
               ringGroupConfig.getName(),
               ringConfig.getRingNumber(),
-              domainConfig.getName(),
+              domain.getName(),
               part.getPartNum(),
               part.getCurrentDomainGroupVersion(),
               part.getUpdatingToDomainGroupVersion()));
@@ -123,7 +123,7 @@ class UpdateManager implements IUpdateManager {
               exceptionQueue,
               dcv.getVersionNumber(),
               part,
-              domainConfig.getName()));
+              domain.getName()));
         }
       }
     }

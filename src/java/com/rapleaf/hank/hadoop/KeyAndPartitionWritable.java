@@ -41,9 +41,9 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     this.partition = partition;
   }
 
-  public KeyAndPartitionWritable(Domain domainConfig, BytesWritable key) {
+  public KeyAndPartitionWritable(Domain domain, BytesWritable key) {
     this.key = key;
-    int partition = domainConfig.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()), domainConfig.getNumParts());
+    int partition = domain.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()), domain.getNumParts());
     this.partition = new IntWritable(partition);
   }
 
@@ -55,19 +55,16 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     return partition.get();
   }
 
-  @Override
   public void readFields(DataInput dataInput) throws IOException {
     key.readFields(dataInput);
     partition.readFields(dataInput);
   }
 
-  @Override
   public void write(DataOutput dataOutput) throws IOException {
     key.write(dataOutput);
     partition.write(dataOutput);
   }
 
-  @Override
   public int compareTo(KeyAndPartitionWritable other) {
     throw new RuntimeException("KeyAndPartitionWritable is not supposed to be compared! Use KeyAndPartitionWritableComparable for this purpose.");
   }

@@ -32,12 +32,12 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Cur Ver #</th>
     </tr>
     <%
-      for (DomainGroup domainConfig : coord.getDomainGroupConfigs()) {
+      for (DomainGroup domainGroup : coord.getDomainGroups()) {
     %>
       <tr>
-        <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainConfig.getName()) %>"><%= domainConfig.getName() %></a></td>
+        <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
         <td>todo</td>
-        <td><%= domainConfig.getLatestVersion() == null ? "" : domainConfig.getLatestVersion().getVersionNumber() %></td>
+        <td><%= domainGroup.getLatestVersion() == null ? "" : domainGroup.getLatestVersion().getVersionNumber() %></td>
       </tr>
       <%
     }

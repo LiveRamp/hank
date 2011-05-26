@@ -43,8 +43,8 @@ public class HadoopDomainBuilder {
       Class<? extends DomainBuilderMapper> mapperClass,
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
-    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomain(properties);
-    DomainVersion domainVersion = domainConfig.openNewVersion();
+    Domain domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
+    DomainVersion domainVersion = domain.openNewVersion();
     if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }

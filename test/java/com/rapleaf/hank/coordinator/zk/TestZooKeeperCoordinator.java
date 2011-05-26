@@ -36,10 +36,10 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testLoad() throws Exception {
     // check standard loading stuff
-    assertEquals("number of loaded domain configs", 1, coord.getDomainConfigs().size());
-    assertEquals("get domain by name", "domain0", coord.getDomainConfig("domain0").getName());
+    assertEquals("number of loaded domain configs", 1, coord.getDomains().size());
+    assertEquals("get domain by name", "domain0", coord.getDomain("domain0").getName());
 
-    assertEquals("number of loaded domain group configs", 1, coord.getDomainGroupConfigs().size());
+    assertEquals("number of loaded domain group configs", 1, coord.getDomainGroups().size());
     assertEquals("get domain group by name", "myDomainGroup", coord.getDomainGroupConfig("myDomainGroup").getName());
 
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
@@ -48,12 +48,12 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddDomain() throws Exception {
     coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
-    Domain domainConfig = coord.getDomainConfig("myDomain");
-    assertNotNull(domainConfig);
-    assertEquals("myDomain", domainConfig.getName());
-    assertEquals(1234, domainConfig.getNumParts());
-    assertTrue(domainConfig.getStorageEngine() instanceof ConstantStorageEngine);
-    assertTrue(domainConfig.getPartitioner() instanceof ConstantPartitioner);
+    Domain domain = coord.getDomain("myDomain");
+    assertNotNull(domain);
+    assertEquals("myDomain", domain.getName());
+    assertEquals(1234, domain.getNumParts());
+    assertTrue(domain.getStorageEngine() instanceof ConstantStorageEngine);
+    assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);
   }
 
   public void testAddDomainGroup() throws Exception {
@@ -95,10 +95,10 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testDeleteDomainConfig() throws Exception {
-    assertNotNull(coord.getDomainConfig("domain0"));
-    assertTrue(coord.deleteDomainConfig("domain0"));
-    assertNull(coord.getDomainConfig("domain0"));
-    assertFalse(coord.deleteDomainConfig("domain0"));
+    assertNotNull(coord.getDomain("domain0"));
+    assertTrue(coord.deleteDomain("domain0"));
+    assertNull(coord.getDomain("domain0"));
+    assertFalse(coord.deleteDomain("domain0"));
   }
 
   @Override

@@ -16,16 +16,17 @@
 
 package com.rapleaf.hank.hadoop.test;
 
-import java.nio.ByteBuffer;
-import java.util.Map;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
+
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {
@@ -43,8 +44,8 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
   }
 
   @Override
-  public Domain getDomainConfig(String domainName) {
-    return new MockDomain(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), null);
+  public Domain getDomain(String domainName) {
+    return new MockDomain(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(), new MockDomainVersion(0, null));
   }
 
   static public String getConfiguration(int numPartitions) {

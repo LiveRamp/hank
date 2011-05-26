@@ -27,17 +27,17 @@ import java.io.IOException;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
-  private Domain domainConfig;
+  private Domain domain;
 
   public void configure(JobConf conf) {
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     Configurator configurator = new JobConfConfigurator(conf);
-    domainConfig = configurator.getCoordinator().getDomainConfig(domainName);
+    domain = configurator.getCoordinator().getDomain(domainName);
   }
 
   public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
     KeyValuePair keyValue = buildHankKeyValue(key, value);
-    KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domainConfig, keyValue.getKey());
+    KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domain, keyValue.getKey());
     ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
     outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
   }

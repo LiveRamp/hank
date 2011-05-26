@@ -53,11 +53,11 @@ public class JobConfConfigurator implements Configurator {
   }
 
   // Directly get the DomainConfig from the configuration
-  public static Domain getDomainConfig(String domainName, JobConf conf) {
+  public static Domain getDomain(String domainName, JobConf conf) {
     Configurator configurator = new JobConfConfigurator(conf);
     // Get Coordinator
     Coordinator coordinator = configurator.getCoordinator();
     // Try to get domain config
-    return coordinator.getDomainConfig(domainName);
+    return coordinator.getDomain(domainName);
   }
 }

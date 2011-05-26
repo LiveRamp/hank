@@ -30,16 +30,16 @@ public class DomainController extends Controller {
     actions.put("delete", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        DomainController.this.coordinator.deleteDomainConfig(req.getParameter("name"));
+        DomainController.this.coordinator.deleteDomain(req.getParameter("name"));
         redirect("/domains.jsp", resp);
       }
     });
     actions.put("new_version", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Domain domainConfig = DomainController.this.coordinator.getDomainConfig(req.getParameter("n"));
-        if (domainConfig.openNewVersion() != null) {
-          domainConfig.getVersions().last().close();
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        if (domain.openNewVersion() != null) {
+          domain.getOpenedVersion().close();
         }
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }

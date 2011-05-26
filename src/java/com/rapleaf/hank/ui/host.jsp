@@ -24,7 +24,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
 
 <h3>
   <a href="/ring_group.jsp?name=<%=ringGroup.getName() %>"><%= ringGroup.getName() %></a>
-  &gt; 
+  &gt;
   <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">ring <%= ring.getRingNumber() %></a>
   &gt; <%= host.getAddress() %>
 </h3>
@@ -58,9 +58,9 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
     Add a domain/part:<br/>
     <select name="domainId">
       <%
-        for (Domain domainConfig : ringGroup.getDomainGroup().getDomains()) {
+        for (Domain domain : ringGroup.getDomainGroup().getDomains()) {
       %>
-      <option value="<%=ringGroup.getDomainGroup().getDomainId(domainConfig.getName())%>"><%=domainConfig.getName()%></option>
+      <option value="<%=ringGroup.getDomainGroup().getDomainId(domain.getName())%>"><%=domain.getName()%></option>
       <%
         }
       %>

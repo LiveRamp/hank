@@ -46,9 +46,9 @@ public class DomainGroupController extends Controller {
     DomainGroup dg = coordinator.getDomainGroupConfig(dgName);
 
     Map<String, Integer> domainVersions = new HashMap<String, Integer>();
-    for (Domain domainConfig : dg.getDomains()) {
-      int v = Integer.parseInt(req.getParameter(domainConfig.getName() + "_version"));
-      domainVersions.put(domainConfig.getName(), v);
+    for (Domain domain : dg.getDomains()) {
+      int v = Integer.parseInt(req.getParameter(domain.getName() + "_version"));
+      domainVersions.put(domain.getName(), v);
     }
     dg.createNewVersion(domainVersions);
 
@@ -59,7 +59,7 @@ public class DomainGroupController extends Controller {
     String dgName = URLEnc.decode(req.getParameter("n"));
     String dName = URLEnc.decode(req.getParameter("d"));
     DomainGroup dg = coordinator.getDomainGroupConfig(dgName);
-    Domain domainConfig = coordinator.getDomainConfig(dName);
+    Domain domain = coordinator.getDomain(dName);
 
     int domainId = -1;
     for (Domain dc : dg.getDomains()) {
@@ -70,7 +70,7 @@ public class DomainGroupController extends Controller {
     }
     domainId++;
 
-    dg.addDomain(domainConfig, domainId);
+    dg.addDomain(domain, domainId);
     resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 

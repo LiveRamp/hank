@@ -22,16 +22,16 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
-  private final Domain domainConfig;
+  private final Domain domain;
   private final int versionNumber;
-  public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domainConfig) throws KeeperException, InterruptedException {
-    this.domainConfig = domainConfig;
+  public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domain) throws KeeperException, InterruptedException {
+    this.domain = domain;
     versionNumber = zk.getInt(path);
   }
 
   @Override
   public Domain getDomain() {
-    return domainConfig;
+    return domain;
   }
 
   @Override
@@ -41,7 +41,7 @@ public class ZkDomainGroupVersionDomainVersion implements DomainGroupVersionDoma
 
   @Override
   public String toString() {
-    return "ZkDomainConfigVersion [domainConfig=" + domainConfig
+    return "ZkDomainConfigVersion [domain=" + domain
         + ", versionNumber=" + versionNumber + "]";
   }
 }

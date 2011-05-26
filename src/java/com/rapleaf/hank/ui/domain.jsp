@@ -10,7 +10,7 @@
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("n")));
+Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -18,13 +18,13 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
 <head>
   <jsp:include page="_head.jsp" />
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <title>Domain: <%= domainConfig.getName() %></title>
+  <title>Domain: <%= domain.getName() %></title>
 </head>
 <body>
 
 <jsp:include page="_top_nav.jsp"/>
 
-<h1>Domain <%= domainConfig.getName() %></h1>
+<h1>Domain <%= domain.getName() %></h1>
 
 <table>
   <tr>
@@ -32,7 +32,7 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
       Number of partitions:
     </td>
     <td>
-      <%= domainConfig.getNumParts() %>
+      <%= domain.getNumParts() %>
     </td>
   </tr>
   <tr>
@@ -40,7 +40,7 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
       Partitioner:
     </td>
     <td>
-      <%= domainConfig.getPartitioner().getClass().getName() %>
+      <%= domain.getPartitioner().getClass().getName() %>
     </td>
   </tr>
   <tr>
@@ -48,7 +48,7 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
       Storage engine factory:
     </td>
     <td>
-      <%= domainConfig.getStorageEngineFactoryClass().getName() %>
+      <%= domain.getStorageEngineFactoryClass().getName() %>
     </td>
   </tr>
   <tr valign=top>
@@ -56,15 +56,15 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
       Storage engine factory options:
     </td>
     <td>
-      <% 
+      <%
       DumperOptions opts = new DumperOptions();
       opts.setExplicitStart(true);
       opts.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
       opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
       %>
-      <textarea rows="10" cols="80" disabled=true><%= domainConfig.getStorageEngineOptions() == null 
+      <textarea rows="10" cols="80" disabled=true><%= domain.getStorageEngineOptions() == null
           ? ""
-          : new Yaml(opts).dump(domainConfig.getStorageEngineOptions()) 
+          : new Yaml(opts).dump(domain.getStorageEngineOptions())
           %>
       </textarea>
     </td>
@@ -73,15 +73,15 @@ Domain domainConfig = coord.getDomainConfig(URLEnc.decode(request.getParameter("
 
 <h3>Versions</h3>
 
-<% if (domainConfig.getOpenVersionNumber() == null) { %>
+<% if (domain.getOpenVersionNumber() == null) { %>
 No open version.
 <form method="post" action="/domain/new_version">
-  <input type="hidden" name="n" value="<%= domainConfig.getName() %>"/>
+  <input type="hidden" name="n" value="<%= domain.getName() %>"/>
   You can force a new version to be created. Note that this will only write the metadata, not any actual data. You should only use this if you know what you're doing!<br/>
   <input type="submit" value="I understand. Open and close a new version."/>
 </form>
 <% } else { %>
-Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
+Version #<%= domain.getOpenVersionNumber() %> is currently open.
 <% } %>
 
 
@@ -93,7 +93,7 @@ Version #<%= domainConfig.getOpenVersionNumber() %> is currently open.
   </tr>
   <%
     SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
-    revSorted.addAll(domainConfig.getVersions());
+    revSorted.addAll(domain.getVersions());
   %>
   <%
     for (DomainVersion version : revSorted) {
