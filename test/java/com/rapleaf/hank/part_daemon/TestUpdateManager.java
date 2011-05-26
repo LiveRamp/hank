@@ -140,7 +140,7 @@ public class TestUpdateManager extends BaseTestCase {
                 1,
                 new ConstantPartitioner(),
                 mockStorageEngine,
-                0),
+                null),
             0)),
         null,
         0);

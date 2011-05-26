@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -34,7 +35,6 @@ public class TestZkDomain extends ZkTestCase {
     assertTrue(dc.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(dc.getVersions().isEmpty());
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
-    assertNull(dc.getOpenVersionNumber());
   }
 
   public void testLoad() throws Exception {
@@ -48,33 +48,26 @@ public class TestZkDomain extends ZkTestCase {
     assertTrue(dc.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(dc.getVersions().isEmpty());
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
-    assertNull(dc.getOpenVersionNumber());
   }
 
   public void testVersioning() throws Exception {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER);
 
     assertTrue(dc.getVersions().isEmpty());
-    assertNull(dc.getOpenVersionNumber());
 
-    Integer vNum = dc.openNewVersion();
-    assertEquals(Integer.valueOf(0), vNum);
-    assertEquals(vNum, dc.getOpenVersionNumber());
-
-    assertTrue(dc.closeNewVersion());
+    DomainVersion version = dc.openNewVersion();
+    assertEquals(0, version.getVersionNumber());
     assertEquals(1, dc.getVersions().size());
-    assertNull(dc.getOpenVersionNumber());
 
-    vNum = dc.openNewVersion();
-    assertEquals(Integer.valueOf(1), vNum);
-    assertEquals(vNum, dc.getOpenVersionNumber());
-
-    vNum = dc.openNewVersion();
-    assertNull(vNum);
-
-    dc.cancelNewVersion();
-    assertNull(dc.getOpenVersionNumber());
+    assertNull(dc.openNewVersion());
     assertEquals(1, dc.getVersions().size());
+
+    version.close();
+
+    version = dc.openNewVersion();
+    assertNotNull(version);
+    assertEquals(1, version.getVersionNumber());
+    assertEquals(2, dc.getVersions().size());
   }
 
   public void testDelete() throws Exception {

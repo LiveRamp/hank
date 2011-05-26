@@ -26,14 +26,14 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
@@ -92,7 +92,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
         return new MockReader(configurator, partNum, V1);
       }
     };
-    Domain dc = new MockDomain("myDomain", 5, partitioner, storageEngine, 1);
+    Domain dc = new MockDomain("myDomain", 5, partitioner, storageEngine, null);
     MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(dc, 1);
     final MockDomainGroupVersion dcgv = new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)dcv), null, 1);
 
