@@ -1,9 +1,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -28,7 +29,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   }
 
   public ZkDomainVersion(ZooKeeperPlus zk, String path)
-  throws KeeperException, InterruptedException {
+      throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     String[] toks = path.split("/");
@@ -53,13 +54,28 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   }
 
   @Override
-  public void addPartitionInfo(int partNum, long numBytes, long numRecords) {
-    throw new NotImplementedException();
+  public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
+    try {
+      ZkPartitionInfo.create(zk, path + "/parts", partNum, numBytes, numRecords);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
-  public Set<PartitionInfo> getPartitionInfos() {
-    throw new NotImplementedException();
+  public Set<PartitionInfo> getPartitionInfos() throws IOException {
+    try {
+      List<String> children = zk.getChildren(path + "/parts", false);
+
+      Set<PartitionInfo> parts = new HashSet<PartitionInfo>();
+      for (String child : children) {
+        parts.add(new ZkPartitionInfo(zk, path + "/parts/" + child));
+      }
+
+      return parts;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

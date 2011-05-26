@@ -44,6 +44,18 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertTrue(dv.isClosed());
   }
 
+  public void testPartitionInfos() throws Exception {
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv2 = new ZkDomainVersion(getZk(), getRoot() + "/versions/version_1");
+
+    assertTrue(dv.getPartitionInfos().isEmpty());
+    assertTrue(dv2.getPartitionInfos().isEmpty());
+
+    dv.addPartitionInfo(1, 2, 3);
+    assertEquals(1, dv.getPartitionInfos().size());
+    assertEquals(1, dv2.getPartitionInfos().size());
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();

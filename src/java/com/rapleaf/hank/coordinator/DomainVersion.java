@@ -31,7 +31,7 @@ public interface DomainVersion extends Comparable<DomainVersion> {
    */
   public void cancel() throws IOException;
 
-  public Set<PartitionInfo> getPartitionInfos();
+  public Set<PartitionInfo> getPartitionInfos() throws IOException;
 
-  public void addPartitionInfo(int partNum, long numBytes, long numRecords);
+  public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException;
 }
