@@ -88,7 +88,6 @@ public class CascadingDomainBuilder {
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
-    Domain domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
     openNewVersion();
     // Try to build new version
     try {
