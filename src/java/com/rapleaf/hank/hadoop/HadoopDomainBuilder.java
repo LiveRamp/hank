@@ -20,6 +20,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
@@ -79,8 +80,12 @@ public class HadoopDomainBuilder {
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
     conf.setOutputFormat(properties.getOutputFormatClass());
+    // Output path
+    FileOutputFormat.setOutputPath(conf, new Path(properties.getOutputPath()));
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
+    // Output Committer
+    conf.setOutputCommitter(FileOutputCommitter.class);
     // Hank specific configuration
     properties.setJobConfProperties(conf);
     return conf;

@@ -38,14 +38,8 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
     Domain domain = JobConfConfigurator.getDomain(domainName, conf);
-    return new DomainBuilderEmptyOutputRecordWriter(domain);
-  }
-
-  private static class DomainBuilderEmptyOutputRecordWriter extends DomainBuilderRecordWriter {
-
-    DomainBuilderEmptyOutputRecordWriter(Domain domain) {
       // Always return a no-op OutputStream
-      super(domain, VersionType.BASE, new OutputStreamFactory() {
+    return new DomainBuilderRecordWriter(domain, VersionType.BASE, new OutputStreamFactory() {
         public OutputStream getOutputStream(int partNum, String name)
             throws IOException {
           return new OutputStream() {
@@ -55,10 +49,5 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
           };
         }
       });
-    }
-
-    @Override
-    protected void finalizeOutput() {
-    }
   }
 }

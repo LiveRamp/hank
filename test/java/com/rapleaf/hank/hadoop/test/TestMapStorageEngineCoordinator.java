@@ -53,7 +53,7 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
 
   public void testOutput() throws IOException {
     HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class,
-        new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfiguration(1), "", DomainBuilderEmptyOutputFormat.class));
+        new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfiguration(1), "/a", DomainBuilderEmptyOutputFormat.class));
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions().size());

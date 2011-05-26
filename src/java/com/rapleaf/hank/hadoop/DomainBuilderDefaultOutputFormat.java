@@ -18,20 +18,16 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.VersionType;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
 import java.io.IOException;
-import java.util.UUID;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
-
-  private static final String TMP_DIRECTORY_NAME = "_tmp_DomainBuilderDefaultOutputFormat";
 
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
       throws IOException {
@@ -42,76 +38,29 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
+
+    // Implicitely relies on the FileOutputCommitter
+    String outputPath = conf.get("mapred.work.output.dir");
+    // TODO: remove
+    System.out.println(FileOutputFormat.getWorkOutputPath(conf));
+
+    if (outputPath == null) {
+      throw new RuntimeException("Path was not set in mapred.work.output.dir");
+    }
+
     // Load configuration items
     String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
         "Hank domain name", conf);
-    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
-        "Hank output path", conf);
+// TODO: remove output path from jobconf?
+//    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+//        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
+//        "Hank output path", conf);
     VersionType versionType = VersionType.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
         "Hank base/delta", conf));
-    String tmpOutputPath = outputPath + "/" + TMP_DIRECTORY_NAME + "/" + UUID.randomUUID().toString();
     // Load config
     Domain domain = JobConfConfigurator.getDomain(domainName, conf);
     // Build RecordWriter with the Domain
-    return new DomainBuilderDefaultRecordWriter(domain, versionType, fs, tmpOutputPath, outputPath);
-  }
-
-  private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
-
-    private final FileSystem fs;
-    private final String tmpOutputPath;
-    private final String finalOutputPath;
-
-    DomainBuilderDefaultRecordWriter(Domain domain,
-                                     VersionType versionType,
-                                     FileSystem fs,
-                                     String tmpOutputPath,
-                                     String finalOutputPath) {
-      super(domain, versionType, new HDFSOutputStreamFactory(fs, tmpOutputPath));
-      this.fs = fs;
-      this.tmpOutputPath = tmpOutputPath;
-      this.finalOutputPath = finalOutputPath;
-    }
-
-    @Override
-    protected void finalizeOutput() throws IOException {
-      // Move output files from tmp output path to final output path
-      for (Integer partition : writtenPartitions) {
-        // Move partition files
-        Path partitionPath = new Path(tmpOutputPath + "/" + partition);
-        FileStatus[] partitionFiles = fs.listStatus(partitionPath);
-        for (FileStatus partitionFile : partitionFiles) {
-          fs.rename(partitionFile.getPath(),
-              new Path(finalOutputPath + "/" + partition + "/" + partitionFile.getPath().getName()));
-        }
-        // Check that partition is now empty and delete it
-        partitionFiles = fs.listStatus(partitionPath);
-        if (partitionFiles != null) {
-          if (partitionFiles.length == 0) {
-            fs.delete(partitionPath);
-          } else {
-            throw new IOException("Temporary partition directory was not empty after moving its contents: " + partitionPath);
-          }
-        }
-      }
-      // Delete tmp output path
-      Path tmpOutputPathObject = new Path(tmpOutputPath);
-      FileStatus[] tmpOutputFiles = fs.listStatus(tmpOutputPathObject);
-      if (tmpOutputFiles != null) {
-        if (tmpOutputFiles.length == 0) {
-          fs.delete(tmpOutputPathObject, true);
-        } else {
-          throw new IOException("Temporary record writer directory was not empty after moving all written partitions: " + tmpOutputPath);
-        }
-      }
-      // Delete tmp output path parent if empty
-      Path tmpOutputPathParent = tmpOutputPathObject.getParent();
-      FileStatus[] tmpOutputParentFiles = fs.listStatus(tmpOutputPathParent);
-      if (tmpOutputParentFiles != null && tmpOutputParentFiles.length == 0) {
-        fs.delete(tmpOutputPathParent, true);
-      }
-    }
+    return new DomainBuilderRecordWriter(domain, versionType, new HDFSOutputStreamFactory(fs, outputPath));
   }
 }
