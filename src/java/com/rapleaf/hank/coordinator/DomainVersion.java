@@ -8,21 +8,24 @@ public interface DomainVersion extends Comparable<DomainVersion> {
 
   /**
    * Millis since epoch corresponding to when this domain version was closed.
+   * 
    * @return null if not yet closed.
-   * @throws IOException 
+   * @throws IOException
    */
   public Long getClosedAt() throws IOException;
 
   /**
    * Has this domain version been closed?
+   * 
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public boolean isClosed() throws IOException;
 
   /**
    * Complete this version.
-   * @throws IOException 
+   * 
+   * @throws IOException
    */
   public void close() throws IOException;
 
@@ -34,4 +37,8 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public Set<PartitionInfo> getPartitionInfos() throws IOException;
 
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException;
+
+  public long getTotalNumBytes() throws IOException;
+
+  public long getTotalNumRecords() throws IOException;
 }

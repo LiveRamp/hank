@@ -32,7 +32,7 @@
     Add a new ring group: <br/>
     <select name="dgName">
       <%
-        for (DomainGroup dgc : coord.getDomainGroupConfigs()) {
+        for (DomainGroup dgc : coord.getDomainGroups()) {
       %>
       <option><%=dgc.getName()%></option>
       <%

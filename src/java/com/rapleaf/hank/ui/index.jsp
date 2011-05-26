@@ -25,8 +25,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <h3>System Summary</h3>
 
     <div class='box-section-content'>
-      <%= coord.getDomainConfigs().size() %> <a href='domains.jsp'>domains</a>,
-      <%= coord.getDomainGroupConfigs().size() %> <a href='domain_groups.jsp'>domain groups</a>,
+      <%= coord.getDomains().size() %> <a href='domains.jsp'>domains</a>,
+      <%= coord.getDomainGroups().size() %> <a href='domain_groups.jsp'>domain groups</a>,
       and <%= coord.getRingGroups().size() %> <a href='ring_groups.jsp'>ring groups</a>.
     </div>
 

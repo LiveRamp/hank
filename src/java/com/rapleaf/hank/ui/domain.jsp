@@ -6,6 +6,7 @@
 <%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
 <%@page import="org.yaml.snakeyaml.*"%>
+<%@page import="org.apache.commons.io.*"%>
 
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -73,7 +74,7 @@ Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
 
 <h3>Versions</h3>
 
-<% if (domain.getOpenVersionNumber() == null) { %>
+<% if (domain.getOpenedVersion() == null) { %>
 No open version.
 <form method="post" action="/domain/new_version">
   <input type="hidden" name="n" value="<%= domain.getName() %>"/>
@@ -81,7 +82,7 @@ No open version.
   <input type="submit" value="I understand. Open and close a new version."/>
 </form>
 <% } else { %>
-Version #<%= domain.getOpenVersionNumber() %> is currently open.
+Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
 <% } %>
 
 
@@ -90,6 +91,8 @@ Version #<%= domain.getOpenVersionNumber() %> is currently open.
   <tr>
     <th>#</th>
     <th>closed at</th>
+    <th>size</th>
+    <th># records</th>
   </tr>
   <%
     SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
@@ -101,6 +104,8 @@ Version #<%= domain.getOpenVersionNumber() %> is currently open.
   <tr>
     <td><%= version.getVersionNumber() %></td>
     <td><%= new Date(version.getClosedAt()) %></td>
+    <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
+    <td><%= version.getTotalNumRecords() %></td>
   </tr>
   <% } %>
 </table>
