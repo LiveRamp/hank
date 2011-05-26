@@ -74,6 +74,7 @@ Domain domain = coord.getDomain(URLEnc.decode(request.getParameter("n")));
 
 <h3>Versions</h3>
 
+<div>
 <% if (domain.getOpenedVersion() == null) { %>
 No open version.
 <form method="post" action="/domain/new_version">
@@ -84,8 +85,11 @@ No open version.
 <% } else { %>
 Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
 <% } %>
+</div>
 
-
+<div>
+  Total of <%= FileUtils.byteCountToDisplaySize(domain.getTotalNumBytes()) %> in <%= domain.getVersions().size() %> versions.
+</div>
 
 <table class='table-blue'>
   <tr>
