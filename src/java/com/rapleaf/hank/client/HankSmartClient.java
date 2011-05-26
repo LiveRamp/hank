@@ -15,32 +15,20 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.util.Bytes;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.util.Bytes;
 
 /**
  * HankSmartClient implements the logic of determining which PartDaemon to
@@ -66,7 +54,6 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    *
    * @param coord
    * @param ringGroupName
-   * @throws DataNotFoundException
    * @throws IOException
    * @throws TException
    */
@@ -83,13 +70,13 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private void loadCache() throws IOException, TException {
     // preprocess the config to create skeleton domain -> part -> [hosts] map
-    DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
+    DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroupConfig.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
-      domainPartToHostList.put(domainGroupConfig.getDomainId(domain.getName()), partitionToAddress);
+      domainPartToHostList.put(domainGroup.getDomainId(domain.getName()), partitionToAddress);
 
       for (int i = 0; i < domain.getNumParts(); i++) {
         partitionToAddress.put(i, new ArrayList<PartDaemonAddress>());

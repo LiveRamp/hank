@@ -44,7 +44,7 @@ public class InMemoryCoordinator implements Coordinator {
     return new HashSet<Domain>(domains.values());
   }
 
-  public DomainGroup getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroup(String domainGroupName) {
     return domainGroups.get(domainGroupName);
   }
 

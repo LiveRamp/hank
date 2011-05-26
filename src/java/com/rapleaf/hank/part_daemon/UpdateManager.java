@@ -15,25 +15,14 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import java.io.IOException;
-import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.storage.StorageEngine;
+import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.*;
 
 /**
  * Manages the domain update process.
@@ -103,12 +92,12 @@ class UpdateManager implements IUpdateManager {
         factory);
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    DomainGroup domainGroupConfig = ringGroupConfig.getDomainGroup();
-    for (DomainGroupVersionDomainVersion dcv : domainGroupConfig.getLatestVersion().getDomainVersions()) {
+    DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
+    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = dcv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 
-      int domainId = domainGroupConfig.getDomainId(domain.getName());
+      int domainId = domainGroup.getDomainId(domain.getName());
       for (HostDomainPartition part : hostConfig.getDomainById(domainId).getPartitions()) {
         if (part.getUpdatingToDomainGroupVersion() != null) {
           LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",

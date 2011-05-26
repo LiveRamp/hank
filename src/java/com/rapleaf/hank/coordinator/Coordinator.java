@@ -88,7 +88,7 @@ public interface Coordinator {
    * @param domainGroupName
    * @return configuration information on the specified domain group
    */
-  public DomainGroup getDomainGroupConfig(String domainGroupName);
+  public DomainGroup getDomainGroup(String domainGroupName);
 
   //
   // RingGroups

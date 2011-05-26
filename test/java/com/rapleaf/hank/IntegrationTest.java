@@ -285,21 +285,21 @@ public class IntegrationTest extends ZkTestCase {
     });
 
     // simulate publisher pushing out a new version
-    DomainGroup domainGroupConfig = null;
+    DomainGroup domainGroup = null;
     coord = config.getCoordinator();
     for (int i = 0; i < 15; i++) {
-      domainGroupConfig = coord.getDomainGroupConfig("dg1");
-      if (domainGroupConfig != null) {
+      domainGroup = coord.getDomainGroup("dg1");
+      if (domainGroup != null) {
         break;
       }
       Thread.sleep(1000);
     }
-    assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroupConfig);
+    assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
 
     Map<String, Integer> versionMap = new HashMap<String, Integer>();
     versionMap.put("domain0", 1);
     versionMap.put("domain1", 1);
-    domainGroupConfig.createNewVersion(versionMap);
+    domainGroup.createNewVersion(versionMap);
 
     // configure ring group
     AddRingGroup.main(new String[]{
@@ -387,7 +387,7 @@ public class IntegrationTest extends ZkTestCase {
     versionMap.put("domain0", 1);
     versionMap.put("domain1", 2);
     LOG.info("----- stamping new dg1 version -----");
-    final DomainGroupVersion newVersion = domainGroupConfig.createNewVersion(versionMap);
+    final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
     //    dumpZk();
 

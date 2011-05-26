@@ -15,20 +15,8 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon.Iface;
@@ -36,6 +24,12 @@ import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Set;
 
 /**
  * Implements the actual data serving logic of the PartDaemon
@@ -56,12 +50,12 @@ class PartDaemonHandler implements Iface {
     Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingForHost(hostAndPort);
 
     // get the domain group config for the ring
-    DomainGroup domainGroupConfig = ringConfig.getRingGroup().getDomainGroup();
+    DomainGroup domainGroup = ringConfig.getRingGroup().getDomainGroup();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
-    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainVersions()) {
-      int domainId = domainGroupConfig.getDomainId(dcv.getDomain().getName());
+    for (DomainGroupVersionDomainVersion dcv: domainGroup.getLatestVersion().getDomainVersions()) {
+      int domainId = domainGroup.getDomainId(dcv.getDomain().getName());
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
       }
@@ -70,11 +64,11 @@ class PartDaemonHandler implements Iface {
     domains = new DomainReaderSet[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion dcv: domainGroupConfig.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion dcv: domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = dcv.getDomain();
       StorageEngine eng = domain.getStorageEngine();
 
-      int domainId = domainGroupConfig.getDomainId(domain.getName());
+      int domainId = domainGroup.getDomainId(domain.getName());
       Set<HostDomainPartition> partitions = ringConfig.getHostByAddress(hostAndPort).getDomainById(domainId).getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(),

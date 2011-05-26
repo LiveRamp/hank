@@ -202,7 +202,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domainsByName.get(domainName);
   }
 
-  public DomainGroup getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroup(String domainGroupName) {
     return domainGroups.get(domainGroupName);
   }
 
@@ -307,7 +307,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       String domainGroupName)
   throws IOException {
     try {
-      RingGroup rg = ZkRingGroup.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroup) getDomainGroupConfig(domainGroupName));
+      RingGroup rg = ZkRingGroup.create(zk, ringGroupsRoot + "/" + ringGroupName, (ZkDomainGroup) getDomainGroup(domainGroupName));
       ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {

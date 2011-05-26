@@ -31,7 +31,6 @@ public interface RingGroup {
    * Get a RingConfig by the ring number.
    * @param ringNumber
    * @return
-   * @throws DataNotFoundException
    */
   public Ring getRing(int ringNumber)
   throws IOException;
@@ -44,16 +43,15 @@ public interface RingGroup {
 
   /**
    * Find the RingConfig that applies to a given host
-   * @param hostName
+   * @param hostAddress
    * @return
-   * @throws DataNotFoundException
    */
   public Ring getRingForHost(PartDaemonAddress hostAddress)
   throws IOException;
 
   /**
    * Claim the title of Data Deployer for this ring group.
-   * 
+   *
    * @return true if the current session has successfully claimed Data Deployer
    *         status. false otherwise.
    * @throws IOException

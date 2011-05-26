@@ -9,7 +9,7 @@
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request.getParameter("n")));
+DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParameter("n")));
 %>
 
 
@@ -18,13 +18,13 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <jsp:include page="_head.jsp" />
-<title>Domain Group <%= domainGroupConfig.getName() %></title>
+<title>Domain Group <%= domainGroup.getName() %></title>
 </head>
 <body>
 
 <jsp:include page="_top_nav.jsp" />
 
-<h1>Domain Group <%= domainGroupConfig.getName() %></h1>
+<h1>Domain Group <%= domainGroup.getName() %></h1>
 
 <h2>Domains + Ids</h2>
 <table width=300 class='table-blue'>
@@ -33,11 +33,11 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
     <th>ID</th>
   </tr>
   <%
-    for (Domain domain : domainGroupConfig.getDomains()) {
+    for (Domain domain : domainGroup.getDomains()) {
   %>
   <tr>
     <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
-    <td><%=domainGroupConfig.getDomainId(domain.getName())%></td>
+    <td><%=domainGroup.getDomainId(domain.getName())%></td>
   </tr>
   <%
     }
@@ -48,14 +48,14 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
   Set<Domain> s = coord.getDomains();
 %>
 <%
-  s.removeAll(domainGroupConfig.getDomains());
+  s.removeAll(domainGroup.getDomains());
 %>
 
 <%
   if (!s.isEmpty()) {
 %>
 <form action="/domain_group/add_domain" method=post>
-  <input type=hidden name="n" value="<%=domainGroupConfig.getName()%>"/>
+  <input type=hidden name="n" value="<%=domainGroup.getName()%>"/>
 
   Add domain:
   <br/>
@@ -77,7 +77,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
 <h2>Versions</h2>
 
 <form method="post" action="/domain_group/add_version">
-  <input type=hidden name="n" value="<%=domainGroupConfig.getName()%>"/>
+  <input type=hidden name="n" value="<%=domainGroup.getName()%>"/>
 
   Add a new version:<br/>
 
@@ -87,7 +87,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
       <th>Version (default: most recent)</th>
     </tr>
   <%
-    for (Domain domain : domainGroupConfig.getDomains()) {
+    for (Domain domain : domainGroup.getDomains()) {
     if (!domain.getVersions().isEmpty()) {
   %>
     <tr>
@@ -124,7 +124,7 @@ DomainGroup domainGroupConfig = coord.getDomainGroupConfig(URLEnc.decode(request
 
 <ul>
   <%
-    for (DomainGroupVersion dgcv : domainGroupConfig.getVersions()) {
+    for (DomainGroupVersion dgcv : domainGroup.getVersions()) {
   %>
   <li>
     v<%= dgcv.getVersionNumber() %>:

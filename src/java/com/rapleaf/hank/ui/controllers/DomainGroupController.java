@@ -43,7 +43,7 @@ public class DomainGroupController extends Controller {
   private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String dgName = URLEnc.decode(req.getParameter("n"));
 
-    DomainGroup dg = coordinator.getDomainGroupConfig(dgName);
+    DomainGroup dg = coordinator.getDomainGroup(dgName);
 
     Map<String, Integer> domainVersions = new HashMap<String, Integer>();
     for (Domain domain : dg.getDomains()) {
@@ -58,7 +58,7 @@ public class DomainGroupController extends Controller {
   private void doAddDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String dgName = URLEnc.decode(req.getParameter("n"));
     String dName = URLEnc.decode(req.getParameter("d"));
-    DomainGroup dg = coordinator.getDomainGroupConfig(dgName);
+    DomainGroup dg = coordinator.getDomainGroup(dgName);
     Domain domain = coordinator.getDomain(dName);
 
     int domainId = -1;

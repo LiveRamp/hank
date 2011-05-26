@@ -15,29 +15,15 @@
  */
 package com.rapleaf.hank.cli;
 
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.util.CommandLineChecker;
+import org.apache.commons.cli.*;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddRing {
 
@@ -84,15 +70,15 @@ public class AddRing {
     }
 
     // assign all the domains to the hosts
-    DomainGroup domainGroupConfig = ringGroup.getDomainGroup();
-    DomainGroupVersion latestVersion = domainGroupConfig.getLatestVersion();
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
+    DomainGroupVersion latestVersion = domainGroup.getLatestVersion();
     int verNum = latestVersion.getVersionNumber();
     for (DomainGroupVersionDomainVersion domainVersion : latestVersion.getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
 
       Queue<HostDomain> q = new LinkedList<HostDomain>();
       for (Host hostConfig : hostConfigs) {
-        q.add(hostConfig.addDomain(domainGroupConfig.getDomainId(domain.getName())));
+        q.add(hostConfig.addDomain(domainGroup.getDomainId(domain.getName())));
       }
 
       for (int i = 0; i < domain.getNumParts(); i++) {

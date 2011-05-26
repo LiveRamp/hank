@@ -43,7 +43,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public DomainGroup getDomainGroupConfig(String domainGroupName) {
+  public DomainGroup getDomainGroup(String domainGroupName) {
     return null;
   }
 

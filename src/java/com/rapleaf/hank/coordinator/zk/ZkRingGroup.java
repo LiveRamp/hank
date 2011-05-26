@@ -15,12 +15,8 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -29,12 +25,11 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class ZkRingGroup implements RingGroup {
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
@@ -94,7 +89,7 @@ public class ZkRingGroup implements RingGroup {
   }
 
   private final String ringGroupName;
-  private DomainGroup domainGroupConfig;
+  private DomainGroup domainGroup;
   private final HashMap<Integer,Ring> ringsByNumber =
     new HashMap<Integer, Ring>();
   private final String ringGroupPath;
@@ -103,10 +98,10 @@ public class ZkRingGroup implements RingGroup {
   private final String dataDeployerOnlinePath;
   private final ZooKeeperPlus zk;
 
-  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup) throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
-    this.domainGroupConfig = domainGroupConfig;
+    this.domainGroup = domainGroup;
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];
 
@@ -125,7 +120,7 @@ public class ZkRingGroup implements RingGroup {
 
   @Override
   public DomainGroup getDomainGroup() {
-    return domainGroupConfig;
+    return domainGroup;
   }
 
   @Override
@@ -231,13 +226,13 @@ public class ZkRingGroup implements RingGroup {
     }
   }
 
-  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroupConfig) throws KeeperException, InterruptedException, IOException {
-    if (domainGroupConfig.getVersions().isEmpty()) {
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+    if (domainGroup.getVersions().isEmpty()) {
       throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
     }
-    zk.create(path, domainGroupConfig.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(path + "/updating_to_version", ("" + domainGroupConfig.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkRingGroup(zk, path, domainGroupConfig);
+    zk.create(path, domainGroup.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(path + "/updating_to_version", ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkRingGroup(zk, path, domainGroup);
   }
 
   @Override

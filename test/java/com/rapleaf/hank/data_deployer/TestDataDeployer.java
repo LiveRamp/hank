@@ -15,29 +15,14 @@
  */
 package com.rapleaf.hank.data_deployer;
 
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import junit.framework.TestCase;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
-
-import junit.framework.TestCase;
-
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
@@ -51,7 +36,7 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testTriggersUpdates() throws Exception {
-    final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
+    final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupVersion getLatestVersion() {
         return new MockDomainGroupVersion(null, null, 2);
@@ -88,7 +73,7 @@ public class TestDataDeployer extends TestCase {
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
-        return domainGroupConfig;
+        return domainGroup;
       }
 
       @Override
@@ -125,7 +110,7 @@ public class TestDataDeployer extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroupConf, domainGroupConfig);
+    daemon.processUpdates(mockRingGroupConf, domainGroup);
 
     assertNull(mockTransFunc.calledWithRingGroup);
     assertEquals(2, mockRingGroupConf.updateToVersion);
@@ -134,7 +119,7 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
-    final MockDomainGroup domainGroupConfig = new MockDomainGroup("myDomainGroup") {
+    final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupVersion getLatestVersion() {
         return new MockDomainGroupVersion(null, null, 2);
@@ -144,7 +129,7 @@ public class TestDataDeployer extends TestCase {
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
-        return domainGroupConfig;
+        return domainGroup;
       }
 
       @Override
@@ -181,7 +166,7 @@ public class TestDataDeployer extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroupConf, domainGroupConfig);
+    daemon.processUpdates(mockRingGroupConf, domainGroup);
 
     assertEquals(mockRingGroupConf, mockTransFunc.calledWithRingGroup);
   }

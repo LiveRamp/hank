@@ -40,7 +40,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("get domain by name", "domain0", coord.getDomain("domain0").getName());
 
     assertEquals("number of loaded domain group configs", 1, coord.getDomainGroups().size());
-    assertEquals("get domain group by name", "myDomainGroup", coord.getDomainGroupConfig("myDomainGroup").getName());
+    assertEquals("get domain group by name", "myDomainGroup", coord.getDomainGroup("myDomainGroup").getName());
 
     assertEquals("number of loaded ring groups", 1, coord.getRingGroups().size());
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroupConfig("myRingGroup").getName());
@@ -61,7 +61,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     ZooKeeperCoordinator coord2 = getCoord();
     coord.addDomainGroup("myDomainGroup2");
 
-    DomainGroup c = coord.getDomainGroupConfig("myDomainGroup2");
+    DomainGroup c = coord.getDomainGroup("myDomainGroup2");
     assertNotNull(c);
     assertEquals("myDomainGroup2", c.getName());
     assertEquals(0, c.getVersions().size());
@@ -69,7 +69,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
     for (int i = 0; i < 300; i++) {
-      c = coord2.getDomainGroupConfig("myDomainGroup2");
+      c = coord2.getDomainGroup("myDomainGroup2");
       if (c != null) {
         break;
       }

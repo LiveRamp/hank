@@ -37,7 +37,6 @@ public interface DomainGroup {
    * Get the DomainConfig for the domain with <i>domainId</i>
    * @param domainId
    * @return
-   * @throws DataNotFoundException
    */
   public Domain getDomain(int domainId)
   throws IOException;
@@ -46,23 +45,22 @@ public interface DomainGroup {
    * Get the ID of the domain named <i>domainName</i>
    * @param domainName
    * @return
-   * @throws DataNotFoundException
    */
   public Integer getDomainId(String domainName) throws IOException;
 
   /**
    * Get a set of DomainGroupConfigVersions ordered by version number
    * (ascending).
-   * 
+   *
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public SortedSet<DomainGroupVersion> getVersions() throws IOException;
 
   /**
    * Convenience method to get the most recent version of the domain group.
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public DomainGroupVersion getLatestVersion() throws IOException;
 
