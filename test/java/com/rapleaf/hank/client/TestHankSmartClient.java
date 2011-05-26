@@ -36,15 +36,15 @@ import org.apache.thrift.transport.TTransportException;
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
@@ -166,7 +166,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomain existentDomainConfig = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, 1);
+    final MockDomain existentDomainConfig = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null);
     MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domainConfigs = new HashMap<Integer, Domain>() {{
         put(1, existentDomainConfig);

@@ -26,11 +26,11 @@ public class ZooKeeperPlus extends ZooKeeper {
   }
 
   public Integer getIntOrNull(String path) throws KeeperException, InterruptedException {
-    if (exists(path, false) == null) {
+    Long lvalue = getLongOrNull(path);
+    if (lvalue == null) {
       return null;
-    } else {
-      return Integer.parseInt(new String(getData(path, false, new Stat())));
     }
+    return lvalue.intValue();
   }
 
   public int getInt(String path) throws KeeperException, InterruptedException {
@@ -90,7 +90,19 @@ public class ZooKeeperPlus extends ZooKeeper {
     }
   }
 
-  public void create(String path, int v, CreateMode createMode) throws KeeperException, InterruptedException {
-    create(path, (""+v).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+  public void create(String path, long numBytes, CreateMode createMode) throws KeeperException, InterruptedException {
+    create(path, ("" + numBytes).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+  }
+
+  public long getLong(String path) throws KeeperException, InterruptedException {
+    return Long.parseLong(new String(getData(path, false, new Stat())));
+  }
+
+  public Long getLongOrNull(String path) throws KeeperException, InterruptedException {
+    if (exists(path, false) == null) {
+      return null;
+    } else {
+      return Long.parseLong(new String(getData(path, false, new Stat())));
+    }
   }
 }

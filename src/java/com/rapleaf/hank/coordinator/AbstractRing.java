@@ -47,22 +47,6 @@ public abstract class AbstractRing implements Ring {
   }
 
   @Override
-  public Integer getOldestVersionOnHosts() throws IOException {
-    Integer min = null;
-    for (Host host : getHosts()) {
-      for (HostDomain hdc : host.getAssignedDomains()) {
-        for (HostDomainPartition hdpc : hdc.getPartitions()) {
-          Integer ver = hdpc.getCurrentDomainGroupVersion();
-          if (min == null || (ver != null && min > ver)) {
-            min = ver;
-          }
-        }
-      }
-    }
-    return min;
-  }
-
-  @Override
   public final RingGroup getRingGroup() {
     return ringGroupConfig;
   }

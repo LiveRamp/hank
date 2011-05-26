@@ -31,9 +31,9 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     super();
   }
 
-  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, 5);
-  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, 5);
-  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, 5);
+  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, null);
+  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, null);
+  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, null);
 
   private static final MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
     @Override

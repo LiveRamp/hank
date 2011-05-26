@@ -61,11 +61,6 @@ public class MemRing extends AbstractRing {
   }
 
   @Override
-  public Integer getOldestVersionOnHosts() throws IOException {
-    throw new NotImplementedException();
-  }
-
-  @Override
   public RingState getState() throws IOException {
     return state;
   }

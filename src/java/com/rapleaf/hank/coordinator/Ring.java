@@ -38,24 +38,52 @@ public interface Ring extends Comparable<Ring> {
 
   public void setState(RingState newState) throws IOException;
 
+  /**
+   * Get the current domain group version number of this ring. If no data has
+   * been deployed yet, this will be null.
+   * 
+   * @return
+   */
   public Integer getVersionNumber();
 
+  /**
+   * Is an update ready to begin?
+   * 
+   * @return
+   */
   public boolean isUpdatePending();
 
-  public void commandAll(HostCommand command) throws IOException;
-
+  /**
+   * Get the next domain group version number for this Ring. If no update is
+   * planned, then this will be null.
+   * 
+   * @return
+   */
   public Integer getUpdatingToVersionNumber();
 
+  /**
+   * Report that a planned update has succeeded, setting current version to
+   * updating version and removing the updating version.
+   * 
+   * @throws IOException
+   */
   public void updateComplete() throws IOException;
 
   /**
-   * TODO: this might be a dead method.
+   * Enqueue <i>command</i> to all Hosts in this Ring.
    * 
+   * @param command
+   * @throws IOException
+   */
+  public void commandAll(HostCommand command) throws IOException;
+
+  /**
+   * Get the set of Hosts that can serve a given domain's partition.
+   * @param domainId
+   * @param partition
    * @return
    * @throws IOException
    */
-  public Integer getOldestVersionOnHosts() throws IOException;
-
   public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException;
 
   /**
@@ -89,15 +117,16 @@ public interface Ring extends Comparable<Ring> {
    * 
    * @param address
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public boolean removeHost(PartDaemonAddress address) throws IOException;
 
   /**
    * Get the set of partition IDs that are not currently assigned to a host.
+   * 
    * @param domainConfig
    * @return
-   * @throws IOException 
+   * @throws IOException
    */
   public Set<Integer> getUnassignedPartitions(Domain domainConfig) throws IOException;
 }

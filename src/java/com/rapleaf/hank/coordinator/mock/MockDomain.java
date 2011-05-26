@@ -30,10 +30,13 @@ public class MockDomain implements Domain {
   private final int numParts;
   private final Partitioner part;
   private final StorageEngine storageEngine;
-  private int version;
+  private DomainVersion version;
 
-  public MockDomain(String name, int numParts, Partitioner part,
-      StorageEngine storageEngine, int version) {
+  public MockDomain(String name,
+      int numParts,
+      Partitioner part,
+      StorageEngine storageEngine,
+      DomainVersion version) {
     this.name = name;
     this.numParts = numParts;
     this.part = part;
@@ -64,8 +67,8 @@ public class MockDomain implements Domain {
   @Override
   public String toString() {
     return "MockDomainConfig [name=" + name + ", numParts=" + numParts
-    + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
-    + version + "]";
+        + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
+        + version + "]";
   }
 
   @Override
@@ -79,26 +82,12 @@ public class MockDomain implements Domain {
   }
 
   @Override
-  public void cancelNewVersion() throws IOException {
-  }
-
-  @Override
-  public boolean closeNewVersion() throws IOException {
-    return true;
-  }
-
-  @Override
   public SortedSet<DomainVersion> getVersions() {
     return null;
   }
 
   @Override
-  public Integer getOpenVersionNumber() {
-    return version;
-  }
-
-  @Override
-  public Integer openNewVersion() throws IOException {
+  public DomainVersion openNewVersion() throws IOException {
     return version;
   }
 }

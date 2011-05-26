@@ -39,7 +39,7 @@ public class DomainController extends Controller {
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domainConfig = DomainController.this.coordinator.getDomainConfig(req.getParameter("n"));
         if (domainConfig.openNewVersion() != null) {
-          domainConfig.closeNewVersion();
+          domainConfig.getVersions().last().close();
         }
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }

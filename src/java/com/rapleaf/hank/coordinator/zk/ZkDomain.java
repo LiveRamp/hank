@@ -42,7 +42,6 @@ public class ZkDomain implements Domain {
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
   private static final String KEY_VERSIONS = "versions";
-  private static final String OPEN_VERSION_KEY = "/open_version";
 
   private String name;
   private int numParts;
@@ -153,32 +152,34 @@ public class ZkDomain implements Domain {
     }
   }
 
-  @Override
-  public void cancelNewVersion() throws IOException {
-    try {
-      zk.deleteIfExists(domainPath + OPEN_VERSION_KEY);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
+  //
+  // @Override
+  // public void cancelNewVersion() throws IOException {
+  // try {
+  // zk.deleteIfExists(domainPath + OPEN_VERSION_KEY);
+  // } catch (Exception e) {
+  // throw new IOException(e);
+  // }
+  // }
 
-  @Override
-  public boolean closeNewVersion() throws IOException {
-    try {
-      zk.create(domainPath + "/versions/version_" + getOpenVersionNumber(), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    } catch (Exception e) {
-      // hmm... bad.
-      throw new IOException(e);
-    }
-
-    try {
-      zk.delete(domainPath + OPEN_VERSION_KEY, -1);
-    } catch (Exception e) {
-      // REALLY bad!
-      throw new IOException(e);
-    }
-    return true;
-  }
+  // @Override
+  // public boolean closeNewVersion() throws IOException {
+  // try {
+  // zk.create(domainPath + "/versions/version_" + getOpenVersionNumber(), null,
+  // Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+  // } catch (Exception e) {
+  // // hmm... bad.
+  // throw new IOException(e);
+  // }
+  //
+  // try {
+  // zk.delete(domainPath + OPEN_VERSION_KEY, -1);
+  // } catch (Exception e) {
+  // // REALLY bad!
+  // throw new IOException(e);
+  // }
+  // return true;
+  // }
 
   @Override
   public SortedSet<DomainVersion> getVersions() throws IOException {
@@ -196,39 +197,41 @@ public class ZkDomain implements Domain {
     }
   }
 
-  @Override
-  public Integer getOpenVersionNumber() throws IOException {
-    try {
-      if (zk.exists(domainPath + OPEN_VERSION_KEY, false) != null) {
-        return zk.getInt(domainPath + OPEN_VERSION_KEY);
-      }
-      return null;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
+  // @Override
+  // public Integer getOpenVersionNumber() throws IOException {
+  // try {
+  // if (zk.exists(domainPath + OPEN_VERSION_KEY, false) != null) {
+  // return zk.getInt(domainPath + OPEN_VERSION_KEY);
+  // }
+  // return null;
+  // } catch (Exception e) {
+  // throw new IOException(e);
+  // }
+  // }
 
   @Override
-  public Integer openNewVersion() throws IOException {
+  public DomainVersion openNewVersion() throws IOException {
     Integer nextVerNum = null;
 
     if (getVersions().isEmpty()) {
       nextVerNum = 0;
     } else {
       DomainVersion last = getVersions().last();
+      if (!last.isClosed()) {
+        return null;
+      }
       nextVerNum = last.getVersionNumber() + 1;
     }
 
     try {
-      zk.create(domainPath + OPEN_VERSION_KEY, nextVerNum, CreateMode.EPHEMERAL);
+      DomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum);
+      return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.
       LOG.warn("Got an exception when trying to open a version for domain "
           + domainPath, e);
       return null;
     }
-
-    return nextVerNum;
   }
 
   @Override
