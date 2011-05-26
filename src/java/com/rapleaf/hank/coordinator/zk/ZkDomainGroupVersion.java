@@ -15,32 +15,27 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersion implements DomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroup domainGroupConfig;
   private final int versionNumber;
-  private final HashSet<DomainGroupVersionDomainVersion> domainConfigVersions;
+  private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
 
   public ZkDomainGroupVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroupConfig) throws InterruptedException, KeeperException, IOException {
     this.domainGroupConfig = domainGroupConfig;
@@ -57,10 +52,10 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
     }
 
     List<String> children = zk.getChildren(versionPath, false);
-    domainConfigVersions = new HashSet<DomainGroupVersionDomainVersion>();
+    domainVersions = new HashSet<DomainGroupVersionDomainVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
-        domainConfigVersions.add(new ZkDomainGroupVersionDomainVersion(zk,
+        domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk,
             versionPath + "/" + child,
             domainGroupConfig.getDomain(domainGroupConfig.getDomainId(child))));
       }
@@ -69,7 +64,7 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
 
   @Override
   public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
-    return Collections.unmodifiableSet(domainConfigVersions);
+    return Collections.unmodifiableSet(domainVersions);
   }
 
   @Override
@@ -100,8 +95,8 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
 
   @Override
   public String toString() {
-    return "ZkDomainGroupConfigVersion [domainConfigVersions="
-        + domainConfigVersions + ", domainGroup=" + domainGroupConfig.getName()
+    return "ZkDomainGroupConfigVersion [domainVersions="
+        + domainVersions + ", domainGroup=" + domainGroupConfig.getName()
         + ", versionNumber=" + versionNumber + "]";
   }
 }
