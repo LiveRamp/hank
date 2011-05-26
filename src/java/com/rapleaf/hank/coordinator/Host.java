@@ -23,7 +23,7 @@ import java.util.Set;
  * Encapsulates the configuration and listening/modification of individual
  * PartDaemon hosts within the cluster.
  */
-public interface Host {
+public interface Host extends Comparable<Host> {
   public PartDaemonAddress getAddress();
 
   /**

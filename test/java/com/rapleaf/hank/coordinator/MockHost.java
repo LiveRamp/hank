@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class MockHost implements Host {
+public class MockHost extends AbstractHost {
   private final PartDaemonAddress address;
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
