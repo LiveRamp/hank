@@ -29,6 +29,7 @@ import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.HDFSOutputStreamFactory;
 import com.rapleaf.hank.hadoop.HadoopTestCase;
 import com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -101,7 +102,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
 
   public void testMain() throws IOException {
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
-        IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A);
+        VersionType.BASE, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A);
 
     Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     Pipe pipe = getPipe("pipe");
@@ -122,13 +123,13 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   public void testMultipleDomains() throws IOException {
     // A
     DomainBuilderProperties propertiesA = new DomainBuilderProperties(DOMAIN_A_NAME,
-        IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A);
+        VersionType.BASE, IntStringKeyStorageEngineCoordinator.getConfiguration(2), OUTPUT_PATH_A);
     Tap inputTapA = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
     Pipe pipeA = getPipe("a");
 
     // B
     DomainBuilderProperties propertiesB = new DomainBuilderProperties(DOMAIN_B_NAME,
-        IntStringKeyStorageEngineCoordinator.getConfiguration(3), OUTPUT_PATH_B);
+        VersionType.BASE, IntStringKeyStorageEngineCoordinator.getConfiguration(3), OUTPUT_PATH_B);
     Tap inputTapB = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_B);
     Pipe pipeB = getPipe("b");
 

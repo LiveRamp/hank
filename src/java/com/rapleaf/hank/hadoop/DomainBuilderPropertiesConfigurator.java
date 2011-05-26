@@ -16,8 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import org.apache.hadoop.mapred.JobConf;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
@@ -42,14 +40,8 @@ public class DomainBuilderPropertiesConfigurator implements Configurator {
     }
   }
 
-  @Override
   public Coordinator getCoordinator() {
     return baseConfigurator.getCoordinator();
-  }
-
-  public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {
-    String result = conf.get(key);
-    return result;
   }
 
   // Directly get the DomainConfig from the configuration

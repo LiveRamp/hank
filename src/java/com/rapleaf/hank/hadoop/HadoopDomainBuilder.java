@@ -16,29 +16,23 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.File;
-import java.io.IOException;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.InputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
+import java.io.File;
+import java.io.IOException;
 
 public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static final void run(String domainName, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
+  public static final void run(String domainName, VersionType versionType, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + coordinatorConfigurationPath);
     String coordinatorConfiguration = FileUtils.readFileToString(new File(coordinatorConfigurationPath));
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, coordinatorConfiguration, outputPath);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, coordinatorConfiguration, outputPath);
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
@@ -49,9 +43,8 @@ public class HadoopDomainBuilder {
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
     Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
-    DomainVersion version = domainConfig.openNewVersion();
-    Integer versionNum = version.getVersionNumber();
-    if (versionNum == null) {
+    Integer version = domainConfig.openNewVersion();
+    if (version == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
@@ -59,18 +52,18 @@ public class HadoopDomainBuilder {
       JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      version.cancel();
-      throw new IOException("Failed at building version " + versionNum + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      domainConfig.cancelNewVersion();
+      throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    version.close();
+    domainConfig.closeNewVersion();
   }
 
   // Use a non-default output format
   public static final JobConf createJobConfiguration(String inputPath,
-      Class<? extends InputFormat> inputFormatClass,
-      Class<? extends Mapper> mapperClass,
-      DomainBuilderProperties properties) {
+                                                     Class<? extends InputFormat> inputFormatClass,
+                                                     Class<? extends Mapper> mapperClass,
+                                                     DomainBuilderProperties properties) {
     JobConf conf = new JobConf();
     // Input specification
     conf.setInputFormat(inputFormatClass);
@@ -92,11 +85,11 @@ public class HadoopDomainBuilder {
     return conf;
   }
 
-  public static final void main(String[] args) throws IOException{
-    if (args.length != 3) {
-      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <config path> <input path> <output_path>");
+  public static final void main(String[] args) throws IOException {
+    if (args.length != 5) {
+      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
       System.exit(1);
     }
-    run(args[0], args[1], args[2], args[3]);
+    run(args[0], VersionType.fromString(args[1]), args[2], args[3], args[4]);
   }
 }

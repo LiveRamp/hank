@@ -18,6 +18,7 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -44,7 +45,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
 
     DomainBuilderEmptyOutputRecordWriter(Domain domainConfig) {
       // Always return a no-op OutputStream
-      super(domainConfig, new OutputStreamFactory() {
+      super(domainConfig, VersionType.BASE, new OutputStreamFactory() {
         public OutputStream getOutputStream(int partNum, String name)
             throws IOException {
           return new OutputStream() {

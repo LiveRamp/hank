@@ -1,5 +1,6 @@
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.util.Properties;
@@ -10,18 +11,30 @@ public class DomainBuilderProperties {
 
   private final String domainName;
   private final String coordinatorConfiguration;
+  private final VersionType versionType;
   private final String outputPath;
   private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
-  public DomainBuilderProperties(String domainName, String coordinatorConfiguration, String outputPath) {
+  // With a default output format
+  public DomainBuilderProperties(String domainName,
+                                 VersionType versionType,
+                                 String coordinatorConfiguration,
+                                 String outputPath) {
     this.domainName = domainName;
+    this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
     this.outputPath = outputPath;
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
   }
 
-  public DomainBuilderProperties(String domainName, String coordinatorConfiguration, String outputPath, Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
+  // With a specific output format
+  public DomainBuilderProperties(String domainName,
+                                 VersionType versionType,
+                                 String coordinatorConfiguration,
+                                 String outputPath,
+                                 Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
     this.domainName = domainName;
+    this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
     this.outputPath = outputPath;
     this.outputFormatClass = outputFormatClass;
@@ -35,6 +48,10 @@ public class DomainBuilderProperties {
     return coordinatorConfiguration;
   }
 
+  public VersionType getVersionType() {
+    return versionType;
+  }
+
   public String getOutputPath() {
     return outputPath;
   }
@@ -45,21 +62,31 @@ public class DomainBuilderProperties {
 
   // To configure cascading jobs
   public Properties setCascadingProperties(Properties properties) {
-    // Domain Name is set in DomainBuilderTap
+    // Domain name is set in DomainBuilderTap
+    // Configuration
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION), getCoordinatorConfiguration());
-    // Output Path is set in DomainBuilderTap
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION), getCoordinatorConfiguration());
+    // Version type
+    properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
+    // Output path is set in DomainBuilderTap
     return properties;
   }
 
   // To configure Hadoop M/R jobs
   public JobConf setJobConfProperties(JobConf conf) {
-    conf.set(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
+    // Domain name
+    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
+    // Configuration
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
         getCoordinatorConfiguration());
+    // Version type
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
+    // Output path
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
         getOutputPath());
     return conf;
   }
