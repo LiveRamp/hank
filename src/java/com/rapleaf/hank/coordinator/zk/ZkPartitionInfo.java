@@ -14,10 +14,13 @@ public class ZkPartitionInfo implements PartitionInfo {
 
   public static ZkPartitionInfo create(ZooKeeperPlus zk, String partsRoot, int partNum, long numBytes, long numRecords) throws KeeperException, InterruptedException {
     String partPath = String.format(partsRoot + "/part-%d", partNum);
-    zk.create(partPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(partPath + "/num_bytes", numBytes, CreateMode.PERSISTENT);
-    zk.create(partPath + "/num_records", numRecords, CreateMode.PERSISTENT);
-    zk.create(partPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    // if the node already exists, then don't try to create a new one
+    if (zk.exists(partPath, false) == null) {
+      zk.create(partPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(partPath + "/num_bytes", numBytes, CreateMode.PERSISTENT);
+      zk.create(partPath + "/num_records", numRecords, CreateMode.PERSISTENT);
+      zk.create(partPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
     return new ZkPartitionInfo(zk, partPath);
   }
 

@@ -8,6 +8,12 @@ public class TestZkPartitionInfo extends ZkTestCase {
     assertEquals(1, pi.getPartNum());
     assertEquals(15000, pi.getNumBytes());
     assertEquals(550, pi.getNumRecords());
+
+    // should not throw an exception
+    pi = ZkPartitionInfo.create(getZk(), getRoot(), 1, 15000, 550);
+    assertEquals(1, pi.getPartNum());
+    assertEquals(15000, pi.getNumBytes());
+    assertEquals(550, pi.getNumRecords());
   }
 
   public void testLoad() throws Exception {
