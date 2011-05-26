@@ -44,7 +44,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
   }
 
   // Base class of record writers used to build domains.
-  protected static abstract class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
+  protected static class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
@@ -69,7 +69,6 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     public final void close(Reporter reporter) throws IOException {
       // Close current writer
       closeCurrentWriterIfNeeded();
-      finalizeOutput();
     }
 
     public final void write(KeyAndPartitionWritable key, ValueWritable value)
@@ -109,7 +108,5 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
         writer.close();
       }
     }
-
-    protected abstract void finalizeOutput() throws IOException;
   }
 }
