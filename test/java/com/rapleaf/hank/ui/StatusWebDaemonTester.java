@@ -30,14 +30,11 @@ public class StatusWebDaemonTester extends TestCase {
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
     final Domain d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
-    d0.openNewVersion();
-    d0.closeNewVersion();
+    d0.openNewVersion().close();
     d0.openNewVersion();
     final Domain d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    d1.openNewVersion();
-    d1.closeNewVersion();
-    d1.openNewVersion();
-    d1.closeNewVersion();
+    d1.openNewVersion().close();
+    d1.openNewVersion().close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");
     g1.addDomain(d0, 0);
