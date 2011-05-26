@@ -53,4 +53,10 @@ public class MapWriter implements Writer {
     // not really supported
     return 0;
   }
+
+  @Override
+  public long getNumRecordsWritten() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
 }

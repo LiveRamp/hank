@@ -24,4 +24,6 @@ public interface Writer {
   void close() throws IOException;
 
   public long getNumBytesWritten();
+
+  public long getNumRecordsWritten();
 }

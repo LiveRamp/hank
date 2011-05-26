@@ -69,6 +69,12 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
       // TODO Auto-generated method stub
       return 0;
     }
+
+    @Override
+    public long getNumRecordsWritten() {
+      // TODO Auto-generated method stub
+      return 0;
+    }
   }
 
   private static class IntStringKeyModPartitioner implements Partitioner {

@@ -52,6 +52,7 @@ public class CueballWriter implements Writer {
   private int numEntriesInBlock = 0;
 
   private long bytesWritten = 0;
+  private long recordsWritten = 0;
   private long maxUncompressedBlockSize;
   private long maxCompressedBlockSize;
 
@@ -112,6 +113,7 @@ public class CueballWriter implements Writer {
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
+    recordsWritten++;
     // Save current key and key hash
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     previousKey = Bytes.byteBufferDeepCopy(key, previousKey);
@@ -216,5 +218,10 @@ public class CueballWriter implements Writer {
   @Override
   public long getNumBytesWritten() {
     return bytesWritten;
+  }
+
+  @Override
+  public long getNumRecordsWritten() {
+    return recordsWritten;
   }
 }
