@@ -6,26 +6,31 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import junit.framework.TestCase;
-
 import org.apache.thrift.TException;
 
+import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.in_memory.InMemoryCoordinator;
+import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
 
-public class StatusWebDaemonTester extends TestCase {
+public class StatusWebDaemonTester extends ZkTestCase {
   public void testIt() throws Exception {
-    final Coordinator coord = new InMemoryCoordinator();
+    create(getRoot() + "/domains");
+    create(getRoot() + "/domain_groups");
+    create(getRoot() + "/ring_groups");
+    final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
+        ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000, getRoot()
+        + "/domains", getRoot() + "/domain_groups", getRoot() + "/ring_groups"));
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
@@ -33,20 +38,32 @@ public class StatusWebDaemonTester extends TestCase {
     d0.openNewVersion().close();
     d0.openNewVersion();
     final Domain d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    d1.openNewVersion().close();
-    d1.openNewVersion().close();
+    DomainVersion ver = d1.openNewVersion();
+    dumpZk();
+    ver.addPartitionInfo(0, 1024, 55);
+    ver.addPartitionInfo(1, 32555, 700);
+    ver.close();
+    ver = d1.openNewVersion();
+    ver.close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");
     g1.addDomain(d0, 0);
     g1.addDomain(d1, 1);
 
-    g1.createNewVersion(new HashMap<String, Integer>() {{
-      put(d0.getName(), 1);
-      put(d1.getName(), 1);
-    }});
+    g1.createNewVersion(new HashMap<String, Integer>() {
+      {
+        put(d0.getName(), 1);
+        put(d1.getName(), 1);
+      }
+    });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
     g2.addDomain(d1, 0);
+    g2.createNewVersion(new HashMap<String, Integer>() {
+      {
+        put(d1.getName(), 1);
+      }
+    });
 
     RingGroup rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     Ring r1 = rgAlpha.addRing(1);
@@ -88,17 +105,19 @@ public class StatusWebDaemonTester extends TestCase {
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
 
-    ClientConfigurator mockConf = new ClientConfigurator(){
+    ClientConfigurator mockConf = new ClientConfigurator() {
       @Override
       public Coordinator getCoordinator() {
         return coord;
       }
     };
     final Iface mockClient = new Iface() {
-      private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>(){{
-        put("key1", ByteBuffer.wrap("value1".getBytes()));
-        put("key2", ByteBuffer.wrap("a really long value that you will just love!".getBytes()));
-      }};
+      private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {
+        {
+          put("key1", ByteBuffer.wrap("value1".getBytes()));
+          put("key2", ByteBuffer.wrap("a really long value that you will just love!".getBytes()));
+        }
+      };
 
       @Override
       public HankResponse get(String domainName, ByteBuffer key) throws TException {
