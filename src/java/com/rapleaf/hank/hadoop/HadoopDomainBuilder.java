@@ -17,6 +17,7 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.mapred.*;
@@ -42,9 +43,9 @@ public class HadoopDomainBuilder {
       Class<? extends DomainBuilderMapper> mapperClass,
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
-    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
-    Integer version = domainConfig.openNewVersion();
-    if (version == null) {
+    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomain(properties);
+    DomainVersion domainVersion = domainConfig.openNewVersion();
+    if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
@@ -52,11 +53,11 @@ public class HadoopDomainBuilder {
       JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domainConfig.cancelNewVersion();
-      throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      domainVersion.cancel();
+      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domainConfig.closeNewVersion();
+    domainVersion.close();
   }
 
   // Use a non-default output format

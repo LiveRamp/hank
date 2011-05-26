@@ -15,22 +15,17 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
+import com.rapleaf.hank.coordinator.*;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.RingGroup;
 
 public class MockCoordinator implements Coordinator {
 
   private final Map<String, Object> options;
 
   public static class Factory implements CoordinatorFactory {
-    @Override
     public Coordinator getCoordinator(Map<String, Object> options) {
       return new MockCoordinator(options);
     }
@@ -44,22 +39,18 @@ public class MockCoordinator implements Coordinator {
     options = null;
   }
 
-  @Override
   public Domain getDomainConfig(String domainName) {
     return null;
   }
 
-  @Override
   public DomainGroup getDomainGroupConfig(String domainGroupName) {
     return null;
   }
 
-  @Override
   public RingGroup getRingGroupConfig(String ringGroupName) {
     return null;
   }
 
-  @Override
   public Set<Domain> getDomainConfigs() {
     return null;
   }
@@ -76,25 +67,22 @@ public class MockCoordinator implements Coordinator {
     return options;
   }
 
-  @Override
   public Domain addDomain(String domainName, int numParts,
-      String storageEngineFactoryName, String storageEngineOptions,
-      String partitionerName) {
+                          String storageEngineFactoryName,
+                          String storageEngineOptions,
+                          String partitionerName) {
     return null;
   }
 
-  @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     return null;
   }
 
-  @Override
   public RingGroup addRingGroup(String ringGroupName,
-      String domainGroupName) throws IOException {
+                                String domainGroupName) throws IOException {
     return null;
   }
 
-  @Override
   public boolean deleteDomainConfig(String domainName) {
     return false;
   }

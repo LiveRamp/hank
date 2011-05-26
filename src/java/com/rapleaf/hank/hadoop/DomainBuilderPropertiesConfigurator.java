@@ -44,8 +44,8 @@ public class DomainBuilderPropertiesConfigurator implements Configurator {
     return baseConfigurator.getCoordinator();
   }
 
-  // Directly get the DomainConfig from the configuration
-  public static Domain getDomainConfig(DomainBuilderProperties properties) {
+  // Directly get the Domain from the configuration
+  public static Domain getDomain(DomainBuilderProperties properties) {
     String domainName = properties.getDomainName();
     if (domainName == null) {
       throw new RuntimeException("Domain name must be set within DomainBuilderProperties.");

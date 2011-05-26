@@ -16,20 +16,21 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.in_memory.MemDomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 // Integer String key storage engine.
 // Store records (key, value) where key is an Integer's String representation
@@ -99,7 +100,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public Domain getDomainConfig(String domainName) {
-    return new MockDomain(domainName, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null);
+    return new MockDomain(domainName, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), new MemDomainVersion(0, null));
   }
 
   static public String getConfiguration(int numPartitions) {

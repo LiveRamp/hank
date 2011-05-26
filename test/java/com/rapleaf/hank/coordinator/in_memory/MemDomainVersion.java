@@ -1,47 +1,42 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
-import java.util.Set;
-
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 
+import java.util.Set;
+
 public class MemDomainVersion extends AbstractDomainVersion {
-  private final int ver;
+  private final int versionNumber;
+  private final Long closedAt;
 
-  public MemDomainVersion(int ver) {
-    this.ver = ver;
+  public MemDomainVersion(int versionNumber, Long closedAt) {
+    this.versionNumber = versionNumber;
+    this.closedAt = closedAt;
   }
 
-  @Override
   public Long getClosedAt() {
-    // TODO Auto-generated method stub
-    return 0L;
+    return closedAt;
   }
 
-  @Override
   public int getVersionNumber() {
-    return ver;
+    return versionNumber;
   }
 
-  @Override
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) {
     // TODO Auto-generated method stub
-    
+
   }
 
-  @Override
   public void cancel() {
     // TODO Auto-generated method stub
-    
+
   }
 
-  @Override
   public void close() {
     // TODO Auto-generated method stub
-    
+
   }
 
-  @Override
   public Set<PartitionInfo> getPartitionInfos() {
     // TODO Auto-generated method stub
     return null;

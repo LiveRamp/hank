@@ -24,6 +24,7 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class MockDomain extends AbstractDomain {
   private final String name;
@@ -76,7 +77,9 @@ public class MockDomain extends AbstractDomain {
   }
 
   public SortedSet<DomainVersion> getVersions() {
-    return null;
+    SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>();
+    versions.add(version);
+    return versions;
   }
 
   public DomainVersion openNewVersion() throws IOException {

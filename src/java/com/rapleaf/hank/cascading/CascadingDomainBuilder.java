@@ -16,20 +16,19 @@
 
 package com.rapleaf.hank.cascading;
 
+import cascading.flow.FlowConnector;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
-import cascading.flow.FlowConnector;
-import cascading.pipe.Pipe;
-import cascading.tap.Tap;
-
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
 
 public class CascadingDomainBuilder {
 
@@ -42,14 +41,14 @@ public class CascadingDomainBuilder {
   private Pipe pipe;
   private final String keyFieldName;
   private final String valueFieldName;
-  private Integer version = null;
+  private DomainVersion domainVersion = null;
 
   public CascadingDomainBuilder(DomainBuilderProperties properties,
                                 Pipe pipe,
                                 String keyFieldName,
                                 String valueFieldName) {
     // Load domain
-    this.domain = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    this.domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
     // Create Tap
     this.outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, properties);
     this.properties = properties;
@@ -59,26 +58,26 @@ public class CascadingDomainBuilder {
   }
 
   public void openNewVersion() throws IOException {
-    version = domain.openNewVersion().getVersionNumber();
-    if (version == null) {
+    domainVersion = domain.openNewVersion();
+    if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
-    LOG.info("Opened new version #" + version + " of domain " + properties.getDomainName());
+    LOG.info("Opened new version #" + domainVersion.getVersionNumber() + " of domain " + properties.getDomainName());
   }
 
   public void cancelNewVersion() throws IOException {
-    if (version != null) {
-      LOG.info("Cancelling new version #" + version + " of domain " + properties.getDomainName());
-      domain.getVersions().last().cancel();
-      version = null;
+    if (domainVersion != null) {
+      LOG.info("Cancelling new version #" + domainVersion.getVersionNumber() + " of domain " + properties.getDomainName());
+      domainVersion.cancel();
+      domainVersion = null;
     }
   }
 
   public void closeNewVersion() throws IOException {
-    if (version != null) {
-      LOG.info("Closing new version #" + version + " of domain " + properties.getDomainName());
-      domain.getVersions().last().close();
-      version = null;
+    if (domainVersion != null) {
+      LOG.info("Closing new version #" + domainVersion.getVersionNumber() + " of domain " + properties.getDomainName());
+      domainVersion.close();
+      domainVersion = null;
     }
   }
 
@@ -89,19 +88,19 @@ public class CascadingDomainBuilder {
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
-    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
+    Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomain(properties);
     openNewVersion();
-    if (version == null) {
+    if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
     try {
       new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " +
-          properties.getDomainName() + " version " + version, inputTap, outputTap, pipe).complete();
+          properties.getDomainName() + " version " + domainVersion, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
       domainConfig.getVersions().last().cancel();
-      throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      throw new IOException("Failed at building version " + domainVersion + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
     domainConfig.getVersions().last().close();
@@ -165,7 +164,7 @@ public class CascadingDomainBuilder {
           jobName.append(", ");
         }
         CascadingDomainBuilder domainBuilder = domainBuilders[i];
-        jobName.append(domainBuilder.domain.getName()).append(" version ").append(domainBuilder.version);
+        jobName.append(domainBuilder.domain.getName()).append(" version ").append(domainBuilder.domainVersion);
       }
 
       // Build new versions
