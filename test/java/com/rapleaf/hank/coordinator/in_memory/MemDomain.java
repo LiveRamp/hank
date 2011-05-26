@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.yaml.snakeyaml.Yaml;
 
 import com.rapleaf.hank.coordinator.Domain;
@@ -86,29 +87,12 @@ public class MemDomain implements Domain {
   }
 
   @Override
-  public void cancelNewVersion() throws IOException {
-    nextVer = null;
-  }
-
-  @Override
-  public boolean closeNewVersion() throws IOException {
-    versions.add(new MemDomainVersion(nextVer));
-    nextVer = null;
-    return true;
-  }
-
-  @Override
   public SortedSet<DomainVersion> getVersions() {
     return versions;
   }
 
   @Override
-  public Integer getOpenVersionNumber() {
-    return nextVer;
-  }
-
-  @Override
-  public Integer openNewVersion() throws IOException {
+  public DomainVersion openNewVersion() throws IOException {
     if (nextVer != null) {
       return null;
     }
@@ -117,7 +101,6 @@ public class MemDomain implements Domain {
     if (!getVersions().isEmpty()) {
       nextVer = getVersions().last().getVersionNumber() + 1;
     }
-
-    return nextVer;
+    throw new NotImplementedException();
   }
 }

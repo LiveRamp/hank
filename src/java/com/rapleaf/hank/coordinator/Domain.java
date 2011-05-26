@@ -55,33 +55,12 @@ public interface Domain {
 
   /**
    * Attempt to open a new version of this domain. If there isn't another
-   * version already open, the return value is the next version number that
-   * should be used. If there is another version open, then the return value is
-   * null, indicating that another writer has the version lock and you should
-   * try again later.
+   * version already open, the return value is a new DomainVersion with the next
+   * available version number. If there is another version open, then the return
+   * value is null, indicating that another writer has the version lock and you
+   * should try again later.
    * 
    * @return
    */
-  public Integer openNewVersion() throws IOException;
-
-  /**
-   * Attempt to close the currently open version.
-   * 
-   * @return true is the close is successful, false if there is no open version.
-   */
-  public boolean closeNewVersion() throws IOException;
-
-  /**
-   * If there is an open version, then cancel it, returning the version number
-   * to the pool. If there is no open version, then this is a no-op.
-   */
-  public void cancelNewVersion() throws IOException;
-
-  /**
-   * Returns a version number if a new version is currently open.
-   * 
-   * @return
-   * @throws IOException
-   */
-  public Integer getOpenVersionNumber() throws IOException;
+  public DomainVersion openNewVersion() throws IOException;
 }
