@@ -15,17 +15,17 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-
-import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
-public class MockDomain implements Domain {
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
+
+public class MockDomain extends AbstractDomain {
   private final String name;
   private final int numParts;
   private final Partitioner part;
@@ -33,10 +33,10 @@ public class MockDomain implements Domain {
   private DomainVersion version;
 
   public MockDomain(String name,
-      int numParts,
-      Partitioner part,
-      StorageEngine storageEngine,
-      DomainVersion version) {
+                    int numParts,
+                    Partitioner part,
+                    StorageEngine storageEngine,
+                    DomainVersion version) {
     this.name = name;
     this.numParts = numParts;
     this.part = part;
@@ -44,22 +44,18 @@ public class MockDomain implements Domain {
     this.version = version;
   }
 
-  @Override
   public String getName() {
     return name;
   }
 
-  @Override
   public int getNumParts() {
     return numParts;
   }
 
-  @Override
   public Partitioner getPartitioner() {
     return part;
   }
 
-  @Override
   public StorageEngine getStorageEngine() {
     return storageEngine;
   }
@@ -71,22 +67,18 @@ public class MockDomain implements Domain {
         + version + "]";
   }
 
-  @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     return null;
   }
 
-  @Override
   public Map<String, Object> getStorageEngineOptions() {
     return null;
   }
 
-  @Override
   public SortedSet<DomainVersion> getVersions() {
     return null;
   }
 
-  @Override
   public DomainVersion openNewVersion() throws IOException {
     return version;
   }

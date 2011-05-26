@@ -15,26 +15,25 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
+import com.rapleaf.hank.coordinator.AbstractDomain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.yaml.snakeyaml.Yaml;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
-public class ZkDomain implements Domain {
+public class ZkDomain extends AbstractDomain {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   private static final String KEY_NUM_PARTS = "num_parts";
@@ -88,22 +87,18 @@ public class ZkDomain implements Domain {
     return new ZkDomain(zk, domainPath);
   }
 
-  @Override
   public String getName() {
     return name;
   }
 
-  @Override
   public int getNumParts() {
     return numParts;
   }
 
-  @Override
   public Partitioner getPartitioner() {
     return partitioner;
   }
 
-  @Override
   public StorageEngine getStorageEngine() {
     if (storageEngine != null) {
       return storageEngine;
@@ -129,7 +124,6 @@ public class ZkDomain implements Domain {
     return domainPath;
   }
 
-  @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     try {
       return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
@@ -152,36 +146,6 @@ public class ZkDomain implements Domain {
     }
   }
 
-  //
-  // @Override
-  // public void cancelNewVersion() throws IOException {
-  // try {
-  // zk.deleteIfExists(domainPath + OPEN_VERSION_KEY);
-  // } catch (Exception e) {
-  // throw new IOException(e);
-  // }
-  // }
-
-  // @Override
-  // public boolean closeNewVersion() throws IOException {
-  // try {
-  // zk.create(domainPath + "/versions/version_" + getOpenVersionNumber(), null,
-  // Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-  // } catch (Exception e) {
-  // // hmm... bad.
-  // throw new IOException(e);
-  // }
-  //
-  // try {
-  // zk.delete(domainPath + OPEN_VERSION_KEY, -1);
-  // } catch (Exception e) {
-  // // REALLY bad!
-  // throw new IOException(e);
-  // }
-  // return true;
-  // }
-
-  @Override
   public SortedSet<DomainVersion> getVersions() throws IOException {
     TreeSet<DomainVersion> result = new TreeSet<DomainVersion>();
 
@@ -197,19 +161,6 @@ public class ZkDomain implements Domain {
     }
   }
 
-  // @Override
-  // public Integer getOpenVersionNumber() throws IOException {
-  // try {
-  // if (zk.exists(domainPath + OPEN_VERSION_KEY, false) != null) {
-  // return zk.getInt(domainPath + OPEN_VERSION_KEY);
-  // }
-  // return null;
-  // } catch (Exception e) {
-  // throw new IOException(e);
-  // }
-  // }
-
-  @Override
   public DomainVersion openNewVersion() throws IOException {
     Integer nextVerNum = null;
 

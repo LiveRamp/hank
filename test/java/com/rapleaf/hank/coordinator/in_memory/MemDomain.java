@@ -1,20 +1,19 @@
 package com.rapleaf.hank.coordinator.in_memory;
 
+import com.rapleaf.hank.coordinator.AbstractDomain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
+import org.apache.commons.lang.NotImplementedException;
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.yaml.snakeyaml.Yaml;
-
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-
-public class MemDomain implements Domain {
+public class MemDomain extends AbstractDomain {
   private final int numParts;
   private final String storageEngineFactoryName;
   private final String storageEngineOptions;
@@ -24,11 +23,10 @@ public class MemDomain implements Domain {
   private Integer nextVer;
 
   public MemDomain(String name,
-      int numParts,
-      String storageEngineFactoryName,
-      String storageEngineOptions,
-      String partitionerName)
-  {
+                   int numParts,
+                   String storageEngineFactoryName,
+                   String storageEngineOptions,
+                   String partitionerName) {
     this.name = name;
     this.numParts = numParts;
     this.storageEngineFactoryName = storageEngineFactoryName;
@@ -36,17 +34,14 @@ public class MemDomain implements Domain {
     this.partitionerName = partitionerName;
   }
 
-  @Override
   public String getName() {
     return name;
   }
 
-  @Override
   public int getNumParts() {
     return numParts;
   }
 
-  @Override
   public Partitioner getPartitioner() {
     try {
       return (Partitioner) Class.forName(partitionerName).newInstance();
@@ -55,10 +50,9 @@ public class MemDomain implements Domain {
     }
   }
 
-  @Override
   public StorageEngine getStorageEngine() {
     try {
-      return ((StorageEngineFactory)Class.forName(storageEngineFactoryName).newInstance()).getStorageEngine((Map<String, Object>) new Yaml().load(storageEngineOptions), name);
+      return ((StorageEngineFactory) Class.forName(storageEngineFactoryName).newInstance()).getStorageEngine((Map<String, Object>) new Yaml().load(storageEngineOptions), name);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -72,7 +66,6 @@ public class MemDomain implements Domain {
         + ", storageEngineOptions=" + storageEngineOptions + "]";
   }
 
-  @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     try {
       return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
@@ -81,17 +74,14 @@ public class MemDomain implements Domain {
     }
   }
 
-  @Override
   public Map<String, Object> getStorageEngineOptions() {
     return (Map<String, Object>) new Yaml().load(storageEngineOptions);
   }
 
-  @Override
   public SortedSet<DomainVersion> getVersions() {
     return versions;
   }
 
-  @Override
   public DomainVersion openNewVersion() throws IOException {
     if (nextVer != null) {
       return null;
