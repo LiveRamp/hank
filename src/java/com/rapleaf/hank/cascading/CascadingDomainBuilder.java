@@ -16,18 +16,20 @@
 
 package com.rapleaf.hank.cascading;
 
-import cascading.flow.FlowConnector;
-import cascading.pipe.Pipe;
-import cascading.tap.Tap;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
+import cascading.flow.FlowConnector;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
 
 public class CascadingDomainBuilder {
 
@@ -57,7 +59,7 @@ public class CascadingDomainBuilder {
   }
 
   public void openNewVersion() throws IOException {
-    version = domain.openNewVersion();
+    version = domain.openNewVersion().getVersionNumber();
     if (version == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
@@ -67,7 +69,7 @@ public class CascadingDomainBuilder {
   public void cancelNewVersion() throws IOException {
     if (version != null) {
       LOG.info("Cancelling new version #" + version + " of domain " + properties.getDomainName());
-      domain.cancelNewVersion();
+      domain.getVersions().last().cancel();
       version = null;
     }
   }
@@ -75,7 +77,7 @@ public class CascadingDomainBuilder {
   public void closeNewVersion() throws IOException {
     if (version != null) {
       LOG.info("Closing new version #" + version + " of domain " + properties.getDomainName());
-      domain.closeNewVersion();
+      domain.getVersions().last().close();
       version = null;
     }
   }
@@ -97,11 +99,11 @@ public class CascadingDomainBuilder {
       new FlowConnector(properties.setCascadingProperties(cascadingProperties)).connect("HankCascadingDomainBuilder: " + properties.getDomainName() + " version " + version, inputTap, outputTap, pipe).complete();
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domainConfig.cancelNewVersion();
+      domainConfig.getVersions().last().cancel();
       throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domainConfig.closeNewVersion();
+    domainConfig.getVersions().last().close();
   }
 
   // Build multiple domains

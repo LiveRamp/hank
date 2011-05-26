@@ -29,6 +29,7 @@ import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 
 public class HadoopDomainBuilder {
 
@@ -48,8 +49,9 @@ public class HadoopDomainBuilder {
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
     Domain domainConfig = DomainBuilderPropertiesConfigurator.getDomainConfig(properties);
-    Integer version = domainConfig.openNewVersion();
-    if (version == null) {
+    DomainVersion version = domainConfig.openNewVersion();
+    Integer versionNum = version.getVersionNumber();
+    if (versionNum == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
@@ -57,11 +59,11 @@ public class HadoopDomainBuilder {
       JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domainConfig.cancelNewVersion();
-      throw new IOException("Failed at building version " + version + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      version.cancel();
+      throw new IOException("Failed at building version " + versionNum + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domainConfig.closeNewVersion();
+    version.close();
   }
 
   // Use a non-default output format
