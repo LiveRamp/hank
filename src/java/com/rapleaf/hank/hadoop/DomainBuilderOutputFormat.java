@@ -16,20 +16,21 @@
 
 package com.rapleaf.hank.hadoop;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.hadoop.mapred.OutputFormat;
+import org.apache.hadoop.mapred.RecordWriter;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.log4j.Logger;
+
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
-import org.apache.hadoop.mapred.OutputFormat;
-import org.apache.hadoop.mapred.RecordWriter;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
@@ -60,8 +61,8 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domain,
-                              VersionType versionType,
-                              OutputStreamFactory outputStreamFactory) {
+        VersionType versionType,
+        OutputStreamFactory outputStreamFactory) {
       this.domain = domain;
       this.storageEngine = domain.getStorageEngine();
       this.versionType = versionType;
@@ -73,12 +74,10 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       closeCurrentWriterIfNeeded();
     }
 
-    public final void write(KeyAndPartitionWritable key, ValueWritable value)
-        throws IOException {
+    public final void write(KeyAndPartitionWritable key, ValueWritable value) throws IOException {
       int partition = key.getPartition();
       // If writing a new partition, get a new writer
-      if (writerPartition == null ||
-          writerPartition != partition) {
+      if (writerPartition == null || writerPartition != partition) {
         // Set up new writer
         setNewPartitionWriter(partition);
       }
@@ -92,21 +91,23 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
       closeCurrentWriterIfNeeded();
       // Check for existing partitions
       if (writtenPartitions.contains(partition)) {
-        throw new RuntimeException("Partition " + partition + " has already been written.");
+        throw new RuntimeException("Partition " + partition
+            + " has already been written.");
       }
       // Set up new writer
       DomainVersion domainVersion = domain.getOpenedVersion();
       if (domainVersion == null) {
-        throw new IOException("There is no version currently open for domain " + domain.getName());
+        throw new IOException("There is no version currently open for domain "
+            + domain.getName());
       }
-      writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(),
-          versionType.equals(VersionType.BASE));
+      writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(), versionType.equals(VersionType.BASE));
       writerPartition = partition;
       writtenPartitions.add(partition);
     }
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
+        domain.getOpenedVersion().addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
         writer.close();
       }
     }

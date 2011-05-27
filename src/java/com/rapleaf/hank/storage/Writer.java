@@ -22,4 +22,8 @@ public interface Writer {
   public void write(ByteBuffer key, ByteBuffer value) throws IOException;
 
   void close() throws IOException;
+
+  public long getNumBytesWritten();
+
+  public long getNumRecordsWritten();
 }

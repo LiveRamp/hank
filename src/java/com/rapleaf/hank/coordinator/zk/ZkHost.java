@@ -30,16 +30,16 @@ import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
+import com.rapleaf.hank.coordinator.AbstractHost;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkHost implements Host {
+public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
 
   private static final String STATUS_PATH_SEGMENT = "/status";

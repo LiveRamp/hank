@@ -38,7 +38,14 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
         <td class='centered'><%= domain.getNumParts() %></td>
         <td><%= domain.getStorageEngineFactoryClass().getName() %></td>
-        <td><a href="/domain/delete?name=<%= URLEnc.encode(domain.getName()) %>">delete</a></td>
+        <td>
+          <form action="/domain/delete" method=post>
+            <input type=hidden name="name" value="<%= domain.getName() %>"/>
+            <input type=submit value="delete"
+             onclick="return confirm('Are you sure you want to delete the domain <%= domain.getName() %>? This action cannot be undone.');"/>
+          </form>
+          <a href="/domain/delete?name=<%= URLEnc.encode(domain.getName()) %>">delete</a>
+        </td>
       </tr>
       <%
     }

@@ -29,6 +29,8 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     writer.write(KEY1, VALUE1);
     writer.write(KEY2, VALUE2);
     writer.write(KEY3, VALUE3);
+    assertTrue(writer.getNumBytesWritten() > 0);
+    assertEquals(3, writer.getNumRecordsWritten());
     writer.close();
 
     // verify the keyfile looks as expected

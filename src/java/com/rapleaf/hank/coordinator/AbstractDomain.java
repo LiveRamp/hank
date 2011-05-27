@@ -19,7 +19,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 
 public abstract class AbstractDomain implements Domain {
-
   public DomainVersion getOpenedVersion() throws IOException {
     if (getVersions().isEmpty()) {
       return null;
@@ -30,5 +29,14 @@ public abstract class AbstractDomain implements Domain {
     } else {
       return last;
     }
+  }
+
+  @Override
+  public long getTotalNumBytes() throws IOException {
+    long total = 0;
+    for (DomainVersion version : getVersions()) {
+      total += version.getTotalNumBytes();
+    }
+    return total;
   }
 }

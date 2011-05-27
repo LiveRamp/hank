@@ -69,4 +69,14 @@ public class CurlyWriter implements Writer {
 
     currentRecordOffset += numBytes + valueLen;
   }
+
+  @Override
+  public long getNumBytesWritten() {
+    return keyfileWriter.getNumBytesWritten() + currentRecordOffset;
+  }
+
+  @Override
+  public long getNumRecordsWritten() {
+    return keyfileWriter.getNumRecordsWritten();
+  }
 }

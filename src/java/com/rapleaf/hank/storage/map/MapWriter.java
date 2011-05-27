@@ -24,8 +24,8 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {
-
   public final Map<ByteBuffer, ByteBuffer> entries;
+  private long recordsWritten;
 
   public MapWriter() {
     entries = new HashMap<ByteBuffer, ByteBuffer>();
@@ -36,15 +36,28 @@ public class MapWriter implements Writer {
   }
 
   @Override
-  public void close() throws IOException {}
+  public void close() throws IOException {
+  }
 
   @Override
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+    recordsWritten++;
     if (entries.containsKey(key)) {
       throw new RuntimeException("Duplicate entry for key: " + key.toString());
     }
     ByteBuffer keyCopy = Bytes.byteBufferDeepCopy(key);
     ByteBuffer valueCopy = Bytes.byteBufferDeepCopy(value);
     entries.put(keyCopy, valueCopy);
+  }
+
+  @Override
+  public long getNumBytesWritten() {
+    // not really supported
+    return 0;
+  }
+
+  @Override
+  public long getNumRecordsWritten() {
+    return recordsWritten;
   }
 }

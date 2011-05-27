@@ -51,7 +51,8 @@ public class CueballWriter implements Writer {
   private int uncompressedOffset = 0;
   private int numEntriesInBlock = 0;
 
-  private int bytesWritten = 0;
+  private long bytesWritten = 0;
+  private long recordsWritten = 0;
   private long maxUncompressedBlockSize;
   private long maxCompressedBlockSize;
 
@@ -60,15 +61,15 @@ public class CueballWriter implements Writer {
       Hasher hasher,
       int valueSize,
       CompressionCodec compressionCodec,
-      int hashIndexBits)
-  {
+      int hashIndexBits) {
     this.stream = outputStream;
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
 
-    uncompressedBuffer = new byte[(keyHashSize + valueSize) * DEFAULT_NUMBER_OF_ENTRIES];
+    uncompressedBuffer = new byte[(keyHashSize + valueSize)
+        * DEFAULT_NUMBER_OF_ENTRIES];
     compressedBuffer = new byte[compressionCodec.getMaxCompressBufferSize(uncompressedBuffer.length)];
     keyHashBytes = new byte[keyHashSize];
     previousKeyHashBytes = new byte[keyHashSize];
@@ -84,23 +85,27 @@ public class CueballWriter implements Writer {
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
     // Check that value size is compatible
     if (value.remaining() != valueSize) {
-      throw new IOException("Size of value to be written is: " + value.remaining() + ", but configured value size is: " + valueSize);
+      throw new IOException("Size of value to be written is: "
+          + value.remaining() + ", but configured value size is: " + valueSize);
     }
     // Hash key
     hasher.hash(key, keyHashBytes);
     // Compare with previous key hash
     int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that key is different from previous one
-    if (previousKey != null && previousKey.remaining() == key.remaining() &&
-        0 == Bytes.compareBytesUnsigned(key, previousKey)) {
+    if (previousKey != null && previousKey.remaining() == key.remaining()
+        && 0 == Bytes.compareBytesUnsigned(key, previousKey)) {
       throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal.");
     }
     // Check that there is not a key hash collision
     if (0 == previousKeyHashComparision) {
-      throw new IOException("Collision: two consecutive keys have the same hash value." +
-          "\nKey: " + Bytes.bytesToHexString(key) +
-          "\nPrevious key: " + Bytes.bytesToHexString(previousKey) +
-          "\nHash: " + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
+      throw new IOException("Collision: two consecutive keys have the same hash value."
+          + "\nKey: "
+          + Bytes.bytesToHexString(key)
+          + "\nPrevious key: "
+          + Bytes.bytesToHexString(previousKey)
+          + "\nHash: "
+          + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {
@@ -108,15 +113,16 @@ public class CueballWriter implements Writer {
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
+    recordsWritten++;
     // Save current key and key hash
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     previousKey = Bytes.byteBufferDeepCopy(key, previousKey);
   }
 
-
   public void writeHash(ByteBuffer hashedKey, ByteBuffer value) throws IOException {
     // check the first hashIndexBits of the hashedKey
-    int thisPrefix = prefixer.getHashPrefix(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position());
+    int thisPrefix = prefixer.getHashPrefix(hashedKey.array(), hashedKey.arrayOffset()
+        + hashedKey.position());
 
     // if this prefix and the last one don't match, then it's time to clear the
     // buffer.
@@ -135,22 +141,29 @@ public class CueballWriter implements Writer {
     // write a subsequence of the key hash's bytes
     if (uncompressedOffset + keyHashSize > uncompressedBuffer.length) {
       throw new IOException("Out of room to write to uncompressed buffer for block "
-          + Integer.toString(thisPrefix, 16) + "! Buffer size: "
-          + uncompressedBuffer.length + ", offset: " + uncompressedOffset
-          + ", hash size: " + keyHashSize
-          + ", num entries written in block: " + numEntriesInBlock);
+          + Integer.toString(thisPrefix, 16)
+          + "! Buffer size: "
+          + uncompressedBuffer.length
+          + ", offset: "
+          + uncompressedOffset
+          + ", hash size: "
+          + keyHashSize
+          + ", num entries written in block: "
+          + numEntriesInBlock);
     }
     if (hashedKey.arrayOffset() + hashedKey.position() + keyHashSize > hashedKey.array().length) {
       throw new IOException("Need to copy " + keyHashSize
           + " from key, but there weren't enough bytes left! key buffer size: "
           + hashedKey.array().length + ", offset: " + hashedKey.arrayOffset()
-          + hashedKey.position()
-          + ", num entries written in block: " + numEntriesInBlock);
+          + hashedKey.position() + ", num entries written in block: "
+          + numEntriesInBlock);
     }
-    System.arraycopy(hashedKey.array(), hashedKey.arrayOffset() + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
+    System.arraycopy(hashedKey.array(), hashedKey.arrayOffset()
+        + hashedKey.position(), uncompressedBuffer, uncompressedOffset, keyHashSize);
 
     // encode the value offset and write it out
-    System.arraycopy(value.array(), value.arrayOffset() + value.position(), uncompressedBuffer, uncompressedOffset + keyHashSize, valueSize);
+    System.arraycopy(value.array(), value.arrayOffset() + value.position(), uncompressedBuffer, uncompressedOffset
+        + keyHashSize, valueSize);
     uncompressedOffset += keyHashSize + valueSize;
     ++numEntriesInBlock;
   }
@@ -195,8 +208,20 @@ public class CueballWriter implements Writer {
 
     stream.write(footer);
 
+    bytesWritten += footer.length;
+
     // flush everything and close
     stream.flush();
     stream.close();
+  }
+
+  @Override
+  public long getNumBytesWritten() {
+    return bytesWritten;
+  }
+
+  @Override
+  public long getNumRecordsWritten() {
+    return recordsWritten;
   }
 }

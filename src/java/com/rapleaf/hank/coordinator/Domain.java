@@ -31,7 +31,7 @@ public interface Domain {
 
   /**
    * The number of partitions this domain is configured for.
-   *
+   * 
    * @return
    */
   public int getNumParts();
@@ -47,7 +47,7 @@ public interface Domain {
   /**
    * Returns the set of DomainVersionConfigs for this Domain in version-numbered
    * order.
-   *
+   * 
    * @return
    * @throws IOException
    */
@@ -59,7 +59,7 @@ public interface Domain {
    * available version number. If there is another version open, then the return
    * value is null, indicating that another writer has the version lock and you
    * should try again later.
-   *
+   * 
    * @return
    */
   public DomainVersion openNewVersion() throws IOException;
@@ -68,4 +68,11 @@ public interface Domain {
    * @return The current opened version, null if there is none.
    */
   public DomainVersion getOpenedVersion() throws IOException;
+
+  /**
+   * Get the sum of the num bytes used for all versions.
+   * @return
+   * @throws IOException
+   */
+  public long getTotalNumBytes() throws IOException;
 }
