@@ -40,6 +40,11 @@ public class ConstantStorageEngine implements StorageEngine {
     public String getPrettyName() {
       return "Constant";
     }
+
+    @Override
+    public String getDefaultOptions() {
+      return "---";
+    }
   }
 
   public ConstantStorageEngine(Map<String, Object> options) {

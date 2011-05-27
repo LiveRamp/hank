@@ -8,6 +8,9 @@
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+
+List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageEngineFactory)new Cueball.Factory(), new com.rapleaf.hank.storage.curly.Curly.Factory());
+
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
@@ -18,8 +21,26 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <title>New Domain (Hank)</title>
 
   <jsp:include page="_head.jsp" />
+
+  <script type="text/javascript">
+    function getDefaultOptionsText(klass) {
+      <% for (StorageEngineFactory factory : knownStorageEngineFactories) {%>
+      if (klass == "<%= factory.getClass().getName() %>") {
+        return "<%= factory.getDefaultOptions().replace("\n", "\\n\\\n") %>";
+      }
+      <%}%>
+      return "---";
+    }
+
+    function resetStorageEngineOptions() {
+      var storageEngineOptions = document.getElementById('storageEngineOptions');
+      var storageEngineFactoryName = document.getElementById('storageEngineFactorySelect');
+      var newOpts = getDefaultOptionsText(storageEngineFactoryName.value);
+      storageEngineOptions.value = newOpts;
+    }
+  </script>
 </head>
-<body>
+<body onload="resetStorageEngineOptions();">
 
   <form action="/domain/create" method=post>
   <h2>Create New Domain</h2>
@@ -36,7 +57,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td style="vertical-align: top">Partitioner</td>
       <td>
         <div>
-          <select name="partitionerSelect">
+          <select id="partitionerSelect" name="partitionerSelect">
             <% for (Class<? extends Partitioner> klass : Arrays.asList((Class<? extends Partitioner>)Murmur64Partitioner.class)) { %>
             <option value="<%= klass.getName() %>"><%= klass.getSimpleName() %></option>
             <% } %>
@@ -52,12 +73,13 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td style="vertical-align: top">Storage Engine Factory</td>
       <td>
         <div>
-          <select name="storageEngineFactorySelect">
+          <select id="storageEngineFactorySelect" name="storageEngineFactorySelect"
+             onchange="resetStorageEngineOptions();"
+          >
             <% 
-            for (Class<? extends StorageEngineFactory> klass : Arrays.asList((Class<? extends StorageEngineFactory>)Cueball.Factory.class, com.rapleaf.hank.storage.curly.Curly.Factory.class)) {
-              StorageEngineFactory factory = klass.newInstance();
+            for (StorageEngineFactory factory : knownStorageEngineFactories) {
             %>
-            <option value="<%= klass.getName() %>"><%= factory.getPrettyName() %></option>
+            <option value="<%= factory.getClass().getName() %>"><%= factory.getPrettyName() %></option>
             <% } %>
             <option value="__other__">Other (specify fully qualified class name below)</option>
           </select>
@@ -70,7 +92,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <tr>
       <td colspan=2>
         Storage Engine Options (<a href="http://www.yaml.org/">YAML</a>)<br/>
-        <textarea rows=10 cols=80 name="storageEngineOptions">---</textarea>
+        <textarea rows=10 cols=80 id="storageEngineOptions" name="storageEngineOptions">---</textarea>
       </td>
     </tr>
   </table>

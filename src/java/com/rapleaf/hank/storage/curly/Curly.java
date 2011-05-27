@@ -114,6 +114,11 @@ public class Curly implements StorageEngine {
     public String getPrettyName() {
       return "Curly";
     }
+
+    @Override
+    public String getDefaultOptions() {
+      return "---\n# TODO";
+    }
   }
 
   private final String domainName;
