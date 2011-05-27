@@ -120,9 +120,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
     int squareDim = (int)Math.floor(Math.sqrt(d.getNumParts()));
   %>
-    <div style="float:left">
+    <div style="float:left; padding:3px">
       <div><%= d.getName() %></div>
-      <table>
+      <table cellspacing=1 cellpadding=0>
         <% for (int i = 0; i < d.getNumParts(); i++) { %>
           <% if (i % squareDim == 0) { %>
           <tr>
