@@ -92,7 +92,7 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
     <tr>
       <td colspan=2>
         Storage Engine Options (<a href="http://www.yaml.org/">YAML</a>)<br/>
-        <textarea rows=10 cols=80 id="storageEngineOptions" name="storageEngineOptions">---</textarea>
+        <textarea rows=30 cols=80 id="storageEngineOptions" name="storageEngineOptions">---</textarea>
       </td>
     </tr>
   </table>
