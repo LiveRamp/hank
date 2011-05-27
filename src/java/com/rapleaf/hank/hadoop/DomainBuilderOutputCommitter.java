@@ -30,8 +30,8 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
   private static final Logger LOG = Logger.getLogger(DomainBuilderOutputCommitter.class);
 
-  // Note: commitJob() and cleanupJob() should get called automatically by the MapReduce
-  // framework in subsequent versions.
+  // Note: setupJob() commitJob() and cleanupJob() should get called automatically by the MapReduce
+  // framework in subsequent versions of Hadoop.
   // For now we have to call them statically and manually from the builders.
 
   public void setupJob(JobContext context) throws IOException {
@@ -62,7 +62,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     fs.mkdirs(outputPath);
 
     // Move temporary output to final output
-    LOG.debug("Moving temporary output files from: " + tmpOutputPath + " to final output path: " + outputPath);
+    LOG.info("Moving temporary output files from: " + tmpOutputPath + " to final output path: " + outputPath);
     FileStatus[] partitions = fs.listStatus(tmpOutputPath);
     for (FileStatus partition : partitions) {
       if (partition.isDir()) {
@@ -70,7 +70,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
         for (FileStatus partitionFile : partitionFiles) {
             Path sourcePath = partitionFile.getPath();
           Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
-          LOG.debug("Moving: " + sourcePath + " to: " + targetPath);
+          LOG.info("Moving: " + sourcePath + " to: " + targetPath);
           fs.rename(sourcePath, targetPath);
         }
       }
@@ -86,7 +86,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     // Delete temporary output path
     FileSystem fs = tmpOutputPath.getFileSystem(conf);
     if (fs.exists(tmpOutputPath)) {
-      LOG.debug("Deleting temporary output path " + tmpOutputPath);
+      LOG.info("Deleting temporary output path " + tmpOutputPath);
       fs.delete(tmpOutputPath, true);
     }
   }
