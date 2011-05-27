@@ -44,7 +44,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
             <input type=submit value="delete"
              onclick="return confirm('Are you sure you want to delete the domain <%= domain.getName() %>? This action cannot be undone.');"/>
           </form>
-          <a href="/domain/delete?name=<%= URLEnc.encode(domain.getName()) %>">delete</a>
         </td>
       </tr>
       <%
