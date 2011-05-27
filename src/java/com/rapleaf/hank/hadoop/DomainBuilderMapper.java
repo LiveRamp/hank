@@ -30,7 +30,7 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
   private Domain domain;
 
   public void configure(JobConf conf) {
-    String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String domainName = DomainBuilderProperties.getDomainName(conf);
     Configurator configurator = new JobConfConfigurator(conf);
     domain = configurator.getCoordinator().getDomain(domainName);
   }

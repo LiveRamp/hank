@@ -21,10 +21,7 @@ import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
-import com.rapleaf.hank.hadoop.ValueWritable;
+import com.rapleaf.hank.hadoop.*;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.JobConf;
@@ -39,24 +36,30 @@ public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
   private final String domainName;
-  private final String outputPath;
+  private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
-  public DomainBuilderTap(String keyFieldName, String valueFieldName, DomainBuilderProperties properties) {
-    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME, keyFieldName, valueFieldName, properties.getOutputFormatClass()), properties.getOutputPath());
+  public DomainBuilderTap(String keyFieldName, String valueFieldName, int versionNumber, DomainBuilderProperties properties) {
+    // Set the output to the temporary output path
+    super(new DomainBuilderScheme(DomainBuilderAssembly.PARTITION_FIELD_NAME,
+        keyFieldName, valueFieldName), properties.getTmpOutputPath(versionNumber));
     this.domainName = properties.getDomainName();
-    this.outputPath = properties.getOutputPath();
+    this.outputFormatClass = properties.getOutputFormatClass();
   }
 
   @Override
   public void sinkInit(JobConf conf) throws IOException {
     super.sinkInit(conf);
+    // Output Format
+    conf.setOutputFormat(this.outputFormatClass);
+    // Output Committer
+    conf.setOutputCommitter(DomainBuilderOutputCommitter.class);
+    // Set this tap's Domain name locally in the conf
     if (conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME) != null) {
       throw new RuntimeException("Trying to set domain name configuration parameter to " + domainName +
           " but it was previously set to " + conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME));
+    } else {
+      conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
     }
-    conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
-    conf.set(DomainBuilderOutputFormat.createConfParamName(domainName,
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH), outputPath);
   }
 
   @Override
@@ -70,14 +73,12 @@ public class DomainBuilderTap extends Hfs {
     private final String partitionFieldName;
     private final String keyFieldName;
     private final String valueFieldName;
-    private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
-    public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName, Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
+    public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
       super(new Fields(partitionFieldName, keyFieldName, valueFieldName), new Fields(keyFieldName, valueFieldName));
       this.partitionFieldName = partitionFieldName;
       this.keyFieldName = keyFieldName;
       this.valueFieldName = valueFieldName;
-      this.outputFormatClass = outputFormatClass;
     }
 
     @Override
@@ -92,7 +93,6 @@ public class DomainBuilderTap extends Hfs {
 
     @Override
     public void sinkInit(Tap tap, JobConf conf) throws IOException {
-      conf.setOutputFormat(this.outputFormatClass);
     }
 
     @Override

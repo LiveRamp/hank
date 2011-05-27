@@ -7,6 +7,8 @@ import java.util.Properties;
 
 public class DomainBuilderProperties {
 
+  private static final String TMP_OUTPUT_PATH = "_temporary/";
+
   private static final Class<? extends DomainBuilderOutputFormat> DEFAULT_OUTPUT_FORMAT_CLASS = DomainBuilderDefaultOutputFormat.class;
 
   private final String domainName;
@@ -56,38 +58,101 @@ public class DomainBuilderProperties {
     return outputPath;
   }
 
+  public String getTmpOutputPath(int versionNumber) {
+    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "/";
+  }
+
   public Class<? extends DomainBuilderOutputFormat> getOutputFormatClass() {
     return outputFormatClass;
   }
 
   // To configure cascading jobs
-  public Properties setCascadingProperties(Properties properties) {
-    // Domain name is set in DomainBuilderTap
+  public Properties setCascadingProperties(Properties properties, int versionNumber) {
+
+    // Note: Domain name is set locally in DomainBuilderTap to deal with Cascading
+    // jobs building multiple domains.
+
     // Configuration
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION), getCoordinatorConfiguration());
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_COORDINATOR_CONFIGURATION),
+        getCoordinatorConfiguration());
     // Version type
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
-    // Output path is set in DomainBuilderTap
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
+        versionType.toString());
+    // Output Path
+    properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH), outputPath);
+    // Tmp output path
+    properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_TMP_OUTPUT_PATH),
+        getTmpOutputPath(versionNumber));
+    // Version Number
+    properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
+        Integer.toString(versionNumber));
     return properties;
   }
 
-  // To configure Hadoop M/R jobs
-  public JobConf setJobConfProperties(JobConf conf) {
+  // To configure Hadoop MapReduce jobs
+  public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
     // Domain name
     conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
     // Configuration
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_COORDINATOR_CONFIGURATION),
         getCoordinatorConfiguration());
     // Version type
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE), versionType.toString());
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
+        versionType.toString());
     // Output path
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
         getOutputPath());
+    // Tmp output path
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_TMP_OUTPUT_PATH),
+        getTmpOutputPath(versionNumber));
+    // Version Number
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
+        Integer.toString(versionNumber));
     return conf;
+  }
+
+  public static String getDomainName(JobConf conf) {
+    return JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
+        "Hank domain name", conf);
+  }
+
+  public static String getCoordinatorConfiguration(String domainName, JobConf conf) {
+    return JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_COORDINATOR_CONFIGURATION),
+        "Hank coordinator configuration", conf);
+  }
+
+  public static VersionType getVersionType(String domainName, JobConf conf) {
+    return VersionType.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
+        "Hank version type (base or delta)", conf));
+  }
+
+  public static String getOutputPath(String domainName, JobConf conf) {
+    return JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
+        "Hank output path", conf);
+  }
+
+  public static String getTmpOutputPath(String domainName, JobConf conf) {
+    return JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_TMP_OUTPUT_PATH),
+        "Hank temporary output path", conf);
+  }
+
+  public static Integer getVersionNumber(String domainName, JobConf conf) {
+    return Integer.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
+        "Hank temporary output path", conf));
   }
 }

@@ -30,8 +30,8 @@ public class CascadingOperationConfigurator implements Configurator {
   public CascadingOperationConfigurator(String domainName, FlowProcess flowProcess) {
     // Get configuration from FlowProcess
     String configuration = getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.createConfParamName(domainName,
-        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_CONFIGURATION),
-        "Hank configuration",
+        DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_COORDINATOR_CONFIGURATION),
+        "Hank coordinator configuration",
         flowProcess);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();

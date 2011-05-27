@@ -36,7 +36,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", conf);
+    String domainName = DomainBuilderProperties.getDomainName(conf);
     Domain domain = JobConfConfigurator.getDomain(domainName, conf);
       // Always return a no-op OutputStream
     return new DomainBuilderRecordWriter(domain, VersionType.BASE, new OutputStreamFactory() {

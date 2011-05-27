@@ -50,21 +50,32 @@ public class HadoopDomainBuilder {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
+    JobConf jobConf = createJobConfiguration(inputPath, inputFormatClass, mapperClass, domainVersion.getVersionNumber(), properties);
     try {
-      JobClient.runJob(createJobConfiguration(inputPath, inputFormatClass, mapperClass, properties));
+      // Set up job
+      DomainBuilderOutputCommitter.setupJob(domain.getName(), jobConf);
+      // Run job
+      JobClient.runJob(jobConf);
+      // Commit job
+      DomainBuilderOutputCommitter.commitJob(domain.getName(), jobConf);
     } catch (Exception e) {
       // In case of failure, cancel this new version
       domainVersion.cancel();
+      // Clean up job
+      DomainBuilderOutputCommitter.cleanupJob(domain.getName(), jobConf);
       throw new IOException("Failed at building version " + domainVersion.getVersionNumber() + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
     domainVersion.close();
+    // Clean up job
+    DomainBuilderOutputCommitter.cleanupJob(domain.getName(), jobConf);
   }
 
   // Use a non-default output format
   public static final JobConf createJobConfiguration(String inputPath,
                                                      Class<? extends InputFormat> inputFormatClass,
                                                      Class<? extends Mapper> mapperClass,
+                                                     int versionNumber,
                                                      DomainBuilderProperties properties) {
     JobConf conf = new JobConf();
     // Input specification
@@ -80,14 +91,14 @@ public class HadoopDomainBuilder {
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
     conf.setOutputFormat(properties.getOutputFormatClass());
-    // Output path
-    FileOutputFormat.setOutputPath(conf, new Path(properties.getOutputPath()));
+    // Output path (set to tmp output path)
+    FileOutputFormat.setOutputPath(conf, new Path(properties.getTmpOutputPath(versionNumber )));
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Output Committer
-    conf.setOutputCommitter(FileOutputCommitter.class);
+    conf.setOutputCommitter(DomainBuilderOutputCommitter.class);
     // Hank specific configuration
-    properties.setJobConfProperties(conf);
+    properties.setJobConfProperties(conf, versionNumber);
     return conf;
   }
 

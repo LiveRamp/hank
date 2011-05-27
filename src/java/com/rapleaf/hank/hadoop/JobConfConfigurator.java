@@ -28,9 +28,8 @@ public class JobConfConfigurator implements Configurator {
   private final YamlClientConfigurator baseConfigurator;
 
   public JobConfConfigurator(JobConf jobConf) {
-    String domainName = getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, "Hank domain name", jobConf);
-    String configuration = getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATION), "Hank configuration", jobConf);
+    String domainName = DomainBuilderProperties.getDomainName(jobConf);
+    String configuration = DomainBuilderProperties.getCoordinatorConfiguration(domainName, jobConf);
     // Try to load configurator
     baseConfigurator = new YamlClientConfigurator();
     try {
