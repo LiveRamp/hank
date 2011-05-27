@@ -30,22 +30,23 @@ import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 
 public class ConstantStorageEngine implements StorageEngine {
-
   public static class Factory implements StorageEngineFactory {
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName)
-    throws IOException {
+    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException {
       return new ConstantStorageEngine(options);
     }
 
+    @Override
+    public String getPrettyName() {
+      return "Constant";
+    }
   }
 
   public ConstantStorageEngine(Map<String, Object> options) {
   }
 
   @Override
-  public Reader getReader(PartservConfigurator configurator, int partNum)
-  throws IOException {
+  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
     throw new NotImplementedException();
   }
 
@@ -55,8 +56,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-      int versionNumber, boolean base) throws IOException {
+  public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException {
     throw new UnsupportedOperationException();
   }
 

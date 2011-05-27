@@ -20,9 +20,18 @@ public class DomainController extends Controller {
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String domainName = req.getParameter("name");
         int numParts = Integer.parseInt(req.getParameter("numParts"));
-        String storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
+
+        String storageEngineFactoryName = req.getParameter("storageEngineFactorySelect");
+        if (storageEngineFactoryName.equals("__other__")) {
+          storageEngineFactoryName = req.getParameter("storageEngineFactoryName");
+        }
+
         String storageEngineOptions = req.getParameter("storageEngineOptions");
-        String partitionerName = req.getParameter("partitionerName");
+
+        String partitionerName = req.getParameter("partitionerSelect");
+        if (partitionerName.equals("__other__")) {
+          partitionerName = req.getParameter("partitionerOther");
+        }
         System.out.println(DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
         redirect("/domains.jsp", resp);
       }

@@ -1,15 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 
+<%@page import="java.util.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
-<%@page import="com.rapleaf.hank.partitioner.Murmur64Partitioner"%>
+<%@page import="com.rapleaf.hank.partitioner.*"%>
 <%@page import="com.rapleaf.hank.storage.curly.Curly.Factory"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
+
+<%@page import="com.rapleaf.hank.storage.StorageEngineFactory"%>
+<%@page import="com.rapleaf.hank.storage.cueball.Cueball"%><html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>New Domain (Hank)</title>
@@ -26,16 +29,43 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <td><input type=text name="name" size=50 /></td>
     </tr>
     <tr>
-      <td>Partitioner Class Name (fully qualified)</td>
-      <td><input type=text name="partitionerName" size=50 value="<%= Murmur64Partitioner.class.getName() %>"/></td>
-    </tr>
-    <tr>
       <td>Num Partitions</td>
-      <td><input type=text name="numParts" size=50 /></td>
+      <td><input type=text name="numParts" size=50 value="1024"/></td>
     </tr>
     <tr>
-      <td>Storage Engine Factory Class Name (fully qualified)</td>
-      <td><input type=text name="storageEngineFactoryName" size=50 value="<%= Factory.class.getName() %>" /></td>
+      <td style="vertical-align: top">Partitioner</td>
+      <td>
+        <div>
+          <select name="partitionerSelect">
+            <% for (Class<? extends Partitioner> klass : Arrays.asList((Class<? extends Partitioner>)Murmur64Partitioner.class)) { %>
+            <option value="<%= klass.getName() %>"><%= klass.getSimpleName() %></option>
+            <% } %>
+            <option value="__other__">Other (specify fully qualified class name below)</option>
+          </select>
+        </div>
+        <div>
+          <input type=text name="partitionerOther" size=50/>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: top">Storage Engine Factory</td>
+      <td>
+        <div>
+          <select name="storageEngineFactorySelect">
+            <% 
+            for (Class<? extends StorageEngineFactory> klass : Arrays.asList((Class<? extends StorageEngineFactory>)Cueball.Factory.class, com.rapleaf.hank.storage.curly.Curly.Factory.class)) {
+              StorageEngineFactory factory = klass.newInstance();
+            %>
+            <option value="<%= klass.getName() %>"><%= factory.getPrettyName() %></option>
+            <% } %>
+            <option value="__other__">Other (specify fully qualified class name below)</option>
+          </select>
+        </div>
+        <div>
+          <input type=text name="storageEngineFactoryName" size=50 />
+        </div>
+      </td>
     </tr>
     <tr>
       <td colspan=2>

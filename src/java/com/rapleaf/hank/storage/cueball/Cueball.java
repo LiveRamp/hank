@@ -105,6 +105,11 @@ public class Cueball implements StorageEngine {
           compressionCodecClass,
           domainName);
     }
+
+    @Override
+    public String getPrettyName() {
+      return "Cueball";
+    }
   }
 
   private final String domainName;

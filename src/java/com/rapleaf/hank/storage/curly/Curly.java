@@ -109,6 +109,11 @@ public class Curly implements StorageEngine {
           compressionCodecClass,
           domainName);
     }
+
+    @Override
+    public String getPrettyName() {
+      return "Curly";
+    }
   }
 
   private final String domainName;
