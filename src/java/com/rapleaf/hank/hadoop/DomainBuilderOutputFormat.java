@@ -34,10 +34,12 @@ import java.util.Set;
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
 
-  public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
-  public static final String CONF_PARAM_HANK_CONFIGURATION = "com.rapleaf.hank.configuration";
+  public static final String CONF_PARAM_HANK_COORDINATOR_CONFIGURATION = "com.rapleaf.hank.configuration";
   public static final String CONF_PARAM_HANK_VERSION_TYPE = "com.rapleaf.hank.version_type";
+  public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
+  public static final String CONF_PARAM_HANK_TMP_OUTPUT_PATH = "com.rapleaf.hank.output.tmp_path";
+  public static final String CONF_PARAM_HANK_VERSION_NUMBER = "com.rapleaf.hank.output.version_number";
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;

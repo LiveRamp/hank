@@ -38,22 +38,15 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
 
-    // Implicitely relies on the FileOutputCommitter
+    // Implicitly relies on the FileOutputCommitter
     String outputPath = conf.get("mapred.work.output.dir");
     if (outputPath == null) {
       throw new RuntimeException("Path was not set in mapred.work.output.dir");
     }
 
     // Load configuration items
-    String domainName = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
-        "Hank domain name", conf);
-// TODO: remove output path from jobconf?
-//    String outputPath = JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
-//        DomainBuilderOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
-//        "Hank output path", conf);
-    VersionType versionType = VersionType.valueOf(JobConfConfigurator.getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
-        DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
-        "Hank base/delta", conf));
+    String domainName = DomainBuilderProperties.getDomainName(conf);
+    VersionType versionType = DomainBuilderProperties.getVersionType(domainName, conf);
     // Load config
     Domain domain = JobConfConfigurator.getDomain(domainName, conf);
     // Build RecordWriter with the Domain
