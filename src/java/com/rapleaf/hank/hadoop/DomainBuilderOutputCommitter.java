@@ -71,7 +71,10 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
             Path sourcePath = partitionFile.getPath();
           Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
           LOG.info("Moving: " + sourcePath + " to: " + targetPath);
-          fs.rename(sourcePath, targetPath);
+          fs.mkdirs(targetPath.getParent());
+          if (!fs.rename(sourcePath, targetPath)) {
+            throw new IOException("Failed at renaming " + sourcePath + " to " + targetPath);
+          }
         }
       }
     }
