@@ -45,7 +45,7 @@ public class DomainBuilderConfigurator implements Configurator {
     return coordinator;
   }
 
-  static String getRemoteDomainRoot(String domainName, String coordinatorConfiguration) {
+  static public String getRemoteDomainRoot(String domainName, String coordinatorConfiguration) {
     DomainBuilderConfigurator configurator = new DomainBuilderConfigurator(coordinatorConfiguration);
     Domain domain = configurator.getCoordinator().getDomain(domainName);
     if (domain == null) {
