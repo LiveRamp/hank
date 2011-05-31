@@ -25,7 +25,7 @@ public class DomainBuilderProperties {
     this.domainName = domainName;
     this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
-    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(coordinatorConfiguration, domainName);
+    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(domainName, coordinatorConfiguration);
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
   }
 
@@ -38,7 +38,7 @@ public class DomainBuilderProperties {
     this.domainName = domainName;
     this.versionType = versionType;
     this.coordinatorConfiguration = coordinatorConfiguration;
-    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(coordinatorConfiguration, domainName);
+    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(domainName, coordinatorConfiguration);
     this.outputFormatClass = outputFormatClass;
   }
 
