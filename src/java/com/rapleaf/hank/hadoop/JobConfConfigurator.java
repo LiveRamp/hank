@@ -17,30 +17,14 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.mapred.JobConf;
 
-public class JobConfConfigurator implements Configurator {
-
-  private final YamlClientConfigurator baseConfigurator;
+public class JobConfConfigurator extends DomainBuilderConfigurator implements Configurator {
 
   public JobConfConfigurator(JobConf jobConf) {
-    String domainName = DomainBuilderProperties.getDomainName(jobConf);
-    String configuration = DomainBuilderProperties.getCoordinatorConfiguration(domainName, jobConf);
-    // Try to load configurator
-    baseConfigurator = new YamlClientConfigurator();
-    try {
-      baseConfigurator.loadFromYaml(configuration);
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Failed to load configuration!", e);
-    }
-  }
-
-  public Coordinator getCoordinator() {
-    return baseConfigurator.getCoordinator();
+    super(DomainBuilderProperties.getCoordinatorConfiguration(DomainBuilderProperties.getDomainName(jobConf), jobConf));
   }
 
   public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {

@@ -18,6 +18,32 @@ public class DomainBuilderProperties {
   private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
 
   // With a default output format
+  // Get output path from the Coordinator
+  public DomainBuilderProperties(String domainName,
+                                 VersionType versionType,
+                                 String coordinatorConfiguration) {
+    this.domainName = domainName;
+    this.versionType = versionType;
+    this.coordinatorConfiguration = coordinatorConfiguration;
+    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(coordinatorConfiguration, domainName);
+    this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
+  }
+
+  // With a specific output format
+  // Get output path from the Coordinator
+  public DomainBuilderProperties(String domainName,
+                                 VersionType versionType,
+                                 String coordinatorConfiguration,
+                                 Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
+    this.domainName = domainName;
+    this.versionType = versionType;
+    this.coordinatorConfiguration = coordinatorConfiguration;
+    this.outputPath = DomainBuilderConfigurator.getRemoteDomainRoot(coordinatorConfiguration, domainName);
+    this.outputFormatClass = outputFormatClass;
+  }
+
+  // With a default output format
+  // With a specific output path
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
                                  String coordinatorConfiguration,
@@ -30,6 +56,7 @@ public class DomainBuilderProperties {
   }
 
   // With a specific output format
+  // With a specific output path
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
                                  String coordinatorConfiguration,

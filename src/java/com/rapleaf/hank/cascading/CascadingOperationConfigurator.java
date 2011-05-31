@@ -21,29 +21,17 @@ import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.hadoop.DomainBuilderConfigurator;
 import com.rapleaf.hank.hadoop.DomainBuilderDefaultOutputFormat;
 
-public class CascadingOperationConfigurator implements Configurator {
-
-  private final YamlClientConfigurator baseConfigurator;
+public class CascadingOperationConfigurator extends DomainBuilderConfigurator implements Configurator {
 
   public CascadingOperationConfigurator(String domainName, FlowProcess flowProcess) {
     // Get configuration from FlowProcess
-    String configuration = getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.createConfParamName(domainName,
+    super(getRequiredConfigurationItem(DomainBuilderDefaultOutputFormat.createConfParamName(domainName,
         DomainBuilderDefaultOutputFormat.CONF_PARAM_HANK_COORDINATOR_CONFIGURATION),
         "Hank coordinator configuration",
-        flowProcess);
-    // Try to load configurator
-    baseConfigurator = new YamlClientConfigurator();
-    try {
-      baseConfigurator.loadFromYaml(configuration);
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Failed to load configuration!", e);
-    }
-  }
-
-  public Coordinator getCoordinator() {
-    return baseConfigurator.getCoordinator();
+        flowProcess));
   }
 
   public static String getRequiredConfigurationItem(String key, String prettyName, FlowProcess flowProcess) {
