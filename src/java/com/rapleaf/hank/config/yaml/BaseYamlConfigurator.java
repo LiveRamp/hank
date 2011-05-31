@@ -15,17 +15,16 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.Map;
-
-import org.yaml.snakeyaml.Yaml;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Map;
 
 public abstract class BaseYamlConfigurator implements Configurator {
   private static final String COORDINATOR_SECTION_KEY = "coordinator";
@@ -41,12 +40,20 @@ public abstract class BaseYamlConfigurator implements Configurator {
   }
 
   public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
-    config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
+    try {
+      config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
+    } catch (Exception e) {
+      throw new RuntimeException("Invalid configuration in " + path, e);
+    }
     validate();
   }
 
   public void loadFromYaml(String yaml) throws InvalidConfigurationException {
-    config = (Map<String, Object>) new Yaml().load(yaml);
+    try {
+      config = (Map<String, Object>) new Yaml().load(yaml);
+    } catch (Exception e) {
+      throw new RuntimeException("Invalid configuration: " + yaml, e);
+    }
     validate();
   }
 
