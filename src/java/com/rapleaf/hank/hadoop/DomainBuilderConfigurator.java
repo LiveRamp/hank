@@ -26,7 +26,7 @@ import java.util.Map;
 
 public class DomainBuilderConfigurator implements Configurator {
 
-  private static final String OUTPUT_PATH_STORAGE_ENGINE_OPTION = "remote_domain_root";
+  public static final String REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION = "remote_domain_root";
 
   private final Coordinator coordinator;
 
@@ -55,9 +55,9 @@ public class DomainBuilderConfigurator implements Configurator {
     if (options == null) {
       throw new RuntimeException("Empty options for domain: " + domainName);
     }
-    String result = (String) options.get(OUTPUT_PATH_STORAGE_ENGINE_OPTION);
+    String result = (String) options.get(REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
     if (result == null) {
-      throw new RuntimeException("Could not load configuration item: " + OUTPUT_PATH_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
+      throw new RuntimeException("Could not load configuration item: " + REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
     }
     return result;
   }

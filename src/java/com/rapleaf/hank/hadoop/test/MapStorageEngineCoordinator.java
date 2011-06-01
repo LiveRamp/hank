@@ -46,7 +46,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
   @Override
   public Domain getDomain(String domainName) {
     return new MockDomain(domainName, this.numPartitions, new ModPartitioner(), new MapStorageEngine(),
-        MapStorageEngine.getOptions(), new MockDomainVersion(0, null));
+        MapStorageEngine.getOptions(domainName), new MockDomainVersion(0, null));
   }
 
   static public String getConfiguration(int numPartitions) {

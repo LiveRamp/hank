@@ -29,15 +29,24 @@ import java.util.Map;
 // partition map. It is not thread safe.
 public class MapStorageEngine extends MockStorageEngine {
 
-  private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
-  private static Map<String, Object> options = new HashMap<String, Object>();
+  private static final Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
+  private static final Map<String, Map<String, Object>> options = new HashMap<String, Map<String, Object>>();
+
+  // Use clear to clear all data (e.g. before a test)
+  public static void clear() {
+    partitions.clear();
+    options.clear();
+  }
 
   public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions() {
     return partitions;
   }
 
-  public static Map<String, Object> getOptions() {
-    return options;
+  public static Map<String, Object> getOptions(String domainName) {
+    if (!options.containsKey(domainName)) {
+      options.put(domainName, new HashMap<String, Object>());
+    }
+    return options.get(domainName);
   }
 
   @Override
