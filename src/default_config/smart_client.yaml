@@ -1,0 +1,19 @@
+smart_client:
+  # this can be set to any free port. you'll give this to the thrift dumb 
+  # client in order to connect
+  service_port: 12345
+  # you can use this value to adjust how many concurrent requests will be
+  # executed at once.
+  num_worker_threads: 256
+  # the name of the ring group that this smart client will serve. this smart 
+  # client won't be able to serve domains from any other ring group.
+  ring_group_name: ring_group_name
+coordinator:
+  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  options:
+    # a ZooKeeper connection string that identifies your quorum
+    connect_string: localhost:2181
+    session_timeout: 2000
+    domains_root: /hank/domains
+    domain_groups_root: /hank/domain_groups
+    ring_groups_root: /hank/ring_groups
