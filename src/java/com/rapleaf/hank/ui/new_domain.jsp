@@ -9,7 +9,10 @@
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageEngineFactory)new Cueball.Factory(), new com.rapleaf.hank.storage.curly.Curly.Factory());
+List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageEngineFactory)
+    new Cueball.Factory(),
+    new com.rapleaf.hank.storage.curly.Curly.Factory(),
+    new com.rapleaf.hank.storage.echo.Echo.Factory());
 
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
