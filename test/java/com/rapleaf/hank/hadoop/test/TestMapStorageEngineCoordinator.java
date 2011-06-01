@@ -56,14 +56,14 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
         new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfiguration(1), "/a", DomainBuilderEmptyOutputFormat.class));
 
     // Verify num partitions and num entries
-    assertEquals(1, MapStorageEngine.getPartitions().size());
-    assertEquals(5, MapStorageEngine.getPartitions().get(0).size());
+    assertEquals(1, MapStorageEngine.getPartitions(DOMAIN_A_NAME).size());
+    assertEquals(5, MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).size());
 
     // Verify data
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("0".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("1".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("2".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("3".getBytes()))));
-    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions().get(0).get(ByteBuffer.wrap("4".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v0".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("0".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v1".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("1".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v2".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("2".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v3".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("3".getBytes()))));
+    assertEquals(0, Bytes.compareBytesUnsigned(ByteBuffer.wrap("v4".getBytes()), MapStorageEngine.getPartitions(DOMAIN_A_NAME).get(0).get(ByteBuffer.wrap("4".getBytes()))));
   }
 }

@@ -29,8 +29,16 @@ import java.util.Map;
 // partition map. It is not thread safe.
 public class MapStorageEngine extends MockStorageEngine {
 
-  private static final Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
-  private static final Map<String, Map<String, Object>> options = new HashMap<String, Map<String, Object>>();
+  private static final Map<String, Map<Integer, Map<ByteBuffer, ByteBuffer>>> partitions =
+      new HashMap<String, Map<Integer, Map<ByteBuffer, ByteBuffer>>>();
+  private static final Map<String, Map<String, Object>> options =
+      new HashMap<String, Map<String, Object>>();
+
+  private final String domainName;
+
+  public MapStorageEngine(String domainName) {
+    this.domainName = domainName;
+  }
 
   // Use clear to clear all data (e.g. before a test)
   public static void clear() {
@@ -38,8 +46,8 @@ public class MapStorageEngine extends MockStorageEngine {
     options.clear();
   }
 
-  public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions() {
-    return partitions;
+  public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions(String domainName) {
+    return partitions.get(domainName);
   }
 
   public static Map<String, Object> getOptions(String domainName) {
@@ -52,10 +60,13 @@ public class MapStorageEngine extends MockStorageEngine {
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
                           int versionNumber, boolean base) throws IOException {
-    if (!partitions.containsKey(partNum)) {
-      partitions.put(partNum, new HashMap<ByteBuffer, ByteBuffer>());
+    if (!partitions.containsKey(domainName)) {
+      partitions.put(domainName, new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>());
     }
-    return new MapWriter(partitions.get(partNum));
+    if (!partitions.get(domainName).containsKey(partNum)) {
+      partitions.get(domainName).put(partNum, new HashMap<ByteBuffer, ByteBuffer>());
+    }
+    return new MapWriter(partitions.get(domainName).get(partNum));
   }
 
   @Override
