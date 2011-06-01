@@ -32,17 +32,20 @@ public class MockDomain extends AbstractDomain {
   private final Partitioner part;
   private final StorageEngine storageEngine;
   private DomainVersion version;
+  private final Map<String, Object> storageEngineOptions;
 
   public MockDomain(String name,
                     int numParts,
                     Partitioner part,
                     StorageEngine storageEngine,
+                    Map<String, Object> storageEngineOptions,
                     DomainVersion version) {
     this.name = name;
     this.numParts = numParts;
     this.part = part;
     this.storageEngine = storageEngine;
     this.version = version;
+    this.storageEngineOptions = storageEngineOptions;
   }
 
   public String getName() {
@@ -73,7 +76,7 @@ public class MockDomain extends AbstractDomain {
   }
 
   public Map<String, Object> getStorageEngineOptions() {
-    return null;
+    return storageEngineOptions;
   }
 
   public SortedSet<DomainVersion> getVersions() {

@@ -15,33 +15,18 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 public class TestUpdateManager extends BaseTestCase {
   private final class MRG extends MockRingGroup {
@@ -132,7 +117,7 @@ public class TestUpdateManager extends BaseTestCase {
   }
 
   private static DomainGroupVersion getMockDomainGroupConfigVersion(
-      final StorageEngine mockStorageEngine) 
+      final StorageEngine mockStorageEngine)
   {
     return new MockDomainGroupVersion(Collections.singleton(
         (DomainGroupVersionDomainVersion)new MockDomainGroupVersionDomainVersion(
@@ -140,6 +125,7 @@ public class TestUpdateManager extends BaseTestCase {
                 1,
                 new ConstantPartitioner(),
                 mockStorageEngine,
+                null,
                 null),
             0)),
         null,

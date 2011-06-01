@@ -39,6 +39,10 @@ public class MockCoordinator implements Coordinator {
     options = null;
   }
 
+  public Map<String, Object> getOptions() {
+    return options;
+  }
+
   public Domain getDomain(String domainName) {
     return null;
   }

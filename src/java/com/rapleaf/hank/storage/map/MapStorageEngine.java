@@ -30,9 +30,14 @@ import java.util.Map;
 public class MapStorageEngine extends MockStorageEngine {
 
   private static Map<Integer, Map<ByteBuffer, ByteBuffer>> partitions = new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>();
+  private static Map<String, Object> options = new HashMap<String, Object>();
 
   public static Map<Integer, Map<ByteBuffer, ByteBuffer>> getPartitions() {
     return partitions;
+  }
+
+  public static Map<String, Object> getOptions() {
+    return options;
   }
 
   @Override

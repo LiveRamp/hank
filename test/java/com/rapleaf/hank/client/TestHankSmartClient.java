@@ -142,7 +142,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomain existentDomain = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null);
+    final MockDomain existentDomain = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
     MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {{
         put(1, existentDomain);

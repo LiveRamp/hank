@@ -15,25 +15,21 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
     super();
   }
 
-  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, null);
-  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, null);
-  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, null);
+  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, null, null);
+  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, null, null);
+  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, null, null);
 
   private static final MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
     @Override
