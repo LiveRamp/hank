@@ -43,7 +43,7 @@ public class StatusWebDaemonTester extends ZkTestCase {
     ver = d1.openNewVersion();
     dumpZk();
     ver.addPartitionInfo(0, 1024, 55);
-    ver.addPartitionInfo(1, 32555, 700);
+    ver.addPartitionInfo(1, 32555, 7500000000L);
     ver.close();
     ver = d1.openNewVersion();
     ver.close();

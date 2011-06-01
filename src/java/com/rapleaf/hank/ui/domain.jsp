@@ -115,7 +115,7 @@
       <% } %>
     </td>
     <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
-    <td><%= version.getTotalNumRecords() %></td>
+    <td><%= String.format("%,d", version.getTotalNumRecords()) %></td>
   </tr>
   <% } %>
 </table>
