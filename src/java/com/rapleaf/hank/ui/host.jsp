@@ -73,7 +73,9 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   <table class="table-blue">
     <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th></tr>
   <%
-    for (HostDomain hdc : host.getAssignedDomains()) {
+    List<HostDomain> hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
+    Collections.sort(hostDomains);
+    for (HostDomain hdc : hostDomains) {
   %>
     <tr>
       <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></td>
