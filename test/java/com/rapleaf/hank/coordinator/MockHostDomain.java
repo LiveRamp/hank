@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.NotImplementedException;
 
-public class MockHostDomain implements HostDomain {
+public class MockHostDomain extends AbstractHostDomain {
   private final int domainId;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
 

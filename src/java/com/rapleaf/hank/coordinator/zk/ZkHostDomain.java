@@ -23,11 +23,12 @@ import java.util.Set;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkHostDomain implements HostDomain {
+public class ZkHostDomain extends AbstractHostDomain {
   private final ZooKeeperPlus zk;
   private final String root;
   private final int domainId;

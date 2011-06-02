@@ -56,7 +56,7 @@ public class TestUpdateManager extends BaseTestCase {
   private static final Host mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1)) {
     @Override
     public HostDomain getDomainById(int domainId) {
-      return new HostDomain() {
+      return new AbstractHostDomain() {
         @Override
         public Set<HostDomainPartition> getPartitions() throws IOException {
           return Collections.singleton((HostDomainPartition)new AbstractHostDomainPartition() {

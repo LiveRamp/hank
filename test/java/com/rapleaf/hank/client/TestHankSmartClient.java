@@ -203,7 +203,7 @@ public class TestHankSmartClient extends BaseTestCase {
     MockHost hc = new MockHost(address) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain)new HostDomain() {
+        return Collections.singleton((HostDomain)new AbstractHostDomain() {
           @Override
           public HostDomainPartition addPartition(int partNum, int initialVersion) {
             return null;

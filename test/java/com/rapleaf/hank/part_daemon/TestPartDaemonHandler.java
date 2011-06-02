@@ -15,9 +15,34 @@
  */
 package com.rapleaf.hank.part_daemon;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
+import com.rapleaf.hank.coordinator.MockRing;
+import com.rapleaf.hank.coordinator.MockRingGroup;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
@@ -27,13 +52,6 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestPartDaemonHandler extends BaseTestCase {
   private static final ByteBuffer K1 = bb(1);
@@ -46,7 +64,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
 
     @Override
     public HostDomain getDomainById(int domainId) {
-      return new HostDomain() {
+      return new AbstractHostDomain() {
         @Override
         public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
 
