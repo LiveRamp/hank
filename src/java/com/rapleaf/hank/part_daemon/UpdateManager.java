@@ -34,25 +34,27 @@ class UpdateManager implements IUpdateManager {
     private final StorageEngine engine;
     private final int partNum;
     private final Queue<Throwable> exceptionQueue;
-    private final int toVersion;
+    private final int toDomainVersion;
     private final HostDomainPartition part;
     private final String domainName;
+    private final int toDomainGroupVersion;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toVersion, HostDomainPartition part, String domainName) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toDomainVersion, HostDomainPartition part, String domainName, int toDomainGroupVersion) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
-      this.toVersion = toVersion;
+      this.toDomainVersion = toDomainVersion;
       this.part = part;
       this.domainName = domainName;
+      this.toDomainGroupVersion = toDomainGroupVersion;
     }
 
     @Override
     public void run() {
       try {
-        LOG.debug(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toVersion, engine.toString()));
-        engine.getUpdater(configurator, partNum).update(toVersion);
-        part.setCurrentDomainGroupVersion(toVersion);
+        LOG.debug(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
+        engine.getUpdater(configurator, partNum).update(toDomainVersion);
+        part.setCurrentDomainGroupVersion(toDomainGroupVersion);
         part.setUpdatingToDomainGroupVersion(null);
         LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
@@ -93,8 +95,8 @@ class UpdateManager implements IUpdateManager {
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
     DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
-    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion().getDomainVersions()) {
-      Domain domain = dcv.getDomain();
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroup.getLatestVersion().getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
@@ -110,9 +112,10 @@ class UpdateManager implements IUpdateManager {
           executor.execute(new UpdateToDo(engine,
               part.getPartNum(),
               exceptionQueue,
-              dcv.getVersionNumber(),
+              dgvdv.getVersionNumber(),
               part,
-              domain.getName()));
+              domain.getName(),
+              part.getUpdatingToDomainGroupVersion()));
         }
       }
     }

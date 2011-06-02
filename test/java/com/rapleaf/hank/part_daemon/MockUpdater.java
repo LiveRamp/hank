@@ -21,9 +21,11 @@ import com.rapleaf.hank.storage.Updater;
 
 public class MockUpdater implements Updater {
   private boolean updated = false;
+  public Integer updatedToVersion = null;
 
   @Override
   public void update(int toVersion) throws IOException {
+    updatedToVersion = toVersion;
     setUpdated(true);
   }
 
@@ -34,5 +36,4 @@ public class MockUpdater implements Updater {
   public boolean isUpdated() {
     return updated;
   }
-
 }
