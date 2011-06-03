@@ -17,6 +17,7 @@ package com.rapleaf.hank.storage.cueball;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -24,10 +25,10 @@ public class CueballFileSelector implements IFileSelector {
   private static final Logger LOG = Logger.getLogger(CueballFileSelector.class);
 
   @Override
-  public boolean isRelevantFile(String fileName, Integer fromVersion, int toVersion) {
+  public boolean isRelevantFile(String fileName, Integer fromVersion, int toVersion, Set<Integer> excludeVersions) {
     if (isBase(fileName) || fileName.matches(Cueball.DELTA_REGEX)) {
       int ver = parseVersion(fileName);
-      if ((fromVersion == null || ver > fromVersion) && ver <= toVersion) {
+      if ((fromVersion == null || ver > fromVersion) && ver <= toVersion && !excludeVersions.contains(ver)) {
         return true;
       }
     } else {
@@ -37,7 +38,7 @@ public class CueballFileSelector implements IFileSelector {
   }
 
   @Override
-  public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion) {
+  public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion, Set<Integer> excludeVersions) {
     Integer maxBase = null;
     for (String path : relevantFiles) {
       if (isBase(path)) {
@@ -51,7 +52,7 @@ public class CueballFileSelector implements IFileSelector {
     }
     List<String> filesToCopy = new ArrayList<String>(); 
     for (String path : relevantFiles) {
-      if (parseVersion(path) >= maxBase) {
+      if (parseVersion(path) >= maxBase && !excludeVersions.contains(parseVersion(path))) {
         filesToCopy.add(path);
       }
     }

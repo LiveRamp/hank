@@ -95,7 +95,7 @@ public class CurlyUpdater implements Updater {
   @Override
   public void update(int toVersion) throws IOException {
     // fetch all the curly and cueball files
-    fetcher.fetch(getLocalVersionNumber(), toVersion);
+    fetcher.fetch(getLocalVersionNumber(), toVersion, null);
 
     // figure out which curly files we want to merge
     SortedSet<String> curlyBases = new TreeSet<String>();

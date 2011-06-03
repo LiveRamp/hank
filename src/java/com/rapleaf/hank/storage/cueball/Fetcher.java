@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -33,19 +34,19 @@ public final class Fetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int fromVersion, int toVersion) throws IOException {
+  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException {
     List<String> remoteFiles = fileOps.listFiles();
     LOG.debug("Remote files: " + remoteFiles);
 
     List<String> relevantFiles = new ArrayList(remoteFiles.size());
     for (String fileName : remoteFiles) {
-      if (fileSelector.isRelevantFile(fileName, fromVersion, toVersion)) {
+      if (fileSelector.isRelevantFile(fileName, fromVersion, toVersion, excludeVersions)) {
         relevantFiles.add(fileName);
       }
     }
     LOG.debug("Relevant files: " + relevantFiles);
 
-    List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles, fromVersion, toVersion);
+    List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles, fromVersion, toVersion, excludeVersions);
 
     for (String fileName : filesToCopy) {
       LOG.debug("Copying " + fileName + " to local");

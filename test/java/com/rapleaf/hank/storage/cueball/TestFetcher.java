@@ -17,6 +17,7 @@ package com.rapleaf.hank.storage.cueball;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -43,15 +44,16 @@ public class TestFetcher extends BaseTestCase {
     public Set<String> selectFilesToCopyCalledWith;
 
     @Override
-    public boolean isRelevantFile(String fileName, Integer f, int t) {
+    public boolean isRelevantFile(String fileName, Integer f, int t, Set<Integer> excludeVersions) {
       assertEquals("from", 7, f.intValue());
       assertEquals("to", 10, t);
+      assertEquals(Collections.singleton(9), excludeVersions);
       isRelevantCalledWith.add(fileName);
       return fileName.equals("x") || fileName.equals("z");
     }
 
     @Override
-    public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion) {
+    public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion, Set<Integer> excludeVersions) {
       selectFilesToCopyCalledWith = new HashSet<String>(relevantFiles);
       return Arrays.asList("z");
     }
@@ -62,7 +64,7 @@ public class TestFetcher extends BaseTestCase {
     MFS mockFileSelector = new MFS();
     Fetcher f = new Fetcher(mockFileOps, mockFileSelector);
 
-    f.fetch(7, 10);
+    f.fetch(7, 10, Collections.singleton(9));
 
     assertEquals("isRelevantFile called with", new HashSet<String>(Arrays.asList("x", "y", "z")), mockFileSelector.isRelevantCalledWith);
     assertEquals("selectFilesToCopy called with", new HashSet<String>(Arrays.asList("x", "z")), mockFileSelector.selectFilesToCopyCalledWith);

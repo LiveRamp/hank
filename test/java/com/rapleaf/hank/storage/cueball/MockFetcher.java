@@ -20,6 +20,7 @@ package com.rapleaf.hank.storage.cueball;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 public class MockFetcher implements IFetcher {
   public int latestLocalVersion;
@@ -32,7 +33,7 @@ public class MockFetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int fromVersion, int toVersion) throws IOException {
+  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException {
     this.latestLocalVersion = fromVersion;
     for (String s : localFilesToCreate) {
       new File(localRoot + "/" + s).createNewFile();
