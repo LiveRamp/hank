@@ -16,6 +16,7 @@ import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
+  private static final String DEFUNCT_KEY = "defunct";
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
@@ -97,4 +98,29 @@ public class ZkDomainVersion extends AbstractDomainVersion {
       throw new IOException(e);
     }
   }
-}
+
+  @Override
+  public boolean isDefunct() throws IOException {
+    final String defunctPath = path + "/" + DEFUNCT_KEY;
+    try {
+      return zk.exists(defunctPath, false) != null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setDefunct(boolean isDefunct) throws IOException {
+    try {
+      final String defunctPath = path + "/" + DEFUNCT_KEY;
+      final boolean alreadyDefunct = isDefunct();
+      if (isDefunct && !alreadyDefunct) {
+        zk.create(defunctPath, 0, CreateMode.PERSISTENT);
+      } else if (!isDefunct && alreadyDefunct) {
+        zk.delete(defunctPath, 0);
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+;}

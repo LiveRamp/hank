@@ -12,6 +12,7 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(dv.isClosed());
+    assertFalse(dv.isDefunct());
   }
 
   public void testLoad() throws Exception {
@@ -20,6 +21,7 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(dv.isClosed());
+    assertFalse(dv.isDefunct());
   }
 
   public void testCancelVersion() throws Exception {
@@ -46,7 +48,8 @@ public class TestZkDomainVersion extends ZkTestCase {
 
   public void testPartitionInfos() throws Exception {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
-    DomainVersion dv2 = new ZkDomainVersion(getZk(), getRoot() + "/versions/version_1");
+    DomainVersion dv2 = new ZkDomainVersion(getZk(), getRoot()
+        + "/versions/version_1");
 
     assertTrue(dv.getPartitionInfos().isEmpty());
     assertTrue(dv2.getPartitionInfos().isEmpty());
@@ -54,6 +57,23 @@ public class TestZkDomainVersion extends ZkTestCase {
     dv.addPartitionInfo(1, 2, 3);
     assertEquals(1, dv.getPartitionInfos().size());
     assertEquals(1, dv2.getPartitionInfos().size());
+  }
+
+  public void testDefunct() throws Exception {
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion otherDv = new ZkDomainVersion(getZk(), getRoot()
+        + "/versions/version_1");
+
+    assertFalse(dv.isDefunct());
+    assertFalse(otherDv.isDefunct());
+
+    dv.setDefunct(true);
+    assertTrue(dv.isDefunct());
+
+    assertTrue(otherDv.isDefunct());
+    dv.setDefunct(false);
+    assertFalse(dv.isDefunct());
+    assertFalse(otherDv.isDefunct());
   }
 
   @Override
