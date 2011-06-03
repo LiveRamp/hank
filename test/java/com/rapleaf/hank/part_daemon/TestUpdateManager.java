@@ -16,16 +16,21 @@
 package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
@@ -36,6 +41,7 @@ import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -80,7 +86,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     @Override
     public void setCurrentDomainGroupVersion(int version) throws IOException {
-      currentVersion  = version;
+      currentVersion = version;
     }
 
     @Override
@@ -142,13 +148,55 @@ public class TestUpdateManager extends BaseTestCase {
     UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup", "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
     ud.update();
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
+    assertEquals("excludeVersions passed in as expected", Collections.singleton(45), mockUpdater.excludeVersions);
     assertEquals("update() called with proper args", Integer.valueOf(0), mockUpdater.updatedToVersion);
     assertEquals("current version", Integer.valueOf(1), HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
     assertNull("updating to version", HOST_DOMAIN_PARTITION.getUpdatingToDomainGroupVersion());
   }
 
   private static DomainGroupVersion getMockDomainGroupConfigVersion(final StorageEngine mockStorageEngine) {
-    final MockDomain domain = new MockDomain("myDomain", 1, new ConstantPartitioner(), mockStorageEngine, null, null);
+    final MockDomain domain = new MockDomain("myDomain", 1, new ConstantPartitioner(), mockStorageEngine, null, null) {
+      @Override
+      public SortedSet<DomainVersion> getVersions() {
+        return new TreeSet<DomainVersion>(Arrays.asList(new AbstractDomainVersion() {
+          @Override
+          public void setDefunct(boolean isDefunct) throws IOException {
+          }
+
+          @Override
+          public boolean isDefunct() throws IOException {
+            return true;
+          }
+
+          @Override
+          public int getVersionNumber() {
+            return 45;
+          }
+
+          @Override
+          public Set<PartitionInfo> getPartitionInfos() throws IOException {
+            return null;
+          }
+
+          @Override
+          public Long getClosedAt() throws IOException {
+            return null;
+          }
+
+          @Override
+          public void close() throws IOException {
+          }
+
+          @Override
+          public void cancel() throws IOException {
+          }
+
+          @Override
+          public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
+          }
+        }));
+      }
+    };
     // the domain version for this domain group version will be 0
     final DomainGroupVersionDomainVersion dgvdv = new MockDomainGroupVersionDomainVersion(domain, 0);
     // the domain group version number is 1. note the difference between dgv

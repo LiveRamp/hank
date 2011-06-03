@@ -21,7 +21,9 @@ import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.*;
 
 /**
@@ -38,8 +40,9 @@ class UpdateManager implements IUpdateManager {
     private final HostDomainPartition part;
     private final String domainName;
     private final int toDomainGroupVersion;
+    private final Set<Integer> excludeVersions;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toDomainVersion, HostDomainPartition part, String domainName, int toDomainGroupVersion) {
+    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toDomainVersion, HostDomainPartition part, String domainName, int toDomainGroupVersion, Set<Integer> excludeVersions) {
       this.engine = engine;
       this.partNum = partNum;
       this.exceptionQueue = exceptionQueue;
@@ -47,13 +50,14 @@ class UpdateManager implements IUpdateManager {
       this.part = part;
       this.domainName = domainName;
       this.toDomainGroupVersion = toDomainGroupVersion;
+      this.excludeVersions = excludeVersions;
     }
 
     @Override
     public void run() {
       try {
         LOG.debug(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
-        engine.getUpdater(configurator, partNum).update(toDomainVersion);
+        engine.getUpdater(configurator, partNum).update(toDomainVersion, excludeVersions);
         part.setCurrentDomainGroupVersion(toDomainGroupVersion);
         part.setUpdatingToDomainGroupVersion(null);
         LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
@@ -97,6 +101,14 @@ class UpdateManager implements IUpdateManager {
     DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
+
+      Set<Integer> excludeVersions = new HashSet<Integer>();
+      for (DomainVersion dv : domain.getVersions()) {
+        if (dv.isDefunct()) {
+          excludeVersions.add(dv.getVersionNumber());
+        }
+      }
+
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
@@ -115,7 +127,8 @@ class UpdateManager implements IUpdateManager {
               dgvdv.getVersionNumber(),
               part,
               domain.getName(),
-              part.getUpdatingToDomainGroupVersion()));
+              part.getUpdatingToDomainGroupVersion(),
+              excludeVersions));
         }
       }
     }
