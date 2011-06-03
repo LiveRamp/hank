@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 
 public class DomainController extends Controller {
 
@@ -50,6 +51,15 @@ public class DomainController extends Controller {
         if (domain.openNewVersion() != null) {
           domain.getOpenedVersion().close();
         }
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
+    actions.put("defunctify", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        domainVersion.setDefunct(true);
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
