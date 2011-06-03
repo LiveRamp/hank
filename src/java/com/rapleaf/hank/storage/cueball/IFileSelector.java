@@ -16,6 +16,7 @@
 package com.rapleaf.hank.storage.cueball;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * A File Selector is a bit of code that Fetcher uses to determine which remote
@@ -29,9 +30,10 @@ public interface IFileSelector {
    * @param fileName
    * @param fromVersion
    * @param toVersion
+   * @param excludeVersions TODO
    * @return
    */
-  public boolean isRelevantFile(String fileName, Integer fromVersion, int toVersion);
+  public boolean isRelevantFile(String fileName, Integer fromVersion, int toVersion, Set<Integer> excludeVersions);
 
   /**
    * Given a list of relevant files, which ones should be copied? If 100% of
@@ -41,7 +43,8 @@ public interface IFileSelector {
    * @param relevantFiles
    * @param fromVersion
    * @param toVersion
+   * @param excludeVersions TODO
    * @return
    */
-  public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion);
+  public List<String> selectFilesToCopy(List<String> relevantFiles, Integer fromVersion, int toVersion, Set<Integer> excludeVersions);
 }
