@@ -17,6 +17,7 @@ package com.rapleaf.hank.storage.cueball;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.SortedSet;
 
 import com.rapleaf.hank.compress.CompressionCodec;
@@ -67,8 +68,8 @@ public class CueballUpdater implements Updater {
   }
 
   @Override
-  public void update(int toVersion) throws IOException {
-    fetcher.fetch(getLocalVersionNumber(), toVersion, null);
+  public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
+    fetcher.fetch(getLocalVersionNumber(), toVersion, excludeVersions);
     resolveLocalDir();
   }
 

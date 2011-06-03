@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.SortedSet;
 
@@ -81,10 +82,11 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
         fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
-    updater.update(1);
+    updater.update(1, Collections.singleton(45));
 
     // make sure fetcher got the right args
     assertEquals(-1, fetcher.latestLocalVersion);
+    assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the mergers got the right args
     assertEquals(LOCAL_ROOT + "/00000.base.cueball", cueballMerger.latestBase);
@@ -115,7 +117,7 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
         fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
-    updater.update(7);
+    updater.update(7, null);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);
@@ -151,7 +153,7 @@ public class TestCurlyUpdater extends TestCase {
     CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
         fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
 
-    updater.update(7);
+    updater.update(7, null);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);

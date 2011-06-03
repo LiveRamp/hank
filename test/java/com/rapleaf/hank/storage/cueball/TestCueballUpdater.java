@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import com.rapleaf.hank.BaseTestCase;
@@ -38,10 +39,11 @@ public class TestCueballUpdater extends BaseTestCase {
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger, new NoCompressionCodec(), 1);
 
-    updater.update(1);
+    updater.update(1, Collections.singleton(45));
 
     // make sure fetcher got the right args
     assertEquals(-1, fetcher.latestLocalVersion);
+    assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the merger got the right args
     assertEquals(LOCAL_ROOT + "/00000.base.cueball", merger.latestBase);
@@ -67,10 +69,11 @@ public class TestCueballUpdater extends BaseTestCase {
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
         merger, new NoCompressionCodec(), 1);
 
-    updater.update(7);
+    updater.update(7, Collections.singleton(45));
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);
+    assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the merger got the right args
     assertEquals(LOCAL_ROOT + "/00005.base.cueball", merger.latestBase);
@@ -97,7 +100,7 @@ public class TestCueballUpdater extends BaseTestCase {
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
         merger, new NoCompressionCodec(), 1);
 
-    updater.update(7);
+    updater.update(7, null);
 
     // make sure fetcher got the right args
     assertEquals(5, fetcher.latestLocalVersion);
