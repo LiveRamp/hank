@@ -75,4 +75,6 @@ public interface Domain {
    * @throws IOException
    */
   public long getTotalNumBytes() throws IOException;
+
+  public DomainVersion getVersionByNumber(int versionNumber) throws IOException;
 }
