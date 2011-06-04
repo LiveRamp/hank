@@ -89,7 +89,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private void loadDomainConfig(FlowProcess flowProcess) {
       if (domain == null) {
-        domain = DomainBuilderProperties.getDomain(flowProcess);
+        domain = DomainBuilderProperties.getDomain(domainName, flowProcess);
       }
     }
   }

@@ -163,8 +163,7 @@ public class DomainBuilderProperties {
   // TODO: maybe refactor and move the flow process stuff to the cascading package
 
   // FlowProcess
-  public static Domain getDomain(FlowProcess flowProcess) {
-    String domainName = getDomainName(flowProcess);
+  public static Domain getDomain(String domainName, FlowProcess flowProcess) {
     return getConfigurator(flowProcess).getCoordinator().getDomain(domainName);
   }
 
