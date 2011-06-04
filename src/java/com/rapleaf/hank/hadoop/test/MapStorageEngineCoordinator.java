@@ -37,7 +37,7 @@ import java.util.Map;
 public class MapStorageEngineCoordinator extends MockCoordinator {
 
   private int numPartitions = 1;
-  private Map<String, Object> globalOptions = null;
+  private Map<String, Object> globalOptions = new HashMap<String, Object>();
 
   MapStorageEngineCoordinator(Map<String, Object> options) {
     super(options);
@@ -60,9 +60,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
     if (MapStorageEngine.getOptions(domainName) != null) {
       domainOptions.putAll(MapStorageEngine.getOptions(domainName));
     }
-    if (globalOptions != null) {
-      domainOptions.putAll(globalOptions);
-    }
+    domainOptions.putAll(globalOptions);
     return new MockDomain(domainName,
         this.numPartitions,
         new ModPartitioner(),
