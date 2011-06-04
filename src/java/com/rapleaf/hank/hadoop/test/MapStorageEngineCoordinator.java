@@ -25,16 +25,19 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {
 
   private int numPartitions = 1;
+  private Map<String, Object> globalOptions = null;
 
   MapStorageEngineCoordinator(Map<String, Object> options) {
     super(options);
@@ -43,16 +46,28 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
       if (numPartitions != null) {
         this.numPartitions = numPartitions;
       }
+      String remoteDomainRoot = (String) options.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
+      if (remoteDomainRoot != null) {
+        this.globalOptions.put(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION, remoteDomainRoot);
+      }
     }
   }
 
   @Override
   public Domain getDomain(String domainName) {
+    // Build domain options from MapStorageEngine options and globalOptions
+    Map<String, Object> domainOptions = new HashMap<String, Object>();
+    if (MapStorageEngine.getOptions(domainName) != null) {
+      domainOptions.putAll(MapStorageEngine.getOptions(domainName));
+    }
+    if (globalOptions != null) {
+      domainOptions.putAll(globalOptions);
+    }
     return new MockDomain(domainName,
         this.numPartitions,
         new ModPartitioner(),
         new MapStorageEngine(domainName),
-        MapStorageEngine.getOptions(domainName), new MockDomainVersion(0, null));
+        domainOptions, new MockDomainVersion(0, null));
   }
 
   static public Configurator getConfigurator(int numPartitions) {
