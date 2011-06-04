@@ -164,16 +164,10 @@ public class DomainBuilderProperties {
 
   // FlowProcess
   public static Domain getDomain(String domainName, FlowProcess flowProcess) {
-    return getConfigurator(flowProcess).getCoordinator().getDomain(domainName);
+    return getConfigurator(domainName, flowProcess).getCoordinator().getDomain(domainName);
   }
 
-  public static String getDomainName(FlowProcess flowProcess) {
-    return getRequiredConfigurationItem(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME,
-        "Hank domain name", flowProcess);
-  }
-
-  public static Configurator getConfigurator(FlowProcess flowProcess) {
-    String domainName = getDomainName(flowProcess);
+  public static Configurator getConfigurator(String domainName, FlowProcess flowProcess) {
     String configurationItem = DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATOR);
     String configuratorString = getRequiredConfigurationItem(configurationItem,
