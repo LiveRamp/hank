@@ -24,7 +24,6 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import com.rapleaf.hank.hadoop.DomainBuilderPropertiesConfigurator;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -50,7 +49,7 @@ public class CascadingDomainBuilder {
                                 String keyFieldName,
                                 String valueFieldName) {
     // Load domain
-    this.domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
+    this.domain = properties.getDomain();
     this.properties = properties;
     this.pipe = pipe;
     this.keyFieldName = keyFieldName;

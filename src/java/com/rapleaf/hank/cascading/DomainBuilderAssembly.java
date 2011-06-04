@@ -27,8 +27,8 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 
@@ -89,8 +89,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     private void loadDomainConfig(FlowProcess flowProcess) {
       if (domain == null) {
-        Configurator configurator = new CascadingOperationConfigurator(domainName, flowProcess);
-        domain = configurator.getCoordinator().getDomain(domainName);
+        domain = DomainBuilderProperties.getDomain(flowProcess);
       }
     }
   }

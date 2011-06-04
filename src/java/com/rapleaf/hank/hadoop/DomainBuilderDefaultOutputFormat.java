@@ -48,7 +48,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     String domainName = DomainBuilderProperties.getDomainName(conf);
     VersionType versionType = DomainBuilderProperties.getVersionType(domainName, conf);
     // Load config
-    Domain domain = JobConfConfigurator.getDomain(domainName, conf);
+    Domain domain = DomainBuilderProperties.getDomain(conf);
     // Build RecordWriter with the Domain
     return new DomainBuilderRecordWriter(domain, versionType, new HDFSOutputStreamFactory(fs, outputPath));
   }

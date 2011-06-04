@@ -16,6 +16,9 @@
 
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
@@ -66,13 +69,11 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
     @Override
     public long getNumBytesWritten() {
-      // TODO Auto-generated method stub
       return 0;
     }
 
     @Override
     public long getNumRecordsWritten() {
-      // TODO Auto-generated method stub
       return 0;
     }
   }
@@ -115,7 +116,13 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
     return new MockDomain(domainName, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null, new MockDomainVersion(0, null));
   }
 
-  static public String getConfiguration(int numPartitions) {
-    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator$Factory\n  options:\n    num_partitions: " + numPartitions + "\n";
+  static public Configurator getConfigurator(int numPartitions) {
+    YamlClientConfigurator configurator = new YamlClientConfigurator();
+    try {
+      configurator.loadFromYaml("coordinator:\n  factory: com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator$Factory\n  options:\n    num_partitions: " + numPartitions + "\n");
+    } catch (InvalidConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+    return configurator;
   }
 }

@@ -16,6 +16,9 @@
 
 package com.rapleaf.hank.hadoop.test;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
@@ -52,11 +55,17 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
         MapStorageEngine.getOptions(domainName), new MockDomainVersion(0, null));
   }
 
-  static public String getConfiguration(int numPartitions) {
+  static public Configurator getConfigurator(int numPartitions) {
     if (numPartitions < 1) {
       throw new RuntimeException("Number of partitions must be > 0 instead of " + numPartitions);
     }
-    return "coordinator:\n  factory: com.rapleaf.hank.hadoop.test.MapStorageEngineCoordinator$Factory\n  options:\n    numPartitions: " + numPartitions + "\n";
+    YamlClientConfigurator configurator = new YamlClientConfigurator();
+    try {
+      configurator.loadFromYaml("coordinator:\n  factory: com.rapleaf.hank.hadoop.test.MapStorageEngineCoordinator$Factory\n  options:\n    numPartitions: " + numPartitions + "\n");
+    } catch (InvalidConfigurationException e) {
+      throw new RuntimeException(e);
+    }
+    return configurator;
   }
 
   private static class ModPartitioner implements Partitioner {

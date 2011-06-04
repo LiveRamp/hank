@@ -22,9 +22,7 @@ import com.rapleaf.hank.storage.map.MapStorageEngine;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.hadoop.mapred.TextInputFormat;
 
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.nio.ByteBuffer;
 
 
@@ -33,8 +31,6 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
   private final String DOMAIN_A_NAME = "a";
   private final String INPUT_PATH_A = INPUT_DIR + "/" + DOMAIN_A_NAME;
 
-  private final String CONFIG_PATH = localTmpDir + "/config";
-
   public TestMapStorageEngineCoordinator() throws IOException {
     super(TestMapStorageEngineCoordinator.class);
   }
@@ -42,18 +38,13 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    // Create config
-    PrintWriter pw = new PrintWriter(new FileWriter(CONFIG_PATH));
-    pw.write(MapStorageEngineCoordinator.getConfiguration(1));
-    pw.close();
-
     // Create inputs
     outputFile(fs, INPUT_PATH_A, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
   }
 
   public void testOutput() throws IOException {
     HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class,
-        new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfiguration(1), "/a", DomainBuilderEmptyOutputFormat.class));
+        new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfigurator(1), "/a", DomainBuilderEmptyOutputFormat.class));
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions(DOMAIN_A_NAME).size());

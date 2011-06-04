@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
@@ -30,9 +29,7 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
   private Domain domain;
 
   public void configure(JobConf conf) {
-    String domainName = DomainBuilderProperties.getDomainName(conf);
-    Configurator configurator = new JobConfConfigurator(conf);
-    domain = configurator.getCoordinator().getDomain(domainName);
+    domain = DomainBuilderProperties.getDomain(conf);
   }
 
   public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {

@@ -36,18 +36,17 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    String domainName = DomainBuilderProperties.getDomainName(conf);
-    Domain domain = JobConfConfigurator.getDomain(domainName, conf);
-      // Always return a no-op OutputStream
+    Domain domain = DomainBuilderProperties.getDomain(conf);
+    // Always return a no-op OutputStream
     return new DomainBuilderRecordWriter(domain, VersionType.BASE, new OutputStreamFactory() {
-        public OutputStream getOutputStream(int partNum, String name)
-            throws IOException {
-          return new OutputStream() {
-            @Override
-            public void write(int x) throws IOException {
-            }
-          };
-        }
-      });
+      public OutputStream getOutputStream(int partNum, String name)
+          throws IOException {
+        return new OutputStream() {
+          @Override
+          public void write(int x) throws IOException {
+          }
+        };
+      }
+    });
   }
 }

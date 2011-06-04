@@ -16,35 +16,35 @@
 
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.VersionType;
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 
 public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static final void run(String domainName, VersionType versionType, String coordinatorConfigurationPath, String inputPath, String outputPath) throws IOException {
-    LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + coordinatorConfigurationPath);
-    String coordinatorConfiguration = FileUtils.readFileToString(new File(coordinatorConfigurationPath));
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, coordinatorConfiguration, outputPath);
+  public static void run(String domainName, VersionType versionType, Configurator configurator, String inputPath, String outputPath) throws IOException {
+    LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + configurator);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
   }
 
-  public static final void buildHankDomain(
+  public static void buildHankDomain(
       String inputPath,
       Class<? extends InputFormat> inputFormatClass,
       Class<? extends DomainBuilderMapper> mapperClass,
       DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
-    Domain domain = DomainBuilderPropertiesConfigurator.getDomain(properties);
+    Domain domain = properties.getDomain();
     DomainVersion domainVersion = domain.openNewVersion();
     if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
@@ -92,7 +92,7 @@ public class HadoopDomainBuilder {
     // Output format
     conf.setOutputFormat(properties.getOutputFormatClass());
     // Output path (set to tmp output path)
-    FileOutputFormat.setOutputPath(conf, new Path(properties.getTmpOutputPath(versionNumber )));
+    FileOutputFormat.setOutputPath(conf, new Path(properties.getTmpOutputPath(versionNumber)));
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
     // Output Committer
@@ -102,11 +102,11 @@ public class HadoopDomainBuilder {
     return conf;
   }
 
-  public static final void main(String[] args) throws IOException {
+  public static void main(String[] args) throws IOException, InvalidConfigurationException {
     if (args.length != 5) {
       LOG.fatal("Usage: HadoopDomainBuilder <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
       System.exit(1);
     }
-    run(args[0], VersionType.fromString(args[1]), args[2], args[3], args[4]);
+    run(args[0], VersionType.fromString(args[1]), new YamlClientConfigurator(args[2]), args[3], args[4]);
   }
 }
