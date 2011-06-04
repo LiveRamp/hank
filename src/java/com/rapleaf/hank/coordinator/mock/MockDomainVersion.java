@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.mock;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 
+import java.io.IOException;
 import java.util.Set;
 
 public class MockDomainVersion extends AbstractDomainVersion {
@@ -48,5 +49,17 @@ public class MockDomainVersion extends AbstractDomainVersion {
 
   public Set<PartitionInfo> getPartitionInfos() {
     return null;
+  }
+
+  @Override
+  public boolean isDefunct() throws IOException {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void setDefunct(boolean isDefunct) throws IOException {
+    // TODO Auto-generated method stub
+    
   }
 }

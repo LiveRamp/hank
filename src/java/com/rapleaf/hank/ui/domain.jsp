@@ -97,6 +97,7 @@
     <th>status</th>
     <th>size</th>
     <th># records</th>
+    <th></th>
   </tr>
   <%
     SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
@@ -109,13 +110,24 @@
     <td><%= version.getVersionNumber() %></td>
     <td>
       <% if (version.isClosed()) { %>
-      Closed <%= new Date(version.getClosedAt())%>
+      Closed
+      <%   if (version.isDefunct()) { %>
+      DEFUNCT
+      <%   } %>
+      <%= new Date(version.getClosedAt())%>
       <% } else { %>
       Open - <%= version.getPartitionInfos().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
     </td>
     <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
     <td><%= String.format("%,d", version.getTotalNumRecords()) %></td>
+    <td>
+      <form action="/domain/defunctify" method="post">
+        <input type=hidden name="n" value="<%= domain.getName() %>" />
+        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
+        <input type=submit value="mark defunct" />
+      </form>
+    </td>
   </tr>
   <% } %>
 </table>

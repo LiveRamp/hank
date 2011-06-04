@@ -16,16 +16,19 @@
 package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.rapleaf.hank.storage.Updater;
 
 public class MockUpdater implements Updater {
   private boolean updated = false;
   public Integer updatedToVersion = null;
+  public Set<Integer> excludeVersions;
 
   @Override
-  public void update(int toVersion) throws IOException {
+  public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
     updatedToVersion = toVersion;
+    this.excludeVersions = excludeVersions;
     setUpdated(true);
   }
 

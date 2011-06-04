@@ -41,4 +41,13 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public long getTotalNumBytes() throws IOException;
 
   public long getTotalNumRecords() throws IOException;
+
+  /**
+   * A defunct version should not be used or deployed.
+   * @return
+   * @throws IOException
+   */
+  public boolean isDefunct() throws IOException;
+
+  public void setDefunct(boolean isDefunct) throws IOException;
 }

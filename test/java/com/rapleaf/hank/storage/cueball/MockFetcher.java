@@ -13,18 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-/**
- * 
- */
 package com.rapleaf.hank.storage.cueball;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 public class MockFetcher implements IFetcher {
   public int latestLocalVersion;
   private String[] localFilesToCreate;
   private final String localRoot;
+  public Set<Integer> excludeVersions;
 
   public MockFetcher(String localRoot, String ... localFilesToCreate) {
     this.localRoot = localRoot;
@@ -32,8 +31,9 @@ public class MockFetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int fromVersion, int toVersion) throws IOException {
+  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException {
     this.latestLocalVersion = fromVersion;
+    this.excludeVersions = excludeVersions;
     for (String s : localFilesToCreate) {
       new File(localRoot + "/" + s).createNewFile();
     }
