@@ -267,7 +267,7 @@ public class DomainBuilderProperties {
     }
     String result = (String) options.get(REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
     if (result == null) {
-      throw new RuntimeException("Could not load configuration item: " + REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
+      throw new RuntimeException("Could not load option: " + REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
     }
     return result;
   }
