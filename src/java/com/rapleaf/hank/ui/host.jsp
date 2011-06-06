@@ -19,6 +19,15 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Host: <%= host.getAddress() %></title>
   <jsp:include page="_head.jsp" />
+
+  <style type="text/css">
+    td.unassigned {background-color: #ddd}
+    td.undeployed {background-color: #f00}
+    td.updating {background-color: #00f}
+    td.updated {background-color: #0f0}
+
+    div.part_assignment_visualization {float:left; padding: 3px}
+  </style>
 </head>
 <body>
 
@@ -70,10 +79,74 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
     <input type=submit value="Add"/>
   </form>
 
+  <div style="border: 1px solid #ddd; width: 200px">
+    <table style="font-size: 8px">
+      <tr>
+        <td colspan=2 align=center style="border-bottom: 1px solid #ddd">Legend</td>
+      </tr>
+      <tr>
+        <td class="unassigned" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td>Not assigned</td>
+      </tr>
+      <tr>
+        <td class="undeployed" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td>Assigned, no version deployed</td>
+      </tr>
+      <tr>
+        <td class="updating" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td>Assigned, some version deployed, update pending</td>
+      </tr>
+      <tr>
+        <td class="updated" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td>Assigned, latest version deployed</td>
+      </tr>
+    </table>
+  </div>
+  <%
+    List<HostDomain> hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
+    Collections.sort(hostDomains);
+    for (HostDomain hdc : hostDomains) {
+      Domain domain = ringGroup.getDomainGroup().getDomain(hdc.getDomainId());
+      int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
+  %>
+  <div class="part_assignment_visualization">
+    <div><%= domain.getName() %></div>
+    <div>
+      <table cellspacing=1 cellpadding=0>
+      <% 
+      for (int i = 0; i < domain.getNumParts(); i++) { 
+        String className = "unassigned";
+        HostDomainPartition hdp = hdc.getPartitionByNumber(i);
+        if (hdp != null) {
+          if (hdp.getCurrentDomainGroupVersion() == null) {
+            className = "undeployed";
+          } else if (hdp.getUpdatingToDomainGroupVersion() != null) {
+            className = "updating";
+          } else {
+            className = "updated";
+          }
+        }
+      %>
+        <% if (i % squareDim == 0) { %>
+        <tr>
+        <% } %>
+          <td class="<%= className %>" style="font-size: 0px; width: 4px; height: 4px;" title="<%= i %>">&nbsp;</td>
+        <% if (i % squareDim == squareDim - 1) { %>
+        </tr>
+        <% } %>
+      <% } %>
+      </table>
+    </div>
+  </div>
+  <% } %>
+
+
+  <div style="clear:both"></div>
+
   <table class="table-blue">
     <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th></tr>
   <%
-    List<HostDomain> hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
+    hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
     Collections.sort(hostDomains);
     for (HostDomain hdc : hostDomains) {
   %>
