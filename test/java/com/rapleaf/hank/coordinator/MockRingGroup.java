@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.util.Set;
 
 public class MockRingGroup implements RingGroup {
-
   private final DomainGroup dcg;
   private final String name;
   private final Set<Ring> ringConfigs;
@@ -29,7 +28,6 @@ public class MockRingGroup implements RingGroup {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;
-    
   }
 
   @Override
@@ -101,7 +99,6 @@ public class MockRingGroup implements RingGroup {
 
   @Override
   public boolean isDataDeployerOnline() throws IOException {
-    // TODO Auto-generated method stub
     return false;
   }
 }

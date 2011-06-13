@@ -32,7 +32,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
@@ -228,18 +227,18 @@ public class ZkTestCase extends BaseTestCase {
     }
   }
 
-  // TODO: this is inefficient. tokenize on / and then just make all the nodes
-  // iteratively.
   protected void createNodeRecursively(String path)
-  throws InterruptedException {
-    try {
-      zk.create(path, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    } catch (KeeperException.NoNodeException e) {
-      String parentPath = path.substring(0, path.lastIndexOf('/'));
-      createNodeRecursively(parentPath);
-      createNodeRecursively(path);
-    } catch (KeeperException e) {
-      LOG.warn(e);
+  throws InterruptedException, Exception {
+    String[] toks = path.split("/");
+    String newPath = "/";
+    for (int i = 0; i < toks.length; i++) {
+      newPath += toks[i];
+      if (zk.exists(newPath, false) == null) {
+        zk.create(newPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
+      if (i != 0) {
+        newPath += "/";
+      }
     }
   }
 

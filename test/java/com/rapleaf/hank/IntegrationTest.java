@@ -125,7 +125,6 @@ public class IntegrationTest extends ZkTestCase {
       this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("---");
       pw.println("partserv:");
       pw.println("  service_port: " + addy.getPortNumber());
       pw.println("  ring_group_name: rg1");
@@ -153,7 +152,6 @@ public class IntegrationTest extends ZkTestCase {
     public void pleaseStop() throws Exception {
       server.stop();
     }
-
   }
 
   private static final Logger LOG = Logger.getLogger(IntegrationTest.class);
@@ -182,7 +180,6 @@ public class IntegrationTest extends ZkTestCase {
     create(ringGroupsRoot);
 
     PrintWriter pw = new PrintWriter(new FileWriter(clientConfigYml));
-    pw.println("---");
     pw.println("coordinator:");
     pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
     pw.println("  options:");
@@ -194,7 +191,6 @@ public class IntegrationTest extends ZkTestCase {
     pw.close();
 
     pw = new PrintWriter(new FileWriter(domain0OptsYml));
-    pw.println("---");
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
@@ -213,7 +209,6 @@ public class IntegrationTest extends ZkTestCase {
         "--initial-version", "1"});
 
     pw = new PrintWriter(new FileWriter(domain1OptsYml));
-    pw.println("---");
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
@@ -333,8 +328,6 @@ public class IntegrationTest extends ZkTestCase {
     // launch the data deployer
     startDataDeployer();
 
-    //    Thread.sleep(100000000);
-
     // launch a smart client server
     startSmartClientServer();
 
@@ -388,8 +381,6 @@ public class IntegrationTest extends ZkTestCase {
     versionMap.put("domain1", 2);
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
-
-    //    dumpZk();
 
     // wait until the rings have been updated to the new version
     coord = config.getCoordinator();
