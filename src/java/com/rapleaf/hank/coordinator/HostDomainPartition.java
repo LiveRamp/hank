@@ -32,7 +32,7 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public long removeCount(String countID) throws IOException;
   public void setCount(String countID, long count) throws IOException;
   public long getCount(String countID) throws IOException;
-  public boolean isCount(String countID) throws IOException;
+  public boolean hasCount(String countID) throws IOException;
   public Set<String> getCountKeys() throws IOException;
   
 }

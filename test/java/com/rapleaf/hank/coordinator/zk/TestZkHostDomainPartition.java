@@ -50,11 +50,11 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     currentCountKeys.remove("Random Count");
     assertTrue(hdpc.getCountKeys().equals(new HashSet<String>(currentCountKeys)));
     
-    assertTrue(hdpc.isCount("Total Count"));
+    assertTrue(hdpc.hasCount("Total Count"));
     
-    assertFalse(hdpc.isCount("Random Count"));
+    assertFalse(hdpc.hasCount("Random Count"));
     
-    assertFalse(hdpc.isCount("New Count"));
+    assertFalse(hdpc.hasCount("New Count"));
     
   }
 }
