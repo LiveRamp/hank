@@ -15,6 +15,9 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.rapleaf.hank.ZkTestCase;
 
 public class TestZkHostDomainPartition extends ZkTestCase {
@@ -32,5 +35,26 @@ public class TestZkHostDomainPartition extends ZkTestCase {
 
     hdpc.setUpdatingToDomainGroupVersion(null);
     assertNull(hdpc.getUpdatingToDomainGroupVersion());
+    
+    Set<String> currentCountKeys = new HashSet<String>();
+    hdpc.addCount("Total Hits");
+    currentCountKeys.add("Total Hits");
+    hdpc.setCount("Total Hits", 45);
+    assertEquals(45, hdpc.getCount("Total Hits"));
+    
+    hdpc.addCount("Random Count");
+    currentCountKeys.add("Random Count");
+    assertTrue(hdpc.getCountKeys().equals(new HashSet<String>(currentCountKeys)));
+    
+    hdpc.removeCount("Random Count");
+    currentCountKeys.remove("Random Count");
+    assertTrue(hdpc.getCountKeys().equals(new HashSet<String>(currentCountKeys)));
+    
+    assertTrue(hdpc.isCount("Total Count"));
+    
+    assertFalse(hdpc.isCount("Random Count"));
+    
+    assertFalse(hdpc.isCount("New Count"));
+    
   }
 }
