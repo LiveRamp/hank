@@ -43,7 +43,7 @@ public class RandomSaturator {
       this.numReqs = numReqs;
       this.numBytes = numBytes;
       this.lock = lock;
-      client = new HankSmartClient(coordinator, ringGroupName);
+      client = new HankSmartClient(coordinator, ringGroupName, 1);
     }
 
     @Override
