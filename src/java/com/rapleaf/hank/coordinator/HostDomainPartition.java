@@ -16,7 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Info about a partition within a given HostDomain.
@@ -31,6 +31,6 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public void removeCount(String countID) throws IOException;
   public void setCount(String countID, long count) throws IOException;
   public Long getCount(String countID) throws IOException;
-  public List<String> getCountKeys() throws IOException;
+  public Set<String> getCountKeys() throws IOException;
   
 }

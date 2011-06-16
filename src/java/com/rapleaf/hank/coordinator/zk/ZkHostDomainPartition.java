@@ -16,7 +16,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -97,7 +98,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion, CreateMode.PERSISTENT);
-      zk.create(hdpPath + "/counters", 0, CreateMode.PERSISTENT);
+      zk.create(hdpPath + "/counters", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
       throw new IOException(e);
@@ -139,9 +140,9 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public List<String> getCountKeys() throws IOException {
+  public Set<String> getCountKeys() throws IOException {
     try {
-      return zk.getChildren(countersPath, false);
+      return new HashSet<String>(zk.getChildren(countersPath, false));
     } catch (Exception e) {
       throw new IOException(e);
     }
