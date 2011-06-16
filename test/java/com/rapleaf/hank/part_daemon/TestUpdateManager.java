@@ -18,6 +18,7 @@ package com.rapleaf.hank.part_daemon;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -102,6 +103,30 @@ public class TestUpdateManager extends BaseTestCase {
     @Override
     public Integer getCurrentDomainGroupVersion() throws IOException {
       return currentVersion;
+    }
+
+    @Override
+    public void removeCount(String countID) throws IOException {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public void setCount(String countID, long count) throws IOException {
+      // TODO Auto-generated method stub
+      
+    }
+
+    @Override
+    public Long getCount(String countID) throws IOException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public List<String> getCountKeys() throws IOException {
+      // TODO Auto-generated method stub
+      return null;
     }
   };
 

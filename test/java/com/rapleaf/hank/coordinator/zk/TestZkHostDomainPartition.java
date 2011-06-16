@@ -15,8 +15,9 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import com.rapleaf.hank.ZkTestCase;
 
@@ -36,25 +37,24 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     hdpc.setUpdatingToDomainGroupVersion(null);
     assertNull(hdpc.getUpdatingToDomainGroupVersion());
     
-    Set<String> currentCountKeys = new HashSet<String>();
-    hdpc.addCount("Total Hits");
-    currentCountKeys.add("Total Hits");
-    hdpc.setCount("Total Hits", 45);
-    assertEquals(45, hdpc.getCount("Total Hits"));
+    List<String> currentCountKeys = new ArrayList<String>();
+    hdpc.setCount("TotalHits", 45);
+    currentCountKeys.add("TotalHits");
+    assertEquals(new Long(45), hdpc.getCount("TotalHits"));
     
-    hdpc.addCount("Random Count");
-    currentCountKeys.add("Random Count");
-    assertTrue(hdpc.getCountKeys().equals(new HashSet<String>(currentCountKeys)));
+    hdpc.setCount("RandomCount", 1);
+    currentCountKeys.add("RandomCount");
+    assertTrue(hdpc.getCountKeys().containsAll(currentCountKeys) && hdpc.getCountKeys().size() == currentCountKeys.size());
     
-    hdpc.removeCount("Random Count");
-    currentCountKeys.remove("Random Count");
-    assertTrue(hdpc.getCountKeys().equals(new HashSet<String>(currentCountKeys)));
+    hdpc.removeCount("RandomCount");
+    currentCountKeys.remove("RandomCount");
+    assertTrue(hdpc.getCountKeys().containsAll(currentCountKeys) && hdpc.getCountKeys().size() == currentCountKeys.size());
     
-    assertTrue(hdpc.hasCount("Total Count"));
+    assertNotNull(hdpc.getCount("TotalHits"));
     
-    assertFalse(hdpc.hasCount("Random Count"));
+    assertNull(hdpc.getCount("RandomCount"));
     
-    assertFalse(hdpc.hasCount("New Count"));
+    assertNull(hdpc.getCount("NewCount"));
     
   }
 }

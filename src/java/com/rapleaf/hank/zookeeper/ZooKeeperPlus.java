@@ -66,6 +66,10 @@ public class ZooKeeperPlus extends ZooKeeper {
   public void setOrCreate(String path, int value, CreateMode createMode) throws KeeperException, InterruptedException {
     setOrCreate(path, "" + value, createMode);
   }
+  
+  public void setOrCreate(String path, long value, CreateMode createMode) throws KeeperException, InterruptedException {
+    setOrCreate(path, "" + value, createMode);
+  }
 
   public void setOrCreate(String path, String value, CreateMode createMode) throws KeeperException, InterruptedException {
     if (exists(path, false) == null) {
