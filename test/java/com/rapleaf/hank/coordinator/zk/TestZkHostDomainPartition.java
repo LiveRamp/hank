@@ -35,7 +35,7 @@ public class TestZkHostDomainPartition extends ZkTestCase {
    
     assertEquals(false, (boolean) hdpc.isSelectedForDeletion());
     hdpc.selectForDeletion();
-    ZkHostDomainPartition hdpc2 = ZkHostDomainPartition.create(getZk(), getRoot(), 1234, 7);
+    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), getRoot() + "/" + 1234);
     assertEquals(true, (boolean) hdpc2.isSelectedForDeletion());
   }
 }
