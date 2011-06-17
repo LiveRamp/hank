@@ -32,5 +32,8 @@ public class TestZkHostDomainPartition extends ZkTestCase {
 
     hdpc.setUpdatingToDomainGroupVersion(null);
     assertNull(hdpc.getUpdatingToDomainGroupVersion());
+    assertEquals(false, (boolean) hdpc.isSelectedForDeletion());
+    hdpc.selectForDeletion();
+    assertEquals(true, (boolean) hdpc.isSelectedForDeletion());
   }
 }

@@ -78,6 +78,7 @@ public class TestUpdateManager extends BaseTestCase {
   private static final HostDomainPartition HOST_DOMAIN_PARTITION = new AbstractHostDomainPartition() {
     private Integer updatingToVersion = 1;
     private Integer currentVersion = 0;
+    private Boolean isSelectedForDeletion = false;
 
     @Override
     public void setUpdatingToDomainGroupVersion(Integer version) throws IOException {
@@ -102,6 +103,16 @@ public class TestUpdateManager extends BaseTestCase {
     @Override
     public Integer getCurrentDomainGroupVersion() throws IOException {
       return currentVersion;
+    }
+
+    @Override
+    public Boolean isSelectedForDeletion() throws IOException {
+      return isSelectedForDeletion;
+    }
+
+    @Override
+    public void selectForDeletion() throws IOException {
+      isSelectedForDeletion = true;
     }
   };
 

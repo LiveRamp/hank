@@ -25,6 +25,7 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
+  private static final String SELECTED_FOR_DELETION_PATH_SEGMENT = "/selected_for_deletion";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
@@ -64,6 +65,18 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     }
     return null;
   }
+  
+  @Override
+  public Boolean isSelectedForDeletion() throws IOException {
+    try {
+      if (zk.exists(path + SELECTED_FOR_DELETION_PATH_SEGMENT, false) != null) {
+        return true;
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    return null;
+  }
 
   @Override
   public void setCurrentDomainGroupVersion(int version) throws IOException {
@@ -84,6 +97,16 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         return;
       }
       zk.setOrCreate(p, version, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+  
+  @Override
+  public void selectForDeletion() throws IOException {
+    try {
+      String p = path + SELECTED_FOR_DELETION_PATH_SEGMENT;
+      zk.setOrCreate(p, 0, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
     }

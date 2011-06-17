@@ -23,11 +23,13 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   private final int curVer;
   private final int nextVer;
   public int updatingToVersion;
+  private Boolean isSelectedForDeletion;
 
   public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
     this.curVer = curVer;
     this.nextVer = nextVer;
+    isSelectedForDeletion = false;
   }
 
   @Override
@@ -51,5 +53,15 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setUpdatingToDomainGroupVersion(Integer version) {
     updatingToVersion = version;
+  }
+
+  @Override
+  public Boolean isSelectedForDeletion() throws IOException {
+    return isSelectedForDeletion;
+  }
+
+  @Override
+  public void selectForDeletion() throws IOException {
+    isSelectedForDeletion = true;
   }
 }
