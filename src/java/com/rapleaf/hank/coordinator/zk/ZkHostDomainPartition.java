@@ -18,7 +18,6 @@ package com.rapleaf.hank.coordinator.zk;
 import java.io.IOException;
 
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
@@ -26,9 +25,7 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
-  private static final String SELECTED_FOR_DELETION_PATH_SEGMENT = "/selected_for_deletion";
-  private final static int DELETABLE = 1;
-  private final static int UNDELETABLE = 0;
+  private static final String DELETABLE_PATH_SEGMENT = "/selected_for_deletion";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
@@ -72,10 +69,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public boolean isDeletable() throws IOException {
     try {
-      if (zk.exists(path + SELECTED_FOR_DELETION_PATH_SEGMENT, false) != null)
-        return (zk.getInt(path + SELECTED_FOR_DELETION_PATH_SEGMENT) == DELETABLE);
-      else
-        return false;
+      return (zk.exists(path + DELETABLE_PATH_SEGMENT, false) != null);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -108,8 +102,11 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setDeletable(boolean deletable) throws IOException {
     try {
-      String p = path + SELECTED_FOR_DELETION_PATH_SEGMENT;
-      zk.setOrCreate(p, deletable ? DELETABLE : UNDELETABLE, CreateMode.PERSISTENT);
+      String p = path + DELETABLE_PATH_SEGMENT;
+      if (deletable)
+        zk.setOrCreate(p, 0, CreateMode.PERSISTENT);
+      else
+        zk.deleteIfExists(p);
     } catch (Exception e) {
       throw new IOException(e);
     }
