@@ -224,8 +224,8 @@ public class Curly implements StorageEngine {
   @Override
   public Deleter getDeleter(PartservConfigurator configurator, int partNum)
       throws IOException {
-    // TODO Auto-generated method stub
-    return null;
+    String localDir = getLocalDir(configurator, partNum);
+    return new CurlyDeleter(localDir);
   }
 
   @Override

@@ -33,7 +33,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final ZooKeeperPlus zk;
   private final String countersPath;
 
-  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException{
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException {
     this.zk = zk;
     this.path = path;
     this.countersPath = path + "/counters";
