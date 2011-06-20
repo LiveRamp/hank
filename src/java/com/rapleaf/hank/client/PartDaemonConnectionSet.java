@@ -27,6 +27,8 @@ import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 
 public class PartDaemonConnectionSet {
+  private static final HankResponse ZERO_REPLICAS = HankResponse.xception(HankExceptions.zero_replicas(true));
+
   private static final Logger LOG = Logger.getLogger(PartDaemonConnectionSet.class);
 
   private final List<PartDaemonConnection> connections = new ArrayList<PartDaemonConnection>();
@@ -58,6 +60,6 @@ public class PartDaemonConnectionSet {
     if (numAttempts == connections.size()) {
       LOG.trace("None of the " + connections.size() + " connections are open.");
     }
-    return HankResponse.xception(HankExceptions.zero_replicas(true));
+    return ZERO_REPLICAS;
   }
 }

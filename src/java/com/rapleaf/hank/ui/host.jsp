@@ -151,7 +151,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
     for (HostDomain hdc : hostDomains) {
   %>
     <tr>
-      <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></td>
+      <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></th>
     </tr>
     <%
       for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
@@ -167,5 +167,29 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   </table>
 </div>
 
+<div>
+
+</div>
+  <h4>Counters</h4>
+  <table class="table-blue">
+    <tr><th>Counter Name</th><th>Count</th>
+    <%
+      for (HostDomain hdc : hostDomains) {
+    %>	
+      <tr>
+        <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></th>
+      </tr>
+      <% 
+        for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
+          for (String currentCountKey : hdpc.getCountKeys()) {
+      %>
+      <tr>
+        <td> <%=currentCountKey%> </td>
+        <td> <%=hdpc.getCount(currentCountKey)%> </td>
+      </tr>
+        <% } %>
+      <% } %>
+    <% } %>
+  </table>
 </body>
 </html>

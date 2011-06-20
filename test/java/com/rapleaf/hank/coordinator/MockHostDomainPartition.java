@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Set;
 
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
@@ -63,5 +64,21 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setDeletable(boolean deletable) throws IOException {
     this.deletable = deletable;
+  }
+  
+  @Override
+  public void removeCount(String countID) throws IOException {}
+
+  @Override
+  public void setCount(String countID, long count) throws IOException {}
+
+  @Override
+  public Long getCount(String countID) throws IOException {
+    return null;
+  }
+
+  @Override
+  public Set<String> getCountKeys() throws IOException {
+    return null;
   }
 }

@@ -16,16 +16,31 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * Info about a partition within a given HostDomain.
  */
 public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public int getPartNum();
+
   public Integer getCurrentDomainGroupVersion() throws IOException;
+
   public void setCurrentDomainGroupVersion(int version) throws IOException;
+
   public Integer getUpdatingToDomainGroupVersion() throws IOException;
+
   public void setUpdatingToDomainGroupVersion(Integer version) throws IOException;
+  
   public boolean isDeletable() throws IOException;
+  
   public void setDeletable(boolean deletable) throws IOException;
+
+  public void removeCount(String countID) throws IOException;
+
+  public void setCount(String countID, long count) throws IOException;
+
+  public Long getCount(String countID) throws IOException;
+
+  public Set<String> getCountKeys() throws IOException;
 }

@@ -16,6 +16,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -29,10 +31,12 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
+  private final String countersPath;
 
-  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) {
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException{
     this.zk = zk;
     this.path = path;
+    this.countersPath = path + "/counters";
     String[] toks = path.split("/");
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
   }
@@ -117,7 +121,51 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion, CreateMode.PERSISTENT);
+      zk.create(hdpPath + "/counters", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainPartition(zk, hdpPath);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void removeCount(String countID) throws IOException {
+    try {
+      String p = countersPath + "/" + countID;
+      zk.delete(p, -1);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setCount(String countID, long count) throws IOException {
+    try {
+      String p = countersPath + "/" + countID;
+      zk.setOrCreate(p, count, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public Long getCount(String countID) throws IOException {
+    Long data = null;
+    try {
+      String p = countersPath + "/" + countID;
+      if (zk.exists(p, false) != null) {
+        data = Long.parseLong(new String(zk.getData(p, false, null)));
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+    return data;
+  }
+
+  @Override
+  public Set<String> getCountKeys() throws IOException {
+    try {
+      return new HashSet<String>(zk.getChildren(countersPath, false));
     } catch (Exception e) {
       throw new IOException(e);
     }

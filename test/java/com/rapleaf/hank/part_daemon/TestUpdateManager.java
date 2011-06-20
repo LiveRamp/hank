@@ -114,6 +114,27 @@ public class TestUpdateManager extends BaseTestCase {
     public void setDeletable(boolean deletable) throws IOException {
       this.deletable = deletable;
     }
+    
+    public void removeCount(String countID) throws IOException {
+      // TODO Auto-generated method stub  
+    }
+
+    @Override
+    public void setCount(String countID, long count) throws IOException {
+      // TODO Auto-generated method stub
+    }
+
+    @Override
+    public Long getCount(String countID) throws IOException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Set<String> getCountKeys() throws IOException {
+      // TODO Auto-generated method stub
+      return null;
+    }
   };
 
   private static final HostDomain hostDomain = new AbstractHostDomain() {

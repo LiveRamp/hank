@@ -14,7 +14,6 @@ import org.apache.thrift.TException;
 import com.rapleaf.hank.client.HankSmartClient;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.HankResponse;
 
 public class RandomSaturator {
@@ -30,8 +29,7 @@ public class RandomSaturator {
     private long runStart;
     private long runEnd;
 
-    public LoadThread(Coordinator coordinator,
-        String ringGroupName,
+    public LoadThread(HankSmartClient client,
         String domainName,
         int msBetweenRequests,
         int threadNum,
@@ -43,7 +41,7 @@ public class RandomSaturator {
       this.numReqs = numReqs;
       this.numBytes = numBytes;
       this.lock = lock;
-      client = new HankSmartClient(coordinator, ringGroupName);
+      this.client = client;
     }
 
     @Override
@@ -97,10 +95,12 @@ public class RandomSaturator {
     ReadWriteLock lock = new ReentrantReadWriteLock();
     lock.writeLock().lock();
 
+    final HankSmartClient client = new HankSmartClient(configurator.getCoordinator(), ringGroupName, numThreads*3);
+
     // instantiate all the threads
     List<LoadThread> threads = new ArrayList();
     for (int i = 0; i < numThreads; i++) {
-      final LoadThread lt = new LoadThread(configurator.getCoordinator(), ringGroupName, domainName, msBetweenRequests, i, numReqs, numBytes, lock);
+      final LoadThread lt = new LoadThread(client, domainName, msBetweenRequests, i, numReqs, numBytes, lock);
       threads.add(lt);
       lt.start();
     }

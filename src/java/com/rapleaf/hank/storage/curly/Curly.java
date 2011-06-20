@@ -36,6 +36,7 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -218,6 +219,13 @@ public class Curly implements StorageEngine {
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+  
+  @Override
+  public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+      throws IOException {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   @Override
