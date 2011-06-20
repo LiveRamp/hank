@@ -170,4 +170,13 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       throw new IOException(e);
     }
   }
+
+  @Override
+  public void delete() throws IOException {
+    try {
+      zk.deleteIfExists(path);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }

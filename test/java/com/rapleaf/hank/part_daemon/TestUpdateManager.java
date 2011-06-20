@@ -135,6 +135,11 @@ public class TestUpdateManager extends BaseTestCase {
       // TODO Auto-generated method stub
       return null;
     }
+
+    @Override
+    public void delete() throws IOException {
+      // TODO Auto-generated method stub
+    }
   };
 
   private static final HostDomain hostDomain = new AbstractHostDomain() {

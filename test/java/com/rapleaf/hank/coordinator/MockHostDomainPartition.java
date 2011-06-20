@@ -81,4 +81,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public Set<String> getCountKeys() throws IOException {
     return null;
   }
+
+  @Override
+  public void delete() throws IOException {}
 }
