@@ -36,11 +36,15 @@ public class MockReader implements Reader {
 
   @Override
   public void get(ByteBuffer key, Result result) throws IOException {
-    result.requiresBufferSize(returnValue.length);
-    result.getBuffer().position(0).limit(returnValue.length);
-    result.getBuffer().put(returnValue);
-    result.getBuffer().flip();
-    result.found();
+    if (key.equals(ByteBuffer.wrap("nullKey".getBytes()))){
+      result.notFound();
+    } else {
+      result.requiresBufferSize(returnValue.length);
+      result.getBuffer().position(0).limit(returnValue.length);
+      result.getBuffer().put(returnValue);
+      result.getBuffer().flip();
+      result.found();
+    }
   }
 
   public PartservConfigurator getConfigurator() {

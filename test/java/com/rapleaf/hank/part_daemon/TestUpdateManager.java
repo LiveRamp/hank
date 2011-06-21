@@ -124,7 +124,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public List<String> getCountKeys() throws IOException {
+    public Set<String> getCountKeys() throws IOException {
       // TODO Auto-generated method stub
       return null;
     }

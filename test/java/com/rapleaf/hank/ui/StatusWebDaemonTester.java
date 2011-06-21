@@ -11,6 +11,7 @@ import java.util.Set;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.client.HankSmartClient;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
@@ -110,10 +111,6 @@ public class StatusWebDaemonTester extends ZkTestCase {
     RingGroup rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
-    
-//    new ArrayList<HostDomainPartition>(new ArrayList<HostDomain>(r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains()).get(0).getPartitions()).get(0).setCount("Penguins", 10);
-//    new ArrayList<HostDomainPartition>(new ArrayList<HostDomain>(r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains()).get(0).getPartitions()).get(0);
-//    Set<HostDomain> domains =  r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains();
 
     ClientConfigurator mockConf = new ClientConfigurator() {
       @Override
@@ -154,6 +151,9 @@ public class StatusWebDaemonTester extends ZkTestCase {
     };
     StatusWebDaemon daemon = new StatusWebDaemon(mockConf, clientCache, 12345);
     daemon.run();
+    
+    HankSmartClient client = new HankSmartClient(coord, "RG_Alpha");
+    client.get("domain0", ByteBuffer.wrap("key".getBytes()));
   }
 
   private PartDaemonAddress addy(String hostname) {
