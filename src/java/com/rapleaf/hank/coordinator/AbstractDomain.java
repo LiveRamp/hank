@@ -49,4 +49,9 @@ public abstract class AbstractDomain implements Domain {
     }
     return null;
   }
+
+  @Override
+  public int compareTo(Domain other) {
+    return getName().compareTo(other.getName());
+  }
 }
