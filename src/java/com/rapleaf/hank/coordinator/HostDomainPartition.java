@@ -43,4 +43,6 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public Long getCount(String countID) throws IOException;
 
   public Set<String> getCountKeys() throws IOException;
+  
+  public void delete() throws IOException;
 }
