@@ -76,13 +76,11 @@ class PartDaemonHandler implements Iface {
           domain.getNumParts(),
           domain.getName()));
 
-      // instantiate all the readers
-      Reader[] readers = new Reader[domain.getNumParts()];
+      // instantiate all the PartReaderAndCounters
       PartReaderAndCounters[] rdc = new PartReaderAndCounters[domain.getNumParts()];
       for (HostDomainPartition part : partitions) {
-        LOG.debug(String.format("Instantiating reader for part num %d", part.getPartNum()));
-        readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
-        rdc[part.getPartNum()] = new PartReaderAndCounters(part, readers[part.getPartNum()]);
+        LOG.debug(String.format("Instantiating PartReaderAndCounters for part num %d", part.getPartNum()));
+        rdc[part.getPartNum()] = new PartReaderAndCounters(part, eng.getReader(config, part.getPartNum()));
       }
 
       // configure and store the Domain wrapper

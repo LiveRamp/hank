@@ -51,17 +51,24 @@ class DomainReaderSet {
   public boolean get(ByteBuffer key, Result result) throws IOException {
     int partition = partitioner.partition(key, prc.length);
     PartReaderAndCounters currentPRC = prc[partition];
-    currentPRC.getRequests().getCount().incrementAndGet();
-    if (currentPRC.getReader() == null) {
+    if (currentPRC == null) {
       return false;
     }
+    // Increment requests counter
+    currentPRC.getRequests().getCount().incrementAndGet();
+    
     currentPRC.getReader().get(key, result);
     if (result.isFound()) {
+      // Increment hits counter
       currentPRC.getHits().getCount().incrementAndGet();
     }
     return true;
   }
   
+  /**
+   * This thread periodically updates the counters on the
+   * HostDomainPartition with the values in the cached counters
+   */
   class UpdateCounts implements Runnable {
     public void run() {
       while(true) {
