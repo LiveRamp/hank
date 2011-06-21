@@ -4,6 +4,7 @@
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.net.*"%>
+<%@page import="java.util.*"%>
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
@@ -31,7 +32,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Storage Engine</th>
     </tr>
     <%
-      for (Domain domain : coord.getDomains()) {
+      for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
     %>
       <tr>
         <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>
