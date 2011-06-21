@@ -1,6 +1,7 @@
 package com.rapleaf.hank.storage.cueball;
 
 import java.io.File;
+import java.io.IOException;
 
 import com.rapleaf.hank.storage.Deleter;
 
@@ -12,7 +13,8 @@ public class CueballDeleter implements Deleter {
   }
   
   @Override
-  public void delete() {
-    new File(localPartitionRoot).delete();
+  public void delete() throws IOException {
+    if (!new File(localPartitionRoot).delete())
+      throw new IOException();
   }
 }
