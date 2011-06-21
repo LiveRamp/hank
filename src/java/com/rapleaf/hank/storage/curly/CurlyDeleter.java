@@ -15,6 +15,6 @@ public class CurlyDeleter implements Deleter {
   @Override
   public void delete() throws IOException {
     if (!new File(localPartitionRoot).delete())
-      throw new IOException();
+      throw new IOException("Failed to delete partition at " + localPartitionRoot);
   }
 }
