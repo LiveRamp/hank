@@ -3,10 +3,8 @@ package com.rapleaf.hank.ui;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.thrift.TException;
 
@@ -16,8 +14,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
@@ -110,10 +106,6 @@ public class StatusWebDaemonTester extends ZkTestCase {
     RingGroup rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
-    
-//    new ArrayList<HostDomainPartition>(new ArrayList<HostDomain>(r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains()).get(0).getPartitions()).get(0).setCount("Penguins", 10);
-//    new ArrayList<HostDomainPartition>(new ArrayList<HostDomain>(r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains()).get(0).getPartitions()).get(0);
-//    Set<HostDomain> domains =  r1.getHostByAddress(addy("alpha-1-1")).getAssignedDomains();
 
     ClientConfigurator mockConf = new ClientConfigurator() {
       @Override

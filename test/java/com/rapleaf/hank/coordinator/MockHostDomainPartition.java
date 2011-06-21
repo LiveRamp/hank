@@ -16,6 +16,8 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
@@ -24,7 +26,10 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   private final int curVer;
   private final int nextVer;
   public int updatingToVersion;
+
   private boolean deletable;
+
+  private Map<String, Long> counters = new HashMap<String, Long>();
 
   public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
@@ -65,21 +70,29 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public void setDeletable(boolean deletable) throws IOException {
     this.deletable = deletable;
   }
-  
-  @Override
-  public void removeCount(String countID) throws IOException {}
+
+  public void removeCount(String countID) throws IOException {
+    if (counters.containsKey(countID)) {
+      counters.remove(countID);
+    }
+  }
 
   @Override
-  public void setCount(String countID, long count) throws IOException {}
+  public void setCount(String countID, long count) throws IOException {
+    counters.put(countID, count);
+  }
 
   @Override
   public Long getCount(String countID) throws IOException {
+    if (counters.containsKey(countID)) {
+      return counters.get(countID);
+    }
     return null;
   }
 
   @Override
   public Set<String> getCountKeys() throws IOException {
-    return null;
+    return counters.keySet();
   }
 
   @Override

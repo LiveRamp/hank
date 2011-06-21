@@ -29,6 +29,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -75,22 +76,21 @@ class PartDaemonHandler implements Iface {
           domain.getNumParts(),
           domain.getName()));
 
-      // instantiate all the readers
-      Reader[] readers = new Reader[domain.getNumParts()];
+      // instantiate all the PartReaderAndCounters
+      PartReaderAndCounters[] rdc = new PartReaderAndCounters[domain.getNumParts()];
       for (HostDomainPartition part : partitions) {
-        LOG.debug(String.format("Instantiating reader for part num %d", part.getPartNum()));
-        readers[part.getPartNum()] = eng.getReader(config, part.getPartNum());
+        LOG.debug(String.format("Instantiating PartReaderAndCounters for part num %d", part.getPartNum()));
+        rdc[part.getPartNum()] = new PartReaderAndCounters(part, eng.getReader(config, part.getPartNum()));
       }
 
       // configure and store the Domain wrapper
-      domains[domainId] = new DomainReaderSet(domain.getName(), readers, domain.getPartitioner());
+      domains[domainId] = new DomainReaderSet(domain.getName(), rdc, domain.getPartitioner());
     }
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
     DomainReaderSet domain = getDomain(domainId & 0xff);
-
     if (domain == null) {
       return NO_SUCH_DOMAIN;
     }
@@ -98,6 +98,7 @@ class PartDaemonHandler implements Iface {
     try {
       if (domain.get(key, result)) {
         if (result.isFound()) {
+          
           return HankResponse.value(result.getBuffer());
         } else {
           return NOT_FOUND;
