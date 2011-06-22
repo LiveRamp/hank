@@ -102,7 +102,5 @@ public class MockHost extends AbstractHost {
 
   @Override
   public void cancelStateChangeListener(HostStateChangeListener listener) {
-    // TODO Auto-generated method stub
-    
   }
 }

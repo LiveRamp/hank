@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -43,6 +44,12 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
       int versionNumber, boolean base) throws IOException {
+    return null;
+  }
+  
+  @Override
+  public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+      throws IOException {
     return null;
   }
 

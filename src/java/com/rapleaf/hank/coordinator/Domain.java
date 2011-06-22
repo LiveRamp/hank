@@ -26,7 +26,7 @@ import java.util.SortedSet;
 /**
  * Encapsulates all the information about a given Domain.
  */
-public interface Domain {
+public interface Domain extends Comparable<Domain> {
   public String getName();
 
   /**

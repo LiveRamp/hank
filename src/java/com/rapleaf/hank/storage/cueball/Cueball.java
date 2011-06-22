@@ -34,6 +34,7 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -177,6 +178,12 @@ public class Cueball implements StorageEngine {
   public ByteBuffer getComparableKey(ByteBuffer key) {
     hasher.hash(key, keyHashBuffer.array());
     return keyHashBuffer;
+  }
+  
+  @Override
+  public Deleter getDeleter(PartservConfigurator configurator, int partNum) throws IOException {
+    String localDir = getLocalDir(configurator, partNum);
+    return new CueballDeleter(localDir);
   }
 
   static String padVersion(int ver) {

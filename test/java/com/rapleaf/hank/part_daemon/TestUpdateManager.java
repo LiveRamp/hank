@@ -18,7 +18,6 @@ package com.rapleaf.hank.part_daemon;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -79,6 +78,7 @@ public class TestUpdateManager extends BaseTestCase {
   private static final HostDomainPartition HOST_DOMAIN_PARTITION = new AbstractHostDomainPartition() {
     private Integer updatingToVersion = 1;
     private Integer currentVersion = 0;
+    private boolean deletable = false;
 
     @Override
     public void setUpdatingToDomainGroupVersion(Integer version) throws IOException {
@@ -106,15 +106,22 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
+    public boolean isDeletable() throws IOException {
+      return deletable;
+    }
+
+    @Override
+    public void setDeletable(boolean deletable) throws IOException {
+      this.deletable = deletable;
+    }
+    
     public void removeCount(String countID) throws IOException {
-      // TODO Auto-generated method stub
-      
+      // TODO Auto-generated method stub  
     }
 
     @Override
     public void setCount(String countID, long count) throws IOException {
       // TODO Auto-generated method stub
-      
     }
 
     @Override
@@ -127,6 +134,11 @@ public class TestUpdateManager extends BaseTestCase {
     public Set<String> getCountKeys() throws IOException {
       // TODO Auto-generated method stub
       return null;
+    }
+
+    @Override
+    public void delete() throws IOException {
+      // TODO Auto-generated method stub
     }
   };
 

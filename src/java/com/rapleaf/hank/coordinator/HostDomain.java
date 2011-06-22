@@ -26,5 +26,7 @@ public interface HostDomain extends Comparable<HostDomain> {
 
   public Set<HostDomainPartition> getPartitions() throws IOException;
 
+  public HostDomainPartition getPartitionByNumber(int partNum) throws IOException;
+
   public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException;
 }

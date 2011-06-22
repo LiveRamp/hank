@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import com.rapleaf.hank.config.PartservConfigurator;
 
 /**
- * Defines how to read, write, and update the data stored for a given partition.
+ * Defines how to read, write, delete, and update the data stored for a given partition.
  */
 public interface StorageEngine {
   public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException;
@@ -29,6 +29,8 @@ public interface StorageEngine {
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
 
   public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException;
+  
+  public Deleter getDeleter(PartservConfigurator configurator, int partNum) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 }

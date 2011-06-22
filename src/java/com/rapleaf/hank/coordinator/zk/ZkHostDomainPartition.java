@@ -27,12 +27,13 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
+  private static final String DELETABLE_PATH_SEGMENT = "/selected_for_deletion";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
   private final String countersPath;
 
-  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException{
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException {
     this.zk = zk;
     this.path = path;
     this.countersPath = path + "/counters";
@@ -68,6 +69,15 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     }
     return null;
   }
+  
+  @Override
+  public boolean isDeletable() throws IOException {
+    try {
+      return (zk.exists(path + DELETABLE_PATH_SEGMENT, false) != null);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 
   @Override
   public void setCurrentDomainGroupVersion(int version) throws IOException {
@@ -88,6 +98,19 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         return;
       }
       zk.setOrCreate(p, version, CreateMode.PERSISTENT);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+  
+  @Override
+  public void setDeletable(boolean deletable) throws IOException {
+    try {
+      String p = path + DELETABLE_PATH_SEGMENT;
+      if (deletable)
+        zk.setOrCreate(p, 0, CreateMode.PERSISTENT);
+      else
+        zk.deleteIfExists(p);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -143,6 +166,15 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public Set<String> getCountKeys() throws IOException {
     try {
       return new HashSet<String>(zk.getChildren(countersPath, false));
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void delete() throws IOException {
+    try {
+      zk.deleteIfExists(path);
     } catch (Exception e) {
       throw new IOException(e);
     }

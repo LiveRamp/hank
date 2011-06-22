@@ -26,13 +26,16 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   private final int curVer;
   private final int nextVer;
   public int updatingToVersion;
+
   private Map<String, Long> counters = new HashMap<String, Long>();
-  
+ 
+  private boolean deletable;
 
   public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
     this.curVer = curVer;
     this.nextVer = nextVer;
+    deletable = false;
   }
 
   @Override
@@ -57,6 +60,11 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public void setUpdatingToDomainGroupVersion(Integer version) {
     updatingToVersion = version;
   }
+  
+  @Override
+  public boolean isDeletable() throws IOException {
+    return deletable;
+  }
 
   @Override
   public void removeCount(String countID) throws IOException {
@@ -71,6 +79,11 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
+  public void setDeletable(boolean deletable) throws IOException {
+    this.deletable = deletable;
+  }
+
+  @Override
   public Long getCount(String countID) throws IOException {
     if (counters.containsKey(countID)) {
       return counters.get(countID);
@@ -82,4 +95,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public Set<String> getCountKeys() throws IOException {
     return counters.keySet();
   }
+
+  @Override
+  public void delete() throws IOException {}
 }

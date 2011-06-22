@@ -31,11 +31,17 @@ class DomainReaderSet {
   private final Partitioner partitioner;
   private final String name;
   private final PartReaderAndCounters[] prc;
+  private final int timeout;
 
   public DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner) throws IOException {
+    this(name, prc, partitioner, 60000);
+  }
+
+  DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner, int timeout) throws IOException {
     this.name = name;
     this.prc = prc;
     this.partitioner = partitioner;
+    this.timeout = timeout;
     
     UpdateCounts updater = new UpdateCounts();
     new Thread(updater).start();
@@ -55,12 +61,12 @@ class DomainReaderSet {
       return false;
     }
     // Increment requests counter
-    currentPRC.getRequests().getCount().incrementAndGet();
+    currentPRC.getRequests().incrementAndGet();
     
     currentPRC.getReader().get(key, result);
     if (result.isFound()) {
       // Increment hits counter
-      currentPRC.getHits().getCount().incrementAndGet();
+      currentPRC.getHits().incrementAndGet();
     }
     return true;
   }
@@ -80,7 +86,7 @@ class DomainReaderSet {
           }
         }
         try {
-          Thread.sleep(60000);
+          Thread.sleep(timeout);
         } catch (InterruptedException e) {
           LOG.error("Failed to sleep", e);
         }

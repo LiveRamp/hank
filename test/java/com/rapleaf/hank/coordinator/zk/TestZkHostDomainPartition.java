@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +36,11 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     hdpc.setUpdatingToDomainGroupVersion(null);
     assertNull(hdpc.getUpdatingToDomainGroupVersion());
     
+    assertEquals(false, hdpc.isDeletable());
+    hdpc.setDeletable(true);
+    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), getRoot() + "/" + 1234);
+    assertEquals(true, hdpc2.isDeletable());
+    
     Set<String> currentCountKeys = new HashSet<String>();
     hdpc.setCount("TotalHits", 45);
     currentCountKeys.add("TotalHits");
@@ -56,6 +60,5 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     assertNull(hdpc.getCount("RandomCount"));
     
     assertNull(hdpc.getCount("NewCount"));
-    
   }
 }

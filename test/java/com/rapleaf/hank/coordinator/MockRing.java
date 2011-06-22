@@ -107,7 +107,6 @@ public class MockRing extends AbstractRing {
 
   @Override
   public boolean removeHost(PartDaemonAddress address) {
-    // TODO Auto-generated method stub
     return false;
   }
 }

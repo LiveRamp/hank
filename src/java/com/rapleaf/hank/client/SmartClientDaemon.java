@@ -1,4 +1,4 @@
-/**
+/*
  *  Copyright 2011 Rapleaf
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +57,7 @@ public class SmartClientDaemon {
    */
   private void serve() throws IOException, TException {
     // set up the service handler
-    HankSmartClient handler = new HankSmartClient(coord, ringGroupName);
+    HankSmartClient handler = new HankSmartClient(coord, ringGroupName, 1);
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getPortNumber());
