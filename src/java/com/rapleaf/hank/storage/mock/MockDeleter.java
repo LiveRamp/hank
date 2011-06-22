@@ -6,8 +6,8 @@ import com.rapleaf.hank.storage.Deleter;
 
 public class MockDeleter implements Deleter {
   private final int partNum;
-  private static boolean hasDeleted = false;
-  
+  private boolean hasDeleted = false;
+
   public MockDeleter(int partNum) {
     this.partNum = partNum;
   }
@@ -16,9 +16,8 @@ public class MockDeleter implements Deleter {
   public void delete() throws IOException {
     hasDeleted = true;
   }
-  
-  public static boolean hasDeleted() {
+
+  public boolean hasDeleted() {
     return hasDeleted;
   }
-
 }
