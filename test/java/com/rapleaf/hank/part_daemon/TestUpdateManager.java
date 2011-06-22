@@ -114,9 +114,9 @@ public class TestUpdateManager extends BaseTestCase {
     public void setDeletable(boolean deletable) throws IOException {
       this.deletable = deletable;
     }
-    
+
     public void removeCount(String countID) throws IOException {
-      // TODO Auto-generated method stub  
+      // TODO Auto-generated method stub
     }
 
     @Override
