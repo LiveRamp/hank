@@ -12,7 +12,6 @@ import com.rapleaf.hank.storage.Reader;
  * CounterCache: Hits counter
  */
 public class PartReaderAndCounters {
-
   private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
   private final HostDomainPartition part;
   private final Reader reader;
@@ -39,11 +38,11 @@ public class PartReaderAndCounters {
   public Reader getReader() {
     return reader;
   }
-  
+
   public AtomicLong getRequests() {
     return requests;
   }
-  
+
   public AtomicLong getHits() {
     return hits;
   }
@@ -52,10 +51,10 @@ public class PartReaderAndCounters {
     updateCounter(requests, "Requests");
     updateCounter(hits, "Hits");
   }
-  
+
   private void updateCounter(AtomicLong counter, String counterName) throws IOException {
     long count = counter.get();
-    part.setCount(counterName, part.getCount(counterName) + count);
+    part.setCount(counterName, count);
     counter.addAndGet(-count);
   }
 }
