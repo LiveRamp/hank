@@ -33,6 +33,7 @@ class DomainReaderSet {
   private final PartReaderAndCounters[] prc;
   private final int timeout;
 
+
   public DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner) throws IOException {
     this(name, prc, partitioner, 60000);
   }
@@ -49,6 +50,7 @@ class DomainReaderSet {
 
   /**
    * Get the value for <i>key</i>, placing it in result.
+   * 
    * @param key
    * @param result
    * @return true if this partserv is actually serving the part needed
@@ -62,7 +64,6 @@ class DomainReaderSet {
     }
     // Increment requests counter
     currentPRC.getRequests().incrementAndGet();
-    
     currentPRC.getReader().get(key, result);
     if (result.isFound()) {
       // Increment hits counter
@@ -70,12 +71,12 @@ class DomainReaderSet {
     }
     return true;
   }
-  
+
   /**
-   * This thread periodically updates the counters on the
-   * HostDomainPartition with the values in the cached counters
+   * This thread periodically updates the counters on the HostDomainPartition
+   * with the values in the cached counters
    */
-  class UpdateCounts implements Runnable {
+  private class UpdateCounts implements Runnable {
     public void run() {
       while(true) {
         for (int i = 0; i < prc.length; i++) {

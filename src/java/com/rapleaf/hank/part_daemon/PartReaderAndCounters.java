@@ -2,28 +2,24 @@ package com.rapleaf.hank.part_daemon;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.log4j.Logger;
-
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.storage.Reader;
 
 /**
- * Wrapper class that stores:
- * 1. HostDomainPartition
- * 2. Reader: The Reader associated with the HostDomainPartition
- * 3. CounterCache: Requests counter
- * 4. CounterCache: Hits counter
+ * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
+ * associated with the HostDomainPartition 3. CounterCache: Requests counter 4.
+ * CounterCache: Hits counter
  */
 public class PartReaderAndCounters {
-  
+
   private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
   private final HostDomainPartition part;
   private final Reader reader;
   private final AtomicLong requests;
   private final AtomicLong hits;
-  
-  public PartReaderAndCounters (HostDomainPartition part, Reader reader) {
+
+  public PartReaderAndCounters(HostDomainPartition part, Reader reader) {
     this.part = part;
     this.reader = reader;
     requests = new AtomicLong(0);
@@ -35,11 +31,11 @@ public class PartReaderAndCounters {
       LOG.error("Counldn't set counter", e);
     }
   }
-  
-  public HostDomainPartition getHostDomainPartition(){
+
+  public HostDomainPartition getHostDomainPartition() {
     return part;
   }
-  
+
   public Reader getReader() {
     return reader;
   }
@@ -51,7 +47,7 @@ public class PartReaderAndCounters {
   public AtomicLong getHits() {
     return hits;
   }
-  
+
   public void updateCounters() throws IOException {
     updateCounter(requests, "Requests");
     updateCounter(hits, "Hits");
@@ -62,5 +58,4 @@ public class PartReaderAndCounters {
     part.setCount(counterName, part.getCount(counterName) + count);
     counter.addAndGet(-count);
   }
-  
 }

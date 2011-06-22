@@ -3,22 +3,17 @@ package com.rapleaf.hank.ui;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.client.HankSmartClient;
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
@@ -151,9 +146,6 @@ public class StatusWebDaemonTester extends ZkTestCase {
     };
     StatusWebDaemon daemon = new StatusWebDaemon(mockConf, clientCache, 12345);
     daemon.run();
-    
-    HankSmartClient client = new HankSmartClient(coord, "RG_Alpha");
-    client.get("domain0", ByteBuffer.wrap("key".getBytes()));
   }
 
   private PartDaemonAddress addy(String hostname) {
