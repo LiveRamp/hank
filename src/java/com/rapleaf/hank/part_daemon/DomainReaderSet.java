@@ -32,19 +32,26 @@ class DomainReaderSet {
   private final String name;
   private final PartReaderAndCounters[] prc;
   private final int timeout;
+  private final UpdateCounts updater;
+  private final Thread updateThread;
+  private boolean updateInProgress;
 
-  public DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner) throws IOException {
+  public DomainReaderSet(String name, PartReaderAndCounters[] prc,
+      Partitioner partitioner) throws IOException {
     this(name, prc, partitioner, 60000);
   }
 
-  DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner, int timeout) throws IOException {
+  DomainReaderSet(String name, PartReaderAndCounters[] prc,
+      Partitioner partitioner, int timeout) throws IOException {
     this.name = name;
     this.prc = prc;
     this.partitioner = partitioner;
     this.timeout = timeout;
 
-    UpdateCounts updater = new UpdateCounts();
-    new Thread(updater).start();
+    updater = new UpdateCounts();
+    updateThread = new Thread(updater);
+    updateInProgress = true;
+    updateThread.start();
   }
 
   /**
@@ -77,7 +84,7 @@ class DomainReaderSet {
    */
   private class UpdateCounts implements Runnable {
     public void run() {
-      while(true) {
+      while (updateInProgress) {
         for (int i = 0; i < prc.length; i++) {
           try {
             prc[i].updateCounters();
@@ -96,5 +103,11 @@ class DomainReaderSet {
 
   public String getName() {
     return name;
+  }
+
+  public void shutDown() throws InterruptedException {
+    updateInProgress = false;
+    updateThread.interrupt();
+    updateThread.join();
   }
 }

@@ -96,7 +96,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     processCommands();
   }
 
-  protected Iface getHandler() throws IOException {
+  protected IfaceWithShutdown getHandler() throws IOException {
     return new PartDaemonHandler(hostAddress, configurator);
   }
 
@@ -123,10 +123,11 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
    * Start serving the thrift server. doesn't return.
    * @throws TTransportException
    * @throws IOException
+   * @throws InterruptedException 
    */
-  private void startThriftServer() throws TTransportException, IOException {
+  private void startThriftServer() throws TTransportException, IOException, InterruptedException {
     // set up the service handler
-    Iface handler = getHandler();
+    IfaceWithShutdown handler = getHandler();
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
@@ -138,6 +139,8 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     LOG.debug("Launching Thrift server...");
     server.serve();
     LOG.debug("Thrift server exited.");
+    handler.shutDown();
+    LOG.debug("Handler shutdown.");
   }
 
   /**

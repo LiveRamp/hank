@@ -52,7 +52,8 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void setCurrentDomainGroupVersion(int version) {}
+  public void setCurrentDomainGroupVersion(int version) {
+  }
 
   @Override
   public void setUpdatingToDomainGroupVersion(Integer version) {
@@ -94,5 +95,6 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void delete() throws IOException {}
+  public void delete() throws IOException {
+  }
 }

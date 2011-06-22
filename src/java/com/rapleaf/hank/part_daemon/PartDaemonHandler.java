@@ -39,27 +39,33 @@ import com.rapleaf.hank.util.Bytes;
 /**
  * Implements the actual data serving logic of the PartDaemon
  */
-class PartDaemonHandler implements Iface {
-  private static final HankResponse WRONG_HOST = HankResponse.xception(HankExceptions.wrong_host(true));
+class PartDaemonHandler implements IfaceWithShutdown {
+  private static final HankResponse WRONG_HOST = HankResponse
+      .xception(HankExceptions.wrong_host(true));
 
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
 
-  private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankExceptions.no_such_domain(true));
+  private static final HankResponse NO_SUCH_DOMAIN = HankResponse
+      .xception(HankExceptions.no_such_domain(true));
 
   private final static Logger LOG = Logger.getLogger(PartDaemonHandler.class);
 
   private final DomainReaderSet[] domains;
 
-  public PartDaemonHandler(PartDaemonAddress hostAndPort, PartservConfigurator config) throws IOException {
+  public PartDaemonHandler(PartDaemonAddress hostAndPort,
+      PartservConfigurator config) throws IOException {
     // find the ring config
-    Ring ringConfig = config.getCoordinator().getRingGroupConfig(config.getRingGroupName()).getRingForHost(hostAndPort);
+    Ring ringConfig = config.getCoordinator()
+        .getRingGroupConfig(config.getRingGroupName())
+        .getRingForHost(hostAndPort);
 
     // get the domain group config for the ring
     DomainGroup domainGroup = ringConfig.getRingGroup().getDomainGroup();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
-    for (DomainGroupVersionDomainVersion dcv: domainGroup.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion()
+        .getDomainVersions()) {
       int domainId = domainGroup.getDomainId(dcv.getDomain().getName());
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
@@ -69,26 +75,32 @@ class PartDaemonHandler implements Iface {
     domains = new DomainReaderSet[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion dcv: domainGroup.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion()
+        .getDomainVersions()) {
       Domain domain = dcv.getDomain();
       StorageEngine eng = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
-      Set<HostDomainPartition> partitions = ringConfig.getHostByAddress(hostAndPort).getDomainById(domainId).getPartitions();
+      Set<HostDomainPartition> partitions = ringConfig
+          .getHostByAddress(hostAndPort).getDomainById(domainId)
+          .getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
-          partitions.size(),
-          domain.getNumParts(),
-          domain.getName()));
+          partitions.size(), domain.getNumParts(), domain.getName()));
 
       // instantiate all the PartReaderAndCounters
-      PartReaderAndCounters[] rdc = new PartReaderAndCounters[domain.getNumParts()];
+      PartReaderAndCounters[] rdc = new PartReaderAndCounters[domain
+          .getNumParts()];
       for (HostDomainPartition part : partitions) {
-        LOG.debug(String.format("Instantiating PartReaderAndCounters for part num %d", part.getPartNum()));
-        rdc[part.getPartNum()] = new PartReaderAndCounters(part, eng.getReader(config, part.getPartNum()));
+        LOG.debug(String.format(
+            "Instantiating PartReaderAndCounters for part num %d",
+            part.getPartNum()));
+        rdc[part.getPartNum()] = new PartReaderAndCounters(part, eng.getReader(
+            config, part.getPartNum()));
       }
 
       // configure and store the Domain wrapper
-      domains[domainId] = new DomainReaderSet(domain.getName(), rdc, domain.getPartitioner());
+      domains[domainId] = new DomainReaderSet(domain.getName(), rdc,
+          domain.getPartitioner());
     }
   }
 
@@ -111,10 +123,9 @@ class PartDaemonHandler implements Iface {
         return WRONG_HOST;
       }
     } catch (IOException e) {
-      String errMsg = String.format("Exception during get! Domain: %d (%s) Key: %s",
-          domainId,
-          domain.getName(),
-          Bytes.bytesToHexString(key));
+      String errMsg = String.format(
+          "Exception during get! Domain: %d (%s) Key: %s", domainId,
+          domain.getName(), Bytes.bytesToHexString(key));
       LOG.error(errMsg, e);
 
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
@@ -126,5 +137,11 @@ class PartDaemonHandler implements Iface {
       return null;
     }
     return domains[domainId];
+  }
+
+  public void shutDown() throws InterruptedException {
+    for (DomainReaderSet currentDomain : domains) {
+      currentDomain.shutDown();
+    }
   }
 }

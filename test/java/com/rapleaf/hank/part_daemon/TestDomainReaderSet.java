@@ -16,11 +16,11 @@ public class TestDomainReaderSet extends BaseTestCase {
     ByteBuffer nullKey = ByteBuffer.wrap("nullKey".getBytes());
 
     // setup DomainReaderSet
-    prc[0] = new PartReaderAndCounters(new MockHostDomainPartition(0, 1, 2), new MockReader(null,
-      1, "v".getBytes()));
+    prc[0] = new PartReaderAndCounters(new MockHostDomainPartition(0, 1, 2),
+        new MockReader(null, 1, "v".getBytes()));
     // MapPartitioner maps both 'key' and 'nullkey' to prc[0]
-    DomainReaderSet drs = new DomainReaderSet("domainReaderSet", prc, new MapPartitioner(key, 0,
-      nullKey, 0), 2000);
+    DomainReaderSet drs = new DomainReaderSet("domainReaderSet", prc,
+        new MapPartitioner(key, 0, nullKey, 0), 2000);
 
     Result result = new Result();
     drs.get(key, result);
@@ -29,15 +29,15 @@ public class TestDomainReaderSet extends BaseTestCase {
     assertEquals(prc[0].getRequests().get(), 2l);
     assertEquals(prc[0].getHits().get(), 1l);
 
-    assertEquals(prc[0].getHostDomainPartition().getCount("Requests").intValue(), 0);
-    assertEquals(prc[0].getHostDomainPartition().getCount("Hits").intValue(), 0);
+    assertEquals(prc[0].getHostDomainPartition().getCount("Requests in last minute").intValue(), 0);
+    assertEquals(prc[0].getHostDomainPartition().getCount("Hits in last minute").intValue(), 0);
 
     Thread.sleep(2500);
 
     assertEquals(prc[0].getRequests().get(), 0l);
     assertEquals(prc[0].getHits().get(), 0l);
 
-    assertEquals(prc[0].getHostDomainPartition().getCount("Requests").intValue(), 2);
-    assertEquals(prc[0].getHostDomainPartition().getCount("Hits").intValue(), 1);
+    assertEquals(prc[0].getHostDomainPartition().getCount("Requests in last minute").intValue(), 2);
+    assertEquals(prc[0].getHostDomainPartition().getCount("Hits in last minute").intValue(), 1);
   }
 }
