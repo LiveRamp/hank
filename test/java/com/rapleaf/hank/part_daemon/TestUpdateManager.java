@@ -38,6 +38,7 @@ import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -48,9 +49,12 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
+import com.rapleaf.hank.storage.mock.MockDeleter;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
+  private static boolean HOST_DOMAIN_PARTITION_DELETED = false;
+  
   private final class MRG extends MockRingGroup {
     private MRG(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
       super(dcg, name, ringConfigs);
@@ -138,7 +142,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     @Override
     public void delete() throws IOException {
-      // TODO Auto-generated method stub
+      HOST_DOMAIN_PARTITION_DELETED = true;
     }
   };
 
@@ -189,6 +193,15 @@ public class TestUpdateManager extends BaseTestCase {
     assertEquals("update() called with proper args", Integer.valueOf(0), mockUpdater.updatedToVersion);
     assertEquals("current version", Integer.valueOf(1), HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
     assertNull("updating to version", HOST_DOMAIN_PARTITION.getUpdatingToDomainGroupVersion());
+    
+    assertFalse("host domain contains the partition", MockDeleter.hasDeleted());
+    assertFalse("host domain partition has not yet been deleted", HOST_DOMAIN_PARTITION_DELETED);
+    
+    HOST_DOMAIN_PARTITION.setDeletable(true);
+    ud.update();
+    
+    assertTrue("host domain does not contain the partition", MockDeleter.hasDeleted());
+    assertTrue("host domain partition has been deleted", HOST_DOMAIN_PARTITION_DELETED);
   }
 
   private static DomainGroupVersion getMockDomainGroupConfigVersion(final StorageEngine mockStorageEngine) {

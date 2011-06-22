@@ -25,6 +25,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   private final int nextVer;
   public int updatingToVersion;
   private boolean deletable;
+  private static boolean isDeleted;
 
   public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
@@ -83,5 +84,11 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void delete() throws IOException {}
+  public void delete() throws IOException {
+    isDeleted = true;
+  }
+  
+  public static boolean isDeleted() {
+    return isDeleted;
+  }
 }
