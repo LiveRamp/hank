@@ -201,8 +201,6 @@ public class TestUpdateManager extends BaseTestCase {
     DomainGroup mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
 
     final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
-    
-    PARTITION_FOR_DELETION.setUpdatingToDomainGroupVersion(1);
 
     UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup",
       "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
