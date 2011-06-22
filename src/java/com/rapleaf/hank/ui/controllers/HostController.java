@@ -78,5 +78,7 @@ public class HostController extends Controller {
     HostDomain dc = hc.getDomainById(Integer.parseInt(req.getParameter("d")));
     HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
     pd.setDeletable(deletable);
+    
+    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEnc.encode(hc.getAddress().toString())));
   }
 }
