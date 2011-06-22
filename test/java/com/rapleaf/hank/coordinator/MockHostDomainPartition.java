@@ -58,7 +58,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public void setUpdatingToDomainGroupVersion(Integer version) {
     updatingToVersion = version;
   }
-  
+
   @Override
   public boolean isDeletable() throws IOException {
     return deletable;

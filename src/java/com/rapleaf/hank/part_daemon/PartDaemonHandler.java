@@ -15,22 +15,26 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartDaemon.Iface;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.util.Bytes;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.PartDaemon.Iface;
+import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.util.Bytes;
 
 /**
  * Implements the actual data serving logic of the PartDaemon
@@ -91,6 +95,7 @@ class PartDaemonHandler implements Iface {
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
     DomainReaderSet domain = getDomain(domainId & 0xff);
+
     if (domain == null) {
       return NO_SUCH_DOMAIN;
     }
@@ -98,7 +103,6 @@ class PartDaemonHandler implements Iface {
     try {
       if (domain.get(key, result)) {
         if (result.isFound()) {
-          
           return HankResponse.value(result.getBuffer());
         } else {
           return NOT_FOUND;

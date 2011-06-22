@@ -139,7 +139,6 @@ public class TestPartDaemonHandler extends BaseTestCase {
     assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K2));
     assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K3));
     assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K4));
-    
   }
 
   private static ByteBuffer bb(int i) {

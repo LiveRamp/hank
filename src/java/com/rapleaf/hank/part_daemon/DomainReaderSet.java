@@ -33,7 +33,6 @@ class DomainReaderSet {
   private final PartReaderAndCounters[] prc;
   private final int timeout;
 
-
   public DomainReaderSet(String name, PartReaderAndCounters[] prc, Partitioner partitioner) throws IOException {
     this(name, prc, partitioner, 60000);
   }
@@ -43,7 +42,7 @@ class DomainReaderSet {
     this.prc = prc;
     this.partitioner = partitioner;
     this.timeout = timeout;
-    
+
     UpdateCounts updater = new UpdateCounts();
     new Thread(updater).start();
   }
