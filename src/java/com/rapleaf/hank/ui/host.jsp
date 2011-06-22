@@ -161,6 +161,16 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
       <td><%= hdpc.getPartNum() %></td>
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
       <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
+      <td>
+      	<form action="/host/toggle_partition_is_deletable" method="post">
+        <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+      	<input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+      	<input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+      	<input type="hidden" name="d" value="<%= ringGroup.getDomainGroup().getDomain(hdc.getDomainId()) %>"/>
+      	<input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
+      	<input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"/>
+      	</form>
+      </td>
     </tr>
     <% } %>
   <% } %>
