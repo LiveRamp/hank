@@ -17,7 +17,6 @@ import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.ui.URLEnc;
 
 public class HostController extends Controller {
-
   private final Coordinator coordinator;
 
   public HostController(String name, Coordinator coordinator) {
@@ -35,10 +34,16 @@ public class HostController extends Controller {
         doEnqueueCommand(req, resp);
       }
     });
-    actions.put("toggle_partition_is_deletable", new Action() {
+    actions.put("delete_partition", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doTogglePartitionIsDeletable(req, resp);
+        doDeleteOrUndeletePartition(req, resp, true);
+      }
+    });
+    actions.put("undelete_partition", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doDeleteOrUndeletePartition(req, resp, false);
       }
     });
   }
@@ -66,12 +71,12 @@ public class HostController extends Controller {
     resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(), URLEnc.encode(hc.getAddress().toString())));
   }
   
-  private void doTogglePartitionIsDeletable(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     HostDomain dc = hc.getDomainById(Integer.parseInt(req.getParameter("d")));
     HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
-    pd.setDeletable(!pd.isDeletable());
+    pd.setDeletable(deletable);
   }
 }

@@ -144,7 +144,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   <div style="clear:both"></div>
 
   <table class="table-blue">
-    <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th></tr>
+    <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th><th>toggle deletable</th></tr>
   <%
     hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
     Collections.sort(hostDomains);
@@ -162,7 +162,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
       <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
       <td>
-      	<form action="/host/toggle_partition_is_deletable" method="post">
+      	<form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
         <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
       	<input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
       	<input type="hidden" name="h" value="<%= host.getAddress() %>"/>
