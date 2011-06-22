@@ -77,10 +77,13 @@ public class TestPartDaemonServer extends BaseTestCase {
     final MockUpdateManager mockUpdateManager = new MockUpdateManager();
     final PartDaemonServer server = new PartDaemonServer(configurator, "localhost") {
       @Override
-      protected Iface getHandler() throws IOException {
-        return new Iface() {
+      protected IfaceWithShutdown getHandler() throws IOException {
+        return new IfaceWithShutdown() {
           @Override
           public HankResponse get(int domainId, ByteBuffer key) throws TException {return null;}
+
+          @Override
+          public void shutDown() throws InterruptedException {}
         };
       }
 
