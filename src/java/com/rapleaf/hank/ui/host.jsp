@@ -166,7 +166,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
         <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
       	<input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
       	<input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-      	<input type="hidden" name="d" value="<%= ringGroup.getDomainGroup().getDomain(hdc.getDomainId()) %>"/>
+      	<input type="hidden" name="d" value="<%= hdc.getDomainId() %>"/>
       	<input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
       	<input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"/>
       	</form>
