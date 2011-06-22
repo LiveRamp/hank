@@ -28,6 +28,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   public int updatingToVersion;
   private Map<String, Long> counters = new HashMap<String, Long>();
   private boolean deletable;
+  private boolean isDeleted;
 
   public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
     this.partNum = partNum;
@@ -96,5 +97,10 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public void delete() throws IOException {
+    isDeleted = true;
+  }
+
+  public boolean isDeleted() {
+    return isDeleted;
   }
 }

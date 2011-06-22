@@ -18,6 +18,7 @@ package com.rapleaf.hank.part_daemon;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -38,6 +39,7 @@ import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
@@ -46,11 +48,14 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
+import com.rapleaf.hank.storage.mock.MockDeleter;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
+
   private final class MRG extends MockRingGroup {
     private MRG(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
       super(dcg, name, ringConfigs);
@@ -62,6 +67,8 @@ public class TestUpdateManager extends BaseTestCase {
     }
   }
 
+  private static final MockDeleter MOCK_DELETER = new MockDeleter(1);
+
   private final class MSE extends MockStorageEngine {
     private final MockUpdater mockUpdater;
 
@@ -72,6 +79,11 @@ public class TestUpdateManager extends BaseTestCase {
     @Override
     public Updater getUpdater(PartservConfigurator configurator, int partNum) {
       return mockUpdater;
+    }
+
+    @Override
+    public Deleter getDeleter(PartservConfigurator configurator, int partNum) throws IOException {
+      return MOCK_DELETER;
     }
   }
 
@@ -137,15 +149,23 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public void delete() throws IOException {
-      // TODO Auto-generated method stub
+    public void delete() throws IOException {}
+  };
+  
+  private static final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(1, 0, 0) {
+    @Override
+    public Integer getUpdatingToDomainGroupVersion() throws IOException {
+      return null;
     }
   };
-
+  
   private static final HostDomain hostDomain = new AbstractHostDomain() {
     @Override
     public Set<HostDomainPartition> getPartitions() throws IOException {
-      return Collections.singleton((HostDomainPartition) HOST_DOMAIN_PARTITION);
+      Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
+      partitions.add(HOST_DOMAIN_PARTITION);
+      partitions.add(PARTITION_FOR_DELETION);
+      return partitions;
     }
 
     @Override
@@ -182,17 +202,31 @@ public class TestUpdateManager extends BaseTestCase {
 
     final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null);
 
-    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup", "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
+    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1, null, "myRingGroup",
+      "/local/data/dir"), mockHostConfig, mockRingGroupConfig, mockRingConfig);
     ud.update();
     assertTrue("update() was called on the storage engine", mockUpdater.isUpdated());
-    assertEquals("excludeVersions passed in as expected", Collections.singleton(45), mockUpdater.excludeVersions);
-    assertEquals("update() called with proper args", Integer.valueOf(0), mockUpdater.updatedToVersion);
-    assertEquals("current version", Integer.valueOf(1), HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
+    assertEquals("excludeVersions passed in as expected", Collections.singleton(45),
+      mockUpdater.excludeVersions);
+    assertEquals("update() called with proper args", Integer.valueOf(0),
+      mockUpdater.updatedToVersion);
+    assertEquals("current version", Integer.valueOf(1),
+      HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
     assertNull("updating to version", HOST_DOMAIN_PARTITION.getUpdatingToDomainGroupVersion());
+
+    assertFalse("host domain contains the partition", MOCK_DELETER.hasDeleted());
+    assertFalse("host domain partition has not yet been deleted", PARTITION_FOR_DELETION.isDeleted());
+
+    PARTITION_FOR_DELETION.setDeletable(true);
+    ud.update();
+
+    assertTrue("host domain does not contain the partition", MOCK_DELETER.hasDeleted());
+    assertTrue("host domain partition has been deleted", PARTITION_FOR_DELETION.isDeleted());
   }
 
   private static DomainGroupVersion getMockDomainGroupConfigVersion(final StorageEngine mockStorageEngine) {
-    final MockDomain domain = new MockDomain("myDomain", 1, new ConstantPartitioner(), mockStorageEngine, null, null) {
+    final MockDomain domain = new MockDomain("myDomain", 1, new ConstantPartitioner(),
+      mockStorageEngine, null, null) {
       @Override
       public SortedSet<DomainVersion> getVersions() {
         return new TreeSet<DomainVersion>(Arrays.asList(new AbstractDomainVersion() {
