@@ -15,6 +15,9 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
@@ -25,9 +28,23 @@ public class TestZkHostDomain extends ZkTestCase {
     HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), (byte) 1);
     assertEquals(1, hdc.getDomainId());
     assertEquals(0, hdc.getPartitions().size());
+    
 
     hdc.addPartition(1, 1);
     assertEquals(1, hdc.getPartitions().size());
     assertEquals(1, ((HostDomainPartition)hdc.getPartitions().toArray()[0]).getPartNum());
+    
+    hdc.addPartition(0, 1).setCount("Elephants", 10);
+    for (HostDomainPartition hdp: hdc.getPartitions()) {
+      hdp.setCount("Giraffes", 10);
+    }
+    Set<String> counterKeys = new HashSet<String>(){{
+      add("Elephants");
+      add("Giraffes");
+    }};
+    
+    assertEquals(20, hdc.getAggregateCount("Giraffes").intValue());
+    assertEquals(10, hdc.getAggregateCount("Elephants").intValue());
+    assertNotNull(hdc.getAggregateCountKeys().equals(counterKeys));
   }
 }

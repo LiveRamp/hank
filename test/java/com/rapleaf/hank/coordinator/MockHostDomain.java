@@ -14,12 +14,13 @@ public class MockHostDomain extends AbstractHostDomain {
     this.domainId = domainId;
 
     for (int i = 0; i < triples.length; i += 3) {
-      parts.add(new MockHostDomainPartition(triples[i], triples[i+1], triples[i+2]));
+      parts.add(new MockHostDomainPartition(triples[i], triples[i + 1],
+          triples[i + 2]));
     }
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum, int initialVersion)  {
+  public HostDomainPartition addPartition(int partNum, int initialVersion) {
     throw new NotImplementedException();
   }
 
@@ -31,5 +32,27 @@ public class MockHostDomain extends AbstractHostDomain {
   @Override
   public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
+  }
+
+  @Override
+  public Long getAggregateCount(String countID) throws IOException {
+    Long aggregateCount = new Long(0);
+    Long currentCount = new Long(0);
+    for (HostDomainPartition hdp : parts) {
+      currentCount = hdp.getCount(countID);
+      if (currentCount != null) {
+        aggregateCount += currentCount;
+      }
+    }
+    return aggregateCount;
+  }
+
+  @Override
+  public Set<String> getAggregateCountKeys() throws IOException {
+    Set<String> aggregateCountKeys = new HashSet<String>();
+    for (HostDomainPartition hdp : parts) {
+      aggregateCountKeys.addAll(hdp.getCountKeys());
+    }
+    return aggregateCountKeys;
   }
 }
