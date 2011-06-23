@@ -23,11 +23,10 @@ public abstract class AbstractHostDomain implements HostDomain {
 
   @Override
   public Long getAggregateCount(String countID) throws IOException {
-    Long aggregateCount = new Long(0);
-    Long currentCount = new Long(0);
+    long aggregateCount = 0;
     boolean notNull = false;
     for (HostDomainPartition hdp : getPartitions()) {
-      currentCount = hdp.getCount(countID);
+      Long currentCount = hdp.getCount(countID);
       if (currentCount != null) {
         notNull = true;
         aggregateCount += currentCount;
@@ -35,9 +34,8 @@ public abstract class AbstractHostDomain implements HostDomain {
     }
     if (notNull) {
       return aggregateCount;
-    } else {
-      return null;
     }
+    return null;
   }
 
   @Override
