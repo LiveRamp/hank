@@ -34,7 +34,7 @@ class DomainReaderSet {
   private final int timeout;
   private final UpdateCounts updater;
   private final Thread updateThread;
-  private boolean updateInProgress;
+  private boolean keepUpdating;
 
   public DomainReaderSet(String name, PartReaderAndCounters[] prc,
       Partitioner partitioner) throws IOException {
@@ -50,7 +50,7 @@ class DomainReaderSet {
 
     updater = new UpdateCounts();
     updateThread = new Thread(updater);
-    updateInProgress = true;
+    keepUpdating = true;
     updateThread.start();
   }
 
@@ -84,13 +84,18 @@ class DomainReaderSet {
    */
   private class UpdateCounts implements Runnable {
     public void run() {
-      while (updateInProgress) {
+      while (keepUpdating) {
         for (int i = 0; i < prc.length; i++) {
           try {
             prc[i].updateCounters();
           } catch (IOException e) {
             LOG.error("Failed to update counter", e);
           }
+        }
+        // in case we were interrupted while updating counters, avoid doing an
+        // unnecessary sleep 
+        if (!keepUpdating) {
+          break;
         }
         try {
           Thread.sleep(timeout);
@@ -106,7 +111,7 @@ class DomainReaderSet {
   }
 
   public void shutDown() throws InterruptedException {
-    updateInProgress = false;
+    keepUpdating = false;
     updateThread.interrupt();
     updateThread.join();
   }

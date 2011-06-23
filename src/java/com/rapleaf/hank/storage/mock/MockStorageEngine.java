@@ -50,7 +50,7 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public Deleter getDeleter(PartservConfigurator configurator, int partNum)
       throws IOException {
-    return null;
+    return new MockDeleter(partNum);
   }
 
   @Override

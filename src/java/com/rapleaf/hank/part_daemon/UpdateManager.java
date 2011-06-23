@@ -17,6 +17,7 @@ package com.rapleaf.hank.part_daemon;
 
 import com.rapleaf.hank.config.PartservConfigurator;
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
@@ -113,7 +114,11 @@ class UpdateManager implements IUpdateManager {
 
       int domainId = domainGroup.getDomainId(domain.getName());
       for (HostDomainPartition part : hostConfig.getDomainById(domainId).getPartitions()) {
-        if (part.getUpdatingToDomainGroupVersion() != null) {
+        if (part.isDeletable()) {
+          Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
+          deleter.delete();
+          part.delete();
+        } else if (part.getUpdatingToDomainGroupVersion() != null) {
           LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
               ringGroupConfig.getName(),
               ringConfig.getRingNumber(),
