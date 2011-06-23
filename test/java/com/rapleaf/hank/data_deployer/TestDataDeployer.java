@@ -75,16 +75,6 @@ public class TestDataDeployer extends TestCase {
           public Set<HostDomainPartition> getPartitions() {
             return Collections.singleton((HostDomainPartition)mockHostDomainPartitionConfig);
           }
-
-          @Override
-          public Long getAggregateCount(String countID) throws IOException {
-            return null;
-          }
-
-          @Override
-          public Set<String> getAggregateCountKeys() throws IOException {
-            return null;
-          }
         });
       }
     };

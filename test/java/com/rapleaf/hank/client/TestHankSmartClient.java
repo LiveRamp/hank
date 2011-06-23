@@ -261,16 +261,6 @@ public class TestHankSmartClient extends BaseTestCase {
                 .singleton((HostDomainPartition) new MockHostDomainPartition(
                     partNum, 1, -1));
           }
-
-          @Override
-          public Long getAggregateCount(String countID) throws IOException {
-            return null;
-          }
-
-          @Override
-          public Set<String> getAggregateCountKeys() throws IOException {
-            return null;
-          }
         });
       }
     };
