@@ -66,6 +66,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
   private static class ServerRunnable implements Runnable {
     private final TServer server;
+
     public ServerRunnable(TServer server) {
       this.server = server;
     }
@@ -92,10 +93,10 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private static final ByteBuffer KEY_1 = ByteBuffer.wrap(new byte[]{1});
-  private static final ByteBuffer VALUE_1 = ByteBuffer.wrap(new byte[]{1});
-  private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[]{2});
-  private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[]{2});
+  private static final ByteBuffer KEY_1 = ByteBuffer.wrap(new byte[] { 1 });
+  private static final ByteBuffer VALUE_1 = ByteBuffer.wrap(new byte[] { 1 });
+  private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[] { 2 });
+  private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[] { 2 });
 
   private static int server1Port = 12345;
   private static int server2Port = 0;
@@ -120,7 +121,8 @@ public class TestHankSmartClient extends BaseTestCase {
     args.processor(new PartDaemon.Processor(iface1));
     args.protocolFactory(new TCompactProtocol.Factory());
     TServer server1 = new THsHaServer(args);
-    Thread thread1 = new Thread(new ServerRunnable(server1), "mock part daemon #1");
+    Thread thread1 = new Thread(new ServerRunnable(server1),
+        "mock part daemon #1");
     thread1.start();
 
     // launch server 2;
@@ -142,15 +144,19 @@ public class TestHankSmartClient extends BaseTestCase {
     args.processor(new PartDaemon.Processor(iface2));
     args.protocolFactory(new TCompactProtocol.Factory());
     final TServer server2 = new THsHaServer(args);
-    Thread thread2 = new Thread(new ServerRunnable(server2), "mock part daemon #2");
+    Thread thread2 = new Thread(new ServerRunnable(server2),
+        "mock part daemon #2");
     thread2.start();
 
-    final Host hostConfig1 = getHostConfig(new PartDaemonAddress("localhost", server1Port), 0);
-    final Host hostConfig2 = getHostConfig(new PartDaemonAddress("localhost", server2Port), 1);
+    final Host hostConfig1 = getHostConfig(new PartDaemonAddress("localhost",
+        server1Port), 0);
+    final Host hostConfig2 = getHostConfig(new PartDaemonAddress("localhost",
+        server2Port), 1);
 
     final MockRing mockRingConfig = new MockRing(null, null, 1, RingState.UP) {
       @Override
-      public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+      public Set<Host> getHostsForDomainPartition(int domainId, int partition)
+          throws IOException {
         assertEquals(1, domainId);
         if (partition == 0) {
           return Collections.singleton(hostConfig1);
@@ -167,11 +173,14 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomain existentDomain = new MockDomain("existent_domain", 2, new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
+    final MockDomain existentDomain = new MockDomain("existent_domain", 2,
+        new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
     MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
-      private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {{
-        put(1, existentDomain);
-      }};
+      private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
+        {
+          put(1, existentDomain);
+        }
+      };
 
       @Override
       public Domain getDomain(int domainId) {
@@ -189,13 +198,17 @@ public class TestHankSmartClient extends BaseTestCase {
 
       @Override
       public DomainGroupVersion getLatestVersion() {
-        return new MockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(new MockDomainGroupVersionDomainVersion(existentDomain, 1))), this, 1);
+        return new MockDomainGroupVersion(
+            new HashSet<DomainGroupVersionDomainVersion>(
+                Arrays.asList(new MockDomainGroupVersionDomainVersion(
+                    existentDomain, 1))), this, 1);
       }
     };
-    final MockRingGroup mockRingGroupConfig = new MockRingGroup(mockDomainGroupConfig, "myRingGroup", null) {
+    final MockRingGroup mockRingGroupConfig = new MockRingGroup(
+        mockDomainGroupConfig, "myRingGroup", null) {
       @Override
       public Set<Ring> getRings() {
-        return Collections.singleton((Ring)mockRingConfig);
+        return Collections.singleton((Ring) mockRingConfig);
       }
     };
     Coordinator mockCoord = new MockCoordinator() {
@@ -210,7 +223,8 @@ public class TestHankSmartClient extends BaseTestCase {
     try {
       HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup", 1);
 
-      assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), c.get("nonexistent_domain", null));
+      assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)),
+          c.get("nonexistent_domain", null));
 
       assertEquals(HankResponse.value(VALUE_1), c.get("existent_domain", KEY_1));
       assertEquals(HankResponse.value(VALUE_2), c.get("existent_domain", KEY_2));
@@ -224,13 +238,15 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private Host getHostConfig(PartDaemonAddress address, final int partNum) throws IOException {
+  private Host getHostConfig(PartDaemonAddress address, final int partNum)
+      throws IOException {
     MockHost hc = new MockHost(address) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain)new AbstractHostDomain() {
+        return Collections.singleton((HostDomain) new AbstractHostDomain() {
           @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+          public HostDomainPartition addPartition(int partNum,
+              int initialVersion) {
             return null;
           }
 
@@ -241,7 +257,19 @@ public class TestHankSmartClient extends BaseTestCase {
 
           @Override
           public Set<HostDomainPartition> getPartitions() {
-            return Collections.singleton((HostDomainPartition)new MockHostDomainPartition(partNum, 1, -1));
+            return Collections
+                .singleton((HostDomainPartition) new MockHostDomainPartition(
+                    partNum, 1, -1));
+          }
+
+          @Override
+          public Long getAggregateCount(String countID) throws IOException {
+            return null;
+          }
+
+          @Override
+          public Set<String> getAggregateCountKeys() throws IOException {
+            return null;
           }
         });
       }

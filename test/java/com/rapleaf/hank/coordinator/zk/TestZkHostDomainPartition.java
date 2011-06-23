@@ -22,9 +22,11 @@ import com.rapleaf.hank.ZkTestCase;
 
 public class TestZkHostDomainPartition extends ZkTestCase {
   public void testIt() throws Exception {
-    ZkHostDomainPartition hdpc = ZkHostDomainPartition.create(getZk(), getRoot(), 1234, 7);
+    ZkHostDomainPartition hdpc = ZkHostDomainPartition.create(getZk(),
+        getRoot(), 1234, 7);
     assertEquals(1234, hdpc.getPartNum());
-    assertNull("current version should be unset", hdpc.getCurrentDomainGroupVersion());
+    assertNull("current version should be unset",
+        hdpc.getCurrentDomainGroupVersion());
     assertEquals(Integer.valueOf(7), hdpc.getUpdatingToDomainGroupVersion());
 
     hdpc.setCurrentDomainGroupVersion(7);
@@ -35,30 +37,32 @@ public class TestZkHostDomainPartition extends ZkTestCase {
 
     hdpc.setUpdatingToDomainGroupVersion(null);
     assertNull(hdpc.getUpdatingToDomainGroupVersion());
-    
+
     assertEquals(false, hdpc.isDeletable());
     hdpc.setDeletable(true);
-    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), getRoot() + "/" + 1234);
+    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), getRoot()
+        + "/" + 1234);
     assertEquals(true, hdpc2.isDeletable());
-    
+
     Set<String> currentCountKeys = new HashSet<String>();
     hdpc.setCount("TotalHits", 45);
     currentCountKeys.add("TotalHits");
     assertEquals(new Long(45), hdpc.getCount("TotalHits"));
-    
+
     hdpc.setCount("TotalHits", 50);
     assertEquals(new Long(50), hdpc.getCount("TotalHits"));
-    
+
     hdpc.setCount("RandomCount", 1);
     currentCountKeys.add("RandomCount");
     assertTrue(hdpc.getCountKeys().equals(currentCountKeys));
-    
+
     hdpc.removeCount("RandomCount");
     currentCountKeys.remove("RandomCount");
-    assertTrue(hdpc.getCountKeys().containsAll(currentCountKeys) && hdpc.getCountKeys().size() == currentCountKeys.size());
-    
+    assertTrue(hdpc.getCountKeys().containsAll(currentCountKeys)
+        && hdpc.getCountKeys().size() == currentCountKeys.size());
+
     assertNull(hdpc.getCount("RandomCount"));
-    
+
     assertNull(hdpc.getCount("NewCount"));
   }
 }
