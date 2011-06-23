@@ -32,7 +32,7 @@ public class TestDomainReaderSet extends BaseTestCase {
     assertEquals(prc[0].getHostDomainPartition().getCount("Requests in last minute").intValue(), 0);
     assertEquals(prc[0].getHostDomainPartition().getCount("Hits in last minute").intValue(), 0);
 
-    Thread.sleep(2500);
+    Thread.sleep(3000);
 
     assertEquals(prc[0].getRequests().get(), 0l);
     assertEquals(prc[0].getHits().get(), 0l);

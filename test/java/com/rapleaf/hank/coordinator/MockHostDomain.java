@@ -33,26 +33,4 @@ public class MockHostDomain extends AbstractHostDomain {
   public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
   }
-
-  @Override
-  public Long getAggregateCount(String countID) throws IOException {
-    Long aggregateCount = new Long(0);
-    Long currentCount = new Long(0);
-    for (HostDomainPartition hdp : parts) {
-      currentCount = hdp.getCount(countID);
-      if (currentCount != null) {
-        aggregateCount += currentCount;
-      }
-    }
-    return aggregateCount;
-  }
-
-  @Override
-  public Set<String> getAggregateCountKeys() throws IOException {
-    Set<String> aggregateCountKeys = new HashSet<String>();
-    for (HostDomainPartition hdp : parts) {
-      aggregateCountKeys.addAll(hdp.getCountKeys());
-    }
-    return aggregateCountKeys;
-  }
 }

@@ -45,6 +45,7 @@ public class TestZkHostDomain extends ZkTestCase {
     
     assertEquals(20, hdc.getAggregateCount("Giraffes").intValue());
     assertEquals(10, hdc.getAggregateCount("Elephants").intValue());
+    assertNull(hdc.getAggregateCount("Lions"));
     assertNotNull(hdc.getAggregateCountKeys().equals(counterKeys));
   }
 }

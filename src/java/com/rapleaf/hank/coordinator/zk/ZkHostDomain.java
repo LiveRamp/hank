@@ -75,26 +75,4 @@ public class ZkHostDomain extends AbstractHostDomain {
       throws IOException {
     return ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
   }
-
-  @Override
-  public Long getAggregateCount(String countID) throws IOException {
-    Long aggregateCount = new Long(0);
-    Long currentCount = new Long(0);
-    for (HostDomainPartition hdp : getPartitions()) {
-      currentCount = hdp.getCount(countID);
-      if (currentCount != null) {
-        aggregateCount += currentCount;
-      }
-    }
-    return aggregateCount;
-  }
-
-  @Override
-  public Set<String> getAggregateCountKeys() throws IOException {
-    Set<String> aggregateCountKeys = new HashSet<String>();
-    for (HostDomainPartition hdp : getPartitions()) {
-      aggregateCountKeys.addAll(hdp.getCountKeys());
-    }
-    return aggregateCountKeys;
-  }
 }
