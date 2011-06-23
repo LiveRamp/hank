@@ -112,6 +112,11 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type="submit" value="Randomly assign all unassigned partitions"/>
   </form>
   <% } %>
+  <form action="/ring/redistribute_partitions_for_ring" method=post>
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="submit" value="Redistribute partitions in <%= ringGroup.getName() %>"/>
+  </form>
 
   <h3>Assignment visualization</h3>
   <%
