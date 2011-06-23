@@ -123,15 +123,21 @@ public class RingController extends Controller {
       hosts.addAll(ringConfig.getHosts());
       
       for (int i = 0; i < dc.getNumParts(); i++) {
-        // Leave the ith partition on the head of the list
-        Host head = hosts.remove(0);
+        Host head = hosts.get(0);
+        boolean shouldKeepPartition = head.getDomainById(domainId).getPartitionByNumber(i).getCurrentDomainGroupVersion() != null;
         
-        // Delete the ith partition from the tail of the list
+        if (shouldKeepPartition)
+          // Leave the ith partition on the head of the list
+          hosts.remove(head);
+        
+        // Delete the ith partition from resulting host list
         for (Host host : hosts) {
           host.getDomainById(domainId).getPartitionByNumber(i).setDeletable(true);
         }
         
-        hosts.add(head);
+        if (shouldKeepPartition)
+          // Tack the head of the host list back on
+          hosts.add(head);
       }
     }
     
