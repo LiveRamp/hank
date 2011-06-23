@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -117,9 +118,10 @@ public class RingController extends Controller {
       }
       
       // Distribute partition numbers amongst hosts evenly
-      Host[] hosts = (Host[]) ringConfig.getHosts().toArray();
+      Vector<Host> hosts = new Vector<Host>();
+      hosts.addAll(ringConfig.getHosts());
       for (int i = 0; i < dc.getNumParts(); i++) {
-        Host host = hosts[i % hosts.length];
+        Host host = hosts.get(i % hosts.size());
         ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
         thisHostsPartNums.add(i);
         hostsPartNums.put(host, thisHostsPartNums);
@@ -143,11 +145,16 @@ public class RingController extends Controller {
         
         for (HostDomainPartition hdp : hd.getPartitions()) {
           int partNum = hdp.getPartNum();
-          if (!thisHostsPartNums.contains(partNum))
-            if (hdp.getCurrentDomainGroupVersion() == null)
-              hdp.delete();
-            else
+          if (!thisHostsPartNums.contains(partNum)) {
+            try {
+              if (hdp.getCurrentDomainGroupVersion() == null)     // This is where the error would be thrown
+                hdp.delete();
+              else
+                hd.getPartitionByNumber(partNum).setDeletable(true);
+            } catch (Exception e) {
               hd.getPartitionByNumber(partNum).setDeletable(true);
+            }
+          }
         }
       }
     }
