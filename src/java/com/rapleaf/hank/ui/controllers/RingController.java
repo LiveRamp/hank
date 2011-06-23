@@ -3,6 +3,8 @@ package com.rapleaf.hank.ui.controllers;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,6 +15,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
@@ -45,6 +48,13 @@ public class RingController extends Controller {
         doAssignAll(req, resp);
       }
     });
+    
+    actions.put("redistribute_partitions_for_ring", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doRedistributePartitionsForRing(req, resp);
+      }
+    });
   }
 
   protected void doAssignAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -74,7 +84,60 @@ public class RingController extends Controller {
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", req.getParameter("g"), ringNum));
   }
-
+  
+  protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    int ringNum = Integer.parseInt(req.getParameter("n"));
+    Ring ringConfig = rgc.getRing(ringNum);
+    int version = rgc.getDomainGroup().getLatestVersion().getVersionNumber();
+    
+    for (Domain dc : rgc.getDomainGroup().getDomains()) {
+      int domainId = rgc.getDomainGroup().getDomainId(dc.getName());  
+      
+      Set<Integer> partNums = new HashSet<Integer>();
+      
+      // Add all partitions in domain to partNums
+      partNums.addAll(ringConfig.getUnassignedPartitions(dc));
+      for (Host host : ringConfig.getHosts()) {
+        HostDomain hd = host.getDomainById(domainId);
+        if (hd == null)
+          hd = host.addDomain(domainId);
+        
+        for (HostDomainPartition hdp : hd.getPartitions()) {
+          if (!hdp.isDeletable())
+            partNums.add(hdp.getPartNum());
+        }
+      }
+      
+      // Put partitions in domain on every host in ring
+      for (Host host : ringConfig.getHosts()) {
+        HostDomain hd = host.getDomainById(domainId);
+        
+        for (Integer partNum : partNums) {
+          if (hd.getPartitionByNumber(partNum) == null)
+            hd.addPartition(partNum, version);
+        }
+      }
+      
+      List<Host> hosts = new ArrayList<Host>();
+      hosts.addAll(ringConfig.getHosts());
+      
+      for (int i = 0; i < dc.getNumParts(); i++) {
+        // Leave the ith partition on the head of the list
+        Host head = hosts.remove(0);
+        
+        // Delete the ith partition from the tail of the list
+        for (Host host : hosts) {
+          host.getDomainById(domainId).getPartitionByNumber(i).setDeletable(true);
+        }
+        
+        hosts.add(head);
+      }
+    }
+    
+    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));
+  }
+  
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     Ring ringConfig = rgc.getRing(Integer.parseInt(req.getParameter("n")));
