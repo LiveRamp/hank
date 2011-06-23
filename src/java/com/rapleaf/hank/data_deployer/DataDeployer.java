@@ -15,14 +15,23 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.IOException;
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);

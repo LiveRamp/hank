@@ -15,9 +15,9 @@
  */
 package com.rapleaf.hank.config;
 
-import com.rapleaf.hank.coordinator.Coordinator;
-
 import java.io.Serializable;
+
+import com.rapleaf.hank.coordinator.Coordinator;
 
 /**
  * The base for all Configurators for all actors in the Hank ecosystem.

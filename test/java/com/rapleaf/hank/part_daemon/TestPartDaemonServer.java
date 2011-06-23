@@ -21,8 +21,8 @@ import java.nio.ByteBuffer;
 import org.apache.thrift.TException;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockRing;
@@ -32,7 +32,6 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartDaemon.Iface;
 
 public class TestPartDaemonServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {

@@ -15,7 +15,30 @@
  */
 package com.rapleaf.hank;
 
-import com.rapleaf.hank.cli.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
+import com.rapleaf.hank.cli.AddDomain;
+import com.rapleaf.hank.cli.AddDomainGroup;
+import com.rapleaf.hank.cli.AddDomainToDomainGroup;
+import com.rapleaf.hank.cli.AddRing;
+import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
@@ -25,12 +48,17 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -40,20 +68,6 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {

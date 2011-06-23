@@ -15,13 +15,14 @@
  */
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.storage.VersionType;
+import java.io.IOException;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.TextInputFormat;
 
-import java.io.IOException;
+import com.rapleaf.hank.storage.VersionType;
 
 
 public class TestHadoopDomainBuilder extends HadoopTestCase {

@@ -3,8 +3,8 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 
 final class MockHostCommandQueueChangeListener implements HostCommandQueueChangeListener {
   public Host calledWith;

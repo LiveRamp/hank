@@ -15,18 +15,32 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Map.Entry;
+
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
+
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.ZooDefs.Ids;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
 
 public class ZkDomainGroup implements DomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);

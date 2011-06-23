@@ -31,7 +31,6 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartDaemon.Iface;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;

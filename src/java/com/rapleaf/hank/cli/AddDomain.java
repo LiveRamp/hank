@@ -27,8 +27,8 @@ import org.apache.commons.cli.ParseException;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.util.FsUtils;
 import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.util.FsUtils;
 
 public class AddDomain {
   public static void addDomain(Configurator configurator, String domainName, String numParts, String factoryName, String factoryOptions, String partitionerName, String version)

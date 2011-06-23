@@ -15,19 +15,25 @@
  */
 package com.rapleaf.hank.cascading;
 
+import java.io.IOException;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.OutputCollector;
+
 import cascading.scheme.Scheme;
 import cascading.tap.Hfs;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-import com.rapleaf.hank.hadoop.*;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.OutputCollector;
 
-import java.io.IOException;
+import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
+import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
+import com.rapleaf.hank.hadoop.ValueWritable;
 
 /**
  * A sink-only tap to write tuples to Hank Domains.

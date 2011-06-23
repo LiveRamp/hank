@@ -16,6 +16,11 @@
 
 package com.rapleaf.hank.hadoop;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
+
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
@@ -29,11 +34,6 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
 
 // Integer String key storage engine.
 // Store records (key, value) where key is an Integer's String representation

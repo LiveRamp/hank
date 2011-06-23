@@ -15,12 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {

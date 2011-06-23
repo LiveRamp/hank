@@ -16,16 +16,17 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.VersionType;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.VersionType;
 
 // This class is intended to be used for testing. It does not output anything but
 // still forwards key,value pairs to the underlying Writer from the DomainConfig.

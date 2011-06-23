@@ -1,15 +1,21 @@
 package com.rapleaf.hank.hadoop;
 
-import cascading.flow.FlowProcess;
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.VersionType;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Map;
+import java.util.Properties;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.mapred.JobConf;
 
-import java.io.*;
-import java.util.Map;
-import java.util.Properties;
+import cascading.flow.FlowProcess;
+
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 
 public class DomainBuilderProperties {
 

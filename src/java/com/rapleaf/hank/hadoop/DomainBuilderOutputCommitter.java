@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.hadoop;
 
+import java.io.IOException;
+
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -23,8 +25,6 @@ import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.log4j.Logger;
-
-import java.io.IOException;
 
 public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 

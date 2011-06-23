@@ -15,23 +15,30 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.PartDaemon;
-import com.rapleaf.hank.generated.PartDaemon.Iface;
-import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.util.HostUtils;
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import java.io.IOException;
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.generated.PartDaemon;
+import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.util.HostUtils;
 
 /**
  * The main class of the Part Daemon.
