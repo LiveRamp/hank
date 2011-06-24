@@ -20,6 +20,8 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.ui.URLEnc;
 
 public class RingController extends Controller {
@@ -89,74 +91,13 @@ public class RingController extends Controller {
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
-    Ring ringConfig = rgc.getRing(ringNum);
-    int version = rgc.getDomainGroup().getLatestVersion().getVersionNumber();
     
+    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
     for (Domain dc : rgc.getDomainGroup().getDomains()) {
-      int domainId = rgc.getDomainGroup().getDomainId(dc.getName());  
-      
-      Set<Integer> partNums = new HashSet<Integer>();
-      
-      // Add all partitions in domain to partNums
-      partNums.addAll(ringConfig.getUnassignedPartitions(dc));
-      for (Host host : ringConfig.getHosts()) {
-        HostDomain hd = host.getDomainById(domainId);
-        if (hd == null)
-          hd = host.addDomain(domainId);
-        
-        for (HostDomainPartition hdp : hd.getPartitions()) {
-          partNums.add(hdp.getPartNum());
-        }
-      }
-      
-      HashMap<Host, ArrayList<Integer>> hostsPartNums = new HashMap<Host, ArrayList<Integer>>();
-      for (Host host : ringConfig.getHosts()) {
-        hostsPartNums.put(host, new ArrayList<Integer>());
-      }
-      
-      // Distribute partition numbers amongst hosts evenly
-      Vector<Host> hosts = new Vector<Host>();
-      hosts.addAll(ringConfig.getHosts());
-      for (int i = 0; i < dc.getNumParts(); i++) {
-        Host host = hosts.get(i % hosts.size());
-        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
-        thisHostsPartNums.add(i);
-        hostsPartNums.put(host, thisHostsPartNums);
-      }
-      
-      // Place partitions on hosts using hostsPartNums map
-      for (Host host : ringConfig.getHosts()) {
-        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
-        HostDomain hd = host.getDomainById(domainId);
-        
-        for (Integer i : thisHostsPartNums) {
-          if (hd.getPartitionByNumber(i) == null)
-            hd.addPartition(i, version);
-        }
-      }
-      
-      // Remove old assignments
-      for (Host host : ringConfig.getHosts()) {
-        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
-        HostDomain hd = host.getDomainById(domainId);
-        
-        for (HostDomainPartition hdp : hd.getPartitions()) {
-          int partNum = hdp.getPartNum();
-          if (!thisHostsPartNums.contains(partNum)) {
-            try {
-              if (hdp.getCurrentDomainGroupVersion() == null)     // This is where the error would be thrown
-                hdp.delete();
-              else
-                hd.getPartitionByNumber(partNum).setDeletable(true);
-            } catch (Exception e) {
-              hd.getPartitionByNumber(partNum).setDeletable(true);
-            }
-          }
-        }
-      }
+      partitionAssigner.assign(rgc, ringNum, dc);
     }
     
-    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));
+    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringNum));
   }
   
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
