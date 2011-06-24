@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -104,40 +105,54 @@ public class RingController extends Controller {
           hd = host.addDomain(domainId);
         
         for (HostDomainPartition hdp : hd.getPartitions()) {
-          if (!hdp.isDeletable())
-            partNums.add(hdp.getPartNum());
+          partNums.add(hdp.getPartNum());
         }
       }
       
-      // Put partitions in domain on every host in ring
+      HashMap<Host, ArrayList<Integer>> hostsPartNums = new HashMap<Host, ArrayList<Integer>>();
       for (Host host : ringConfig.getHosts()) {
+        hostsPartNums.put(host, new ArrayList<Integer>());
+      }
+      
+      // Distribute partition numbers amongst hosts evenly
+      Vector<Host> hosts = new Vector<Host>();
+      hosts.addAll(ringConfig.getHosts());
+      for (int i = 0; i < dc.getNumParts(); i++) {
+        Host host = hosts.get(i % hosts.size());
+        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
+        thisHostsPartNums.add(i);
+        hostsPartNums.put(host, thisHostsPartNums);
+      }
+      
+      // Place partitions on hosts using hostsPartNums map
+      for (Host host : ringConfig.getHosts()) {
+        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
         HostDomain hd = host.getDomainById(domainId);
         
-        for (Integer partNum : partNums) {
-          if (hd.getPartitionByNumber(partNum) == null)
-            hd.addPartition(partNum, version);
+        for (Integer i : thisHostsPartNums) {
+          if (hd.getPartitionByNumber(i) == null)
+            hd.addPartition(i, version);
         }
       }
       
-      List<Host> hosts = new ArrayList<Host>();
-      hosts.addAll(ringConfig.getHosts());
-      
-      for (int i = 0; i < dc.getNumParts(); i++) {
-        Host head = hosts.get(0);
-        boolean shouldKeepPartition = head.getDomainById(domainId).getPartitionByNumber(i).getCurrentDomainGroupVersion() != null;
+      // Remove old assignments
+      for (Host host : ringConfig.getHosts()) {
+        ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
+        HostDomain hd = host.getDomainById(domainId);
         
-        if (shouldKeepPartition)
-          // Leave the ith partition on the head of the list
-          hosts.remove(head);
-        
-        // Delete the ith partition from resulting host list
-        for (Host host : hosts) {
-          host.getDomainById(domainId).getPartitionByNumber(i).setDeletable(true);
+        for (HostDomainPartition hdp : hd.getPartitions()) {
+          int partNum = hdp.getPartNum();
+          if (!thisHostsPartNums.contains(partNum)) {
+            try {
+              if (hdp.getCurrentDomainGroupVersion() == null)     // This is where the error would be thrown
+                hdp.delete();
+              else
+                hd.getPartitionByNumber(partNum).setDeletable(true);
+            } catch (Exception e) {
+              hd.getPartitionByNumber(partNum).setDeletable(true);
+            }
+          }
         }
-        
-        if (shouldKeepPartition)
-          // Tack the head of the host list back on
-          hosts.add(head);
       }
     }
     
