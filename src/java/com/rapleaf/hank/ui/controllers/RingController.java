@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,7 +48,7 @@ public class RingController extends Controller {
         doAssignAll(req, resp);
       }
     });
-    
+
     actions.put("redistribute_partitions_for_ring", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -85,37 +84,37 @@ public class RingController extends Controller {
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", req.getParameter("g"), ringNum));
   }
-  
+
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
     Ring ringConfig = rgc.getRing(ringNum);
     int version = rgc.getDomainGroup().getLatestVersion().getVersionNumber();
-    
+
     for (Domain dc : rgc.getDomainGroup().getDomains()) {
-      int domainId = rgc.getDomainGroup().getDomainId(dc.getName());  
-      
+      int domainId = rgc.getDomainGroup().getDomainId(dc.getName());
+
       Set<Integer> partNums = new HashSet<Integer>();
-      
+
       // Add all partitions in domain to partNums
       partNums.addAll(ringConfig.getUnassignedPartitions(dc));
       for (Host host : ringConfig.getHosts()) {
         HostDomain hd = host.getDomainById(domainId);
         if (hd == null)
           hd = host.addDomain(domainId);
-        
+
         for (HostDomainPartition hdp : hd.getPartitions()) {
           partNums.add(hdp.getPartNum());
         }
       }
-      
+
       HashMap<Host, ArrayList<Integer>> hostsPartNums = new HashMap<Host, ArrayList<Integer>>();
       for (Host host : ringConfig.getHosts()) {
         hostsPartNums.put(host, new ArrayList<Integer>());
       }
-      
+
       // Distribute partition numbers amongst hosts evenly
-      Vector<Host> hosts = new Vector<Host>();
+      List<Host> hosts = new ArrayList<Host>();
       hosts.addAll(ringConfig.getHosts());
       for (int i = 0; i < dc.getNumParts(); i++) {
         Host host = hosts.get(i % hosts.size());
@@ -123,31 +122,34 @@ public class RingController extends Controller {
         thisHostsPartNums.add(i);
         hostsPartNums.put(host, thisHostsPartNums);
       }
-      
+
       // Place partitions on hosts using hostsPartNums map
       for (Host host : ringConfig.getHosts()) {
         ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
         HostDomain hd = host.getDomainById(domainId);
-        
+
         for (Integer i : thisHostsPartNums) {
-          if (hd.getPartitionByNumber(i) == null)
+          if (hd.getPartitionByNumber(i) == null) {
             hd.addPartition(i, version);
+          }
         }
       }
-      
+
       // Remove old assignments
       for (Host host : ringConfig.getHosts()) {
         ArrayList<Integer> thisHostsPartNums = hostsPartNums.get(host);
         HostDomain hd = host.getDomainById(domainId);
-        
+
         for (HostDomainPartition hdp : hd.getPartitions()) {
           int partNum = hdp.getPartNum();
           if (!thisHostsPartNums.contains(partNum)) {
             try {
-              if (hdp.getCurrentDomainGroupVersion() == null)     // This is where the error would be thrown
+              // This is where the error would be thrown
+              if (hdp.getCurrentDomainGroupVersion() == null) {
                 hdp.delete();
-              else
+              } else {
                 hd.getPartitionByNumber(partNum).setDeletable(true);
+              }
             } catch (Exception e) {
               hd.getPartitionByNumber(partNum).setDeletable(true);
             }
@@ -155,10 +157,11 @@ public class RingController extends Controller {
         }
       }
     }
-    
-    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringConfig.getRingNumber()));
+
+    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(),
+      ringConfig.getRingNumber()));
   }
-  
+
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
     Ring ringConfig = rgc.getRing(Integer.parseInt(req.getParameter("n")));
