@@ -20,9 +20,6 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.ui.URLEnc;
 
 public class RingController extends Controller {
