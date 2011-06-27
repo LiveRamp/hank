@@ -98,6 +98,47 @@ public class CascadingDomainBuilder {
     build(cascadingProperties, new TapOrTapMap(sources));
   }
 
+  // Build a single domain
+  public void build(Properties cascasdingProperties,
+                    TapOrTapMap sources) throws IOException {
+
+    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
+
+    // Open new version and check for success
+    openNewVersion();
+
+    Flow flow = null;
+    try {
+
+      // Build flow
+      flow = getFlow(cascasdingProperties, sources);
+
+      // Set up job
+      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
+
+      // Complete flow
+      flow.complete();
+
+      // Commit job
+      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
+
+    } catch (Exception e) {
+      // In case of failure, cancel this new version
+      cancelNewVersion();
+      // Clean up job
+      if (flow != null) {
+        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+      }
+      e.printStackTrace();
+      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
+          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+    }
+    // Close the new version
+    closeNewVersion();
+    // Clean up job
+    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+  }
+
   // Build multiple domains
   public static void buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
@@ -211,6 +252,12 @@ public class CascadingDomainBuilder {
     build(mapToProperties(cascadingProperties), sources);
   }
 
+  // Build a single domain
+  public void build(Map<Object, Object> cascadingProperties,
+                    TapOrTapMap sources) throws IOException {
+    build(mapToProperties(cascadingProperties), sources);
+  }
+
   // Build multiple domains
   public static void buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
@@ -232,45 +279,6 @@ public class CascadingDomainBuilder {
                                   Pipe[] otherTails,
                                   CascadingDomainBuilder... domainBuilders) throws IOException {
     buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
-  }
-
-  private void build(Properties cascasdingProperties, TapOrTapMap sources) throws IOException {
-
-    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
-
-    // Open new version and check for success
-    openNewVersion();
-
-    Flow flow = null;
-    try {
-
-      // Build flow
-      flow = getFlow(cascasdingProperties, sources);
-
-      // Set up job
-      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
-
-      // Complete flow
-      flow.complete();
-
-      // Commit job
-      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
-
-    } catch (Exception e) {
-      // In case of failure, cancel this new version
-      cancelNewVersion();
-      // Clean up job
-      if (flow != null) {
-        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
-      }
-      e.printStackTrace();
-      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
-    }
-    // Close the new version
-    closeNewVersion();
-    // Clean up job
-    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
   }
 
   public String toString() {
