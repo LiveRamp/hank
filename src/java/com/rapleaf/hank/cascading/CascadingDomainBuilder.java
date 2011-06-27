@@ -16,25 +16,22 @@
 
 package com.rapleaf.hank.cascading;
 
+import cascading.flow.Flow;
+import cascading.flow.FlowConnector;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
-
-import cascading.flow.Flow;
-import cascading.flow.FlowConnector;
-import cascading.pipe.Pipe;
-import cascading.tap.Tap;
-
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-
 public class CascadingDomainBuilder {
-
 
   private final static Logger LOG = Logger.getLogger(CascadingDomainBuilder.class);
 
@@ -89,48 +86,16 @@ public class CascadingDomainBuilder {
     }
   }
 
-  // Build a single domain
+  // Build a single domain using one source
   public void build(Properties cascadingProperties,
-                    Tap inputTap) throws IOException {
+                    Tap source) throws IOException {
+    build(cascadingProperties, new SourceOrSourceMap(source));
+  }
 
-    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
-
-    // Open new version and check for success
-    openNewVersion();
-
-    Flow flow = null;
-    try {
-
-      // Try to build the flow
-      flow = new FlowConnector(properties.setCascadingProperties(cascadingProperties,
-          domainVersion.getVersionNumber())).connect("HankCascadingDomainBuilder: " +
-          properties.getDomainName() + " version " + domainVersion.getVersionNumber(),
-          inputTap, outputTap, pipe);
-
-      // Set up job
-      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
-
-      // Complete flow
-      flow.complete();
-
-      // Commit job
-      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
-
-    } catch (Exception e) {
-      // In case of failure, cancel this new version
-      cancelNewVersion();
-      // Clean up job
-      if (flow != null) {
-        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
-      }
-      e.printStackTrace();
-      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
-    }
-    // Close the new version
-    closeNewVersion();
-    // Clean up job
-    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+  // Build a single domain using multiple sources
+  public void build(Properties cascadingProperties,
+                    Map<String, Tap> sources) throws IOException {
+    build(cascadingProperties, new SourceOrSourceMap(sources));
   }
 
   // Build multiple domains
@@ -234,10 +199,16 @@ public class CascadingDomainBuilder {
     }
   }
 
-  // Build a single domain
+  // Build a single domain using a single source
   public void build(Map<Object, Object> cascadingProperties,
-                    Tap inputTap) throws IOException {
-    build(mapToProperties(cascadingProperties), inputTap);
+                    Tap source) throws IOException {
+    build(mapToProperties(cascadingProperties), source);
+  }
+
+  // Build a single domain using a multiple sources
+  public void build(Map<Object, Object> cascadingProperties,
+                    Map<String, Tap> sources) throws IOException {
+    build(mapToProperties(cascadingProperties), sources);
   }
 
   // Build multiple domains
@@ -263,6 +234,82 @@ public class CascadingDomainBuilder {
     buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
   }
 
+  private static class SourceOrSourceMap {
+
+    private final boolean singleSource;
+    private final Tap source;
+    private final Map<String, Tap> sourceMap;
+
+    public SourceOrSourceMap(Tap source) {
+      singleSource = true;
+      this.source = source;
+      this.sourceMap = null;
+    }
+
+    public SourceOrSourceMap(Map<String, Tap> sourceMap) {
+      singleSource = false;
+      this.source = null;
+      this.sourceMap = sourceMap;
+    }
+
+    public Tap getSource() {
+      if (!isSingleSource()) {
+        throw new RuntimeException("Must be a single source.");
+      }
+      return source;
+    }
+
+    public Map<String, Tap> getSourceMap() {
+      if (isSingleSource()) {
+        throw new RuntimeException("Must be a source map.");
+      }
+      return sourceMap;
+    }
+
+    public boolean isSingleSource() {
+      return singleSource;
+    }
+  }
+
+  private void build(Properties cascasdingProperties, SourceOrSourceMap source) throws IOException {
+
+    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
+
+    // Open new version and check for success
+    openNewVersion();
+
+    Flow flow = null;
+    try {
+
+      // Build flow
+      flow = getFlow(cascasdingProperties, source);
+
+      // Set up job
+      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
+
+      // Complete flow
+      flow.complete();
+
+      // Commit job
+      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
+
+    } catch (Exception e) {
+      // In case of failure, cancel this new version
+      cancelNewVersion();
+      // Clean up job
+      if (flow != null) {
+        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+      }
+      e.printStackTrace();
+      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
+          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+    }
+    // Close the new version
+    closeNewVersion();
+    // Clean up job
+    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+  }
+
   public String toString() {
     return "CascadingDomainBuilder: Domain: " + properties.getDomainName() + ", Output Tap: " + outputTap;
   }
@@ -271,5 +318,24 @@ public class CascadingDomainBuilder {
     Properties newProperties = new Properties();
     newProperties.putAll(properties);
     return newProperties;
+  }
+
+  private String getFlowName() {
+    return "HankCascadingDomainBuilder: " +
+        properties.getDomainName() + " version " + domainVersion.getVersionNumber();
+  }
+
+  private FlowConnector getFlowConnector(Properties cascadingProperties) {
+    return new FlowConnector(properties.setCascadingProperties(cascadingProperties,
+        domainVersion.getVersionNumber()));
+  }
+
+  private Flow getFlow(Properties cascadingProperties,
+                       SourceOrSourceMap source) {
+    if (source.isSingleSource()) {
+      return getFlowConnector(cascadingProperties).connect(getFlowName(), source.getSource(), outputTap, pipe);
+    } else {
+      return getFlowConnector(cascadingProperties).connect(getFlowName(), source.getSourceMap(), outputTap, pipe);
+    }
   }
 }
