@@ -89,13 +89,13 @@ public class CascadingDomainBuilder {
   // Build a single domain using one source
   public void build(Properties cascadingProperties,
                     Tap source) throws IOException {
-    build(cascadingProperties, new SourceOrSourceMap(source));
+    build(cascadingProperties, new TapOrTapMap(source));
   }
 
   // Build a single domain using multiple sources
   public void build(Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    build(cascadingProperties, new SourceOrSourceMap(sources));
+    build(cascadingProperties, new TapOrTapMap(sources));
   }
 
   // Build multiple domains
@@ -234,44 +234,7 @@ public class CascadingDomainBuilder {
     buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
   }
 
-  private static class SourceOrSourceMap {
-
-    private final boolean singleSource;
-    private final Tap source;
-    private final Map<String, Tap> sourceMap;
-
-    public SourceOrSourceMap(Tap source) {
-      singleSource = true;
-      this.source = source;
-      this.sourceMap = null;
-    }
-
-    public SourceOrSourceMap(Map<String, Tap> sourceMap) {
-      singleSource = false;
-      this.source = null;
-      this.sourceMap = sourceMap;
-    }
-
-    public Tap getSource() {
-      if (!isSingleSource()) {
-        throw new RuntimeException("Must be a single source.");
-      }
-      return source;
-    }
-
-    public Map<String, Tap> getSourceMap() {
-      if (isSingleSource()) {
-        throw new RuntimeException("Must be a source map.");
-      }
-      return sourceMap;
-    }
-
-    public boolean isSingleSource() {
-      return singleSource;
-    }
-  }
-
-  private void build(Properties cascasdingProperties, SourceOrSourceMap source) throws IOException {
+  private void build(Properties cascasdingProperties, TapOrTapMap sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
@@ -282,7 +245,7 @@ public class CascadingDomainBuilder {
     try {
 
       // Build flow
-      flow = getFlow(cascasdingProperties, source);
+      flow = getFlow(cascasdingProperties, sources);
 
       // Set up job
       DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
@@ -331,11 +294,11 @@ public class CascadingDomainBuilder {
   }
 
   private Flow getFlow(Properties cascadingProperties,
-                       SourceOrSourceMap source) {
-    if (source.isSingleSource()) {
-      return getFlowConnector(cascadingProperties).connect(getFlowName(), source.getSource(), outputTap, pipe);
+                       TapOrTapMap sources) {
+    if (sources.isTapMap()) {
+      return getFlowConnector(cascadingProperties).connect(getFlowName(), sources.getTapMap(), outputTap, pipe);
     } else {
-      return getFlowConnector(cascadingProperties).connect(getFlowName(), source.getSourceMap(), outputTap, pipe);
+      return getFlowConnector(cascadingProperties).connect(getFlowName(), sources.getTap(), outputTap, pipe);
     }
   }
 }
