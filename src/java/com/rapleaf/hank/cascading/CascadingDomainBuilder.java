@@ -87,19 +87,19 @@ public class CascadingDomainBuilder {
   }
 
   // Build a single domain using one source
-  public void build(Properties cascadingProperties,
+  public Flow build(Properties cascadingProperties,
                     Tap source) throws IOException {
-    build(cascadingProperties, new TapOrTapMap(source));
+    return build(cascadingProperties, new TapOrTapMap(source));
   }
 
   // Build a single domain using multiple sources
-  public void build(Properties cascadingProperties,
+  public Flow build(Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    build(cascadingProperties, new TapOrTapMap(sources));
+    return build(cascadingProperties, new TapOrTapMap(sources));
   }
 
   // Build a single domain
-  public void build(Properties cascasdingProperties,
+  public Flow build(Properties cascasdingProperties,
                     TapOrTapMap sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
@@ -137,10 +137,11 @@ public class CascadingDomainBuilder {
     closeNewVersion();
     // Clean up job
     DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+    return flow;
   }
 
   // Build multiple domains
-  public static void buildDomains(Properties cascadingProperties,
+  public static Flow buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
                                   Map<String, Tap> otherSinks,
                                   Pipe[] otherTails,
@@ -238,47 +239,48 @@ public class CascadingDomainBuilder {
       // Clean up jobs
       DomainBuilderOutputCommitter.cleanupJob(domainBuilder.domain.getName(), flow.getJobConf());
     }
+    return flow;
   }
 
   // Build a single domain using a single source
-  public void build(Map<Object, Object> cascadingProperties,
+  public Flow build(Map<Object, Object> cascadingProperties,
                     Tap source) throws IOException {
-    build(mapToProperties(cascadingProperties), source);
+    return build(mapToProperties(cascadingProperties), source);
   }
 
   // Build a single domain using a multiple sources
-  public void build(Map<Object, Object> cascadingProperties,
+  public Flow build(Map<Object, Object> cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    build(mapToProperties(cascadingProperties), sources);
+    return build(mapToProperties(cascadingProperties), sources);
   }
 
   // Build a single domain
-  public void build(Map<Object, Object> cascadingProperties,
+  public Flow build(Map<Object, Object> cascadingProperties,
                     TapOrTapMap sources) throws IOException {
-    build(mapToProperties(cascadingProperties), sources);
+    return build(mapToProperties(cascadingProperties), sources);
   }
 
   // Build multiple domains
-  public static void buildDomains(Properties cascadingProperties,
+  public static Flow buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
                                   CascadingDomainBuilder... domainBuilders) throws IOException {
-    buildDomains(cascadingProperties, sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+    return buildDomains(cascadingProperties, sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
   }
 
   // Build multiple domains
-  public static void buildDomains(Map<Object, Object> cascadingProperties,
+  public static Flow buildDomains(Map<Object, Object> cascadingProperties,
                                   Map<String, Tap> sources,
                                   CascadingDomainBuilder... domainBuilders) throws IOException {
-    buildDomains(mapToProperties(cascadingProperties), sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
+    return buildDomains(mapToProperties(cascadingProperties), sources, new HashMap<String, Tap>(), new Pipe[0], domainBuilders);
   }
 
   // Build multiple domains
-  public static void buildDomains(Map<Object, Object> cascadingProperties,
+  public static Flow buildDomains(Map<Object, Object> cascadingProperties,
                                   Map<String, Tap> sources,
                                   Map<String, Tap> otherSinks,
                                   Pipe[] otherTails,
                                   CascadingDomainBuilder... domainBuilders) throws IOException {
-    buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
+    return buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
   }
 
   public String toString() {
