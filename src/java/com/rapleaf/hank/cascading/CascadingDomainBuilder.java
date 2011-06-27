@@ -92,15 +92,15 @@ public class CascadingDomainBuilder {
     return build(cascadingProperties, new TapOrTapMap(source));
   }
 
-  // Build a single domain using multiple sources
+  // Build a single domain
   public Flow build(Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
     return build(cascadingProperties, new TapOrTapMap(sources));
   }
 
   // Build a single domain
-  public Flow build(Properties cascasdingProperties,
-                    TapOrTapMap sources) throws IOException {
+  private Flow build(Properties cascasdingProperties,
+                     TapOrTapMap sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
