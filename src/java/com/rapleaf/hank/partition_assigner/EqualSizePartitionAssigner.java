@@ -35,7 +35,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
       getMinHostDomain().addPartition(partNum, version);
     }
 
-    while (!assignementsBalanced()) {
+    while (!assignmentsBalanced()) {
       HostDomain maxHostDomain = getMaxHostDomain();
       HostDomain minHostDomain = getMinHostDomain();
 
@@ -65,7 +65,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     }
   }
 
-  private boolean assignementsBalanced() throws IOException {
+  private boolean assignmentsBalanced() throws IOException {
     HostDomain maxHostDomain = getMaxHostDomain();
     HostDomain minHostDomain = getMinHostDomain();
     int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
