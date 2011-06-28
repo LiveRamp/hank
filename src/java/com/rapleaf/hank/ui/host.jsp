@@ -189,22 +189,26 @@ for (String countID : host.getAggregateCountKeys()) {
   <li> <%= countID %>: <%= host.getAggregateCount(countID)%>
   <ul>
     <% for (HostDomain currentDomain : host.getAssignedDomains()) { %>
-      <ul>
-        <% Long domainCount = currentDomain.getAggregateCount(countID); %>
-        <% if (domainCount != null) { %>
-          <li> domain <%=currentDomain.getDomainId()%>:  <%=domainCount%>
-            <ul>
-              <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
-                <% Long partCount = hdp.getCount(countID); %>
-                <% if (partCount != null) { %>
-                  <li>partition <%= hdp.getPartNum() %>: <%= partCount%> 
+      <li>
+        <ul>
+          <% Long domainCount = currentDomain.getAggregateCount(countID); %>
+          <% if (domainCount != null) { %>
+            <li> domain <%=currentDomain.getDomainId()%>:  <%=domainCount%>
+              <ul>
+                <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
+                  <% Long partCount = hdp.getCount(countID); %>
+                  <% if (partCount != null) { %>
+                    <li>partition <%= hdp.getPartNum() %>: <%= partCount%></li>
+                  <% } %>
                 <% } %>
-              <% } %>
-            </ul>
-        <% } %>
-      </ul>
+              </ul>
+          <% } %>
+        </ul>
+      </li>
     <% } %>
   </ul>
 <% } %>
+</li>
+</ul>
 </body>
 </html>
