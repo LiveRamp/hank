@@ -177,10 +177,6 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   </table>
 </div>
 
-<div>
-
-</div>
-
 <h4>Counters</h4>
 <ul>
 <%
