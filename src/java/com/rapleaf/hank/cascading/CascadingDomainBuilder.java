@@ -127,6 +127,8 @@ public class CascadingDomainBuilder {
       DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
 
     } catch (Exception e) {
+      String exceptionMessage = "Failed at building version " + domainVersion.getVersionNumber() +
+          " of domain " + properties.getDomainName() + ". Cancelling version.";
       // In case of failure, cancel this new version
       cancelNewVersion();
       // Clean up job
@@ -134,8 +136,7 @@ public class CascadingDomainBuilder {
         DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
       }
       e.printStackTrace();
-      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      throw new IOException(exceptionMessage, e);
     }
     // Close the new version
     closeNewVersion();
