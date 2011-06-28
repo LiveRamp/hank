@@ -30,36 +30,46 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     version = domainGroup.getLatestVersion().getVersionNumber();
     random = new Random();
 
+    // make random assignments for any of the currently unassigned parts
     for (Integer partNum : ring.getUnassignedPartitions(domain)) {
       getMinHostDomain().addPartition(partNum, version);
     }
 
-    while (!isDone()) {
+    while (!assignementsBalanced()) {
       HostDomain maxHostDomain = getMaxHostDomain();
       HostDomain minHostDomain = getMinHostDomain();
 
+      // pick a random partition from the maxHost
       ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
       partitions.addAll(maxHostDomain.getPartitions());
-      int partNum = partitions.get(random.nextInt(partitions.size())).getPartNum();
+      final HostDomainPartition toMove = partitions.get(random.nextInt(partitions.size()));
 
-      HostDomainPartition partition = maxHostDomain.getPartitionByNumber(partNum);
-      try {
-        if (partition.getCurrentDomainGroupVersion() == null)
-          partition.delete();
-        else
-          partition.setDeletable(true);
-      } catch (Exception e) {
-        partition.setDeletable(true);
-      }
+      // assign it to the min host. note that we assign it before we unassign it
+      // to ensure that if we fail at this point, we haven't left any parts
+      // unassigned.
+      minHostDomain.addPartition(toMove.getPartNum(), version);
 
-      minHostDomain.addPartition(partNum, version);
+      // unassign it from the max host
+      unassign(toMove);
     }
   }
 
-  private boolean isDone() throws IOException {
+  private void unassign(HostDomainPartition partition) throws IOException {
+    // if the current version is null, then it means this assignment was never
+    // acted upon. in that case, just delete it.
+    if (partition.getCurrentDomainGroupVersion() == null) {
+      partition.delete();
+    } else {
+      // otherwise, mark it to be deleted during the next update.
+      partition.setDeletable(true);
+    }
+  }
+
+  private boolean assignementsBalanced() throws IOException {
     HostDomain maxHostDomain = getMaxHostDomain();
     HostDomain minHostDomain = getMinHostDomain();
-    int maxDistance = Math.abs(maxHostDomain.getPartitions().size() - minHostDomain.getPartitions().size());
+    int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
+        - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
