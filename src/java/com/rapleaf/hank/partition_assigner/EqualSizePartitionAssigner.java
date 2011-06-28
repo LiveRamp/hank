@@ -31,8 +31,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     random = new Random();
 
     for (Integer partNum : ring.getUnassignedPartitions(domain)) {
-      HostDomain minHostDomain = getMinHostDomain();
-      minHostDomain.addPartition(partNum, version);
+      getMinHostDomain().addPartition(partNum, version);
     }
 
     while (!isDone()) {
