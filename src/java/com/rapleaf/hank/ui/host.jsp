@@ -180,26 +180,31 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
 <div>
 
 </div>
-  <h4>Counters</h4>
-  <table class="table-blue">
-    <tr><th>Counter Name</th><th>Count</th>
-    <%
-      for (HostDomain hdc : hostDomains) {
-    %>	
-      <tr>
-        <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></th>
-      </tr>
-      <% 
-        for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
-          for (String currentCountKey : hdpc.getCountKeys()) {
-      %>
-      <tr>
-        <td> <%=currentCountKey%> </td>
-        <td> <%=hdpc.getCount(currentCountKey)%> </td>
-      </tr>
+
+<h4>Counters</h4>
+<ul>
+<%
+for (String countID : host.getAggregateCountKeys()) {
+  %>
+  <li> <%= countID %>: <%= host.getAggregateCount(countID)%>
+  <ul>
+    <% for (HostDomain currentDomain : host.getAssignedDomains()) { %>
+      <ul>
+        <% Long domainCount = currentDomain.getAggregateCount(countID); %>
+        <% if (domainCount != null) { %>
+          <li> domain <%=currentDomain.getDomainId()%>:  <%=domainCount%>
+            <ul>
+              <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
+                <% Long partCount = hdp.getCount(countID); %>
+                <% if (partCount != null) { %>
+                  <li>partition <%= hdp.getPartNum() %>: <%= partCount%> 
+                <% } %>
+              <% } %>
+            </ul>
         <% } %>
-      <% } %>
+      </ul>
     <% } %>
-  </table>
+  </ul>
+<% } %>
 </body>
 </html>
