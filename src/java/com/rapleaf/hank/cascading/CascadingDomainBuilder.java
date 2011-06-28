@@ -46,9 +46,13 @@ public class CascadingDomainBuilder {
   public CascadingDomainBuilder(DomainBuilderProperties properties,
                                 Pipe pipe,
                                 String keyFieldName,
-                                String valueFieldName) {
+                                String valueFieldName) throws IOException {
     // Load domain
     this.domain = properties.getDomain();
+    // Fail if unable to load domain
+    if (domain == null) {
+      throw new IOException("Could not load domain for: " + properties);
+    }
     this.properties = properties;
     this.pipe = pipe;
     this.keyFieldName = keyFieldName;
