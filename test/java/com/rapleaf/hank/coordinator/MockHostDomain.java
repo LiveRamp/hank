@@ -14,12 +14,13 @@ public class MockHostDomain extends AbstractHostDomain {
     this.domainId = domainId;
 
     for (int i = 0; i < triples.length; i += 3) {
-      parts.add(new MockHostDomainPartition(triples[i], triples[i+1], triples[i+2]));
+      parts.add(new MockHostDomainPartition(triples[i], triples[i + 1],
+          triples[i + 2]));
     }
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum, int initialVersion)  {
+  public HostDomainPartition addPartition(int partNum, int initialVersion) {
     throw new NotImplementedException();
   }
 

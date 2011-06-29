@@ -16,17 +16,24 @@
 
 package com.rapleaf.hank.hadoop;
 
+import java.io.IOException;
+
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.FileOutputFormat;
+import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.log4j.Logger;
+
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.VersionType;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapred.*;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
 
 public class HadoopDomainBuilder {
 

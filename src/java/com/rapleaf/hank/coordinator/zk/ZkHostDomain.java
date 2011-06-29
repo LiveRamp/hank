@@ -59,9 +59,11 @@ public class ZkHostDomain extends AbstractHostDomain {
     return results;
   }
 
-  public static HostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
+  public static HostDomain create(ZooKeeperPlus zk, String partsRoot,
+      int domainId) throws IOException {
     try {
-      zk.create(partsRoot + "/" + (domainId & 0xff), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(partsRoot + "/" + (domainId & 0xff), null, Ids.OPEN_ACL_UNSAFE,
+          CreateMode.PERSISTENT);
       return new ZkHostDomain(zk, partsRoot, domainId);
     } catch (Exception e) {
       throw new IOException(e);
@@ -69,7 +71,8 @@ public class ZkHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
+  public HostDomainPartition addPartition(int partNum, int initialVersion)
+      throws IOException {
     return ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
   }
 }

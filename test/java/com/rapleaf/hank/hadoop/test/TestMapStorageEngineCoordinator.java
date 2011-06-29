@@ -16,14 +16,19 @@
 
 package com.rapleaf.hank.hadoop.test;
 
-import com.rapleaf.hank.hadoop.*;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import org.apache.hadoop.mapred.TextInputFormat;
+
+import com.rapleaf.hank.hadoop.DomainBuilderEmptyOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.HadoopDomainBuilder;
+import com.rapleaf.hank.hadoop.HadoopTestCase;
+import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
 import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 import com.rapleaf.hank.util.Bytes;
-import org.apache.hadoop.mapred.TextInputFormat;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 
 public class TestMapStorageEngineCoordinator extends HadoopTestCase {

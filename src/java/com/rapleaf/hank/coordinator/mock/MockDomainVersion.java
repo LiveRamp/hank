@@ -15,11 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
-import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.PartitionInfo;
-
 import java.io.IOException;
 import java.util.Set;
+
+import com.rapleaf.hank.coordinator.AbstractDomainVersion;
+import com.rapleaf.hank.coordinator.PartitionInfo;
 
 public class MockDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;

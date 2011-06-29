@@ -132,4 +132,19 @@ public interface Host extends Comparable<Host> {
    * @return
    */
   public HostDomain getDomainById(int domainId);
+  
+  /**
+   * Get the aggregate count of a counter across all HostDomainPartitions
+   * @param countId
+   * @return
+   * @throws IOException
+   */
+  public Long getAggregateCount(String countId) throws IOException;
+  
+  /**
+   * Gets a set of aggregate counter keys across all HostDomainPartitions
+   * @return
+   * @throws IOException
+   */
+  public Set<String> getAggregateCountKeys() throws IOException;
 }

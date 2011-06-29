@@ -18,43 +18,101 @@ package com.rapleaf.hank.part_daemon;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.log4j.Logger;
+
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 
 /**
  * Class that manages serving on behalf of a particular Domain.
  */
 class DomainReaderSet {
-  private final Reader[] parts;
+  private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
   private final Partitioner partitioner;
   private final String name;
+  private final PartReaderAndCounters[] prc;
+  private final int timeout;
+  private final UpdateCounts updater;
+  private final Thread updateThread;
+  private boolean keepUpdating;
 
-  public DomainReaderSet(String name, Reader[] partitions, Partitioner partitioner) {
+  public DomainReaderSet(String name, PartReaderAndCounters[] prc,
+      Partitioner partitioner) throws IOException {
+    this(name, prc, partitioner, 60000);
+  }
+
+  DomainReaderSet(String name, PartReaderAndCounters[] prc,
+      Partitioner partitioner, int timeout) throws IOException {
     this.name = name;
-    this.parts = partitions;
+    this.prc = prc;
     this.partitioner = partitioner;
+    this.timeout = timeout;
+
+    updater = new UpdateCounts();
+    updateThread = new Thread(updater);
+    keepUpdating = true;
+    updateThread.start();
   }
 
   /**
    * Get the value for <i>key</i>, placing it in result.
+   * 
    * @param key
    * @param result
    * @return true if this partserv is actually serving the part needed
    * @throws IOException
    */
   public boolean get(ByteBuffer key, Result result) throws IOException {
-    int partition = partitioner.partition(key, parts.length);
-    Reader reader = parts[partition];
-
-    if (reader == null) {
+    int partition = partitioner.partition(key, prc.length);
+    PartReaderAndCounters currentPRC = prc[partition];
+    if (currentPRC == null) {
       return false;
     }
-    reader.get(key, result);
+    // Increment requests counter
+    currentPRC.getRequests().incrementAndGet();
+    currentPRC.getReader().get(key, result);
+    if (result.isFound()) {
+      // Increment hits counter
+      currentPRC.getHits().incrementAndGet();
+    }
     return true;
+  }
+
+  /**
+   * This thread periodically updates the counters on the HostDomainPartition
+   * with the values in the cached counters
+   */
+  private class UpdateCounts implements Runnable {
+    public void run() {
+      while (keepUpdating) {
+        for (int i = 0; i < prc.length; i++) {
+          try {
+            prc[i].updateCounters();
+          } catch (IOException e) {
+            LOG.error("Failed to update counter", e);
+          }
+        }
+        // in case we were interrupted while updating counters, avoid doing an
+        // unnecessary sleep 
+        if (!keepUpdating) {
+          break;
+        }
+        try {
+          Thread.sleep(timeout);
+        } catch (InterruptedException e) {
+          LOG.error("Failed to sleep", e);
+        }
+      }
+    }
   }
 
   public String getName() {
     return name;
+  }
+
+  public void shutDown() throws InterruptedException {
+    keepUpdating = false;
+    updateThread.interrupt();
+    updateThread.join();
   }
 }

@@ -59,14 +59,17 @@ public class TestPartDaemonHandler extends BaseTestCase {
   private static final ByteBuffer K3 = bb(3);
   private static final ByteBuffer K4 = bb(4);
   private static final ByteBuffer K5 = bb(5);
-  private static final byte[] V1 = new byte[]{9};
-  private static final Host mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 12345)) {
+  private static final byte[] V1 = new byte[] { 9 };
+  private static final Host mockHostConfig = new MockHost(
+      new PartDaemonAddress("localhost", 12345)) {
 
     @Override
     public HostDomain getDomainById(int domainId) {
       return new AbstractHostDomain() {
         @Override
-        public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
+        public HostDomainPartition addPartition(int partNum, int initialVersion) {
+          return null;
+        }
 
         @Override
         public int getDomainId() {
@@ -74,28 +77,41 @@ public class TestPartDaemonHandler extends BaseTestCase {
         }
 
         @Override
-        public Set<HostDomainPartition> getPartitions()
-        throws IOException {
+        public Set<HostDomainPartition> getPartitions() throws IOException {
           return new HashSet<HostDomainPartition>(Arrays.asList(
               new MockHostDomainPartition(0, 1, 2),
               new MockHostDomainPartition(4, 1, 2)));
+        }
+
+        @Override
+        public Long getAggregateCount(String countID) throws IOException {
+          return null;
+        }
+
+        @Override
+        public Set<String> getAggregateCountKeys() throws IOException {
+          return null;
         }
       };
     }
   };
 
   public void testSetUpAndServe() throws Exception {
-    Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3, K5, 4);
+    Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3,
+        K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
       public Reader getReader(PartservConfigurator configurator, int partNum)
-      throws IOException {
+          throws IOException {
         return new MockReader(configurator, partNum, V1);
       }
     };
-    Domain dc = new MockDomain("myDomain", 5, partitioner, storageEngine, null, null);
-    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(dc, 1);
-    final MockDomainGroupVersion dcgv = new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)dcv), null, 1);
+    Domain dc = new MockDomain("myDomain", 5, partitioner, storageEngine, null,
+        null);
+    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(
+        dc, 1);
+    final MockDomainGroupVersion dcgv = new MockDomainGroupVersion(
+        Collections.singleton((DomainGroupVersionDomainVersion) dcv), null, 1);
 
     final MockDomainGroup dcg = new MockDomainGroup("myDomainGroup") {
       @Override
@@ -130,18 +146,23 @@ public class TestPartDaemonHandler extends BaseTestCase {
         };
       }
     };
-    PartservConfigurator config = new MockPartDaemonConfigurator(12345, mockCoordinator , "myRingGroupName", "/tmp/local/data/dir");
-    PartDaemonHandler handler = new PartDaemonHandler(new PartDaemonAddress("localhost", 12345), config);
+    PartservConfigurator config = new MockPartDaemonConfigurator(12345,
+        mockCoordinator, "myRingGroupName", "/tmp/local/data/dir");
+    PartDaemonHandler handler = new PartDaemonHandler(new PartDaemonAddress(
+        "localhost", 12345), config);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
 
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K2));
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K3));
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)), handler.get((byte) 0, K4));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+        handler.get((byte) 0, K2));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+        handler.get((byte) 0, K3));
+    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+        handler.get((byte) 0, K4));
   }
 
   private static ByteBuffer bb(int i) {
-    return ByteBuffer.wrap(new byte[]{(byte) i});
+    return ByteBuffer.wrap(new byte[] { (byte) i });
   }
 }

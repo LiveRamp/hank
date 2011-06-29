@@ -15,17 +15,29 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.StorageEngine;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
+
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.StorageEngine;
 
 /**
  * Manages the domain update process.

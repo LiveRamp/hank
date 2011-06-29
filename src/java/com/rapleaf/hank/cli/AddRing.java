@@ -15,15 +15,29 @@
  */
 package com.rapleaf.hank.cli;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.util.CommandLineChecker;
-import org.apache.commons.cli.*;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class AddRing {
 

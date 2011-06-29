@@ -16,20 +16,22 @@
 
 package com.rapleaf.hank.cascading;
 
-import cascading.flow.Flow;
-import cascading.flow.FlowConnector;
-import cascading.pipe.Pipe;
-import cascading.tap.Tap;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.log4j.Logger;
+
+import cascading.flow.Flow;
+import cascading.flow.FlowConnector;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
+import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 
 public class CascadingDomainBuilder {
 

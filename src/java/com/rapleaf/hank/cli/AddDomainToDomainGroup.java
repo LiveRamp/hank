@@ -15,14 +15,19 @@
  */
 package com.rapleaf.hank.cli;
 
+import java.io.IOException;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.util.CommandLineChecker;
-import org.apache.commons.cli.*;
-
-import java.io.IOException;
 
 public class AddDomainToDomainGroup {
   /**

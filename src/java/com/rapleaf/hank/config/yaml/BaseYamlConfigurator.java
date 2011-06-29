@@ -15,16 +15,17 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import org.yaml.snakeyaml.Yaml;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.Map;
+
+import org.yaml.snakeyaml.Yaml;
+
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
 
 public abstract class BaseYamlConfigurator implements Configurator {
   private static final String COORDINATOR_SECTION_KEY = "coordinator";

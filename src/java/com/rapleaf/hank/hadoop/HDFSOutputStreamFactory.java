@@ -16,12 +16,13 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import java.io.IOException;
+import java.io.OutputStream;
+
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.rapleaf.hank.storage.OutputStreamFactory;
 
 public class HDFSOutputStreamFactory implements OutputStreamFactory {
 
