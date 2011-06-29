@@ -16,10 +16,6 @@
 
 package com.rapleaf.hank.hadoop.test;
 
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
@@ -32,6 +28,10 @@ import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
+
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {
@@ -62,9 +62,11 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
     }
     domainOptions.putAll(globalOptions);
     // name the remote root after the domain name to prevent collisions
-    domainOptions.put(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION,
-      globalOptions.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION) + "/"
-          + domainName);
+    if (globalOptions.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION) != null) {
+      domainOptions.put(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION,
+          globalOptions.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION) + "/"
+              + domainName);
+    }
     return new MockDomain(domainName,
         this.numPartitions,
         new ModPartitioner(),
@@ -78,7 +80,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
     }
     YamlClientConfigurator configurator = new YamlClientConfigurator();
     try {
-      configurator.loadFromYaml("coordinator:\n  factory: com.rapleaf.hank.hadoop.test.MapStorageEngineCoordinator$Factory\n  options:\n    numPartitions: " + numPartitions + "\n");
+      configurator.loadFromYaml("coordinator:\n  factory: com.rapleaf.hank.hadoop.test.MapStorageEngineCoordinator$Factory\n  options:\n    numPartitions: " + numPartitions + "\n    remote_domain_root: /tmp\n");
     } catch (InvalidConfigurationException e) {
       throw new RuntimeException(e);
     }
