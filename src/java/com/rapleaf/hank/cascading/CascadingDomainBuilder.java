@@ -46,9 +46,13 @@ public class CascadingDomainBuilder {
   public CascadingDomainBuilder(DomainBuilderProperties properties,
                                 Pipe pipe,
                                 String keyFieldName,
-                                String valueFieldName) {
+                                String valueFieldName) throws IOException {
     // Load domain
     this.domain = properties.getDomain();
+    // Fail if unable to load domain
+    if (domain == null) {
+      throw new IOException("Could not load domain for: " + properties);
+    }
     this.properties = properties;
     this.pipe = pipe;
     this.keyFieldName = keyFieldName;
@@ -123,6 +127,8 @@ public class CascadingDomainBuilder {
       DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
 
     } catch (Exception e) {
+      String exceptionMessage = "Failed at building version " + domainVersion.getVersionNumber() +
+          " of domain " + properties.getDomainName() + ". Cancelling version.";
       // In case of failure, cancel this new version
       cancelNewVersion();
       // Clean up job
@@ -130,8 +136,7 @@ public class CascadingDomainBuilder {
         DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
       }
       e.printStackTrace();
-      throw new IOException("Failed at building version " + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName() + ". Cancelling version.", e);
+      throw new IOException(exceptionMessage, e);
     }
     // Close the new version
     closeNewVersion();

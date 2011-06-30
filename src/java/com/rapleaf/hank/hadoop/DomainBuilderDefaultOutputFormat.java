@@ -16,35 +16,23 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.VersionType;
+import java.io.IOException;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
 
-  public void checkOutputSpecs(FileSystem fs, JobConf conf)
-      throws IOException {
-    // No need to check if the output path exists. It probably will since
-    // we store all versions in the same root directory.
-  }
-
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)
       throws IOException {
-
-    // Implicitly relies on the FileOutputCommitter
-    String outputPath = conf.get("mapred.work.output.dir");
-    if (outputPath == null) {
-      throw new RuntimeException("Path was not set in mapred.work.output.dir");
-    }
-
+    // Implicitly relies on the FileOutputCommitter to move files to the job output directory
+    String outputPath = getTaskAttemptOutputPath(conf);
     // Load configuration items
     String domainName = DomainBuilderProperties.getDomainName(conf);
     VersionType versionType = DomainBuilderProperties.getVersionType(domainName, conf);
