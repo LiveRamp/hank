@@ -106,12 +106,12 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   %>
   <% if (total > 0) { %>
   There are <%=total%> unassigned partitions in <%=ringGroup.getDomainGroup().getDomains().size()%> domains.
-  <form action="/ring/assign_all" method=post>
+  <% } %>
+  <form action="/ring/redistribute_partitions_for_ring" method=post>
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-    <input type="submit" value="Randomly assign all unassigned partitions"/>
+    <input type="submit" value="Assign all unassigned partitions and balance <%= ringGroup.getName() %>"/>
   </form>
-  <% } %>
 
   <h3>Assignment visualization</h3>
   <%
