@@ -275,4 +275,13 @@ public class DomainBuilderProperties {
     }
     return new String(Base64.encodeBase64(baos.toByteArray()));
   }
+
+  public String toString() {
+    return "<DomainBuilderProperties: domain name: " + domainName
+        + ", version type: " + versionType
+        + ", configurator: " + configurator
+        + ", output path: " + outputPath
+        + ", output format class: " + outputFormatClass
+        + ">";
+  }
 }
