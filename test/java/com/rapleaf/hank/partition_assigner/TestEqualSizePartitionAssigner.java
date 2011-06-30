@@ -59,9 +59,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     }
   };
   
-  private static final DomainGroupVersion dgv = new MockDomainGroupVersion(null, domainGroup, 0) {
-    
-  };
+  private static final DomainGroupVersion dgv = new MockDomainGroupVersion(null, domainGroup, 0);
   
   private static final PartDaemonAddress pda1 = new PartDaemonAddress("host1", 12345);
   private static final PartDaemonAddress pda2 = new PartDaemonAddress("host2", 12345);
@@ -171,7 +169,6 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
   };
   
   private static final HashSet<Ring> rings = new HashSet<Ring>();
-  
   private static final RingGroup ringGroup = new MockRingGroup(domainGroup, "TestRingGroup", rings) {
     @Override
     public Ring getRing(int ringNumber) {
@@ -195,28 +192,26 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     rings.add(ring);
   }
   
-  private static final DomainVersion version = new MockDomainVersion(0, new Long(0)) {
-    
-  };
+  private static final DomainVersion version = new MockDomainVersion(0, new Long(0)); 
+  private static final Domain domain = new MockDomain("TestDomain", 20, null, null, null, version);
   
-  private static final Domain domain = new MockDomain("TestDomain", 20, null, null, null, version) {
-    
-  };
-  
-  public void testPartitioner() {
-    
+  static {
     try {
       domainGroup.addDomain(domain, 0);
-    } catch (Exception e) {
+    } catch (IOException e) {
       fail(e.getMessage());
     }
-    
+  }
+  
+  public void testPartitioner() {
+    // Initially unbalanced
     try {
       assertEquals(false, assignmentsBalanced(ring, 0));
     } catch (Exception e) {
       fail(e.getMessage());
     }
     
+    // Balance
     PartitionAssigner partitionAssigner = null;
     try {
       partitionAssigner = new EqualSizePartitionAssigner();
@@ -230,12 +225,14 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
       fail(e.getMessage());
     }
     
+    // Now balanced
     try {
       assertEquals(true, assignmentsBalanced(ring, 0));
     } catch (Exception e) {
       fail(e.getMessage());
     }
     
+    // No dups
     try {
       assertEquals(true, noDuplicates(ring, 0));
     } catch (IOException e) {
