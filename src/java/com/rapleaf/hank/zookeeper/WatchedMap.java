@@ -11,7 +11,26 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
-public class WatchedMap<T> extends AbstractMap<String, T> implements Watcher {
+public class WatchedMap<T> extends AbstractMap<String, T> {
+  // NOTE: I have no idea why it's necessary to have an internal Watcher impl
+  // instead of just directly implementing Watcher, but this works and the other
+  // way doesn't.
+  private final Watcher watcher = new Watcher() {
+    @Override
+    public void process(WatchedEvent event) {
+      // only operate if we're connected
+      if (event.getState() != KeeperState.SyncConnected) {
+        return;
+      }
+      switch (event.getType()) {
+        case NodeChildrenChanged:
+          synchronized (changeMutex) {
+            syncMap(internalMap);
+          }
+      }
+    }
+  };
+
   public interface ElementLoader<T> {
     public T load(ZooKeeperPlus zk, String basePath, String relPath);
   }
@@ -52,24 +71,10 @@ public class WatchedMap<T> extends AbstractMap<String, T> implements Watcher {
     return internalMap.keySet();
   }
 
-  @Override
-  public void process(WatchedEvent event) {
-    // only operate if we're connected
-    if (event.getState() != KeeperState.SyncConnected) {
-      return;
-    }
-    switch (event.getType()) {
-      case NodeChildrenChanged:
-//        synchronized (changeMutex) {
-          syncMap(internalMap);
-//        }
-    }
-  }
-
   private void ensureLoaded() {
     // this lock is important so that when changes start happening, we
     // won't run into any concurrency issues
-//    synchronized (changeMutex) {
+    synchronized (changeMutex) {
       // if the map is non-null, then it's already loaded and the watching
       // mechanism will take care of everything...
       if (internalMap == null) {
@@ -78,12 +83,12 @@ public class WatchedMap<T> extends AbstractMap<String, T> implements Watcher {
         syncMap(m);
         internalMap = m;
       }
-//    }
+    }
   }
 
   private void syncMap(Map<String, T> m) {
     try {
-      final List<String> childrenRelPaths = zk.getChildren(path, this);
+      final List<String> childrenRelPaths = zk.getChildren(path, watcher);
       for (String relpath : childrenRelPaths) {
         if (!m.containsKey(relpath)) {
           m.put(relpath, elementLoader.load(zk, path, relpath));
