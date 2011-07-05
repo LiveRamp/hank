@@ -16,17 +16,18 @@
 
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.mock.MockStorageEngine;
-
 // Storage engine used for testing. Stores key-value pairs in a static
-// partition map. It is not thread safe.
+// partition map instead of writing them to an output stream. It is not thread
+// safe.
 public class MapStorageEngine extends MockStorageEngine {
 
   private static final Map<String, Map<Integer, Map<ByteBuffer, ByteBuffer>>> partitions =

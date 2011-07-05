@@ -16,21 +16,23 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.hadoop.mapred.OutputFormat;
-import org.apache.hadoop.mapred.RecordWriter;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.log4j.Logger;
-
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.OutputFormat;
+import org.apache.hadoop.mapred.RecordWriter;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
@@ -44,6 +46,30 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;
+  }
+
+  public void checkOutputSpecs(FileSystem fs, JobConf conf)
+      throws IOException {
+    String outputPath = getJobOutputPath(conf);
+    if (fs.exists(new Path(outputPath))) {
+      throw new RuntimeException("Output path already exists: " + outputPath);
+    }
+  }
+
+  protected String getTaskAttemptOutputPath(JobConf conf) {
+    String outputPath = conf.get("mapred.work.output.dir");
+    if (outputPath == null) {
+      throw new RuntimeException("Path was not set in mapred.work.output.dir");
+    }
+    return outputPath;
+  }
+
+  protected String getJobOutputPath(JobConf conf) {
+    String outputPath = conf.get("mapred.output.dir");
+    if (outputPath == null) {
+      throw new RuntimeException("Path was not set in mapred.output.dir");
+    }
+    return outputPath;
   }
 
   // Base class of record writers used to build domains.
@@ -61,8 +87,8 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domain,
-        VersionType versionType,
-        OutputStreamFactory outputStreamFactory) {
+                              VersionType versionType,
+                              OutputStreamFactory outputStreamFactory) {
       this.domain = domain;
       this.storageEngine = domain.getStorageEngine();
       this.versionType = versionType;

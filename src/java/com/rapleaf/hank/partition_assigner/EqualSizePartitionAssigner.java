@@ -29,6 +29,11 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     domainId = domainGroup.getDomainId(domain.getName());
     version = domainGroup.getLatestVersion().getVersionNumber();
     random = new Random();
+    
+    for (Host host : ring.getHosts()) {
+      if (host.getDomainById(domainId) == null)
+        host.addDomain(domainId);
+    }
 
     // make random assignments for any of the currently unassigned parts
     for (Integer partNum : ring.getUnassignedPartitions(domain)) {
@@ -68,8 +73,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
   private boolean assignmentsBalanced() throws IOException {
     HostDomain maxHostDomain = getMaxHostDomain();
     HostDomain minHostDomain = getMinHostDomain();
-    int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
-        - minHostDomain.getPartitions().size());
+    int maxDistance = Math.abs(maxHostDomain.getPartitions().size() - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
