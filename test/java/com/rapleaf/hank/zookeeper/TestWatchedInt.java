@@ -20,5 +20,13 @@ public class TestWatchedInt extends ZkTestCase {
     zk.setData(nodePath, null, -1);
     Thread.sleep(1000);
     assertNull(wi.get());
+    
+    WatchedInt wi2 = new WatchedInt(zk, nodePath);
+    assertNull(wi2.get());
+    wi2.set(22);
+    assertEquals(Integer.valueOf(22), wi2.get());
+
+    Thread.sleep(1000);
+    assertEquals(Integer.valueOf(22), wi.get());
   }
 }

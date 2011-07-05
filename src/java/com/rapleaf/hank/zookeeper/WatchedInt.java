@@ -15,4 +15,12 @@ public class WatchedInt extends WatchedNode<Integer> {
     }
     return Integer.parseInt(new String(data));
   }
+
+  @Override
+  protected byte[] encode(Integer v) {
+    if (v == null) {
+      return null;
+    }
+    return v.toString().getBytes();
+  }
 }

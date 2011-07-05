@@ -45,4 +45,13 @@ public abstract class WatchedNode<T> {
   public T get() {
     return value;
   }
+
+  public void set(T v) throws KeeperException, InterruptedException {
+    zk.setData(nodePath, encode(v), -1);
+    synchronized(this) {
+      value = v;
+    }
+  }
+
+  protected abstract byte[] encode(T v);
 }
