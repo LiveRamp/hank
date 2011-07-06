@@ -2,7 +2,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
@@ -13,13 +13,17 @@ import org.apache.zookeeper.data.Stat;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
   private static final String DEFUNCT_KEY = "defunct";
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
+
+  private final Map<String, ZkPartitionInfo> partitionInfos;
 
   public static DomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
     String versionPath = domainPath + "/versions/version_" + nextVerNum;
@@ -37,6 +41,12 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     String last = toks[toks.length - 1];
     toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
+    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts", new ElementLoader<ZkPartitionInfo>() {
+      @Override
+      public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkPartitionInfo(zk, basePath + "/" + relPath);
+      }
+    });
   }
 
   @Override
@@ -65,18 +75,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public Set<PartitionInfo> getPartitionInfos() throws IOException {
-    try {
-      List<String> children = zk.getChildren(path + "/parts", false);
-
-      Set<PartitionInfo> parts = new HashSet<PartitionInfo>();
-      for (String child : children) {
-        parts.add(new ZkPartitionInfo(zk, path + "/parts/" + child));
-      }
-
-      return parts;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    return new HashSet<PartitionInfo>(partitionInfos.values());
   }
 
   @Override
