@@ -3,7 +3,7 @@ package com.rapleaf.hank.zookeeper;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedLong extends WatchedNode<Long> {
-  protected WatchedLong(ZooKeeperPlus zk, String nodePath)
+  public WatchedLong(ZooKeeperPlus zk, String nodePath)
       throws KeeperException, InterruptedException {
     super(zk, nodePath);
   }
