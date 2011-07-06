@@ -20,10 +20,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
+import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
@@ -33,24 +36,35 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final ZooKeeperPlus zk;
   private final String countersPath;
 
-  public ZkHostDomainPartition(ZooKeeperPlus zk, String path) throws IOException {
+  private final WatchedInt currentDomainGroupVersion;
+  private final WatchedInt updatingToDomainGroupVersion;
+
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path)
+      throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.countersPath = path + "/counters";
     String[] toks = path.split("/");
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
+
+    // TODO: remove post-migration
+    if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
+      zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+    }
+
+    if (zk.exists(path + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
+      zk.create(path + UPDATING_TO_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+    }
+
+    currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT);
+    updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT);
   }
 
   @Override
   public Integer getCurrentDomainGroupVersion() throws IOException {
-    try {
-      if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) != null) {
-        return zk.getIntOrNull(path + CURRENT_VERSION_PATH_SEGMENT);
-      }
-      return null;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    return currentDomainGroupVersion.get();
   }
 
   @Override
@@ -60,16 +74,9 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public Integer getUpdatingToDomainGroupVersion() throws IOException {
-    try {
-      if (zk.exists(path + UPDATING_TO_VERSION_PATH_SEGMENT, false) != null) {
-        return zk.getIntOrNull(path + UPDATING_TO_VERSION_PATH_SEGMENT);
-      }
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-    return null;
+    return updatingToDomainGroupVersion.get();
   }
-  
+
   @Override
   public boolean isDeletable() throws IOException {
     try {
@@ -82,8 +89,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setCurrentDomainGroupVersion(int version) throws IOException {
     try {
-      String p = path + CURRENT_VERSION_PATH_SEGMENT;
-      zk.setOrCreate(p, version, CreateMode.PERSISTENT);
+      currentDomainGroupVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -92,17 +98,12 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setUpdatingToDomainGroupVersion(Integer version) throws IOException {
     try {
-      String p = path + UPDATING_TO_VERSION_PATH_SEGMENT;
-      if (version == null) {
-        zk.delete(p, -1);
-        return;
-      }
-      zk.setOrCreate(p, version, CreateMode.PERSISTENT);
+      updatingToDomainGroupVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
-  
+
   @Override
   public void setDeletable(boolean deletable) throws IOException {
     try {
@@ -120,7 +121,10 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     try {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion, CreateMode.PERSISTENT);
+      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion,
+        CreateMode.PERSISTENT);
       zk.create(hdpPath + "/counters", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {

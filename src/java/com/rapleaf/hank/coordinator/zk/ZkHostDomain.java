@@ -54,7 +54,11 @@ public class ZkHostDomain extends AbstractHostDomain {
     }
     Set<HostDomainPartition> results = new HashSet<HostDomainPartition>();
     for (String partStr : partStrs) {
-      results.add(new ZkHostDomainPartition(zk, root + "/" + partStr));
+      try {
+        results.add(new ZkHostDomainPartition(zk, root + "/" + partStr));
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
     }
     return results;
   }
