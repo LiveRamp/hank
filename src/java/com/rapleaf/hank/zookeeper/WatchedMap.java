@@ -99,4 +99,9 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       throw new RuntimeException("Exception trying to reload contents of " + path, e);
     }
   }
+
+  @Override
+  public T put(String arg0, T arg1) {
+    return internalMap.put(arg0, arg1);
+  }
 }

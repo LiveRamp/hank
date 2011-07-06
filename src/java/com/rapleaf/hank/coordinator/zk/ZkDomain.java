@@ -176,12 +176,13 @@ public class ZkDomain extends AbstractDomain {
     }
 
     try {
-      DomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum);
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum);
+      versions.put(newVersion.getPathSeg(), newVersion);
       return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.
       LOG.warn("Got an exception when trying to open a version for domain " + domainPath, e);
-      return null;
+      throw new IOException(e);
     }
   }
 

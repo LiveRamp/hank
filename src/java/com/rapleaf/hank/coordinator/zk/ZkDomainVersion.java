@@ -11,7 +11,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
@@ -27,7 +26,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final Map<String, ZkPartitionInfo> partitionInfos;
   private final WatchedBoolean defunct;
 
-  public static DomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
+  public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
     String versionPath = domainPath + "/versions/version_" + nextVerNum;
     zk.create(versionPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(versionPath + "/parts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -123,5 +122,9 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     } catch (Exception e) {
       throw new IOException(e);
     }
+  }
+
+  public String getPathSeg() {
+    return "version_" + versionNumber;
   }
 }
