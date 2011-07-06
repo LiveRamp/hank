@@ -158,12 +158,7 @@ public class ZkDomain extends AbstractDomain {
   }
 
   public SortedSet<DomainVersion> getVersions() throws IOException {
-    TreeSet<DomainVersion> result = new TreeSet<DomainVersion>();
-
-    for (Map.Entry<String, ZkDomainVersion> entry : versions.entrySet()) {
-      result.add(entry.getValue());
-    }
-    return result;
+    return new TreeSet<DomainVersion>(versions.values());
   }
 
   public DomainVersion openNewVersion() throws IOException {
