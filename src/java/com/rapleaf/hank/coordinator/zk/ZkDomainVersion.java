@@ -13,22 +13,26 @@ import org.apache.zookeeper.data.Stat;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
-  private static final String DEFUNCT_KEY = "defunct";
+  private static final String DEFUNCT_PATH_SEGMENT = "/defunct";
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
 
   private final Map<String, ZkPartitionInfo> partitionInfos;
+  private final WatchedBoolean defunct;
 
   public static DomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
     String versionPath = domainPath + "/versions/version_" + nextVerNum;
     zk.create(versionPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(versionPath + "/parts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(versionPath + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(versionPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkDomainVersion(zk, versionPath);
   }
@@ -41,12 +45,15 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     String last = toks[toks.length - 1];
     toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
-    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts", new ElementLoader<ZkPartitionInfo>() {
-      @Override
-      public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkPartitionInfo(zk, basePath + "/" + relPath);
-      }
-    });
+    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts",
+      new ElementLoader<ZkPartitionInfo>() {
+        @Override
+        public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+          return new ZkPartitionInfo(zk, basePath + "/" + relPath);
+        }
+      });
+
+    defunct = new WatchedBoolean(zk, path + DEFUNCT_PATH_SEGMENT);
   }
 
   @Override
@@ -100,26 +107,15 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public boolean isDefunct() throws IOException {
-    final String defunctPath = path + "/" + DEFUNCT_KEY;
-    try {
-      return zk.exists(defunctPath, false) != null;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    return defunct.get();
   }
 
   @Override
   public void setDefunct(boolean isDefunct) throws IOException {
     try {
-      final String defunctPath = path + "/" + DEFUNCT_KEY;
-      final boolean alreadyDefunct = isDefunct();
-      if (isDefunct && !alreadyDefunct) {
-        zk.create(defunctPath, 0, CreateMode.PERSISTENT);
-      } else if (!isDefunct && alreadyDefunct) {
-        zk.delete(defunctPath, 0);
-      }
+      defunct.set(isDefunct);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
-;}
+}
