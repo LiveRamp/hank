@@ -42,12 +42,14 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
   private final int versionNumber;
   private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
 
-  public ZkDomainGroupVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
+  public ZkDomainGroupVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroup)
+      throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
     String[] toks = versionPath.split("/");
     Matcher m = VERSION_NAME_PATTERN.matcher(toks[toks.length - 1]);
     if (!m.matches()) {
-      throw new IllegalArgumentException(versionPath + " has an improperly formatted version number! Must be in the form of 'vNNNN'.");
+      throw new IllegalArgumentException(versionPath
+          + " has an improperly formatted version number! Must be in the form of 'vNNNN'.");
     }
 
     versionNumber = Integer.parseInt(m.group(1));
@@ -60,9 +62,8 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
     domainVersions = new HashSet<DomainGroupVersionDomainVersion>();
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
-        domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk,
-            versionPath + "/" + child,
-            domainGroup.getDomain(domainGroup.getDomainId(child))));
+        domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, versionPath + "/" + child,
+          domainGroup.getDomain(domainGroup.getDomainId(child))));
       }
     }
   }
@@ -86,12 +87,13 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
     return zk.exists(versionPath + "/" + COMPLETE_NODE_NAME, false) != null;
   }
 
-  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion,
-                                          DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
-    String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+    String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT_SEQUENTIAL);
     for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {
-      zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(),
+        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
     zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     // touch it again to notify watchers
@@ -101,8 +103,7 @@ public class ZkDomainGroupVersion implements DomainGroupVersion {
 
   @Override
   public String toString() {
-    return "ZkDomainGroupConfigVersion [domainVersions="
-        + domainVersions + ", domainGroup=" + domainGroup.getName()
-        + ", versionNumber=" + versionNumber + "]";
+    return "ZkDomainGroupConfigVersion [domainVersions=" + domainVersions + ", domainGroup="
+        + domainGroup.getName() + ", versionNumber=" + versionNumber + "]";
   }
 }
