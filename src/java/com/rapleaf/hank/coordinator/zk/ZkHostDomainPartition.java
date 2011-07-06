@@ -24,6 +24,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
+import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
@@ -38,6 +39,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedInt updatingToDomainGroupVersion;
+  private final WatchedBoolean deletable;
 
   public ZkHostDomainPartition(ZooKeeperPlus zk, String path)
       throws KeeperException, InterruptedException {
@@ -58,8 +60,14 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         CreateMode.PERSISTENT);
     }
 
+    if (zk.exists(path + DELETABLE_PATH_SEGMENT, false) == null) {
+      zk.create(path + DELETABLE_PATH_SEGMENT, Boolean.valueOf(false).toString().getBytes(),
+        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
     currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT);
     updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT);
+    deletable = new WatchedBoolean(zk, path + DELETABLE_PATH_SEGMENT);
   }
 
   @Override
@@ -79,11 +87,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public boolean isDeletable() throws IOException {
-    try {
-      return (zk.exists(path + DELETABLE_PATH_SEGMENT, false) != null);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    return deletable.get();
   }
 
   @Override
@@ -107,11 +111,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setDeletable(boolean deletable) throws IOException {
     try {
-      String p = path + DELETABLE_PATH_SEGMENT;
-      if (deletable)
-        zk.setOrCreate(p, 0, CreateMode.PERSISTENT);
-      else
-        zk.deleteIfExists(p);
+      this.deletable.set(deletable);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -125,6 +125,8 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         CreateMode.PERSISTENT);
       zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion,
         CreateMode.PERSISTENT);
+      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
+        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       zk.create(hdpPath + "/counters", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
