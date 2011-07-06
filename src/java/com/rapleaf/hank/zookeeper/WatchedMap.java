@@ -13,6 +13,21 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 public class WatchedMap<T> extends AbstractMap<String, T> {
+  public interface CompletionAwaiter {
+    public void completed(String relPath);
+  }
+
+  public interface CompletionDetector {
+    public void detectCompletion(ZooKeeperPlus zk, String basePath, String relPath, CompletionAwaiter awaiter) throws KeeperException, InterruptedException;
+  }
+
+  private static final CompletionDetector ALWAYS_COMPLETE = new CompletionDetector() {
+    @Override
+    public void detectCompletion(ZooKeeperPlus zk, String basePath, String relPath, CompletionAwaiter awaiter) throws KeeperException, InterruptedException {
+      awaiter.completed(relPath);
+    }
+  };
+
   // NOTE: I have no idea why it's necessary to have an internal Watcher impl
   // instead of just directly implementing Watcher, but this works and the other
   // way doesn't.
@@ -42,11 +57,30 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private Map<String, T> internalMap;
   private final Object changeMutex = new Object();
   private final ElementLoader<T> elementLoader;
+  private final CompletionDetector completionDetector;
+
+  private CompletionAwaiter awaiter = new CompletionAwaiter() {
+    @Override
+    public void completed(String relPath) {
+      synchronized (internalMap) {
+        try {
+          internalMap.put(relPath, elementLoader.load(zk, path, relPath));
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+  };
 
   public WatchedMap(ZooKeeperPlus zk, String basePath, ElementLoader<T> elementLoader) {
+    this(zk, basePath, elementLoader, ALWAYS_COMPLETE);
+  }
+
+  public WatchedMap(ZooKeeperPlus zk, String basePath, ElementLoader<T> elementLoader, CompletionDetector completionDetector) {
     this.zk = zk;
     this.path = basePath;
     this.elementLoader = elementLoader;
+    this.completionDetector = completionDetector;
   }
 
   public ZooKeeperPlus getZk() {
@@ -92,7 +126,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       final List<String> childrenRelPaths = zk.getChildren(path, watcher);
       for (String relpath : childrenRelPaths) {
         if (!m.containsKey(relpath)) {
-          m.put(relpath, elementLoader.load(zk, path, relpath));
+          completionDetector.detectCompletion(zk, path, relpath, awaiter);
         }
       }
     } catch (Exception e) {
