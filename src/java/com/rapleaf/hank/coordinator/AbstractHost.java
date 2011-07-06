@@ -35,4 +35,9 @@ public abstract class AbstractHost implements Host {
     }
     return aggregateCountKeys;
   }
+
+  @Override
+  public boolean isOnline() throws IOException {
+    return getState() != HostState.OFFLINE;
+  }
 }

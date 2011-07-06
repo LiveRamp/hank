@@ -49,8 +49,7 @@ public class ZkHost extends AbstractHost {
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "/current_command";
 
   private class CommandQueueWatcher extends HankWatcher {
-    protected CommandQueueWatcher()
-        throws KeeperException, InterruptedException {
+    protected CommandQueueWatcher() throws KeeperException, InterruptedException {
       super();
     }
 
@@ -242,11 +241,6 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public boolean isOnline() throws IOException {
-    return getState() != HostState.OFFLINE;
-  }
-
-  @Override
   public void setState(HostState state) throws IOException {
     try {
       if (state == HostState.OFFLINE) {
@@ -271,10 +265,8 @@ public class ZkHost extends AbstractHost {
   @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     try {
-      zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/command_",
-          command.toString().getBytes(),
-          Ids.OPEN_ACL_UNSAFE,
-          CreateMode.PERSISTENT_SEQUENTIAL);
+      zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/command_", command.toString().getBytes(),
+        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -287,7 +279,8 @@ public class ZkHost extends AbstractHost {
       Collections.sort(children);
       List<HostCommand> queue = new ArrayList<HostCommand>();
       for (String child : children) {
-        queue.add(HostCommand.valueOf(zk.getString(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child)));
+        queue.add(HostCommand.valueOf(zk.getString(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/"
+            + child)));
       }
       return queue;
     } catch (Exception e) {
@@ -334,8 +327,10 @@ public class ZkHost extends AbstractHost {
     LOG.trace("creating host " + hostPath);
     zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(hostPath + PARTS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
     zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkHost(zk, hostPath);
   }
