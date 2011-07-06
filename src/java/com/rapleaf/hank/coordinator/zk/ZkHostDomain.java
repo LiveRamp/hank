@@ -36,7 +36,7 @@ public class ZkHostDomain extends AbstractHostDomain {
   public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, int domainId) {
     this.zk = zk;
     this.domainId = domainId;
-    this.root = partsRoot + "/" + (domainId & 0xff);
+    this.root = partsRoot + "/" + domainId;
   }
 
   @Override

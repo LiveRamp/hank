@@ -56,43 +56,44 @@ public class ZkDomain extends AbstractDomain {
 
   private final Map<String, ZkDomainVersion> versions;
 
-  public ZkDomain(ZooKeeperPlus zk, String domainPath)
-      throws KeeperException, InterruptedException {
+  public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
 
     String[] toks = domainPath.split("/");
     this.name = toks[toks.length - 1];
     this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath
-        + '/' + KEY_STORAGE_ENGINE_OPTIONS));
-    this.storageEngineFactoryName = zk.getString(domainPath + '/'
-        + KEY_STORAGE_ENGINE_FACTORY);
+    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath + '/'
+        + KEY_STORAGE_ENGINE_OPTIONS));
+    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
 
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS, new ElementLoader<ZkDomainVersion>(){
-      @Override
-      public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomainVersion(zk, basePath + "/" + relPath);
-      }
-    });
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS,
+      new ElementLoader<ZkDomainVersion>() {
+        @Override
+        public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+          return new ZkDomainVersion(zk, basePath + "/" + relPath);
+        }
+      });
 
-    String partitionerClassName = zk.getString(domainPath + '/'
-        + KEY_PARTITIONER);
+    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
     try {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate partitioner "
-          + partitionerClassName, e);
+      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
     }
   }
 
   public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
     String domainPath = domainsRoot + "/" + domainName;
     zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkDomain(zk, domainPath);
@@ -179,18 +180,16 @@ public class ZkDomain extends AbstractDomain {
       return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.
-      LOG.warn("Got an exception when trying to open a version for domain "
-          + domainPath, e);
+      LOG.warn("Got an exception when trying to open a version for domain " + domainPath, e);
       return null;
     }
   }
 
   @Override
   public String toString() {
-    return "ZkDomainConfig [domainPath=" + domainPath + ", name=" + name
-        + ", numParts=" + numParts + ", partitioner=" + partitioner
-        + ", storageEngine=" + storageEngine + ", storageEngineFactoryName="
-        + storageEngineFactoryName + ", storageEngineOptions="
+    return "ZkDomainConfig [domainPath=" + domainPath + ", name=" + name + ", numParts=" + numParts
+        + ", partitioner=" + partitioner + ", storageEngine=" + storageEngine
+        + ", storageEngineFactoryName=" + storageEngineFactoryName + ", storageEngineOptions="
         + storageEngineOptions + "]";
   }
 
@@ -198,8 +197,7 @@ public class ZkDomain extends AbstractDomain {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result
-        + ((domainPath == null) ? 0 : domainPath.hashCode());
+    result = prime * result + ((domainPath == null) ? 0 : domainPath.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     return result;
   }
