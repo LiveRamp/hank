@@ -16,7 +16,6 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -32,7 +31,9 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomain extends AbstractDomain {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -53,6 +54,8 @@ public class ZkDomain extends AbstractDomain {
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
+  private final Map<String, ZkDomainVersion> versions;
+
   public ZkDomain(ZooKeeperPlus zk, String domainPath)
       throws KeeperException, InterruptedException {
     this.zk = zk;
@@ -65,6 +68,13 @@ public class ZkDomain extends AbstractDomain {
         + '/' + KEY_STORAGE_ENGINE_OPTIONS));
     this.storageEngineFactoryName = zk.getString(domainPath + '/'
         + KEY_STORAGE_ENGINE_FACTORY);
+
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS, new ElementLoader<ZkDomainVersion>(){
+      @Override
+      public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkDomainVersion(zk, basePath + "/" + relPath);
+      }
+    });
 
     String partitionerClassName = zk.getString(domainPath + '/'
         + KEY_PARTITIONER);
@@ -150,16 +160,10 @@ public class ZkDomain extends AbstractDomain {
   public SortedSet<DomainVersion> getVersions() throws IOException {
     TreeSet<DomainVersion> result = new TreeSet<DomainVersion>();
 
-    try {
-      String basePath = domainPath + "/" + KEY_VERSIONS;
-      List<String> children = zk.getChildren(basePath, false);
-      for (String child : children) {
-        result.add(new ZkDomainVersion(zk, basePath + "/" + child));
-      }
-      return result;
-    } catch (Exception e) {
-      throw new IOException(e);
+    for (Map.Entry<String, ZkDomainVersion> entry : versions.entrySet()) {
+      result.add(entry.getValue());
     }
+    return result;
   }
 
   public DomainVersion openNewVersion() throws IOException {
