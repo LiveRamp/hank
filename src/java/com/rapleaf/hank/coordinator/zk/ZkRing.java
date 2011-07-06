@@ -62,17 +62,17 @@ public class ZkRing extends AbstractRing implements Watcher {
     @Override
     public void process(WatchedEvent event) {
       switch (event.getType()) {
-      case NodeDataChanged:
-        for (RingStateChangeListener listener : stateChangeListeners) {
-          listener.onRingStateChange(ZkRing.this);
-        }
-        if (!cancelled) {
-          try {
-            register();
-          } catch (Exception e) {
-            LOG.error("failed to reregister watch!", e);
+        case NodeDataChanged:
+          for (RingStateChangeListener listener : stateChangeListeners) {
+            listener.onRingStateChange(ZkRing.this);
           }
-        }
+          if (!cancelled) {
+            try {
+              register();
+            } catch (Exception e) {
+              LOG.error("failed to reregister watch!", e);
+            }
+          }
       }
     }
 
@@ -83,8 +83,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final String ringPath;
 
-  private final Map<PartDaemonAddress, Host> hostConfigs =
-    new HashMap<PartDaemonAddress, Host>();
+  private final Map<PartDaemonAddress, Host> hostConfigs = new HashMap<PartDaemonAddress, Host>();
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
 
@@ -93,7 +92,8 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final ZooKeeperPlus zk;
 
-  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroupConfig) throws InterruptedException, KeeperException {
+  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroupConfig)
+      throws InterruptedException, KeeperException {
     super(parseRingNum(ringPath), ringGroupConfig);
     this.zk = zk;
     this.ringPath = ringPath;
@@ -101,7 +101,18 @@ public class ZkRing extends AbstractRing implements Watcher {
     // enumerate hosts
     refreshAndRegister();
     this.stateChangeWatcher = new StateChangeWatcher();
-    
+
+    // REMOVE THESE POST-MIGRATION!!!
+    if (zk.exists(ringPath + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
+      zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+    }
+
+    if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
+      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+    }
+
     currentVersionNumber = new WatchedInt(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT);
     updatingToVersionNumber = new WatchedInt(zk, ringPath + UPDATING_TO_VERSION_PATH_SEGMENT);
   }
@@ -114,8 +125,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     return Integer.parseInt(matcher.group(1));
   }
 
-  private synchronized void refreshHosts()
-  throws InterruptedException, KeeperException {
+  private synchronized void refreshHosts() throws InterruptedException, KeeperException {
     // get the children and simultaneously reset the watch. this is important so
     // we don't miss events.
     List<String> hosts = zk.getChildren(ringPath + "/hosts", this);
@@ -205,9 +215,12 @@ public class ZkRing extends AbstractRing implements Watcher {
   public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
     zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkRing(zk, ringPath, group);
   }
@@ -238,7 +251,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   public void close() {
     stateChangeWatcher.cancel();
     for (Host hostConfig : getHosts()) {
-      ((ZkHost)hostConfig).close();
+      ((ZkHost) hostConfig).close();
     }
   }
 
