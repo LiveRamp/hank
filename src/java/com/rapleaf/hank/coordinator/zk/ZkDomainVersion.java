@@ -9,6 +9,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
+import org.eclipse.jetty.util.log.Log;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
@@ -54,8 +55,12 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
     // TODO: remove post-migration
     if (zk.exists(path + DEFUNCT_PATH_SEGMENT, false) == null) {
-      zk.create(path + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      try {
+        zk.create(path + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
+          Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } catch (KeeperException.NodeExistsException e) {
+        Log.warn("Looks like the defunct node exists after all!", e);
+      }
     }
 
     defunct = new WatchedBoolean(zk, path + DEFUNCT_PATH_SEGMENT);
