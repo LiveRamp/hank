@@ -40,4 +40,19 @@ public abstract class AbstractHost implements Host {
   public boolean isOnline() throws IOException {
     return getState() != HostState.OFFLINE;
   }
+
+  @Override
+  public HostDomain getDomainById(int domainId) {
+    // TODO: this should be done with a map and caching
+    try {
+      for (HostDomain hdc : getAssignedDomains()) {
+        if (hdc.getDomainId() == domainId) {
+          return hdc;
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    return null;
+  }
 }

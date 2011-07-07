@@ -213,21 +213,6 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public HostDomain getDomainById(int domainId) {
-    // TODO: this should be done with a map and caching
-    try {
-      for (HostDomain hdc : getAssignedDomains()) {
-        if (hdc.getDomainId() == domainId) {
-          return hdc;
-        }
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    return null;
-  }
-
-  @Override
   public HostCommand getCurrentCommand() throws IOException {
     try {
       String commandString = zk.getString(hostPath + CURRENT_COMMAND_PATH_SEGMENT);
