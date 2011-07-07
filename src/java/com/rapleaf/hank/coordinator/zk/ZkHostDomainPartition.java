@@ -50,6 +50,10 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
 
     // TODO: remove post-migration
+    if (zk.exists(countersPath, false) == null) {
+      zk.create(countersPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
     if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
       zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
         CreateMode.PERSISTENT);
