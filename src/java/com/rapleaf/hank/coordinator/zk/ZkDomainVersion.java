@@ -45,13 +45,14 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     String last = toks[toks.length - 1];
     toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
-    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts",
-      new ElementLoader<ZkPartitionInfo>() {
-        @Override
-        public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-          return new ZkPartitionInfo(zk, basePath + "/" + relPath);
-        }
-      });
+    final ElementLoader<ZkPartitionInfo> elementLoader = new ElementLoader<ZkPartitionInfo>() {
+      @Override
+      public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkPartitionInfo(zk, basePath + "/" + relPath);
+      }
+    };
+    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts", elementLoader,
+      new DotComplete());
 
     // TODO: remove post-migration
     if (zk.exists(path + DEFUNCT_PATH_SEGMENT, false) == null) {

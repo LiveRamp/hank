@@ -56,33 +56,6 @@ public class ZkDomain extends AbstractDomain {
 
   private final Map<String, ZkDomainVersion> versions;
 
-  public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
-    this.zk = zk;
-    this.domainPath = domainPath;
-
-    String[] toks = domainPath.split("/");
-    this.name = toks[toks.length - 1];
-    this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath + '/'
-        + KEY_STORAGE_ENGINE_OPTIONS));
-    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
-
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS,
-      new ElementLoader<ZkDomainVersion>() {
-        @Override
-        public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-          return new ZkDomainVersion(zk, basePath + "/" + relPath);
-        }
-      });
-
-    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
-    try {
-      partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
-    }
-  }
-
   public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
     String domainPath = domainsRoot + "/" + domainName;
     zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -97,6 +70,34 @@ public class ZkDomain extends AbstractDomain {
     zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     return new ZkDomain(zk, domainPath);
+  }
+
+  public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.domainPath = domainPath;
+
+    String[] toks = domainPath.split("/");
+    this.name = toks[toks.length - 1];
+    this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
+    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath + '/'
+        + KEY_STORAGE_ENGINE_OPTIONS));
+    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
+
+    final ElementLoader<ZkDomainVersion> elementLoader = new ElementLoader<ZkDomainVersion>() {
+      @Override
+      public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkDomainVersion(zk, basePath + "/" + relPath);
+      }
+    };
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS,
+      elementLoader, new DotComplete());
+
+    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
+    try {
+      partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+    }
   }
 
   public String getName() {
