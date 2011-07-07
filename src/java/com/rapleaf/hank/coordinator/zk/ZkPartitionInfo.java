@@ -13,7 +13,7 @@ public class ZkPartitionInfo implements PartitionInfo {
   private final long numRecords;
 
   public static ZkPartitionInfo create(ZooKeeperPlus zk, String partsRoot, int partNum, long numBytes, long numRecords) throws KeeperException, InterruptedException {
-    String partPath = String.format(partsRoot + "/part-%d", partNum);
+    String partPath = partsRoot + "/" + nodeName(partNum);
     // if the node already exists, then don't try to create a new one
     if (zk.exists(partPath, false) == null) {
       zk.create(partPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -24,7 +24,8 @@ public class ZkPartitionInfo implements PartitionInfo {
     return new ZkPartitionInfo(zk, partPath);
   }
 
-  public ZkPartitionInfo(ZooKeeperPlus zk, String partInfoPath) throws KeeperException, InterruptedException {
+  public ZkPartitionInfo(ZooKeeperPlus zk, String partInfoPath)
+      throws KeeperException, InterruptedException {
     String[] toks = partInfoPath.split("/");
     toks = toks[toks.length - 1].split("-");
     this.partNum = Integer.parseInt(toks[toks.length - 1]);
@@ -46,5 +47,9 @@ public class ZkPartitionInfo implements PartitionInfo {
   @Override
   public int getPartNum() {
     return partNum;
+  }
+
+  public static String nodeName(int partNum) {
+    return String.format("part-%d", partNum);
   }
 }

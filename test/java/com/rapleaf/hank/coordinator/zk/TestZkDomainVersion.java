@@ -55,7 +55,10 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertTrue(dv2.getPartitionInfos().isEmpty());
 
     dv.addPartitionInfo(1, 2, 3);
+    // should be available immediately
     assertEquals(1, dv.getPartitionInfos().size());
+    // should be available after a short wait
+    Thread.sleep(1000);
     assertEquals(1, dv2.getPartitionInfos().size());
   }
 

@@ -85,7 +85,8 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
     try {
-      ZkPartitionInfo.create(zk, path + "/parts", partNum, numBytes, numRecords);
+      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, path + "/parts", partNum, numBytes, numRecords);
+      partitionInfos.put(ZkPartitionInfo.nodeName(partNum), p);
     } catch (Exception e) {
       throw new IOException(e);
     }
