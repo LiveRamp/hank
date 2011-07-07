@@ -102,7 +102,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     refreshAndRegister();
     this.stateChangeWatcher = new StateChangeWatcher();
 
-    // REMOVE THESE POST-MIGRATION!!!
+    // TODO: REMOVE THESE POST-MIGRATION!!!
     if (zk.exists(ringPath + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
       zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
         CreateMode.PERSISTENT);
