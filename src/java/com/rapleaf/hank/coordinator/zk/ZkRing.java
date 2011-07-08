@@ -48,6 +48,19 @@ public class ZkRing extends AbstractRing implements Watcher {
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
   private static final String STATUS_PATH_SEGMENT = "/status";
 
+  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
+    String ringPath = ringGroup + "/ring-" + ringNum;
+    zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(),
+      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkRing(zk, ringPath, group);
+  }
+
   private final class StateChangeWatcher implements Watcher {
     private boolean cancelled = false;
 
@@ -210,19 +223,6 @@ public class ZkRing extends AbstractRing implements Watcher {
     } catch (KeeperException e) {
       LOG.error("Unexpected KeeperException!", e);
     }
-  }
-
-  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
-    String ringPath = ringGroup + "/ring-" + ringNum;
-    zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkRing(zk, ringPath, group);
   }
 
   @Override
