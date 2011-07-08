@@ -63,6 +63,7 @@ public class TestZkRingGroup extends ZkTestCase {
     ZkDomainGroup dgc = (ZkDomainGroup) ZkDomainGroup.create(getZk(), getRoot() + "/domain_groups", "blah");
     DomainGroupVersion version = dgc.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rgc = ZkRingGroup.create(getZk(), getRoot() + "/my_ring_group", dgc);
+    dumpZk();
     assertNull(rgc.getCurrentVersion());
     assertEquals(Integer.valueOf(version.getVersionNumber()), rgc.getUpdatingToVersion());
     rgc.updateComplete();

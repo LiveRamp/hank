@@ -34,15 +34,32 @@ import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkRingGroup implements RingGroup {
+  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
+  private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
+
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+    if (domainGroup.getVersions().isEmpty()) {
+      throw new IllegalStateException(
+        "You cannot create a ring group for a domain group that has no versions!");
+    }
+    zk.create(path, domainGroup.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(path + UPDATING_TO_VERSION_PATH_SEGMENT,
+      ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    return new ZkRingGroup(zk, path, domainGroup);
+  }
 
   private final class StateChangeListener implements Watcher {
     private final RingGroupChangeListener listener;
 
-    public StateChangeListener(RingGroupChangeListener listener) throws KeeperException, InterruptedException {
+    public StateChangeListener(RingGroupChangeListener listener)
+        throws KeeperException, InterruptedException {
       this.listener = listener;
       reregister();
     }
@@ -95,15 +112,18 @@ public class ZkRingGroup implements RingGroup {
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
-  private final HashMap<Integer,Ring> ringsByNumber =
-    new HashMap<Integer, Ring>();
+  private final HashMap<Integer, Ring> ringsByNumber = new HashMap<Integer, Ring>();
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
   private final String dataDeployerOnlinePath;
   private final ZooKeeperPlus zk;
 
-  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup) throws InterruptedException, KeeperException {
+  private final WatchedInt currentVersion;
+  private final WatchedInt updatingToVersion;
+
+  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup)
+      throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroup = domainGroup;
@@ -118,9 +138,12 @@ public class ZkRingGroup implements RingGroup {
         ringsByNumber.put(rc.getRingNumber(), rc);
       }
     }
-    currentVerPath = ringGroupPath + "/current_version";
-    updatingToVersionPath = ringGroupPath + "/updating_to_version";
+    currentVerPath = ringGroupPath + CURRENT_VERSION_PATH_SEGMENT;
+    updatingToVersionPath = ringGroupPath + UPDATING_TO_VERSION_PATH_SEGMENT;
     dataDeployerOnlinePath = ringGroupPath + "/data_deployer_online";
+
+    currentVersion = new WatchedInt(zk, currentVerPath, true, null);
+    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true, null);
   }
 
   @Override
@@ -173,7 +196,8 @@ public class ZkRingGroup implements RingGroup {
         zk.delete(dataDeployerOnlinePath, -1);
         return;
       }
-      throw new IllegalStateException("Can't release the data deployer lock when it's not currently set!");
+      throw new IllegalStateException(
+        "Can't release the data deployer lock when it's not currently set!");
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -182,7 +206,7 @@ public class ZkRingGroup implements RingGroup {
   @Override
   public Integer getCurrentVersion() throws IOException {
     try {
-      return zk.getIntOrNull(ringGroupPath + "/current_version");
+      return currentVersion.get();
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -195,13 +219,8 @@ public class ZkRingGroup implements RingGroup {
 
   @Override
   public void setUpdatingToVersion(Integer versionNumber) throws IOException {
-    byte[] newVer = ("" + versionNumber).getBytes();
     try {
-      if (zk.exists(updatingToVersionPath, false) == null) {
-        zk.create(updatingToVersionPath, newVer, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      } else {
-        zk.setData(updatingToVersionPath, newVer, -1);
-      }
+      updatingToVersion.set(versionNumber);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -209,17 +228,12 @@ public class ZkRingGroup implements RingGroup {
 
   @Override
   public void updateComplete() throws IOException {
-    byte[] newVer = ("" + getUpdatingToVersion()).getBytes();
     try {
-      if (zk.exists(currentVerPath, false) == null) {
-        zk.create(currentVerPath, newVer, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      } else {
-        zk.setData(currentVerPath, newVer, -1);
-      }
-      zk.delete(updatingToVersionPath, -1);
+      currentVersion.set(getUpdatingToVersion());
     } catch (Exception e) {
       throw new IOException(e);
     }
+    setUpdatingToVersion(null);
   }
 
   @Override
@@ -231,19 +245,10 @@ public class ZkRingGroup implements RingGroup {
     }
   }
 
-  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
-    if (domainGroup.getVersions().isEmpty()) {
-      throw new IllegalStateException("You cannot create a ring group for a domain group that has no versions!");
-    }
-    zk.create(path, domainGroup.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(path + "/updating_to_version", ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkRingGroup(zk, path, domainGroup);
-  }
-
   @Override
   public Integer getUpdatingToVersion() throws IOException {
     try {
-      return zk.getIntOrNull(ringGroupPath + "/updating_to_version");
+      return updatingToVersion.get();
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -252,7 +257,8 @@ public class ZkRingGroup implements RingGroup {
   @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      Ring rc = ZkRing.create(zk, ringGroupPath, ringNum, this, isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
+      Ring rc = ZkRing.create(zk, ringGroupPath, ringNum, this,
+        isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
       ringsByNumber.put(rc.getRingNumber(), rc);
       return rc;
     } catch (Exception e) {
