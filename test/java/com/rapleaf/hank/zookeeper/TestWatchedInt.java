@@ -1,6 +1,7 @@
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 import com.rapleaf.hank.ZkTestCase;
@@ -28,5 +29,20 @@ public class TestWatchedInt extends ZkTestCase {
 
     Thread.sleep(1000);
     assertEquals(Integer.valueOf(22), wi.get());
+  }
+
+  public void testCreate() throws Exception {
+    try {
+      new WatchedInt(getZk(), getRoot() + "/watchedNode");
+      fail("should have thrown a KeeperException!");
+    } catch (KeeperException.NoNodeException e) {
+      // expected.
+    }
+
+    WatchedInt wi = new WatchedInt(getZk(), getRoot() + "/watchedNode", true, 7);
+    assertEquals(Integer.valueOf(7), wi.get());
+
+    wi = new WatchedInt(getZk(), getRoot() + "/watchedNode", true, 10);
+    assertEquals(Integer.valueOf(7), wi.get());
   }
 }

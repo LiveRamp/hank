@@ -1,9 +1,11 @@
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 public abstract class WatchedNode<T> {
@@ -31,8 +33,18 @@ public abstract class WatchedNode<T> {
 
   protected WatchedNode(ZooKeeperPlus zk, String nodePath)
       throws KeeperException, InterruptedException {
+    this(zk, nodePath, false, null);
+  }
+
+  public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean create, T initValue)
+      throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
+    if (create) {
+      if (zk.exists(nodePath, false) == null) {
+        zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
+    }
     update();
   }
 
@@ -48,7 +60,7 @@ public abstract class WatchedNode<T> {
 
   public void set(T v) throws KeeperException, InterruptedException {
     zk.setData(nodePath, encode(v), -1);
-    synchronized(this) {
+    synchronized (this) {
       value = v;
     }
   }
