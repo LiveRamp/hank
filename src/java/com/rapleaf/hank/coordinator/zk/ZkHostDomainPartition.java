@@ -54,24 +54,10 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       zk.create(countersPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
-    if (zk.exists(path + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
-      zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
-    }
-
-    if (zk.exists(path + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
-      zk.create(path + UPDATING_TO_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
-    }
-
-    if (zk.exists(path + DELETABLE_PATH_SEGMENT, false) == null) {
-      zk.create(path + DELETABLE_PATH_SEGMENT, Boolean.valueOf(false).toString().getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    }
-
-    currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT);
-    updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT);
-    deletable = new WatchedBoolean(zk, path + DELETABLE_PATH_SEGMENT);
+    currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT, true, null);
+    updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT,
+      true, null);
+    deletable = new WatchedBoolean(zk, path + DELETABLE_PATH_SEGMENT, true, false);
   }
 
   @Override
