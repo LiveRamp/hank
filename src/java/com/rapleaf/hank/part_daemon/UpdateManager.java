@@ -69,11 +69,11 @@ class UpdateManager implements IUpdateManager {
     @Override
     public void run() {
       try {
-        LOG.debug(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
+        LOG.info(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
         engine.getUpdater(configurator, partNum).update(toDomainVersion, excludeVersions);
         part.setCurrentDomainGroupVersion(toDomainGroupVersion);
         part.setUpdatingToDomainGroupVersion(null);
-        LOG.debug(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
+        LOG.info(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
       } catch (Throwable e) {
         LOG.fatal("Failed to complete an UpdateToDo!", e);
         exceptionQueue.add(e);
