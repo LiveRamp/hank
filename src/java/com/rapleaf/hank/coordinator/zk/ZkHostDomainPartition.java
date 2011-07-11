@@ -32,6 +32,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String DELETABLE_PATH_SEGMENT = "/selected_for_deletion";
+  private static final String COUNTERS_PATH_SEGMENT = "/counters";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
@@ -40,6 +41,25 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedInt updatingToDomainGroupVersion;
   private final WatchedBoolean deletable;
+
+  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
+    try {
+      String hdpPath = domainPath + "/" + partNum;
+      zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
+      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion,
+        CreateMode.PERSISTENT);
+      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
+        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      if (zk.exists(hdpPath + COUNTERS_PATH_SEGMENT, false) == null) {
+        zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      }
+      return new ZkHostDomainPartition(zk, hdpPath);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 
   public ZkHostDomainPartition(ZooKeeperPlus zk, String path)
       throws KeeperException, InterruptedException {
@@ -102,23 +122,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public void setDeletable(boolean deletable) throws IOException {
     try {
       this.deletable.set(deletable);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
-    try {
-      String hdpPath = domainPath + "/" + partNum;
-      zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
-      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion,
-        CreateMode.PERSISTENT);
-      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      zk.create(hdpPath + "/counters", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
       throw new IOException(e);
     }
