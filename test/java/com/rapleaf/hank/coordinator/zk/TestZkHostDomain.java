@@ -25,24 +25,25 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 public class TestZkHostDomain extends ZkTestCase {
 
   public void testIt() throws Exception {
-    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), (byte) 1);
+    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), 1);
     assertEquals(1, hdc.getDomainId());
     assertEquals(0, hdc.getPartitions().size());
-    
-
+    dumpZk();
     hdc.addPartition(1, 1);
     assertEquals(1, hdc.getPartitions().size());
-    assertEquals(1, ((HostDomainPartition)hdc.getPartitions().toArray()[0]).getPartNum());
-    
+    assertEquals(1, ((HostDomainPartition) hdc.getPartitions().toArray()[0]).getPartNum());
+
     hdc.addPartition(0, 1).setCount("Elephants", 10);
-    for (HostDomainPartition hdp: hdc.getPartitions()) {
+    for (HostDomainPartition hdp : hdc.getPartitions()) {
       hdp.setCount("Giraffes", 10);
     }
-    Set<String> counterKeys = new HashSet<String>(){{
-      add("Elephants");
-      add("Giraffes");
-    }};
-    
+    Set<String> counterKeys = new HashSet<String>() {
+      {
+        add("Elephants");
+        add("Giraffes");
+      }
+    };
+
     assertEquals(20, hdc.getAggregateCount("Giraffes").intValue());
     assertEquals(10, hdc.getAggregateCount("Elephants").intValue());
     assertNull(hdc.getAggregateCount("Lions"));
