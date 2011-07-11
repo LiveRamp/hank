@@ -158,7 +158,7 @@ public class TestZkHost extends ZkTestCase {
     ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
     assertEquals(0, c.getAssignedDomains().size());
 
-    c.addDomain((byte) 0);
+    c.addDomain(0);
     HostDomain hostDomainConf = (HostDomain) c.getAssignedDomains().toArray()[0];
     assertEquals(0, hostDomainConf.getDomainId());
 

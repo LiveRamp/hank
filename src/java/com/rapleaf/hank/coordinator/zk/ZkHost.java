@@ -25,8 +25,8 @@ import java.util.Set;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
@@ -37,7 +37,9 @@ import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
@@ -98,6 +100,19 @@ public class ZkHost extends AbstractHost {
     }
   }
 
+  public static ZkHost create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
+    String hostPath = root + "/" + partDaemonAddress.toString();
+    LOG.trace("creating host " + hostPath);
+    zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + PARTS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
+      CreateMode.PERSISTENT);
+    zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkHost(zk, hostPath);
+  }
+
   private final ZooKeeperPlus zk;
   private final String hostPath;
   private final PartDaemonAddress address;
@@ -107,6 +122,7 @@ public class ZkHost extends AbstractHost {
 
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
+  private final WatchedMap<ZkHostDomain> domains;
 
   public ZkHost(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
@@ -118,6 +134,11 @@ public class ZkHost extends AbstractHost {
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();
     commandQueueWatcher = new CommandQueueWatcher();
+    domains = new WatchedMap<ZkHostDomain>(zk, hostPath + PARTS_PATH_SEGMENT, new ElementLoader<ZkHostDomain>(){
+      @Override
+      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkHostDomain(zk, basePath, Integer.parseInt(relPath));
+      }}/*, new DotComplete()*/);
   }
 
   @Override
@@ -186,29 +207,20 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public Set<HostDomain> getAssignedDomains() throws IOException {
-    List<String> domains;
-    try {
-      domains = zk.getChildren(hostPath + PARTS_PATH_SEGMENT, false);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-    Set<HostDomain> results = new HashSet<HostDomain>();
-    for (String domain : domains) {
-      results.add(new ZkHostDomain(zk, hostPath + PARTS_PATH_SEGMENT, Integer.parseInt(domain)));
-    }
-    return results;
+    return new HashSet<HostDomain>(domains.values());
   }
 
   @Override
   public HostDomain addDomain(int domainId) throws IOException {
     try {
-      if (zk.exists(hostPath + PARTS_PATH_SEGMENT + "/" + domainId, false) != null) {
+      if (domains.containsKey("" + domainId)) {
         throw new IOException("Domain " + domainId + " is already assigned to this host!");
       }
     } catch (Exception e) {
       throw new IOException(e);
     }
-    HostDomain hdc = ZkHostDomain.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
+    ZkHostDomain hdc = ZkHostDomain.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
+    domains.put(""+domainId, hdc);
     return hdc;
   }
 
@@ -305,19 +317,6 @@ public class ZkHost extends AbstractHost {
     synchronized (commandQueueListeners) {
       commandQueueListeners.add(listener);
     }
-  }
-
-  public static ZkHost create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
-    String hostPath = root + "/" + partDaemonAddress.toString();
-    LOG.trace("creating host " + hostPath);
-    zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + PARTS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    return new ZkHost(zk, hostPath);
   }
 
   @Override
