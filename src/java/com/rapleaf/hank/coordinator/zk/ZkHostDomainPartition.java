@@ -52,10 +52,17 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         CreateMode.PERSISTENT);
       zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
         Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      if (zk.exists(hdpPath + COUNTERS_PATH_SEGMENT, false) == null) {
+      try {
         zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } catch (KeeperException.NodeExistsException e) {
+        // ignore
       }
-      zk.create(hdpPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      try {
+        zk.create(hdpPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } catch (KeeperException.NodeExistsException e) {
+        // ignore
+      }
+
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
       throw new IOException(e);

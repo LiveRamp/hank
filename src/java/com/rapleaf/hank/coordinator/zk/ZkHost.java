@@ -137,7 +137,10 @@ public class ZkHost extends AbstractHost {
     domains = new WatchedMap<ZkHostDomain>(zk, hostPath + PARTS_PATH_SEGMENT, new ElementLoader<ZkHostDomain>(){
       @Override
       public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkHostDomain(zk, basePath, Integer.parseInt(relPath));
+        if (!basePath.equals(".complete")) {
+          return new ZkHostDomain(zk, basePath, Integer.parseInt(relPath));
+        }
+        return null;
       }}/*, new DotComplete()*/);
   }
 

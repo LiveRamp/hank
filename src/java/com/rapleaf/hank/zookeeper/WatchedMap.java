@@ -64,7 +64,11 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     public void completed(String relPath) {
       synchronized (internalMap) {
         try {
-          internalMap.put(relPath, elementLoader.load(zk, path, relPath));
+          final T element = elementLoader.load(zk, path, relPath);
+          if (element == null) {
+            return;
+          }
+          internalMap.put(relPath, element);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
