@@ -7,6 +7,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
+import org.eclipse.jetty.util.log.Log;
 
 public abstract class WatchedNode<T> {
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
@@ -17,6 +18,9 @@ public abstract class WatchedNode<T> {
   private final Watcher watcher = new Watcher() {
     @Override
     public void process(WatchedEvent event) {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(String.format("Notified of watcher event %s for node %s", event, nodePath));
+      }
       // this lock is important so that when changes start happening, we
       // won't run into any concurrency issues
       synchronized (WatchedNode.this) {
@@ -42,6 +46,9 @@ public abstract class WatchedNode<T> {
     this.nodePath = nodePath;
     if (create) {
       if (zk.exists(nodePath, false) == null) {
+        if (Log.isDebugEnabled()) {
+          LOG.debug(String.format("Creating non-existent node %s with value %s", nodePath, initValue));
+        }
         zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       }
     }
@@ -49,6 +56,9 @@ public abstract class WatchedNode<T> {
   }
 
   private void update() throws KeeperException, InterruptedException {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(String.format("Getting value for %s", nodePath));
+    }
     value = decode(zk.getData(nodePath, watcher, new Stat()));
   }
 

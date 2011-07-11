@@ -40,8 +40,8 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       }
       switch (event.getType()) {
         case NodeChildrenChanged:
-          synchronized (changeMutex) {
-            syncMap(internalMap);
+          synchronized (notifyMutex) {
+            syncMap();
           }
       }
     }
@@ -54,8 +54,8 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private final ZooKeeperPlus zk;
   private final String path;
 
-  private Map<String, T> internalMap;
-  private final Object changeMutex = new Object();
+  private Map<String, T> internalMap = new HashMap<String, T>();
+  private final Object notifyMutex = new Object();
   private final ElementLoader<T> elementLoader;
   private final CompletionDetector completionDetector;
 
@@ -71,6 +71,8 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       }
     }
   };
+
+  private boolean loaded;
 
   public WatchedMap(ZooKeeperPlus zk, String basePath, ElementLoader<T> elementLoader) {
     this(zk, basePath, elementLoader, ALWAYS_COMPLETE);
@@ -109,23 +111,22 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private void ensureLoaded() {
     // this lock is important so that when changes start happening, we
     // won't run into any concurrency issues
-    synchronized (changeMutex) {
+    synchronized (notifyMutex) {
       // if the map is non-null, then it's already loaded and the watching
       // mechanism will take care of everything...
-      if (internalMap == null) {
+      if (!loaded) {
         // ...but if it's not loaded, we need to do the initial population.
-        Map<String, T> m = new HashMap<String, T>();
-        syncMap(m);
-        internalMap = m;
+        syncMap();
+        loaded = true;
       }
     }
   }
 
-  private void syncMap(Map<String, T> m) {
+  private void syncMap() {
     try {
       final List<String> childrenRelPaths = zk.getChildren(path, watcher);
       for (String relpath : childrenRelPaths) {
-        if (!m.containsKey(relpath)) {
+        if (!internalMap.containsKey(relpath)) {
           completionDetector.detectCompletion(zk, path, relpath, awaiter);
         }
       }
