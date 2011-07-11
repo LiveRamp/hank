@@ -55,6 +55,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       if (zk.exists(hdpPath + COUNTERS_PATH_SEGMENT, false) == null) {
         zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       }
+      zk.create(hdpPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
       throw new IOException(e);
@@ -72,6 +73,11 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     // TODO: remove post-migration
     if (zk.exists(countersPath, false) == null) {
       zk.create(countersPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    }
+
+    // TODO: remove post-migration
+    if (zk.exists(path + "/.complete", false) == null) {
+      zk.create(path + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
     currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT, true, null);
