@@ -68,6 +68,12 @@ public class TestAbstractRingConfig extends BaseTestCase {
       // TODO Auto-generated method stub
       return false;
     }
+
+    @Override
+    public void delete() throws IOException {
+      // TODO Auto-generated method stub
+      
+    }
   }
 
   public void testIsUpdatePending() {

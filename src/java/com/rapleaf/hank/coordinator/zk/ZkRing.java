@@ -275,4 +275,13 @@ public class ZkRing extends AbstractRing implements Watcher {
       throw new IOException(e);
     }
   }
+
+  @Override
+  public void delete() throws IOException {
+    try {
+      zk.deleteNodeRecursively(ringPath);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }

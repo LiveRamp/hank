@@ -17,6 +17,8 @@ package com.rapleaf.hank.coordinator.zk;
 
 import java.util.Collections;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommand;
@@ -74,7 +76,8 @@ public class TestZkRing extends ZkTestCase {
 
     assertTrue("should be updating", ringConf.isUpdatePending());
     assertNull("current version", ringConf.getVersionNumber());
-    assertEquals("updating_to_version number", Integer.valueOf(1), ringConf.getUpdatingToVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(1),
+      ringConf.getUpdatingToVersionNumber());
 
     ringConf.updateComplete();
 
@@ -85,7 +88,8 @@ public class TestZkRing extends ZkTestCase {
     ringConf.setUpdatingToVersion(7);
     assertTrue("should be updating", ringConf.isUpdatePending());
     assertEquals("current version", Integer.valueOf(1), ringConf.getVersionNumber());
-    assertEquals("updating_to_version number", Integer.valueOf(7), ringConf.getUpdatingToVersionNumber());
+    assertEquals("updating_to_version number", Integer.valueOf(7),
+      ringConf.getUpdatingToVersionNumber());
 
     ringConf.close();
   }
@@ -155,8 +159,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
-    ZkRing rc = ZkRing.create(getZk(), getRoot()
-        + "/ring-group-one", 1, null, 10);
+    ZkRing rc = ZkRing.create(getZk(), getRoot() + "/ring-group-one", 1, null, 10);
     Host h1 = rc.addHost(new PartDaemonAddress("localhost", 1));
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
@@ -174,6 +177,17 @@ public class TestZkRing extends ZkTestCase {
     h1.enqueueCommand(HostCommand.EXECUTE_UPDATE);
     l1.waitForNotification();
     assertEquals(h1, l1.calledWith);
+  }
+
+  public void testDelete() throws Exception {
+    ZkRing rc = ZkRing.create(getZk(), getRoot() + "/ring-group-one", 1, null, 10);
+    rc.delete();
+    try {
+      new ZkRing(getZk(), getRoot() + "/ring-group-one/ring-1", null);
+      fail("should have had an exception!");
+    } catch (KeeperException.NoNodeException e) {
+      // expected
+    }
   }
 
   @Override
