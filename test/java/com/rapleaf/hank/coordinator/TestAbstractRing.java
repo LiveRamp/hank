@@ -8,7 +8,7 @@ import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
 
-public class TestAbstractRingConfig extends BaseTestCase {
+public class TestAbstractRing extends BaseTestCase {
   private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
 
   private static class SlightlyLessAbstractRing extends AbstractRing {
