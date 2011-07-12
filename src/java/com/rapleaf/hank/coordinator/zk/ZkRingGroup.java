@@ -16,9 +16,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -35,7 +34,9 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkRingGroup implements RingGroup {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
@@ -112,7 +113,7 @@ public class ZkRingGroup implements RingGroup {
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
-  private final HashMap<Integer, Ring> ringsByNumber = new HashMap<Integer, Ring>();
+  private final Map<String, ZkRing> ringsByNumber;
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
@@ -130,14 +131,16 @@ public class ZkRingGroup implements RingGroup {
     String[] pathTokens = ringGroupPath.split("/");
     ringGroupName = pathTokens[pathTokens.length - 1];
 
-    // enumerate ring group configs
-    List<String> ringNames = zk.getChildren(ringGroupPath, false);
-    for (String ringName : ringNames) {
-      if (ringName.matches("ring-\\d+")) {
-        Ring rc = new ZkRing(zk, ringGroupPath + "/" + ringName, this);
-        ringsByNumber.put(rc.getRingNumber(), rc);
+    ringsByNumber = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
+      @Override
+      public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (relPath.matches("ring-\\d+")) {
+          return new ZkRing(zk, basePath + "/" + relPath, ZkRingGroup.this);
+        }
+        return null;
       }
-    }
+    });
+
     currentVerPath = ringGroupPath + CURRENT_VERSION_PATH_SEGMENT;
     updatingToVersionPath = ringGroupPath + UPDATING_TO_VERSION_PATH_SEGMENT;
     dataDeployerOnlinePath = ringGroupPath + "/data_deployer_online";
@@ -158,7 +161,7 @@ public class ZkRingGroup implements RingGroup {
 
   @Override
   public Ring getRing(int ringNumber) {
-    return ringsByNumber.get(ringNumber);
+    return ringsByNumber.get("ring-" + ringNumber);
   }
 
   @Override
@@ -257,9 +260,9 @@ public class ZkRingGroup implements RingGroup {
   @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      Ring rc = ZkRing.create(zk, ringGroupPath, ringNum, this,
+      ZkRing rc = ZkRing.create(zk, ringGroupPath, ringNum, this,
         isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
-      ringsByNumber.put(rc.getRingNumber(), rc);
+      ringsByNumber.put(""+rc.getRingNumber(), rc);
       return rc;
     } catch (Exception e) {
       throw new IOException(e);

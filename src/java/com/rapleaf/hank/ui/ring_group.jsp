@@ -89,7 +89,14 @@ RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("name"));
       <td><%=ring.getVersionNumber()%></td>
       <td><%=ring.getUpdatingToVersionNumber()%></td>
       <td><%=ring.getHosts().size()%></td>
-      <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">details</a></td>
+      <td>
+        <a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">details</a>
+        <form action="/ring_group/delete_ring" method="post">
+          <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+          <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+          <input type="submit" value="delete"/>
+        </form>
+      </td>
     </tr>
     <%
       }
