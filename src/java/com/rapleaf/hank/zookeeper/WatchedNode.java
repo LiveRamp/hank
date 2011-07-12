@@ -5,6 +5,8 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.EventType;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.eclipse.jetty.util.log.Log;
@@ -18,8 +20,12 @@ public abstract class WatchedNode<T> {
   private final Watcher watcher = new Watcher() {
     @Override
     public void process(WatchedEvent event) {
-      if (LOG.isTraceEnabled()) {
-        LOG.trace(String.format("Notified of watcher event %s for node %s", event, nodePath));
+      if (event.getState() != KeeperState.SyncConnected) {
+        return;
+      }
+      if (event.getType() == EventType.NodeDeleted) {
+        // we were deleted, so we should stop watching for changes.
+        return;
       }
       // this lock is important so that when changes start happening, we
       // won't run into any concurrency issues
