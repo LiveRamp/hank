@@ -125,7 +125,9 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 
 <ul>
   <%
-    for (DomainGroupVersion dgcv : domainGroup.getVersions()) {
+    SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
+    dgvRev.addAll(domainGroup.getVersions());
+    for (DomainGroupVersion dgcv : dgvRev) {
   %>
   <li>
     v<%= dgcv.getVersionNumber() %>:

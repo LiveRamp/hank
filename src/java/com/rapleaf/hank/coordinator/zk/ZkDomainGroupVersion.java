@@ -30,12 +30,13 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 
+import com.rapleaf.hank.coordinator.AbstractDomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupVersion implements DomainGroupVersion {
+public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroup domainGroup;

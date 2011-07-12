@@ -22,7 +22,7 @@ import java.util.Set;
  * individual DomainConfigVersions. A DomainGroupConfigVersion is distributed as
  * a whole to a RingGroup.
  */
-public interface DomainGroupVersion {
+public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
   public int getVersionNumber();
 
   public DomainGroup getDomainGroup();
