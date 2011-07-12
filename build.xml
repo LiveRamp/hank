@@ -176,6 +176,7 @@
     <mkdir dir="${build}/tar_temp/hank" />
     <mkdir dir="${build}/tar_temp/hank/lib" />
     <mkdir dir="${build}/tar_temp/hank/conf" />
+    <mkdir dir="${build}/tar_temp/hank/conf/example" />
     <mkdir dir="${build}/tar_temp/hank/log" />
 
     <!-- copy jars to lib/ -->
@@ -185,7 +186,7 @@
     </copy>
 
     <!-- copy default configs to conf/ -->
-    <copy todir="${build}/tar_temp/hank/conf" >
+    <copy todir="${build}/tar_temp/hank/conf/example" >
       <fileset dir="${src.default_config}">
         <include name="**/*.yaml"/>
         <include name="**/*.log4j.properties"/>
