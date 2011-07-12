@@ -3,6 +3,7 @@ package com.rapleaf.hank.zookeeper;
 import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -133,6 +134,11 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
         if (!internalMap.containsKey(relpath)) {
           completionDetector.detectCompletion(zk, path, relpath, awaiter);
         }
+      }
+      Set<String> deletedKeys = new HashSet<String>(internalMap.keySet());
+      deletedKeys.removeAll(childrenRelPaths);
+      for (String deletedKey : deletedKeys) {
+        internalMap.remove(deletedKey);
       }
     } catch (Exception e) {
       throw new RuntimeException("Exception trying to reload contents of " + path, e);
