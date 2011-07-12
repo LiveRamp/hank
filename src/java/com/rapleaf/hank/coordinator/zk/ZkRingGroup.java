@@ -28,17 +28,17 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
+import com.rapleaf.hank.coordinator.AbstractRingGroup;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingGroupChangeListener;
 import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
-public class ZkRingGroup implements RingGroup {
+public class ZkRingGroup extends AbstractRingGroup {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
@@ -213,11 +213,6 @@ public class ZkRingGroup implements RingGroup {
     } catch (Exception e) {
       throw new IOException(e);
     }
-  }
-
-  @Override
-  public boolean isUpdating() throws IOException {
-    return getUpdatingToVersion() != null;
   }
 
   @Override
