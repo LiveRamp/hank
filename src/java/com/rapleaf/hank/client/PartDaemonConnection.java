@@ -113,8 +113,6 @@ final class PartDaemonConnection implements HostStateChangeListener {
         return client.get(domainId, key);
       } catch (TException e2) {
         throw new IOException("Failed to execute get() again, giving up.", e2);
-      } finally {
-        unlock();
       }
     } finally {
       unlock();
