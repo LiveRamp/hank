@@ -104,8 +104,12 @@ public class CurlyUpdater implements Updater {
 
     // merge the latest base and all the deltas newer than it
     if (curlyBases.isEmpty()) {
-      throw new IllegalStateException("There are no curly bases in "
-          + localPartitionRoot + " after the fetcher ran!");
+      if (curlyDeltas.isEmpty()) {
+        throw new IllegalStateException("There are no curly bases in "
+            + localPartitionRoot + " after the fetcher ran!");
+      }
+      curlyBases.add(curlyDeltas.first());
+      curlyDeltas.remove(curlyDeltas.first());
     }
     String latestCurlyBase = curlyBases.last();
     SortedSet<String> relevantCurlyDeltas = curlyDeltas.tailSet(latestCurlyBase);
@@ -117,8 +121,12 @@ public class CurlyUpdater implements Updater {
     SortedSet<String> cueballBases = Cueball.getBases(localPartitionRoot);
     SortedSet<String> cueballDeltas = Cueball.getDeltas(localPartitionRoot);
     if (cueballBases.isEmpty()) {
-      throw new IllegalStateException("There are no cueball bases in "
-          + localPartitionRoot + " after the fetcher ran!");
+      if (cueballDeltas.isEmpty()) {
+        throw new IllegalStateException("There are no cueball bases or deltas in "
+          + localPartitionRoot + " after the fetcher ran!"); 
+      }
+      cueballBases.add(cueballDeltas.first());
+      cueballDeltas.remove(cueballDeltas.first());
     }
     String latestCueballBase = cueballBases.last();
     SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCurlyBase);

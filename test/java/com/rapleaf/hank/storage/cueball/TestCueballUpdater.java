@@ -32,12 +32,43 @@ public class TestCueballUpdater extends BaseTestCase {
     new File(LOCAL_ROOT).mkdirs();
   }
 
+  public void testFirstDeltaTreatedAsBase() throws Exception {
+    // blank local root
+
+    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00000.delta.cueball", "00001.delta.cueball");
+    MockCueballMerger merger = new MockCueballMerger();
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
+      new NoCompressionCodec(), 1);
+
+    updater.update(1, Collections.singleton(45));
+
+    // make sure fetcher got the right args
+    assertEquals(-1, fetcher.latestLocalVersion);
+    assertEquals(Collections.singleton(45), fetcher.excludeVersions);
+
+    // make sure the merger got the right args
+    assertEquals(LOCAL_ROOT + "/00000.delta.cueball", merger.latestBase);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")),
+      merger.deltas);
+    assertEquals(12, merger.keyHashSize);
+    assertEquals(5, merger.valueSize);
+    assertEquals(LOCAL_ROOT + "/00001.base.cueball", merger.newBasePath);
+
+    // make sure that the mock base created by the merger still exists
+    assertTrue(localFileExists("/00001.base.cueball"));
+    // old base should be deleted
+    assertFalse(localFileExists("/00000.delta.cueball"));
+    // delta that was fetched should be deleted
+    assertFalse(localFileExists(LOCAL_ROOT + "/00001.delta.cueball"));
+  }
+
   public void testBootstrapWithDeltas() throws Exception {
     // blank local root
 
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00000.base.cueball", "00001.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
-    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger, new NoCompressionCodec(), 1);
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
+      new NoCompressionCodec(), 1);
 
     updater.update(1, Collections.singleton(45));
 
@@ -47,7 +78,8 @@ public class TestCueballUpdater extends BaseTestCase {
 
     // make sure the merger got the right args
     assertEquals(LOCAL_ROOT + "/00000.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")), merger.deltas);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")),
+      merger.deltas);
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
     assertEquals(LOCAL_ROOT + "/00001.base.cueball", merger.newBasePath);
@@ -66,8 +98,8 @@ public class TestCueballUpdater extends BaseTestCase {
 
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.delta.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
-    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
-        merger, new NoCompressionCodec(), 1);
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
+      new NoCompressionCodec(), 1);
 
     updater.update(7, Collections.singleton(45));
 
@@ -77,7 +109,8 @@ public class TestCueballUpdater extends BaseTestCase {
 
     // make sure the merger got the right args
     assertEquals(LOCAL_ROOT + "/00005.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00006.delta.cueball", LOCAL_ROOT + "/00007.delta.cueball")), merger.deltas);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00006.delta.cueball", LOCAL_ROOT
+        + "/00007.delta.cueball")), merger.deltas);
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
     assertEquals(LOCAL_ROOT + "/00007.base.cueball", merger.newBasePath);
@@ -97,8 +130,8 @@ public class TestCueballUpdater extends BaseTestCase {
 
     MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.base.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
-    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher,
-        merger, new NoCompressionCodec(), 1);
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
+      new NoCompressionCodec(), 1);
 
     updater.update(7, null);
 
@@ -107,7 +140,8 @@ public class TestCueballUpdater extends BaseTestCase {
 
     // make sure the merger got the right args
     assertEquals(LOCAL_ROOT + "/00006.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00007.delta.cueball")), merger.deltas);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00007.delta.cueball")),
+      merger.deltas);
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
     assertEquals(LOCAL_ROOT + "/00007.base.cueball", merger.newBasePath);

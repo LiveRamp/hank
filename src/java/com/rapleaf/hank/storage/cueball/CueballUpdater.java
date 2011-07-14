@@ -20,10 +20,13 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.apache.log4j.Logger;
+
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.Updater;
 
 public class CueballUpdater implements Updater {
+  private static final Logger LOG = Logger.getLogger(CueballUpdater.class);
 
   private final String localPartitionRoot;
   private final int keyHashSize;
@@ -79,8 +82,13 @@ public class CueballUpdater implements Updater {
 
     // merge the latest base and all the deltas newer than it
     if (bases.isEmpty()) {
-      throw new IllegalStateException("There are no bases in "
-          + localPartitionRoot + " after the fetcher ran!");
+      LOG.info("Didn't find any bases. Using first delta instead.");
+      if (deltas.isEmpty()) {
+        throw new IllegalStateException("There are no bases or deltas in "
+          + localPartitionRoot + " after the fetcher ran!"); 
+      }
+      bases.add(deltas.first());
+      deltas.remove(deltas.first());
     }
     String latestBase = bases.last();
     SortedSet<String> relevantDeltas = deltas.tailSet(latestBase);

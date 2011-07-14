@@ -71,6 +71,44 @@ public class TestCurlyUpdater extends TestCase {
     assertEquals(ByteBuffer.wrap(new byte[]{50,0,0}), ByteBuffer.wrap(buf, 3, 3));
   }
 
+  public void testBootstrapNoBases() throws Exception {
+    // blank local
+
+    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT,
+        "00000.delta.cueball", "00000.delta.curly",
+        "00001.delta.cueball", "00001.delta.curly");
+    MockCurlyMerger curlyMerger = new MockCurlyMerger();
+    MockCueballMerger cueballMerger = new MockCueballMerger();
+    CurlyUpdater updater = new CurlyUpdater(LOCAL_ROOT, 12, 5,
+        fetcher, curlyMerger, cueballMerger, new NoCompressionCodec(), 1);
+
+    updater.update(1, Collections.singleton(45));
+
+    // make sure fetcher got the right args
+    assertEquals(-1, fetcher.latestLocalVersion);
+    assertEquals(Collections.singleton(45), fetcher.excludeVersions);
+
+    // make sure the mergers got the right args
+    assertEquals(LOCAL_ROOT + "/00000.delta.cueball", cueballMerger.latestBase);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")), cueballMerger.deltas);
+    assertEquals(12, cueballMerger.keyHashSize);
+    assertEquals(5, cueballMerger.valueSize);
+    assertEquals(LOCAL_ROOT + "/00001.base.cueball", cueballMerger.newBasePath);
+    assertTrue(cueballMerger.valueTransformer instanceof CurlyUpdater.OffsetTransformer);
+
+    assertEquals(LOCAL_ROOT + "/00000.delta.curly", curlyMerger.latestBase);
+    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.curly")), curlyMerger.deltas);
+
+    // make sure that the mock base created by the merger still exists
+    assertTrue(baseExists(1));
+    // old base should be deleted
+    assertFalse(baseExists(0));
+    // delta that was fetched should be deleted
+    assertFalse(deltaExists(0));
+    // delta that was fetched should be deleted
+    assertFalse(deltaExists(1));
+  }
+
   public void testBootstrap() throws Exception {
     // blank local
 
