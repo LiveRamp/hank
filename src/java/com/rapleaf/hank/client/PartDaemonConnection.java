@@ -15,10 +15,10 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.generated.PartDaemon;
+import com.rapleaf.hank.generated.PartDaemon.Client;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -28,10 +28,9 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
-import com.rapleaf.hank.generated.PartDaemon;
-import com.rapleaf.hank.generated.PartDaemon.Client;
+import java.io.IOException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 final class PartDaemonConnection implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(PartDaemonConnection.class);
@@ -41,16 +40,16 @@ final class PartDaemonConnection implements HostStateChangeListener {
   public TTransport transport;
   public Client client;
 
-  private final Host hostConfig;
+  private final Host host;
 
   private final Object stateChangeMutex = new Object();
 
   private boolean closed = true;
 
-  public PartDaemonConnection(Host hostConfig) throws TException, IOException {
-    this.hostConfig = hostConfig;
-    hostConfig.setStateChangeListener(this);
-    onHostStateChange(hostConfig);
+  public PartDaemonConnection(Host host) throws TException, IOException {
+    this.host = host;
+    host.setStateChangeListener(this);
+    onHostStateChange(host);
   }
 
   public void lock() {
@@ -96,9 +95,9 @@ final class PartDaemonConnection implements HostStateChangeListener {
 
   private void connect() {
     if (isClosed()) {
-      LOG.trace("Trying to connect to " + hostConfig.getAddress() + ", waiting on the lock...");
+      LOG.trace("Trying to connect to " + host.getAddress() + ", waiting on the lock...");
       lock.lock();
-      transport = new TFramedTransport(new TSocket(hostConfig.getAddress().getHostName(), hostConfig.getAddress().getPortNumber()));
+      transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber()));
       try {
         transport.open();
       } catch (TTransportException e) {
@@ -109,7 +108,7 @@ final class PartDaemonConnection implements HostStateChangeListener {
       TProtocol proto = new TCompactProtocol(transport);
       client = new PartDaemon.Client(proto);
       closed = false;
-      LOG.trace("Connection to " + hostConfig.getAddress() + " opened!");
+      LOG.trace("Connection to " + host.getAddress() + " opened!");
       lock.unlock();
     }
   }
