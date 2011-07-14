@@ -17,6 +17,7 @@ package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.generated.PartDaemon.Client;
 import org.apache.log4j.Logger;
@@ -29,6 +30,7 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -44,7 +46,14 @@ final class PartDaemonConnection implements HostStateChangeListener {
 
   private final Object stateChangeMutex = new Object();
 
-  private boolean closed = true;
+  private PartDaemonConnectionState state = PartDaemonConnectionState.DISCONNECTED;
+
+  private static enum PartDaemonConnectionState {
+    CONNECTED,
+    DISCONNECTED,
+    // STANDBY: we are waiting for the host to be SERVING
+    STANDBY
+  }
 
   public PartDaemonConnection(Host host) throws TException, IOException {
     this.host = host;
@@ -52,29 +61,23 @@ final class PartDaemonConnection implements HostStateChangeListener {
     onHostStateChange(host);
   }
 
-  public void lock() {
-    lock.lock();
-  }
-
-  public void unlock() {
-    lock.unlock();
-  }
-
-  public boolean isClosed() {
-    return closed;
-  }
-
   @Override
-  public void onHostStateChange(Host hostConfig) {
+  public void onHostStateChange(Host host) {
     synchronized (stateChangeMutex) {
       try {
-        switch (hostConfig.getState()) {
+        switch (host.getState()) {
           case SERVING:
+            lock();
+            disconnect();
             connect();
+            unlock();
             break;
 
           default:
+            lock();
             disconnect();
+            state = PartDaemonConnectionState.STANDBY;
+            unlock();
         }
       } catch (IOException e) {
         LOG.error("Exception while trying to get host state!", e);
@@ -82,34 +85,72 @@ final class PartDaemonConnection implements HostStateChangeListener {
     }
   }
 
-  private void disconnect() {
-    if (!isClosed()) {
-      lock.lock();
-      closed = true;
-      transport.close();
-      transport = null;
-      client = null;
-      lock.unlock();
+  public boolean isAvailable() {
+    return state != PartDaemonConnectionState.STANDBY;
+  }
+
+  public boolean isDisconnected() {
+    return state == PartDaemonConnectionState.DISCONNECTED;
+  }
+
+  public HankResponse get(int domainId, ByteBuffer key) throws IOException {
+    if (!isAvailable()) {
+      throw new IOException("Connection is not available.");
+    }
+    lock();
+    // Connect if necessary
+    if (isDisconnected()) {
+      connect();
+    }
+    try {
+      return client.get(domainId, key);
+    } catch (TException e1) {
+      // Reconnect and retry
+      LOG.trace("Failed to execute get(), reconnecting and retrying...");
+      disconnect();
+      connect();
+      try {
+        return client.get(domainId, key);
+      } catch (TException e2) {
+        throw new IOException("Failed to execute get() again, giving up.", e2);
+      } finally {
+        unlock();
+      }
+    } finally {
+      unlock();
     }
   }
 
-  private void connect() {
-    if (isClosed()) {
-      LOG.trace("Trying to connect to " + host.getAddress() + ", waiting on the lock...");
-      lock.lock();
-      transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber()));
-      try {
-        transport.open();
-      } catch (TTransportException e) {
-        LOG.error("Failed to establish connection to host!", e);
-        transport = null;
-        return;
-      }
-      TProtocol proto = new TCompactProtocol(transport);
-      client = new PartDaemon.Client(proto);
-      closed = false;
-      LOG.trace("Connection to " + host.getAddress() + " opened!");
-      lock.unlock();
+  private void disconnect() {
+    if (transport != null) {
+      transport.close();
     }
+    transport = null;
+    client = null;
+    state = PartDaemonConnectionState.DISCONNECTED;
+  }
+
+  private void connect() throws IOException {
+    LOG.trace("Trying to connect to " + host.getAddress());
+    transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber()));
+    try {
+      transport.open();
+    } catch (TTransportException e) {
+      LOG.error("Failed to establish connection to host.", e);
+      disconnect();
+      throw new IOException("Failed to establish connection to host.", e);
+    }
+    TProtocol proto = new TCompactProtocol(transport);
+    client = new PartDaemon.Client(proto);
+    LOG.trace("Connection to " + host.getAddress() + " opened.");
+    state = PartDaemonConnectionState.CONNECTED;
+  }
+
+  private void lock() {
+    lock.lock();
+  }
+
+  private void unlock() {
+    lock.unlock();
   }
 }

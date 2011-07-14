@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
 
 public class PartDaemonConnectionSet {
   private static final HankResponse ZERO_REPLICAS = HankResponse.xception(HankExceptions.zero_replicas(true));
@@ -45,20 +45,18 @@ public class PartDaemonConnectionSet {
       numAttempts++;
       int pos = nextIdx.getAndIncrement() % connections.size();
       PartDaemonConnection connection = connections.get(pos);
-      if (connection.isClosed()) {
-        LOG.trace("Connection " + connection + " was closed, so skipped it.");
+      if (!connection.isAvailable()) {
+        LOG.trace("Connection " + connection + " was not available, so skipped it.");
         continue;
       }
-      connection.lock();
       try {
-        HankResponse result = connection.client.get(domainId, key);
-        return result;
-      } finally {
-        connection.unlock();
+        return connection.get(domainId, key);
+      } catch (IOException e) {
+        LOG.trace("Failed to execute get() with connection " + connection + ", so skipped it.", e);
       }
     }
     if (numAttempts == connections.size()) {
-      LOG.trace("None of the " + connections.size() + " connections are open.");
+      LOG.trace("None of the " + connections.size() + " connections were available.");
     }
     return ZERO_REPLICAS;
   }
