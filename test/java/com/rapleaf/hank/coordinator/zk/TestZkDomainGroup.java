@@ -52,18 +52,6 @@ public class TestZkDomainGroup extends ZkTestCase {
     Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
-//    create(domains_root + "/domain0");
-//    create(domains_root + "/domain0/num_parts", "1");
-//    create(domains_root + "/domain0/version", "1");
-//    create(domains_root + "/domain0/storage_engine_options", "---");
-//    create(domains_root + "/domain0/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
-//    create(domains_root + "/domain0/partitioner_class", ConstantPartitioner.class.getName());
-//    create(domains_root + "/domain1");
-//    create(domains_root + "/domain1/num_parts", "1");
-//    create(domains_root + "/domain1/version", "1");
-//    create(domains_root + "/domain1/storage_engine_options", "---");
-//    create(domains_root + "/domain1/storage_engine_factory_class", ConstantStorageEngine.Factory.class.getName());
-//    create(domains_root + "/domain1/partitioner_class", ConstantPartitioner.class.getName());
     create(dg_root + "/domains");
     create(dg_root + "/domains/0", domains_root + "/domain0");
     create(dg_root + "/domains/1", domains_root + "/domain1");
