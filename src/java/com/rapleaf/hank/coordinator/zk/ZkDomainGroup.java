@@ -16,8 +16,6 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import java.io.IOException;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +38,9 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomainGroup implements DomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -73,23 +73,8 @@ public class ZkDomainGroup implements DomainGroup {
     }
   }
 
-  private final class DGCVComparator implements Comparator<DomainGroupVersion> {
-    @Override
-    public int compare(DomainGroupVersion arg0, DomainGroupVersion arg1) {
-      int vLeft = arg0.getVersionNumber();
-      int vRight = arg1.getVersionNumber();
-      if (vLeft < vRight) {
-        return -1;
-      }
-      if (vLeft > vRight) {
-        return 1;
-      }
-      return 0;
-    }
-  }
-
   private final String groupName;
-  private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>();
+  private final WatchedMap<ZkDomain> domainsById;
   private final SortedMap<Integer, DomainGroupVersion> domainGroupVersions = new TreeMap<Integer, DomainGroupVersion>();
   private final String dgPath;
   private final ZooKeeperPlus zk;
@@ -101,12 +86,13 @@ public class ZkDomainGroup implements DomainGroup {
     String[] toks = dgPath.split("/");
     this.groupName = toks[toks.length - 1];
 
-    // enumerate the "domains" subkey
-    List<String> domainIds = zk.getChildren(dgPath + "/domains", false);
-    for (String domainId : domainIds) {
-      domains.put(Integer.parseInt(domainId), new ZkDomain(zk, zk.getString(dgPath + "/domains/"
-          + domainId)));
-    }
+    final ElementLoader<ZkDomain> elementLoader = new ElementLoader<ZkDomain>() {
+      @Override
+      public ZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkDomain(zk, zk.getString(basePath + "/" + relPath));
+      }
+    };
+    domainsById = new WatchedMap<ZkDomain>(zk, dgPath + "/domains", elementLoader);
 
     // enumerate the versions subkey
     loadVersions();
@@ -133,15 +119,15 @@ public class ZkDomainGroup implements DomainGroup {
 
   @Override
   public Domain getDomain(int domainId) {
-    return domains.get(domainId);
+    return domainsById.get("" + domainId);
   }
 
   @Override
   public Integer getDomainId(String domainName) {
     // TODO: replace this with an inverted map
-    for (Entry<Integer, Domain> entry : domains.entrySet()) {
+    for (Entry<String, ZkDomain> entry : domainsById.entrySet()) {
       if (entry.getValue().getName().equals(domainName)) {
-        return entry.getKey();
+        return Integer.parseInt(entry.getKey());
       }
     }
     return null;
@@ -163,17 +149,13 @@ public class ZkDomainGroup implements DomainGroup {
 
   @Override
   public SortedSet<DomainGroupVersion> getVersions() throws IOException {
-    TreeSet<DomainGroupVersion> s = new TreeSet<DomainGroupVersion>(new DGCVComparator());
+    TreeSet<DomainGroupVersion> s = new TreeSet<DomainGroupVersion>();
     try {
       s.addAll(loadVersions().values());
     } catch (Exception e) {
       throw new IOException(e);
     }
     return s;
-  }
-
-  Map<Integer, Domain> getDomainMap() {
-    return domains;
   }
 
   @Override
@@ -194,7 +176,7 @@ public class ZkDomainGroup implements DomainGroup {
       }
       String domainPath = ((ZkDomain) domain).getPath();
       zk.create(path, domainPath.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      domains.put(domainId, new ZkDomain(zk, domainPath));
+      domainsById.put("" + domainId, new ZkDomain(zk, domainPath));
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -222,12 +204,12 @@ public class ZkDomainGroup implements DomainGroup {
 
   @Override
   public Set<Domain> getDomains() throws IOException {
-    return new HashSet<Domain>(domains.values());
+    return new HashSet<Domain>(domainsById.values());
   }
 
   @Override
   public String toString() {
-    return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domains=" + domains
+    return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domains=" + domainsById
         + ", domainGroupVersions=" + domainGroupVersions + ", groupName=" + groupName + "]";
   }
 
