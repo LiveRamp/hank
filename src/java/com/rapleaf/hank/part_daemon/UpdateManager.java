@@ -69,7 +69,7 @@ class UpdateManager implements IUpdateManager {
     @Override
     public void run() {
       try {
-        LOG.info(String.format("%sp%d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
+        LOG.info(String.format("%s part %d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
         engine.getUpdater(configurator, partNum).update(toDomainVersion, excludeVersions);
         part.setCurrentDomainGroupVersion(toDomainGroupVersion);
         part.setUpdatingToDomainGroupVersion(null);
