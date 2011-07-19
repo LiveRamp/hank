@@ -147,4 +147,10 @@ public interface Host extends Comparable<Host> {
    * @throws IOException
    */
   public Set<String> getAggregateCountKeys() throws IOException;
+
+  /**
+   * Clear this hosts's command queue.
+   * @throws IOException
+   */
+  public void clearCommandQueue() throws IOException;
 }

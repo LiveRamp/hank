@@ -28,8 +28,7 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartDaemonAddress;
 
 public class TestZkHost extends ZkTestCase {
-  private static final PartDaemonAddress ADDRESS = new PartDaemonAddress(
-      "my.super.host", 32267);
+  private static final PartDaemonAddress ADDRESS = new PartDaemonAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {
     ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
@@ -50,14 +49,13 @@ public class TestZkHost extends ZkTestCase {
     }
 
     assertNull("should not receive a callback until something is changed...",
-        mockListener.calledWith);
+      mockListener.calledWith);
 
     c.setState(HostState.SERVING);
     synchronized (mockListener) {
       mockListener.wait(1000);
     }
-    assertNotNull("mock listener should have received a call!",
-        mockListener.calledWith);
+    assertNotNull("mock listener should have received a call!", mockListener.calledWith);
     assertEquals(ADDRESS, mockListener.calledWith.getAddress());
     assertEquals(HostState.SERVING, mockListener.calledWith.getState());
     c.close();
@@ -88,8 +86,7 @@ public class TestZkHost extends ZkTestCase {
     assertNull(c.getCurrentCommand());
 
     c.enqueueCommand(HostCommand.SERVE_DATA);
-    assertEquals(Arrays.asList(HostCommand.GO_TO_IDLE, HostCommand.SERVE_DATA),
-        c.getCommandQueue());
+    assertEquals(Arrays.asList(HostCommand.GO_TO_IDLE, HostCommand.SERVE_DATA), c.getCommandQueue());
     assertNull(c.getCurrentCommand());
 
     assertEquals(HostCommand.GO_TO_IDLE, c.processNextCommand());
@@ -99,6 +96,10 @@ public class TestZkHost extends ZkTestCase {
     c.completeCommand();
     assertNull(c.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), c.getCommandQueue());
+
+    c.clearCommandQueue();
+    assertEquals(Collections.EMPTY_LIST, c.getCommandQueue());
+
     c.close();
   }
 

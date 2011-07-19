@@ -103,4 +103,9 @@ public class MockHost extends AbstractHost {
   @Override
   public void cancelStateChangeListener(HostStateChangeListener listener) {
   }
+
+  @Override
+  public void clearCommandQueue() throws IOException {
+    commandQueue.clear();
+  }
 }

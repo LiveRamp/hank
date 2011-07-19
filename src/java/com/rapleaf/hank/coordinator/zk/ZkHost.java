@@ -338,4 +338,16 @@ public class ZkHost extends AbstractHost {
     stateChangeWatcher.cancel();
     commandQueueWatcher.cancel();
   }
+
+  @Override
+  public void clearCommandQueue() throws IOException {
+    try {
+      List<String> children = zk.getChildren(hostPath + COMMAND_QUEUE_PATH_SEGMENT, false);
+      for (String child : children) {
+        zk.delete(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/" + child, 0);
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }

@@ -5,7 +5,7 @@
 <%@page import="java.util.*"%>
 
 <%
-  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
 
@@ -42,7 +42,14 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
   <h3>Status</h3>
   Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
   Current command: <%= host.getCurrentCommand() %> <br/>
-  Queued commands: <%= host.getCommandQueue() %> <br/>
+  Queued commands: <%= host.getCommandQueue() %> 
+  <form method=post action="/host/clear_command_queue">
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+      <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+      <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+      <input type=submit value="Clear command queue"/>
+    </form>
+  <br/>
   <form action="/host/enqueue_command" method="post">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
