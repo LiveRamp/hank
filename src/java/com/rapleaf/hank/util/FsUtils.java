@@ -23,7 +23,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public final class FsUtils {
-  private FsUtils() {}
+  private FsUtils() {
+  }
 
   public static void rmrf(String dir) {
     File d = new File(dir);
@@ -43,6 +44,10 @@ public final class FsUtils {
     SortedSet<String> matches = new TreeSet<String>();
     File local = new File(dir);
     String[] filesInLocal = local.list();
+
+    if (filesInLocal == null) {
+      throw new RuntimeException(dir + " does not exist or is not a directory!");
+    }
 
     for (String file : filesInLocal) {
       if (file.matches(regex)) {
