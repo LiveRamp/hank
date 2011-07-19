@@ -297,6 +297,7 @@ public class ZkHost extends AbstractHost {
 
       // if there are no children, the queue is empty.
       if (children.size() == 0) {
+        zk.setData(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, -1);
         return null;
       }
 

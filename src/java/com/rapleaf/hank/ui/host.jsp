@@ -41,14 +41,19 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
 <div>
   <h3>Status</h3>
   Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
-  Current command: <%= host.getCurrentCommand() %> <br/>
+  <form method="post" action="/host/discard_current_command">
+    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+    Current command: <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
+  </form>
   Queued commands: <%= host.getCommandQueue() %> 
   <form method=post action="/host/clear_command_queue">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-      <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-      <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-      <input type=submit value="Clear command queue"/>
-    </form>
+    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+    <input type=submit value="Clear command queue"/>
+  </form>
   <br/>
   <form action="/host/enqueue_command" method="post">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>

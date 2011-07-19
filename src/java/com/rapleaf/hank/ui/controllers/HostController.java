@@ -51,6 +51,20 @@ public class HostController extends Controller {
         doClearCommandQueue(req, resp);
       }
     });
+    actions.put("discard_current_command", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doDiscardCurrentCommand(req, resp);
+      }
+    });
+  }
+
+  protected void doDiscardCurrentCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
+    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    hc.processNextCommand();
+    redirectBack(resp, rgc, rc, hc);
   }
 
   protected void doClearCommandQueue(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -59,6 +73,10 @@ public class HostController extends Controller {
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.clearCommandQueue();
 
+    redirectBack(resp, rgc, rc, hc);
+  }
+
+  private void redirectBack(HttpServletResponse resp, RingGroup rgc, Ring rc, Host hc) throws IOException {
     resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(),
       URLEnc.encode(hc.getAddress().toString())));
   }
@@ -69,8 +87,7 @@ public class HostController extends Controller {
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
-    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(),
-      URLEnc.encode(hc.getAddress().toString())));
+    redirectBack(resp, rgc, rc, hc);
   }
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -85,8 +102,7 @@ public class HostController extends Controller {
     d.addPartition(Integer.parseInt(req.getParameter("partNum")),
       Integer.parseInt(req.getParameter("initialVersion")));
 
-    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(),
-      URLEnc.encode(hc.getAddress().toString())));
+    redirectBack(resp, rgc, rc, hc);
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
@@ -97,7 +113,6 @@ public class HostController extends Controller {
     HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
     pd.setDeletable(deletable);
 
-    resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(),
-      URLEnc.encode(hc.getAddress().toString())));
+    redirectBack(resp, rgc, rc, hc);
   }
 }
