@@ -130,7 +130,7 @@
       </form>
       <% } %>
 
-      <% if (version.isOpen()) { %>
+      <% if (version.getClosedAt() == null) { %>
       <form action="/domain/close" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
