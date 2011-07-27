@@ -8,7 +8,7 @@ public interface DomainVersion extends Comparable<DomainVersion> {
 
   /**
    * Millis since epoch corresponding to when this domain version was closed.
-   * 
+   *
    * @return null if not yet closed.
    * @throws IOException
    */
@@ -16,7 +16,7 @@ public interface DomainVersion extends Comparable<DomainVersion> {
 
   /**
    * Has this domain version been closed?
-   * 
+   *
    * @return
    * @throws IOException
    */
@@ -24,7 +24,7 @@ public interface DomainVersion extends Comparable<DomainVersion> {
 
   /**
    * Complete this version.
-   * 
+   *
    * @throws IOException
    */
   public void close() throws IOException;

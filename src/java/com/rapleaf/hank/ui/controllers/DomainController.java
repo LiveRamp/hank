@@ -1,13 +1,12 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class DomainController extends Controller {
 
@@ -60,6 +59,15 @@ public class DomainController extends Controller {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
         final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
         domainVersion.setDefunct(true);
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
+    actions.put("close", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        domainVersion.close();
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });

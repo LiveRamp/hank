@@ -122,11 +122,21 @@
     <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
     <td><%= String.format("%,d", version.getTotalNumRecords()) %></td>
     <td>
+      <% if (!version.isDefunct()) { %>
       <form action="/domain/defunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="mark defunct" />
       </form>
+      <% } %>
+
+      <% if (version.isOpen()) { %>
+      <form action="/domain/close" method="post">
+        <input type=hidden name="n" value="<%= domain.getName() %>" />
+        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
+        <input type=submit value="close" />
+      </form>
+      <% } %>
     </td>
   </tr>
   <% } %>
