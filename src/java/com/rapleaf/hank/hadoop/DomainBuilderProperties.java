@@ -2,6 +2,7 @@ package com.rapleaf.hank.hadoop;
 
 import cascading.flow.FlowProcess;
 import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.codec.binary.Base64;
@@ -174,8 +175,7 @@ public class DomainBuilderProperties {
         "Hank coordinator configuration", flowProcess);
     Configurator configurator;
     try {
-      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(
-          Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -209,8 +209,7 @@ public class DomainBuilderProperties {
         "Hank coordinator configuration", conf);
     Configurator configurator;
     try {
-      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(
-          Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -250,7 +249,14 @@ public class DomainBuilderProperties {
   }
 
   static public String getRemoteDomainRoot(String domainName, Configurator configurator) {
-    Domain domain = configurator.getCoordinator().getDomain(domainName);
+    if (configurator == null) {
+      throw new RuntimeException("Supplied Configurator is null.");
+    }
+    Coordinator coordinator = configurator.getCoordinator();
+    if (coordinator == null) {
+      throw new RuntimeException("Could not get Coordinator from supplied Configurator.");
+    }
+    Domain domain = coordinator.getDomain(domainName);
     if (domain == null) {
       throw new RuntimeException("Could not get domain: " + domainName + " from coordinator.");
     }
