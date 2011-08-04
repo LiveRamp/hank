@@ -13,16 +13,16 @@ import java.util.Map;
 
 public final class ClientCache implements IClientCache {
   private static final Map<String, SmartClient.Iface> cachedClients = new HashMap<String, Iface>();
-  private final Coordinator coord;
+  private final Coordinator coordinator;
 
   public ClientCache(Coordinator coordinator) {
-    this.coord = coordinator;
+    this.coordinator = coordinator;
   }
 
   public synchronized SmartClient.Iface getSmartClient(RingGroup ringGroup) throws IOException, TException {
     Iface c = cachedClients.get(ringGroup.getName());
     if (c == null) {
-      c = new HankSmartClient(coord, ringGroup.getName(), 1);
+      c = new HankSmartClient(coordinator, ringGroup.getName(), 1);
       cachedClients.put(ringGroup.getName(), c);
     }
     return c;
