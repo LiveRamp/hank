@@ -20,11 +20,11 @@ public final class ClientCache implements IClientCache {
   }
 
   public synchronized SmartClient.Iface getSmartClient(RingGroup ringGroup) throws IOException, TException {
-    Iface c = cachedClients.get(ringGroup.getName());
-    if (c == null) {
-      c = new HankSmartClient(coordinator, ringGroup.getName(), 1);
-      cachedClients.put(ringGroup.getName(), c);
+    Iface client = cachedClients.get(ringGroup.getName());
+    if (client == null) {
+      client = new HankSmartClient(coordinator, ringGroup.getName(), 1);
+      cachedClients.put(ringGroup.getName(), client);
     }
-    return c;
+    return client;
   }
 }
