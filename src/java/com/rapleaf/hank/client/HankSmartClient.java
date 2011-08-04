@@ -15,32 +15,20 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.util.Bytes;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.util.Bytes;
 
 /**
  * HankSmartClient implements the logic of determining which PartDaemon to
@@ -53,7 +41,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
   private final DomainGroup domainGroup;
-  private final RingGroup ringGroupConfig;
+  private final RingGroup ringGroup;
 
   private final Map<PartDaemonAddress, List<PartDaemonConnection>> connectionCache = new HashMap<PartDaemonAddress, List<PartDaemonConnection>>();
 
@@ -64,26 +52,26 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * with the requested ring group. Note that a given HankSmartClient can only
    * contact one ring group.
    *
-   * @param coord
+   * @param coordinator
    * @param ringGroupName
-   * @param numConnectionsPerHost 
+   * @param numConnectionsPerHost
    * @throws IOException
    * @throws TException
    */
-  public HankSmartClient(Coordinator coord, String ringGroupName, int numConnectionsPerHost) throws IOException, TException {
-    ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
-    this.domainGroup = ringGroupConfig.getDomainGroup();
+  public HankSmartClient(Coordinator coordinator, String ringGroupName, int numConnectionsPerHost) throws IOException, TException {
+    ringGroup = coordinator.getRingGroupConfig(ringGroupName);
+    this.domainGroup = ringGroup.getDomainGroup();
 
     loadCache(numConnectionsPerHost);
-    ringGroupConfig.setListener(this);
-    for (Ring ringConfig : ringGroupConfig.getRings()) {
-      ringConfig.setStateChangeListener(this);
+    ringGroup.setListener(this);
+    for (Ring ring : ringGroup.getRings()) {
+      ring.setStateChangeListener(this);
     }
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
     // preprocess the config to create skeleton domain -> part -> [hosts] map
-    DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
 
     Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
@@ -97,22 +85,22 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     // populate the skeleton, while also establishing connections to online hosts
-    for (Ring ringConfig : ringGroupConfig.getRings()) {
-      for (Host hostConfig : ringConfig.getHosts()) {
-        for (HostDomain hdc : hostConfig.getAssignedDomains()) {
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        for (HostDomain hdc : host.getAssignedDomains()) {
           Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
             List<PartDaemonAddress> partList = domainMap.get(hdcp.getPartNum());
-            partList.add(hostConfig.getAddress());
+            partList.add(host.getAddress());
           }
         }
 
         // establish connection to hosts
         List<PartDaemonConnection> hostConnections = new ArrayList<PartDaemonConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new PartDaemonConnection(hostConfig));
+          hostConnections.add(new PartDaemonConnection(host));
         }
-        connectionCache.put(hostConfig.getAddress(), hostConnections);
+        connectionCache.put(host.getAddress(), hostConnections);
       }
     }
 
@@ -184,6 +172,6 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   @Override
-  public void onRingStateChange(Ring ringConfig) {
+  public void onRingStateChange(Ring ring) {
   }
 }
