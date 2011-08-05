@@ -1,0 +1,9 @@
+coordinator:
+  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  options:
+    # a ZooKeeper connection string that identifies your quorum
+    connect_string: localhost:2181
+    session_timeout: 2000
+    domains_root: /hank/domains
+    domain_groups_root: /hank/domain_groups
+    ring_groups_root: /hank/ring_groups
