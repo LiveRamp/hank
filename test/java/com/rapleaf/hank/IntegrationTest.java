@@ -398,7 +398,7 @@ public class IntegrationTest extends ZkTestCase {
 
     // wait until the rings have been updated to the new version
     coord = config.getCoordinator();
-    final RingGroup ringGroupConfig = coord.getRingGroupConfig("rg1");
+    final RingGroup ringGroupConfig = coord.getRingGroup("rg1");
     for (int i = 0; i < 30; i++) {
       if (ringGroupConfig.isUpdating()) {
         LOG.info("Ring group is still updating. Sleeping...");

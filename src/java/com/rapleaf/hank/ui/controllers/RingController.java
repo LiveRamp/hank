@@ -44,7 +44,7 @@ public class RingController extends Controller {
   }
 
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
 
     PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
@@ -56,7 +56,7 @@ public class RingController extends Controller {
   }
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring ringConfig = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     ringConfig.removeHost(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
@@ -69,7 +69,7 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
     String hostname = req.getParameter("hostname");
     int portNum = Integer.parseInt(req.getParameter("port"));
-    coordinator.getRingGroupConfig(rgName).getRing(ringNum).addHost(
+    coordinator.getRingGroup(rgName).getRing(ringNum).addHost(
       new PartDaemonAddress(hostname, portNum));
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }

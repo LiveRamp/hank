@@ -55,7 +55,7 @@ class PartDaemonHandler implements IfaceWithShutdown {
       PartservConfigurator config) throws IOException {
     // find the ring config
     Ring ringConfig = config.getCoordinator()
-        .getRingGroupConfig(config.getRingGroupName())
+        .getRingGroup(config.getRingGroupName())
         .getRingForHost(hostAndPort);
 
     // get the domain group config for the ring

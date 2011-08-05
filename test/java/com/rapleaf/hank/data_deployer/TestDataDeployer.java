@@ -118,7 +118,7 @@ public class TestDataDeployer extends TestCase {
       public Coordinator getCoordinator() {
         return new MockCoordinator(){
           @Override
-          public RingGroup getRingGroupConfig(String ringGroupName) {
+          public RingGroup getRingGroup(String ringGroupName) {
             return mockRingGroupConf;
           }
         };
@@ -174,7 +174,7 @@ public class TestDataDeployer extends TestCase {
       public Coordinator getCoordinator() {
         return new MockCoordinator(){
           @Override
-          public RingGroup getRingGroupConfig(String ringGroupName) {
+          public RingGroup getRingGroup(String ringGroupName) {
             return mockRingGroupConf;
           }
         };

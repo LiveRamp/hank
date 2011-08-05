@@ -63,7 +63,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
     LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " starting.");
     boolean claimedDataDeployer = false;
     try {
-      ringGroupConfig = coord.getRingGroupConfig(ringGroupName);
+      ringGroupConfig = coord.getRingGroup(ringGroupName);
 
       // attempt to claim the data deployer title
       if (ringGroupConfig.claimDataDeployer()) {

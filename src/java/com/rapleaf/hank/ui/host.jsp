@@ -7,7 +7,7 @@
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
+RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
 
 Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("r")));
 Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.getParameter("h"))));
@@ -47,7 +47,7 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
     <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
     Current command: <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
   </form>
-  Queued commands: <%= host.getCommandQueue() %> 
+  Queued commands: <%= host.getCommandQueue() %>
   <form method=post action="/host/clear_command_queue">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
@@ -125,8 +125,8 @@ Host host = ring.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(request.
     <div><%= domain.getName() %></div>
     <div>
       <table cellspacing=1 cellpadding=0>
-      <% 
-      for (int i = 0; i < domain.getNumParts(); i++) { 
+      <%
+      for (int i = 0; i < domain.getNumParts(); i++) {
         String className = "unassigned";
         HostDomainPartition hdp = hdc.getPartitionByNumber(i);
         if (hdp != null) {

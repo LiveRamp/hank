@@ -59,7 +59,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * @throws TException
    */
   public HankSmartClient(Coordinator coordinator, String ringGroupName, int numConnectionsPerHost) throws IOException, TException {
-    ringGroup = coordinator.getRingGroupConfig(ringGroupName);
+    ringGroup = coordinator.getRingGroup(ringGroupName);
     this.domainGroup = ringGroup.getDomainGroup();
 
     loadCache(numConnectionsPerHost);

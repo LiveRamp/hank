@@ -145,13 +145,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
    * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
-   * 
+   *
    * Package-private constructor that is mainly used for testing. The last
    * boolean flag allows you to prevent the ZooKeeperCoordinator from
    * immediately trying to cache all the configuration information from the
    * ZooKeeper service, which is useful if you don't want to have to setup your
    * entire configuration just to run a few simple tests.
-   * 
+   *
    * @param zkConnectString
    *          comma separated host:port pairs, each corresponding to a ZooKeeper
    *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
@@ -211,14 +211,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domainGroups.get(domainGroupName);
   }
 
-  public RingGroup getRingGroupConfig(String ringGroupName) {
+  public RingGroup getRingGroup(String ringGroupName) {
     return ringGroupConfigs.get(ringGroupName);
   }
 
   /**
    * Completely reloads the config information stored in ZooKeeper into memory.
    * Discards all existing config information.
-   * 
+   *
    * @throws InterruptedException
    * @throws KeeperException
    */

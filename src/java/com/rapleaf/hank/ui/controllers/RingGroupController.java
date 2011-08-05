@@ -42,7 +42,7 @@ public class RingGroupController extends Controller {
     RingGroup ringGroupConfig;
     String encodedRingGroupName = req.getParameter("g");
 
-    ringGroupConfig = coordinator.getRingGroupConfig(URLEnc.decode(encodedRingGroupName));
+    ringGroupConfig = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
     if (ringGroupConfig == null) {
       throw new IOException("couldn't find any ring group called "
           + URLEnc.decode(encodedRingGroupName));
@@ -56,7 +56,7 @@ public class RingGroupController extends Controller {
     RingGroup ringGroupConfig;
     String encodedRingGroupName = req.getParameter("g");
 
-    ringGroupConfig = coordinator.getRingGroupConfig(URLEnc.decode(encodedRingGroupName));
+    ringGroupConfig = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
     if (ringGroupConfig == null) {
       throw new IOException("couldn't find any ring group called "
           + URLEnc.decode(encodedRingGroupName));

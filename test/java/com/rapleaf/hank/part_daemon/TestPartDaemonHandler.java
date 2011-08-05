@@ -136,7 +136,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
 
     Coordinator mockCoordinator = new MockCoordinator() {
       @Override
-      public RingGroup getRingGroupConfig(String ringGroupName) {
+      public RingGroup getRingGroup(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
         return new MockRingGroup(dcg, "myRingGroupName", null) {
           @Override

@@ -65,7 +65,7 @@ public class TestPartDaemonServer extends BaseTestCase {
 
   private static final MockCoordinator mockCoord = new MockCoordinator() {
     @Override
-    public RingGroup getRingGroupConfig(String ringGroupName) {
+    public RingGroup getRingGroup(String ringGroupName) {
       return mockRingGroupConfig;
     }
   };

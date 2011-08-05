@@ -1,7 +1,10 @@
 package com.rapleaf.hank.ui;
 
-import java.net.URL;
-
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.ui.controllers.*;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
@@ -10,15 +13,7 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.ui.controllers.DomainController;
-import com.rapleaf.hank.ui.controllers.DomainGroupController;
-import com.rapleaf.hank.ui.controllers.HostController;
-import com.rapleaf.hank.ui.controllers.RingController;
-import com.rapleaf.hank.ui.controllers.RingGroupController;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.net.URL;
 
 public class StatusWebDaemon {
   @SuppressWarnings("unused")
@@ -63,7 +58,7 @@ public class StatusWebDaemon {
 
     // put them together into a context handler
     ContextHandlerCollection contexts = new ContextHandlerCollection();
-    contexts.setHandlers(new Handler[] {servletHandler, webAppContext});
+    contexts.setHandlers(new Handler[]{servletHandler, webAppContext});
     server.setHandler(contexts);
 
     server.start();
@@ -72,7 +67,7 @@ public class StatusWebDaemon {
 
   public static void main(String[] args) throws Exception {
     CommandLineChecker.check(args, new String[]{"configuration_file_path", "port"}, StatusWebDaemon.class);
-    Logger.getLogger("com.rapleaf.hank").setLevel(Level.TRACE);
+    Logger.getLogger("com.rapleaf.hank").setLevel(Level.INFO);
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
     ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);

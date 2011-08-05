@@ -64,7 +64,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    ringGroupConfig = coord.getRingGroupConfig(configurator.getRingGroupName());
+    ringGroupConfig = coord.getRingGroup(configurator.getRingGroupName());
     ringConfig = ringGroupConfig.getRingForHost(hostAddress);
     if (ringConfig == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
@@ -130,7 +130,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
    * Start serving the thrift server. doesn't return.
    * @throws TTransportException
    * @throws IOException
-   * @throws InterruptedException 
+   * @throws InterruptedException
    */
   private void startThriftServer() throws TTransportException, IOException, InterruptedException {
     // set up the service handler

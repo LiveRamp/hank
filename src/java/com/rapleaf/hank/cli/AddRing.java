@@ -72,7 +72,7 @@ public class AddRing {
   throws Exception {
     // create the ring
     Coordinator coord = configurator.getCoordinator();
-    RingGroup ringGroup = coord.getRingGroupConfig(ringGroupName);
+    RingGroup ringGroup = coord.getRingGroup(ringGroupName);
     Ring newRing = ringGroup.addRing(ringNumber);
 
     // add all the hosts to the ring

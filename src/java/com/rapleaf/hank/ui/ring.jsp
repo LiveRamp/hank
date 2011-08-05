@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
-    
+
 
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
@@ -16,7 +16,7 @@
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-RingGroup ringGroup = coord.getRingGroupConfig(request.getParameter("g"));
+RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
 
 Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 %>
@@ -115,7 +115,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h3>Assignment visualization</h3>
   <%
-  for (Domain d : ringGroup.getDomainGroup().getDomains()) { 
+  for (Domain d : ringGroup.getDomainGroup().getDomains()) {
     Set<Integer> unassignedParts = ring.getUnassignedPartitions(d);
 
     int squareDim = (int)Math.floor(Math.sqrt(d.getNumParts()));

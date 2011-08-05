@@ -60,7 +60,7 @@ public class HostController extends Controller {
   }
 
   protected void doDiscardCurrentCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.processNextCommand();
@@ -68,7 +68,7 @@ public class HostController extends Controller {
   }
 
   protected void doClearCommandQueue(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.clearCommandQueue();
@@ -82,7 +82,7 @@ public class HostController extends Controller {
   }
 
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
@@ -91,7 +91,7 @@ public class HostController extends Controller {
   }
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
@@ -106,7 +106,7 @@ public class HostController extends Controller {
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
-    RingGroup rgc = coordinator.getRingGroupConfig(req.getParameter("g"));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
     HostDomain dc = hc.getDomainById(Integer.parseInt(req.getParameter("d")));

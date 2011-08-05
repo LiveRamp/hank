@@ -55,7 +55,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
-  public RingGroup getRingGroupConfig(String ringGroupName) {
+  public RingGroup getRingGroup(String ringGroupName) {
     return null;
   }
 

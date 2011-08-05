@@ -105,7 +105,7 @@ public interface Coordinator {
    * @param ringGroupName
    * @return configuration information on the specified ring group
    */
-  public RingGroup getRingGroupConfig(String ringGroupName)
+  public RingGroup getRingGroup(String ringGroupName)
       throws IOException;
 
   /**
