@@ -91,7 +91,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             if (numHostsUpdating > 0) {
               // we're not done updating yet.
               LOG.info("Ring " + ring.getRingNumber() + " still has "
-                  + numHostsUpdating + " updating hosts.");
+                  + numHostsUpdating + " UPDATING hosts.");
               break;
             } else {
               // hey, we're done updating!
@@ -101,7 +101,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
               // set the ring state to updated
               LOG.info("Ring " + ring.getRingNumber()
-                  + " has zero updating hosts. It's UPDATED!");
+                  + " has zero UPDATING hosts. It's UPDATED!");
               ring.setState(RingState.UPDATED);
             }
 
@@ -131,7 +131,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               ring.setState(RingState.UP);
               ring.updateComplete();
             } else {
-              LOG.info("Ring " + ring.getRingNumber() + " still has offline hosts. Waiting for them to come up.");
+              LOG.info("Ring " + ring.getRingNumber()
+                  + " still has hosts that are not SERVING. Waiting for them to come up.");
             }
 
             break;
