@@ -15,17 +15,12 @@
  */
 package com.rapleaf.hank.data_deployer;
 
+import com.rapleaf.hank.coordinator.*;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
@@ -40,13 +35,18 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     for (Ring ring : ringGroup.getRings()) {
       if (ring.isUpdatePending()) {
         anyUpdatesPending = true;
+        LOG.info("Ring "
+            + ring.getRingNumber()
+            + " is updating to version " + ring.getUpdatingToVersionNumber()
+            +" and is " + ring.getState() + ".");
 
         switch (ring.getState()) {
           case UP:
             // the ring is eligible to be taken down, but we don't want to
             // do that until we're sure no other ring is already down.
             // add it to the candidate queue.
-            LOG.debug("Ring " + ring.getRingNumber()
+            LOG.info("Ring "
+                + ring.getRingNumber()
                 + " is a candidate for being taken down.");
             downable.add(ring);
             break;
@@ -59,12 +59,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             int numHostsIdle = ring.getHostsInState(HostState.IDLE).size();
             if (numHostsIdle == ring.getHosts().size()) {
               // sweet, everyone's either offline or idle.
-              LOG.debug("Ring "
+              LOG.info("Ring "
                   + ring.getRingNumber()
-                  + " is currently GOING_DOWN, and has nothing but IDLE or OFFLINE hosts. It's down!");
+                  + " is currently " + ring.getState() + ", and has nothing but IDLE or OFFLINE hosts. It's down!");
               ring.setState(RingState.DOWN);
             } else {
-              LOG.debug(String.format("Ring %d is currently GOING_DOWN, but has only %d idle hosts, so it isn't fully DOWN yet.",
+              LOG.info(String.format("Ring %d is currently " + ring.getState() + ", but has only %d idle hosts, so it isn't fully DOWN yet.",
                   ring.getRingNumber(), numHostsIdle));
               break;
             }
@@ -76,8 +76,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
             // we just finished stopping
             // start up all the updaters
-            LOG.debug("Ring " + ring.getRingNumber()
-                + " is DOWN, so we're going to start it updating.");
+            LOG.info("Ring " + ring.getRingNumber()
+                + " is " + ring.getState() +  ", so we're going to start UPDATING.");
             ring.commandAll(HostCommand.EXECUTE_UPDATE);
             ring.setState(RingState.UPDATING);
             break;
@@ -90,7 +90,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             int numHostsUpdating = ring.getHostsInState(HostState.UPDATING).size();
             if (numHostsUpdating > 0) {
               // we're not done updating yet.
-              LOG.debug("Ring " + ring.getRingNumber() + " still has "
+              LOG.info("Ring " + ring.getRingNumber() + " still has "
                   + numHostsUpdating + " updating hosts.");
               break;
             } else {
@@ -100,7 +100,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               // TODO: implement this
 
               // set the ring state to updated
-              LOG.debug("Ring " + ring.getRingNumber()
+              LOG.info("Ring " + ring.getRingNumber()
                   + " has zero updating hosts. It's UPDATED!");
               ring.setState(RingState.UPDATED);
             }
@@ -112,7 +112,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             anyDownOrUpdating = true;
 
             // sweet, we're done updating, so we can start all our daemons now
-            LOG.debug("Ring " + ring.getRingNumber()
+            LOG.info("Ring " + ring.getRingNumber()
                 + " is fully updated. Commanding hosts to start up.");
             ring.commandAll(HostCommand.SERVE_DATA);
             ring.setState(RingState.COMING_UP);
@@ -126,12 +126,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             int numHostsServing = ring.getHostsInState(HostState.SERVING).size();
             if (numHostsServing == ring.getHosts().size()) {
               // yay! we're all online!
-              LOG.debug("Ring " + ring.getRingNumber()
+              LOG.info("Ring " + ring.getRingNumber()
                   + " is fully online. Completing update.");
               ring.setState(RingState.UP);
               ring.updateComplete();
             } else {
-              LOG.debug("Ring " + ring.getRingNumber() + " still has  offline hosts. Waiting for them to come up.");
+              LOG.info("Ring " + ring.getRingNumber() + " still has offline hosts. Waiting for them to come up.");
             }
 
             break;
@@ -141,6 +141,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         // if (anyDownOrUpdating) {
         // break;
         // }
+      } else {
+        LOG.info("Ring " + ring.getRingNumber() + " is not in the process of updating.");
       }
     }
 
@@ -149,7 +151,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     if (!anyDownOrUpdating && !downable.isEmpty()) {
       Ring toDown = downable.poll();
 
-      LOG.debug("There were " + downable.size()
+      LOG.info("There were " + downable.size()
           + " candidates for the next ring to update. Selecting ring "
           + toDown.getRingNumber() + ".");
       toDown.commandAll(HostCommand.GO_TO_IDLE);
@@ -160,7 +162,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     // be any new downable rings, and in fact, the ring is ready to go.
     // complete its update.
     if (!anyUpdatesPending) {
-      LOG.debug("There are no more updates pending. The update is complete!");
+      LOG.info("There are no more updates pending. The update is complete!");
       ringGroup.updateComplete();
     }
   }
