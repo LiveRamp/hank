@@ -70,7 +70,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <div class='box-section'>
   <h3>Rings</h3>
   <div class='box-section-content'>
-  <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring group</a>
+  <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
   <table class='table-blue'>
     <tr>
       <th>#</th>
