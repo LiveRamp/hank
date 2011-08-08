@@ -23,11 +23,11 @@ public abstract class AbstractRing implements Ring {
   @Override
   public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
     Set<Host> results = new HashSet<Host>();
-    for (Host hc : getHosts()) {
-      HostDomain domainById = hc.getDomainById(domainId);
+    for (Host host : getHosts()) {
+      HostDomain domainById = host.getDomainById(domainId);
       for (HostDomainPartition hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
-          results.add(hc);
+          results.add(host);
           break;
         }
       }
