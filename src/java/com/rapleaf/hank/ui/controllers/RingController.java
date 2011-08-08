@@ -1,18 +1,13 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.ui.URLEnc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class RingController extends Controller {
 
@@ -41,6 +36,13 @@ public class RingController extends Controller {
         doRedistributePartitionsForRing(req, resp);
       }
     });
+
+    actions.put("command_all", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCommandAll(req, resp);
+      }
+    });
   }
 
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -61,7 +63,7 @@ public class RingController extends Controller {
     ringConfig.removeHost(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
     resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(),
-      ringConfig.getRingNumber()));
+        ringConfig.getRingNumber()));
   }
 
   private void doAddHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -71,6 +73,14 @@ public class RingController extends Controller {
     int portNum = Integer.parseInt(req.getParameter("port"));
     coordinator.getRingGroup(rgName).getRing(ringNum).addHost(
       new PartDaemonAddress(hostname, portNum));
+    resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
+  }
+
+  private void doCommandAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String rgName = req.getParameter("rgName");
+    int ringNum = Integer.parseInt(req.getParameter("ringNum"));
+    HostCommand command = HostCommand.valueOf(req.getParameter("command"));
+    coordinator.getRingGroup(rgName).getRing(ringNum).commandAll(command);
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 }

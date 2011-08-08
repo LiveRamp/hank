@@ -69,6 +69,18 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type=submit value="Add"/>
   </form>
 
+  <form action="/ring/command_all" method=post>
+    Command all hosts: <br/>
+    <input type=hidden name="rgName" value="<%=ringGroup.getName()%>"/>
+    <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
+    <select name="command">
+      <option></option>
+      <option value="GO_TO_IDLE">GO_TO_IDLE</option>
+      <option value="SERVE_DATA">SERVE_DATA</option>
+    </select>
+    <input type=submit value="Command"/>
+  </form>
+
   <table width=800 class='table-blue'>
     <tr>
       <th><strong>Address</strong></th>
