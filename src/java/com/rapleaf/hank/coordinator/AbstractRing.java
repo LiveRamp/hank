@@ -6,17 +6,17 @@ import java.util.Set;
 
 public abstract class AbstractRing implements Ring {
   private final int ringNum;
-  private final RingGroup ringGroupConfig;
+  private final RingGroup ringGroup;
 
-  protected AbstractRing(int ringNum, RingGroup ringGroupConfig) {
+  protected AbstractRing(int ringNum, RingGroup ringGroup) {
     this.ringNum = ringNum;
-    this.ringGroupConfig = ringGroupConfig;
+    this.ringGroup = ringGroup;
   }
 
   @Override
   public void commandAll(HostCommand command) throws IOException {
-    for (Host hc : getHosts()) {
-      hc.enqueueCommand(command);
+    for (Host host : getHosts()) {
+      host.enqueueCommand(command);
     }
   }
 
@@ -38,9 +38,9 @@ public abstract class AbstractRing implements Ring {
   @Override
   public Set<Host> getHostsInState(HostState state) throws IOException {
     Set<Host> results = new HashSet<Host>();
-    for (Host hostConfig: getHosts()) {
-      if (hostConfig.getState() == state) {
-        results.add(hostConfig);
+    for (Host host: getHosts()) {
+      if (host.getState() == state) {
+        results.add(host);
       }
     }
     return results;
@@ -48,7 +48,7 @@ public abstract class AbstractRing implements Ring {
 
   @Override
   public final RingGroup getRingGroup() {
-    return ringGroupConfig;
+    return ringGroup;
   }
 
   @Override
