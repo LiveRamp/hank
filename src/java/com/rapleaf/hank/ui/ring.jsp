@@ -7,14 +7,17 @@
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 
-<%!public List<Host> sortedHcs(Collection<Host> rcs) {
-  List<Host> sortedList = new ArrayList<Host>(rcs);
+<%!public List<Host> sortedHosts(Collection<Host> hosts) {
+  if (hosts == null) {
+    return null;
+  }
+  List<Host> sortedList = new ArrayList<Host>(hosts);
   Collections.sort(sortedList);
   return sortedList;
 }%>
 
 <%
-  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
 
@@ -90,7 +93,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th><strong>Utilities</strong></th>
     </tr>
     <%
-      for(Host host : sortedHcs(ring.getHosts())) {
+      Collection<Host> hosts = sortedHosts(ring.getHosts());
+      if (hosts != null) {
+        for(Host host : hosts) {
     %>
     <tr>
       <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
@@ -106,7 +111,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         </form>
       </td>
     </tr>
-    <% } %>
+    <%
+        }
+      }
+    %>
   </table>
 
   <h3>Utilities</h3>

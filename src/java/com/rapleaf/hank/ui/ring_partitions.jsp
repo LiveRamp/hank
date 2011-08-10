@@ -7,14 +7,8 @@
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 
-<%!public List<Host> sortedHcs(Collection<Host> rcs) {
-  List<Host> sortedList = new ArrayList<Host>(rcs);
-  Collections.sort(sortedList);
-  return sortedList;
-}%>
-
 <%
-  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
 
