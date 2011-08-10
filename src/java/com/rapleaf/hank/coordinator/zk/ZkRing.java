@@ -15,15 +15,9 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -31,14 +25,10 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import com.rapleaf.hank.coordinator.AbstractRing;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ZkRing extends AbstractRing implements Watcher {
   private static final Logger LOG = Logger.getLogger(ZkRing.class);
@@ -96,7 +86,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final String ringPath;
 
-  private final Map<PartDaemonAddress, Host> hostConfigs = new HashMap<PartDaemonAddress, Host>();
+  private final Map<PartDaemonAddress, Host> hosts = new HashMap<PartDaemonAddress, Host>();
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
 
@@ -105,9 +95,9 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final ZooKeeperPlus zk;
 
-  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroupConfig)
+  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroup)
       throws InterruptedException, KeeperException {
-    super(parseRingNum(ringPath), ringGroupConfig);
+    super(parseRingNum(ringPath), ringGroup);
     this.zk = zk;
     this.ringPath = ringPath;
 
@@ -146,11 +136,11 @@ public class ZkRing extends AbstractRing implements Watcher {
       LOG.trace("Refreshing hosts with host strings: " + hosts);
     }
     for (String host : hosts) {
-      // only replace the HostConfig if we don't already have an instance.
+      // only replace the Host if we don't already have an instance.
       // (otherwise we'll destroy their watches unnecessarily!)
-      if (!hostConfigs.containsKey(PartDaemonAddress.parse(host))) {
+      if (!this.hosts.containsKey(PartDaemonAddress.parse(host))) {
         Host hostConf = new ZkHost(zk, ringPath + "/hosts/" + host);
-        hostConfigs.put(hostConf.getAddress(), hostConf);
+        this.hosts.put(hostConf.getAddress(), hostConf);
       }
     }
   }
@@ -168,7 +158,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   @Override
   public Set<Host> getHosts() {
-    return new HashSet<Host>(hostConfigs.values());
+    return new HashSet<Host>(hosts.values());
   }
 
   @Override
@@ -193,7 +183,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   @Override
   public Host getHostByAddress(PartDaemonAddress address) {
-    return hostConfigs.get(address);
+    return hosts.get(address);
   }
 
   @Override
@@ -250,14 +240,14 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   public void close() {
     stateChangeWatcher.cancel();
-    for (Host hostConfig : getHosts()) {
-      ((ZkHost) hostConfig).close();
+    for (Host host : getHosts()) {
+      ((ZkHost) host).close();
     }
   }
 
   @Override
   public boolean removeHost(PartDaemonAddress address) throws IOException {
-    if (hostConfigs.remove(address) == null) {
+    if (hosts.remove(address) == null) {
       return false;
     }
     try {
