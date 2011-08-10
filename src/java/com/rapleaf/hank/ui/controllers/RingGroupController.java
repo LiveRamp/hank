@@ -1,14 +1,13 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.ui.URLEnc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class RingGroupController extends Controller {
 
@@ -39,29 +38,36 @@ public class RingGroupController extends Controller {
   }
 
   protected void doDeleteRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup ringGroupConfig;
+    RingGroup ringGroup;
     String encodedRingGroupName = req.getParameter("g");
 
-    ringGroupConfig = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
-    if (ringGroupConfig == null) {
+    ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
+    if (ringGroup == null) {
       throw new IOException("couldn't find any ring group called "
           + URLEnc.decode(encodedRingGroupName));
     }
-    final Ring ring = ringGroupConfig.getRing(Integer.parseInt(req.getParameter("n")));
+    final Ring ring = ringGroup.getRing(Integer.parseInt(req.getParameter("n")));
     ring.delete();
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 
   private void doAddRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup ringGroupConfig;
+    RingGroup ringGroup;
     String encodedRingGroupName = req.getParameter("g");
 
-    ringGroupConfig = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
-    if (ringGroupConfig == null) {
+    ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
+    if (ringGroup == null) {
       throw new IOException("couldn't find any ring group called "
           + URLEnc.decode(encodedRingGroupName));
     }
-    ringGroupConfig.addRing(ringGroupConfig.getRings().size() + 1);
+    // Find new ring ID (largest ID + 1)
+    int newRingID = 0;
+    for (Ring ring : ringGroup.getRings()) {
+      if (ring.getRingNumber() >= newRingID) {
+        newRingID = ring.getRingNumber() + 1;
+      }
+    }
+    ringGroup.addRing(newRingID);
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 
