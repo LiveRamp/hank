@@ -15,23 +15,14 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);
@@ -41,7 +32,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   private final Coordinator coord;
   private final Object lock = new Object();
 
-  private RingGroup ringGroupConfig;
+  private RingGroup ringGroup;
   private DomainGroup domainGroup;
 
   private final RingGroupUpdateTransitionFunction transFunc;
@@ -63,17 +54,17 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
     LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " starting.");
     boolean claimedDataDeployer = false;
     try {
-      ringGroupConfig = coord.getRingGroup(ringGroupName);
+      ringGroup = coord.getRingGroup(ringGroupName);
 
       // attempt to claim the data deployer title
-      if (ringGroupConfig.claimDataDeployer()) {
+      if (ringGroup.claimDataDeployer()) {
         claimedDataDeployer = true;
 
         // we are now *the* data deployer for this ring group.
-        domainGroup = ringGroupConfig.getDomainGroup();
+        domainGroup = ringGroup.getDomainGroup();
 
         // set a watch on the ring group
-        ringGroupConfig.setListener(this);
+        ringGroup.setListener(this);
 
         // set a watch on the domain group version
         domainGroup.setListener(this);
@@ -84,14 +75,14 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
           while (!goingDown) {
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
-            RingGroup snapshotRingGroupConfig;
+            RingGroup snapshotRingGroup;
             DomainGroup snapshotDomainGroup;
             synchronized (lock) {
-              snapshotRingGroupConfig = ringGroupConfig;
+              snapshotRingGroup = ringGroup;
               snapshotDomainGroup = domainGroup;
             }
 
-            processUpdates(snapshotRingGroupConfig, snapshotDomainGroup);
+            processUpdates(snapshotRingGroup, snapshotDomainGroup);
             Thread.sleep(config.getSleepInterval());
           }
         } catch (InterruptedException e) {
@@ -104,7 +95,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
       LOG.fatal("unexpected exception!", t);
     } finally {
       if (claimedDataDeployer) {
-        ringGroupConfig.releaseDataDeployer();
+        ringGroup.releaseDataDeployer();
       }
     }
     LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " shutting down.");
@@ -126,15 +117,15 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         // set the ring group's updating version to the new domain group version
         // this will mark all the subordinate rings and hosts for update as well.
         LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
-        for (Ring ringConfig : ringGroup.getRings()) {
-          for (Host hostConfig : ringConfig.getHosts()) {
-            for (HostDomain hdc : hostConfig.getAssignedDomains()) {
-              for (HostDomainPartition hdpc : hdc.getPartitions()) {
-                hdpc.setUpdatingToDomainGroupVersion(latestVersionNumber);
+        for (Ring ring : ringGroup.getRings()) {
+          for (Host host : ring.getHosts()) {
+            for (HostDomain hd : host.getAssignedDomains()) {
+              for (HostDomainPartition hdp : hd.getPartitions()) {
+                hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
               }
             }
           }
-          ringConfig.setUpdatingToVersion(latestVersionNumber);
+          ring.setUpdatingToVersion(latestVersionNumber);
         }
         ringGroup.setUpdatingToVersion(latestVersionNumber);
       } else {
@@ -147,15 +138,15 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
     synchronized(lock) {
-      LOG.debug("Got an updated ring group config version!");
-      ringGroupConfig = newRingGroup;
+      LOG.debug("Got an updated ring group version!");
+      ringGroup = newRingGroup;
     }
   }
 
   @Override
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
     synchronized (lock) {
-      LOG.debug("Got an updated domain group config version: " + newDomainGroup + "!" );
+      LOG.debug("Got an updated domain group version: " + newDomainGroup + "!" );
       domainGroup = newDomainGroup;
     }
   }
