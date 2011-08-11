@@ -15,32 +15,20 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Map.Entry;
-
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.*;
+import org.apache.zookeeper.ZooDefs.Ids;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class ZkDomainGroup implements DomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -205,6 +193,20 @@ public class ZkDomainGroup implements DomainGroup {
   @Override
   public Set<Domain> getDomains() throws IOException {
     return new HashSet<Domain>(domainsById.values());
+  }
+
+  public boolean delete() throws IOException {
+    try {
+      // first, delete the .complete so everyone knows it's gone
+      zk.delete(dgPath + "/.complete", -1);
+
+      // delete the rest
+      zk.deleteNodeRecursively(dgPath);
+
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override

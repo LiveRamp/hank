@@ -57,7 +57,7 @@ public interface Coordinator {
 
 
   /**
-   * Delete the domain config with the given name. Please beware of removing a
+   * Delete the domain with the given name. Please beware of removing a
    * domain if it is referenced in any domain groups - you will probably break
    * your installation if you remove one that's in use!
    *
@@ -90,12 +90,21 @@ public interface Coordinator {
    */
   public DomainGroup getDomainGroup(String domainGroupName);
 
+  /**
+   * Delete the domain group with the given name.
+   *
+   * @param domainGroupName
+   * @return
+   * @throws IOException
+   */
+  public boolean deleteDomainGroup(String domainGroupName) throws IOException;
+
   //
   // RingGroups
   //
 
   /**
-   * Get the set of known RingGroupConfigs.
+   * Get the set of known RingGroups.
    *
    * @return
    */

@@ -30,6 +30,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Name</th>
       <th>Domains</th>
       <th>Cur Ver #</th>
+      <th>Utilities</th>
     </tr>
     <%
       for (DomainGroup domainGroup : coord.getDomainGroups()) {
@@ -45,12 +46,18 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <% } %>
         </td>
         <td><%= domainGroup.getLatestVersion() == null ? "" : domainGroup.getLatestVersion().getVersionNumber() %></td>
+        <td>
+          <form action="/domain_group/delete" method=post>
+            <input type=hidden name="name" value="<%= domainGroup.getName() %>"/>
+            <input type=submit value="delete"
+             onclick="return confirm('Are you sure you want to delete the domain group <%= domainGroup.getName() %>? This action cannot be undone.');"/>
+          </form>
+	</td>
       </tr>
       <%
     }
     %>
   </table>
-
 
 </body>
 </html>

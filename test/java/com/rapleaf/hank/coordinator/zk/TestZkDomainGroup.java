@@ -16,12 +16,6 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
@@ -31,6 +25,11 @@ import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
+import org.apache.zookeeper.KeeperException;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
@@ -104,6 +103,13 @@ public class TestZkDomainGroup extends ZkTestCase {
     }
     assertNotNull(listener.calledWith);
     assertEquals(dgc.getName(), listener.calledWith.getName());
+  }
+
+  public void testDelete() throws Exception {
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup");
+    assertNotNull(getZk().exists(dg.getPath(), false));
+    assertTrue(dg.delete());
+    assertNull(getZk().exists(dg.getPath(), false));
   }
 
   private Domain createDomain(String domainName) throws KeeperException, InterruptedException {

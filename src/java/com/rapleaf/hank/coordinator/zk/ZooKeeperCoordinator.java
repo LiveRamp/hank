@@ -334,4 +334,12 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
     return domain.delete();
   }
+
+  public boolean deleteDomainGroup(String domainGroupName) throws IOException {
+    ZkDomainGroup domainGroup = domainGroups.remove(domainGroupName);
+    if (domainGroup == null) {
+      return false;
+    }
+    return domainGroup.delete();
+  }
 }

@@ -86,6 +86,10 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  public boolean deleteDomainGroup(String name) throws IOException {
+    return true;
+  }
+
   public RingGroup addRingGroup(String ringGroupName,
                                 String domainGroupName) throws IOException {
     return null;
