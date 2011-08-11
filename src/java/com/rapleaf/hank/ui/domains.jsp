@@ -30,6 +30,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Partitioner</th>
       <th>Num Partitions</th>
       <th>Storage Engine</th>
+      <th>Utilities</th>
     </tr>
     <%
       for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
