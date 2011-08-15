@@ -55,7 +55,7 @@
       <tr>
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>
         <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
-        <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td><%= ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
+        <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td><%= ringGroup.getDomainGroup().getName()%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
         <td>
           <form action="/domain_group/delete_domain_group" method=post>
             <input type=hidden name="name" value="<%= ringGroup.getDomainGroup().getName() %>"/>
