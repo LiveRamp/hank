@@ -15,26 +15,14 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -133,7 +121,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private Set<HankWatcher> myWatchers = new HashSet<HankWatcher>();
   private boolean isSessionExpired = false;
 
-  private final Map<String, ZkDomain> domainsByName = new HashMap<String, ZkDomain>();;
+  private final Map<String, ZkDomain> domainsByName = new HashMap<String, ZkDomain>();
+  ;
   private final Map<String, ZkDomainGroup> domainGroups = new HashMap<String, ZkDomainGroup>();
   private final Map<String, ZkRingGroup> ringGroupConfigs = new HashMap<String, ZkRingGroup>();
 
@@ -145,18 +134,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
    * See {@link ZooKeeperConnection#ZooKeeperConnection(String, int)}
-   *
+   * <p/>
    * Package-private constructor that is mainly used for testing. The last
    * boolean flag allows you to prevent the ZooKeeperCoordinator from
    * immediately trying to cache all the configuration information from the
    * ZooKeeper service, which is useful if you don't want to have to setup your
    * entire configuration just to run a few simple tests.
    *
-   * @param zkConnectString
-   *          comma separated host:port pairs, each corresponding to a ZooKeeper
-   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeoutMs
-   *          session timeout in milliseconds
+   * @param zkConnectString  comma separated host:port pairs, each corresponding to a ZooKeeper
+   *                         server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeoutMs session timeout in milliseconds
    * @param domainsRoot
    * @param domainGroupsRoot
    * @param ringGroupsRoot
@@ -165,10 +152,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @throws IOException
    */
   ZooKeeperCoordinator(String zkConnectString,
-      int sessionTimeoutMs,
-      String domainsRoot,
-      String domainGroupsRoot,
-      String ringGroupsRoot)
+                       int sessionTimeoutMs,
+                       String domainsRoot,
+                       String domainGroupsRoot,
+                       String ringGroupsRoot)
       throws InterruptedException, KeeperException, IOException {
     super(zkConnectString, sessionTimeoutMs);
     this.domainsRoot = domainsRoot;
@@ -341,5 +328,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       return false;
     }
     return domainGroup.delete();
+  }
+
+  public boolean deleteRingGroup(String ringGroupName) throws IOException {
+    ZkRingGroup ringGroup = ringGroupConfigs.remove(ringGroupName);
+    if (ringGroup == null) {
+      return false;
+    }
+    return ringGroup.delete();
   }
 }

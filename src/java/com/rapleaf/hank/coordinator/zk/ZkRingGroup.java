@@ -15,11 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -28,15 +28,10 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.AbstractRingGroup;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
@@ -46,13 +41,13 @@ public class ZkRingGroup extends AbstractRingGroup {
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
       throw new IllegalStateException(
-        "You cannot create a ring group for a domain group that has no versions!");
+          "You cannot create a ring group for a domain group that has no versions!");
     }
     zk.create(path, domainGroup.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(path + UPDATING_TO_VERSION_PATH_SEGMENT,
-      ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
+        ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
     return new ZkRingGroup(zk, path, domainGroup);
   }
 
@@ -200,7 +195,7 @@ public class ZkRingGroup extends AbstractRingGroup {
         return;
       }
       throw new IllegalStateException(
-        "Can't release the data deployer lock when it's not currently set!");
+          "Can't release the data deployer lock when it's not currently set!");
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -256,8 +251,8 @@ public class ZkRingGroup extends AbstractRingGroup {
   public Ring addRing(int ringNum) throws IOException {
     try {
       ZkRing rc = ZkRing.create(zk, ringGroupPath, ringNum, this,
-        isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
-      ringsByNumber.put(""+rc.getRingNumber(), rc);
+          isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
+      ringsByNumber.put("" + rc.getRingNumber(), rc);
       return rc;
     } catch (Exception e) {
       throw new IOException(e);
@@ -268,6 +263,15 @@ public class ZkRingGroup extends AbstractRingGroup {
   public boolean isDataDeployerOnline() throws IOException {
     try {
       return zk.exists(dataDeployerOnlinePath, false) != null;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public boolean delete() throws IOException {
+    try {
+      zk.deleteNodeRecursively(ringGroupPath);
+      return true;
     } catch (Exception e) {
       throw new IOException(e);
     }

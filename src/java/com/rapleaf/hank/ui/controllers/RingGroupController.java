@@ -35,6 +35,12 @@ public class RingGroupController extends Controller {
         doDeleteRing(req, resp);
       }
     });
+    actions.put("delete_ring_group", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doDeleteRingGroup(req, resp);
+      }
+    });
   }
 
   protected void doDeleteRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -74,6 +80,12 @@ public class RingGroupController extends Controller {
   private void doCreate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     coordinator.addRingGroup(req.getParameter("rgName"), req.getParameter("dgName"));
     // could log the rg...
+    resp.sendRedirect("/ring_groups.jsp");
+  }
+
+  protected void doDeleteRingGroup(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String encodedRingGroupName = req.getParameter("g");
+    coordinator.deleteRingGroup(URLEnc.decode(encodedRingGroupName));
     resp.sendRedirect("/ring_groups.jsp");
   }
 }

@@ -127,4 +127,13 @@ public interface Coordinator {
    */
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName)
       throws IOException;
+
+  /**
+   * Delete the ring group with the given name.
+   *
+   * @param ringGroupName
+   * @return
+   * @throws IOException
+   */
+  public boolean deleteRingGroup(String ringGroupName) throws IOException;
 }

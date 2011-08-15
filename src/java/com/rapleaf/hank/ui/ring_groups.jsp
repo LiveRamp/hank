@@ -23,9 +23,9 @@
   <jsp:include page="_head.jsp" />
 </head>
 <body>
-  
+
   <jsp:include page="_top_nav.jsp" />
-  
+
 
   <h1>Ring Groups</h1>
   <form action="/ring_group/create" method=post>
@@ -41,20 +41,28 @@
     </select>
     <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
   </form>
-  
+
   <table class='table-blue'>
     <tr>
       <th>Name</th>
       <th>Domain Group</th>
       <th>Status</th>
+      <th>Utilities</th>
     </tr>
     <%
-      for (RingGroup ringGroupConfig : ringGroups(coord)) {
+      for (RingGroup ringGroup : ringGroups(coord)) {
     %>
       <tr>
-        <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroupConfig.getName()) %>"><%= ringGroupConfig.getName() %></a></td>
-        <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroupConfig.getDomainGroup().getName())%>"><%=ringGroupConfig.getDomainGroup().getName()%></a></td>
-        <td><%= ringGroupConfig.isUpdating() ? "UPDATING" : "UP" %></td>
+        <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>
+        <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
+        <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td>.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
+        <td>
+          <form action="/domain_group/delete_domain_group" method=post>
+            <input type=hidden name="name" value="<%= ringGroup.getDomainGroup().getName() %>"/>
+            <input type=submit value="delete"
+             onclick="return confirm('Are you sure you want to delete the domain group <%= ringGroup.getDomainGroup().getName() %>? This action cannot be undone.');"/>
+          </form>
+        </td>
       </tr>
       <%
     }

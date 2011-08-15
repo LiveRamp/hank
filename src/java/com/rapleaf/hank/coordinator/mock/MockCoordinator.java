@@ -15,15 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
+import com.rapleaf.hank.coordinator.*;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.RingGroup;
 
 public class MockCoordinator implements Coordinator {
 
@@ -96,6 +92,10 @@ public class MockCoordinator implements Coordinator {
   }
 
   public boolean deleteDomain(String domainName) {
+    return false;
+  }
+
+  public boolean deleteRingGroup(String ringGroupName) throws IOException {
     return false;
   }
 }
