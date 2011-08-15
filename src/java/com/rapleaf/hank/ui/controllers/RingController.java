@@ -54,7 +54,7 @@ public class RingController extends Controller {
       partitionAssigner.assign(rgc, ringNum, dc);
     }
 
-    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(), ringNum));
+    resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rgc.getName(), ringNum));
   }
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -72,7 +72,7 @@ public class RingController extends Controller {
     String hostname = req.getParameter("hostname");
     int portNum = Integer.parseInt(req.getParameter("port"));
     coordinator.getRingGroup(rgName).getRing(ringNum).addHost(
-      new PartDaemonAddress(hostname, portNum));
+        new PartDaemonAddress(hostname, portNum));
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 
