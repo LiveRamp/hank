@@ -58,9 +58,9 @@
         <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td>
         <td>
           <form action="/ring_group/delete_ring_group" method=post>
-            <input type=hidden name="name" value="<%= ringGroup.getDomainGroup().getName() %>"/>
+            <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
             <input type=submit value="delete"
-             onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getDomainGroup().getName() %>? This action cannot be undone.');"/>
+             onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
           </form>
         </td>
       </tr>
