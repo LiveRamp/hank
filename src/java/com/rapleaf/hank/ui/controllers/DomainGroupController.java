@@ -1,16 +1,15 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.ui.URLEnc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DomainGroupController extends Controller {
 
@@ -47,7 +46,11 @@ public class DomainGroupController extends Controller {
 
     Map<String, Integer> domainVersions = new HashMap<String, Integer>();
     for (Domain domain : dg.getDomains()) {
-      int v = Integer.parseInt(req.getParameter(domain.getName() + "_version"));
+      String version = req.getParameter(domain.getName() + "_version");
+      if (version == null) {
+        throw new IOException("Version for domain " + domain.getName() + " was not specified.");
+      }
+      int v = Integer.parseInt(version);
       domainVersions.put(domain.getName(), v);
     }
     dg.createNewVersion(domainVersions);
