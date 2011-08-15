@@ -60,7 +60,7 @@
           <form action="/domain_group/delete_domain_group" method=post>
             <input type=hidden name="name" value="<%= ringGroup.getDomainGroup().getName() %>"/>
             <input type=submit value="delete"
-             onclick="return confirm('Are you sure you want to delete the domain group <%= ringGroup.getDomainGroup().getName() %>? This action cannot be undone.');"/>
+             onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getDomainGroup().getName() %>? This action cannot be undone.');"/>
           </form>
         </td>
       </tr>
