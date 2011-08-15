@@ -57,7 +57,7 @@
         <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
         <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td>
         <td>
-          <form action="/domain_group/delete_domain_group" method=post>
+          <form action="/ring_group/delete_ring_group" method=post>
             <input type=hidden name="name" value="<%= ringGroup.getDomainGroup().getName() %>"/>
             <input type=submit value="delete"
              onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getDomainGroup().getName() %>? This action cannot be undone.');"/>
