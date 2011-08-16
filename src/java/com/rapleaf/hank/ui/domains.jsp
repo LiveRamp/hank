@@ -30,7 +30,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Partitioner</th>
       <th>Num Partitions</th>
       <th>Storage Engine</th>
-      <th>Utilities</th>
     </tr>
     <%
       for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
@@ -40,13 +39,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
         <td class='centered'><%= domain.getNumParts() %></td>
         <td><%= domain.getStorageEngineFactoryClass().getName() %></td>
-        <td>
-          <form action="/domain/delete" method=post>
-            <input type=hidden name="name" value="<%= domain.getName() %>"/>
-            <input type=submit value="delete"
-             onclick="return confirm('Are you sure you want to delete the domain <%= domain.getName() %>? This action cannot be undone.');"/>
-          </form>
-        </td>
       </tr>
       <%
     }
