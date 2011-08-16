@@ -72,6 +72,18 @@
   </tr>
 </table>
 
+<h3>Actions</h3>
+<form action="/domain/delete" method=post>
+  <% if (request.getParameter("used_in_dg") != null) { %>
+  <p style="font-weight: bold; color: red">
+    Could not delete domain - still assigned to Domain Group <a href="/domain_group.jsp?n=<%= request.getParameter("used_in_dg") %>"><%= request.getParameter("used_in_dg") %></a>. Unassign it first.
+  </p>
+  <% } %>
+  <input type=hidden name="name" value="<%= domain.getName() %>"/>
+  <input type=submit value="Delete this domain"
+   onclick="return confirm('Are you sure you want to delete the domain <%= domain.getName() %>? This action cannot be undone.');"/>
+</form>
+
 <h3>Versions</h3>
 
 <div>

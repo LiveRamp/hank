@@ -1,12 +1,14 @@
 package com.rapleaf.hank.ui.controllers;
 
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
+import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainVersion;
 
 public class DomainController extends Controller {
 
@@ -32,15 +34,15 @@ public class DomainController extends Controller {
         if (partitionerName.equals("__other__")) {
           partitionerName = req.getParameter("partitionerOther");
         }
-        System.out.println(DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
+        DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName,
+          storageEngineOptions, partitionerName);
         redirect("/domains.jsp", resp);
       }
     });
     actions.put("delete", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        DomainController.this.coordinator.deleteDomain(req.getParameter("name"));
-        redirect("/domains.jsp", resp);
+        doDeleteDomain(req, resp);
       }
     });
     actions.put("new_version", new Action() {
@@ -72,4 +74,19 @@ public class DomainController extends Controller {
       }
     });
   }
+
+  private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    final Domain domain = coordinator.getDomain(req.getParameter("name"));
+    // check if this domain is in use anywhere
+    for (DomainGroup dg : coordinator.getDomainGroups()) {
+      if (dg.getDomains().contains(domain)) {
+        resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
+        return;
+      }
+    }
+
+    coordinator.deleteDomain(domain.getName());
+    resp.sendRedirect("/domains.jsp");
+  }
+
 }
