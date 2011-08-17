@@ -1,15 +1,18 @@
 package com.rapleaf.hank.ui.controllers;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang.NotImplementedException;
+
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.ui.URLEnc;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DomainGroupController extends Controller {
 
@@ -35,6 +38,12 @@ public class DomainGroupController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doAddVersion(req, resp);
+      }
+    });
+    actions.put("unassign", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doUnassign(req, resp);
       }
     });
   }
@@ -80,5 +89,9 @@ public class DomainGroupController extends Controller {
   private void doCreate(HttpServletRequest req, HttpServletResponse response) throws IOException {
     coordinator.addDomainGroup(req.getParameter("name"));
     response.sendRedirect("/domain_groups.jsp");
+  }
+
+  private void doUnassign(HttpServletRequest req, HttpServletResponse resp) {
+    throw new NotImplementedException();
   }
 }
