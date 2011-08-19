@@ -15,30 +15,22 @@
  */
 package com.rapleaf.hank.part_daemon;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.PartDaemon;
+import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.util.HostUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.generated.PartDaemon;
-import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.util.HostUtils;
+import java.io.IOException;
 
 /**
  * The main class of the Part Daemon.
@@ -52,28 +44,28 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private TServer server;
   private boolean goingDown = false;
   private final PartDaemonAddress hostAddress;
-  private final Host hostConfig;
+  private final Host host;
 
   private Thread updateThread;
 
-  private final RingGroup ringGroupConfig;
+  private final RingGroup ringGroup;
 
-  private final Ring ringConfig;
+  private final Ring ring;
 
   public PartDaemonServer(PartservConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
     hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    ringGroupConfig = coord.getRingGroup(configurator.getRingGroupName());
-    ringConfig = ringGroupConfig.getRingForHost(hostAddress);
-    if (ringConfig == null) {
+    ringGroup = coord.getRingGroup(configurator.getRingGroupName());
+    ring = ringGroup.getRingForHost(hostAddress);
+    if (ring == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
     }
-    hostConfig = ringConfig.getHostByAddress(hostAddress);
-    if (hostConfig == null) {
+    host = ring.getHostByAddress(hostAddress);
+    if (host == null) {
       throw new RuntimeException("Could not get host configuration for host: " + hostAddress);
     }
-    hostConfig.setCommandQueueChangeListener(this);
+    host.setCommandQueueChangeListener(this);
   }
 
   public void run() throws IOException {
@@ -99,7 +91,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   @Override
-  public void onCommandQueueChange(Host hostConfig) {
+  public void onCommandQueueChange(Host host) {
     processCommands();
   }
 
@@ -108,17 +100,17 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   protected IUpdateManager getUpdateManager() throws IOException {
-    return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
+    return new UpdateManager(configurator, host, ringGroup, ring);
   }
 
   private synchronized void processCommands() {
     try {
-      if (hostConfig.getCurrentCommand() != null) {
-        processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
+      if (host.getCurrentCommand() != null) {
+        processCurrentCommand(host, host.getCurrentCommand());
       }
-      while (!hostConfig.getCommandQueue().isEmpty()) {
-        HostCommand nextCommand = hostConfig.processNextCommand();
-        processCurrentCommand(hostConfig, nextCommand);
+      while (!host.getCommandQueue().isEmpty()) {
+        HostCommand nextCommand = host.processNextCommand();
+        processCurrentCommand(host, nextCommand);
       }
     } catch (IOException e) {
       // TODO
@@ -202,7 +194,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   private synchronized void setState(HostState state) throws IOException {
-    hostConfig.setState(state);
+    host.setState(state);
   }
 
   private void update() {
@@ -217,7 +209,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
           updateManager.update();
           LOG.info("Update is complete! recording state changes...");
           setState(HostState.IDLE);
-          hostConfig.completeCommand();
+          host.completeCommand();
           updateThread = null;
         } catch (Throwable e) {
           // TODO: should this take the server down?
@@ -229,8 +221,8 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     updateThread.start();
   }
 
-  private void processCurrentCommand(Host hostConfig, HostCommand nextCommand) throws IOException {
-    HostState state = hostConfig.getState();
+  private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
+    HostState state = host.getState();
     switch (nextCommand) {
     case EXECUTE_UPDATE:
       processExecuteUpdate(state);
@@ -249,7 +241,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     case IDLE:
       serveData();
       setState(HostState.SERVING);
-      hostConfig.completeCommand();
+      host.completeCommand();
       break;
     default:
       LOG.debug("received command " + HostCommand.SERVE_DATA
@@ -263,7 +255,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     case SERVING:
       stopServingData();
       setState(HostState.IDLE);
-      hostConfig.completeCommand();
+      host.completeCommand();
       break;
     case UPDATING:
       LOG.debug("received command " + HostCommand.GO_TO_IDLE
