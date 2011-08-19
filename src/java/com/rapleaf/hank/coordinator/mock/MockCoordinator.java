@@ -78,6 +78,13 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  public Domain updateDomain(String domainName, int numParts,
+                             String storageEngineFactoryName,
+                             String storageEngineOptions,
+                             String partitionerName) {
+    return null;
+  }
+
   public DomainGroup addDomainGroup(String name) throws IOException {
     return null;
   }

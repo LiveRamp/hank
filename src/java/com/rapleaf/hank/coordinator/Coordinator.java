@@ -39,8 +39,18 @@ public interface Coordinator {
                           int numParts,
                           String storageEngineFactoryName,
                           String storageEngineOptions,
-                          String partitionerName)
-      throws IOException;
+                          String partitionerName) throws IOException;
+
+  /**
+   * Update a domain's properties
+   *
+   * @return Updated domain
+   */
+  public Domain updateDomain(String domainName,
+                             int numParts,
+                             String storageEngineFactoryName,
+                             String storageEngineOptions,
+                             String partitionerName) throws IOException;
 
   /**
    * Get the set of known Domains.
