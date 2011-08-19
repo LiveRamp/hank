@@ -280,7 +280,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
     } else {
       try {
-        domain.update(numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
+        domainsByName.put(domainName, ZkDomain.update(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
         return domain;
       } catch (Exception e) {
         throw new IOException(e);

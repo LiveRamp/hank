@@ -67,7 +67,8 @@ public class ZkDomain extends AbstractDomain {
     return new ZkDomain(zk, domainPath);
   }
 
-  public void update(int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
+  public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
+    String domainPath = domainsRoot + "/" + domainName;
     // Delete nodes
     zk.deleteNodeRecursively(domainPath + "/" + KEY_NUM_PARTS);
     zk.deleteNodeRecursively(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY);
@@ -78,6 +79,7 @@ public class ZkDomain extends AbstractDomain {
     zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactoryName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOptions.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     zk.create(domainPath + "/" + KEY_PARTITIONER, partitionerName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    return new ZkDomain(zk, domainPath);
   }
 
   public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
