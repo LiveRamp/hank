@@ -275,14 +275,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public Domain updateDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
-    try {
-      ZkDomain domain = (ZkDomain) getDomain(domainName);
-      if (domain != null) {
+    ZkDomain domain = (ZkDomain) getDomain(domainName);
+    if (domain == null) {
+      throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
+    } else {
+      try {
         domain.update(numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
+        return domain;
+      } catch (Exception e) {
+        throw new IOException(e);
       }
-      return domain;
-    } catch (Exception e) {
-      throw new IOException(e);
     }
   }
 

@@ -98,7 +98,9 @@ public class DomainController extends Controller {
     final String domainName = req.getParameter("name");
     final String storageEngineOptions = req.getParameter("storageEngineOptions");
     final Domain domain = coordinator.getDomain(domainName);
-    if (domain != null) {
+    if (domain == null) {
+      throw new IOException("Could not get Domain '" + domainName + "' from Configurator.");
+    } else {
       coordinator.updateDomain(domainName, domain.getNumParts(),
           domain.getStorageEngineFactoryClass().getName(), storageEngineOptions, domain.getPartitioner().getClass().getName());
     }
