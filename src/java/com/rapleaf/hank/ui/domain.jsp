@@ -70,7 +70,8 @@
           : new Yaml(opts).dump(domain.getStorageEngineOptions())
           %>
         </textarea>
-        <input type=submit value="Save storage engine options"/>
+        <br/>
+        <input type=submit value="Save modified storage engine options"/>
       </form>
     </td>
   </tr>
