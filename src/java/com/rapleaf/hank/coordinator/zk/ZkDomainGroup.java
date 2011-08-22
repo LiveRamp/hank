@@ -23,8 +23,10 @@ import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
 import java.util.*;
@@ -163,7 +165,7 @@ public class ZkDomainGroup implements DomainGroup {
         throw new IllegalArgumentException("Domain ID " + domainId + " is already assigned!");
       }
       String domainPath = ((ZkDomain) domain).getPath();
-      zk.create(path, domainPath.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(path, domainPath.getBytes());
       domainsById.put("" + domainId, new ZkDomain(zk, domainPath));
     } catch (Exception e) {
       throw new IOException(e);
@@ -174,7 +176,7 @@ public class ZkDomainGroup implements DomainGroup {
   public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     try {
       DomainGroupVersion version = ZkDomainGroupVersion.create(zk, dgPath + "/versions",
-        domainIdToVersion, this);
+          domainIdToVersion, this);
       domainGroupVersions.put(version.getVersionNumber(), version);
       return version;
     } catch (Exception e) {
@@ -217,11 +219,11 @@ public class ZkDomainGroup implements DomainGroup {
 
   public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
     String domainGroupPath = dgRoot + "/" + domainGroupName;
-    zk.create(domainGroupPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/versions", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/domains", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainGroupPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.setData(domainGroupPath, new byte[] { 1 }, -1);
+    zk.create(domainGroupPath, null);
+    zk.create(domainGroupPath + "/versions", null);
+    zk.create(domainGroupPath + "/domains", null);
+    zk.create(domainGroupPath + "/.complete", null);
+    zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroup(zk, domainGroupPath);
   }
 }

@@ -19,11 +19,9 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs.Ids;
 
 import java.io.IOException;
 import java.util.*;
@@ -40,14 +38,11 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ringGroup + "/ring-" + ringNum;
-    zk.create(ringPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(ringPath + "/hosts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ringPath, null);
+    zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null);
+    zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, ("" + initVersion).getBytes());
+    zk.create(ringPath + STATUS_PATH_SEGMENT, RingState.DOWN.toString().getBytes());
+    zk.create(ringPath + "/hosts", null);
     return new ZkRing(zk, ringPath, group);
   }
 
@@ -107,13 +102,11 @@ public class ZkRing extends AbstractRing implements Watcher {
 
     // TODO: REMOVE THESE POST-MIGRATION!!!
     if (zk.exists(ringPath + CURRENT_VERSION_PATH_SEGMENT, false) == null) {
-      zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
+      zk.create(ringPath + CURRENT_VERSION_PATH_SEGMENT, null);
     }
 
     if (zk.exists(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, false) == null) {
-      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
+      zk.create(ringPath + UPDATING_TO_VERSION_PATH_SEGMENT, null);
     }
 
     currentVersionNumber = new WatchedInt(zk, ringPath + CURRENT_VERSION_PATH_SEGMENT);

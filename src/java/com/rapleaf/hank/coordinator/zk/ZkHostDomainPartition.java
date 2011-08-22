@@ -15,18 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
@@ -45,20 +43,17 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
       String hdpPath = domainPath + "/" + partNum;
-      zk.create(hdpPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
-      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion,
-        CreateMode.PERSISTENT);
-      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(hdpPath, null);
+      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null);
+      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion);
+      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
       try {
-        zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
       try {
-        zk.create(hdpPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        zk.create(hdpPath + "/.complete", null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
@@ -79,17 +74,17 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
     // TODO: remove post-migration
     if (zk.exists(countersPath, false) == null) {
-      zk.create(countersPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(countersPath, null);
     }
 
     // TODO: remove post-migration
     if (zk.exists(path + "/.complete", false) == null) {
-      zk.create(path + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(path + "/.complete", null);
     }
 
     currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT, true, null);
     updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT,
-      true, null);
+        true, null);
     deletable = new WatchedBoolean(zk, path + DELETABLE_PATH_SEGMENT, true, false);
   }
 

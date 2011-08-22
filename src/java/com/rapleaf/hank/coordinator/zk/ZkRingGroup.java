@@ -25,7 +25,6 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
@@ -43,11 +42,10 @@ public class ZkRingGroup extends AbstractRingGroup {
       throw new IllegalStateException(
           "You cannot create a ring group for a domain group that has no versions!");
     }
-    zk.create(path, domainGroup.getName().getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(path, domainGroup.getName().getBytes());
+    zk.create(path + CURRENT_VERSION_PATH_SEGMENT, null);
     zk.create(path + UPDATING_TO_VERSION_PATH_SEGMENT,
-        ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes(), Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
+        ("" + domainGroup.getLatestVersion().getVersionNumber()).getBytes());
     return new ZkRingGroup(zk, path, domainGroup);
   }
 
@@ -178,7 +176,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   public boolean claimDataDeployer() throws IOException {
     try {
       if (zk.exists(dataDeployerOnlinePath, false) == null) {
-        zk.create(dataDeployerOnlinePath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
+        zk.create(dataDeployerOnlinePath, null, CreateMode.EPHEMERAL);
         return true;
       }
       return false;

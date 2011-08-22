@@ -1,22 +1,19 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.data.Stat;
-import org.eclipse.jetty.util.log.Log;
-
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
+import org.eclipse.jetty.util.log.Log;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
   private static final String DEFUNCT_PATH_SEGMENT = "/defunct";
@@ -29,11 +26,10 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
     String versionPath = domainPath + "/versions/version_" + nextVerNum;
-    zk.create(versionPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(versionPath + "/parts", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(versionPath + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(versionPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(versionPath, null);
+    zk.create(versionPath + "/parts", null);
+    zk.create(versionPath + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
+    zk.create(versionPath + "/.complete", null);
     return new ZkDomainVersion(zk, versionPath);
   }
 
@@ -52,13 +48,12 @@ public class ZkDomainVersion extends AbstractDomainVersion {
       }
     };
     partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts", elementLoader,
-      new DotComplete());
+        new DotComplete());
 
     // TODO: remove post-migration
     if (zk.exists(path + DEFUNCT_PATH_SEGMENT, false) == null) {
       try {
-        zk.create(path + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes(),
-          Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        zk.create(path + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
       } catch (KeeperException.NodeExistsException e) {
         Log.warn("Looks like the defunct node exists after all!", e);
       }
@@ -111,7 +106,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void close() throws IOException {
     try {
-      zk.create(path + "/closed", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(path + "/closed", null);
     } catch (Exception e) {
       throw new IOException(e);
     }

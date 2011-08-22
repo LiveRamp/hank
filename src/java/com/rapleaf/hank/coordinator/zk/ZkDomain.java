@@ -57,13 +57,13 @@ public class ZkDomain extends AbstractDomain {
 
   public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws KeeperException, InterruptedException {
     String domainPath = domainsRoot + "/" + domainName;
-    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactoryName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOptions.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitionerName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath, null);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes());
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactoryName.getBytes());
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOptions.getBytes());
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitionerName.getBytes());
+    zk.create(domainPath + "/" + KEY_VERSIONS, null);
+    zk.create(domainPath + "/.complete", null);
     return new ZkDomain(zk, domainPath);
   }
 
@@ -75,10 +75,10 @@ public class ZkDomain extends AbstractDomain {
     zk.deleteNodeRecursively(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS);
     zk.deleteNodeRecursively(domainPath + "/" + KEY_PARTITIONER);
     // Re create nodes
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactoryName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOptions.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitionerName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes());
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactoryName.getBytes());
+    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOptions.getBytes());
+    zk.create(domainPath + "/" + KEY_PARTITIONER, partitionerName.getBytes());
     return new ZkDomain(zk, domainPath);
   }
 

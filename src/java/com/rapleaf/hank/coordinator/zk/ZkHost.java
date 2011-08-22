@@ -15,31 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.KeeperException.Code;
-import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.AbstractHost;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.*;
 
 public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
@@ -103,13 +91,11 @@ public class ZkHost extends AbstractHost {
   public static ZkHost create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
     String hostPath = root + "/" + partDaemonAddress.toString();
     LOG.trace("creating host " + hostPath);
-    zk.create(hostPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + PARTS_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(hostPath + COMPLETE_PATH_SEGMENT, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(hostPath, null);
+    zk.create(hostPath + PARTS_PATH_SEGMENT, null);
+    zk.create(hostPath + CURRENT_COMMAND_PATH_SEGMENT, null);
+    zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT, null);
+    zk.create(hostPath + COMPLETE_PATH_SEGMENT, null);
     return new ZkHost(zk, hostPath);
   }
 
@@ -134,14 +120,15 @@ public class ZkHost extends AbstractHost {
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();
     commandQueueWatcher = new CommandQueueWatcher();
-    domains = new WatchedMap<ZkHostDomain>(zk, hostPath + PARTS_PATH_SEGMENT, new ElementLoader<ZkHostDomain>(){
+    domains = new WatchedMap<ZkHostDomain>(zk, hostPath + PARTS_PATH_SEGMENT, new ElementLoader<ZkHostDomain>() {
       @Override
       public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (!basePath.equals(".complete")) {
           return new ZkHostDomain(zk, basePath, Integer.parseInt(relPath));
         }
         return null;
-      }}/*, new DotComplete()*/);
+      }
+    }/*, new DotComplete()*/);
   }
 
   @Override
@@ -223,7 +210,7 @@ public class ZkHost extends AbstractHost {
       throw new IOException(e);
     }
     ZkHostDomain hdc = ZkHostDomain.create(zk, hostPath + PARTS_PATH_SEGMENT, domainId);
-    domains.put(""+domainId, hdc);
+    domains.put("" + domainId, hdc);
     return hdc;
   }
 
@@ -265,8 +252,8 @@ public class ZkHost extends AbstractHost {
   @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     try {
-      zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/command_", command.toString().getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
+      zk.create(hostPath + COMMAND_QUEUE_PATH_SEGMENT + "/command_",
+          command.toString().getBytes(), CreateMode.PERSISTENT_SEQUENTIAL);
     } catch (Exception e) {
       throw new IOException(e);
     }

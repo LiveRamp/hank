@@ -15,26 +15,21 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
@@ -64,7 +59,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
         domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, versionPath + "/" + child,
-          domainGroup.getDomain(domainGroup.getDomainId(child))));
+            domainGroup.getDomain(domainGroup.getDomainId(child))));
       }
     }
   }
@@ -90,13 +85,11 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
 
   public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
-    String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT_SEQUENTIAL);
+    String actualPath = zk.create(versionsRoot + "/v", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
     for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {
-      zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes(),
-        Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(actualPath + "/" + entry.getKey(), ("" + entry.getValue()).getBytes());
     }
-    zk.create(actualPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(actualPath + "/.complete", null);
     // touch it again to notify watchers
     zk.setData(actualPath, new byte[1], -1);
     return new ZkDomainGroupVersion(zk, actualPath, domainGroup);
