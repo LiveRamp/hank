@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StatusWebDaemonTester extends ZkTestCase {
+public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
     create(ZkPath.create(getRoot(), "domains"));
     create(ZkPath.create(getRoot(), "domain_groups"));
@@ -140,8 +140,8 @@ public class StatusWebDaemonTester extends ZkTestCase {
         return mockClient;
       }
     };
-    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, clientCache, 12345);
-    daemon.run();
+    WebUiServer uiServer = new WebUiServer(mockConf, clientCache, 12345);
+    uiServer.run();
   }
 
   private PartitionServerAddress addy(String hostname) {

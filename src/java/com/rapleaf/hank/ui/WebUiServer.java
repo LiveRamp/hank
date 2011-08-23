@@ -15,16 +15,16 @@ import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.net.URL;
 
-public class StatusWebDaemon {
+public class WebUiServer {
   @SuppressWarnings("unused")
-  private static final Logger LOG = Logger.getLogger(StatusWebDaemon.class);
+  private static final Logger LOG = Logger.getLogger(WebUiServer.class);
 
   private final ClientConfigurator cc;
   private final int port;
 
   private final IClientCache clientCache;
 
-  public StatusWebDaemon(ClientConfigurator cc, IClientCache clientCache, int port) {
+  public WebUiServer(ClientConfigurator cc, IClientCache clientCache, int port) {
     this.cc = cc;
     this.clientCache = clientCache;
     this.port = port;
@@ -37,7 +37,7 @@ public class StatusWebDaemon {
     Server server = new Server(port);
 
     // configure the web app context (for the jsps)
-    Package p = StatusWebDaemon.class.getPackage();
+    Package p = WebUiServer.class.getPackage();
     String pName = p.getName();
     String pPath = pName.replaceAll("\\.", "/");
     final URL warUrl = getClass().getClassLoader().getResource(pPath);
@@ -66,11 +66,11 @@ public class StatusWebDaemon {
   }
 
   public static void main(String[] args) throws Exception {
-    CommandLineChecker.check(args, new String[]{"configuration_file_path", "port"}, StatusWebDaemon.class);
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "port"}, WebUiServer.class);
     Logger.getLogger("com.rapleaf.hank").setLevel(Level.INFO);
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
     ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);
-    new StatusWebDaemon(cc, new ClientCache(cc.getCoordinator()), port).run();
+    new WebUiServer(cc, new ClientCache(cc.getCoordinator()), port).run();
   }
 }
