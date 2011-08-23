@@ -14,8 +14,8 @@ public class ZkPartitionInfo implements PartitionInfo {
     // if the node already exists, then don't try to create a new one
     if (zk.exists(partPath, false) == null) {
       zk.create(partPath, null);
-      zk.create(partPath + "/num_bytes", numBytes);
-      zk.create(partPath + "/num_records", numRecords);
+      zk.createLong(partPath + "/num_bytes", numBytes);
+      zk.createLong(partPath + "/num_records", numRecords);
       zk.create(partPath + "/.complete", null);
     }
     return new ZkPartitionInfo(zk, partPath);

@@ -45,7 +45,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       String hdpPath = domainPath + "/" + partNum;
       zk.create(hdpPath, null);
       zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null);
-      zk.create(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion);
+      zk.createInt(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion);
       zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
       try {
         zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null);

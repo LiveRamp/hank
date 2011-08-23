@@ -29,16 +29,20 @@ public class ZooKeeperPlus extends ZooKeeper {
     super(connectString, sessionTimeout, watcher);
   }
 
-  public void create(String path, long numBytes) throws KeeperException, InterruptedException {
-    create(path, (Long.toString(numBytes)).getBytes(), DEFAULT_ACL, DEFAULT_CREATE_MODE);
-  }
-
   public void create(String path, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
     create(path, data, DEFAULT_ACL, createMode);
   }
 
   public void create(String path, byte[] data) throws KeeperException, InterruptedException {
     create(path, data, DEFAULT_ACL, DEFAULT_CREATE_MODE);
+  }
+
+  public void createLong(String path, long value) throws KeeperException, InterruptedException {
+    create(path, (Long.toString(value)).getBytes(), DEFAULT_ACL, DEFAULT_CREATE_MODE);
+  }
+
+  public void createInt(String path, int value) throws KeeperException, InterruptedException {
+    create(path, (Integer.toString(value)).getBytes(), DEFAULT_ACL, DEFAULT_CREATE_MODE);
   }
 
   public Integer getIntOrNull(String path) throws KeeperException, InterruptedException {
@@ -53,24 +57,12 @@ public class ZooKeeperPlus extends ZooKeeper {
     return Integer.parseInt(new String(getData(path, false, new Stat())));
   }
 
-  public String getString(String path) throws KeeperException, InterruptedException {
-    try {
-      byte[] data = getData(path, false, null);
-      if (data == null) {
-        return null;
-      }
-      return new String(data, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
+  public void setString(String path, String value) throws KeeperException, InterruptedException {
+    setData(path, value.getBytes(), -1);
   }
 
   public void setInt(String path, int nextVersion) throws KeeperException, InterruptedException {
     setData(path, (Integer.toString(nextVersion)).getBytes(), -1);
-  }
-
-  public void setString(String path, String value) throws KeeperException, InterruptedException {
-    setData(path, value.getBytes(), -1);
   }
 
   public long getLong(String path) throws KeeperException, InterruptedException {
@@ -85,6 +77,18 @@ public class ZooKeeperPlus extends ZooKeeper {
     }
   }
 
+  public String getString(String path) throws KeeperException, InterruptedException {
+    try {
+      byte[] data = getData(path, false, null);
+      if (data == null) {
+        return null;
+      }
+      return new String(data, "UTF-8");
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   public void deleteIfExists(String path) throws KeeperException, InterruptedException {
     if (exists(path, false) != null) {
       delete(path, -1);
@@ -96,7 +100,7 @@ public class ZooKeeperPlus extends ZooKeeper {
   }
 
   public void setOrCreate(String path, long value, CreateMode createMode) throws KeeperException, InterruptedException {
-    setOrCreate(path, "" + value, createMode);
+    setOrCreate(path, Long.toString(value), createMode);
   }
 
   public void setOrCreate(String path, String value, CreateMode createMode) throws KeeperException, InterruptedException {
