@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -27,10 +28,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
-  private static final String CURRENT_VERSION_PATH_SEGMENT = "/current_version";
-  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "/updating_to_version";
-  private static final String DELETABLE_PATH_SEGMENT = "/selected_for_deletion";
-  private static final String COUNTERS_PATH_SEGMENT = "/counters";
+  private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
+  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
+  private static final String DELETABLE_PATH_SEGMENT = "selected_for_deletion";
+  private static final String COUNTERS_PATH_SEGMENT = "counters";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
@@ -42,18 +43,18 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
-      String hdpPath = domainPath + "/" + partNum;
+      String hdpPath = ZkPath.create(domainPath, Integer.toString(partNum));
       zk.create(hdpPath, null);
-      zk.create(hdpPath + CURRENT_VERSION_PATH_SEGMENT, null);
-      zk.createInt(hdpPath + UPDATING_TO_VERSION_PATH_SEGMENT, initialDomainGroupVersion);
-      zk.create(hdpPath + DELETABLE_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
+      zk.create(ZkPath.create(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
+      zk.createInt(ZkPath.create(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
+      zk.create(ZkPath.create(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
       try {
-        zk.create(hdpPath + COUNTERS_PATH_SEGMENT, null);
+        zk.create(ZkPath.create(hdpPath, COUNTERS_PATH_SEGMENT), null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
       try {
-        zk.create(hdpPath + "/.complete", null);
+        zk.create(ZkPath.create(hdpPath, ".complete"), null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
@@ -68,9 +69,8 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
-    this.countersPath = path + "/counters";
-    String[] toks = path.split("/");
-    this.partNum = Integer.parseInt(toks[toks.length - 1]);
+    this.countersPath = ZkPath.create(path, "counters");
+    this.partNum = Integer.parseInt(ZkPath.filename(path));
 
     // TODO: remove post-migration
     if (zk.exists(countersPath, false) == null) {
@@ -78,14 +78,14 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     }
 
     // TODO: remove post-migration
-    if (zk.exists(path + "/.complete", false) == null) {
-      zk.create(path + "/.complete", null);
+    if (zk.exists(ZkPath.create(path, ".complete"), false) == null) {
+      zk.create(ZkPath.create(path, ".complete"), null);
     }
 
-    currentDomainGroupVersion = new WatchedInt(zk, path + CURRENT_VERSION_PATH_SEGMENT, true, null);
-    updatingToDomainGroupVersion = new WatchedInt(zk, path + UPDATING_TO_VERSION_PATH_SEGMENT,
+    currentDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, CURRENT_VERSION_PATH_SEGMENT), true, null);
+    updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, UPDATING_TO_VERSION_PATH_SEGMENT),
         true, null);
-    deletable = new WatchedBoolean(zk, path + DELETABLE_PATH_SEGMENT, true, false);
+    deletable = new WatchedBoolean(zk, ZkPath.create(path, DELETABLE_PATH_SEGMENT), true, false);
   }
 
   @Override
@@ -138,7 +138,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void removeCount(String countID) throws IOException {
     try {
-      String p = countersPath + "/" + countID;
+      String p = ZkPath.create(countersPath, countID);
       zk.delete(p, -1);
     } catch (Exception e) {
       throw new IOException(e);
@@ -148,7 +148,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setCount(String countID, long count) throws IOException {
     try {
-      String p = countersPath + "/" + countID;
+      String p = ZkPath.create(countersPath, countID);
       zk.setOrCreate(p, count, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
@@ -159,7 +159,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public Long getCount(String countID) throws IOException {
     Long data = null;
     try {
-      String p = countersPath + "/" + countID;
+      String p = ZkPath.create(countersPath, countID);
       if (zk.exists(p, false) != null) {
         data = Long.parseLong(new String(zk.getData(p, false, null)));
       }

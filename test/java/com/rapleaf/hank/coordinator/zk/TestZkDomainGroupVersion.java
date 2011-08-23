@@ -15,16 +15,13 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.zookeeper.ZkPath;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
@@ -66,19 +63,19 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), versionPath(1), mockDomainGroup);
     assertEquals(1, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion)dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(2, 1, 2);
     dgcv = new ZkDomainGroupVersion(getZk(), versionPath(2), mockDomainGroup);
     assertEquals(2, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion)dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(3, 1, 3);
     dgcv = new ZkDomainGroupVersion(getZk(), versionPath(3), mockDomainGroup);
     assertEquals(3, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion)dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(4, 1, 3, 2, 1);
     dgcv = new ZkDomainGroupVersion(getZk(), versionPath(4), mockDomainGroup);
@@ -108,13 +105,13 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
 
   private void version(int versionNumber, int... pairs) throws Exception {
     create(versionPath(versionNumber));
-    for (int i = 0; i < pairs.length; i+=2) {
-      create(versionPath(versionNumber) + "/domain" + pairs[i], ("" + pairs[i+1]));
+    for (int i = 0; i < pairs.length; i += 2) {
+      create(ZkPath.create(versionPath(versionNumber), "domain" + pairs[i]), (Integer.toString(pairs[i + 1])));
     }
-    create(versionPath(versionNumber) + "/.complete");
+    create(ZkPath.create(versionPath(versionNumber), ".complete"));
   }
 
   private String versionPath(int versionNumber) {
-    return getRoot() + "/v" + versionNumber;
+    return ZkPath.create(getRoot(), "v" + versionNumber);
   }
 }

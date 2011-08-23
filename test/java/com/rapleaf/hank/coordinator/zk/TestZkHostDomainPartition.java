@@ -15,10 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.zookeeper.ZkPath;
+
 import java.util.HashSet;
 import java.util.Set;
-
-import com.rapleaf.hank.ZkTestCase;
 
 public class TestZkHostDomainPartition extends ZkTestCase {
   public void testIt() throws Exception {
@@ -40,8 +41,7 @@ public class TestZkHostDomainPartition extends ZkTestCase {
 
     assertEquals(false, hdpc.isDeletable());
     hdpc.setDeletable(true);
-    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), getRoot()
-        + "/" + 1234);
+    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), ZkPath.create(getRoot(), Integer.toString(1234)));
     assertEquals(true, hdpc2.isDeletable());
 
     Set<String> currentCountKeys = new HashSet<String>();

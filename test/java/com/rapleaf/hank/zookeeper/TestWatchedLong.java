@@ -1,14 +1,13 @@
 package com.rapleaf.hank.zookeeper;
 
+import com.rapleaf.hank.ZkTestCase;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.rapleaf.hank.ZkTestCase;
 
 public class TestWatchedLong extends ZkTestCase {
   public void testIt() throws Exception {
     final ZooKeeperPlus zk = getZk();
-    final String nodePath = getRoot() + "/watchedNode";
+    final String nodePath = ZkPath.create(getRoot(), "watchedNode");
     zk.create(nodePath, "1".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     final WatchedLong wl = new WatchedLong(zk, nodePath);
     assertEquals(Long.valueOf(1), wl.get());

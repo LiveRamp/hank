@@ -1,36 +1,32 @@
 package com.rapleaf.hank.ui;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.partitioner.Murmur64Partitioner;
+import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.partitioner.Murmur64Partitioner;
-import com.rapleaf.hank.storage.curly.Curly;
-
 public class StatusWebDaemonTester extends ZkTestCase {
   public void testIt() throws Exception {
-    create(getRoot() + "/domains");
-    create(getRoot() + "/domain_groups");
-    create(getRoot() + "/ring_groups");
+    create(ZkPath.create(getRoot(), "domains"));
+    create(ZkPath.create(getRoot(), "domain_groups"));
+    create(ZkPath.create(getRoot(), "ring_groups"));
     final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
-        ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000, getRoot()
-        + "/domains", getRoot() + "/domain_groups", getRoot() + "/ring_groups"));
+        ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
+            ZkPath.create(getRoot(), "domains"),
+            ZkPath.create(getRoot(), "domain_groups"),
+            ZkPath.create(getRoot(), "ring_groups")));
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 

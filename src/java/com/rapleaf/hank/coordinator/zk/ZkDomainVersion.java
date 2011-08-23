@@ -5,6 +5,7 @@ import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
@@ -16,7 +17,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
-  private static final String DEFUNCT_PATH_SEGMENT = "/defunct";
+  private static final String DEFUNCT_PATH_SEGMENT = "defunct";
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
@@ -25,11 +26,11 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final WatchedBoolean defunct;
 
   public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
-    String versionPath = domainPath + "/versions/version_" + nextVerNum;
+    String versionPath = ZkPath.create(domainPath, "versions", "version_" + nextVerNum);
     zk.create(versionPath, null);
-    zk.create(versionPath + "/parts", null);
-    zk.create(versionPath + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
-    zk.create(versionPath + "/.complete", null);
+    zk.create(ZkPath.create(versionPath, "parts"), null);
+    zk.create(ZkPath.create(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
+    zk.create(ZkPath.create(versionPath, ".complete"), null);
     return new ZkDomainVersion(zk, versionPath);
   }
 
@@ -37,35 +38,34 @@ public class ZkDomainVersion extends AbstractDomainVersion {
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
-    String[] toks = path.split("/");
-    String last = toks[toks.length - 1];
-    toks = last.split("_");
+    String last = ZkPath.filename(path);
+    String[] toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
     final ElementLoader<ZkPartitionInfo> elementLoader = new ElementLoader<ZkPartitionInfo>() {
       @Override
       public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkPartitionInfo(zk, basePath + "/" + relPath);
+        return new ZkPartitionInfo(zk, ZkPath.create(basePath, relPath));
       }
     };
-    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, path + "/parts", elementLoader,
+    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, ZkPath.create(path, "parts"), elementLoader,
         new DotComplete());
 
     // TODO: remove post-migration
-    if (zk.exists(path + DEFUNCT_PATH_SEGMENT, false) == null) {
+    if (zk.exists(ZkPath.create(path, DEFUNCT_PATH_SEGMENT), false) == null) {
       try {
-        zk.create(path + DEFUNCT_PATH_SEGMENT, Boolean.FALSE.toString().getBytes());
+        zk.create(ZkPath.create(path, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
       } catch (KeeperException.NodeExistsException e) {
         Log.warn("Looks like the defunct node exists after all!", e);
       }
     }
 
-    defunct = new WatchedBoolean(zk, path + DEFUNCT_PATH_SEGMENT);
+    defunct = new WatchedBoolean(zk, ZkPath.create(path, DEFUNCT_PATH_SEGMENT));
   }
 
   @Override
   public Long getClosedAt() throws IOException {
     try {
-      Stat stat = zk.exists(path + "/closed", false);
+      Stat stat = zk.exists(ZkPath.create(path, "closed"), false);
       return stat == null ? null : stat.getCtime();
     } catch (Exception e) {
       throw new IOException(e);
@@ -80,7 +80,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
     try {
-      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, path + "/parts", partNum, numBytes, numRecords);
+      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, ZkPath.create(path, "parts"), partNum, numBytes, numRecords);
       partitionInfos.put(ZkPartitionInfo.nodeName(partNum), p);
     } catch (Exception e) {
       throw new IOException(e);
@@ -106,7 +106,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void close() throws IOException {
     try {
-      zk.create(path + "/closed", null);
+      zk.create(ZkPath.create(path, "closed"), null);
     } catch (Exception e) {
       throw new IOException(e);
     }

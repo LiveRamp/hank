@@ -20,6 +20,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
+import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkDomain extends ZkTestCase {
   private static final String CONST_PARTITIONER = ConstantPartitioner.class.getName();
@@ -39,7 +40,7 @@ public class TestZkDomain extends ZkTestCase {
 
   public void testLoad() throws Exception {
     ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    ZkDomain dc = new ZkDomain(getZk(), getRoot() + "/domain0");
+    ZkDomain dc = new ZkDomain(getZk(), ZkPath.create(getRoot(), "domain0"));
 
     assertEquals("domain0", dc.getName());
     assertEquals(1024, dc.getNumParts());
@@ -72,8 +73,8 @@ public class TestZkDomain extends ZkTestCase {
 
   public void testDelete() throws Exception {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    assertNotNull(getZk().exists(getRoot() + "/domain0", false));
+    assertNotNull(getZk().exists(ZkPath.create(getRoot(), "domain0"), false));
     assertTrue(dc.delete());
-    assertNull(getZk().exists(getRoot() + "/domain0", false));
+    assertNull(getZk().exists(ZkPath.create(getRoot(), "domain0"), false));
   }
 }

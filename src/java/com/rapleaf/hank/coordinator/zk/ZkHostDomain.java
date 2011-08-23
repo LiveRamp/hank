@@ -19,6 +19,7 @@ import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 
@@ -29,8 +30,8 @@ import java.util.Set;
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
     try {
-      zk.create(partsRoot + "/" + (domainId & 0xff), null);
-//      zk.create(partsRoot + "/.complete", null);
+      zk.create(ZkPath.create(partsRoot, Integer.toString(domainId & 0xff)), null);
+//      zk.create(ZkPath.create(partsRoot, ".complete"), null);
       return new ZkHostDomain(zk, partsRoot, domainId);
     } catch (Exception e) {
       throw new IOException(e);
@@ -46,11 +47,11 @@ public class ZkHostDomain extends AbstractHostDomain {
   public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, int domainId) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainId = domainId;
-    this.root = partsRoot + "/" + domainId;
+    this.root = ZkPath.create(partsRoot, Integer.toString(domainId));
 
     // TODO: temporary...
-//    if (zk.exists(root + "/.complete", false) == null) {
-//      zk.create(root + "/.complete", null);
+//    if (zk.exists(ZkPath.create(root, ".complete"), false) == null) {
+//      zk.create(ZkPath.create(root, ".complete"), null);
 //    }
 
     parts = new WatchedMap<ZkHostDomainPartition>(zk, root,
@@ -60,7 +61,7 @@ public class ZkHostDomain extends AbstractHostDomain {
             if (relPath.equals(".complete")) {
               return null;
             }
-            return new ZkHostDomainPartition(zk, basePath + "/" + relPath);
+            return new ZkHostDomainPartition(zk, ZkPath.create(basePath, relPath));
           }
         });
   }
@@ -79,7 +80,7 @@ public class ZkHostDomain extends AbstractHostDomain {
   public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum,
         initialVersion);
-    parts.put("" + partNum, part);
+    parts.put(Integer.toString(partNum), part);
     return part;
   }
 }

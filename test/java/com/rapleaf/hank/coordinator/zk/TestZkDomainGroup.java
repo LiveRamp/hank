@@ -25,6 +25,7 @@ import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.KeeperException;
 
 import java.util.Arrays;
@@ -44,29 +45,29 @@ public class TestZkDomainGroup extends ZkTestCase {
     }
   }
 
-  private final String dg_root = getRoot() + "/myDomainGroup";
-  private final String domains_root = getRoot() + "/domains";
+  private final String dg_root = ZkPath.create(getRoot(), "myDomainGroup");
+  private final String domains_root = ZkPath.create(getRoot(), "domains");
 
   public void testLoad() throws Exception {
     Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
-    create(dg_root + "/domains");
-    create(dg_root + "/domains/0", domains_root + "/domain0");
-    create(dg_root + "/domains/1", domains_root + "/domain1");
-    create(dg_root + "/versions");
-    create(dg_root + "/versions/v1");
-    create(dg_root + "/versions/v1/domain0", "1");
-    create(dg_root + "/versions/v1/domain1", "1");
-    create(dg_root + "/versions/v1/.complete", "1");
-    create(dg_root + "/versions/v2");
-    create(dg_root + "/versions/v2/domain0", "1");
-    create(dg_root + "/versions/v2/domain1", "1");
+    create(ZkPath.create(dg_root, "domains"));
+    create(ZkPath.create(dg_root, "domains/0"), domains_root + "/domain0");
+    create(ZkPath.create(dg_root, "domains/1"), domains_root + "/domain1");
+    create(ZkPath.create(dg_root, "versions"));
+    create(ZkPath.create(dg_root, "versions/v1"));
+    create(ZkPath.create(dg_root, "versions/v1/domain0"), "1");
+    create(ZkPath.create(dg_root, "versions/v1/domain1"), "1");
+    create(ZkPath.create(dg_root, "versions/v1/.complete"), "1");
+    create(ZkPath.create(dg_root, "versions/v2"));
+    create(ZkPath.create(dg_root, "versions/v2/domain0"), "1");
+    create(ZkPath.create(dg_root, "versions/v2/domain1"), "1");
 
     ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root);
 
     assertEquals(1, dgc.getVersions().size());
-    assertEquals(1, ((DomainGroupVersion)dgc.getVersions().toArray()[0]).getVersionNumber());
+    assertEquals(1, ((DomainGroupVersion) dgc.getVersions().toArray()[0]).getVersionNumber());
     assertEquals(1, dgc.getLatestVersion().getVersionNumber());
     assertEquals(Integer.valueOf(0), dgc.getDomainId("domain0"));
     assertEquals(Integer.valueOf(1), dgc.getDomainId("domain1"));

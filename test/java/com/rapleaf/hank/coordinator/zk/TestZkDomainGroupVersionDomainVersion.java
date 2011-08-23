@@ -17,9 +17,10 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkDomainGroupVersionDomainVersion extends ZkTestCase {
-  private final String path = getRoot() + "/myDomain";
+  private final String path = ZkPath.create(getRoot(), "myDomain");
 
   public TestZkDomainGroupVersionDomainVersion() throws Exception {
     super();

@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -45,7 +46,7 @@ public class ZkDomainGroup implements DomainGroup {
     }
 
     private void register() throws KeeperException, InterruptedException {
-      zk.getChildren(dgPath + "/versions", this);
+      zk.getChildren(ZkPath.create(dgPath, "versions"), this);
     }
 
     @Override
@@ -73,16 +74,15 @@ public class ZkDomainGroup implements DomainGroup {
       throws InterruptedException, KeeperException, IOException {
     this.zk = zk;
     this.dgPath = dgPath;
-    String[] toks = dgPath.split("/");
-    this.groupName = toks[toks.length - 1];
+    this.groupName = ZkPath.filename(dgPath);
 
     final ElementLoader<ZkDomain> elementLoader = new ElementLoader<ZkDomain>() {
       @Override
       public ZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomain(zk, zk.getString(basePath + "/" + relPath));
+        return new ZkDomain(zk, zk.getString(ZkPath.create(basePath, relPath)));
       }
     };
-    domainsById = new WatchedMap<ZkDomain>(zk, dgPath + "/domains", elementLoader);
+    domainsById = new WatchedMap<ZkDomain>(zk, ZkPath.create(dgPath, "domains"), elementLoader);
 
     // enumerate the versions subkey
     loadVersions();
@@ -91,9 +91,9 @@ public class ZkDomainGroup implements DomainGroup {
   private SortedMap<Integer, DomainGroupVersion> loadVersions() throws KeeperException, InterruptedException, IOException {
     SortedMap<Integer, DomainGroupVersion> dgcvs = new TreeMap<Integer, DomainGroupVersion>();
 
-    List<String> versions = zk.getChildren(dgPath + "/versions", false);
+    List<String> versions = zk.getChildren(ZkPath.create(dgPath, "versions"), false);
     for (String version : versions) {
-      String versionPath = dgPath + "/versions/" + version;
+      String versionPath = ZkPath.create(dgPath, "versions", version);
       if (ZkDomainGroupVersion.isComplete(versionPath, zk)) {
         ZkDomainGroupVersion ver = new ZkDomainGroupVersion(zk, versionPath, this);
         dgcvs.put(ver.getVersionNumber(), ver);
@@ -109,7 +109,7 @@ public class ZkDomainGroup implements DomainGroup {
 
   @Override
   public Domain getDomain(int domainId) {
-    return domainsById.get("" + domainId);
+    return domainsById.get(Integer.toString(domainId));
   }
 
   @Override
@@ -159,14 +159,14 @@ public class ZkDomainGroup implements DomainGroup {
 
   @Override
   public void addDomain(Domain domain, int domainId) throws IOException {
-    String path = dgPath + "/domains/" + domainId;
+    String path = ZkPath.create(dgPath, "domains", Integer.toString(domainId));
     try {
       if (zk.exists(path, false) != null) {
         throw new IllegalArgumentException("Domain ID " + domainId + " is already assigned!");
       }
       String domainPath = ((ZkDomain) domain).getPath();
       zk.create(path, domainPath.getBytes());
-      domainsById.put("" + domainId, new ZkDomain(zk, domainPath));
+      domainsById.put(Integer.toString(domainId), new ZkDomain(zk, domainPath));
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -175,7 +175,7 @@ public class ZkDomainGroup implements DomainGroup {
   @Override
   public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
     try {
-      DomainGroupVersion version = ZkDomainGroupVersion.create(zk, dgPath + "/versions",
+      DomainGroupVersion version = ZkDomainGroupVersion.create(zk, ZkPath.create(dgPath, "versions"),
           domainIdToVersion, this);
       domainGroupVersions.put(version.getVersionNumber(), version);
       return version;
@@ -189,7 +189,7 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
-    return zk.exists(path + "/.complete", false) != null;
+    return zk.exists(ZkPath.create(path, ".complete"), false) != null;
   }
 
   @Override
@@ -200,7 +200,7 @@ public class ZkDomainGroup implements DomainGroup {
   public boolean delete() throws IOException {
     try {
       // first, delete the .complete so everyone knows it's gone
-      zk.delete(dgPath + "/.complete", -1);
+      zk.delete(ZkPath.create(dgPath, ".complete"), -1);
 
       // delete the rest
       zk.deleteNodeRecursively(dgPath);
@@ -218,11 +218,11 @@ public class ZkDomainGroup implements DomainGroup {
   }
 
   public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
-    String domainGroupPath = dgRoot + "/" + domainGroupName;
+    String domainGroupPath = ZkPath.create(dgRoot, domainGroupName);
     zk.create(domainGroupPath, null);
-    zk.create(domainGroupPath + "/versions", null);
-    zk.create(domainGroupPath + "/domains", null);
-    zk.create(domainGroupPath + "/.complete", null);
+    zk.create(ZkPath.create(domainGroupPath, "versions"), null);
+    zk.create(ZkPath.create(domainGroupPath, "domains"), null);
+    zk.create(ZkPath.create(domainGroupPath, ".complete"), null);
     zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroup(zk, domainGroupPath);
   }
