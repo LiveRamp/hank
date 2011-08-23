@@ -9,7 +9,7 @@ import java.util.Set;
 import com.rapleaf.hank.BaseTestCase;
 
 public class TestAbstractRing extends BaseTestCase {
-  private static final PartDaemonAddress LOCALHOST = new PartDaemonAddress("localhost", 1);
+  private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
 
   private static class SlightlyLessAbstractRing extends AbstractRing {
     protected SlightlyLessAbstractRing(int ringNum,
@@ -18,12 +18,12 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public Host addHost(PartDaemonAddress address) throws IOException {
+    public Host addHost(PartitionServerAddress address) throws IOException {
       return null;
     }
 
     @Override
-    public Host getHostByAddress(PartDaemonAddress address) {
+    public Host getHostByAddress(PartitionServerAddress address) {
       return null;
     }
 
@@ -64,7 +64,7 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public boolean removeHost(PartDaemonAddress address) {
+    public boolean removeHost(PartitionServerAddress address) {
       // TODO Auto-generated method stub
       return false;
     }
@@ -72,7 +72,7 @@ public class TestAbstractRing extends BaseTestCase {
     @Override
     public void delete() throws IOException {
       // TODO Auto-generated method stub
-      
+
     }
   }
 
@@ -139,9 +139,9 @@ public class TestAbstractRing extends BaseTestCase {
   }
 
   public void testGetHostsInState() throws Exception {
-    final MockHost h1 = new MockHost(new PartDaemonAddress("localhost", 1));
-    final MockHost h2 = new MockHost(new PartDaemonAddress("localhost", 2));
-    final MockHost h3 = new MockHost(new PartDaemonAddress("localhost", 3));
+    final MockHost h1 = new MockHost(new PartitionServerAddress("localhost", 1));
+    final MockHost h2 = new MockHost(new PartitionServerAddress("localhost", 2));
+    final MockHost h3 = new MockHost(new PartitionServerAddress("localhost", 3));
 
     SlightlyLessAbstractRing rc = new SlightlyLessAbstractRing(1, null) {
       @Override

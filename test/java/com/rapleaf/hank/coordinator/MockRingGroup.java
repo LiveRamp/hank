@@ -46,7 +46,7 @@ public class MockRingGroup implements RingGroup {
   }
 
   @Override
-  public Ring getRingForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingForHost(PartitionServerAddress hostAddress) {
     return null;
   }
 

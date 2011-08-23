@@ -13,32 +13,26 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Set;
 
 /**
- * Implements the actual data serving logic of the PartDaemon
+ * Implements the actual data serving logic of the PartitionServer
  */
-class PartDaemonHandler implements IfaceWithShutdown {
+class PartitionServerHandler implements IfaceWithShutdown {
   private static final HankResponse WRONG_HOST = HankResponse
       .xception(HankExceptions.wrong_host(true));
 
@@ -47,12 +41,12 @@ class PartDaemonHandler implements IfaceWithShutdown {
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse
       .xception(HankExceptions.no_such_domain(true));
 
-  private final static Logger LOG = Logger.getLogger(PartDaemonHandler.class);
+  private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
   private final DomainReaderSet[] domains;
 
-  public PartDaemonHandler(PartDaemonAddress hostAndPort,
-      PartservConfigurator config) throws IOException {
+  public PartitionServerHandler(PartitionServerAddress hostAndPort,
+                                PartitionServerConfigurator config) throws IOException {
     // find the ring config
     Ring ringConfig = config.getCoordinator()
         .getRingGroup(config.getRingGroupName())
@@ -86,14 +80,14 @@ class PartDaemonHandler implements IfaceWithShutdown {
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
-      // instantiate all the PartReaderAndCounters
-      PartReaderAndCounters[] rdc = new PartReaderAndCounters[domain
+      // instantiate all the PartitionReaderAndCounters
+      PartitionReaderAndCounters[] rdc = new PartitionReaderAndCounters[domain
           .getNumParts()];
       for (HostDomainPartition part : partitions) {
         LOG.debug(String.format(
-            "Instantiating PartReaderAndCounters for part num %d",
+            "Instantiating PartitionReaderAndCounters for part num %d",
             part.getPartNum()));
-        rdc[part.getPartNum()] = new PartReaderAndCounters(part, eng.getReader(
+        rdc[part.getPartNum()] = new PartitionReaderAndCounters(part, eng.getReader(
             config, part.getPartNum()));
       }
 

@@ -1,26 +1,25 @@
-package com.rapleaf.hank.part_daemon;
-
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.log4j.Logger;
+package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.storage.Reader;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
  * associated with the HostDomainPartition 3. AtomicLong: Requests in last
  * minute counter 4. AtomicLong: Hits in last minute counter
  */
-public class PartReaderAndCounters {
+public class PartitionReaderAndCounters {
   private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
   private final HostDomainPartition part;
   private final Reader reader;
   private final AtomicLong requests;
   private final AtomicLong hits;
 
-  public PartReaderAndCounters(HostDomainPartition part, Reader reader) {
+  public PartitionReaderAndCounters(HostDomainPartition part, Reader reader) {
     this.part = part;
     this.reader = reader;
     requests = new AtomicLong(0);

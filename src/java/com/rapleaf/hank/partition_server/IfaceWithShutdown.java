@@ -1,6 +1,6 @@
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.generated.PartDaemon.Iface;
+import com.rapleaf.hank.generated.PartitionServer.Iface;
 
 public interface IfaceWithShutdown extends Iface {
 

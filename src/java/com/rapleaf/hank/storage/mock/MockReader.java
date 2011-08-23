@@ -18,17 +18,17 @@ package com.rapleaf.hank.storage.mock;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 
 public class MockReader implements Reader {
 
-  private final PartservConfigurator configurator;
+  private final PartitionServerConfigurator configurator;
   private final int partNum;
   private final byte[] returnValue;
 
-  public MockReader(PartservConfigurator configurator, int partNum, byte[] returnValue) {
+  public MockReader(PartitionServerConfigurator configurator, int partNum, byte[] returnValue) {
     this.configurator = configurator;
     this.partNum = partNum;
     this.returnValue = returnValue;
@@ -47,7 +47,7 @@ public class MockReader implements Reader {
     }
   }
 
-  public PartservConfigurator getConfigurator() {
+  public PartitionServerConfigurator getConfigurator() {
     return configurator;
   }
 

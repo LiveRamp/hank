@@ -114,7 +114,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
     Ring rc = rg.addRing(1);
-    rc.addHost(new PartDaemonAddress("localhost", 1));
+    rc.addHost(new PartitionServerAddress("localhost", 1));
 
     coord = getCoord();
   }

@@ -13,15 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.log4j.Logger;
+package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Result;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Class that manages serving on behalf of a particular Domain.
@@ -30,19 +29,19 @@ class DomainReaderSet {
   private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
   private final Partitioner partitioner;
   private final String name;
-  private final PartReaderAndCounters[] prc;
+  private final PartitionReaderAndCounters[] prc;
   private final int timeout;
   private final UpdateCounts updater;
   private final Thread updateThread;
   private boolean keepUpdating;
 
-  public DomainReaderSet(String name, PartReaderAndCounters[] prc,
-      Partitioner partitioner) throws IOException {
+  public DomainReaderSet(String name, PartitionReaderAndCounters[] prc,
+                         Partitioner partitioner) throws IOException {
     this(name, prc, partitioner, 60000);
   }
 
-  DomainReaderSet(String name, PartReaderAndCounters[] prc,
-      Partitioner partitioner, int timeout) throws IOException {
+  DomainReaderSet(String name, PartitionReaderAndCounters[] prc,
+                  Partitioner partitioner, int timeout) throws IOException {
     this.name = name;
     this.prc = prc;
     this.partitioner = partitioner;
@@ -56,15 +55,15 @@ class DomainReaderSet {
 
   /**
    * Get the value for <i>key</i>, placing it in result.
-   * 
+   *
    * @param key
    * @param result
-   * @return true if this partserv is actually serving the part needed
+   * @return true if this PartitionServer is actually serving the part needed
    * @throws IOException
    */
   public boolean get(ByteBuffer key, Result result) throws IOException {
     int partition = partitioner.partition(key, prc.length);
-    PartReaderAndCounters currentPRC = prc[partition];
+    PartitionReaderAndCounters currentPRC = prc[partition];
     if (currentPRC == null) {
       return false;
     }
@@ -93,7 +92,7 @@ class DomainReaderSet {
           }
         }
         // in case we were interrupted while updating counters, avoid doing an
-        // unnecessary sleep 
+        // unnecessary sleep
         if (!keepUpdating) {
           break;
         }

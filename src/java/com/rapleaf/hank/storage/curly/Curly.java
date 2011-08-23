@@ -15,39 +15,25 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.HdfsFileOps;
 import com.rapleaf.hank.storage.cueball.IFileOpsFactory;
 import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.util.FsUtils;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Curly is a storage engine designed for larger, variable-sized values. It uses
@@ -169,14 +155,14 @@ public class Curly implements StorageEngine {
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
   public Curly(int keyHashSize,
-      Hasher hasher,
-      long maxAllowedPartSize,
-      int hashIndexBits,
-      int recordFileReadBufferBytes,
-      String remoteDomainRoot,
-      IFileOpsFactory fileOpsFactory,
-      Class<? extends CompressionCodec> compressionCodecClass,
-      String domainName) {
+               Hasher hasher,
+               long maxAllowedPartSize,
+               int hashIndexBits,
+               int recordFileReadBufferBytes,
+               String remoteDomainRoot,
+               IFileOpsFactory fileOpsFactory,
+               Class<? extends CompressionCodec> compressionCodecClass,
+               String domainName) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
@@ -190,7 +176,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return new CurlyReader(getLocalDir(configurator, partNum), recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator, partNum));
   }
 
@@ -206,7 +192,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException {
+  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     new File(localDir).mkdirs();
     String remotePartRoot = remoteDomainRoot + "/" + partNum;
@@ -220,9 +206,9 @@ public class Curly implements StorageEngine {
       throw new IOException(e);
     }
   }
-  
+
   @Override
-  public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
       throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     return new CurlyDeleter(localDir);
@@ -233,7 +219,7 @@ public class Curly implements StorageEngine {
     return cueballStorageEngine.getComparableKey(key);
   }
 
-  private String getLocalDir(PartservConfigurator configurator, int partNum) {
+  private String getLocalDir(PartitionServerConfigurator configurator, int partNum) {
     ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
     Collections.sort(l);
     return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;

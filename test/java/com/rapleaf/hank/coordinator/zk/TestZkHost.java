@@ -25,10 +25,10 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 
 public class TestZkHost extends ZkTestCase {
-  private static final PartDaemonAddress ADDRESS = new PartDaemonAddress("my.super.host", 32267);
+  private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {
     ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);

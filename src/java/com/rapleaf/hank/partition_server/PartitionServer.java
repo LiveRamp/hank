@@ -13,12 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.PartDaemon;
 import com.rapleaf.hank.util.CommandLineChecker;
 import com.rapleaf.hank.util.HostUtils;
 import org.apache.log4j.Logger;
@@ -33,17 +32,17 @@ import org.apache.thrift.transport.TTransportException;
 import java.io.IOException;
 
 /**
- * The main class of the Part Daemon.
+ * The main class of the PartitionServer.
  */
-public class PartDaemonServer implements HostCommandQueueChangeListener {
-  private static final Logger LOG = Logger.getLogger(PartDaemonServer.class);
+public class PartitionServer implements HostCommandQueueChangeListener {
+  private static final Logger LOG = Logger.getLogger(PartitionServer.class);
 
-  private final PartservConfigurator configurator;
+  private final PartitionServerConfigurator configurator;
   private final Coordinator coord;
   private Thread serverThread;
   private TServer server;
   private boolean goingDown = false;
-  private final PartDaemonAddress hostAddress;
+  private final PartitionServerAddress hostAddress;
   private final Host host;
 
   private Thread updateThread;
@@ -52,10 +51,10 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
 
   private final Ring ring;
 
-  public PartDaemonServer(PartservConfigurator configurator, String hostName) throws IOException {
+  public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coord = configurator.getCoordinator();
-    hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
+    hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
     ringGroup = coord.getRingGroup(configurator.getRingGroupName());
     ring = ringGroup.getRingForHost(hostAddress);
     if (ring == null) {
@@ -96,7 +95,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   protected IfaceWithShutdown getHandler() throws IOException {
-    return new PartDaemonHandler(hostAddress, configurator);
+    return new PartitionServerHandler(hostAddress, configurator);
   }
 
   protected IUpdateManager getUpdateManager() throws IOException {
@@ -120,6 +119,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
 
   /**
    * Start serving the thrift server. doesn't return.
+   *
    * @throws TTransportException
    * @throws IOException
    * @throws InterruptedException
@@ -131,7 +131,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
     Args options = new Args(serverSocket);
-    options.processor(new PartDaemon.Processor(handler));
+    options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
     options.workerThreads(configurator.getNumThreads());
     options.protocolFactory(new TCompactProtocol.Factory());
     server = new THsHaServer(options);
@@ -147,7 +147,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
    */
   private void serveData() {
     if (server == null) {
-      Runnable r = new Runnable(){
+      Runnable r = new Runnable() {
         @Override
         public void run() {
           try {
@@ -158,7 +158,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
           }
         }
       };
-      serverThread = new Thread(r, "PartDaemon Thrift Server thread");
+      serverThread = new Thread(r, "PartitionServer Thrift Server thread");
       LOG.info("Launching server thread...");
       serverThread.start();
       try {
@@ -224,78 +224,78 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
     HostState state = host.getState();
     switch (nextCommand) {
-    case EXECUTE_UPDATE:
-      processExecuteUpdate(state);
-      break;
-    case GO_TO_IDLE:
-      processGoToIdle(state);
-      break;
-    case SERVE_DATA:
-      processServeData(state);
-      break;
+      case EXECUTE_UPDATE:
+        processExecuteUpdate(state);
+        break;
+      case GO_TO_IDLE:
+        processGoToIdle(state);
+        break;
+      case SERVE_DATA:
+        processServeData(state);
+        break;
     }
   }
 
   private void processServeData(HostState state) throws IOException {
     switch (state) {
-    case IDLE:
-      serveData();
-      setState(HostState.SERVING);
-      host.completeCommand();
-      break;
-    default:
-      LOG.debug("received command " + HostCommand.SERVE_DATA
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case IDLE:
+        serveData();
+        setState(HostState.SERVING);
+        host.completeCommand();
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.SERVE_DATA
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
-    case SERVING:
-      stopServingData();
-      setState(HostState.IDLE);
-      host.completeCommand();
-      break;
-    case UPDATING:
-      LOG.debug("received command " + HostCommand.GO_TO_IDLE
-          + " but current state is " + state
-          + ", which cannot be stopped. Will wait until completion.");
-      break;
-    default:
-      LOG.debug("received command " + HostCommand.GO_TO_IDLE
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case SERVING:
+        stopServingData();
+        setState(HostState.IDLE);
+        host.completeCommand();
+        break;
+      case UPDATING:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but current state is " + state
+            + ", which cannot be stopped. Will wait until completion.");
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   private void processExecuteUpdate(HostState state) throws IOException {
     switch (state) {
-    case IDLE:
-      setState(HostState.UPDATING);
-      update();
-      break;
-    case SERVING:
-      LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
-    default:
-      LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case IDLE:
+        setState(HostState.UPDATING);
+        update();
+        break;
+      case SERVING:
+        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+      default:
+        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   public static void main(String[] args) throws Throwable {
     try {
-      CommandLineChecker.check(args, new String[] {"configuration_file_path", "log4j_properties_file_path"}, PartDaemonServer.class);
+      CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, PartitionServer.class);
       String configPath = args[0];
       String log4jprops = args[1];
 
-      PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
+      PartitionServerConfigurator configurator = new YamlPartitionServerConfigurator(configPath);
       PropertyConfigurator.configure(log4jprops);
 
-      new PartDaemonServer(configurator, HostUtils.getHostName()).run();
+      new PartitionServer(configurator, HostUtils.getHostName()).run();
     } catch (Throwable t) {
-      System.err.println("usage: bin/part_daemon.sh <path to config.yml> <path to log4j properties>");
+      System.err.println("usage: bin/start_partition_server.sh <path to config.yml> <path to log4j properties>");
       throw t;
     }
   }

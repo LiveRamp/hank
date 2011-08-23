@@ -35,7 +35,7 @@ import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
@@ -61,7 +61,7 @@ public class TestDataDeployer extends TestCase {
 
     final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0, 1);
 
-    final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("locahost", 12345)) {
+    final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain)new AbstractHostDomain() {

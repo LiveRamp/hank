@@ -26,15 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class PartDaemonConnectionSet {
+public class PartitionServerConnectionSet {
   private static final HankResponse ZERO_REPLICAS = HankResponse.xception(HankExceptions.zero_replicas(true));
 
-  private static final Logger LOG = Logger.getLogger(PartDaemonConnectionSet.class);
+  private static final Logger LOG = Logger.getLogger(PartitionServerConnectionSet.class);
 
-  private final List<PartDaemonConnection> connections = new ArrayList<PartDaemonConnection>();
+  private final List<PartitionServerConnection> connections = new ArrayList<PartitionServerConnection>();
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
-  public PartDaemonConnectionSet(List<PartDaemonConnection> connections) {
+  public PartitionServerConnectionSet(List<PartitionServerConnection> connections) {
     this.connections.addAll(connections);
   }
 
@@ -44,7 +44,7 @@ public class PartDaemonConnectionSet {
     while (numAttempts < connections.size()) {
       numAttempts++;
       int pos = nextIdx.getAndIncrement() % connections.size();
-      PartDaemonConnection connection = connections.get(pos);
+      PartitionServerConnection connection = connections.get(pos);
       if (!connection.isAvailable()) {
         LOG.trace("Connection " + connection + " was not available, so skipped it.");
         continue;

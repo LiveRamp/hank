@@ -15,51 +15,26 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.THsHaServer.Args;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
-
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartDaemon;
+import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.partitioner.MapPartitioner;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
@@ -77,12 +52,12 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private class MockPartDaemonHandler implements PartDaemon.Iface {
+  private class MockPartitionServerHandler implements PartitionServer.Iface {
     @SuppressWarnings("unused")
     private final int domainId;
     private final ByteBuffer result;
 
-    public MockPartDaemonHandler(int domainId, ByteBuffer result) {
+    public MockPartitionServerHandler(int domainId, ByteBuffer result) {
       this.domainId = domainId;
       this.result = result;
     }
@@ -93,17 +68,17 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private static final ByteBuffer KEY_1 = ByteBuffer.wrap(new byte[] { 1 });
-  private static final ByteBuffer VALUE_1 = ByteBuffer.wrap(new byte[] { 1 });
-  private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[] { 2 });
-  private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[] { 2 });
+  private static final ByteBuffer KEY_1 = ByteBuffer.wrap(new byte[]{1});
+  private static final ByteBuffer VALUE_1 = ByteBuffer.wrap(new byte[]{1});
+  private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[]{2});
+  private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[]{2});
 
   private static int server1Port = 12345;
   private static int server2Port = 0;
 
   public void testIt() throws Exception {
     // launch server 1
-    final PartDaemon.Iface iface1 = new MockPartDaemonHandler(0, VALUE_1);
+    final PartitionServer.Iface iface1 = new MockPartitionServerHandler(0, VALUE_1);
 
     TNonblockingServerSocket trans1 = null;
     while (true) {
@@ -118,7 +93,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
 
     Args args = new Args(trans1);
-    args.processor(new PartDaemon.Processor(iface1));
+    args.processor(new PartitionServer.Processor(iface1));
     args.protocolFactory(new TCompactProtocol.Factory());
     TServer server1 = new THsHaServer(args);
     Thread thread1 = new Thread(new ServerRunnable(server1),
@@ -126,7 +101,7 @@ public class TestHankSmartClient extends BaseTestCase {
     thread1.start();
 
     // launch server 2;
-    final PartDaemon.Iface iface2 = new MockPartDaemonHandler(0, VALUE_2);
+    final PartitionServer.Iface iface2 = new MockPartitionServerHandler(0, VALUE_2);
 
     server2Port = server1Port + 1;
     TNonblockingServerSocket trans2 = null;
@@ -141,16 +116,16 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     }
     args = new Args(trans2);
-    args.processor(new PartDaemon.Processor(iface2));
+    args.processor(new PartitionServer.Processor(iface2));
     args.protocolFactory(new TCompactProtocol.Factory());
     final TServer server2 = new THsHaServer(args);
     Thread thread2 = new Thread(new ServerRunnable(server2),
         "mock part daemon #2");
     thread2.start();
 
-    final Host hostConfig1 = getHostConfig(new PartDaemonAddress("localhost",
+    final Host hostConfig1 = getHostConfig(new PartitionServerAddress("localhost",
         server1Port), 0);
-    final Host hostConfig2 = getHostConfig(new PartDaemonAddress("localhost",
+    final Host hostConfig2 = getHostConfig(new PartitionServerAddress("localhost",
         server2Port), 1);
 
     final MockRing mockRingConfig = new MockRing(null, null, 1, RingState.UP) {
@@ -238,7 +213,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private Host getHostConfig(PartDaemonAddress address, final int partNum)
+  private Host getHostConfig(PartitionServerAddress address, final int partNum)
       throws IOException {
     MockHost hc = new MockHost(address) {
       @Override
@@ -246,7 +221,7 @@ public class TestHankSmartClient extends BaseTestCase {
         return Collections.singleton((HostDomain) new AbstractHostDomain() {
           @Override
           public HostDomainPartition addPartition(int partNum,
-              int initialVersion) {
+                                                  int initialVersion) {
             return null;
           }
 

@@ -20,14 +20,14 @@ import java.util.regex.Pattern;
 
 /**
  * A helper class representing a hostname and port number pair used to identify
- * a Part Daemon.
+ * a PartitionServer.
  */
-public final class PartDaemonAddress implements Comparable<PartDaemonAddress> {
+public final class PartitionServerAddress implements Comparable<PartitionServerAddress> {
   private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("([^:]+):(\\d+)");
   private final String hostName;
   private final int portNumber;
 
-  public PartDaemonAddress(String hostName, int portNumber) {
+  public PartitionServerAddress(String hostName, int portNumber) {
     this.hostName = hostName;
     this.portNumber = portNumber;
   }
@@ -57,7 +57,7 @@ public final class PartDaemonAddress implements Comparable<PartDaemonAddress> {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    PartDaemonAddress other = (PartDaemonAddress) obj;
+    PartitionServerAddress other = (PartitionServerAddress) obj;
     if (hostName == null) {
       if (other.hostName != null)
         return false;
@@ -73,17 +73,17 @@ public final class PartDaemonAddress implements Comparable<PartDaemonAddress> {
     return hostName + ":" + portNumber;
   }
 
-  public static PartDaemonAddress parse(String s) {
+  public static PartitionServerAddress parse(String s) {
     Matcher matcher = HOST_AND_PORT_PATTERN.matcher(s);
     if (matcher.matches()) {
-      return new PartDaemonAddress(matcher.group(1), Integer.parseInt(matcher.group(2)));
+      return new PartitionServerAddress(matcher.group(1), Integer.parseInt(matcher.group(2)));
     } else {
       throw new RuntimeException(s + " is not a properly formatted host:port pair.");
     }
   }
 
   @Override
-  public int compareTo(PartDaemonAddress arg0) {
+  public int compareTo(PartitionServerAddress arg0) {
     int hostComparison = getHostName().compareTo(arg0.getHostName());
     if (hostComparison == 0) {
       return Integer.valueOf(getPortNumber()).compareTo(arg0.getPortNumber());

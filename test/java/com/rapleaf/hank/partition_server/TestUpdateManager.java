@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,7 +24,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
@@ -42,7 +42,7 @@ import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
@@ -62,7 +62,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public Ring getRingForHost(PartDaemonAddress hostAddress) {
+    public Ring getRingForHost(PartitionServerAddress hostAddress) {
       return mockRingConfig;
     }
   }
@@ -77,12 +77,12 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public Updater getUpdater(PartservConfigurator configurator, int partNum) {
+    public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
       return mockUpdater;
     }
 
     @Override
-    public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+    public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
         throws IOException {
       return MOCK_DELETER;
     }
@@ -184,7 +184,7 @@ public class TestUpdateManager extends BaseTestCase {
   };
 
   private static final Host mockHostConfig = new MockHost(
-      new PartDaemonAddress("localhost", 1)) {
+      new PartitionServerAddress("localhost", 1)) {
     @Override
     public HostDomain getDomainById(int domainId) {
       return hostDomain;
@@ -193,7 +193,7 @@ public class TestUpdateManager extends BaseTestCase {
 
   private static final Ring mockRingConfig = new MockRing(null, null, 0, null) {
     @Override
-    public Host getHostByAddress(PartDaemonAddress address) {
+    public Host getHostByAddress(PartitionServerAddress address) {
       return mockHostConfig;
     }
   };
@@ -208,7 +208,7 @@ public class TestUpdateManager extends BaseTestCase {
     final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig,
         "myRingGroup", null);
 
-    UpdateManager ud = new UpdateManager(new MockPartDaemonConfigurator(1,
+    UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHostConfig,
         mockRingGroupConfig, mockRingConfig);
     ud.update();

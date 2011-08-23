@@ -13,36 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
@@ -53,7 +28,14 @@ import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
-public class TestPartDaemonHandler extends BaseTestCase {
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+public class TestPartitionServerHandler extends BaseTestCase {
   private static final ByteBuffer K1 = bb(1);
   private static final ByteBuffer K2 = bb(2);
   private static final ByteBuffer K3 = bb(3);
@@ -61,7 +43,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
   private static final ByteBuffer K5 = bb(5);
   private static final byte[] V1 = new byte[] { 9 };
   private static final Host mockHostConfig = new MockHost(
-      new PartDaemonAddress("localhost", 12345)) {
+      new PartitionServerAddress("localhost", 12345)) {
 
     @Override
     public HostDomain getDomainById(int domainId) {
@@ -101,7 +83,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
         K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
-      public Reader getReader(PartservConfigurator configurator, int partNum)
+      public Reader getReader(PartitionServerConfigurator configurator, int partNum)
           throws IOException {
         return new MockReader(configurator, partNum, V1);
       }
@@ -129,7 +111,7 @@ public class TestPartDaemonHandler extends BaseTestCase {
 
     final MockRing mockRingConfig = new MockRing(null, rgc, 1, RingState.UP) {
       @Override
-      public Host getHostByAddress(PartDaemonAddress address) {
+      public Host getHostByAddress(PartitionServerAddress address) {
         return mockHostConfig;
       }
     };
@@ -140,15 +122,15 @@ public class TestPartDaemonHandler extends BaseTestCase {
         assertEquals("myRingGroupName", ringGroupName);
         return new MockRingGroup(dcg, "myRingGroupName", null) {
           @Override
-          public Ring getRingForHost(PartDaemonAddress hostAddress) {
+          public Ring getRingForHost(PartitionServerAddress hostAddress) {
             return mockRingConfig;
           }
         };
       }
     };
-    PartservConfigurator config = new MockPartDaemonConfigurator(12345,
+    PartitionServerConfigurator config = new MockPartitionServerConfigurator(12345,
         mockCoordinator, "myRingGroupName", "/tmp/local/data/dir");
-    PartDaemonHandler handler = new PartDaemonHandler(new PartDaemonAddress(
+    PartitionServerHandler handler = new PartitionServerHandler(new PartitionServerAddress(
         "localhost", 12345), config);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));

@@ -144,7 +144,7 @@ public class StatusWebDaemonTester extends ZkTestCase {
     daemon.run();
   }
 
-  private PartDaemonAddress addy(String hostname) {
-    return new PartDaemonAddress(hostname, 6200);
+  private PartitionServerAddress addy(String hostname) {
+    return new PartitionServerAddress(hostname, 6200);
   }
 }

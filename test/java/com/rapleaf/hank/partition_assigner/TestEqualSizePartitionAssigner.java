@@ -19,7 +19,7 @@ import com.rapleaf.hank.coordinator.MockHostDomain;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
@@ -61,11 +61,11 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
 
   private static final DomainGroupVersion dgv = new MockDomainGroupVersion(null, domainGroup, 0);
 
-  private static final PartDaemonAddress pda1 = new PartDaemonAddress("host1", 12345);
-  private static final PartDaemonAddress pda2 = new PartDaemonAddress("host2", 12345);
-  private static final PartDaemonAddress pda3 = new PartDaemonAddress("host3", 12345);
+  private static final PartitionServerAddress pda1 = new PartitionServerAddress("host1", 12345);
+  private static final PartitionServerAddress pda2 = new PartitionServerAddress("host2", 12345);
+  private static final PartitionServerAddress pda3 = new PartitionServerAddress("host3", 12345);
 
-  private static final HashSet<PartDaemonAddress> addresses = new HashSet<PartDaemonAddress>();
+  private static final HashSet<PartitionServerAddress> addresses = new HashSet<PartitionServerAddress>();
   static {
     addresses.add(pda1);
     addresses.add(pda2);

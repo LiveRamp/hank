@@ -89,8 +89,8 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  public static ZkHost create(ZooKeeperPlus zk, String root, PartDaemonAddress partDaemonAddress) throws KeeperException, InterruptedException {
-    String hostPath = ZkPath.create(root, partDaemonAddress.toString());
+  public static ZkHost create(ZooKeeperPlus zk, String root, PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
+    String hostPath = ZkPath.create(root, partitionServerAddress.toString());
     LOG.trace("creating host " + hostPath);
     zk.create(hostPath, null);
     zk.create(ZkPath.create(hostPath, PARTS_PATH_SEGMENT), null);
@@ -102,7 +102,7 @@ public class ZkHost extends AbstractHost {
 
   private final ZooKeeperPlus zk;
   private final String hostPath;
-  private final PartDaemonAddress address;
+  private final PartitionServerAddress address;
 
   private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
@@ -114,7 +114,7 @@ public class ZkHost extends AbstractHost {
   public ZkHost(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
-    this.address = PartDaemonAddress.parse(ZkPath.filename(hostPath));
+    this.address = PartitionServerAddress.parse(ZkPath.filename(hostPath));
 
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();
@@ -131,7 +131,7 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public PartDaemonAddress getAddress() {
+  public PartitionServerAddress getAddress() {
     return address;
   }
 

@@ -1,4 +1,4 @@
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
 import java.nio.ByteBuffer;
 
@@ -10,13 +10,13 @@ import com.rapleaf.hank.storage.mock.MockReader;
 
 public class TestDomainReaderSet extends BaseTestCase {
   public void testSetUpAndServe() throws Exception {
-    PartReaderAndCounters prc[] = new PartReaderAndCounters[1];
+    PartitionReaderAndCounters prc[] = new PartitionReaderAndCounters[1];
 
     ByteBuffer key = ByteBuffer.wrap("key".getBytes());
     ByteBuffer nullKey = ByteBuffer.wrap("nullKey".getBytes());
 
     // setup DomainReaderSet
-    prc[0] = new PartReaderAndCounters(new MockHostDomainPartition(0, 1, 2),
+    prc[0] = new PartitionReaderAndCounters(new MockHostDomainPartition(0, 1, 2),
         new MockReader(null, 1, "v".getBytes()));
     // MapPartitioner maps both 'key' and 'nullkey' to prc[0]
     DomainReaderSet drs = new DomainReaderSet("domainReaderSet", prc,

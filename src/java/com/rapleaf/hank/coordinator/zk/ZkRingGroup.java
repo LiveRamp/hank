@@ -158,7 +158,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public Ring getRingForHost(PartDaemonAddress hostAddress) {
+  public Ring getRingForHost(PartitionServerAddress hostAddress) {
     for (Ring ring : ringsByNumber.values()) {
       if (ring.getHostByAddress(hostAddress) != null) {
         return ring;

@@ -13,22 +13,22 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
+
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
 
 import java.util.Collections;
 import java.util.Set;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-
-public class MockPartDaemonConfigurator implements PartservConfigurator {
+public class MockPartitionServerConfigurator implements PartitionServerConfigurator {
 
   private final int servicePort;
   private final Coordinator coordinator;
   private final String ringGroupName;
   private final String localDataDir;
 
-  public MockPartDaemonConfigurator(int servicePort, Coordinator coordinator, String ringGroupName, String localDataDir) {
+  public MockPartitionServerConfigurator(int servicePort, Coordinator coordinator, String ringGroupName, String localDataDir) {
     this.servicePort = servicePort;
     this.coordinator = coordinator;
     this.ringGroupName = ringGroupName;

@@ -35,7 +35,7 @@ public class TestZkRing extends ZkTestCase {
     }
   }
 
-  private static final PartDaemonAddress LOCALHOST = PartDaemonAddress.parse("localhost:1");
+  private static final PartitionServerAddress LOCALHOST = PartitionServerAddress.parse("localhost:1");
 
   private final String ring_group_root = ZkPath.create(getRoot(), "ring-group-one");
   private final String ring_root = ZkPath.create(getRoot(), "ring-group-one/ring-1");
@@ -154,13 +154,13 @@ public class TestZkRing extends ZkTestCase {
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
     ZkRing rc = ZkRing.create(getZk(), ZkPath.create(getRoot(), "ring-group-one"), 1, null, 10);
-    Host h1 = rc.addHost(new PartDaemonAddress("localhost", 1));
+    Host h1 = rc.addHost(new PartitionServerAddress("localhost", 1));
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
     MockHostStateChangeListener l2 = new MockHostStateChangeListener();
     h1.setStateChangeListener(l2);
 
-    rc.addHost(new PartDaemonAddress("localhost", 2));
+    rc.addHost(new PartitionServerAddress("localhost", 2));
 
     h1.setState(HostState.UPDATING);
     synchronized (l2) {

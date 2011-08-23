@@ -51,7 +51,7 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals("num rings", 3, rg.getRings().size());
     assertEquals("domain group config", dg, rg.getDomainGroup());
 
-    assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartDaemonAddress("localhost", 2)).getRingNumber());
+    assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartitionServerAddress("localhost", 2)).getRingNumber());
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
   }
 
@@ -123,7 +123,7 @@ public class TestZkRingGroup extends ZkTestCase {
 
   private void createRing(int ringNum) throws Exception {
     Ring rc = ZkRing.create(getZk(), ring_group, ringNum, null, 1);
-    rc.addHost(new PartDaemonAddress("localhost", ringNum));
+    rc.addHost(new PartitionServerAddress("localhost", ringNum));
   }
 
   @Override

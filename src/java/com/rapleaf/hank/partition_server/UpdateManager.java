@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
@@ -81,12 +81,12 @@ class UpdateManager implements IUpdateManager {
     }
   }
 
-  private final PartservConfigurator configurator;
+  private final PartitionServerConfigurator configurator;
   private final Host hostConfig;
   private final RingGroup ringGroupConfig;
   private final Ring ringConfig;
 
-  public UpdateManager(PartservConfigurator configurator, Host hostConfig, RingGroup ringGroupConfig, Ring ringConfig) throws IOException {
+  public UpdateManager(PartitionServerConfigurator configurator, Host hostConfig, RingGroup ringGroupConfig, Ring ringConfig) throws IOException {
     this.configurator = configurator;
     this.hostConfig = hostConfig;
     this.ringGroupConfig = ringGroupConfig;

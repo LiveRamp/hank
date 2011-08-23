@@ -82,7 +82,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final String ringPath;
 
-  private final Map<PartDaemonAddress, Host> hosts = new HashMap<PartDaemonAddress, Host>();
+  private final Map<PartitionServerAddress, Host> hosts = new HashMap<PartitionServerAddress, Host>();
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
 
@@ -130,7 +130,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     for (String host : hosts) {
       // only replace the Host if we don't already have an instance.
       // (otherwise we'll destroy their watches unnecessarily!)
-      if (!this.hosts.containsKey(PartDaemonAddress.parse(host))) {
+      if (!this.hosts.containsKey(PartitionServerAddress.parse(host))) {
         Host hostConf = new ZkHost(zk, ZkPath.create(ringPath, "hosts", host));
         this.hosts.put(hostConf.getAddress(), hostConf);
       }
@@ -174,12 +174,12 @@ public class ZkRing extends AbstractRing implements Watcher {
   }
 
   @Override
-  public Host getHostByAddress(PartDaemonAddress address) {
+  public Host getHostByAddress(PartitionServerAddress address) {
     return hosts.get(address);
   }
 
   @Override
-  public Host addHost(PartDaemonAddress address) throws IOException {
+  public Host addHost(PartitionServerAddress address) throws IOException {
     try {
       return ZkHost.create(zk, ZkPath.create(ringPath, "hosts"), address);
     } catch (Exception e) {
@@ -238,7 +238,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   }
 
   @Override
-  public boolean removeHost(PartDaemonAddress address) throws IOException {
+  public boolean removeHost(PartitionServerAddress address) throws IOException {
     if (hosts.remove(address) == null) {
       return false;
     }

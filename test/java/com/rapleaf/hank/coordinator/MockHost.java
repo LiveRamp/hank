@@ -21,12 +21,12 @@ import java.util.List;
 import java.util.Set;
 
 public class MockHost extends AbstractHost {
-  private final PartDaemonAddress address;
+  private final PartitionServerAddress address;
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
 
-  public MockHost(PartDaemonAddress address) {
+  public MockHost(PartitionServerAddress address) {
     this.address = address;
   }
 
@@ -36,7 +36,7 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public PartDaemonAddress getAddress() {
+  public PartitionServerAddress getAddress() {
     return address;
   }
 

@@ -25,7 +25,7 @@ union HankResponse {
   3: HankExceptions xception;
 }
 
-service PartDaemon {
+service PartitionServer {
   HankResponse get(1:i32 domain_id, 2:binary key);
 }
 

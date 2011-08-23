@@ -19,11 +19,11 @@ import com.rapleaf.hank.cli.*;
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.data_deployer.DataDeployer;
@@ -32,6 +32,7 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.generated.SmartClient;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
@@ -113,36 +114,36 @@ public class IntegrationTest extends ZkTestCase {
     }
   }
 
-  private final class PartDaemonRunnable implements Runnable {
+  private final class PartitionServerRunnable implements Runnable {
     private final String configPath;
     @SuppressWarnings("unused")
     private Throwable throwable;
-    private com.rapleaf.hank.part_daemon.PartDaemonServer server;
-    private final PartservConfigurator configurator;
+    private PartitionServer server;
+    private final PartitionServerConfigurator configurator;
 
-    public PartDaemonRunnable(PartDaemonAddress addy) throws Exception {
+    public PartitionServerRunnable(PartitionServerAddress addy) throws Exception {
       String hostDotPort = addy.getHostName()
           + "." + addy.getPortNumber();
-      this.configPath = localTmpDir + "/" + hostDotPort + ".part_daemon.yml";
+      this.configPath = localTmpDir + "/" + hostDotPort + ".partition_server.yml";
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("partserv:");
+      pw.println("partition_server:");
       pw.println("  service_port: " + addy.getPortNumber());
       pw.println("  ring_group_name: rg1");
       pw.println("  local_data_dirs:");
       pw.println("    - " + localTmpDir + "/" + hostDotPort);
-      pw.println("  part_daemon:");
+      pw.println("  partition_server_daemon:");
       pw.println("    num_worker_threads: 1");
       pw.println("  update_daemon:");
       pw.println("    num_concurrent_updates: 1");
       coordinatorConfig(pw);
       pw.close();
-      configurator = new YamlPartservConfigurator(configPath);
+      configurator = new YamlPartitionServerConfigurator(configPath);
     }
 
     public void run() {
       try {
-        server = new com.rapleaf.hank.part_daemon.PartDaemonServer(configurator, "localhost");
+        server = new PartitionServer(configurator, "localhost");
         server.run();
       } catch (Throwable t) {
         LOG.fatal("crap, some exception...", t);
@@ -165,8 +166,8 @@ public class IntegrationTest extends ZkTestCase {
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
-  private final Map<PartDaemonAddress, Thread> partDaemonThreads = new HashMap<PartDaemonAddress, Thread>();
-  private final Map<PartDaemonAddress, PartDaemonRunnable> partDaemonRunnables = new HashMap<PartDaemonAddress, PartDaemonRunnable>();
+  private final Map<PartitionServerAddress, Thread> partDaemonThreads = new HashMap<PartitionServerAddress, Thread>();
+  private final Map<PartitionServerAddress, PartitionServerRunnable> partDaemonRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
 
   private Thread dataDeployerThread;
   private DataDeployerRunnable dataDeployerRunnable;
@@ -174,7 +175,7 @@ public class IntegrationTest extends ZkTestCase {
 
   public void testItAll() throws Throwable {
     Logger.getLogger("com.rapleaf.hank.coordinator.zk").setLevel(Level.INFO);
-    Logger.getLogger("com.rapleaf.hank.part_daemon").setLevel(Level.INFO);
+    Logger.getLogger("com.rapleaf.hank.partition_server").setLevel(Level.INFO);
     Logger.getLogger("com.rapleaf.hank.storage").setLevel(Level.TRACE);
     create(domainsRoot);
     create(domainGroupsRoot);
@@ -321,10 +322,10 @@ public class IntegrationTest extends ZkTestCase {
     });
 
     // launch 2x 2-node rings
-    startDaemons(new PartDaemonAddress("localhost", 50000));
-    startDaemons(new PartDaemonAddress("localhost", 50001));
-    startDaemons(new PartDaemonAddress("localhost", 50002));
-    startDaemons(new PartDaemonAddress("localhost", 50003));
+    startDaemons(new PartitionServerAddress("localhost", 50000));
+    startDaemons(new PartitionServerAddress("localhost", 50001));
+    startDaemons(new PartitionServerAddress("localhost", 50002));
+    startDaemons(new PartitionServerAddress("localhost", 50003));
 
     // launch the data deployer
     startDataDeployer();
@@ -418,8 +419,8 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
     // take down one of the nodes in one of the rings "unexpectedly"
-    stopDaemons(new PartDaemonAddress("localhost", 50000));
-    stopDaemons(new PartDaemonAddress("localhost", 50001));
+    stopDaemons(new PartitionServerAddress("localhost", 50000));
+    stopDaemons(new PartitionServerAddress("localhost", 50001));
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
@@ -441,8 +442,8 @@ public class IntegrationTest extends ZkTestCase {
     stopDataDeployer();
     stopSmartClient();
 
-    stopDaemons(new PartDaemonAddress("localhost", 50002));
-    stopDaemons(new PartDaemonAddress("localhost", 50003));
+    stopDaemons(new PartitionServerAddress("localhost", 50002));
+    stopDaemons(new PartitionServerAddress("localhost", 50003));
   }
 
   private void startSmartClientServer() throws Exception {
@@ -470,16 +471,16 @@ public class IntegrationTest extends ZkTestCase {
     dataDeployerThread.join();
   }
 
-  private void startDaemons(PartDaemonAddress a) throws Exception {
+  private void startDaemons(PartitionServerAddress a) throws Exception {
     LOG.debug("Starting daemons for " + a);
-    PartDaemonRunnable pr = new PartDaemonRunnable(a);
+    PartitionServerRunnable pr = new PartitionServerRunnable(a);
     partDaemonRunnables.put(a, pr);
     Thread pt = new Thread(pr, "part daemon thread for " + a);
     partDaemonThreads.put(a, pt);
     pt.start();
   }
 
-  private void stopDaemons(PartDaemonAddress a) throws Exception {
+  private void stopDaemons(PartitionServerAddress a) throws Exception {
     LOG.debug("Stopping daemons for " + a);
     partDaemonRunnables.get(a).pleaseStop();
     partDaemonThreads.get(a).join();

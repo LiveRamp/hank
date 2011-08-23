@@ -46,7 +46,7 @@ public interface RingGroup {
    * @param hostAddress
    * @return
    */
-  public Ring getRingForHost(PartDaemonAddress hostAddress)
+  public Ring getRingForHost(PartitionServerAddress hostAddress)
   throws IOException;
 
   /**

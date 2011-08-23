@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
@@ -37,12 +37,12 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return new EchoReader(partNum);
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException {
+  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return new EchoUpdater();
   }
 
@@ -52,7 +52,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
       throws IOException {
     return new EchoDeleter(partNum);
   }

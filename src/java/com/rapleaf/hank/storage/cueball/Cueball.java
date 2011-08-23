@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.Deleter;
@@ -150,7 +150,7 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec());
   }
 
@@ -168,7 +168,7 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException {
+  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     return new CueballUpdater(localDir, keyHashSize, valueSize, fileOpsFactory.getFileOps(localDir, remoteDomainRoot
         + "/" + partNum), cueballFileSelector, getCompressionCodec(), hashIndexBits);
@@ -179,9 +179,9 @@ public class Cueball implements StorageEngine {
     hasher.hash(key, keyHashBuffer.array());
     return keyHashBuffer;
   }
-  
+
   @Override
-  public Deleter getDeleter(PartservConfigurator configurator, int partNum) throws IOException {
+  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     return new CueballDeleter(localDir);
   }
@@ -208,7 +208,7 @@ public class Cueball implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  private String getLocalDir(PartservConfigurator configurator, int partNum) {
+  private String getLocalDir(PartitionServerConfigurator configurator, int partNum) {
     ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
     Collections.sort(l);
     return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;
