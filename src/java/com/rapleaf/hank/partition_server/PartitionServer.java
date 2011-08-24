@@ -38,7 +38,6 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
 
   private final PartitionServerConfigurator configurator;
-  private final Coordinator coord;
   private Thread serverThread;
   private TServer server;
   private boolean goingDown = false;
@@ -53,9 +52,9 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
-    this.coord = configurator.getCoordinator();
+    Coordinator coordinator = configurator.getCoordinator();
     hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
-    ringGroup = coord.getRingGroup(configurator.getRingGroupName());
+    ringGroup = coordinator.getRingGroup(configurator.getRingGroupName());
     ring = ringGroup.getRingForHost(hostAddress);
     if (ring == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);

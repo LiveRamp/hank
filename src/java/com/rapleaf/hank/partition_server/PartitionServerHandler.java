@@ -43,7 +43,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
-  private final DomainReaderSet[] domains;
+  private final DomainAccessor[] domains;
 
   public PartitionServerHandler(PartitionServerAddress hostAndPort,
                                 PartitionServerConfigurator config) throws IOException {
@@ -65,13 +65,13 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
     }
 
-    domains = new DomainReaderSet[maxDomainId + 1];
+    domains = new DomainAccessor[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion()
+    for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion()
         .getDomainVersions()) {
-      Domain domain = dcv.getDomain();
-      StorageEngine eng = domain.getStorageEngine();
+      Domain domain = domainVersion.getDomain();
+      StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
       Set<HostDomainPartition> partitions = ringConfig
@@ -80,26 +80,26 @@ class PartitionServerHandler implements IfaceWithShutdown {
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
-      // instantiate all the PartitionReaderAndCounters
-      PartitionReaderAndCounters[] rdc = new PartitionReaderAndCounters[domain
-          .getNumParts()];
+      // instantiate all the PartitionAccessor
+      PartitionAccessor[] readersAndCounters =
+          new PartitionAccessor[domain.getNumParts()];
       for (HostDomainPartition part : partitions) {
         LOG.debug(String.format(
-            "Instantiating PartitionReaderAndCounters for part num %d",
+            "Instantiating PartitionAccessor for part num %d",
             part.getPartNum()));
-        rdc[part.getPartNum()] = new PartitionReaderAndCounters(part, eng.getReader(
+        readersAndCounters[part.getPartNum()] = new PartitionAccessor(part, engine.getReader(
             config, part.getPartNum()));
       }
 
       // configure and store the Domain wrapper
-      domains[domainId] = new DomainReaderSet(domain.getName(), rdc,
+      domains[domainId] = new DomainAccessor(domain.getName(), readersAndCounters,
           domain.getPartitioner());
     }
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
-    DomainReaderSet domain = getDomain(domainId & 0xff);
+    DomainAccessor domain = getDomain(domainId & 0xff);
 
     if (domain == null) {
       return NO_SUCH_DOMAIN;
@@ -125,7 +125,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  private DomainReaderSet getDomain(int domainId) {
+  private DomainAccessor getDomain(int domainId) {
     if (domains.length <= domainId) {
       return null;
     }
@@ -133,7 +133,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public void shutDown() throws InterruptedException {
-    for (DomainReaderSet currentDomain : domains) {
+    for (DomainAccessor currentDomain : domains) {
       currentDomain.shutDown();
     }
   }
