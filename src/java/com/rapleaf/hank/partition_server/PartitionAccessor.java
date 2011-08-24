@@ -28,7 +28,7 @@ public class PartitionAccessor {
       partition.setCount("Requests in last minute", 0);
       partition.setCount("Hits in last minute", 0);
     } catch (IOException e) {
-      LOG.error("Counldn't set counter", e);
+      LOG.error("Couldn't set counter", e);
     }
   }
 
