@@ -84,10 +84,12 @@ class DomainAccessor {
     public void run() {
       while (keepUpdating) {
         for (int i = 0; i < partitionAccessors.length; i++) {
-          try {
-            partitionAccessors[i].updateCounters();
-          } catch (IOException e) {
-            LOG.error("Failed to update counter", e);
+          if (partitionAccessors[i] != null) {
+            try {
+              partitionAccessors[i].updateCounters();
+            } catch (IOException e) {
+              LOG.error("Failed to update counter", e);
+            }
           }
         }
         // in case we were interrupted while updating counters, avoid doing an
