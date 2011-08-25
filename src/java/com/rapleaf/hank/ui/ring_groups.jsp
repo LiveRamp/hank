@@ -47,7 +47,6 @@
       <th>Name</th>
       <th>Domain Group</th>
       <th>Status</th>
-      <th>Utilities</th>
     </tr>
     <%
       for (RingGroup ringGroup : ringGroups(coord)) {
@@ -56,13 +55,6 @@
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>
         <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
         <td><%= ringGroup.isUpdating() ? "UPDATING" : "UP" %></td>
-        <td>
-          <form action="/ring_group/delete_ring_group" method=post>
-            <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-            <input type=submit value="delete"
-             onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
-          </form>
-        </td>
       </tr>
       <%
     }

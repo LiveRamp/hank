@@ -60,11 +60,19 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   </div>
 
   <div class='box-section'>
-  	<h3>Configuration</h3>
-  	<div class='box-section-content'>
+    <h3>Configuration</h3>
+    <div class='box-section-content'>
       <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
     </div>
   </div>
+
+
+<h3>Actions</h3>
+  <form action="/ring_group/delete_ring_group" method=post>
+    <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+    <input type=submit value="delete"
+     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
+  </form>
 
 
   <div class='box-section'>
