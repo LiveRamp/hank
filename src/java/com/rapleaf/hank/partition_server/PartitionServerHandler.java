@@ -92,8 +92,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
           LOG.debug(String.format(
               "Initializing partition #%d",
               partition.getPartNum()));
-          partitionAccessors[partition.getPartNum()] = new PartitionAccessor(partition, engine.getReader(
-              configurator, partition.getPartNum()));
+          partitionAccessors[partition.getPartNum()] =
+              new PartitionAccessor(partition, engine.getReader(configurator, partition.getPartNum()));
         }
       }
 

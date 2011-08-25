@@ -15,25 +15,28 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.util.EncodingHelper;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.util.EncodingHelper;
-
 public class CurlyReader implements Reader {
   private final Reader keyfile;
   private final int readBufferSize;
   private final FileChannel recordFile;
+  private final int versionNumber;
 
   public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyfileReader)
       throws IOException {
-    this.recordFile = new FileInputStream(Curly.getBases(partitionRoot).last()).getChannel();
+    String latestBase = Curly.getBases(partitionRoot).last();
+    this.recordFile = new FileInputStream(latestBase).getChannel();
     this.keyfile = keyfileReader;
     this.readBufferSize = recordFileReadBufferBytes;
+    this.versionNumber = Curly.parseVersionNumber(latestBase);
   }
 
   @Override
@@ -103,5 +106,9 @@ public class CurlyReader implements Reader {
       // bytes, so limit it appropriately.
       result.getBuffer().limit(recordSize + result.getBuffer().position());
     }
+  }
+
+  public Integer getVersionNumber() {
+    return versionNumber;
   }
 }

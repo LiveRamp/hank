@@ -23,4 +23,6 @@ import java.nio.ByteBuffer;
  */
 public interface Reader {
   public void get(ByteBuffer key, Result result) throws IOException;
+
+  public Integer getVersionNumber();
 }

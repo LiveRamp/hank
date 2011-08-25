@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class CueballReader implements Reader {
 
@@ -38,25 +38,26 @@ public class CueballReader implements Reader {
   private int maxUncompressedBufferSize;
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
+  private final int versionNumber;
 
   public CueballReader(String partitionRoot,
-      int keyHashSize,
-      Hasher hasher,
-      int valueSize,
-      int hashIndexBits,
-      CompressionCodec compressionCodec)
-  throws IOException {
+                       int keyHashSize,
+                       Hasher hasher,
+                       int valueSize,
+                       int hashIndexBits,
+                       CompressionCodec compressionCodec)
+      throws IOException {
+    String latestBase = Cueball.getBases(partitionRoot).last();
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
     this.fullRecordSize = valueSize + keyHashSize;
     this.prefixer = new HashPrefixCalculator(hashIndexBits);
+    this.versionNumber = Cueball.parseVersionNumber(latestBase);
 
-    channel = new FileInputStream(Cueball.getBases(partitionRoot).last()).getChannel();
-
+    channel = new FileInputStream(latestBase).getChannel();
     Footer footer = new Footer(channel, hashIndexBits);
-
     hashIndex = footer.getHashIndex();
     maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();
     maxCompressedBufferSize = footer.getMaxCompressedBufferSize();
@@ -108,18 +109,22 @@ public class CueballReader implements Reader {
     }
   }
 
+  public Integer getVersionNumber() {
+    return versionNumber;
+  }
+
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, ByteBuffer key) {
     for (; off < limit; off += fullRecordSize) {
-      int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off, 
+      int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off,
           key.array(), key.arrayOffset() + key.position(),
           keyHashSize);
       // found match
       if (comparison == 0) {
-        return off+keyHashSize;
+        return off + keyHashSize;
       }
 
       // passed the spot where our key could have been found, so not going to
-      // find it 
+      // find it
       if (comparison == 1) {
         break;
       }

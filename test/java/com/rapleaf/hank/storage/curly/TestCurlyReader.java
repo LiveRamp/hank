@@ -15,21 +15,22 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.map.MapReader;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";
   private static final ByteBuffer KEY5 = ByteBuffer.wrap(new byte[]{5, 5, 5, 5});
 
   private static final byte[] TWENTYK_BLOB;
+
   static {
-    TWENTYK_BLOB = new byte[20*1024];
+    TWENTYK_BLOB = new byte[20 * 1024];
     for (int i = 0; i < TWENTYK_BLOB.length; i++) {
       TWENTYK_BLOB[i] = (byte) i;
     }
@@ -39,7 +40,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     new File(TMP_TEST_CURLY_READER).mkdirs();
     OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
     s.write(EXPECTED_RECORD_FILE);
-    s.write(new byte[] { (byte) 0x80, (byte) 0xa0, 1 });
+    s.write(new byte[]{(byte) 0x80, (byte) 0xa0, 1});
     s.write(TWENTYK_BLOB);
 
     s.flush();
@@ -53,6 +54,9 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     );
 
     CurlyReader reader = new CurlyReader(TMP_TEST_CURLY_READER, 1024, keyfileReader);
+
+    // test version number
+    assertEquals(Integer.valueOf(0), reader.getVersionNumber());
 
     Result result = new Result();
 

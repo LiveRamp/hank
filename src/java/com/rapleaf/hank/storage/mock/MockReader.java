@@ -15,28 +15,28 @@
  */
 package com.rapleaf.hank.storage.mock;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 public class MockReader implements Reader {
 
   private final PartitionServerConfigurator configurator;
-  private final int partNum;
+  private final int partitionNumber;
   private final byte[] returnValue;
 
-  public MockReader(PartitionServerConfigurator configurator, int partNum, byte[] returnValue) {
+  public MockReader(PartitionServerConfigurator configurator, int partitionNumber, byte[] returnValue) {
     this.configurator = configurator;
-    this.partNum = partNum;
+    this.partitionNumber = partitionNumber;
     this.returnValue = returnValue;
   }
 
   @Override
   public void get(ByteBuffer key, Result result) throws IOException {
-    if (key.equals(ByteBuffer.wrap("nullKey".getBytes()))){
+    if (key.equals(ByteBuffer.wrap("nullKey".getBytes()))) {
       result.notFound();
     } else {
       result.requiresBufferSize(returnValue.length);
@@ -47,11 +47,15 @@ public class MockReader implements Reader {
     }
   }
 
+  public Integer getVersionNumber() {
+    return null;
+  }
+
   public PartitionServerConfigurator getConfigurator() {
     return configurator;
   }
 
-  public int getPartNum() {
-    return partNum;
+  public int getPartitionNumber() {
+    return partitionNumber;
   }
 }
