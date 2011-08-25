@@ -72,16 +72,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     this.countersPath = ZkPath.create(path, "counters");
     this.partNum = Integer.parseInt(ZkPath.filename(path));
 
-    // TODO: remove post-migration
-    if (zk.exists(countersPath, false) == null) {
-      zk.create(countersPath, null);
-    }
-
-    // TODO: remove post-migration
-    if (zk.exists(ZkPath.create(path, ".complete"), false) == null) {
-      zk.create(ZkPath.create(path, ".complete"), null);
-    }
-
     currentDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, CURRENT_VERSION_PATH_SEGMENT), true, null);
     updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, UPDATING_TO_VERSION_PATH_SEGMENT),
         true, null);

@@ -43,13 +43,13 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
-  private final DomainAccessor[] domains;
+  private final DomainAccessor[] domainAccessors;
 
   public PartitionServerHandler(PartitionServerAddress hostAndPort,
-                                PartitionServerConfigurator config) throws IOException {
+                                PartitionServerConfigurator configurator) throws IOException {
     // find the ring config
-    Ring ringConfig = config.getCoordinator()
-        .getRingGroup(config.getRingGroupName())
+    Ring ringConfig = configurator.getCoordinator()
+        .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(hostAndPort);
 
     // get the domain group config for the ring
@@ -65,7 +65,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
     }
 
-    domains = new DomainAccessor[maxDomainId + 1];
+    domainAccessors = new DomainAccessor[maxDomainId + 1];
 
     // loop over the domains and get set up
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion()
@@ -88,25 +88,25 @@ class PartitionServerHandler implements IfaceWithShutdown {
             "Instantiating PartitionAccessor for part num %d",
             part.getPartNum()));
         readersAndCounters[part.getPartNum()] = new PartitionAccessor(part, engine.getReader(
-            config, part.getPartNum()));
+            configurator, part.getPartNum()));
       }
 
-      // configure and store the Domain wrapper
-      domains[domainId] = new DomainAccessor(domain.getName(), readersAndCounters,
+      // configure and store the DomainAccessors
+      domainAccessors[domainId] = new DomainAccessor(domain.getName(), readersAndCounters,
           domain.getPartitioner());
     }
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     Result result = new Result();
-    DomainAccessor domain = getDomain(domainId & 0xff);
+    DomainAccessor domainAccessor = getDomainAccessor(domainId & 0xff);
 
-    if (domain == null) {
+    if (domainAccessor == null) {
       return NO_SUCH_DOMAIN;
     }
 
     try {
-      if (domain.get(key, result)) {
+      if (domainAccessor.get(key, result)) {
         if (result.isFound()) {
           return HankResponse.value(result.getBuffer());
         } else {
@@ -118,23 +118,23 @@ class PartitionServerHandler implements IfaceWithShutdown {
     } catch (IOException e) {
       String errMsg = String.format(
           "Exception during get! Domain: %d (%s) Key: %s", domainId,
-          domain.getName(), Bytes.bytesToHexString(key));
+          domainAccessor.getName(), Bytes.bytesToHexString(key));
       LOG.error(errMsg, e);
 
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
   }
 
-  private DomainAccessor getDomain(int domainId) {
-    if (domains.length <= domainId) {
+  private DomainAccessor getDomainAccessor(int domainId) {
+    if (domainAccessors.length <= domainId) {
       return null;
     }
-    return domains[domainId];
+    return domainAccessors[domainId];
   }
 
   public void shutDown() throws InterruptedException {
-    for (DomainAccessor currentDomain : domains) {
-      currentDomain.shutDown();
+    for (DomainAccessor domainAccessor : domainAccessors) {
+      domainAccessor.shutDown();
     }
   }
 }

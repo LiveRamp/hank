@@ -101,15 +101,6 @@ public class ZkRing extends AbstractRing implements Watcher {
     refreshAndRegister();
     this.stateChangeWatcher = new StateChangeWatcher();
 
-    // TODO: REMOVE THESE POST-MIGRATION!!!
-    if (zk.exists(ZkPath.create(ringPath, CURRENT_VERSION_PATH_SEGMENT), false) == null) {
-      zk.create(ZkPath.create(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
-    }
-
-    if (zk.exists(ZkPath.create(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), false) == null) {
-      zk.create(ZkPath.create(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), null);
-    }
-
     currentVersionNumber = new WatchedInt(zk, ZkPath.create(ringPath, CURRENT_VERSION_PATH_SEGMENT));
     updatingToVersionNumber = new WatchedInt(zk, ZkPath.create(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT));
   }
