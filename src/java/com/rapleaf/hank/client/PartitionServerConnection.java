@@ -18,8 +18,8 @@ package com.rapleaf.hank.client;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostStateChangeListener;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartDaemon;
-import com.rapleaf.hank.generated.PartDaemon.Client;
+import com.rapleaf.hank.generated.PartitionServer;
+import com.rapleaf.hank.generated.PartitionServer.Client;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -34,8 +34,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-final class PartDaemonConnection implements HostStateChangeListener {
-  private static final Logger LOG = Logger.getLogger(PartDaemonConnection.class);
+final class PartitionServerConnection implements HostStateChangeListener {
+  private static final Logger LOG = Logger.getLogger(PartitionServerConnection.class);
 
   private final Lock lock = new ReentrantLock();
 
@@ -46,16 +46,16 @@ final class PartDaemonConnection implements HostStateChangeListener {
 
   private final Object stateChangeMutex = new Object();
 
-  private PartDaemonConnectionState state = PartDaemonConnectionState.DISCONNECTED;
+  private PartitionServerConnectionState state = PartitionServerConnectionState.DISCONNECTED;
 
-  private static enum PartDaemonConnectionState {
+  private static enum PartitionServerConnectionState {
     CONNECTED,
     DISCONNECTED,
     // STANDBY: we are waiting for the host to be SERVING
     STANDBY
   }
 
-  public PartDaemonConnection(Host host) throws TException, IOException {
+  public PartitionServerConnection(Host host) throws TException, IOException {
     this.host = host;
     host.setStateChangeListener(this);
     onHostStateChange(host);
@@ -76,7 +76,7 @@ final class PartDaemonConnection implements HostStateChangeListener {
           default:
             lock();
             disconnect();
-            state = PartDaemonConnectionState.STANDBY;
+            state = PartitionServerConnectionState.STANDBY;
             unlock();
         }
       } catch (IOException e) {
@@ -86,11 +86,11 @@ final class PartDaemonConnection implements HostStateChangeListener {
   }
 
   public boolean isAvailable() {
-    return state != PartDaemonConnectionState.STANDBY;
+    return state != PartitionServerConnectionState.STANDBY;
   }
 
   public boolean isDisconnected() {
-    return state == PartDaemonConnectionState.DISCONNECTED;
+    return state == PartitionServerConnectionState.DISCONNECTED;
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws IOException {
@@ -125,7 +125,7 @@ final class PartDaemonConnection implements HostStateChangeListener {
     }
     transport = null;
     client = null;
-    state = PartDaemonConnectionState.DISCONNECTED;
+    state = PartitionServerConnectionState.DISCONNECTED;
   }
 
   private void connect() throws IOException {
@@ -139,9 +139,9 @@ final class PartDaemonConnection implements HostStateChangeListener {
       throw new IOException("Failed to establish connection to host.", e);
     }
     TProtocol proto = new TCompactProtocol(transport);
-    client = new PartDaemon.Client(proto);
+    client = new PartitionServer.Client(proto);
     LOG.trace("Connection to " + host.getAddress() + " opened.");
-    state = PartDaemonConnectionState.CONNECTED;
+    state = PartitionServerConnectionState.CONNECTED;
   }
 
   private void lock() {

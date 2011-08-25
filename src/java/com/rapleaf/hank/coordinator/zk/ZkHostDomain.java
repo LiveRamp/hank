@@ -15,26 +15,23 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
     try {
-      zk.create(partsRoot + "/" + (domainId & 0xff), null, Ids.OPEN_ACL_UNSAFE,
-        CreateMode.PERSISTENT);
-//      zk.create(partsRoot + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(ZkPath.append(partsRoot, Integer.toString(domainId & 0xff)), null);
+//      zk.create(ZkPath.create(partsRoot, ".complete"), null);
       return new ZkHostDomain(zk, partsRoot, domainId);
     } catch (Exception e) {
       throw new IOException(e);
@@ -50,23 +47,23 @@ public class ZkHostDomain extends AbstractHostDomain {
   public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, int domainId) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainId = domainId;
-    this.root = partsRoot + "/" + domainId;
+    this.root = ZkPath.append(partsRoot, Integer.toString(domainId));
 
     // TODO: temporary...
-//    if (zk.exists(root + "/.complete", false) == null) {
-//      zk.create(root + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+//    if (zk.exists(ZkPath.create(root, ".complete"), false) == null) {
+//      zk.create(ZkPath.create(root, ".complete"), null);
 //    }
 
     parts = new WatchedMap<ZkHostDomainPartition>(zk, root,
-      new ElementLoader<ZkHostDomainPartition>() {
-        @Override
-        public ZkHostDomainPartition load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-          if (relPath.equals(".complete")) {
-            return null;
+        new ElementLoader<ZkHostDomainPartition>() {
+          @Override
+          public ZkHostDomainPartition load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            if (relPath.equals(".complete")) {
+              return null;
+            }
+            return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath));
           }
-          return new ZkHostDomainPartition(zk, basePath + "/" + relPath);
-        }
-      });
+        });
   }
 
   @Override
@@ -82,8 +79,8 @@ public class ZkHostDomain extends AbstractHostDomain {
   @Override
   public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum,
-      initialVersion);
-    parts.put("" + partNum, part);
+        initialVersion);
+    parts.put(Integer.toString(partNum), part);
     return part;
   }
 }

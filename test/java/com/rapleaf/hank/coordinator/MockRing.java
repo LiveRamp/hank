@@ -25,11 +25,11 @@ public class MockRing extends AbstractRing {
   public HostCommand allCommanded;
   public Integer updatingToVersion;
 
-  public MockRing(Set<PartDaemonAddress> hosts, RingGroup rgc, int number, RingState state) {
+  public MockRing(Set<PartitionServerAddress> hosts, RingGroup rgc, int number, RingState state) {
     super(number, rgc);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {
-      for (PartDaemonAddress addy : hosts) {
+      for (PartitionServerAddress addy : hosts) {
         this.hosts.add(new MockHost(addy));
       }
     }
@@ -65,12 +65,12 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
-  public Host addHost(PartDaemonAddress address) throws IOException {
+  public Host addHost(PartitionServerAddress address) throws IOException {
     return null;
   }
 
   @Override
-  public Host getHostByAddress(PartDaemonAddress address) {
+  public Host getHostByAddress(PartitionServerAddress address) {
     return null;
   }
 
@@ -106,13 +106,13 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
-  public boolean removeHost(PartDaemonAddress address) {
+  public boolean removeHost(PartitionServerAddress address) {
     return false;
   }
 
   @Override
   public void delete() throws IOException {
     // TODO Auto-generated method stub
-    
+
   }
 }

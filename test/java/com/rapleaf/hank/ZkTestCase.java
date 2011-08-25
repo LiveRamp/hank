@@ -15,18 +15,8 @@
  */
 package com.rapleaf.hank;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.BindException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
@@ -38,10 +28,15 @@ import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.server.NIOServerCnxn;
-import org.apache.zookeeper.server.ZooKeeperServer;
 import org.apache.zookeeper.server.NIOServerCnxn.Factory;
+import org.apache.zookeeper.server.ZooKeeperServer;
 
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.*;
+import java.net.BindException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
@@ -66,7 +61,7 @@ public class ZkTestCase extends BaseTestCase {
 
   public static void setupZkServer() throws Exception {
     if (server == null) {
-      LOG.debug("deleting zk data dir (" + zkDir +")");
+      LOG.debug("deleting zk data dir (" + zkDir + ")");
       File zkDirFile = new File(zkDir);
       FileUtils.deleteDirectory(zkDirFile);
       zkDirFile.mkdirs();
@@ -78,7 +73,7 @@ public class ZkTestCase extends BaseTestCase {
         LOG.debug("Trying to bind server to port " + clientPort);
         try {
           standaloneServerFactory =
-            new NIOServerCnxn.Factory(new InetSocketAddress(clientPort));
+              new NIOServerCnxn.Factory(new InetSocketAddress(clientPort));
         } catch (BindException e) {
           LOG.trace("Failed binding ZK Server to client port: " + clientPort);
           //this port is already in use. try to use another
@@ -212,7 +207,7 @@ public class ZkTestCase extends BaseTestCase {
   private void dumpZk(String parentPath, String nodeName, int depth) throws Exception {
     System.err.print(StringUtils.repeat("  ", depth));
     System.err.print("/" + nodeName);
-    String nodePath = parentPath + "/" + nodeName;
+    String nodePath = ZkPath.append(parentPath, nodeName);
     nodePath = nodePath.replace("//", "/");
     byte[] data = zk.getData(nodePath, false, null);
     if (data == null) {
@@ -228,7 +223,7 @@ public class ZkTestCase extends BaseTestCase {
   }
 
   protected void createNodeRecursively(String path)
-  throws InterruptedException, Exception {
+      throws InterruptedException, Exception {
     String[] toks = path.split("/");
     String newPath = "/";
     for (int i = 0; i < toks.length; i++) {

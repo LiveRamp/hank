@@ -28,7 +28,7 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockRing;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingState;
 
@@ -43,8 +43,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
         RingState state,
         int curVer,
         Integer nextVer,
-        PartDaemonAddress... hosts) {
-      super(new LinkedHashSet<PartDaemonAddress>(Arrays.asList(hosts)), null, number, state);
+        PartitionServerAddress... hosts) {
+      super(new LinkedHashSet<PartitionServerAddress>(Arrays.asList(hosts)), null, number, state);
       this.curVer = curVer;
       this.nextVer = nextVer;
     }
@@ -142,7 +142,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testUpdatingToComingUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartitionServerAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -163,7 +163,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATING, 1, 2, new PartitionServerAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -185,7 +185,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   // this case will only occur when the data deployer has died or something.
   public void testUpdatedToComingUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.UPDATED, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.UPDATED, 1, 2, new PartitionServerAddress("localhost", 1)) {
       @Override
       public Set<Host> getHostsInState(HostState state) {
         switch (state) {
@@ -206,7 +206,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testComingUpToUp() throws Exception {
-    MRC r1 = new MRC(1, RingState.COMING_UP, 1, 2, new PartDaemonAddress("localhost", 1)) {
+    MRC r1 = new MRC(1, RingState.COMING_UP, 1, 2, new PartitionServerAddress("localhost", 1)) {
 
       @Override
       public Set<Host> getHostsInState(HostState state) {

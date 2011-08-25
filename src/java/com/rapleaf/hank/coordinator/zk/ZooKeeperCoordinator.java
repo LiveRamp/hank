@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -212,8 +213,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      domainsByName.put(domainName, new ZkDomain(zk, domainsRoot + "/"
-          + domainName));
+      domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
     }
   }
 
@@ -222,7 +222,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
     synchronized (domainGroups) {
       for (String domainGroupName : domainGroupNameList) {
-        String dgPath = domainGroupsRoot + "/" + domainGroupName;
+        String dgPath = ZkPath.append(domainGroupsRoot, domainGroupName);
         boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
           domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
@@ -237,7 +237,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllRingGroups() throws InterruptedException, KeeperException {
     List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
     for (String ringGroupName : ringGroupNameList) {
-      String ringGroupPath = ringGroupsRoot + "/" + ringGroupName;
+      String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
       ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc));
     }
@@ -274,6 +274,20 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
+  public Domain updateDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
+    ZkDomain domain = (ZkDomain) getDomain(domainName);
+    if (domain == null) {
+      throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
+    } else {
+      try {
+        domainsByName.put(domainName, ZkDomain.update(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
+        return domain;
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
       ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name);
@@ -288,8 +302,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
     try {
-      RingGroup rg = ZkRingGroup.create(zk, ringGroupsRoot + "/"
-          + ringGroupName, (ZkDomainGroup) getDomainGroup(domainGroupName));
+      RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
+          (ZkDomainGroup) getDomainGroup(domainGroupName));
       ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {

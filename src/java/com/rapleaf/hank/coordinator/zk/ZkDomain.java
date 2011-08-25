@@ -15,25 +15,23 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.yaml.snakeyaml.Yaml;
-
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.KeeperException;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ZkDomain extends AbstractDomain {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -56,43 +54,52 @@ public class ZkDomain extends AbstractDomain {
 
   private final Map<String, ZkDomainVersion> versions;
 
-  public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactory, String storageEngineOpts, String partitioner) throws KeeperException, InterruptedException {
-    String domainPath = domainsRoot + "/" + domainName;
-    zk.create(domainPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_NUM_PARTS, ("" + numParts).getBytes(), Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_FACTORY, storageEngineFactory.getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_STORAGE_ENGINE_OPTIONS, storageEngineOpts.getBytes(),
-      Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_PARTITIONER, partitioner.getBytes(), Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
-    zk.create(domainPath + "/" + KEY_VERSIONS, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    zk.create(domainPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+  public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws KeeperException, InterruptedException {
+    String domainPath = ZkPath.append(domainsRoot, domainName);
+    zk.create(domainPath, null);
+    zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
+    zk.create(ZkPath.append(domainPath, ".complete"), null);
+    return new ZkDomain(zk, domainPath);
+  }
+
+  public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
+    String domainPath = ZkPath.append(domainsRoot, domainName);
+    // Delete nodes
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_NUM_PARTS));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_PARTITIONER));
+    // Re create nodes
+    zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     return new ZkDomain(zk, domainPath);
   }
 
   public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
-
-    String[] toks = domainPath.split("/");
-    this.name = toks[toks.length - 1];
-    this.numParts = zk.getInt(domainPath + '/' + KEY_NUM_PARTS);
-    this.storageEngineOptions = (Map<String, Object>) new Yaml().load(zk.getString(domainPath + '/'
-        + KEY_STORAGE_ENGINE_OPTIONS));
-    this.storageEngineFactoryName = zk.getString(domainPath + '/' + KEY_STORAGE_ENGINE_FACTORY);
+    this.name = ZkPath.getFilename(domainPath);
+    this.numParts = zk.getInt(ZkPath.append(domainPath, KEY_NUM_PARTS));
+    this.storageEngineOptions =
+        (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
+    this.storageEngineFactoryName = zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
 
     final ElementLoader<ZkDomainVersion> elementLoader = new ElementLoader<ZkDomainVersion>() {
       @Override
       public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomainVersion(zk, basePath + "/" + relPath);
+        return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath));
       }
     };
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, domainPath + "/" + KEY_VERSIONS,
-      elementLoader, new DotComplete());
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
+        elementLoader, new DotComplete());
 
-    String partitionerClassName = zk.getString(domainPath + '/' + KEY_PARTITIONER);
+    String partitionerClassName = zk.getString(ZkPath.append(domainPath, KEY_PARTITIONER));
     try {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
@@ -148,7 +155,7 @@ public class ZkDomain extends AbstractDomain {
   public boolean delete() throws IOException {
     try {
       // first, delete the .complete so everyone knows it's gone
-      zk.delete(domainPath + "/.complete", -1);
+      zk.delete(ZkPath.append(domainPath, ".complete"), -1);
 
       // delete the rest
       zk.deleteNodeRecursively(domainPath);

@@ -21,7 +21,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
 
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
@@ -52,12 +52,12 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
     throw new NotImplementedException();
   }
 
   @Override
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) {
+  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
     throw new NotImplementedException();
   }
 
@@ -65,9 +65,9 @@ public class ConstantStorageEngine implements StorageEngine {
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException {
     throw new UnsupportedOperationException();
   }
-  
+
   @Override
-  public Deleter getDeleter(PartservConfigurator configurator, int partNum)
+  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
       throws IOException {
     throw new UnsupportedOperationException();
   }

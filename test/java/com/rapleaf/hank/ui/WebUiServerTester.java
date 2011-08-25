@@ -1,36 +1,32 @@
 package com.rapleaf.hank.ui;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.partitioner.Murmur64Partitioner;
+import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.partitioner.Murmur64Partitioner;
-import com.rapleaf.hank.storage.curly.Curly;
-
-public class StatusWebDaemonTester extends ZkTestCase {
+public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
-    create(getRoot() + "/domains");
-    create(getRoot() + "/domain_groups");
-    create(getRoot() + "/ring_groups");
+    create(ZkPath.append(getRoot(), "domains"));
+    create(ZkPath.append(getRoot(), "domain_groups"));
+    create(ZkPath.append(getRoot(), "ring_groups"));
     final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
-        ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000, getRoot()
-        + "/domains", getRoot() + "/domain_groups", getRoot() + "/ring_groups"));
+        ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
+            ZkPath.append(getRoot(), "domains"),
+            ZkPath.append(getRoot(), "domain_groups"),
+            ZkPath.append(getRoot(), "ring_groups")));
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
@@ -144,11 +140,11 @@ public class StatusWebDaemonTester extends ZkTestCase {
         return mockClient;
       }
     };
-    StatusWebDaemon daemon = new StatusWebDaemon(mockConf, clientCache, 12345);
-    daemon.run();
+    WebUiServer uiServer = new WebUiServer(mockConf, clientCache, 12345);
+    uiServer.run();
   }
 
-  private PartDaemonAddress addy(String hostname) {
-    return new PartDaemonAddress(hostname, 6200);
+  private PartitionServerAddress addy(String hostname) {
+    return new PartitionServerAddress(hostname, 6200);
   }
 }

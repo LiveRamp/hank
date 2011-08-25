@@ -57,17 +57,22 @@
       Storage engine factory options:
     </td>
     <td>
-      <%
-      DumperOptions opts = new DumperOptions();
-      opts.setExplicitStart(true);
-      opts.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
-      opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-      %>
-      <textarea rows="10" cols="80" disabled=true><%= domain.getStorageEngineOptions() == null
+      <form action="/domain/update" method=post>
+        <input type=hidden name="name" value="<%= domain.getName() %>"/>
+        <%
+        DumperOptions opts = new DumperOptions();
+        opts.setExplicitStart(true);
+        opts.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+        opts.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        %>
+        <textarea rows="10" cols="80" id="storageEngineOptions" name="storageEngineOptions"><%= domain.getStorageEngineOptions() == null
           ? ""
           : new Yaml(opts).dump(domain.getStorageEngineOptions())
           %>
-      </textarea>
+        </textarea>
+        <br/>
+        <input type=submit value="Save modified storage engine options"/>
+      </form>
     </td>
   </tr>
 </table>

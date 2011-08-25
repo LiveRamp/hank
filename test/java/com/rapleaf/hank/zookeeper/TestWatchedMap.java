@@ -1,9 +1,9 @@
 package com.rapleaf.hank.zookeeper;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -11,17 +11,16 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestWatchedMap extends ZkTestCase {
   private static final class StringElementLoader implements ElementLoader<String> {
     @Override
     public String load(ZooKeeperPlus zk, String basePath, String relPath) {
       try {
-        return new String(zk.getData(basePath + "/" + relPath, false, new Stat()));
+        return new String(zk.getData(ZkPath.append(basePath, relPath), false, new Stat()));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -32,13 +31,13 @@ public class TestWatchedMap extends ZkTestCase {
     Logger.getLogger("org.apache.zookeeper").setLevel(Level.ALL);
 
     final ZooKeeperPlus zk = getZk();
-    final String colRoot = getRoot() + "/collection";
+    final String colRoot = ZkPath.append(getRoot(), "collection");
     zk.create(colRoot, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     final ElementLoader<String> elementLoader = new ElementLoader<String>() {
       @Override
       public String load(ZooKeeperPlus zk, String basePath, String relPath) {
         try {
-          return new String(zk.getData(basePath + "/" + relPath, false, new Stat()));
+          return new String(zk.getData(ZkPath.append(basePath, relPath), false, new Stat()));
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -48,7 +47,7 @@ public class TestWatchedMap extends ZkTestCase {
     dumpZk();
 
     assertEquals(0, c1.size());
-    zk.create(colRoot + "/first", "data".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ZkPath.append(colRoot, "first"), "data".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     Thread.sleep(1000);
     assertEquals(1, c1.size());
   }
@@ -74,12 +73,12 @@ public class TestWatchedMap extends ZkTestCase {
       }
     };
     final WatchedMap<String> m = new WatchedMap<String>(getZk(), getRoot(), elementLoader,
-      completionDetector);
+        completionDetector);
     // no elements yet, so should be empty
     assertEquals(0, m.size());
     // create an element
-    getZk().create(getRoot() + "/node", "blah".getBytes(), Ids.OPEN_ACL_UNSAFE,
-      CreateMode.PERSISTENT);
+    getZk().create(ZkPath.append(getRoot(), "node"), "blah".getBytes(), Ids.OPEN_ACL_UNSAFE,
+        CreateMode.PERSISTENT);
     // wait for notification to propagate
     Thread.sleep(1000);
     // the detector should have been invoked...
@@ -93,11 +92,13 @@ public class TestWatchedMap extends ZkTestCase {
   }
 
   public void testDeletion() throws Exception {
-    getZk().create(getRoot() + "/map", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    getZk().create(getRoot() + "/map/1", "2".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    final WatchedMap<String> m = new WatchedMap<String>(getZk(), getRoot() + "/map", new StringElementLoader());
-    assertEquals(new HashMap<String, String>(){{put("1", "2");}}, m);
-    getZk().delete(getRoot() + "/map/1", 0);
+    getZk().create(ZkPath.append(getRoot(), "map"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    getZk().create(ZkPath.append(getRoot(), "map/1"), "2".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    final WatchedMap<String> m = new WatchedMap<String>(getZk(), ZkPath.append(getRoot(), "map"), new StringElementLoader());
+    assertEquals(new HashMap<String, String>() {{
+      put("1", "2");
+    }}, m);
+    getZk().delete(ZkPath.append(getRoot(), "map/1"), 0);
     Thread.sleep(1000);
     assertEquals(Collections.EMPTY_MAP, m);
   }

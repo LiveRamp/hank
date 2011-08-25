@@ -15,30 +15,30 @@
  */
 package com.rapleaf.hank.zookeeper;
 
-import org.apache.zookeeper.KeeperException;
+public class ZkPath {
 
-public class WatchedInt extends WatchedNode<Integer> {
-  public WatchedInt(ZooKeeperPlus zk, String nodePath, boolean create, Integer initValue) throws KeeperException, InterruptedException {
-    super(zk, nodePath, create, initValue);
+  // Create a string representing a Zookeeper path. Each argument is a sub-directory
+  // of the previous one.
+  public static String append(String... parts) {
+    StringBuilder builder = new StringBuilder();
+    for (int i = 0; i < parts.length; ++i) {
+      if (i != 0) {
+        builder.append("/");
+      }
+      builder.append(parts[i]);
+    }
+    return builder.toString();
   }
 
-  public WatchedInt(ZooKeeperPlus zk, String nodePath) throws KeeperException, InterruptedException {
-    super(zk, nodePath);
-  }
-
-  @Override
-  protected Integer decode(byte[] data) {
-    if (data == null) {
+  // Return the path's filename, i.e. the latest token in the given Zookeeper path.
+  public static String getFilename(String path) {
+    if (path == null) {
       return null;
     }
-    return Integer.parseInt(new String(data));
-  }
-
-  @Override
-  protected byte[] encode(Integer v) {
-    if (v == null) {
+    String[] tokens = path.split("/");
+    if (tokens == null) {
       return null;
     }
-    return v.toString().getBytes();
+    return tokens[tokens.length - 1];
   }
 }

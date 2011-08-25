@@ -1,28 +1,48 @@
 package com.rapleaf.hank.zookeeper;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.data.ACL;
+import org.apache.zookeeper.data.Stat;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.data.Stat;
-
 public class ZooKeeperPlus extends ZooKeeper {
+
+  private static final List<ACL> DEFAULT_ACL = Ids.OPEN_ACL_UNSAFE;
+  private static final CreateMode DEFAULT_CREATE_MODE = CreateMode.PERSISTENT;
+
   public ZooKeeperPlus(String connectString,
-      int sessionTimeout,
-      Watcher watcher,
-      long sessionId,
-      byte[] sessionPasswd) throws IOException {
+                       int sessionTimeout,
+                       Watcher watcher,
+                       long sessionId,
+                       byte[] sessionPasswd) throws IOException {
     super(connectString, sessionTimeout, watcher, sessionId, sessionPasswd);
   }
 
-  public ZooKeeperPlus(String connectString, int sessionTimeout, Watcher watcher)
-      throws IOException {
+  public ZooKeeperPlus(String connectString, int sessionTimeout, Watcher watcher) throws IOException {
     super(connectString, sessionTimeout, watcher);
+  }
+
+  public void create(String path, byte[] data, CreateMode createMode) throws KeeperException, InterruptedException {
+    create(path, data, DEFAULT_ACL, createMode);
+  }
+
+  public void create(String path, byte[] data) throws KeeperException, InterruptedException {
+    create(path, data, DEFAULT_ACL, DEFAULT_CREATE_MODE);
+  }
+
+  public void createLong(String path, long value) throws KeeperException, InterruptedException {
+    create(path, (Long.toString(value)).getBytes(), DEFAULT_ACL, DEFAULT_CREATE_MODE);
+  }
+
+  public void createInt(String path, int value) throws KeeperException, InterruptedException {
+    create(path, (Integer.toString(value)).getBytes(), DEFAULT_ACL, DEFAULT_CREATE_MODE);
   }
 
   public Integer getIntOrNull(String path) throws KeeperException, InterruptedException {
@@ -37,6 +57,26 @@ public class ZooKeeperPlus extends ZooKeeper {
     return Integer.parseInt(new String(getData(path, false, new Stat())));
   }
 
+  public void setString(String path, String value) throws KeeperException, InterruptedException {
+    setData(path, value.getBytes(), -1);
+  }
+
+  public void setInt(String path, int nextVersion) throws KeeperException, InterruptedException {
+    setData(path, (Integer.toString(nextVersion)).getBytes(), -1);
+  }
+
+  public long getLong(String path) throws KeeperException, InterruptedException {
+    return Long.parseLong(new String(getData(path, false, new Stat())));
+  }
+
+  public Long getLongOrNull(String path) throws KeeperException, InterruptedException {
+    if (exists(path, false) == null) {
+      return null;
+    } else {
+      return Long.parseLong(new String(getData(path, false, new Stat())));
+    }
+  }
+
   public String getString(String path) throws KeeperException, InterruptedException {
     try {
       byte[] data = getData(path, false, null);
@@ -49,14 +89,6 @@ public class ZooKeeperPlus extends ZooKeeper {
     }
   }
 
-  public void setInt(String path, int nextVersion) throws KeeperException, InterruptedException {
-    setData(path, ("" + nextVersion).getBytes(), -1);
-  }
-
-  public void setString(String path, String value) throws KeeperException, InterruptedException {
-    setData(path, value.getBytes(), -1);
-  }
-
   public void deleteIfExists(String path) throws KeeperException, InterruptedException {
     if (exists(path, false) != null) {
       delete(path, -1);
@@ -64,16 +96,16 @@ public class ZooKeeperPlus extends ZooKeeper {
   }
 
   public void setOrCreate(String path, int value, CreateMode createMode) throws KeeperException, InterruptedException {
-    setOrCreate(path, "" + value, createMode);
+    setOrCreate(path, Integer.toString(value), createMode);
   }
-  
+
   public void setOrCreate(String path, long value, CreateMode createMode) throws KeeperException, InterruptedException {
-    setOrCreate(path, "" + value, createMode);
+    setOrCreate(path, Long.toString(value), createMode);
   }
 
   public void setOrCreate(String path, String value, CreateMode createMode) throws KeeperException, InterruptedException {
     if (exists(path, false) == null) {
-      create(path, value.getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
+      create(path, value.getBytes(), DEFAULT_ACL, createMode);
     } else {
       setData(path, value.getBytes(), -1);
     }
@@ -85,28 +117,12 @@ public class ZooKeeperPlus extends ZooKeeper {
     } catch (KeeperException.NotEmptyException e) {
       List<String> children = getChildren(path, null);
       for (String child : children) {
-        deleteNodeRecursively(path + "/" + child);
+        deleteNodeRecursively(ZkPath.append(path, child));
       }
       delete(path, -1);
     } catch (KeeperException.NoNodeException e) {
       // Silently return if the node has already been deleted.
       return;
-    }
-  }
-
-  public void create(String path, long numBytes, CreateMode createMode) throws KeeperException, InterruptedException {
-    create(path, ("" + numBytes).getBytes(), Ids.OPEN_ACL_UNSAFE, createMode);
-  }
-
-  public long getLong(String path) throws KeeperException, InterruptedException {
-    return Long.parseLong(new String(getData(path, false, new Stat())));
-  }
-
-  public Long getLongOrNull(String path) throws KeeperException, InterruptedException {
-    if (exists(path, false) == null) {
-      return null;
-    } else {
-      return Long.parseLong(new String(getData(path, false, new Stat())));
     }
   }
 }

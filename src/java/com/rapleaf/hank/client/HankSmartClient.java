@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * HankSmartClient implements the logic of determining which PartDaemon to
+ * HankSmartClient implements the logic of determining which PartitionServer to
  * contact to fulfill requests for a given key, as well as managing a connection
- * pool and detecting PartDaemon failures.
+ * pool and detecting PartitionServer failures.
  */
 public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener {
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankExceptions.no_such_domain(true));
@@ -43,9 +43,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final DomainGroup domainGroup;
   private final RingGroup ringGroup;
 
-  private final Map<PartDaemonAddress, List<PartDaemonConnection>> connectionCache = new HashMap<PartDaemonAddress, List<PartDaemonConnection>>();
+  private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
 
-  private final Map<Integer, Map<Integer, PartDaemonConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartDaemonConnectionSet>>();
+  private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
 
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
@@ -73,14 +73,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
 
-    Map<Integer, Map<Integer, List<PartDaemonAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartDaemonAddress>>>();
+    Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
-      HashMap<Integer, List<PartDaemonAddress>> partitionToAddress = new HashMap<Integer, List<PartDaemonAddress>>();
+      HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
       domainPartToHostList.put(domainGroup.getDomainId(domain.getName()), partitionToAddress);
 
       for (int i = 0; i < domain.getNumParts(); i++) {
-        partitionToAddress.put(i, new ArrayList<PartDaemonAddress>());
+        partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
       }
     }
 
@@ -88,32 +88,32 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         for (HostDomain hdc : host.getAssignedDomains()) {
-          Map<Integer, List<PartDaemonAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
+          Map<Integer, List<PartitionServerAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
-            List<PartDaemonAddress> partList = domainMap.get(hdcp.getPartNum());
+            List<PartitionServerAddress> partList = domainMap.get(hdcp.getPartNum());
             partList.add(host.getAddress());
           }
         }
 
         // establish connection to hosts
-        List<PartDaemonConnection> hostConnections = new ArrayList<PartDaemonConnection>(numConnectionsPerHost);
+        List<PartitionServerConnection> hostConnections = new ArrayList<PartitionServerConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new PartDaemonConnection(host));
+          hostConnections.add(new PartitionServerConnection(host));
         }
         connectionCache.put(host.getAddress(), hostConnections);
       }
     }
 
-    for (Map.Entry<Integer, Map<Integer, List<PartDaemonAddress>>> entry1 : domainPartToHostList.entrySet()) {
-      Map<Integer, PartDaemonConnectionSet> domainMap = new HashMap<Integer, PartDaemonConnectionSet>();
-      for (Map.Entry<Integer, List<PartDaemonAddress>> entry2 : entry1.getValue().entrySet()) {
-        List<PartDaemonConnection> clientBundles = new ArrayList<PartDaemonConnection>();
-        for (PartDaemonAddress address : entry2.getValue()) {
-          for (PartDaemonConnection conn : connectionCache.get(address)) {
+    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> entry1 : domainPartToHostList.entrySet()) {
+      Map<Integer, PartitionServerConnectionSet> domainMap = new HashMap<Integer, PartitionServerConnectionSet>();
+      for (Map.Entry<Integer, List<PartitionServerAddress>> entry2 : entry1.getValue().entrySet()) {
+        List<PartitionServerConnection> clientBundles = new ArrayList<PartitionServerConnection>();
+        for (PartitionServerAddress address : entry2.getValue()) {
+          for (PartitionServerConnection conn : connectionCache.get(address)) {
             clientBundles.add(conn);
           }
         }
-        domainMap.put(entry2.getKey(), new PartDaemonConnectionSet(clientBundles));
+        domainMap.put(entry2.getKey(), new PartitionServerConnectionSet(clientBundles));
       }
       domainToPartitionToConnectionSet.put(entry1.getKey(), domainMap);
     }
@@ -148,14 +148,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       return NO_SUCH_DOMAIN;
     }
 
-    Map<Integer, PartDaemonConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domainId);
+    Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domainId);
     if (partitionToConnectionSet == null) {
       String errMsg = String.format("Got a null domain->part map for domain %s (%d)!", domainName, domainId);
       LOG.error(errMsg);
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
 
-    PartDaemonConnectionSet connectionSet = partitionToConnectionSet.get(partition);
+    PartitionServerConnectionSet connectionSet = partitionToConnectionSet.get(partition);
     if (connectionSet == null) {
       // this is a problem, since the cache must not have been loaded correctly
       String errMsg = String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domainName, domainId, partition);

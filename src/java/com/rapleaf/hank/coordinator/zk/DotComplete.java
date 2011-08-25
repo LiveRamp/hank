@@ -1,13 +1,13 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
 
 public class DotComplete implements CompletionDetector {
   public static final class CreationWatcher implements Watcher {
@@ -33,7 +33,7 @@ public class DotComplete implements CompletionDetector {
 
   @Override
   public void detectCompletion(ZooKeeperPlus zk, String basePath, String relPath, CompletionAwaiter awaiter) throws KeeperException, InterruptedException {
-    if (zk.exists(basePath + "/" + relPath + "/.complete", new CreationWatcher(relPath, awaiter)) != null) {
+    if (zk.exists(ZkPath.append(basePath, relPath, ".complete"), new CreationWatcher(relPath, awaiter)) != null) {
       awaiter.completed(relPath);
     }
   }

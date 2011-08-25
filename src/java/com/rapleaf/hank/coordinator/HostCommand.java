@@ -16,14 +16,14 @@
 package com.rapleaf.hank.coordinator;
 
 /**
- * The set of things that we can tell a PartDaemon to do.
+ * The set of things that we can tell a PartitionServer to do.
  */
 public enum HostCommand {
   /**
    * Start serving data.
    */
   SERVE_DATA,
-  /** 
+  /**
    * Generally, stop serving data.
    */
   GO_TO_IDLE,

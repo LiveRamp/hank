@@ -13,27 +13,18 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
+
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.generated.HankResponse;
+import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.generated.HankResponse;
-
-public class TestPartDaemonServer extends BaseTestCase {
+public class TestPartitionServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {
     public boolean updateCalled = false;
     @Override
@@ -47,18 +38,18 @@ public class TestPartDaemonServer extends BaseTestCase {
     }
   }
 
-  private static final MockHost mockHostConfig = new MockHost(new PartDaemonAddress("localhost", 1));
+  private static final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("localhost", 1));
 
   private static final Ring mockRingConfig = new MockRing(null, null, 0, null) {
     @Override
-    public Host getHostByAddress(PartDaemonAddress address) {
+    public Host getHostByAddress(PartitionServerAddress address) {
       return mockHostConfig;
     }
   };
 
   private static final RingGroup mockRingGroupConfig = new MockRingGroup(null, "myRingGroup", null) {
     @Override
-    public Ring getRingForHost(PartDaemonAddress hostAddress) {
+    public Ring getRingForHost(PartitionServerAddress hostAddress) {
       return mockRingConfig;
     }
   };
@@ -70,11 +61,11 @@ public class TestPartDaemonServer extends BaseTestCase {
     }
   };
 
-  private static final MockPartDaemonConfigurator configurator = new MockPartDaemonConfigurator(12345, mockCoord, "myRingGroup", null);
+  private static final MockPartitionServerConfigurator CONFIGURATOR = new MockPartitionServerConfigurator(12345, mockCoord, "myRingGroup", null);
 
   public void testColdStartAndShutDown() throws Exception {
     final MockUpdateManager mockUpdateManager = new MockUpdateManager();
-    final PartDaemonServer server = new PartDaemonServer(configurator, "localhost") {
+    final PartitionServer server = new PartitionServer(CONFIGURATOR, "localhost") {
       @Override
       protected IfaceWithShutdown getHandler() throws IOException {
         return new IfaceWithShutdown() {

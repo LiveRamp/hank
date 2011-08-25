@@ -21,10 +21,10 @@ import java.util.Set;
 
 /**
  * Encapsulates the configuration and listening/modification of individual
- * PartDaemon hosts within the cluster.
+ * PartitionServer hosts within the cluster.
  */
 public interface Host extends Comparable<Host> {
-  public PartDaemonAddress getAddress();
+  public PartitionServerAddress getAddress();
 
   /**
    * Return this host's current state.
@@ -36,7 +36,7 @@ public interface Host extends Comparable<Host> {
   /**
    * Set this host's current state. This method should only be called by the
    * host itself.
-   * 
+   *
    * @param state
    * @throws IOException
    */
@@ -45,7 +45,7 @@ public interface Host extends Comparable<Host> {
   /**
    * Returns true when the host is online. Note that this is distinct from
    * "serving data" - a host is online when it's NOT offline.
-   * 
+   *
    * @return
    * @throws IOException
    */
@@ -67,7 +67,7 @@ public interface Host extends Comparable<Host> {
   /**
    * Add a command to this host's command queue. Consecutive duplicate commands
    * will be ignored.
-   * 
+   *
    * @param command
    * @throws IOException
    */
@@ -83,7 +83,7 @@ public interface Host extends Comparable<Host> {
   /**
    * Return the command at the head of this host's command queue and set it as
    * the current command.
-   * 
+   *
    * @return
    * @throws IOException
    */
@@ -105,7 +105,7 @@ public interface Host extends Comparable<Host> {
   /**
    * The listener will be notified when there are changes to this host's command
    * queue.
-   * 
+   *
    * @param listener
    * @throws IOException
    */
@@ -132,7 +132,7 @@ public interface Host extends Comparable<Host> {
    * @return
    */
   public HostDomain getDomainById(int domainId);
-  
+
   /**
    * Get the aggregate count of a counter across all HostDomainPartitions
    * @param countId
@@ -140,7 +140,7 @@ public interface Host extends Comparable<Host> {
    * @throws IOException
    */
   public Long getAggregateCount(String countId) throws IOException;
-  
+
   /**
    * Gets a set of aggregate counter keys across all HostDomainPartitions
    * @return

@@ -1,4 +1,4 @@
-partserv:
+partition_server:
   # add the directories that your part daemon should use to store/read data
   # NOTE: don't change these once you've started using them, since it will mess
   # up the hash/mod partitioning over your disks. (unless you're an expert.)
@@ -7,7 +7,7 @@ partserv:
   service_port: 12345
   # change this to the name of the ring group this part daemon should join
   ring_group_name: rg1
-  part_daemon:
+  partition_server_daemon:
     num_worker_threads: 256
   update_daemon:
     num_concurrent_updates: 1

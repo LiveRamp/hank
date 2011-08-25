@@ -13,67 +13,57 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.util.HostUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.PartservConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartservConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.generated.PartDaemon;
-import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.util.HostUtils;
+import java.io.IOException;
 
 /**
- * The main class of the Part Daemon.
+ * The main class of the PartitionServer.
  */
-public class PartDaemonServer implements HostCommandQueueChangeListener {
-  private static final Logger LOG = Logger.getLogger(PartDaemonServer.class);
+public class PartitionServer implements HostCommandQueueChangeListener {
+  private static final Logger LOG = Logger.getLogger(PartitionServer.class);
 
-  private final PartservConfigurator configurator;
-  private final Coordinator coord;
+  private final PartitionServerConfigurator configurator;
   private Thread serverThread;
   private TServer server;
   private boolean goingDown = false;
-  private final PartDaemonAddress hostAddress;
-  private final Host hostConfig;
+  private final PartitionServerAddress hostAddress;
+  private final Host host;
 
   private Thread updateThread;
 
-  private final RingGroup ringGroupConfig;
+  private final RingGroup ringGroup;
 
-  private final Ring ringConfig;
+  private final Ring ring;
 
-  public PartDaemonServer(PartservConfigurator configurator, String hostName) throws IOException {
+  public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
-    this.coord = configurator.getCoordinator();
-    hostAddress = new PartDaemonAddress(hostName, configurator.getServicePort());
-    ringGroupConfig = coord.getRingGroup(configurator.getRingGroupName());
-    ringConfig = ringGroupConfig.getRingForHost(hostAddress);
-    if (ringConfig == null) {
+    Coordinator coordinator = configurator.getCoordinator();
+    hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
+    ringGroup = coordinator.getRingGroup(configurator.getRingGroupName());
+    ring = ringGroup.getRingForHost(hostAddress);
+    if (ring == null) {
       throw new RuntimeException("Could not get ring configuration for host: " + hostAddress);
     }
-    hostConfig = ringConfig.getHostByAddress(hostAddress);
-    if (hostConfig == null) {
+    host = ring.getHostByAddress(hostAddress);
+    if (host == null) {
       throw new RuntimeException("Could not get host configuration for host: " + hostAddress);
     }
-    hostConfig.setCommandQueueChangeListener(this);
+    host.setCommandQueueChangeListener(this);
   }
 
   public void run() throws IOException {
@@ -99,26 +89,26 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   @Override
-  public void onCommandQueueChange(Host hostConfig) {
+  public void onCommandQueueChange(Host host) {
     processCommands();
   }
 
   protected IfaceWithShutdown getHandler() throws IOException {
-    return new PartDaemonHandler(hostAddress, configurator);
+    return new PartitionServerHandler(hostAddress, configurator);
   }
 
   protected IUpdateManager getUpdateManager() throws IOException {
-    return new UpdateManager(configurator, hostConfig, ringGroupConfig, ringConfig);
+    return new UpdateManager(configurator, host, ringGroup, ring);
   }
 
   private synchronized void processCommands() {
     try {
-      if (hostConfig.getCurrentCommand() != null) {
-        processCurrentCommand(hostConfig, hostConfig.getCurrentCommand());
+      if (host.getCurrentCommand() != null) {
+        processCurrentCommand(host, host.getCurrentCommand());
       }
-      while (!hostConfig.getCommandQueue().isEmpty()) {
-        HostCommand nextCommand = hostConfig.processNextCommand();
-        processCurrentCommand(hostConfig, nextCommand);
+      while (!host.getCommandQueue().isEmpty()) {
+        HostCommand nextCommand = host.processNextCommand();
+        processCurrentCommand(host, nextCommand);
       }
     } catch (IOException e) {
       // TODO
@@ -128,6 +118,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
 
   /**
    * Start serving the thrift server. doesn't return.
+   *
    * @throws TTransportException
    * @throws IOException
    * @throws InterruptedException
@@ -139,7 +130,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
     Args options = new Args(serverSocket);
-    options.processor(new PartDaemon.Processor(handler));
+    options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
     options.workerThreads(configurator.getNumThreads());
     options.protocolFactory(new TCompactProtocol.Factory());
     server = new THsHaServer(options);
@@ -155,7 +146,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
    */
   private void serveData() {
     if (server == null) {
-      Runnable r = new Runnable(){
+      Runnable r = new Runnable() {
         @Override
         public void run() {
           try {
@@ -166,7 +157,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
           }
         }
       };
-      serverThread = new Thread(r, "PartDaemon Thrift Server thread");
+      serverThread = new Thread(r, "PartitionServer Thrift Server thread");
       LOG.info("Launching server thread...");
       serverThread.start();
       try {
@@ -202,7 +193,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
   }
 
   private synchronized void setState(HostState state) throws IOException {
-    hostConfig.setState(state);
+    host.setState(state);
   }
 
   private void update() {
@@ -217,7 +208,7 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
           updateManager.update();
           LOG.info("Update is complete! recording state changes...");
           setState(HostState.IDLE);
-          hostConfig.completeCommand();
+          host.completeCommand();
           updateThread = null;
         } catch (Throwable e) {
           // TODO: should this take the server down?
@@ -229,81 +220,81 @@ public class PartDaemonServer implements HostCommandQueueChangeListener {
     updateThread.start();
   }
 
-  private void processCurrentCommand(Host hostConfig, HostCommand nextCommand) throws IOException {
-    HostState state = hostConfig.getState();
+  private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
+    HostState state = host.getState();
     switch (nextCommand) {
-    case EXECUTE_UPDATE:
-      processExecuteUpdate(state);
-      break;
-    case GO_TO_IDLE:
-      processGoToIdle(state);
-      break;
-    case SERVE_DATA:
-      processServeData(state);
-      break;
+      case EXECUTE_UPDATE:
+        processExecuteUpdate(state);
+        break;
+      case GO_TO_IDLE:
+        processGoToIdle(state);
+        break;
+      case SERVE_DATA:
+        processServeData(state);
+        break;
     }
   }
 
   private void processServeData(HostState state) throws IOException {
     switch (state) {
-    case IDLE:
-      serveData();
-      setState(HostState.SERVING);
-      hostConfig.completeCommand();
-      break;
-    default:
-      LOG.debug("received command " + HostCommand.SERVE_DATA
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case IDLE:
+        serveData();
+        setState(HostState.SERVING);
+        host.completeCommand();
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.SERVE_DATA
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
-    case SERVING:
-      stopServingData();
-      setState(HostState.IDLE);
-      hostConfig.completeCommand();
-      break;
-    case UPDATING:
-      LOG.debug("received command " + HostCommand.GO_TO_IDLE
-          + " but current state is " + state
-          + ", which cannot be stopped. Will wait until completion.");
-      break;
-    default:
-      LOG.debug("received command " + HostCommand.GO_TO_IDLE
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case SERVING:
+        stopServingData();
+        setState(HostState.IDLE);
+        host.completeCommand();
+        break;
+      case UPDATING:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but current state is " + state
+            + ", which cannot be stopped. Will wait until completion.");
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   private void processExecuteUpdate(HostState state) throws IOException {
     switch (state) {
-    case IDLE:
-      setState(HostState.UPDATING);
-      update();
-      break;
-    case SERVING:
-      LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
-    default:
-      LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
-          + " but not compatible with current state " + state
-          + ". Ignoring.");
+      case IDLE:
+        setState(HostState.UPDATING);
+        update();
+        break;
+      case SERVING:
+        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+      default:
+        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
     }
   }
 
   public static void main(String[] args) throws Throwable {
     try {
-      CommandLineChecker.check(args, new String[] {"configuration_file_path", "log4j_properties_file_path"}, PartDaemonServer.class);
+      CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, PartitionServer.class);
       String configPath = args[0];
       String log4jprops = args[1];
 
-      PartservConfigurator configurator = new YamlPartservConfigurator(configPath);
+      PartitionServerConfigurator configurator = new YamlPartitionServerConfigurator(configPath);
       PropertyConfigurator.configure(log4jprops);
 
-      new PartDaemonServer(configurator, HostUtils.getHostName()).run();
+      new PartitionServer(configurator, HostUtils.getHostName()).run();
     } catch (Throwable t) {
-      System.err.println("usage: bin/part_daemon.sh <path to config.yml> <path to log4j properties>");
+      System.err.println("usage: bin/start_partition_server.sh <path to config.yml> <path to log4j properties>");
       throw t;
     }
   }

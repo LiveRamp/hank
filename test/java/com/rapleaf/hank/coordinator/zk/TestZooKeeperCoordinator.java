@@ -15,23 +15,20 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.partitioner.ConstantPartitioner;
+import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
+import com.rapleaf.hank.zookeeper.ZkPath;
+
 import java.util.HashMap;
 import java.util.Map;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.partitioner.ConstantPartitioner;
-import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
-
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
-  private final String domains_root = getRoot() + "/domains";
-  private final String domain_groups_root = getRoot() + "/domain_groups";
-  private final String ring_groups_root = getRoot() + "/ring_groups";
+  private final String domains_root = ZkPath.append(getRoot(), "domains");
+  private final String domain_groups_root = ZkPath.append(getRoot(), "domain_groups");
+  private final String ring_groups_root = ZkPath.append(getRoot(), "ring_groups");
   private ZooKeeperCoordinator coord;
 
   public void testLoad() throws Exception {
@@ -117,7 +114,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
     Ring rc = rg.addRing(1);
-    rc.addHost(new PartDaemonAddress("localhost", 1));
+    rc.addHost(new PartitionServerAddress("localhost", 1));
 
     coord = getCoord();
   }

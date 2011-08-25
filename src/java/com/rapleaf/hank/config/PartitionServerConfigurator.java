@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Common configurator for any daemon that runs on a Host.
  */
-public interface PartservConfigurator extends Configurator {
+public interface PartitionServerConfigurator extends Configurator {
   /**
    * Where are the daemons on this host allowed to write data?
    * @return
@@ -37,7 +37,7 @@ public interface PartservConfigurator extends Configurator {
   /**
    * Which ring group is this Host a member of? (The actual ring membership is
    * determined by Coordinator-held configuration.)
-   * 
+   *
    * @return
    */
   public String getRingGroupName();

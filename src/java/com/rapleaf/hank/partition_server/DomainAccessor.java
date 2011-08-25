@@ -13,63 +13,61 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.part_daemon;
+package com.rapleaf.hank.partition_server;
+
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.Result;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.Result;
-
 /**
- * Class that manages serving on behalf of a particular Domain.
+ * Class that manages accessing data on behalf of a particular Domain.
  */
-class DomainReaderSet {
-  private static final Logger LOG = Logger.getLogger(DomainReaderSet.class);
+class DomainAccessor {
+  private static final Logger LOG = Logger.getLogger(DomainAccessor.class);
   private final Partitioner partitioner;
   private final String name;
-  private final PartReaderAndCounters[] prc;
+  private final PartitionAccessor[] partitionAccessors;
   private final int timeout;
-  private final UpdateCounts updater;
   private final Thread updateThread;
   private boolean keepUpdating;
 
-  public DomainReaderSet(String name, PartReaderAndCounters[] prc,
-      Partitioner partitioner) throws IOException {
-    this(name, prc, partitioner, 60000);
+  public DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
+                        Partitioner partitioner) throws IOException {
+    this(name, partitionAccessors, partitioner, 60000);
   }
 
-  DomainReaderSet(String name, PartReaderAndCounters[] prc,
-      Partitioner partitioner, int timeout) throws IOException {
+  DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
+                 Partitioner partitioner, int timeout) throws IOException {
     this.name = name;
-    this.prc = prc;
+    this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
     this.timeout = timeout;
 
-    updater = new UpdateCounts();
-    updateThread = new Thread(updater);
+    updateThread = new Thread(new UpdateCounts());
     keepUpdating = true;
     updateThread.start();
   }
 
   /**
    * Get the value for <i>key</i>, placing it in result.
-   * 
+   *
    * @param key
    * @param result
-   * @return true if this partserv is actually serving the part needed
+   * @return true if this PartitionServer is actually serving the part needed
    * @throws IOException
    */
   public boolean get(ByteBuffer key, Result result) throws IOException {
-    int partition = partitioner.partition(key, prc.length);
-    PartReaderAndCounters currentPRC = prc[partition];
+    int partition = partitioner.partition(key, partitionAccessors.length);
+    PartitionAccessor currentPRC = partitionAccessors[partition];
     if (currentPRC == null) {
       return false;
     }
     // Increment requests counter
     currentPRC.getRequests().incrementAndGet();
+    // Perform get()
     currentPRC.getReader().get(key, result);
     if (result.isFound()) {
       // Increment hits counter
@@ -85,15 +83,15 @@ class DomainReaderSet {
   private class UpdateCounts implements Runnable {
     public void run() {
       while (keepUpdating) {
-        for (int i = 0; i < prc.length; i++) {
+        for (int i = 0; i < partitionAccessors.length; i++) {
           try {
-            prc[i].updateCounters();
+            partitionAccessors[i].updateCounters();
           } catch (IOException e) {
             LOG.error("Failed to update counter", e);
           }
         }
         // in case we were interrupted while updating counters, avoid doing an
-        // unnecessary sleep 
+        // unnecessary sleep
         if (!keepUpdating) {
           break;
         }

@@ -1,11 +1,9 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
 
 public class ZkPartitionInfo implements PartitionInfo {
   private final int partNum;
@@ -13,25 +11,24 @@ public class ZkPartitionInfo implements PartitionInfo {
   private final long numRecords;
 
   public static ZkPartitionInfo create(ZooKeeperPlus zk, String partsRoot, int partNum, long numBytes, long numRecords) throws KeeperException, InterruptedException {
-    String partPath = partsRoot + "/" + nodeName(partNum);
+    String partPath = ZkPath.append(partsRoot, nodeName(partNum));
     // if the node already exists, then don't try to create a new one
     if (zk.exists(partPath, false) == null) {
-      zk.create(partPath, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      zk.create(partPath + "/num_bytes", numBytes, CreateMode.PERSISTENT);
-      zk.create(partPath + "/num_records", numRecords, CreateMode.PERSISTENT);
-      zk.create(partPath + "/.complete", null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      zk.create(partPath, null);
+      zk.createLong(ZkPath.append(partPath, "num_bytes"), numBytes);
+      zk.createLong(ZkPath.append(partPath, "num_records"), numRecords);
+      zk.create(ZkPath.append(partPath, ".complete"), null);
     }
     return new ZkPartitionInfo(zk, partPath);
   }
 
   public ZkPartitionInfo(ZooKeeperPlus zk, String partInfoPath)
       throws KeeperException, InterruptedException {
-    String[] toks = partInfoPath.split("/");
-    toks = toks[toks.length - 1].split("-");
-    this.partNum = Integer.parseInt(toks[toks.length - 1]);
-
-    this.numBytes = zk.getLong(partInfoPath + "/num_bytes");
-    this.numRecords = zk.getLong(partInfoPath + "/num_records");
+    String filename = ZkPath.getFilename(partInfoPath);
+    String[] tokens = filename.split("-");
+    this.partNum = Integer.parseInt(tokens[tokens.length - 1]);
+    this.numBytes = zk.getLong(ZkPath.append(partInfoPath, "num_bytes"));
+    this.numRecords = zk.getLong(ZkPath.append(partInfoPath, "num_records"));
   }
 
   @Override

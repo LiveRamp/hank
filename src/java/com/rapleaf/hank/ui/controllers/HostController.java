@@ -10,7 +10,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.ui.URLEnc;
@@ -62,7 +62,7 @@ public class HostController extends Controller {
   protected void doDiscardCurrentCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.processNextCommand();
     redirectBack(resp, rgc, rc, hc);
   }
@@ -70,7 +70,7 @@ public class HostController extends Controller {
   protected void doClearCommandQueue(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.clearCommandQueue();
 
     redirectBack(resp, rgc, rc, hc);
@@ -84,7 +84,7 @@ public class HostController extends Controller {
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
     redirectBack(resp, rgc, rc, hc);
@@ -93,7 +93,7 @@ public class HostController extends Controller {
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
     HostDomain d = hc.getDomainById(dId);
     if (d == null) {
@@ -108,7 +108,7 @@ public class HostController extends Controller {
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartDaemonAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     HostDomain dc = hc.getDomainById(Integer.parseInt(req.getParameter("d")));
     HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
     pd.setDeletable(deletable);

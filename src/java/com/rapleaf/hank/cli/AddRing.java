@@ -34,7 +34,7 @@ import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.PartDaemonAddress;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
@@ -79,7 +79,7 @@ public class AddRing {
     String[] hosts = hostsString.split(",");
     List<Host> hostConfigs = new LinkedList<Host>();
     for (String host : hosts) {
-      PartDaemonAddress address = PartDaemonAddress.parse(host);
+      PartitionServerAddress address = PartitionServerAddress.parse(host);
       hostConfigs.add(newRing.addHost(address));
     }
 

@@ -1,14 +1,13 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainVersion;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class DomainController extends Controller {
 
@@ -35,7 +34,7 @@ public class DomainController extends Controller {
           partitionerName = req.getParameter("partitionerOther");
         }
         DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName,
-          storageEngineOptions, partitionerName);
+            storageEngineOptions, partitionerName);
         redirect("/domains.jsp", resp);
       }
     });
@@ -73,6 +72,12 @@ public class DomainController extends Controller {
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
+    actions.put("update", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doUpdateDomain(req, resp);
+      }
+    });
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -86,6 +91,19 @@ public class DomainController extends Controller {
     }
 
     coordinator.deleteDomain(domain.getName());
+    resp.sendRedirect("/domains.jsp");
+  }
+
+  private void doUpdateDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    final String domainName = req.getParameter("name");
+    final String storageEngineOptions = req.getParameter("storageEngineOptions");
+    final Domain domain = coordinator.getDomain(domainName);
+    if (domain == null) {
+      throw new IOException("Could not get Domain '" + domainName + "' from Configurator.");
+    } else {
+      coordinator.updateDomain(domainName, domain.getNumParts(),
+          domain.getStorageEngineFactoryClass().getName(), storageEngineOptions, domain.getPartitioner().getClass().getName());
+    }
     resp.sendRedirect("/domains.jsp");
   }
 

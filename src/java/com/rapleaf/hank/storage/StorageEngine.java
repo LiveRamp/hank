@@ -18,19 +18,19 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.config.PartservConfigurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 
 /**
  * Defines how to read, write, delete, and update the data stored for a given partition.
  */
 public interface StorageEngine {
-  public Reader getReader(PartservConfigurator configurator, int partNum) throws IOException;
+  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException;
 
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
 
-  public Updater getUpdater(PartservConfigurator configurator, int partNum) throws IOException;
-  
-  public Deleter getDeleter(PartservConfigurator configurator, int partNum) throws IOException;
+  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException;
+
+  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 }

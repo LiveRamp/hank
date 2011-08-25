@@ -16,23 +16,23 @@
 package com.rapleaf.hank.coordinator;
 
 /**
- * The possible states a PartDaemon can take.
+ * The possible states a PartitionServer can take.
  */
 public enum HostState {
   /**
-   * The PartDaemon is online, but not doing anything.
+   * The PartitionServer is online, but not doing anything.
    */
   IDLE,
   /**
-   * The PartDaemon is serving data.
+   * The PartitionServer is serving data.
    */
   SERVING,
   /**
-   * The PartDaemon is currently executing an update.
+   * The PartitionServer is currently executing an update.
    */
   UPDATING,
   /**
-   * The PartDaemon is currently offline, or separated from the Coordinator
+   * The PartitionServer is currently offline, or separated from the Coordinator
    * unexpectedly.
    */
   OFFLINE;

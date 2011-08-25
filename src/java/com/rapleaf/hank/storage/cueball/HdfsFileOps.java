@@ -1,14 +1,14 @@
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HdfsFileOps implements IFileOps {
   private static final Logger LOG = Logger.getLogger(HdfsFileOps.class);
@@ -44,6 +44,9 @@ public class HdfsFileOps implements IFileOps {
   @Override
   public List<String> listFiles() throws IOException {
     FileStatus[] l = fs.listStatus(new Path(remoteRoot));
+    if (l == null) {
+      return null;
+    }
     List<String> results = new ArrayList<String>(l.length);
     for (FileStatus fileStatus : l) {
       LOG.trace(fileStatus.getPath());
