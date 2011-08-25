@@ -83,6 +83,13 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
   }
 %>
 
+<h2>Actions</h2>
+<form method=post action="/domain_group/delete">
+  <input type=hidden name="name" value="<%= domainGroup.getName() %>"/>
+  <input type=submit value="Delete this domain group"
+    onclick="return confirm('Are you sure you want to delete this domain group? This action cannot be undone.');"/>
+</form>
+
 <h2>Versions</h2>
 
 <form method="post" action="/domain_group/add_version">

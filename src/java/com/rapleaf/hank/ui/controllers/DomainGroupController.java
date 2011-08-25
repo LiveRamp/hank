@@ -46,6 +46,22 @@ public class DomainGroupController extends Controller {
         doUnassign(req, resp);
       }
     });
+    actions.put("delete", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doDeleteDomain(req, resp);
+      }
+    });
+  }
+
+  protected void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String dgName = URLEnc.decode(req.getParameter("name"));
+
+    if (coordinator.deleteDomainGroup(dgName)) {
+      resp.sendRedirect("/domain_groups.jsp");
+    } else {
+      resp.sendRedirect("/domain_group.jsp?n=" + dgName);
+    }
   }
 
   private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
