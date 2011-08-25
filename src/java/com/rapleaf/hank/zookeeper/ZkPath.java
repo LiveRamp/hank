@@ -31,7 +31,7 @@ public class ZkPath {
   }
 
   // Return the path's filename, i.e. the latest token in the given Zookeeper path.
-  public static String filename(String path) {
+  public static String getFilename(String path) {
     if (path == null) {
       return null;
     }

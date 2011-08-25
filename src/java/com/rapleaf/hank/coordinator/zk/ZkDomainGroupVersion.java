@@ -42,7 +42,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   public ZkDomainGroupVersion(ZooKeeperPlus zk, String versionPath, DomainGroup domainGroup)
       throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
-    Matcher m = VERSION_NAME_PATTERN.matcher(ZkPath.filename(versionPath));
+    Matcher m = VERSION_NAME_PATTERN.matcher(ZkPath.getFilename(versionPath));
     if (!m.matches()) {
       throw new IllegalArgumentException(versionPath
           + " has an improperly formatted version number! Must be in the form of 'vNNNN'.");

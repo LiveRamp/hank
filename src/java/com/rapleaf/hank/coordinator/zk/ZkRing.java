@@ -106,7 +106,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   }
 
   private static int parseRingNum(String ringPath) {
-    Matcher matcher = RING_NUMBER_PATTERN.matcher(ZkPath.filename(ringPath));
+    Matcher matcher = RING_NUMBER_PATTERN.matcher(ZkPath.getFilename(ringPath));
     matcher.matches();
     return Integer.parseInt(matcher.group(1));
   }

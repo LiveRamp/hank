@@ -114,7 +114,7 @@ public class ZkHost extends AbstractHost {
   public ZkHost(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
-    this.address = PartitionServerAddress.parse(ZkPath.filename(hostPath));
+    this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
 
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();

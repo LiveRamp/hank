@@ -24,7 +24,7 @@ public class ZkPartitionInfo implements PartitionInfo {
 
   public ZkPartitionInfo(ZooKeeperPlus zk, String partInfoPath)
       throws KeeperException, InterruptedException {
-    String filename = ZkPath.filename(partInfoPath);
+    String filename = ZkPath.getFilename(partInfoPath);
     String[] tokens = filename.split("-");
     this.partNum = Integer.parseInt(tokens[tokens.length - 1]);
     this.numBytes = zk.getLong(ZkPath.create(partInfoPath, "num_bytes"));

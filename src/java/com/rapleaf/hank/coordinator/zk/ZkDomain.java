@@ -84,7 +84,7 @@ public class ZkDomain extends AbstractDomain {
   public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
-    this.name = ZkPath.filename(domainPath);
+    this.name = ZkPath.getFilename(domainPath);
     this.numParts = zk.getInt(ZkPath.create(domainPath, KEY_NUM_PARTS));
     this.storageEngineOptions =
         (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));

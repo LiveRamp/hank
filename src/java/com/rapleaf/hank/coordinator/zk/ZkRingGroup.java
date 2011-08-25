@@ -122,7 +122,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroup = domainGroup;
-    ringGroupName = ZkPath.filename(ringGroupPath);
+    ringGroupName = ZkPath.getFilename(ringGroupPath);
 
     ringsByNumber = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
       @Override

@@ -74,7 +74,7 @@ public class ZkDomainGroup implements DomainGroup {
       throws InterruptedException, KeeperException, IOException {
     this.zk = zk;
     this.dgPath = dgPath;
-    this.groupName = ZkPath.filename(dgPath);
+    this.groupName = ZkPath.getFilename(dgPath);
 
     final ElementLoader<ZkDomain> elementLoader = new ElementLoader<ZkDomain>() {
       @Override

@@ -70,7 +70,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     this.zk = zk;
     this.path = path;
     this.countersPath = ZkPath.create(path, "counters");
-    this.partNum = Integer.parseInt(ZkPath.filename(path));
+    this.partNum = Integer.parseInt(ZkPath.getFilename(path));
 
     currentDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, CURRENT_VERSION_PATH_SEGMENT), true, null);
     updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, UPDATING_TO_VERSION_PATH_SEGMENT),

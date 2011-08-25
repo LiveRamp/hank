@@ -37,7 +37,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
-    String last = ZkPath.filename(path);
+    String last = ZkPath.getFilename(path);
     String[] toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
     final ElementLoader<ZkPartitionInfo> elementLoader = new ElementLoader<ZkPartitionInfo>() {
