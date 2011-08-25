@@ -19,6 +19,7 @@ import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
@@ -45,12 +46,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final DomainAccessor[] domainAccessors;
 
-  public PartitionServerHandler(PartitionServerAddress hostAndPort,
+  public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator) throws IOException {
     // find the ring config
     Ring ringConfig = configurator.getCoordinator()
         .getRingGroup(configurator.getRingGroupName())
-        .getRingForHost(hostAndPort);
+        .getRingForHost(address);
 
     // get the domain group config for the ring
     DomainGroup domainGroup = ringConfig.getRingGroup().getDomainGroup();
@@ -68,14 +69,14 @@ class PartitionServerHandler implements IfaceWithShutdown {
     domainAccessors = new DomainAccessor[maxDomainId + 1];
 
     // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion()
-        .getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion domainVersion :
+        domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
       Set<HostDomainPartition> partitions = ringConfig
-          .getHostByAddress(hostAndPort).getDomainById(domainId)
+          .getHostByAddress(address).getDomainById(domainId)
           .getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
@@ -85,18 +86,20 @@ class PartitionServerHandler implements IfaceWithShutdown {
           new PartitionAccessor[domain.getNumParts()];
       for (HostDomainPartition partition : partitions) {
         if (partition.getCurrentDomainGroupVersion() == null) {
-          LOG.info(String.format(
-              "Not initializing partition #%d because its current version is null.",
+          LOG.error(String.format(
+              "Could not load Reader for partition #%d because its current version is null.",
               partition.getPartNum()));
-        } else {
-          LOG.debug(String.format(
-              "Initializing partition #%d",
-              partition.getPartNum()));
-          partitionAccessors[partition.getPartNum()] =
-              new PartitionAccessor(partition, engine.getReader(configurator, partition.getPartNum()));
+          continue;
         }
+        Reader reader = engine.getReader(configurator, partition.getPartNum());
+        if (reader.getVersionNumber() != partition.getCurrentDomainGroupVersion()) {
+          LOG.error(String.format("Could not load Reader for partition %d because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
+              partition.getPartNum(), reader.getVersionNumber().intValue(), partition.getCurrentDomainGroupVersion().intValue()));
+          continue;
+        }
+        LOG.debug(String.format("Loaded Reader for partition #%d", partition.getPartNum()));
+        partitionAccessors[partition.getPartNum()] = new PartitionAccessor(partition, reader);
       }
-
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(domain.getName(), partitionAccessors,
           domain.getPartitioner());
