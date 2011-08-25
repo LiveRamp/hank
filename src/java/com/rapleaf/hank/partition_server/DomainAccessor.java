@@ -61,17 +61,17 @@ class DomainAccessor {
    */
   public boolean get(ByteBuffer key, Result result) throws IOException {
     int partition = partitioner.partition(key, partitionAccessors.length);
-    PartitionAccessor currentPRC = partitionAccessors[partition];
-    if (currentPRC == null) {
+    PartitionAccessor partitionAccessor = partitionAccessors[partition];
+    if (partitionAccessor == null) {
       return false;
     }
     // Increment requests counter
-    currentPRC.getRequests().incrementAndGet();
+    partitionAccessor.getRequests().incrementAndGet();
     // Perform get()
-    currentPRC.getReader().get(key, result);
+    partitionAccessor.getReader().get(key, result);
     if (result.isFound()) {
       // Increment hits counter
-      currentPRC.getHits().incrementAndGet();
+      partitionAccessor.getHits().incrementAndGet();
     }
     return true;
   }
@@ -84,10 +84,12 @@ class DomainAccessor {
     public void run() {
       while (keepUpdating) {
         for (int i = 0; i < partitionAccessors.length; i++) {
-          try {
-            partitionAccessors[i].updateCounters();
-          } catch (IOException e) {
-            LOG.error("Failed to update counter", e);
+          if (partitionAccessors[i] != null) {
+            try {
+              partitionAccessors[i].updateCounters();
+            } catch (IOException e) {
+              LOG.error("Failed to update counter", e);
+            }
           }
         }
         // in case we were interrupted while updating counters, avoid doing an

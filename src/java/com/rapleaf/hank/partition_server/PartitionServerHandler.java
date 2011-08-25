@@ -81,18 +81,24 @@ class PartitionServerHandler implements IfaceWithShutdown {
           partitions.size(), domain.getNumParts(), domain.getName()));
 
       // instantiate all the PartitionAccessor
-      PartitionAccessor[] readersAndCounters =
+      PartitionAccessor[] partitionAccessors =
           new PartitionAccessor[domain.getNumParts()];
-      for (HostDomainPartition part : partitions) {
-        LOG.debug(String.format(
-            "Instantiating PartitionAccessor for part num %d",
-            part.getPartNum()));
-        readersAndCounters[part.getPartNum()] = new PartitionAccessor(part, engine.getReader(
-            configurator, part.getPartNum()));
+      for (HostDomainPartition partition : partitions) {
+        if (partition.getCurrentDomainGroupVersion() == null) {
+          LOG.info(String.format(
+              "Not initializing partition #%d because its current version is null.",
+              partition.getPartNum()));
+        } else {
+          LOG.debug(String.format(
+              "Initializing partition #%d",
+              partition.getPartNum()));
+          partitionAccessors[partition.getPartNum()] = new PartitionAccessor(partition, engine.getReader(
+              configurator, partition.getPartNum()));
+        }
       }
 
       // configure and store the DomainAccessors
-      domainAccessors[domainId] = new DomainAccessor(domain.getName(), readersAndCounters,
+      domainAccessors[domainId] = new DomainAccessor(domain.getName(), partitionAccessors,
           domain.getPartitioner());
     }
   }
