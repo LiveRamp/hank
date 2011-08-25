@@ -45,24 +45,24 @@ public class TestZkDomainGroup extends ZkTestCase {
     }
   }
 
-  private final String dg_root = ZkPath.create(getRoot(), "myDomainGroup");
-  private final String domains_root = ZkPath.create(getRoot(), "domains");
+  private final String dg_root = ZkPath.append(getRoot(), "myDomainGroup");
+  private final String domains_root = ZkPath.append(getRoot(), "domains");
 
   public void testLoad() throws Exception {
     Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
 
-    create(ZkPath.create(dg_root, "domains"));
-    create(ZkPath.create(dg_root, "domains/0"), domains_root + "/domain0");
-    create(ZkPath.create(dg_root, "domains/1"), domains_root + "/domain1");
-    create(ZkPath.create(dg_root, "versions"));
-    create(ZkPath.create(dg_root, "versions/v1"));
-    create(ZkPath.create(dg_root, "versions/v1/domain0"), "1");
-    create(ZkPath.create(dg_root, "versions/v1/domain1"), "1");
-    create(ZkPath.create(dg_root, "versions/v1/.complete"), "1");
-    create(ZkPath.create(dg_root, "versions/v2"));
-    create(ZkPath.create(dg_root, "versions/v2/domain0"), "1");
-    create(ZkPath.create(dg_root, "versions/v2/domain1"), "1");
+    create(ZkPath.append(dg_root, "domains"));
+    create(ZkPath.append(dg_root, "domains/0"), domains_root + "/domain0");
+    create(ZkPath.append(dg_root, "domains/1"), domains_root + "/domain1");
+    create(ZkPath.append(dg_root, "versions"));
+    create(ZkPath.append(dg_root, "versions/v1"));
+    create(ZkPath.append(dg_root, "versions/v1/domain0"), "1");
+    create(ZkPath.append(dg_root, "versions/v1/domain1"), "1");
+    create(ZkPath.append(dg_root, "versions/v1/.complete"), "1");
+    create(ZkPath.append(dg_root, "versions/v2"));
+    create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
+    create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");
 
     ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root);
 

@@ -26,9 +26,9 @@ import java.util.Map;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
-  private final String domains_root = ZkPath.create(getRoot(), "domains");
-  private final String domain_groups_root = ZkPath.create(getRoot(), "domain_groups");
-  private final String ring_groups_root = ZkPath.create(getRoot(), "ring_groups");
+  private final String domains_root = ZkPath.append(getRoot(), "domains");
+  private final String domain_groups_root = ZkPath.append(getRoot(), "domain_groups");
+  private final String ring_groups_root = ZkPath.append(getRoot(), "ring_groups");
   private ZooKeeperCoordinator coord;
 
   public void testLoad() throws Exception {

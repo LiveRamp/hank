@@ -33,7 +33,7 @@ public class DotComplete implements CompletionDetector {
 
   @Override
   public void detectCompletion(ZooKeeperPlus zk, String basePath, String relPath, CompletionAwaiter awaiter) throws KeeperException, InterruptedException {
-    if (zk.exists(ZkPath.create(basePath, relPath, ".complete"), new CreationWatcher(relPath, awaiter)) != null) {
+    if (zk.exists(ZkPath.append(basePath, relPath, ".complete"), new CreationWatcher(relPath, awaiter)) != null) {
       awaiter.completed(relPath);
     }
   }

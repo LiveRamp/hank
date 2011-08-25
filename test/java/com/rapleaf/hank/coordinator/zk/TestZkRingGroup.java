@@ -34,12 +34,12 @@ public class TestZkRingGroup extends ZkTestCase {
     }
   }
 
-  private final String ring_groups = ZkPath.create(getRoot(), "ring_groups");
-  private final String ring_group = ZkPath.create(ring_groups, "myRingGroup");
-  private final String dg_root = ZkPath.create(getRoot(), "domain_groups");
+  private final String ring_groups = ZkPath.append(getRoot(), "ring_groups");
+  private final String ring_group = ZkPath.append(ring_groups, "myRingGroup");
+  private final String dg_root = ZkPath.append(getRoot(), "domain_groups");
 
   public void testLoad() throws Exception {
-    create(ring_group, ZkPath.create(dg_root, "myDomainGroup"));
+    create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
     createRing(1);
     createRing(2);
     createRing(3);
@@ -56,9 +56,9 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testVersionStuff() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.create(getRoot(), "domain_groups"), "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah");
     DomainGroupVersion version = dg.createNewVersion(Collections.EMPTY_MAP);
-    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.create(getRoot(), "my_ring_group"), dg);
+    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg);
     dumpZk();
     assertNull(rg.getCurrentVersion());
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getUpdatingToVersion());
@@ -68,9 +68,9 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testListener() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.create(getRoot(), "domain_groups"), "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah");
     dg.createNewVersion(Collections.EMPTY_MAP);
-    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.create(getRoot(), "my_ring_group"), dg);
+    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg);
     rg.updateComplete();
 
     MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
@@ -105,9 +105,9 @@ public class TestZkRingGroup extends ZkTestCase {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg);
-    create(ZkPath.create(ring_group, "data_deployer_online"));
+    create(ZkPath.append(ring_group, "data_deployer_online"));
     assertFalse(rg.claimDataDeployer());
-    getZk().delete(ZkPath.create(ring_group, "data_deployer_online"), -1);
+    getZk().delete(ZkPath.append(ring_group, "data_deployer_online"), -1);
     assertTrue(rg.claimDataDeployer());
     assertFalse(rg.claimDataDeployer());
     rg.releaseDataDeployer();
@@ -116,9 +116,9 @@ public class TestZkRingGroup extends ZkTestCase {
 
   public void testDelete() throws Exception {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
-    assertNotNull(getZk().exists(ZkPath.create(dg_root, "blah"), false));
+    assertNotNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));
     assertTrue(dg.delete());
-    assertNull(getZk().exists(ZkPath.create(dg_root, "blah"), false));
+    assertNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));
   }
 
   private void createRing(int ringNum) throws Exception {

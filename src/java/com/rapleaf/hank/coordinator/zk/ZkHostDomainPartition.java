@@ -43,18 +43,18 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
-      String hdpPath = ZkPath.create(domainPath, Integer.toString(partNum));
+      String hdpPath = ZkPath.append(domainPath, Integer.toString(partNum));
       zk.create(hdpPath, null);
-      zk.create(ZkPath.create(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
-      zk.createInt(ZkPath.create(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
-      zk.create(ZkPath.create(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
+      zk.create(ZkPath.append(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
+      zk.createInt(ZkPath.append(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
+      zk.create(ZkPath.append(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
       try {
-        zk.create(ZkPath.create(hdpPath, COUNTERS_PATH_SEGMENT), null);
+        zk.create(ZkPath.append(hdpPath, COUNTERS_PATH_SEGMENT), null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
       try {
-        zk.create(ZkPath.create(hdpPath, ".complete"), null);
+        zk.create(ZkPath.append(hdpPath, ".complete"), null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }
@@ -69,13 +69,13 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
-    this.countersPath = ZkPath.create(path, "counters");
+    this.countersPath = ZkPath.append(path, "counters");
     this.partNum = Integer.parseInt(ZkPath.getFilename(path));
 
-    currentDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, CURRENT_VERSION_PATH_SEGMENT), true, null);
-    updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.create(path, UPDATING_TO_VERSION_PATH_SEGMENT),
+    currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true, null);
+    updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT),
         true, null);
-    deletable = new WatchedBoolean(zk, ZkPath.create(path, DELETABLE_PATH_SEGMENT), true, false);
+    deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true, false);
   }
 
   @Override
@@ -128,7 +128,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void removeCount(String countID) throws IOException {
     try {
-      String p = ZkPath.create(countersPath, countID);
+      String p = ZkPath.append(countersPath, countID);
       zk.delete(p, -1);
     } catch (Exception e) {
       throw new IOException(e);
@@ -138,7 +138,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setCount(String countID, long count) throws IOException {
     try {
-      String p = ZkPath.create(countersPath, countID);
+      String p = ZkPath.append(countersPath, countID);
       zk.setOrCreate(p, count, CreateMode.PERSISTENT);
     } catch (Exception e) {
       throw new IOException(e);
@@ -149,7 +149,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public Long getCount(String countID) throws IOException {
     Long data = null;
     try {
-      String p = ZkPath.create(countersPath, countID);
+      String p = ZkPath.append(countersPath, countID);
       if (zk.exists(p, false) != null) {
         data = Long.parseLong(new String(zk.getData(p, false, null)));
       }

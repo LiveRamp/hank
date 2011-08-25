@@ -41,7 +41,7 @@ public class TestZkHostDomainPartition extends ZkTestCase {
 
     assertEquals(false, hdpc.isDeletable());
     hdpc.setDeletable(true);
-    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), ZkPath.create(getRoot(), Integer.toString(1234)));
+    ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), ZkPath.append(getRoot(), Integer.toString(1234)));
     assertEquals(true, hdpc2.isDeletable());
 
     Set<String> currentCountKeys = new HashSet<String>();

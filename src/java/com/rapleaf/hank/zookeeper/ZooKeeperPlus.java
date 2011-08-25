@@ -117,7 +117,7 @@ public class ZooKeeperPlus extends ZooKeeper {
     } catch (KeeperException.NotEmptyException e) {
       List<String> children = getChildren(path, null);
       for (String child : children) {
-        deleteNodeRecursively(ZkPath.create(path, child));
+        deleteNodeRecursively(ZkPath.append(path, child));
       }
       delete(path, -1);
     } catch (KeeperException.NoNodeException e) {

@@ -106,12 +106,12 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   private void version(int versionNumber, int... pairs) throws Exception {
     create(versionPath(versionNumber));
     for (int i = 0; i < pairs.length; i += 2) {
-      create(ZkPath.create(versionPath(versionNumber), "domain" + pairs[i]), (Integer.toString(pairs[i + 1])));
+      create(ZkPath.append(versionPath(versionNumber), "domain" + pairs[i]), (Integer.toString(pairs[i + 1])));
     }
-    create(ZkPath.create(versionPath(versionNumber), ".complete"));
+    create(ZkPath.append(versionPath(versionNumber), ".complete"));
   }
 
   private String versionPath(int versionNumber) {
-    return ZkPath.create(getRoot(), "v" + versionNumber);
+    return ZkPath.append(getRoot(), "v" + versionNumber);
   }
 }

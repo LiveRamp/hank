@@ -160,9 +160,9 @@ public class IntegrationTest extends ZkTestCase {
   private final String DOMAIN_0_DATAFILES = localTmpDir + "/domain0_datafiles";
   private final String DOMAIN_1_DATAFILES = localTmpDir + "/domain1_datafiles";
 
-  private final String domainsRoot = ZkPath.create(getRoot(), "domains");
-  private final String domainGroupsRoot = ZkPath.create(getRoot(), "domain_groups");
-  private final String ringGroupsRoot = ZkPath.create(getRoot(), "ring_groups");
+  private final String domainsRoot = ZkPath.append(getRoot(), "domains");
+  private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
+  private final String ringGroupsRoot = ZkPath.append(getRoot(), "ring_groups");
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";

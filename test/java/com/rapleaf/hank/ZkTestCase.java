@@ -207,7 +207,7 @@ public class ZkTestCase extends BaseTestCase {
   private void dumpZk(String parentPath, String nodeName, int depth) throws Exception {
     System.err.print(StringUtils.repeat("  ", depth));
     System.err.print("/" + nodeName);
-    String nodePath = ZkPath.create(parentPath, nodeName);
+    String nodePath = ZkPath.append(parentPath, nodeName);
     nodePath = nodePath.replace("//", "/");
     byte[] data = zk.getData(nodePath, false, null);
     if (data == null) {

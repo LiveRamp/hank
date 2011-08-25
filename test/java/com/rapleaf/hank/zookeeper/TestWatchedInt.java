@@ -8,7 +8,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 public class TestWatchedInt extends ZkTestCase {
   public void testIt() throws Exception {
     final ZooKeeperPlus zk = getZk();
-    final String nodePath = ZkPath.create(getRoot(), "watchedNode");
+    final String nodePath = ZkPath.append(getRoot(), "watchedNode");
     zk.create(nodePath, "1".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     final WatchedInt wi = new WatchedInt(zk, nodePath);
     assertEquals(Integer.valueOf(1), wi.get());
@@ -32,16 +32,16 @@ public class TestWatchedInt extends ZkTestCase {
 
   public void testCreate() throws Exception {
     try {
-      new WatchedInt(getZk(), ZkPath.create(getRoot(), "watchedNode"));
+      new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"));
       fail("should have thrown a KeeperException!");
     } catch (KeeperException.NoNodeException e) {
       // expected.
     }
 
-    WatchedInt wi = new WatchedInt(getZk(), ZkPath.create(getRoot(), "watchedNode"), true, 7);
+    WatchedInt wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), true, 7);
     assertEquals(Integer.valueOf(7), wi.get());
 
-    wi = new WatchedInt(getZk(), ZkPath.create(getRoot(), "watchedNode"), true, 10);
+    wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), true, 10);
     assertEquals(Integer.valueOf(7), wi.get());
   }
 }

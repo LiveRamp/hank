@@ -19,7 +19,7 @@ public class ZkPath {
 
   // Create a string representing a Zookeeper path. Each argument is a sub-directory
   // of the previous one.
-  public static String create(String... parts) {
+  public static String append(String... parts) {
     StringBuilder builder = new StringBuilder();
     for (int i = 0; i < parts.length; ++i) {
       if (i != 0) {

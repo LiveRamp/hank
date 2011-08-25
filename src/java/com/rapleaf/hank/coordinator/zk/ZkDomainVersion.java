@@ -25,11 +25,11 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final WatchedBoolean defunct;
 
   public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
-    String versionPath = ZkPath.create(domainPath, "versions", "version_" + nextVerNum);
+    String versionPath = ZkPath.append(domainPath, "versions", "version_" + nextVerNum);
     zk.create(versionPath, null);
-    zk.create(ZkPath.create(versionPath, "parts"), null);
-    zk.create(ZkPath.create(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
-    zk.create(ZkPath.create(versionPath, ".complete"), null);
+    zk.create(ZkPath.append(versionPath, "parts"), null);
+    zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
+    zk.create(ZkPath.append(versionPath, ".complete"), null);
     return new ZkDomainVersion(zk, versionPath);
   }
 
@@ -43,19 +43,19 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     final ElementLoader<ZkPartitionInfo> elementLoader = new ElementLoader<ZkPartitionInfo>() {
       @Override
       public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkPartitionInfo(zk, ZkPath.create(basePath, relPath));
+        return new ZkPartitionInfo(zk, ZkPath.append(basePath, relPath));
       }
     };
-    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, ZkPath.create(path, "parts"), elementLoader,
+    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, ZkPath.append(path, "parts"), elementLoader,
         new DotComplete());
 
-    defunct = new WatchedBoolean(zk, ZkPath.create(path, DEFUNCT_PATH_SEGMENT));
+    defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT));
   }
 
   @Override
   public Long getClosedAt() throws IOException {
     try {
-      Stat stat = zk.exists(ZkPath.create(path, "closed"), false);
+      Stat stat = zk.exists(ZkPath.append(path, "closed"), false);
       return stat == null ? null : stat.getCtime();
     } catch (Exception e) {
       throw new IOException(e);
@@ -70,7 +70,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
     try {
-      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, ZkPath.create(path, "parts"), partNum, numBytes, numRecords);
+      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, ZkPath.append(path, "parts"), partNum, numBytes, numRecords);
       partitionInfos.put(ZkPartitionInfo.nodeName(partNum), p);
     } catch (Exception e) {
       throw new IOException(e);
@@ -96,7 +96,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public void close() throws IOException {
     try {
-      zk.create(ZkPath.create(path, "closed"), null);
+      zk.create(ZkPath.append(path, "closed"), null);
     } catch (Exception e) {
       throw new IOException(e);
     }

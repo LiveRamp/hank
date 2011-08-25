@@ -19,14 +19,14 @@ import java.util.Map;
 
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
-    create(ZkPath.create(getRoot(), "domains"));
-    create(ZkPath.create(getRoot(), "domain_groups"));
-    create(ZkPath.create(getRoot(), "ring_groups"));
+    create(ZkPath.append(getRoot(), "domains"));
+    create(ZkPath.append(getRoot(), "domain_groups"));
+    create(ZkPath.append(getRoot(), "ring_groups"));
     final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
         ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
-            ZkPath.create(getRoot(), "domains"),
-            ZkPath.create(getRoot(), "domain_groups"),
-            ZkPath.create(getRoot(), "ring_groups")));
+            ZkPath.append(getRoot(), "domains"),
+            ZkPath.append(getRoot(), "domain_groups"),
+            ZkPath.append(getRoot(), "ring_groups")));
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 

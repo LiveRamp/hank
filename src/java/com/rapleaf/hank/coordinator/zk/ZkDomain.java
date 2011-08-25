@@ -55,29 +55,29 @@ public class ZkDomain extends AbstractDomain {
   private final Map<String, ZkDomainVersion> versions;
 
   public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws KeeperException, InterruptedException {
-    String domainPath = ZkPath.create(domainsRoot, domainName);
+    String domainPath = ZkPath.append(domainsRoot, domainName);
     zk.create(domainPath, null);
-    zk.create(ZkPath.create(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_VERSIONS), null);
-    zk.create(ZkPath.create(domainPath, ".complete"), null);
+    zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
+    zk.create(ZkPath.append(domainPath, ".complete"), null);
     return new ZkDomain(zk, domainPath);
   }
 
   public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
-    String domainPath = ZkPath.create(domainsRoot, domainName);
+    String domainPath = ZkPath.append(domainsRoot, domainName);
     // Delete nodes
-    zk.deleteNodeRecursively(ZkPath.create(domainPath, KEY_NUM_PARTS));
-    zk.deleteNodeRecursively(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_FACTORY));
-    zk.deleteNodeRecursively(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_OPTIONS));
-    zk.deleteNodeRecursively(ZkPath.create(domainPath, KEY_PARTITIONER));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_NUM_PARTS));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_PARTITIONER));
     // Re create nodes
-    zk.create(ZkPath.create(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
-    zk.create(ZkPath.create(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     return new ZkDomain(zk, domainPath);
   }
 
@@ -85,21 +85,21 @@ public class ZkDomain extends AbstractDomain {
     this.zk = zk;
     this.domainPath = domainPath;
     this.name = ZkPath.getFilename(domainPath);
-    this.numParts = zk.getInt(ZkPath.create(domainPath, KEY_NUM_PARTS));
+    this.numParts = zk.getInt(ZkPath.append(domainPath, KEY_NUM_PARTS));
     this.storageEngineOptions =
-        (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
-    this.storageEngineFactoryName = zk.getString(ZkPath.create(domainPath, KEY_STORAGE_ENGINE_FACTORY));
+        (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
+    this.storageEngineFactoryName = zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
 
     final ElementLoader<ZkDomainVersion> elementLoader = new ElementLoader<ZkDomainVersion>() {
       @Override
       public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomainVersion(zk, ZkPath.create(basePath, relPath));
+        return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath));
       }
     };
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.create(domainPath, KEY_VERSIONS),
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
         elementLoader, new DotComplete());
 
-    String partitionerClassName = zk.getString(ZkPath.create(domainPath, KEY_PARTITIONER));
+    String partitionerClassName = zk.getString(ZkPath.append(domainPath, KEY_PARTITIONER));
     try {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
@@ -155,7 +155,7 @@ public class ZkDomain extends AbstractDomain {
   public boolean delete() throws IOException {
     try {
       // first, delete the .complete so everyone knows it's gone
-      zk.delete(ZkPath.create(domainPath, ".complete"), -1);
+      zk.delete(ZkPath.append(domainPath, ".complete"), -1);
 
       // delete the rest
       zk.deleteNodeRecursively(domainPath);

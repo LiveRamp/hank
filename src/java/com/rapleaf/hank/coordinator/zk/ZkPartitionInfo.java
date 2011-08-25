@@ -11,13 +11,13 @@ public class ZkPartitionInfo implements PartitionInfo {
   private final long numRecords;
 
   public static ZkPartitionInfo create(ZooKeeperPlus zk, String partsRoot, int partNum, long numBytes, long numRecords) throws KeeperException, InterruptedException {
-    String partPath = ZkPath.create(partsRoot, nodeName(partNum));
+    String partPath = ZkPath.append(partsRoot, nodeName(partNum));
     // if the node already exists, then don't try to create a new one
     if (zk.exists(partPath, false) == null) {
       zk.create(partPath, null);
-      zk.createLong(ZkPath.create(partPath, "num_bytes"), numBytes);
-      zk.createLong(ZkPath.create(partPath, "num_records"), numRecords);
-      zk.create(ZkPath.create(partPath, ".complete"), null);
+      zk.createLong(ZkPath.append(partPath, "num_bytes"), numBytes);
+      zk.createLong(ZkPath.append(partPath, "num_records"), numRecords);
+      zk.create(ZkPath.append(partPath, ".complete"), null);
     }
     return new ZkPartitionInfo(zk, partPath);
   }
@@ -27,8 +27,8 @@ public class ZkPartitionInfo implements PartitionInfo {
     String filename = ZkPath.getFilename(partInfoPath);
     String[] tokens = filename.split("-");
     this.partNum = Integer.parseInt(tokens[tokens.length - 1]);
-    this.numBytes = zk.getLong(ZkPath.create(partInfoPath, "num_bytes"));
-    this.numRecords = zk.getLong(ZkPath.create(partInfoPath, "num_records"));
+    this.numBytes = zk.getLong(ZkPath.append(partInfoPath, "num_bytes"));
+    this.numRecords = zk.getLong(ZkPath.append(partInfoPath, "num_records"));
   }
 
   @Override

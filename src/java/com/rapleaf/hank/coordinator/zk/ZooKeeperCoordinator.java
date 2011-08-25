@@ -213,7 +213,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      domainsByName.put(domainName, new ZkDomain(zk, ZkPath.create(domainsRoot, domainName)));
+      domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
     }
   }
 
@@ -222,7 +222,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
     synchronized (domainGroups) {
       for (String domainGroupName : domainGroupNameList) {
-        String dgPath = ZkPath.create(domainGroupsRoot, domainGroupName);
+        String dgPath = ZkPath.append(domainGroupsRoot, domainGroupName);
         boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
           domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
@@ -237,7 +237,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllRingGroups() throws InterruptedException, KeeperException {
     List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
     for (String ringGroupName : ringGroupNameList) {
-      String ringGroupPath = ZkPath.create(ringGroupsRoot, ringGroupName);
+      String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
       ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc));
     }
@@ -302,7 +302,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
     try {
-      RingGroup rg = ZkRingGroup.create(zk, ZkPath.create(ringGroupsRoot, ringGroupName),
+      RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
           (ZkDomainGroup) getDomainGroup(domainGroupName));
       ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
       return rg;

@@ -20,7 +20,7 @@ public class TestWatchedMap extends ZkTestCase {
     @Override
     public String load(ZooKeeperPlus zk, String basePath, String relPath) {
       try {
-        return new String(zk.getData(ZkPath.create(basePath, relPath), false, new Stat()));
+        return new String(zk.getData(ZkPath.append(basePath, relPath), false, new Stat()));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -31,13 +31,13 @@ public class TestWatchedMap extends ZkTestCase {
     Logger.getLogger("org.apache.zookeeper").setLevel(Level.ALL);
 
     final ZooKeeperPlus zk = getZk();
-    final String colRoot = ZkPath.create(getRoot(), "collection");
+    final String colRoot = ZkPath.append(getRoot(), "collection");
     zk.create(colRoot, null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     final ElementLoader<String> elementLoader = new ElementLoader<String>() {
       @Override
       public String load(ZooKeeperPlus zk, String basePath, String relPath) {
         try {
-          return new String(zk.getData(ZkPath.create(basePath, relPath), false, new Stat()));
+          return new String(zk.getData(ZkPath.append(basePath, relPath), false, new Stat()));
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -47,7 +47,7 @@ public class TestWatchedMap extends ZkTestCase {
     dumpZk();
 
     assertEquals(0, c1.size());
-    zk.create(ZkPath.create(colRoot, "first"), "data".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    zk.create(ZkPath.append(colRoot, "first"), "data".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     Thread.sleep(1000);
     assertEquals(1, c1.size());
   }
@@ -77,7 +77,7 @@ public class TestWatchedMap extends ZkTestCase {
     // no elements yet, so should be empty
     assertEquals(0, m.size());
     // create an element
-    getZk().create(ZkPath.create(getRoot(), "node"), "blah".getBytes(), Ids.OPEN_ACL_UNSAFE,
+    getZk().create(ZkPath.append(getRoot(), "node"), "blah".getBytes(), Ids.OPEN_ACL_UNSAFE,
         CreateMode.PERSISTENT);
     // wait for notification to propagate
     Thread.sleep(1000);
@@ -92,13 +92,13 @@ public class TestWatchedMap extends ZkTestCase {
   }
 
   public void testDeletion() throws Exception {
-    getZk().create(ZkPath.create(getRoot(), "map"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    getZk().create(ZkPath.create(getRoot(), "map/1"), "2".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    final WatchedMap<String> m = new WatchedMap<String>(getZk(), ZkPath.create(getRoot(), "map"), new StringElementLoader());
+    getZk().create(ZkPath.append(getRoot(), "map"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    getZk().create(ZkPath.append(getRoot(), "map/1"), "2".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    final WatchedMap<String> m = new WatchedMap<String>(getZk(), ZkPath.append(getRoot(), "map"), new StringElementLoader());
     assertEquals(new HashMap<String, String>() {{
       put("1", "2");
     }}, m);
-    getZk().delete(ZkPath.create(getRoot(), "map/1"), 0);
+    getZk().delete(ZkPath.append(getRoot(), "map/1"), 0);
     Thread.sleep(1000);
     assertEquals(Collections.EMPTY_MAP, m);
   }

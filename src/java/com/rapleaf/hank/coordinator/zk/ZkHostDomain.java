@@ -30,7 +30,7 @@ import java.util.Set;
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
     try {
-      zk.create(ZkPath.create(partsRoot, Integer.toString(domainId & 0xff)), null);
+      zk.create(ZkPath.append(partsRoot, Integer.toString(domainId & 0xff)), null);
 //      zk.create(ZkPath.create(partsRoot, ".complete"), null);
       return new ZkHostDomain(zk, partsRoot, domainId);
     } catch (Exception e) {
@@ -47,7 +47,7 @@ public class ZkHostDomain extends AbstractHostDomain {
   public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, int domainId) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainId = domainId;
-    this.root = ZkPath.create(partsRoot, Integer.toString(domainId));
+    this.root = ZkPath.append(partsRoot, Integer.toString(domainId));
 
     // TODO: temporary...
 //    if (zk.exists(ZkPath.create(root, ".complete"), false) == null) {
@@ -61,7 +61,7 @@ public class ZkHostDomain extends AbstractHostDomain {
             if (relPath.equals(".complete")) {
               return null;
             }
-            return new ZkHostDomainPartition(zk, ZkPath.create(basePath, relPath));
+            return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath));
           }
         });
   }
