@@ -135,7 +135,8 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
   %>
 
   </table>
-  <input type=submit value="Add"/>
+  <input type=submit value="Add"/> <br/>
+  <span style="color: red; font-weight:bold">This will likely trigger a data deploy!</span>
 </form>
 
 

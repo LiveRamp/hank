@@ -71,7 +71,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
     <input type=submit value="delete"
-     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
+      onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
   </form>
 
 
@@ -102,7 +102,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <form action="/ring_group/delete_ring" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
           <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-          <input type="submit" value="delete"/>
+          <input type="submit" value="delete" onclick="return confirm('Are you sure you want to delete this ring? This action cannot be undone!');" />
         </form>
       </td>
     </tr>
