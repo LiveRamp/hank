@@ -29,8 +29,9 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 <h2>Domains + Ids</h2>
 <table width=300 class='table-blue'>
   <tr>
-    <th>Name</th>
+    <th width=100%>Name</th>
     <th>ID</th>
+    <th></th>
   </tr>
   <%
     for (Domain domain : domainGroup.getDomains()) {
@@ -38,6 +39,14 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
   <tr>
     <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
     <td><%=domainGroup.getDomainId(domain.getName())%></td>
+    <td>
+      <form action="/domain_group/unassign" method=post>
+        <input type=hidden name="n" value="<%= domainGroup.getName() %>"/>
+        <input type=hidden name="domain" value="<%= domain.getName() %>"/>
+        <input type=submit value="Unassign"
+          onclick="return confirm('Are you sure you want to remove domain <%= domain.getName() %> from this domain group? This action cannot be undone automatically.');"/>
+      </form>
+    </td>
   </tr>
   <%
     }
@@ -73,6 +82,13 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 <%
   }
 %>
+
+<h2>Actions</h2>
+<form method=post action="/domain_group/delete">
+  <input type=hidden name="name" value="<%= domainGroup.getName() %>"/>
+  <input type=submit value="Delete this domain group"
+    onclick="return confirm('Are you sure you want to delete this domain group? This action cannot be undone.');"/>
+</form>
 
 <h2>Versions</h2>
 
