@@ -139,11 +139,12 @@
     <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
     <td><%= String.format("%,d", version.getTotalNumRecords()) %></td>
     <td>
-      <% if (!version.isDefunct()) { %>
+      <% if (version.isClosed() && !version.isDefunct()) { %>
       <form action="/domain/defunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="mark defunct" />
+        <input type=submit value="mark defunct"
+          onclick="return confirm('Are you sure you want to mark this version defunct? Subsequent data deploys will skip this version.');"/>
       </form>
       <% } %>
 
@@ -151,7 +152,8 @@
       <form action="/domain/close" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="close" />
+        <input type=submit value="close"
+          onclick="return confirm('Are you sure you want to close this version? This can have adverse effects if done prematurely.');" />
       </form>
       <% } %>
     </td>
