@@ -7,7 +7,6 @@ import java.util.Map;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.crypto.Data;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,9 +36,10 @@ public class HankApiServlet extends HttpServlet {
     public static final String DOMAIN = "domain";
     public static final String DOMAIN_VERSION = "domain_version";
     public static final String DOMAIN_GROUP = "domain_group";
+    public static final String DOMAIN_GROUP_VERSION = "domain_group_version";
 
     public static String[] getParamKeys() {
-      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP};
+      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION};
     }
   }
 
@@ -100,14 +100,18 @@ public class HankApiServlet extends HttpServlet {
     Map<String, Object> responseData =  new HashMap<String, Object>();
     Map params = requestData.getParams();
     if (params.containsKey(PARAMS.DOMAIN)) {
-      if (params.containsKey(PARAMS.DOMAIN_VERSION)){
+      if (params.containsKey(PARAMS.DOMAIN_VERSION)) {
         addDomainVersionDataToResponse(requestData, responseData);
       } else {
         addDomainDataToResponse(requestData, responseData);
       }
     }
     if (params.containsKey(PARAMS.DOMAIN_GROUP)){
-      addDomainGroupDataToResponse(requestData, responseData);
+      if (params.containsKey(PARAMS.DOMAIN_GROUP_VERSION)) {
+        addDomainGroupVersionDataToResponse(requestData, responseData);
+      } else {
+        addDomainGroupDataToResponse(requestData, responseData);
+      }
     }
     return responseData;
   }
@@ -124,7 +128,7 @@ public class HankApiServlet extends HttpServlet {
     try {
       DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.getParams().get(PARAMS.DOMAIN_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainVersionData(version));
-    } catch (NumberFormatException e){} // No data added, but no harm done
+    } catch (Exception ignored){} // No data added, but no harm done
   }
 
   private Map<String, Object> getDomainData(Domain domain) throws IOException {
@@ -198,6 +202,14 @@ public class HankApiServlet extends HttpServlet {
 
       responseData.put(domainGroup.getName(), groupData);
     }
+  }
+
+  private void addDomainGroupVersionDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP));
+    try {
+      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP_VERSION)));
+      responseData.put(String.valueOf(version.getVersionNumber()), getDomainGroupVersionData(version));
+    } catch (Exception ignored){} // No data added, but no harm done
   }
 
   private JSONObject getJsonResponseBody(Map<String, Object> data) throws JSONException, IOException {

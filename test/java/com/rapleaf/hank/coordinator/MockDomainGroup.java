@@ -48,6 +48,11 @@ public class MockDomainGroup implements DomainGroup {
   }
 
   @Override
+  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+    return null;
+  }
+
+  @Override
   public String toString() {
     return "MockDomainGroupConfig [name=" + name + "]";
   }
