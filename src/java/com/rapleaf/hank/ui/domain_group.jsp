@@ -34,7 +34,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
     <th></th>
   </tr>
   <%
-    for (Domain domain : domainGroup.getDomains()) {
+    for (Domain domain : new TreeSet<Domain>(domainGroup.getDomains())) {
   %>
   <tr>
     <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
@@ -54,7 +54,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 </table>
 
 <%
-  Set<Domain> s = coord.getDomains();
+  Set<Domain> s = new TreeSet<Domain>(coord.getDomains());
 %>
 <%
   s.removeAll(domainGroup.getDomains());
@@ -103,7 +103,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
       <th>Version (default: most recent)</th>
     </tr>
   <%
-    for (Domain domain : domainGroup.getDomains()) {
+    for (Domain domain : new TreeSet<Domain>(domainGroup.getDomains())) {
     if (!domain.getVersions().isEmpty()) {
   %>
     <tr>
@@ -150,7 +150,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
     v<%= dgcv.getVersionNumber() %>:
     <ul>
       <%
-        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersions()) {
+        for (DomainGroupVersionDomainVersion dcv : new TreeSet<DomainGroupVersionDomainVersion>(dgcv.getDomainVersions())) {
       %>
       <li><%=dcv.getDomain().getName()%> @ v<%=dcv.getVersionNumber() %></li>
       <% } %>

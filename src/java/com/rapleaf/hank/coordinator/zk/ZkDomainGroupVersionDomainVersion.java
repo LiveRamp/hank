@@ -17,11 +17,11 @@ package com.rapleaf.hank.coordinator.zk;
 
 import org.apache.zookeeper.KeeperException;
 
+import com.rapleaf.hank.coordinator.AbstractDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
-public class ZkDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
+public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
   private final Domain domain;
   private final int versionNumber;
   public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domain) throws KeeperException, InterruptedException {
