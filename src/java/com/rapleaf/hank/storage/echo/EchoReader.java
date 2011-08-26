@@ -1,11 +1,11 @@
 package com.rapleaf.hank.storage.echo;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class EchoReader implements Reader {
   private final int partNum;
@@ -26,5 +26,10 @@ public class EchoReader implements Reader {
     result.requiresBufferSize(bytes.length);
     System.arraycopy(bytes, 0, result.getBuffer().array(), 0, bytes.length);
     result.found();
+  }
+
+  @Override
+  public Integer getVersionNumber() {
+    return null;
   }
 }

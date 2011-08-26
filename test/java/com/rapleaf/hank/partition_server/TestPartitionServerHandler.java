@@ -27,6 +27,7 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -41,7 +42,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
   private static final ByteBuffer K3 = bb(3);
   private static final ByteBuffer K4 = bb(4);
   private static final ByteBuffer K5 = bb(5);
-  private static final byte[] V1 = new byte[] { 9 };
+  private static final byte[] V1 = new byte[]{9};
   private static final Host mockHostConfig = new MockHost(
       new PartitionServerAddress("localhost", 12345)) {
 
@@ -79,59 +80,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
   };
 
   public void testSetUpAndServe() throws Exception {
-    Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3,
-        K5, 4);
-    MockStorageEngine storageEngine = new MockStorageEngine() {
-      @Override
-      public Reader getReader(PartitionServerConfigurator configurator, int partNum)
-          throws IOException {
-        return new MockReader(configurator, partNum, V1);
-      }
-    };
-    Domain dc = new MockDomain("myDomain", 5, partitioner, storageEngine, null,
-        null);
-    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(
-        dc, 1);
-    final MockDomainGroupVersion dcgv = new MockDomainGroupVersion(
-        Collections.singleton((DomainGroupVersionDomainVersion) dcv), null, 1);
-
-    final MockDomainGroup dcg = new MockDomainGroup("myDomainGroup") {
-      @Override
-      public DomainGroupVersion getLatestVersion() {
-        return dcgv;
-      }
-
-      @Override
-      public Integer getDomainId(String domainName) {
-        assertEquals("myDomain", domainName);
-        return 0;
-      }
-    };
-    final MockRingGroup rgc = new MockRingGroup(dcg, "myRingGroupName", null);
-
-    final MockRing mockRingConfig = new MockRing(null, rgc, 1, RingState.UP) {
-      @Override
-      public Host getHostByAddress(PartitionServerAddress address) {
-        return mockHostConfig;
-      }
-    };
-
-    Coordinator mockCoordinator = new MockCoordinator() {
-      @Override
-      public RingGroup getRingGroup(String ringGroupName) {
-        assertEquals("myRingGroupName", ringGroupName);
-        return new MockRingGroup(dcg, "myRingGroupName", null) {
-          @Override
-          public Ring getRingForHost(PartitionServerAddress hostAddress) {
-            return mockRingConfig;
-          }
-        };
-      }
-    };
-    PartitionServerConfigurator config = new MockPartitionServerConfigurator(12345,
-        mockCoordinator, "myRingGroupName", "/tmp/local/data/dir");
-    PartitionServerHandler handler = new PartitionServerHandler(new PartitionServerAddress(
-        "localhost", 12345), config);
+    PartitionServerHandler handler = createHandler(1);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
@@ -144,7 +93,72 @@ public class TestPartitionServerHandler extends BaseTestCase {
         handler.get((byte) 0, K4));
   }
 
+  public void testDontServeNotUpToDatePartition() throws IOException, TException {
+    PartitionServerHandler handler = createHandler(0);
+
+    HankResponse response = handler.get((byte) 0, K1);
+    assertTrue(response.isSet(HankResponse._Fields.XCEPTION));
+    assertTrue(response.get_xception().isSet(HankExceptions._Fields.INTERNAL_ERROR));
+  }
+
+  private PartitionServerHandler createHandler(final int readerVersionNumber) throws IOException {
+    Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3,
+        K5, 4);
+    MockStorageEngine storageEngine = new MockStorageEngine() {
+      @Override
+      public Reader getReader(PartitionServerConfigurator configurator, int partNum)
+          throws IOException {
+        return new MockReader(configurator, partNum, V1, readerVersionNumber);
+      }
+    };
+    Domain domain = new MockDomain("myDomain", 5, partitioner, storageEngine, null,
+        null);
+    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(
+        domain, 1);
+    final MockDomainGroupVersion dgv = new MockDomainGroupVersion(
+        Collections.singleton((DomainGroupVersionDomainVersion) dcv), null, 1);
+
+    final MockDomainGroup dg = new MockDomainGroup("myDomainGroup") {
+      @Override
+      public DomainGroupVersion getLatestVersion() {
+        return dgv;
+      }
+
+      @Override
+      public Integer getDomainId(String domainName) {
+        assertEquals("myDomain", domainName);
+        return 0;
+      }
+    };
+    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null);
+
+    final MockRing mockRingConfig = new MockRing(null, rg, 1, RingState.UP) {
+      @Override
+      public Host getHostByAddress(PartitionServerAddress address) {
+        return mockHostConfig;
+      }
+    };
+
+    Coordinator mockCoordinator = new MockCoordinator() {
+      @Override
+      public RingGroup getRingGroup(String ringGroupName) {
+        assertEquals("myRingGroupName", ringGroupName);
+        return new MockRingGroup(dg, "myRingGroupName", null) {
+          @Override
+          public Ring getRingForHost(PartitionServerAddress hostAddress) {
+            return mockRingConfig;
+          }
+        };
+      }
+    };
+    PartitionServerConfigurator config = new MockPartitionServerConfigurator(12345,
+        mockCoordinator, "myRingGroupName", "/tmp/local/data/dir");
+    PartitionServerHandler handler = new PartitionServerHandler(new PartitionServerAddress(
+        "localhost", 12345), config);
+    return handler;
+  }
+
   private static ByteBuffer bb(int i) {
-    return ByteBuffer.wrap(new byte[] { (byte) i });
+    return ByteBuffer.wrap(new byte[]{(byte) i});
   }
 }

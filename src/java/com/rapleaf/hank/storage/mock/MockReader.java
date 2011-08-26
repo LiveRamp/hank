@@ -27,11 +27,16 @@ public class MockReader implements Reader {
   private final PartitionServerConfigurator configurator;
   private final int partitionNumber;
   private final byte[] returnValue;
+  private final Integer versionNumber;
 
-  public MockReader(PartitionServerConfigurator configurator, int partitionNumber, byte[] returnValue) {
+  public MockReader(PartitionServerConfigurator configurator,
+                    int partitionNumber,
+                    byte[] returnValue,
+                    Integer versionNumber) {
     this.configurator = configurator;
     this.partitionNumber = partitionNumber;
     this.returnValue = returnValue;
+    this.versionNumber = versionNumber;
   }
 
   @Override
@@ -48,7 +53,7 @@ public class MockReader implements Reader {
   }
 
   public Integer getVersionNumber() {
-    return null;
+    return versionNumber;
   }
 
   public PartitionServerConfigurator getConfigurator() {

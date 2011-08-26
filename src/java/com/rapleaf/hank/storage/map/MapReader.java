@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.TreeMap;
-
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
 
 public class MapReader implements Reader {
 
@@ -34,8 +34,8 @@ public class MapReader implements Reader {
 
     map = new TreeMap<ByteBuffer, byte[]>();
 
-    for (int i = 0; i < keysAndValues.length; i+=2) {
-      map.put(ByteBuffer.wrap(keysAndValues[i]), keysAndValues[i+1]);
+    for (int i = 0; i < keysAndValues.length; i += 2) {
+      map.put(ByteBuffer.wrap(keysAndValues[i]), keysAndValues[i + 1]);
     }
   }
 
@@ -51,5 +51,10 @@ public class MapReader implements Reader {
       result.getBuffer().limit(v.length);
       result.getBuffer().rewind();
     }
+  }
+
+  @Override
+  public Integer getVersionNumber() {
+    return null;
   }
 }

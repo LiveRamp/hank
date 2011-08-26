@@ -1,10 +1,13 @@
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -13,6 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * minute counter 4. AtomicLong: Hits in last minute counter
  */
 public class PartitionAccessor {
+  private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
   private static final Logger LOG = Logger.getLogger(PartitionAccessor.class);
   private final HostDomainPartition partition;
   private final Reader reader;
@@ -36,16 +40,29 @@ public class PartitionAccessor {
     return partition;
   }
 
-  public Reader getReader() {
-    return reader;
+  public HankResponse get(ByteBuffer key) throws IOException {
+    // Increment requests counter
+    requests.incrementAndGet();
+    if (reader == null) {
+      throw new IOException("No Reader is set up.");
+    }
+    Result result = new Result();
+    reader.get(key, result);
+    if (result.isFound()) {
+      // Increment hits counter
+      hits.incrementAndGet();
+      return HankResponse.value(result.getBuffer());
+    } else {
+      return NOT_FOUND;
+    }
   }
 
-  public AtomicLong getRequests() {
-    return requests;
+  public long getRequests() {
+    return requests.get();
   }
 
-  public AtomicLong getHits() {
-    return hits;
+  public long getHits() {
+    return hits.get();
   }
 
   public void updateCounters() throws IOException {

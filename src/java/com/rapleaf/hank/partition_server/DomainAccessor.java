@@ -15,8 +15,9 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.Result;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -26,6 +27,10 @@ import java.nio.ByteBuffer;
  * Class that manages accessing data on behalf of a particular Domain.
  */
 class DomainAccessor {
+
+  private static final HankResponse WRONG_HOST = HankResponse
+      .xception(HankExceptions.wrong_host(true));
+
   private static final Logger LOG = Logger.getLogger(DomainAccessor.class);
   private final Partitioner partitioner;
   private final String name;
@@ -55,25 +60,16 @@ class DomainAccessor {
    * Get the value for <i>key</i>, placing it in result.
    *
    * @param key
-   * @param result
-   * @return true if this PartitionServer is actually serving the part needed
+   * @return response
    * @throws IOException
    */
-  public boolean get(ByteBuffer key, Result result) throws IOException {
+  public HankResponse get(ByteBuffer key) throws IOException {
     int partition = partitioner.partition(key, partitionAccessors.length);
     PartitionAccessor partitionAccessor = partitionAccessors[partition];
     if (partitionAccessor == null) {
-      return false;
+      return WRONG_HOST;
     }
-    // Increment requests counter
-    partitionAccessor.getRequests().incrementAndGet();
-    // Perform get()
-    partitionAccessor.getReader().get(key, result);
-    if (result.isFound()) {
-      // Increment hits counter
-      partitionAccessor.getHits().incrementAndGet();
-    }
-    return true;
+    return partitionAccessor.get(key);
   }
 
   /**
