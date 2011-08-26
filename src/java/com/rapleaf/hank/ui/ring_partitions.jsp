@@ -27,6 +27,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <jsp:include page="_top_nav.jsp" />
 
+  <a href="/ring.jsp?g=<%= ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">Back to ring</a>
+
   <h3>Partition Assignment</h3>
 
   <%
