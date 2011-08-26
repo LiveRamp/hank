@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
-public class MockDomainGroup implements DomainGroup {
+public class MockDomainGroup extends AbstractDomainGroup {
   private final String name;
 
   public MockDomainGroup(String name) {

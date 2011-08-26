@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
+<%@page import="java.util.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -32,7 +33,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Cur Ver #</th>
     </tr>
     <%
-      for (DomainGroup domainGroup : coord.getDomainGroups()) {
+      for (DomainGroup domainGroup : new TreeSet<DomainGroup>(coord.getDomainGroups())) {
     %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
