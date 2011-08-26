@@ -174,14 +174,18 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
       <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
       <td>
-      	<form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
-        <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-      	<input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-      	<input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-      	<input type="hidden" name="d" value="<%= hdc.getDomainId() %>"/>
-      	<input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
-      	<input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"/>
-      	</form>
+        <form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
+          <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+          <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+          <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+          <input type="hidden" name="d" value="<%= hdc.getDomainId() %>"/>
+          <input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
+          <input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"
+          <% if (!hdpc.isDeletable()) { %>
+            onclick="return confirm('Are you sure you want to mark this partition for deletion?');"
+          <% } %>
+          />
+        </form>
       </td>
     </tr>
     <% } %>
