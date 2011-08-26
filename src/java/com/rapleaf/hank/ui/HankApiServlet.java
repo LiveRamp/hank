@@ -1,11 +1,13 @@
 package com.rapleaf.hank.ui;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.crypto.Data;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +15,8 @@ import org.json.JSONObject;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
 
 public class HankApiServlet extends HttpServlet {
@@ -127,13 +131,16 @@ public class HankApiServlet extends HttpServlet {
     Map<String, Object> domainData =  new HashMap<String, Object>();
     domainData.put("name", domain.getName());
     domainData.put("num_partitions", domain.getNumParts());
+    domainData.put("versions", getDomainVersionsMap(domain.getVersions()));
+    return domainData;
+  }
 
+  private Map<String, Object> getDomainVersionsMap(Collection<DomainVersion> domainVersions) throws IOException {
     Map<String, Object> versionsMap =  new HashMap<String, Object>();
-    for (DomainVersion v : domain.getVersions()){
+    for (DomainVersion v : domainVersions){
       versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainVersionData(v));
     }
-    domainData.put("versions", versionsMap);
-    return domainData;
+    return versionsMap;
   }
 
   private Map<String, Object> getDomainVersionData(DomainVersion version) throws IOException {
@@ -147,20 +154,49 @@ public class HankApiServlet extends HttpServlet {
     return versionData;
   }
 
+  private Map<String, Object> getDomainGroupVersionData(DomainGroupVersion version) throws IOException {
+    Map<String, Object> versionData =  new HashMap<String, Object>();
+    versionData.put("version_number", version.getVersionNumber());
+    versionData.put("version_number", version.getVersionNumber());
+    versionData.put("domain_versions", getDomainGroupVersionDomainVersionsMap(version.getDomainVersions()));
+
+    return versionData;
+  }
+
+  private Map<String, Object> getDomainGroupVersionDomainVersionsMap(Collection<DomainGroupVersionDomainVersion> versions) throws IOException {
+    Map<String, Object> versionsMap =  new HashMap<String, Object>();
+    for (DomainGroupVersionDomainVersion v : versions){
+      versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainGroupVersionDomainVersionData(v));
+    }
+    return versionsMap;
+  }
+
+  private Map<String, Object> getDomainGroupVersionDomainVersionData(DomainGroupVersionDomainVersion version) throws IOException {
+    Map<String, Object> data =  new HashMap<String, Object>();
+    data.put("version_number", version.getVersionNumber());
+    data.put("domain", getDomainData(version.getDomain()));
+    return data;
+  }
+
   private void addDomainGroupDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP));
     if (domainGroup != null){
-      Map<String, Object> domainData =  new HashMap<String, Object>();
-      domainData.put("name", domainGroup.getName());
+      Map<String, Object> groupData =  new HashMap<String, Object>();
+      groupData.put("name", domainGroup.getName());
 
       Map<String, Object> domainsMap =  new HashMap<String, Object>();
       for (Domain d : domainGroup.getDomains()){
         domainsMap.put(String.valueOf(d.getName()), getDomainData(d));
       }
-      domainData.put("domains", domainsMap);
+      groupData.put("domains", domainsMap);
 
+      Map<String, Object> versionsMap =  new HashMap<String, Object>();
+      for (DomainGroupVersion v : domainGroup.getVersions()){
+        versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainGroupVersionData(v));
+      }
+      groupData.put("versions", versionsMap);
 
-      responseData.put(domainGroup.getName(), domainData);
+      responseData.put(domainGroup.getName(), groupData);
     }
   }
 
