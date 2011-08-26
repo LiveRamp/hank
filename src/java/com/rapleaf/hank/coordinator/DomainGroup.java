@@ -64,6 +64,8 @@ public interface DomainGroup {
    */
   public DomainGroupVersion getLatestVersion() throws IOException;
 
+  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException;
+
   public void setListener(DomainGroupChangeListener listener);
 
   public void addDomain(Domain domain, int domainId) throws IOException;

@@ -11,6 +11,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.net.URL;
@@ -46,9 +47,15 @@ public class WebUiServer {
     webAppContext.setAttribute("coordinator", coordinator);
     webAppContext.setAttribute("clientCache", clientCache);
 
+    // API context
+    HankApiServlet apiServlet = new HankApiServlet(coordinator);
+    ServletHolder apiHolder = new ServletHolder(apiServlet);
+
     // get the controller servlet (for the "controller" methods)
     ServletContextHandler servletHandler = new ServletContextHandler();
     servletHandler.setContextPath("/");
+
+    servletHandler.addServlet(apiHolder, "/api");
 
     new DomainController("domain", coordinator).addServlet(servletHandler);
     new DomainGroupController("domain_group", coordinator).addServlet(servletHandler);
