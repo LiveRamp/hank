@@ -90,7 +90,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th><strong>Status</strong></th>
       <th><strong>Cur. Cmd.</strong></th>
       <th><strong>Queue</strong></th>
-      <th><strong>Utilities</strong></th>
+      <th><strong>Actions</strong></th>
     </tr>
     <%
       Collection<Host> hosts = sortedHosts(ring.getHosts());
@@ -107,7 +107,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
           <input type=hidden name="n" value="<%= ring.getRingNumber() %>"/>
           <input type=hidden name="h" value="<%= host.getAddress() %>"/>
-          <a href="javascript:document.forms['remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>'].submit();">remove from ring</a>
+          <a href="javascript:if (confirm('Are you sure you want to delete this host? This action cannot be undone!')) document.forms['remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>'].submit();">remove from ring</a>
         </form>
       </td>
     </tr>
