@@ -48,6 +48,10 @@ public class MockDomain extends AbstractDomain {
     this.storageEngineOptions = storageEngineOptions;
   }
 
+  public MockDomain(String domainName) {
+    this(domainName, 1, null, null, null, null);
+  }
+
   public String getName() {
     return name;
   }

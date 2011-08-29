@@ -15,22 +15,28 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
+
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersion;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
@@ -83,11 +89,11 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     return zk.exists(ZkPath.append(versionPath, COMPLETE_NODE_NAME), false) != null;
   }
 
-  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<String, Integer> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<Domain, Integer> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
     String actualPath = zk.create(ZkPath.append(versionsRoot, "v"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
-    for (Entry<String, Integer> entry : domainNameToVersion.entrySet()) {
-      zk.create(ZkPath.append(actualPath, entry.getKey()), (Integer.toString(entry.getValue())).getBytes());
+    for (Entry<Domain, Integer> entry : domainNameToVersion.entrySet()) {
+      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (Integer.toString(entry.getValue())).getBytes());
     }
     zk.create(ZkPath.append(actualPath, ".complete"), null);
     // touch it again to notify watchers

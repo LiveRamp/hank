@@ -15,7 +15,30 @@
  */
 package com.rapleaf.hank;
 
-import com.rapleaf.hank.cli.*;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.ByteBuffer;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
+import com.rapleaf.hank.cli.AddDomain;
+import com.rapleaf.hank.cli.AddDomainGroup;
+import com.rapleaf.hank.cli.AddDomainToDomainGroup;
+import com.rapleaf.hank.cli.AddRing;
+import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
@@ -25,12 +48,17 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -42,20 +70,6 @@ import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
@@ -293,9 +307,9 @@ public class IntegrationTest extends ZkTestCase {
     }
     assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
 
-    Map<String, Integer> versionMap = new HashMap<String, Integer>();
-    versionMap.put("domain0", 1);
-    versionMap.put("domain1", 1);
+    Map<Domain, Integer> versionMap = new HashMap<Domain, Integer>();
+    versionMap.put(coord.getDomain("domain0"), 1);
+    versionMap.put(coord.getDomain("domain1"), 1);
     domainGroup.createNewVersion(versionMap);
 
     // configure ring group
@@ -378,9 +392,9 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coord.getDomain("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
 
-    versionMap = new HashMap<String, Integer>();
-    versionMap.put("domain0", 1);
-    versionMap.put("domain1", 2);
+    versionMap = new HashMap<Domain, Integer>();
+    versionMap.put(coord.getDomain("domain0"), 1);
+    versionMap.put(coord.getDomain("domain1"), 2);
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 

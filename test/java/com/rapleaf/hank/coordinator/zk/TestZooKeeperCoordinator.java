@@ -82,7 +82,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddRingGroup() throws Exception {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
-    Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
+    Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
     dg.createNewVersion(domainIdToVersion);
     RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
@@ -109,7 +109,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
 
     ZkDomainGroup dgc = ZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup");
-    Map<String, Integer> domainIdToVersion = new HashMap<String, Integer>();
+    Map<Domain,Integer> domainIdToVersion = new HashMap<Domain, Integer>();
     dgc.createNewVersion(domainIdToVersion);
 
     ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc);

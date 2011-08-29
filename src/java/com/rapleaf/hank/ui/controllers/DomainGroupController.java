@@ -69,14 +69,14 @@ public class DomainGroupController extends Controller {
 
     DomainGroup dg = coordinator.getDomainGroup(dgName);
 
-    Map<String, Integer> domainVersions = new HashMap<String, Integer>();
+    Map<Domain, Integer> domainVersions = new HashMap<Domain, Integer>();
     for (Domain domain : dg.getDomains()) {
       String version = req.getParameter(domain.getName() + "_version");
       if (version == null) {
         throw new IOException("Version for domain " + domain.getName() + " was not specified.");
       }
       int v = Integer.parseInt(version);
-      domainVersions.put(domain.getName(), v);
+      domainVersions.put(domain, v);
     }
     dg.createNewVersion(domainVersions);
 

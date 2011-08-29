@@ -16,21 +16,23 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.KeeperException;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 
 public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
@@ -93,9 +95,9 @@ public class TestZkDomainGroup extends ZkTestCase {
 
     assertNull(listener.calledWith);
 
-    HashMap<String, Integer> versionMap = new HashMap<String, Integer>() {{
-      put("domain0", 1);
-      put("domain1", 3);
+    HashMap<Domain, Integer> versionMap = new HashMap<Domain, Integer>() {{
+      put(new MockDomain("domain0"), 1);
+      put(new MockDomain("domain1"), 3);
     }};
     dgc.createNewVersion(versionMap);
 

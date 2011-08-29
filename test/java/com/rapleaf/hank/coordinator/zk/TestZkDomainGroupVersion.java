@@ -92,9 +92,9 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   }
 
   public void testCreateNewSequential() throws Exception {
-    Map<String, Integer> map = new HashMap<String, Integer>();
-    map.put("domain1", 2);
-    map.put("domain4", 7);
+    Map<Domain, Integer> map = new HashMap<Domain, Integer>();
+    map.put(new MockDomain("domain1", 1, null, null, null, null), 2);
+    map.put(new MockDomain("domain4", 1, null, null, null, null), 7);
     DomainGroup dgc = new MockDomainGroup("blah");
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());

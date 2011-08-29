@@ -15,6 +15,33 @@
  */
 package com.rapleaf.hank;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.net.BindException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.Watcher.Event.KeeperState;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper.States;
+import org.apache.zookeeper.server.NIOServerCnxn;
+import org.apache.zookeeper.server.ZooKeeperServer;
+import org.apache.zookeeper.server.NIOServerCnxn.Factory;
+
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
@@ -27,27 +54,6 @@ import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper.States;
-import org.apache.zookeeper.server.NIOServerCnxn;
-import org.apache.zookeeper.server.NIOServerCnxn.Factory;
-import org.apache.zookeeper.server.ZooKeeperServer;
-
-import java.io.*;
-import java.net.BindException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
@@ -287,18 +293,18 @@ public class ZkTestCase extends BaseTestCase {
     g1.addDomain(d0, 0);
     g1.addDomain(d1, 1);
 
-    g1.createNewVersion(new HashMap<String, Integer>() {
+    g1.createNewVersion(new HashMap<Domain, Integer>() {
       {
-        put(d0.getName(), 1);
-        put(d1.getName(), 1);
+        put(d0, 1);
+        put(d1, 1);
       }
     });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
     g2.addDomain(d1, 0);
-    g2.createNewVersion(new HashMap<String, Integer>() {
+    g2.createNewVersion(new HashMap<Domain, Integer>() {
       {
-        put(d1.getName(), 1);
+        put(d1, 1);
       }
     });
 
