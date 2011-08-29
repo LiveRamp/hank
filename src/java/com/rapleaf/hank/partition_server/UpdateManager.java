@@ -141,7 +141,7 @@ class UpdateManager implements IUpdateManager {
           executor.execute(new UpdateToDo(engine,
               part.getPartNum(),
               exceptionQueue,
-              dgvdv.getVersionNumber(),
+              dgvdv.getVersionOrAction().getVersion(),
               part,
               domain.getName(),
               part.getUpdatingToDomainGroupVersion(),

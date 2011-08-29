@@ -19,6 +19,7 @@ import org.apache.zookeeper.KeeperException;
 
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
@@ -35,8 +36,8 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
   }
 
   @Override
-  public int getVersionNumber() {
-    return versionNumber;
+  public VersionOrAction getVersionOrAction() {
+    return new VersionOrAction(versionNumber);
   }
 
   @Override

@@ -77,14 +77,20 @@ public class DomainGroupController extends Controller {
         throw new IOException("Version for domain " + domain.getName() + " was not specified.");
       }
 
+      VersionOrAction v;
+
       // we want to allow domain groups with unassigned domains for the purpose
       // of removing them from the group
-      if (version == "unassign") {
-        throw new NotImplementedException();
+      if (version.equals("unassign")) {
+        v = new VersionOrAction(VersionOrAction.Action.UNASSIGN);
+      } else {
+        // plain ol' version assignment
+        v = new VersionOrAction(Integer.parseInt(version));
       }
 
-      domainVersions.put(domain, new VersionOrAction(Integer.parseInt(version)));
+      domainVersions.put(domain, v);
     }
+
     dg.createNewVersion(domainVersions);
 
     resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
