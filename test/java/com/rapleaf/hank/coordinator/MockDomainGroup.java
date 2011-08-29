@@ -64,7 +64,7 @@ public class MockDomainGroup extends AbstractDomainGroup {
   }
 
   public DomainGroupVersion createNewVersion(
-      Map<Domain, Integer> domainIdToVersion) {
+      Map<Domain,VersionOrAction> domainIdToVersion) {
     return null;
   }
 

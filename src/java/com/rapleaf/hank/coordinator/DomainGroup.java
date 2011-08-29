@@ -70,5 +70,5 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public void addDomain(Domain domain, int domainId) throws IOException;
 
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException;
+  public DomainGroupVersion createNewVersion(Map<Domain,VersionOrAction> domainNameToVersion) throws IOException;
 }

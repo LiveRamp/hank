@@ -15,13 +15,18 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-import com.rapleaf.hank.zookeeper.ZkPath;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
+import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
@@ -92,9 +97,9 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   }
 
   public void testCreateNewSequential() throws Exception {
-    Map<Domain, Integer> map = new HashMap<Domain, Integer>();
-    map.put(new MockDomain("domain1", 1, null, null, null, null), 2);
-    map.put(new MockDomain("domain4", 1, null, null, null, null), 7);
+    Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
+    map.put(new MockDomain("domain1", 1, null, null, null, null), new VersionOrAction(2));
+    map.put(new MockDomain("domain4", 1, null, null, null, null), new VersionOrAction(7));
     DomainGroup dgc = new MockDomainGroup("blah");
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());

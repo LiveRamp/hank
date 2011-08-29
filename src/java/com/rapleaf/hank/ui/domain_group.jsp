@@ -126,6 +126,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
           first = false;
           }
           %>
+          <option value="unassign">unassign</option>
         </select>
       </td>
     </tr>

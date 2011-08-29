@@ -19,6 +19,7 @@ package com.rapleaf.hank.coordinator.zk;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.apache.zookeeper.KeeperException;
 
@@ -27,6 +28,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -95,9 +97,9 @@ public class TestZkDomainGroup extends ZkTestCase {
 
     assertNull(listener.calledWith);
 
-    HashMap<Domain, Integer> versionMap = new HashMap<Domain, Integer>() {{
-      put(new MockDomain("domain0"), 1);
-      put(new MockDomain("domain1"), 3);
+    Map<Domain, VersionOrAction> versionMap = new HashMap<Domain, VersionOrAction>() {{
+      put(new MockDomain("domain0"), new VersionOrAction(1));
+      put(new MockDomain("domain1"), new VersionOrAction(3));
     }};
     dgc.createNewVersion(versionMap);
 

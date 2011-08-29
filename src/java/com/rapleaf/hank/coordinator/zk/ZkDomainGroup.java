@@ -36,6 +36,7 @@ import com.rapleaf.hank.coordinator.AbstractDomainGroup;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -191,7 +192,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<Domain,VersionOrAction> domainNameToVersion) throws IOException {
     try {
       DomainGroupVersion version = ZkDomainGroupVersion.create(zk, ZkPath.append(dgPath, "versions"),
           domainNameToVersion, this);

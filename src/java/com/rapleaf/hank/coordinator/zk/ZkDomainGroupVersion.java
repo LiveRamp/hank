@@ -35,6 +35,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
@@ -89,11 +90,11 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     return zk.exists(ZkPath.append(versionPath, COMPLETE_NODE_NAME), false) != null;
   }
 
-  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<Domain, Integer> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+  public static DomainGroupVersion create(ZooKeeperPlus zk, String versionsRoot, Map<Domain, VersionOrAction> domainNameToVersion, DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
     String actualPath = zk.create(ZkPath.append(versionsRoot, "v"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
-    for (Entry<Domain, Integer> entry : domainNameToVersion.entrySet()) {
-      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (Integer.toString(entry.getValue())).getBytes());
+    for (Entry<Domain, VersionOrAction> entry : domainNameToVersion.entrySet()) {
+      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (Integer.toString(entry.getValue().getVersion())).getBytes());
     }
     zk.create(ZkPath.append(actualPath, ".complete"), null);
     // touch it again to notify watchers
