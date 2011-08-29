@@ -64,6 +64,7 @@ class DomainAccessor {
    * @throws IOException
    */
   public HankResponse get(ByteBuffer key) throws IOException {
+    LOG.info("Domain GET");
     int partition = partitioner.partition(key, partitionAccessors.length);
     PartitionAccessor partitionAccessor = partitionAccessors[partition];
     if (partitionAccessor == null) {
@@ -79,10 +80,10 @@ class DomainAccessor {
   private class UpdateCounts implements Runnable {
     public void run() {
       while (keepUpdating) {
-        for (int i = 0; i < partitionAccessors.length; i++) {
-          if (partitionAccessors[i] != null) {
+        for (PartitionAccessor partitionAccessor : partitionAccessors) {
+          if (partitionAccessor != null) {
             try {
-              partitionAccessors[i].updateCounters();
+              partitionAccessor.updateGlobalCounters();
             } catch (IOException e) {
               LOG.error("Failed to update counter", e);
             }

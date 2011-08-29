@@ -82,18 +82,40 @@ class PartitionServerHandler implements IfaceWithShutdown {
       for (HostDomainPartition partition : partitions) {
         if (partition.getCurrentDomainGroupVersion() == null) {
           LOG.error(String.format(
-              "Could not load Reader for partition #%d because its current version is null.",
-              partition.getPartNum()));
+              "Could not load Reader for partition #%d of domain %s because the partition's current version is null.",
+              partition.getPartNum(), domain.getName()));
           continue;
         }
+
+        // Determine at which DomainVersion the partition should be
+        int domainGroupVersionDomainVersionNumber;
+        try {
+          DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(partition.getCurrentDomainGroupVersion());
+          if (domainGroupVersion == null) {
+            throw new IOException(String.format("Could not get version %d of DomainGroup %s.",
+                partition.getCurrentDomainGroupVersion(), domainGroup.getName()));
+          }
+          DomainGroupVersionDomainVersion domainGroupVersionDomainVersion = domainGroupVersion.getDomainVersion(domain.getName());
+          if (domainGroupVersionDomainVersion == null) {
+            throw new IOException(String.format("Could not get DomainVersion for domain %s in DomainGroupVersion %d.",
+                domain.getName(), domainGroupVersion.getVersionNumber()));
+          }
+          domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersionNumber();
+        } catch (Exception e) {
+          domainGroupVersionDomainVersionNumber = -1;
+          LOG.error(String.format("Could not determine at which DomainVersion partition #%d of domain %s should be.",
+              partition.getPartNum(), domain.getName()), e);
+        }
+
         Reader reader = engine.getReader(configurator, partition.getPartNum());
-        // Check that Reader's version number and current domain group version number matchte
-        if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(partition.getCurrentDomainGroupVersion())) {
-          LOG.error(String.format("Could not load Reader for partition %d because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
-              partition.getPartNum(), reader.getVersionNumber(), partition.getCurrentDomainGroupVersion()));
+        // Check that Reader's version number and current domain group version number match
+        if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
+          LOG.error(String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
+              partition.getPartNum(), domain.getName(), reader.getVersionNumber(), partition.getCurrentDomainGroupVersion()));
           reader = null;
         }
-        LOG.debug(String.format("Loaded partition accessor for partition #%d with Reader " + reader, partition.getPartNum()));
+        LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
+            partition.getPartNum(), domain.getName()));
         partitionAccessors[partition.getPartNum()] = new PartitionAccessor(partition, reader);
       }
       // configure and store the DomainAccessors

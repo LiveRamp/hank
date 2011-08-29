@@ -23,7 +23,7 @@ public class MockDomainGroupVersion extends AbstractDomainGroupVersion {
   private final Set<DomainGroupVersionDomainVersion> domainVersions;
 
   public MockDomainGroupVersion(Set<DomainGroupVersionDomainVersion> domainVersions,
-      DomainGroup dgc, int versionNumber) {
+                                DomainGroup dgc, int versionNumber) {
     this.domainVersions = domainVersions;
     this.dgc = dgc;
     this.versionNumber = versionNumber;
