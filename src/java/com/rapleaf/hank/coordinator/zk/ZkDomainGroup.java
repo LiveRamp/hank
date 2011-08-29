@@ -191,10 +191,10 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion createNewVersion(Map<String, Integer> domainIdToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<String, Integer> domainNameToVersion) throws IOException {
     try {
       DomainGroupVersion version = ZkDomainGroupVersion.create(zk, ZkPath.append(dgPath, "versions"),
-          domainIdToVersion, this);
+          domainNameToVersion, this);
       domainGroupVersions.put(version.getVersionNumber(), version);
       return version;
     } catch (Exception e) {
