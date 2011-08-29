@@ -20,18 +20,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 
 public class HankApiServlet extends HttpServlet {
 
-  public static class HankApiRequestData {
-    private Map<String, Object> params;
-
-    public HankApiRequestData(Map<String, Object> params) {
-      this.params = params;
-    }
-
-    public Map<String, Object> getParams() {
-      return params;
-    }
-  }
-
   public static class PARAMS {
     public static final String DOMAIN = "domain";
     public static final String DOMAIN_VERSION = "domain_version";
@@ -65,7 +53,7 @@ public class HankApiServlet extends HttpServlet {
 
     try {
       // Parse request data
-      HankApiRequestData requestData = getRequestData(request);
+      Map<String, Object> requestData = parseRequestParams(request, PARAMS.getParamKeys());
       Map<String, Object> responseData = getResponseData(requestData);
       responseBody = getJsonResponseBody(responseData).toString();
     } catch (Exception e) {
@@ -76,11 +64,6 @@ public class HankApiServlet extends HttpServlet {
     response.setContentType(JSON_FORMAT);
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().print(responseBody);
-  }
-
-  protected HankApiRequestData getRequestData(HttpServletRequest request) {
-    Map<String, Object> requestParams = parseRequestParams(request, PARAMS.getParamKeys());
-    return new HankApiRequestData(requestParams);
   }
 
   protected Map<String, Object> parseRequestParams(HttpServletRequest request, String[] paramKeys) {
@@ -96,18 +79,17 @@ public class HankApiServlet extends HttpServlet {
     return params;
   }
 
-  public Map<String, Object> getResponseData(HankApiRequestData requestData) throws IOException {
+  public Map<String, Object> getResponseData(Map<String, Object> requestData) throws IOException {
     Map<String, Object> responseData =  new HashMap<String, Object>();
-    Map params = requestData.getParams();
-    if (params.containsKey(PARAMS.DOMAIN)) {
-      if (params.containsKey(PARAMS.DOMAIN_VERSION)) {
+    if (requestData.containsKey(PARAMS.DOMAIN)) {
+      if (requestData.containsKey(PARAMS.DOMAIN_VERSION)) {
         addDomainVersionDataToResponse(requestData, responseData);
       } else {
         addDomainDataToResponse(requestData, responseData);
       }
     }
-    if (params.containsKey(PARAMS.DOMAIN_GROUP)){
-      if (params.containsKey(PARAMS.DOMAIN_GROUP_VERSION)) {
+    if (requestData.containsKey(PARAMS.DOMAIN_GROUP)){
+      if (requestData.containsKey(PARAMS.DOMAIN_GROUP_VERSION)) {
         addDomainGroupVersionDataToResponse(requestData, responseData);
       } else {
         addDomainGroupDataToResponse(requestData, responseData);
@@ -116,17 +98,17 @@ public class HankApiServlet extends HttpServlet {
     return responseData;
   }
 
-  private void addDomainDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.getParams().get(PARAMS.DOMAIN));
+  private void addDomainDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    Domain domain = coordinator.getDomain((String) requestData.get(PARAMS.DOMAIN));
     if (domain != null){
       responseData.put(domain.getName(), getDomainData(domain));
     }
   }
 
-  private void addDomainVersionDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.getParams().get(PARAMS.DOMAIN));
+  private void addDomainVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    Domain domain = coordinator.getDomain((String) requestData.get(PARAMS.DOMAIN));
     try {
-      DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.getParams().get(PARAMS.DOMAIN_VERSION)));
+      DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.get(PARAMS.DOMAIN_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainVersionData(version));
     } catch (Exception ignored){} // No data added, but no harm done
   }
@@ -182,8 +164,8 @@ public class HankApiServlet extends HttpServlet {
     return data;
   }
 
-  private void addDomainGroupDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
-    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP));
+  private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(PARAMS.DOMAIN_GROUP));
     if (domainGroup != null){
       Map<String, Object> groupData =  new HashMap<String, Object>();
       groupData.put("name", domainGroup.getName());
@@ -204,10 +186,10 @@ public class HankApiServlet extends HttpServlet {
     }
   }
 
-  private void addDomainGroupVersionDataToResponse(HankApiRequestData requestData, Map<String, Object> responseData) throws IOException {
-    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP));
+  private void addDomainGroupVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(PARAMS.DOMAIN_GROUP));
     try {
-      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.getParams().get(PARAMS.DOMAIN_GROUP_VERSION)));
+      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.get(PARAMS.DOMAIN_GROUP_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainGroupVersionData(version));
     } catch (Exception ignored){} // No data added, but no harm done
   }
