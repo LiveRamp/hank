@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkDomainGroupVersionDomainVersion extends ZkTestCase {
@@ -26,9 +27,15 @@ public class TestZkDomainGroupVersionDomainVersion extends ZkTestCase {
     super();
   }
 
-  public void testLoad() throws Exception {
+  public void testLoad1() throws Exception {
     create(path, "7");
     DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
     assertEquals(7, dcv.getVersionOrAction().getVersion());
+  }
+
+  public void testLoad2() throws Exception {
+    create(path, "UNASSIGN");
+    DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
+    assertEquals(VersionOrAction.Action.UNASSIGN, dcv.getVersionOrAction().getAction());
   }
 }

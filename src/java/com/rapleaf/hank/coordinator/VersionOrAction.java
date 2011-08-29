@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.util.regex.Pattern;
+
 public class VersionOrAction {
   public enum Action {
     UNASSIGN
@@ -28,5 +30,48 @@ public class VersionOrAction {
 
   public Action getAction() {
     return action;
+  }
+
+  public static VersionOrAction parse(String s) {
+    if (Pattern.compile("\\d*").matcher(s).matches()) {
+      return new VersionOrAction(Integer.parseInt(s));
+    }
+    return new VersionOrAction(Action.valueOf(s));
+  }
+
+  @Override
+  public String toString() {
+    return "VersionOrAction [action=" + action + ", version=" + version + "]";
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((action == null) ? 0 : action.hashCode());
+    result = prime * result + ((version == null) ? 0 : version.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    VersionOrAction other = (VersionOrAction) obj;
+    if (action == null) {
+      if (other.action != null)
+        return false;
+    } else if (!action.equals(other.action))
+      return false;
+    if (version == null) {
+      if (other.version != null)
+        return false;
+    } else if (!version.equals(other.version))
+      return false;
+    return true;
   }
 }

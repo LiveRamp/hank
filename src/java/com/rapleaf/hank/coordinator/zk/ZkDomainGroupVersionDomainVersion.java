@@ -24,10 +24,10 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
   private final Domain domain;
-  private final int versionNumber;
+  private final VersionOrAction versionOrAction;
   public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domain) throws KeeperException, InterruptedException {
     this.domain = domain;
-    versionNumber = zk.getInt(path);
+    versionOrAction = VersionOrAction.parse(zk.getString(path));
   }
 
   @Override
@@ -37,12 +37,12 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
 
   @Override
   public VersionOrAction getVersionOrAction() {
-    return new VersionOrAction(versionNumber);
+    return versionOrAction;
   }
 
   @Override
   public String toString() {
     return "ZkDomainConfigVersion [domain=" + domain
-        + ", versionNumber=" + versionNumber + "]";
+        + ", versionNumber=" + versionOrAction + "]";
   }
 }
