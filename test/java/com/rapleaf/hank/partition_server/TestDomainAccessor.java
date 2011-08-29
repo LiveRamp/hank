@@ -24,18 +24,18 @@ public class TestDomainAccessor extends BaseTestCase {
     drs.get(key);
     drs.get(nullKey);
 
-    assertEquals(partitionAccessors[0].getRequests(), 2l);
-    assertEquals(partitionAccessors[0].getHits(), 1l);
+    assertEquals(2l, partitionAccessors[0].getRequestsCount());
+    assertEquals(1l, partitionAccessors[0].getHitsCount());
 
-    assertEquals(partitionAccessors[0].getHostDomainPartition().getCount("Requests in last minute").intValue(), 0);
-    assertEquals(partitionAccessors[0].getHostDomainPartition().getCount("Hits in last minute").intValue(), 0);
+    assertEquals(0, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_REQUESTED_COUNTER_NAME).intValue());
+    assertEquals(0, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_FOUND_COUNTER_NAME).intValue());
 
     Thread.sleep(3000);
 
-    assertEquals(partitionAccessors[0].getRequests(), 0l);
-    assertEquals(partitionAccessors[0].getHits(), 0l);
+    assertEquals(0l, partitionAccessors[0].getRequestsCount());
+    assertEquals(0l, partitionAccessors[0].getHitsCount());
 
-    assertEquals(partitionAccessors[0].getHostDomainPartition().getCount("Requests in last minute").intValue(), 2);
-    assertEquals(partitionAccessors[0].getHostDomainPartition().getCount("Hits in last minute").intValue(), 1);
+    assertEquals(2, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_REQUESTED_COUNTER_NAME).intValue());
+    assertEquals(1, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_FOUND_COUNTER_NAME).intValue());
   }
 }

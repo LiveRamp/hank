@@ -18,6 +18,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PartitionAccessor {
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
   private static final Logger LOG = Logger.getLogger(PartitionAccessor.class);
+  protected static final String KEYS_REQUESTED_COUNTER_NAME = "Keys requested in last minute";
+  protected static final String KEYS_FOUND_COUNTER_NAME = "Keys found in last minute";
+
   private final HostDomainPartition partition;
   private final Reader reader;
   private final AtomicLong requests;
@@ -42,6 +45,7 @@ public class PartitionAccessor {
 
   public HankResponse get(ByteBuffer key) throws IOException {
     // Increment requests counter
+    LOG.info("Partition GET");
     requests.incrementAndGet();
     if (reader == null) {
       throw new IOException("No Reader is set up.");
@@ -57,20 +61,20 @@ public class PartitionAccessor {
     }
   }
 
-  public long getRequests() {
+  public long getRequestsCount() {
     return requests.get();
   }
 
-  public long getHits() {
+  public long getHitsCount() {
     return hits.get();
   }
 
-  public void updateCounters() throws IOException {
-    updateCounter(requests, "Requests in last minute");
-    updateCounter(hits, "Hits in last minute");
+  public void updateGlobalCounters() throws IOException {
+    updateGlobalCounter(requests, KEYS_REQUESTED_COUNTER_NAME);
+    updateGlobalCounter(hits, KEYS_FOUND_COUNTER_NAME);
   }
 
-  private void updateCounter(AtomicLong counter, String counterName)
+  private void updateGlobalCounter(AtomicLong counter, String counterName)
       throws IOException {
     long count = counter.get();
     partition.setCount(counterName, count);

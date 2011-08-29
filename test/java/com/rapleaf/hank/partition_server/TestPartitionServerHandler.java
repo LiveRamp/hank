@@ -113,10 +113,10 @@ public class TestPartitionServerHandler extends BaseTestCase {
     };
     Domain domain = new MockDomain("myDomain", 5, partitioner, storageEngine, null,
         null);
-    MockDomainGroupVersionDomainVersion dcv = new MockDomainGroupVersionDomainVersion(
+    MockDomainGroupVersionDomainVersion dgvdv = new MockDomainGroupVersionDomainVersion(
         domain, 1);
     final MockDomainGroupVersion dgv = new MockDomainGroupVersion(
-        Collections.singleton((DomainGroupVersionDomainVersion) dcv), null, 1);
+        Collections.singleton((DomainGroupVersionDomainVersion) dgvdv), null, 1);
 
     final MockDomainGroup dg = new MockDomainGroup("myDomainGroup") {
       @Override
@@ -128,6 +128,12 @@ public class TestPartitionServerHandler extends BaseTestCase {
       public Integer getDomainId(String domainName) {
         assertEquals("myDomain", domainName);
         return 0;
+      }
+
+      @Override
+      public DomainGroupVersion getVersionByNumber(int versionNumber) {
+        assertEquals(1, versionNumber);
+        return dgv;
       }
     };
     final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null);

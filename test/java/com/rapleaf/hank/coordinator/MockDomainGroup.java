@@ -69,7 +69,6 @@ public class MockDomainGroup extends AbstractDomainGroup {
   }
 
   public Set<Domain> getDomains() throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 }
