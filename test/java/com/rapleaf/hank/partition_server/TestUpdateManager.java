@@ -239,7 +239,7 @@ public class TestUpdateManager extends BaseTestCase {
 
   private static DomainGroupVersion getMockDomainGroupConfigVersion(
       final StorageEngine mockStorageEngine) {
-    final MockDomain domain = new MockDomain("myDomain", 1,
+    final MockDomain domain = new MockDomain("myDomain", 1, 1,
         new ConstantPartitioner(), mockStorageEngine, null, null) {
       @Override
       public SortedSet<DomainVersion> getVersions() {
