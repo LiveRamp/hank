@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.data_deployer.DataDeployer;
@@ -191,6 +193,10 @@ public class IntegrationTest extends ZkTestCase {
     create(domainGroupsRoot);
     create(ringGroupsRoot);
 
+    Configurator config = new YamlClientConfigurator(clientConfigYml);
+
+    Coordinator coord = config.getCoordinator();
+
     PrintWriter pw = new PrintWriter(new FileWriter(clientConfigYml));
     pw.println("coordinator:");
     pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
@@ -202,7 +208,8 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("    ring_groups_root: " + ringGroupsRoot);
     pw.close();
 
-    pw = new PrintWriter(new FileWriter(domain0OptsYml));
+    StringWriter sw = new StringWriter();
+    pw = new PrintWriter(sw);
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
@@ -211,16 +218,10 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("remote_domain_root: " + DOMAIN_0_DATAFILES);
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
     pw.close();
-    AddDomain.main(new String[]{
-        "--name", "domain0",
-        "--num-parts", "2",
-        "--storage-engine-factory", Curly.Factory.class.getName(),
-        "--storage-engine-options", domain0OptsYml,
-        "--partitioner", Murmur64Partitioner.class.getName(),
-        "--config", clientConfigYml,
-        "--initial-version", "1"});
+    coord.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
-    pw = new PrintWriter(new FileWriter(domain1OptsYml));
+    sw = new StringWriter();
+    pw = new PrintWriter(sw);
     pw.println("key_hash_size: 10");
     pw.println("hasher: " + Murmur64Hasher.class.getName());
     pw.println("max_allowed_part_size: " + 1024 * 1024);
@@ -230,18 +231,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
     pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
     pw.close();
-    AddDomain.main(new String[]{
-        "--name", "domain1",
-        "--num-parts", "2",
-        "--storage-engine-factory", Curly.Factory.class.getName(),
-        "--storage-engine-options", domain1OptsYml,
-        "--partitioner", Murmur64Partitioner.class.getName(),
-        "--config", clientConfigYml,
-        "--initial-version", "1"});
-
-    Configurator config = new YamlClientConfigurator(clientConfigYml);
-
-    Coordinator coord = config.getCoordinator();
+    coord.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
     // write a base version of each domain
     Map<ByteBuffer, ByteBuffer> domain0DataItems = new HashMap<ByteBuffer, ByteBuffer>();
@@ -269,27 +259,9 @@ public class IntegrationTest extends ZkTestCase {
     writeOut(coord.getDomain("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
 
     // configure domain group
-    AddDomainGroup.main(new String[]{
-        "--name", "dg1",
-        "--config", clientConfigYml,
-    });
+    final DomainGroup dg1 = coord.addDomainGroup("dg1");
 
     LOG.debug("-------- domain is created --------");
-
-    // add our domains
-    AddDomainToDomainGroup.main(new String[]{
-        "--domain-group", "dg1",
-        "--domain", "domain0",
-        "--id", "0",
-        "--config", clientConfigYml,
-    });
-
-    AddDomainToDomainGroup.main(new String[]{
-        "--domain-group", "dg1",
-        "--domain", "domain1",
-        "--id", "1",
-        "--config", clientConfigYml,
-    });
 
     // simulate publisher pushing out a new version
     DomainGroup domainGroup = null;
@@ -309,27 +281,17 @@ public class IntegrationTest extends ZkTestCase {
     domainGroup.createNewVersion(versionMap);
 
     // configure ring group
-    AddRingGroup.main(new String[]{
-        "--ring-group", "rg1",
-        "--domain-group", "dg1",
-        "--config", clientConfigYml,
-    });
+    final RingGroup rg1 = coord.addRingGroup("rg1", "dg1");
 
     // add ring 1
-    AddRing.main(new String[]{
-        "--ring-group", "rg1",
-        "--ring-number", "1",
-        "--hosts", "localhost:50000,localhost:50001",
-        "--config", clientConfigYml,
-    });
+    final Ring rg1r1 = rg1.addRing(1);
+    rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"));
+    rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"));
 
     // add ring 2
-    AddRing.main(new String[]{
-        "--ring-group", "rg1",
-        "--ring-number", "2",
-        "--hosts", "localhost:50002,localhost:50003",
-        "--config", clientConfigYml,
-    });
+    final Ring rg1r2 = rg1.addRing(2);
+    rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"));
+    rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"));
 
     // launch 2x 2-node rings
     startDaemons(new PartitionServerAddress("localhost", 50000));
