@@ -19,12 +19,6 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 
 public abstract class AbstractDomain implements Domain {
-  private int id;
-
-  protected AbstractDomain(int id) {
-    this.id = id;
-  }
-
   public DomainVersion getOpenedVersion() throws IOException {
     if (getVersions().isEmpty()) {
       return null;
@@ -59,10 +53,5 @@ public abstract class AbstractDomain implements Domain {
   @Override
   public int compareTo(Domain other) {
     return getName().compareTo(other.getName());
-  }
-
-  @Override
-  public int getId() {
-    return id;
   }
 }

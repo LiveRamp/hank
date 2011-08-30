@@ -64,7 +64,7 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
     zk.create(ZkPath.append(domainPath, ".complete"), null);
-    return new ZkDomain(zk, domainPath, id);
+    return new ZkDomain(zk, domainPath);
   }
 
   public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName, int id) throws IOException, InterruptedException, KeeperException {
@@ -79,11 +79,10 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
-    return new ZkDomain(zk, domainPath, id);
+    return new ZkDomain(zk, domainPath);
   }
 
-  public ZkDomain(ZooKeeperPlus zk, String domainPath, int id) throws KeeperException, InterruptedException {
-    super(id);
+  public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
     this.name = ZkPath.getFilename(domainPath);

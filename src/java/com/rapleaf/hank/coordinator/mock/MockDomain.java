@@ -33,6 +33,7 @@ public class MockDomain extends AbstractDomain {
   private final StorageEngine storageEngine;
   private DomainVersion version;
   private final Map<String, Object> storageEngineOptions;
+  private final int id;
 
   public MockDomain(String name,
                     int id,
@@ -41,8 +42,8 @@ public class MockDomain extends AbstractDomain {
                     StorageEngine storageEngine,
                     Map<String, Object> storageEngineOptions,
                     DomainVersion version) {
-    super(id);
     this.name = name;
+    this.id = id;
     this.numParts = numParts;
     this.part = part;
     this.storageEngine = storageEngine;
@@ -93,5 +94,10 @@ public class MockDomain extends AbstractDomain {
 
   public DomainVersion openNewVersion() throws IOException {
     return version;
+  }
+
+  @Override
+  public int getId() {
+    return id;
   }
 }

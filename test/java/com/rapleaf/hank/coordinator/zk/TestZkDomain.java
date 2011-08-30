@@ -28,7 +28,7 @@ public class TestZkDomain extends ZkTestCase {
   private static final String STORAGE_ENGINE_OPTS = "---\n";
 
   public void testCreate() throws Exception {
-    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
     assertEquals("domain0", dc.getName());
     assertEquals(1024, dc.getNumParts());
     assertEquals(ConstantStorageEngine.Factory.class.getName(), dc.getStorageEngineFactoryName());
@@ -39,7 +39,7 @@ public class TestZkDomain extends ZkTestCase {
   }
 
   public void testLoad() throws Exception {
-    ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
     ZkDomain dc = new ZkDomain(getZk(), ZkPath.append(getRoot(), "domain0"));
 
     assertEquals("domain0", dc.getName());
@@ -52,7 +52,7 @@ public class TestZkDomain extends ZkTestCase {
   }
 
   public void testVersioning() throws Exception {
-    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER);
+    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER, 0);
 
     assertTrue(dc.getVersions().isEmpty());
 
@@ -72,7 +72,7 @@ public class TestZkDomain extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
     assertNotNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
     assertTrue(dc.delete());
     assertNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
