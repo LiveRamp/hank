@@ -25,6 +25,7 @@ import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
@@ -106,6 +107,41 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     assertEquals(2, ver.getDomainVersions().size());
     ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(1, ver.getVersionNumber());
+  }
+
+  public void testCreateNewUnassign() throws Exception {
+    Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
+    final Domain d1 = new MockDomain("domain1", 1, null, null, null, null);
+    final Domain d2 = new MockDomain("domain4", 1, null, null, null, null);
+    map.put(d1, new VersionOrAction(2));
+    map.put(d2, new VersionOrAction(Action.UNASSIGN));
+    DomainGroup dgc = new MockDomainGroup("blah") {
+      @Override
+      public Domain getDomain(int domainId) {
+        if (domainId == 0) {
+          return d1;
+        }
+        if (domainId == 1) {
+          return d2;
+        }
+        throw new IllegalStateException();
+      }
+
+      @Override
+      public Integer getDomainId(String domainName) {
+        if (domainName.equals("domain1")) {
+          return 0;
+        } else {
+          return 1;
+        }
+      }
+    };
+    dgc.addDomain(d1, 0);
+    dgc.addDomain(d2, 1);
+    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
+    assertEquals(0, ver.getVersionNumber());
+    assertEquals(ver.getDomainVersion("domain1").getVersionOrAction(), new VersionOrAction(2));
+    assertEquals(ver.getDomainVersion("domain4").getVersionOrAction(), new VersionOrAction(Action.UNASSIGN));
   }
 
   private void version(int versionNumber, int... pairs) throws Exception {

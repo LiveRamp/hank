@@ -21,7 +21,7 @@ public class VersionOrAction {
   }
 
   public boolean isAction() {
-    return action == null;
+    return action != null;
   }
 
   public int getVersion() {
@@ -73,5 +73,12 @@ public class VersionOrAction {
     } else if (!version.equals(other.version))
       return false;
     return true;
+  }
+
+  public String encode() {
+    if (isAction()) {
+      return action.toString();
+    }
+    return Integer.toString(version);
   }
 }

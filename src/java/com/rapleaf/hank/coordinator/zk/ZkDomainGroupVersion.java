@@ -94,7 +94,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     // grab the next possible version number
     String actualPath = zk.create(ZkPath.append(versionsRoot, "v"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
     for (Entry<Domain, VersionOrAction> entry : domainNameToVersion.entrySet()) {
-      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (Integer.toString(entry.getValue().getVersion())).getBytes());
+      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (entry.getValue().encode()).getBytes());
     }
     zk.create(ZkPath.append(actualPath, ".complete"), null);
     // touch it again to notify watchers

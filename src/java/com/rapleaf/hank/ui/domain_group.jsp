@@ -153,7 +153,14 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
       <%
         for (DomainGroupVersionDomainVersion dcv : new TreeSet<DomainGroupVersionDomainVersion>(dgcv.getDomainVersions())) {
       %>
-      <li><%=dcv.getDomain().getName()%> @ v<%=dcv.getVersionOrAction()))%></li>
+      <li>
+        <%=dcv.getDomain().getName()%>
+        <% if (dcv.getVersionOrAction().isAction()) { %>
+        (unassigned)
+        <% } else { %>
+        @ v<%= dcv.getVersionOrAction().getVersion() %>
+        <% } %>
+      </li>
       <% } %>
     </ul>
   </li>
