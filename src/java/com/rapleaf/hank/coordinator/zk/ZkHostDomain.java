@@ -15,17 +15,18 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.apache.zookeeper.KeeperException;
+
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {

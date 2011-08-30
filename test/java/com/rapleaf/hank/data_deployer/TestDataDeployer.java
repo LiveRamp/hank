@@ -24,6 +24,7 @@ import junit.framework.TestCase;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
@@ -43,6 +44,7 @@ import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
@@ -55,28 +57,40 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testTriggersUpdates() throws Exception {
+    final MockDomain domain = new MockDomain("domain");
+
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupVersion getLatestVersion() {
-        return new MockDomainGroupVersion(null, null, 2);
+        return new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)new MockDomainGroupVersionDomainVersion(domain, 1)), null, 2);
+      }
+
+      @Override
+      public Domain getDomain(int domainId) {
+        return domain;
       }
     };
 
-    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0, 1);
+    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0,
+      1);
 
     final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain)new AbstractHostDomain() {
+        return Collections.singleton((HostDomain) new AbstractHostDomain() {
           @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+            return null;
+          }
 
           @Override
-          public int getDomainId() {return 0;}
+          public int getDomainId() {
+            return 0;
+          }
 
           @Override
           public Set<HostDomainPartition> getPartitions() {
-            return Collections.singleton((HostDomainPartition)mockHostDomainPartitionConfig);
+            return Collections.singleton((HostDomainPartition) mockHostDomainPartitionConfig);
           }
         });
       }
@@ -85,11 +99,12 @@ public class TestDataDeployer extends TestCase {
     final MockRing mockRingConfig = new MockRing(null, null, 1, null) {
       @Override
       public Set<Host> getHosts() {
-        return Collections.singleton((Host)mockHostConfig);
+        return Collections.singleton((Host) mockHostConfig);
       }
     };
 
-    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
+      Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -102,7 +117,7 @@ public class TestDataDeployer extends TestCase {
 
       @Override
       public Set<Ring> getRings() {
-        return Collections.singleton((Ring)mockRingConfig);
+        return Collections.singleton((Ring) mockRingConfig);
       }
     };
 
@@ -119,7 +134,7 @@ public class TestDataDeployer extends TestCase {
 
       @Override
       public Coordinator getCoordinator() {
-        return new MockCoordinator(){
+        return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {
             return mockRingGroupConf;
@@ -138,35 +153,48 @@ public class TestDataDeployer extends TestCase {
   }
 
   public void testProcessesUnassignDomains() throws Exception {
+    final MockDomain domain = new MockDomain("domain");
+
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupVersion getLatestVersion() {
-        final MockDomainGroupVersionDomainVersion dv = new MockDomainGroupVersionDomainVersion(null, 1) {
+        final MockDomainGroupVersionDomainVersion dv = new MockDomainGroupVersionDomainVersion(domain, 1) {
           @Override
           public VersionOrAction getVersionOrAction() {
             return new VersionOrAction(Action.UNASSIGN);
           }
         };
 
-        return new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)dv), null, 2);
+        return new MockDomainGroupVersion(
+          Collections.singleton((DomainGroupVersionDomainVersion) dv), null, 2);
+      }
+
+      @Override
+      public Domain getDomain(int domainId) {
+        return domain;
       }
     };
 
-    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0, 1);
+    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0,
+      1);
 
     final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain)new AbstractHostDomain() {
+        return Collections.singleton((HostDomain) new AbstractHostDomain() {
           @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+            return null;
+          }
 
           @Override
-          public int getDomainId() {return 0;}
+          public int getDomainId() {
+            return 0;
+          }
 
           @Override
           public Set<HostDomainPartition> getPartitions() {
-            return Collections.singleton((HostDomainPartition)mockHostDomainPartitionConfig);
+            return Collections.singleton((HostDomainPartition) mockHostDomainPartitionConfig);
           }
         });
       }
@@ -175,11 +203,12 @@ public class TestDataDeployer extends TestCase {
     final MockRing mockRingConfig = new MockRing(null, null, 1, null) {
       @Override
       public Set<Host> getHosts() {
-        return Collections.singleton((Host)mockHostConfig);
+        return Collections.singleton((Host) mockHostConfig);
       }
     };
 
-    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
+      Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -192,7 +221,7 @@ public class TestDataDeployer extends TestCase {
 
       @Override
       public Set<Ring> getRings() {
-        return Collections.singleton((Ring)mockRingConfig);
+        return Collections.singleton((Ring) mockRingConfig);
       }
     };
 
@@ -209,7 +238,7 @@ public class TestDataDeployer extends TestCase {
 
       @Override
       public Coordinator getCoordinator() {
-        return new MockCoordinator(){
+        return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {
             return mockRingGroupConf;
@@ -235,7 +264,8 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
+      Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -265,7 +295,7 @@ public class TestDataDeployer extends TestCase {
 
       @Override
       public Coordinator getCoordinator() {
-        return new MockCoordinator(){
+        return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {
             return mockRingGroupConf;

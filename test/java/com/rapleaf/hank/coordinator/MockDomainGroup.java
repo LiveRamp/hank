@@ -21,11 +21,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
+import org.apache.commons.lang.NotImplementedException;
+
 public class MockDomainGroup extends AbstractDomainGroup {
   private final String name;
   private final Map<Domain, Integer> domains = new HashMap<Domain, Integer>();
 
   public MockDomainGroup(String name) {
+    super(null);
     this.name = name;
   }
 
@@ -73,5 +76,10 @@ public class MockDomainGroup extends AbstractDomainGroup {
 
   public Set<Domain> getDomains() throws IOException {
     return domains.keySet();
+  }
+
+  @Override
+  public boolean removeDomain(Domain domain) throws IOException {
+    throw new NotImplementedException();
   }
 }

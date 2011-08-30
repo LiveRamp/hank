@@ -15,15 +15,27 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-import java.io.IOException;
-import java.util.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -225,7 +237,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         String dgPath = ZkPath.append(domainGroupsRoot, domainGroupName);
         boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
-          domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath));
+          domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath, this));
         } else {
           LOG.debug("Not opening domain group " + dgPath
               + " because it was incomplete.");
@@ -290,7 +302,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
-      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name);
+      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, null);
       synchronized (domainGroups) {
         domainGroups.put(name, dgc);
       }

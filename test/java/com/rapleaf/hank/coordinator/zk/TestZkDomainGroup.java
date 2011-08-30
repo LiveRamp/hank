@@ -68,7 +68,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
     create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");
 
-    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root);
+    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root, null);
 
     assertEquals(1, dgc.getVersions().size());
     assertEquals(1, ((DomainGroupVersion) dgc.getVersions().toArray()[0]).getVersionNumber());
@@ -82,7 +82,7 @@ public class TestZkDomainGroup extends ZkTestCase {
   }
 
   public void testDomainsAndListener() throws Exception {
-    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup");
+    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", null);
     MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
     dgc.setListener(listener);
     assertNull(listener.calledWith);
@@ -111,7 +111,7 @@ public class TestZkDomainGroup extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup");
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", null);
     assertNotNull(getZk().exists(dg.getPath(), false));
     assertTrue(dg.delete());
     assertNull(getZk().exists(dg.getPath(), false));

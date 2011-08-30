@@ -140,8 +140,8 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     dgc.addDomain(d2, 1);
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
-    assertEquals(ver.getDomainVersion("domain1").getVersionOrAction(), new VersionOrAction(2));
-    assertEquals(ver.getDomainVersion("domain4").getVersionOrAction(), new VersionOrAction(Action.UNASSIGN));
+    assertEquals(ver.getDomainVersion(d1).getVersionOrAction(), new VersionOrAction(2));
+    assertEquals(ver.getDomainVersion(d2).getVersionOrAction(), new VersionOrAction(Action.UNASSIGN));
   }
 
   private void version(int versionNumber, int... pairs) throws Exception {

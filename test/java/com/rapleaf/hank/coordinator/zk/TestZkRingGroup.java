@@ -56,7 +56,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testVersionStuff() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
     DomainGroupVersion version = dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg);
     dumpZk();
@@ -68,7 +68,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testListener() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg);
     rg.updateComplete();
@@ -102,7 +102,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testClaimDataDeployer() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg);
     create(ZkPath.append(ring_group, "data_deployer_online"));
@@ -115,7 +115,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah");
+    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah", null);
     assertNotNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));
     assertTrue(dg.delete());
     assertNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));

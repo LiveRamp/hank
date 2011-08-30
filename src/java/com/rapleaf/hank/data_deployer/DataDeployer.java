@@ -133,7 +133,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         for (Ring ring : ringGroup.getRings()) {
           for (Host host : ring.getHosts()) {
             for (HostDomain hd : host.getAssignedDomains()) {
-              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(domainGroup.getDomain(hd.getDomainId()).getName());
+              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(domainGroup.getDomain(hd.getDomainId()));
               for (HostDomainPartition hdp : hd.getPartitions()) {
                 // if the dgvdv is tagged as an action instead of as a version
                 // number, then we should take action rather than just update

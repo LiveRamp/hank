@@ -29,5 +29,12 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
 
   public Set<DomainGroupVersionDomainVersion> getDomainVersions();
 
-  public DomainGroupVersionDomainVersion getDomainVersion(String domainName);
+  /**
+   * Get the DomainGroupVersionDomainVersion from this DomainGroupVersion that
+   * corresponds to the given Domain.
+   * 
+   * @param domain
+   * @return
+   */
+  public DomainGroupVersionDomainVersion getDomainVersion(Domain domain);
 }

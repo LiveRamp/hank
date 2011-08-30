@@ -40,12 +40,14 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
     <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
     <td><%=domainGroup.getDomainId(domain.getName())%></td>
     <td>
+      <% if (domainGroup.isDomainRemovable(domain)) { %>
       <form action="/domain_group/unassign" method=post>
         <input type=hidden name="n" value="<%= domainGroup.getName() %>"/>
         <input type=hidden name="domain" value="<%= domain.getName() %>"/>
-        <input type=submit value="Unassign"
+        <input type=submit value="Remove from domain group"
           onclick="return confirm('Are you sure you want to remove domain <%= domain.getName() %> from this domain group? This action cannot be undone automatically.');"/>
       </form>
+      <% } %>
     </td>
   </tr>
   <%
@@ -55,12 +57,8 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 
 <%
   Set<Domain> s = new TreeSet<Domain>(coord.getDomains());
-%>
-<%
   s.removeAll(domainGroup.getDomains());
-%>
 
-<%
   if (!s.isEmpty()) {
 %>
 <form action="/domain_group/add_domain" method=post>

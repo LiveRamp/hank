@@ -34,6 +34,25 @@ public interface DomainGroup extends Comparable<DomainGroup> {
   public Set<Domain> getDomains() throws IOException;
 
   /**
+   * Check if a Domain that was previously assigned to this domain group is
+   * currently removable, that is, there are no ring groups with any rings with
+   * any host that has any partition from this domain assigned.
+   * 
+   * @param domain
+   * @return
+   * @throws IOException
+   */
+  public boolean isDomainRemovable(Domain domain) throws IOException;
+
+  /**
+   * Remove the requested domain from this domain group.
+   * @param domain
+   * @return
+   * @throws IOException
+   */
+  public boolean removeDomain(Domain domain) throws IOException;
+
+  /**
    * Get the DomainConfig for the domain with <i>domainId</i>
    * @param domainId
    * @return

@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -33,6 +34,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.rapleaf.hank.coordinator.AbstractDomainGroup;
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
@@ -79,8 +81,9 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   private final String dgPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainGroup(ZooKeeperPlus zk, String dgPath)
+  public ZkDomainGroup(ZooKeeperPlus zk, String dgPath, Coordinator coordinator)
       throws InterruptedException, KeeperException, IOException {
+    super(coordinator);
     this.zk = zk;
     this.dgPath = dgPath;
     this.groupName = ZkPath.getFilename(dgPath);
@@ -192,10 +195,10 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion createNewVersion(Map<Domain,VersionOrAction> domainNameToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<Domain, VersionOrAction> domainNameToVersion) throws IOException {
     try {
-      DomainGroupVersion version = ZkDomainGroupVersion.create(zk, ZkPath.append(dgPath, "versions"),
-          domainNameToVersion, this);
+      DomainGroupVersion version = ZkDomainGroupVersion.create(zk,
+        ZkPath.append(dgPath, "versions"), domainNameToVersion, this);
       domainGroupVersions.put(version.getVersionNumber(), version);
       return version;
     } catch (Exception e) {
@@ -231,18 +234,24 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
+  public boolean removeDomain(Domain domain) throws IOException {
+    throw new NotImplementedException();
+  }
+
+  @Override
   public String toString() {
     return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domains=" + domainsById
         + ", domainGroupVersions=" + domainGroupVersions + ", groupName=" + groupName + "]";
   }
 
-  public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName) throws InterruptedException, KeeperException, IOException {
+  public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName, Coordinator coord) throws InterruptedException, KeeperException, IOException {
     String domainGroupPath = ZkPath.append(dgRoot, domainGroupName);
     zk.create(domainGroupPath, null);
     zk.create(ZkPath.append(domainGroupPath, "versions"), null);
     zk.create(ZkPath.append(domainGroupPath, "domains"), null);
     zk.create(ZkPath.append(domainGroupPath, ".complete"), null);
-    zk.setData(domainGroupPath, new byte[]{1}, -1);
-    return new ZkDomainGroup(zk, domainGroupPath);
+    zk.setData(domainGroupPath, new byte[] { 1 }, -1);
+    return new ZkDomainGroup(zk, domainGroupPath, coord);
   }
+
 }
