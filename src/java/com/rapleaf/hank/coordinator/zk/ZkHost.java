@@ -89,7 +89,10 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  public static ZkHost create(ZooKeeperPlus zk, String root, PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
+  public static ZkHost create(ZooKeeperPlus zk,
+                              Coordinator coordinator,
+                              String root,
+                              PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
     String hostPath = ZkPath.append(root, partitionServerAddress.toString());
     LOG.trace("creating host " + hostPath);
     zk.create(hostPath, null);
@@ -97,7 +100,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMPLETE_PATH_SEGMENT), null);
-    return new ZkHost(zk, hostPath);
+    return new ZkHost(zk, coordinator, hostPath);
   }
 
   private final ZooKeeperPlus zk;
@@ -111,7 +114,7 @@ public class ZkHost extends AbstractHost {
   private final CommandQueueWatcher commandQueueWatcher;
   private final WatchedMap<ZkHostDomain> domains;
 
-  public ZkHost(ZooKeeperPlus zk, String hostPath) throws KeeperException, InterruptedException {
+  public ZkHost(ZooKeeperPlus zk, final Coordinator coordinator, String hostPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
@@ -123,7 +126,7 @@ public class ZkHost extends AbstractHost {
       @Override
       public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (!basePath.equals(".complete")) {
-          return new ZkHostDomain(zk, basePath, Integer.parseInt(relPath));
+          return new ZkHostDomain(zk, basePath, coordinator.getDomain(relPath));
         }
         return null;
       }
@@ -202,14 +205,14 @@ public class ZkHost extends AbstractHost {
   @Override
   public HostDomain addDomain(Domain domain) throws IOException {
     try {
-      if (domains.containsKey(Integer.toString(domain))) {
+      if (domains.containsKey(domain.getName())) {
         throw new IOException("Domain " + domain + " is already assigned to this host!");
       }
     } catch (Exception e) {
       throw new IOException(e);
     }
     ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain);
-    domains.put(Integer.toString(domain), hdc);
+    domains.put(domain.getName(), hdc);
     return hdc;
   }
 
