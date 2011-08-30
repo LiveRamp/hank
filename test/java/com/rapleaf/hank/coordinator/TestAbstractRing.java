@@ -122,8 +122,8 @@ public class TestAbstractRing extends BaseTestCase {
       }
 
       @Override
-      public HostDomain getDomainById(int domainId) {
-        return domainId == 0 ? hd1 : null;
+      public HostDomain getHostDomain(Domain domain) {
+        return domain == 0 ? hd1 : null;
       }
     };
     SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {

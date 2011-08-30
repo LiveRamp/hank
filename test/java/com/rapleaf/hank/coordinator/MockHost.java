@@ -31,7 +31,7 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public HostDomain addDomain(int domainId) throws IOException {
+  public HostDomain addDomain(Domain domain) throws IOException {
     return null;
   }
 
@@ -46,7 +46,7 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public HostDomain getDomainById(int domainId) {
+  public HostDomain getHostDomain(Domain domain) {
     return null;
   }
 

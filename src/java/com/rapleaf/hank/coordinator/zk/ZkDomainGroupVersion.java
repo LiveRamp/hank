@@ -66,7 +66,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     for (String child : children) {
       if (!child.equals(COMPLETE_NODE_NAME)) {
         domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, ZkPath.append(versionPath, child),
-            domainGroup.getDomain(domainGroup.getDomainId(child))));
+            domainGroup.getHostDomain(domainGroup.getDomainId(child))));
       }
     }
   }

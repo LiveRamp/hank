@@ -22,7 +22,7 @@ import java.util.Set;
  * Info about a given host's view of a domain.
  */
 public interface HostDomain extends Comparable<HostDomain> {
-  public int getDomainId();
+  public Domain getDomain();
 
   public Set<HostDomainPartition> getPartitions() throws IOException;
 

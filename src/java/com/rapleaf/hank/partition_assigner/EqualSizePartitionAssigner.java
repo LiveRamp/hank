@@ -31,7 +31,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     random = new Random();
 
     for (Host host : ring.getHosts()) {
-      if (host.getDomainById(domainId) == null)
+      if (host.getHostDomain(domainId) == null)
         host.addDomain(domainId);
     }
 
@@ -82,7 +82,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     HostDomain minHostDomain = null;
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getDomainById(domainId);
+      HostDomain hostDomain = host.getHostDomain(domainId);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions < minNumPartitions) {
         minHostDomain = hostDomain;
@@ -97,7 +97,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     HostDomain maxHostDomain = null;
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getDomainById(domainId);
+      HostDomain hostDomain = host.getHostDomain(domainId);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions > maxNumPartitions) {
         maxHostDomain = hostDomain;

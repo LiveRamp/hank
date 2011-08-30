@@ -120,18 +120,18 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Add a new domain to this host.
-   * @param domainId
+   * @param domain
    * @return
    * @throws IOException
    */
-  public HostDomain addDomain(int domainId) throws IOException;
+  public HostDomain addDomain(Domain domain) throws IOException;
 
   /**
    * Get the HostDomainConfig for the provided domainId.
-   * @param domainId
+   * @param domain
    * @return
    */
-  public HostDomain getDomainById(int domainId);
+  public HostDomain getHostDomain(Domain domain);
 
   /**
    * Get the aggregate count of a counter across all HostDomainPartitions

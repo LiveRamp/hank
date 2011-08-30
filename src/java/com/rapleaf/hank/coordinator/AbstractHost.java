@@ -42,11 +42,11 @@ public abstract class AbstractHost implements Host {
   }
 
   @Override
-  public HostDomain getDomainById(int domainId) {
+  public HostDomain getHostDomain(Domain domain) {
     // TODO: this should be done with a map and caching
     try {
       for (HostDomain hdc : getAssignedDomains()) {
-        if (hdc.getDomainId() == domainId) {
+        if (hdc.getDomain() == domain) {
           return hdc;
         }
       }

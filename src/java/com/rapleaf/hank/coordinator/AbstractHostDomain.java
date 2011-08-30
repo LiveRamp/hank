@@ -7,7 +7,7 @@ import java.util.Set;
 public abstract class AbstractHostDomain implements HostDomain {
   @Override
   public int compareTo(HostDomain arg0) {
-    return Integer.valueOf(getDomainId()).compareTo(arg0.getDomainId());
+    return Integer.valueOf(getDomain()).compareTo(arg0.getDomain());
   }
 
   @Override

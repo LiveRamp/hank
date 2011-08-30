@@ -47,7 +47,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
       new PartitionServerAddress("localhost", 12345)) {
 
     @Override
-    public HostDomain getDomainById(int domainId) {
+    public HostDomain getHostDomain(Domain domain) {
       return new AbstractHostDomain() {
         @Override
         public HostDomainPartition addPartition(int partNum, int initialVersion) {
@@ -55,7 +55,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         }
 
         @Override
-        public int getDomainId() {
+        public Domain getDomain() {
           return 0;
         }
 

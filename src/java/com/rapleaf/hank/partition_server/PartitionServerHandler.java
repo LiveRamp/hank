@@ -78,7 +78,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
       int domainId = domainGroup.getDomainId(domain.getName());
       Set<HostDomainPartition> partitions = ringConfig
-          .getHostByAddress(address).getDomainById(domainId)
+          .getHostByAddress(address).getHostDomain(domainId)
           .getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));

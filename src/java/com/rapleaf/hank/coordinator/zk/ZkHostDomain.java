@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.zookeeper.KeeperException;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -68,7 +69,7 @@ public class ZkHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public int getDomainId() {
+  public Domain getDomain() {
     return domainId;
   }
 

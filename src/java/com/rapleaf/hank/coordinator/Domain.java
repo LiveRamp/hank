@@ -29,6 +29,8 @@ import com.rapleaf.hank.storage.StorageEngineFactory;
 public interface Domain extends Comparable<Domain> {
   public String getName();
 
+  public int getId();
+
   /**
    * The number of partitions this domain is configured for.
    * 

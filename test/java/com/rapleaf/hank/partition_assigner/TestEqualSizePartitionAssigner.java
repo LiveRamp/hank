@@ -74,21 +74,21 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
 
   private final static Host host1 = new MockHost(pda1) {
     @Override
-    public HostDomain getDomainById(int domainId) {
+    public HostDomain getHostDomain(Domain domain) {
       return hostDomain1;
     }
   };
 
   private final static Host host2 = new MockHost(pda2) {
     @Override
-    public HostDomain getDomainById(int domainId) {
+    public HostDomain getHostDomain(Domain domain) {
       return hostDomain2;
     }
   };
 
   private final static Host host3 = new MockHost(pda3) {
     @Override
-    public HostDomain getDomainById(int domainId) {
+    public HostDomain getHostDomain(Domain domain) {
       return hostDomain3;
     }
   };
@@ -231,7 +231,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     HostDomain minHostDomain = null;
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getDomainById(domainId);
+      HostDomain hostDomain = host.getHostDomain(domainId);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions < minNumPartitions) {
         minHostDomain = hostDomain;
@@ -246,7 +246,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     HostDomain maxHostDomain = null;
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getDomainById(domainId);
+      HostDomain hostDomain = host.getHostDomain(domainId);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions > maxNumPartitions) {
         maxHostDomain = hostDomain;
@@ -261,7 +261,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     HashSet<Integer> partNums = new HashSet<Integer>();
 
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getDomainById(domainId);
+      HostDomain hostDomain = host.getHostDomain(domainId);
       for (HostDomainPartition hdp : hostDomain.getPartitions()) {
         int partNum = hdp.getPartNum();
         if (partNums.contains(partNum))

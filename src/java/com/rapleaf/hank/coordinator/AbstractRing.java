@@ -24,7 +24,7 @@ public abstract class AbstractRing implements Ring {
   public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
     Set<Host> results = new HashSet<Host>();
     for (Host host : getHosts()) {
-      HostDomain domainById = host.getDomainById(domainId);
+      HostDomain domainById = host.getHostDomain(domainId);
       for (HostDomainPartition hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
           results.add(host);
@@ -71,7 +71,7 @@ public abstract class AbstractRing implements Ring {
     }
 
     for (Host hc : getHosts()) {
-      HostDomain hdc = hc.getDomainById(domainId);
+      HostDomain hdc = hc.getHostDomain(domainId);
       if (hdc == null) {
         continue;
       }

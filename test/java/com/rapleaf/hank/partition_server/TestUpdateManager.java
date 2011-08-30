@@ -28,6 +28,7 @@ import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
@@ -173,7 +174,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     @Override
-    public int getDomainId() {
+    public Domain getDomain() {
       return 1;
     }
 
@@ -186,7 +187,7 @@ public class TestUpdateManager extends BaseTestCase {
   private static final Host mockHostConfig = new MockHost(
       new PartitionServerAddress("localhost", 1)) {
     @Override
-    public HostDomain getDomainById(int domainId) {
+    public HostDomain getHostDomain(Domain domain) {
       return hostDomain;
     }
   };

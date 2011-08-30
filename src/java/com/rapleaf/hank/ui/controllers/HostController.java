@@ -95,7 +95,7 @@ public class HostController extends Controller {
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     int dId = Integer.parseInt(req.getParameter("domainId"));
-    HostDomain d = hc.getDomainById(dId);
+    HostDomain d = hc.getHostDomain(dId);
     if (d == null) {
       d = hc.addDomain(dId);
     }
@@ -109,7 +109,7 @@ public class HostController extends Controller {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
     Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    HostDomain dc = hc.getDomainById(Integer.parseInt(req.getParameter("d")));
+    HostDomain dc = hc.getHostDomain(Integer.parseInt(req.getParameter("d")));
     HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
     pd.setDeletable(deletable);
 

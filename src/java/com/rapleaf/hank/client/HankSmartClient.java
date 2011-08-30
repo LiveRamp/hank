@@ -88,7 +88,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         for (HostDomain hdc : host.getAssignedDomains()) {
-          Map<Integer, List<PartitionServerAddress>> domainMap = domainPartToHostList.get(hdc.getDomainId());
+          Map<Integer, List<PartitionServerAddress>> domainMap = domainPartToHostList.get(hdc.getDomain());
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
             List<PartitionServerAddress> partList = domainMap.get(hdcp.getPartNum());
             partList.add(host.getAddress());
@@ -133,7 +133,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     if (domainId != null) {
       Domain domain;
       try {
-        domain = domainGroup.getDomain(domainId);
+        domain = domainGroup.getHostDomain(domainId);
       } catch (IOException e) {
         // TODO: this might be bad.
         LOG.error(e);

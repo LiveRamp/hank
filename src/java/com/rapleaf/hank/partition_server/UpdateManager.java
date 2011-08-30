@@ -121,7 +121,7 @@ class UpdateManager implements IUpdateManager {
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainGroup.getDomainId(domain.getName());
-      for (HostDomainPartition part : hostConfig.getDomainById(domainId).getPartitions()) {
+      for (HostDomainPartition part : hostConfig.getHostDomain(domainId).getPartitions()) {
         if (part.isDeletable()) {
           Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
           deleter.delete();

@@ -226,7 +226,7 @@ public class TestHankSmartClient extends BaseTestCase {
           }
 
           @Override
-          public int getDomainId() {
+          public Domain getDomain() {
             return 1;
           }
 

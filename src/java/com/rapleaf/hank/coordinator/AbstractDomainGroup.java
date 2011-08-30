@@ -22,7 +22,7 @@ public abstract class AbstractDomainGroup implements DomainGroup {
       if (rg.getDomainGroup().equals(this)) {
         for (Ring r : rg.getRings()) {
           for (Host h : r.getHosts()) {
-            if (h.getDomainById(domainId).getPartitions().size() > 0) {
+            if (h.getHostDomain(domainId).getPartitions().size() > 0) {
               return false;
             }
           }

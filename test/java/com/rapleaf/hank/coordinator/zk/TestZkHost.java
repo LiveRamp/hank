@@ -161,9 +161,9 @@ public class TestZkHost extends ZkTestCase {
 
     c.addDomain(0);
     HostDomain hostDomainConf = (HostDomain) c.getAssignedDomains().toArray()[0];
-    assertEquals(0, hostDomainConf.getDomainId());
+    assertEquals(0, hostDomainConf.getDomain());
 
-    assertEquals(0, c.getDomainById(0).getDomainId());
+    assertEquals(0, c.getHostDomain(0).getDomain());
   }
 
   public void testDuplicateDomainAdd() throws Exception {

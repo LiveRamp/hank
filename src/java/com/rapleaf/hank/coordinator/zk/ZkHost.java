@@ -200,16 +200,16 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public HostDomain addDomain(int domainId) throws IOException {
+  public HostDomain addDomain(Domain domain) throws IOException {
     try {
-      if (domains.containsKey(Integer.toString(domainId))) {
-        throw new IOException("Domain " + domainId + " is already assigned to this host!");
+      if (domains.containsKey(Integer.toString(domain))) {
+        throw new IOException("Domain " + domain + " is already assigned to this host!");
       }
     } catch (Exception e) {
       throw new IOException(e);
     }
-    ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domainId);
-    domains.put(Integer.toString(domainId), hdc);
+    ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain);
+    domains.put(Integer.toString(domain), hdc);
     return hdc;
   }
 

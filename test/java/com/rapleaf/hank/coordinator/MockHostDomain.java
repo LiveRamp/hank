@@ -25,7 +25,7 @@ public class MockHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public int getDomainId() {
+  public Domain getDomain() {
     return domainId;
   }
 
