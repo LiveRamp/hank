@@ -66,31 +66,31 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
 
   public void testLoad() throws Exception {
     version(1, 1, 1);
-    ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), versionPath(1), mockDomainGroup);
+    ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), null, versionPath(1), mockDomainGroup);
     assertEquals(1, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(2, 1, 2);
-    dgcv = new ZkDomainGroupVersion(getZk(), versionPath(2), mockDomainGroup);
+    dgcv = new ZkDomainGroupVersion(getZk(), null, versionPath(2), mockDomainGroup);
     assertEquals(2, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(3, 1, 3);
-    dgcv = new ZkDomainGroupVersion(getZk(), versionPath(3), mockDomainGroup);
+    dgcv = new ZkDomainGroupVersion(getZk(), null, versionPath(3), mockDomainGroup);
     assertEquals(3, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(4, 1, 3, 2, 1);
-    dgcv = new ZkDomainGroupVersion(getZk(), versionPath(4), mockDomainGroup);
+    dgcv = new ZkDomainGroupVersion(getZk(), null, versionPath(4), mockDomainGroup);
     assertEquals(4, dgcv.getVersionNumber());
     assertEquals(2, dgcv.getDomainVersions().size());
 
     try {
       create(versionPath(5));
-      dgcv = new ZkDomainGroupVersion(getZk(), versionPath(5), mockDomainGroup);
+      dgcv = new ZkDomainGroupVersion(getZk(), null, versionPath(5), mockDomainGroup);
       fail("should have thrown an error");
     } catch (IllegalStateException e) {
       // success!
@@ -102,10 +102,10 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     map.put(new MockDomain("domain1", 0, 1, null, null, null, null), new VersionOrAction(2));
     map.put(new MockDomain("domain4", 1, 1, null, null, null, null), new VersionOrAction(7));
     DomainGroup dgc = new MockDomainGroup("blah");
-    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
+    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), null, getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(2, ver.getDomainVersions().size());
-    ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
+    ver = ZkDomainGroupVersion.create(getZk(), null, getRoot(), map, dgc);
     assertEquals(1, ver.getVersionNumber());
   }
 
@@ -136,7 +136,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
         }
       }
     };
-    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
+    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), null, getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(ver.getDomainVersion(d1).getVersionOrAction(), new VersionOrAction(2));
     assertEquals(ver.getDomainVersion(d2).getVersionOrAction(), new VersionOrAction(Action.UNASSIGN));
