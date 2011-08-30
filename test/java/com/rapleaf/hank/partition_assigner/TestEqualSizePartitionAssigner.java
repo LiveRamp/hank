@@ -1,6 +1,7 @@
 package com.rapleaf.hank.partition_assigner;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,10 +24,13 @@ import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
 public class TestEqualSizePartitionAssigner extends BaseTestCase {
+  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
+  private static final Domain domain = new MockDomain("TestDomain", 20, null, null, null, version);
 
   private static HashSet<Integer> unassigned = new HashSet<Integer>();
   private static HashSet<Integer> partsOn1 = new HashSet<Integer>();
@@ -104,7 +108,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
   static {
     try {
       for (Host host : hosts) {
-        host.addDomain(0);
+        host.addDomain(domain);
       }
     } catch (Exception e) {
       fail(e.getMessage());
@@ -192,12 +196,9 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     rings.add(ring);
   }
 
-  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
-  private static final Domain domain = new MockDomain("TestDomain", 20, null, null, null, version);
-
   static {
     try {
-      domainGroup.addDomain(domain, 0);
+      domainGroup.createNewVersion(new HashMap<Domain, VersionOrAction>() {{put(domain, new VersionOrAction(0));}});
     } catch (IOException e) {
       fail(e.getMessage());
     }
@@ -205,7 +206,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
 
   public void testPartitioner() throws Exception {
     // Initially unbalanced
-    assertEquals(false, assignmentsBalanced(ring, 0));
+    assertEquals(false, assignmentsBalanced(ring, domain));
 
     // Balance
     PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
@@ -213,25 +214,25 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     partitionAssigner.assign(ringGroup, 0, domain);
 
     // Now balanced
-    assertEquals(true, assignmentsBalanced(ring, 0));
+    assertEquals(true, assignmentsBalanced(ring, domain));
 
     // No dups
-    assertEquals(true, noDuplicates(ring, 0));
+    assertEquals(true, noDuplicates(ring, domain));
   }
 
-  private boolean assignmentsBalanced(Ring ring, int domainId) throws IOException {
-    HostDomain maxHostDomain = getMaxHostDomain(ring, domainId);
-    HostDomain minHostDomain = getMinHostDomain(ring, domainId);
+  private boolean assignmentsBalanced(Ring ring, Domain domain) throws IOException {
+    HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
+    HostDomain minHostDomain = getMinHostDomain(ring, domain);
     int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
         - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
-  private HostDomain getMinHostDomain(Ring ring, int domainId) throws IOException {
+  private HostDomain getMinHostDomain(Ring ring, Domain domain) throws IOException {
     HostDomain minHostDomain = null;
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getHostDomain(domainId);
+      HostDomain hostDomain = host.getHostDomain(domain);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions < minNumPartitions) {
         minHostDomain = hostDomain;
@@ -242,11 +243,11 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     return minHostDomain;
   }
 
-  private HostDomain getMaxHostDomain(Ring ring, int domainId) throws IOException {
+  private HostDomain getMaxHostDomain(Ring ring, Domain domain) throws IOException {
     HostDomain maxHostDomain = null;
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getHostDomain(domainId);
+      HostDomain hostDomain = host.getHostDomain(domain);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions > maxNumPartitions) {
         maxHostDomain = hostDomain;
@@ -257,7 +258,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     return maxHostDomain;
   }
 
-  private boolean noDuplicates(Ring ring, int domainId) throws IOException {
+  private boolean noDuplicates(Ring ring, Domain domainId) throws IOException {
     HashSet<Integer> partNums = new HashSet<Integer>();
 
     for (Host host : ring.getHosts()) {
