@@ -130,9 +130,9 @@ public class TestHankSmartClient extends BaseTestCase {
 
     final MockRing mockRingConfig = new MockRing(null, null, 1, RingState.UP) {
       @Override
-      public Set<Host> getHostsForDomainPartition(int domainId, int partition)
+      public Set<Host> getHostsForDomainPartition(Domain domain, int partition)
           throws IOException {
-        assertEquals(1, domainId);
+        assertEquals(1, domain.getId());
         if (partition == 0) {
           return Collections.singleton(hostConfig1);
         } else if (partition == 1) {
@@ -148,7 +148,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomain existentDomain = new MockDomain("existent_domain", 2,
+    final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
         new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
     MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
