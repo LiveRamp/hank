@@ -15,34 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Map.Entry;
-
-import org.apache.commons.lang.NotImplementedException;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.coordinator.AbstractDomainGroup;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.*;
 
 public class ZkDomainGroup extends AbstractDomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -120,22 +105,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public Domain getDomain(int domainId) {
-    return domainsById.get(Integer.toString(domainId));
-  }
-
-  @Override
-  public Integer getDomainId(String domainName) {
-    // TODO: replace this with an inverted map
-    for (Entry<String, ZkDomain> entry : domainsById.entrySet()) {
-      if (entry.getValue().getName().equals(domainName)) {
-        return Integer.parseInt(entry.getKey());
-      }
-    }
-    return null;
-  }
-
-  @Override
   public DomainGroupVersion getLatestVersion() throws IOException {
     SortedMap<Integer, DomainGroupVersion> vers;
     try {
@@ -180,25 +149,10 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public void addDomain(Domain domain, int domainId) throws IOException {
-    String path = ZkPath.append(dgPath, "domains", Integer.toString(domainId));
-    try {
-      if (zk.exists(path, false) != null) {
-        throw new IllegalArgumentException("Domain ID " + domainId + " is already assigned!");
-      }
-      String domainPath = ((ZkDomain) domain).getPath();
-      zk.create(path, domainPath.getBytes());
-      domainsById.put(Integer.toString(domainId), new ZkDomain(zk, domainPath));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
   public DomainGroupVersion createNewVersion(Map<Domain, VersionOrAction> domainNameToVersion) throws IOException {
     try {
       DomainGroupVersion version = ZkDomainGroupVersion.create(zk,
-        ZkPath.append(dgPath, "versions"), domainNameToVersion, this);
+          ZkPath.append(dgPath, "versions"), domainNameToVersion, this);
       domainGroupVersions.put(version.getVersionNumber(), version);
       return version;
     } catch (Exception e) {
@@ -212,11 +166,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
 
   public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
     return zk.exists(ZkPath.append(path, ".complete"), false) != null;
-  }
-
-  @Override
-  public Set<Domain> getDomains() throws IOException {
-    return new HashSet<Domain>(domainsById.values());
   }
 
   public boolean delete() throws IOException {
@@ -234,11 +183,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public boolean removeDomain(Domain domain) throws IOException {
-    throw new NotImplementedException();
-  }
-
-  @Override
   public String toString() {
     return "ZkDomainGroupConfig [dgPath=" + dgPath + ", domains=" + domainsById
         + ", domainGroupVersions=" + domainGroupVersions + ", groupName=" + groupName + "]";
@@ -250,7 +194,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     zk.create(ZkPath.append(domainGroupPath, "versions"), null);
     zk.create(ZkPath.append(domainGroupPath, "domains"), null);
     zk.create(ZkPath.append(domainGroupPath, ".complete"), null);
-    zk.setData(domainGroupPath, new byte[] { 1 }, -1);
+    zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroup(zk, domainGroupPath, coord);
   }
 
