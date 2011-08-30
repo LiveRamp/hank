@@ -31,6 +31,7 @@ import java.util.concurrent.*;
  * Manages the domain update process.
  */
 class UpdateManager implements IUpdateManager {
+  private static final int TERMINATION_CHECK_TIMEOUT_MS = 1000;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class UpdateToDo implements Runnable {
@@ -146,15 +147,21 @@ class UpdateManager implements IUpdateManager {
     }
 
     try {
+      // Wait for all tasks to finish
       boolean terminated = false;
       executor.shutdown();
       while (!terminated) {
         LOG.debug("Waiting for update executor to complete...");
-        terminated = executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
-        if (!exceptionQueue.isEmpty()) {
-          LOG.fatal("An UpdateToDo encountered an exception:", exceptionQueue.poll());
-          throw new RuntimeException("Failed to complete update!");
+        terminated = executor.awaitTermination(TERMINATION_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      // Detect failed tasks
+      if (!exceptionQueue.isEmpty()) {
+        LOG.fatal(String.format("%d exceptions encountered while running UpdateToDo:", exceptionQueue.size()));
+        int i = 0;
+        for (Throwable t : exceptionQueue) {
+          LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
         }
+        throw new RuntimeException("Failed to complete update!");
       }
     } catch (InterruptedException e) {
       LOG.debug("Interrupted while waiting for update to complete. Terminating.");
