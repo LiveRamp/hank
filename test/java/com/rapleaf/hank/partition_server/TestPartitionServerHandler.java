@@ -56,7 +56,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
         @Override
         public Domain getDomain() {
-          return 0;
+          return null;
         }
 
         @Override
