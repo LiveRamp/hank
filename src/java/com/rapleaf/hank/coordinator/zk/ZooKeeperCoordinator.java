@@ -24,6 +24,7 @@ import org.apache.zookeeper.WatchedEvent;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -266,6 +267,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public Set<RingGroup> getRingGroups() {
     return new HashSet<RingGroup>(ringGroupConfigs.values());
+  }
+
+  @Override
+  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName) {
+    Set<RingGroup> groups = new HashSet<RingGroup>();
+    for (RingGroup group : ringGroupConfigs.values()){
+      if (group.getDomainGroup().getName().equals(domainGroupName)) {
+        groups.add(group);
+      }
+    }
+    return groups;
   }
 
   public void onDomainGroupChange(DomainGroup newDomainGroup) {

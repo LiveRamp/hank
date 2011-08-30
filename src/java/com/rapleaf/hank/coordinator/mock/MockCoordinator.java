@@ -71,6 +71,10 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName) {
+    return null;
+  }
+
   public Map<String, Object> getInitOptions() {
     return options;
   }

@@ -126,6 +126,12 @@ public interface Coordinator {
   public Set<RingGroup> getRingGroups();
 
   /**
+   * @param domainGroupName
+   * @return
+   */
+  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName);
+
+  /**
    * @param ringGroupName
    * @return configuration information on the specified ring group
    */
