@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
@@ -112,9 +113,10 @@ public class TestAbstractRing extends BaseTestCase {
   }
 
   public void testGetHostsForDomainPartition() throws Exception {
+    final Domain d0 = new MockDomain("d0");
     final Host hc = new MockHost(LOCALHOST) {
-      HostDomain hd1 = new MockHostDomain(0, 1, 1, 2, 2, 2, 2);
-      HostDomain hd2 = new MockHostDomain(1, 1, 2, 2, 2, 2, 2);
+      HostDomain hd1 = new MockHostDomain(d0, 0, 1, 1, 2, 2, 2, 2);
+      HostDomain hd2 = new MockHostDomain(null, 0, 1, 2, 2, 2, 2, 2);
 
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
@@ -133,9 +135,9 @@ public class TestAbstractRing extends BaseTestCase {
       }
     };
 
-    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(0, 1));
-    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(0, 2));
-    assertEquals(Collections.EMPTY_SET, ringConf.getHostsForDomainPartition(0, 3));
+    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(d0, 1));
+    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(d0, 2));
+    assertEquals(Collections.EMPTY_SET, ringConf.getHostsForDomainPartition(d0, 3));
   }
 
   public void testGetHostsInState() throws Exception {
