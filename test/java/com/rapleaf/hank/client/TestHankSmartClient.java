@@ -15,26 +15,51 @@
  */
 package com.rapleaf.hank.client;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
+
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
+import com.rapleaf.hank.coordinator.MockRing;
+import com.rapleaf.hank.coordinator.MockRingGroup;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.partitioner.MapPartitioner;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
@@ -227,7 +252,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
           @Override
           public Domain getDomain() {
-            return 1;
+            return null;
           }
 
           @Override
