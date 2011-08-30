@@ -6,10 +6,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -231,28 +233,29 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addDomainDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN));
-    if (domain != null) {
-      Set<DomainGroup> domainGroups = coordinator.getDomainGroupsForDomain(domain.getName());
-      for (DomainGroup domainGroup : domainGroups) {
-        Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup.getName());
-
-        for (RingGroup ringGroup : ringGroups) {
-          Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-          Integer currentDomainGroupVersion = ringGroup.getCurrentVersion();
-          addDomainVersionToRingGroupMap("current_version", domain, domainGroup, ringGroupMap, currentDomainGroupVersion);
-
-          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersion();
-          addDomainVersionToRingGroupMap("updating_to_version", domain, domainGroup, ringGroupMap, updatedToDomainGroupVersion);
-          responseData.put(ringGroup.getName(), ringGroupMap);
-        }
-      }
-    }
+    throw new NotImplementedException("This method needs to be reimplemented to work with the new API");
+//    Domain domain = coordinator.getDomain((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN));
+//    if (domain != null) {
+//      Set<DomainGroup> domainGroups = coordinator.getDomainGroupsForDomain(domain);
+//      for (DomainGroup domainGroup : domainGroups) {
+//        Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup.getName());
+//
+//        for (RingGroup ringGroup : ringGroups) {
+//          Map<String, Object> ringGroupMap = new HashMap<String, Object>();
+//          Integer currentDomainGroupVersion = ringGroup.getCurrentVersion();
+//          addDomainVersionToRingGroupMap("current_version", domain, domainGroup, ringGroupMap, currentDomainGroupVersion);
+//
+//          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersion();
+//          addDomainVersionToRingGroupMap("updating_to_version", domain, domainGroup, ringGroupMap, updatedToDomainGroupVersion);
+//          responseData.put(ringGroup.getName(), ringGroupMap);
+//        }
+//      }
+//    }
   }
 
   private void addDomainVersionToRingGroupMap(String key, Domain domain, DomainGroup domainGroup, Map<String, Object> ringGroupMap, Integer domainGroupVersion) throws IOException {
     if (domainGroupVersion != null) {
-      int domainVersion = domainGroup.getVersionByNumber(domainGroupVersion).getDomainVersion(domain.getName()).getVersionOrAction().getVersion();
+      int domainVersion = domainGroup.getVersionByNumber(domainGroupVersion).getDomainVersion(domain).getVersionOrAction().getVersion();
       ringGroupMap.put(key, domainVersion);
     }
   }
@@ -260,7 +263,7 @@ public class HankApiServlet extends HttpServlet {
   private void addDomainGroupDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN_GROUP));
     if (domainGroup != null) {
-      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup.getName());
+      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
       for (RingGroup ringGroup : ringGroups) {
         Map<String, Object> ringGroupMap = new HashMap<String, Object>();
         ringGroupMap.put("current_version", ringGroup.getCurrentVersion());
@@ -322,25 +325,26 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
-    if (domainGroup != null){
-      Map<String, Object> groupData =  new HashMap<String, Object>();
-      groupData.put("name", domainGroup.getName());
-
-      Map<String, Object> domainsMap =  new HashMap<String, Object>();
-      for (Domain d : domainGroup.getDomains()){
-        domainsMap.put(String.valueOf(d.getName()), getDomainData(d));
-      }
-      groupData.put("domains", domainsMap);
-
-      Map<String, Object> versionsMap =  new HashMap<String, Object>();
-      for (DomainGroupVersion v : domainGroup.getVersions()){
-        versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainGroupVersionData(v));
-      }
-      groupData.put("versions", versionsMap);
-
-      responseData.put(domainGroup.getName(), groupData);
-    }
+    throw new NotImplementedException("needs to be reimplemented");
+//    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
+//    if (domainGroup != null){
+//      Map<String, Object> groupData =  new HashMap<String, Object>();
+//      groupData.put("name", domainGroup.getName());
+//
+//      Map<String, Object> domainsMap =  new HashMap<String, Object>();
+//      for (Domain d : domainGroup.getDomains()){
+//        domainsMap.put(String.valueOf(d.getName()), getDomainData(d));
+//      }
+//      groupData.put("domains", domainsMap);
+//
+//      Map<String, Object> versionsMap =  new HashMap<String, Object>();
+//      for (DomainGroupVersion v : domainGroup.getVersions()){
+//        versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainGroupVersionData(v));
+//      }
+//      groupData.put("versions", versionsMap);
+//
+//      responseData.put(domainGroup.getName(), groupData);
+//    }
   }
 
   private void addDomainGroupVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
