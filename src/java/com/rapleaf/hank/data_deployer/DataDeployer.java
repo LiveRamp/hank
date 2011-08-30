@@ -15,14 +15,26 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.IOException;
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);
@@ -110,7 +122,8 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
     } else {
-      int latestVersionNumber = domainGroup.getLatestVersion().getVersionNumber();
+      final DomainGroupVersion version = domainGroup.getLatestVersion();
+      int latestVersionNumber = version.getVersionNumber();
       if (ringGroup.getCurrentVersion() < latestVersionNumber) {
         // We can start a new update of this ring group.
 
@@ -120,8 +133,18 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         for (Ring ring : ringGroup.getRings()) {
           for (Host host : ring.getHosts()) {
             for (HostDomain hd : host.getAssignedDomains()) {
+              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(domainGroup.getDomain(hd.getDomainId()).getName());
               for (HostDomainPartition hdp : hd.getPartitions()) {
-                hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+                // if the dgvdv is tagged as an action instead of as a version
+                // number, then we should take action rather than just update
+                // the version number on the hdp
+                if (domainVersion.getVersionOrAction().isAction() && domainVersion.getVersionOrAction().getAction() == Action.UNASSIGN) {
+                  // if it's an unassign action, then we just want to mark all
+                  // the parts as deletable.
+                  hdp.setDeletable(true);
+                } else {
+                  hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+                }
               }
             }
           }

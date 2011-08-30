@@ -26,11 +26,13 @@ import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.MockRing;
@@ -38,6 +40,8 @@ import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestDataDeployer extends TestCase {
@@ -48,7 +52,6 @@ public class TestDataDeployer extends TestCase {
     public void manageTransitions(RingGroup ringGroup) {
       calledWithRingGroup = ringGroup;
     }
-
   }
 
   public void testTriggersUpdates() throws Exception {
@@ -132,6 +135,96 @@ public class TestDataDeployer extends TestCase {
     assertEquals(2, mockRingGroupConf.updateToVersion);
     assertEquals(Integer.valueOf(2), mockRingConfig.updatingToVersion);
     assertEquals(2, mockHostDomainPartitionConfig.updatingToVersion);
+  }
+
+  public void testProcessesUnassignDomains() throws Exception {
+    final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
+      @Override
+      public DomainGroupVersion getLatestVersion() {
+        final MockDomainGroupVersionDomainVersion dv = new MockDomainGroupVersionDomainVersion(null, 1) {
+          @Override
+          public VersionOrAction getVersionOrAction() {
+            return new VersionOrAction(Action.UNASSIGN);
+          }
+        };
+
+        return new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)dv), null, 2);
+      }
+    };
+
+    final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0, 1);
+
+    final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
+      @Override
+      public Set<HostDomain> getAssignedDomains() throws IOException {
+        return Collections.singleton((HostDomain)new AbstractHostDomain() {
+          @Override
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {return null;}
+
+          @Override
+          public int getDomainId() {return 0;}
+
+          @Override
+          public Set<HostDomainPartition> getPartitions() {
+            return Collections.singleton((HostDomainPartition)mockHostDomainPartitionConfig);
+          }
+        });
+      }
+    };
+
+    final MockRing mockRingConfig = new MockRing(null, null, 1, null) {
+      @Override
+      public Set<Host> getHosts() {
+        return Collections.singleton((Host)mockHostConfig);
+      }
+    };
+
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
+      @Override
+      public DomainGroup getDomainGroup() {
+        return domainGroup;
+      }
+
+      @Override
+      public Integer getCurrentVersion() {
+        return 1;
+      }
+
+      @Override
+      public Set<Ring> getRings() {
+        return Collections.singleton((Ring)mockRingConfig);
+      }
+    };
+
+    DataDeployerConfigurator mockConfig = new DataDeployerConfigurator() {
+      @Override
+      public long getSleepInterval() {
+        return 100;
+      }
+
+      @Override
+      public String getRingGroupName() {
+        return "myRingGroup";
+      }
+
+      @Override
+      public Coordinator getCoordinator() {
+        return new MockCoordinator(){
+          @Override
+          public RingGroup getRingGroup(String ringGroupName) {
+            return mockRingGroupConf;
+          }
+        };
+      }
+    };
+    MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
+    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
+    daemon.processUpdates(mockRingGroupConf, domainGroup);
+
+    assertNull(mockTransFunc.calledWithRingGroup);
+    assertEquals(2, mockRingGroupConf.updateToVersion);
+    assertEquals(Integer.valueOf(2), mockRingConfig.updatingToVersion);
+    assertTrue(mockHostDomainPartitionConfig.isDeletable());
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
