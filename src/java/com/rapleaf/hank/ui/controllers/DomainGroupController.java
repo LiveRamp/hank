@@ -29,12 +29,6 @@ public class DomainGroupController extends Controller {
         doCreate(req, resp);
       }
     });
-    actions.put("add_domain", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doAddDomain(req, resp);
-      }
-    });
     actions.put("add_version", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -93,25 +87,6 @@ public class DomainGroupController extends Controller {
 
     dg.createNewVersion(domainVersions);
 
-    resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
-  }
-
-  private void doAddDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    String dgName = URLEnc.decode(req.getParameter("n"));
-    String dName = URLEnc.decode(req.getParameter("d"));
-    DomainGroup dg = coordinator.getDomainGroup(dgName);
-    Domain domain = coordinator.getDomain(dName);
-
-    int domainId = -1;
-    for (Domain dc : dg.getDomains()) {
-      int thisDomainId = dg.getDomainId(dc.getName());
-      if (thisDomainId > domainId) {
-        domainId = thisDomainId;
-      }
-    }
-    domainId++;
-
-    dg.addDomain(domain, domainId);
     resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 
