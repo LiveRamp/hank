@@ -1,6 +1,7 @@
 package com.rapleaf.hank.ui;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,11 +20,12 @@ import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
 
 public class HankApiServlet extends HttpServlet {
 
-  public static class PARAMS {
+  private static class InvalidParamsException extends Exception{};
+
+  private static class Params {
     public static final String DOMAIN = "domain";
     public static final String DOMAIN_VERSION = "domain_version";
     public static final String DOMAIN_GROUP = "domain_group";
@@ -35,10 +37,24 @@ public class HankApiServlet extends HttpServlet {
     }
 
     public static boolean paramsAreValid(Collection<String> params) {
-      return true;
+      return paramsMatch(params, DOMAIN) ||
+          paramsMatch(params, DOMAIN, DOMAIN_VERSION) ||
+          paramsMatch(params, DOMAIN_GROUP) ||
+          paramsMatch(params, DOMAIN_GROUP, DOMAIN_GROUP_VERSION) ||
+          paramsMatch(params, RING_GROUP);
+    }
+
+    private static boolean paramsMatch(Collection<String> params, String... expected) {
+      if (params.size() == expected.length &&
+          params.containsAll(Arrays.asList(expected))) {
+        return true;
+      }
+      return false;
     }
   }
 
+  public static final String ERROR_INTERNAL_SERVER_ERROR = "Internal Server Error";
+  public static final String ERROR_INVALID_PARAMETERS = "The combination of parameters submitted is not valid.";
   static final String JSON_FORMAT = "application/json;charset=utf-8";
 
   private final Coordinator coordinator;
@@ -61,17 +77,39 @@ public class HankApiServlet extends HttpServlet {
 
     try {
       // Parse request data
-      Map<String, Object> requestData = parseRequestParams(request, PARAMS.getParamKeys());
+      Map<String, Object> requestData = parseRequestParams(request, Params.getParamKeys());
       Map<String, Object> responseData = getResponseData(requestData);
       responseBody = getJsonResponseBody(responseData).toString();
-    } catch (Exception e) {
-      response.sendError(400, "Error: " + e);
+    } catch (InvalidParamsException ipe) {
+      sendResponseInvalidParams(response);
+      return;
+    } catch (Throwable e) {
+      sendResponseInternalServerError(response);
       return;
     }
 
     response.setContentType(JSON_FORMAT);
     response.setStatus(HttpServletResponse.SC_OK);
     response.getWriter().print(responseBody);
+  }
+
+  private void sendResponseError(int errorCode, String errorMessage, HttpServletResponse response) {
+    response.reset();
+
+    response.setContentType("text/plain;charset=utf-8");
+    response.setStatus(errorCode);
+    try {
+      response.getWriter().print(errorMessage);
+    } catch (IOException e) {
+    }
+  }
+
+  protected void sendResponseInternalServerError(HttpServletResponse response) {
+    sendResponseError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ERROR_INTERNAL_SERVER_ERROR, response);
+  }
+
+  protected void sendResponseInvalidParams(HttpServletResponse response) {
+    sendResponseError(HttpServletResponse.SC_BAD_REQUEST, ERROR_INVALID_PARAMETERS, response);
   }
 
   protected Map<String, Object> parseRequestParams(HttpServletRequest request, String[] paramKeys) {
@@ -87,20 +125,21 @@ public class HankApiServlet extends HttpServlet {
     return params;
   }
 
-  public Map<String, Object> getResponseData(Map<String, Object> requestData) throws IOException {
+  public Map<String, Object> getResponseData(Map<String, Object> requestData) throws IOException, InvalidParamsException {
     Map<String, Object> responseData =  new HashMap<String, Object>();
-    if (requestData.containsKey(PARAMS.DOMAIN)) {
-      if (requestData.containsKey(PARAMS.DOMAIN_VERSION)) {
+    if (!Params.paramsAreValid(requestData.keySet())) {
+      throw new InvalidParamsException();
+    }
+    if (requestData.containsKey(Params.DOMAIN)) {
+      if (requestData.containsKey(Params.DOMAIN_VERSION)) {
         addDomainVersionDataToResponse(requestData, responseData);
       } else {
         addDomainDataToResponse(requestData, responseData);
       }
-    }
-    if (requestData.containsKey(PARAMS.RING_GROUP)) {
+    } else if (requestData.containsKey(Params.RING_GROUP)) {
       addRingGroupDataToResponse(requestData, responseData);
-    }
-    if (requestData.containsKey(PARAMS.DOMAIN_GROUP)) {
-      if (requestData.containsKey(PARAMS.DOMAIN_GROUP_VERSION)) {
+    } else if (requestData.containsKey(Params.DOMAIN_GROUP)) {
+      if (requestData.containsKey(Params.DOMAIN_GROUP_VERSION)) {
         addDomainGroupVersionDataToResponse(requestData, responseData);
       } else {
         addDomainGroupDataToResponse(requestData, responseData);
@@ -111,7 +150,7 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addRingGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    RingGroup ringGroup = coordinator.getRingGroup((String) requestData.get(PARAMS.RING_GROUP));
+    RingGroup ringGroup = coordinator.getRingGroup((String) requestData.get(Params.RING_GROUP));
     if (ringGroup != null){
       responseData.put(ringGroup.getName(), getRingGroupData(ringGroup));
     }
@@ -147,16 +186,16 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addDomainDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.get(PARAMS.DOMAIN));
+    Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
     if (domain != null){
       responseData.put(domain.getName(), getDomainData(domain));
     }
   }
 
   private void addDomainVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.get(PARAMS.DOMAIN));
+    Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
     try {
-      DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.get(PARAMS.DOMAIN_VERSION)));
+      DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.get(Params.DOMAIN_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainVersionData(version));
     } catch (Exception ignored){} // No data added, but no harm done
   }
@@ -205,7 +244,7 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(PARAMS.DOMAIN_GROUP));
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
     if (domainGroup != null){
       Map<String, Object> groupData =  new HashMap<String, Object>();
       groupData.put("name", domainGroup.getName());
@@ -227,9 +266,9 @@ public class HankApiServlet extends HttpServlet {
   }
 
   private void addDomainGroupVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(PARAMS.DOMAIN_GROUP));
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
     try {
-      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.get(PARAMS.DOMAIN_GROUP_VERSION)));
+      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.get(Params.DOMAIN_GROUP_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainGroupVersionData(version));
     } catch (Exception ignored){} // No data added, but no harm done
   }
