@@ -207,6 +207,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domainsByName.get(domainName);
   }
 
+  @Override
+  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException {
+    Set<DomainGroup> groups = new HashSet<DomainGroup>();
+    for (DomainGroup group : domainGroups.values()) {
+      if (group.getDomainId(domainName) != null){
+        groups.add(group);
+      }
+    }
+    return groups;
+  }
+
   public DomainGroup getDomainGroup(String domainGroupName) {
     return domainGroups.get(domainGroupName);
   }
@@ -267,6 +278,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public Set<RingGroup> getRingGroups() {
     return new HashSet<RingGroup>(ringGroupConfigs.values());
+  }
+
+  @Override
+  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName) {
+    Set<RingGroup> groups = new HashSet<RingGroup>();
+    for (RingGroup group : ringGroupConfigs.values()){
+      if (group.getDomainGroup().getName().equals(domainGroupName)) {
+        groups.add(group);
+      }
+    }
+    return groups;
   }
 
   public void onDomainGroupChange(DomainGroup newDomainGroup) {

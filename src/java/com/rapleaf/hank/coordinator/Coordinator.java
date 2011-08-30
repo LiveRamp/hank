@@ -65,7 +65,6 @@ public interface Coordinator {
    */
   public Domain getDomain(String domainName);
 
-
   /**
    * Delete the domain with the given name. Please beware of removing a
    * domain if it is referenced in any domain groups - you will probably break
@@ -95,6 +94,12 @@ public interface Coordinator {
   public Set<DomainGroup> getDomainGroups();
 
   /**
+   * @param domainName
+   * @return
+   */
+  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException;
+
+  /**
    * @param domainGroupName
    * @return configuration information on the specified domain group
    */
@@ -119,6 +124,12 @@ public interface Coordinator {
    * @return
    */
   public Set<RingGroup> getRingGroups();
+
+  /**
+   * @param domainGroupName
+   * @return
+   */
+  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName);
 
   /**
    * @param ringGroupName

@@ -120,7 +120,10 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     for (HostDomain hdc : hostDomains) {
       Domain domain = ringGroup.getDomainGroup().getDomain(hdc.getDomainId());
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
+      if (domain == null) {
   %>
+    <div>Unknown Domain</div>
+  <% } else { %>
   <div class="part_assignment_visualization">
     <div><%= domain.getName() %></div>
     <div>
@@ -151,6 +154,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     </div>
   </div>
   <% } %>
+  <% } %>
 
 
   <div style="clear:both"></div>
@@ -161,9 +165,13 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
     Collections.sort(hostDomains);
     for (HostDomain hdc : hostDomains) {
+      Domain domain = ringGroup.getDomainGroup().getDomain(hdc.getDomainId());
+      if (domain == null) {
   %>
+    <div>Unknown Domain</div>
+  <%  } else { %>
     <tr>
-      <th><%=ringGroup.getDomainGroup().getDomain(hdc.getDomainId()).getName()%></th>
+      <th><%= domain.getName()%></th>
     </tr>
     <%
       for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
@@ -188,6 +196,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         </form>
       </td>
     </tr>
+    <% } %>
     <% } %>
   <% } %>
   </table>
