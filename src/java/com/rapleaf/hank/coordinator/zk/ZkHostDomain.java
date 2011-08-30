@@ -30,11 +30,10 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkHostDomain extends AbstractHostDomain {
-  public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, int domainId) throws IOException {
+  public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
     try {
-      zk.create(ZkPath.append(partsRoot, Integer.toString(domainId & 0xff)), null);
-//      zk.create(ZkPath.create(partsRoot, ".complete"), null);
-      return new ZkHostDomain(zk, partsRoot, domainId);
+      zk.create(ZkPath.append(partsRoot, domain.getName()), null);
+      return new ZkHostDomain(zk, partsRoot, domain);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -42,19 +41,14 @@ public class ZkHostDomain extends AbstractHostDomain {
 
   private final ZooKeeperPlus zk;
   private final String root;
-  private final int domainId;
 
   private final WatchedMap<ZkHostDomainPartition> parts;
+  private final Domain domain;
 
-  public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, int domainId) throws KeeperException, InterruptedException {
+  public ZkHostDomain(ZooKeeperPlus zk, String partsRoot, Domain domain) throws KeeperException, InterruptedException {
     this.zk = zk;
-    this.domainId = domainId;
-    this.root = ZkPath.append(partsRoot, Integer.toString(domainId));
-
-    // TODO: temporary...
-//    if (zk.exists(ZkPath.create(root, ".complete"), false) == null) {
-//      zk.create(ZkPath.create(root, ".complete"), null);
-//    }
+    this.domain = domain;
+    this.root = ZkPath.append(partsRoot, domain.getName());
 
     parts = new WatchedMap<ZkHostDomainPartition>(zk, root,
         new ElementLoader<ZkHostDomainPartition>() {
@@ -70,7 +64,7 @@ public class ZkHostDomain extends AbstractHostDomain {
 
   @Override
   public Domain getDomain() {
-    return domainId;
+    return domain;
   }
 
   @Override
