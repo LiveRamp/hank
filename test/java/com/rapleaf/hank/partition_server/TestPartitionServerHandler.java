@@ -111,7 +111,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         return new MockReader(configurator, partNum, V1, readerVersionNumber);
       }
     };
-    Domain domain = new MockDomain("myDomain", 5, partitioner, storageEngine, null,
+    Domain domain = new MockDomain("myDomain", 0, 5, partitioner, storageEngine, null,
         null);
     MockDomainGroupVersionDomainVersion dgvdv = new MockDomainGroupVersionDomainVersion(
         domain, 1);
