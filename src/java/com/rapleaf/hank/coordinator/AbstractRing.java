@@ -21,10 +21,10 @@ public abstract class AbstractRing implements Ring {
   }
 
   @Override
-  public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException {
+  public Set<Host> getHostsForDomainPartition(Domain domain, int partition) throws IOException {
     Set<Host> results = new HashSet<Host>();
     for (Host host : getHosts()) {
-      HostDomain domainById = host.getHostDomain(domainId);
+      HostDomain domainById = host.getHostDomain(domain);
       for (HostDomainPartition hdpc : domainById.getPartitions()) {
         if (hdpc.getPartNum() == partition) {
           results.add(host);
@@ -38,7 +38,7 @@ public abstract class AbstractRing implements Ring {
   @Override
   public Set<Host> getHostsInState(HostState state) throws IOException {
     Set<Host> results = new HashSet<Host>();
-    for (Host host: getHosts()) {
+    for (Host host : getHosts()) {
       if (host.getState() == state) {
         results.add(host);
       }
@@ -63,15 +63,13 @@ public abstract class AbstractRing implements Ring {
 
   @Override
   public Set<Integer> getUnassignedPartitions(Domain domain) throws IOException {
-    Integer domainId = getRingGroup().getDomainGroup().getDomainId(domain.getName());
-
     Set<Integer> unassignedParts = new HashSet<Integer>();
     for (int i = 0; i < domain.getNumParts(); i++) {
       unassignedParts.add(i);
     }
 
     for (Host hc : getHosts()) {
-      HostDomain hdc = hc.getHostDomain(domainId);
+      HostDomain hdc = hc.getHostDomain(domain);
       if (hdc == null) {
         continue;
       }

@@ -80,12 +80,12 @@ public interface Ring extends Comparable<Ring> {
   /**
    * Get the set of Hosts that can serve a given domain's partition.
    *
-   * @param domainId
+   * @param domain
    * @param partition
    * @return
    * @throws IOException
    */
-  public Set<Host> getHostsForDomainPartition(int domainId, int partition) throws IOException;
+  public Set<Host> getHostsForDomainPartition(Domain domain, int partition) throws IOException;
 
   /**
    * Return all the hosts that are in the requested state.
@@ -132,7 +132,6 @@ public interface Ring extends Comparable<Ring> {
   public Set<Integer> getUnassignedPartitions(Domain domain) throws IOException;
 
   /**
-   *
    * @throws IOException
    */
   public void delete() throws IOException;
