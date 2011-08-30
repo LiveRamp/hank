@@ -180,7 +180,7 @@ public class HankApiServlet extends HttpServlet {
     Map<String, Object> ringData =  new HashMap<String, Object>();
     ringData.put("ring_number", ring.getRingNumber());
     ringData.put("version_number", ring.getVersionNumber());
-    ringData.put("updated_to_version", ring.getUpdatingToVersionNumber());
+    ringData.put("updating_to_version", ring.getUpdatingToVersionNumber());
     ringData.put("is_update_pending", ring.isUpdatePending());
     ringData.put("status", ring.getState().name());
     ringData.put("hosts", getHostsMap(ring.getHosts()));
@@ -256,16 +256,9 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getDomainGroupVersionDomainVersionsMap(Collection<DomainGroupVersionDomainVersion> versions) throws IOException {
     Map<String, Object> versionsMap =  new HashMap<String, Object>();
     for (DomainGroupVersionDomainVersion v : versions){
-      versionsMap.put(String.valueOf(v.getVersionOrAction()), getDomainGroupVersionDomainVersionData(v));
+      versionsMap.put(v.getDomain().getName(), v.getVersionOrAction().getVersion());
     }
     return versionsMap;
-  }
-
-  private Map<String, Object> getDomainGroupVersionDomainVersionData(DomainGroupVersionDomainVersion version) throws IOException {
-    Map<String, Object> data =  new HashMap<String, Object>();
-    data.put("version_number", version.getVersionOrAction());
-    data.put("domain", getDomainData(version.getDomain()));
-    return data;
   }
 
   private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
