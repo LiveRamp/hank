@@ -123,7 +123,7 @@ public class TestAbstractRing extends BaseTestCase {
 
       @Override
       public HostDomain getHostDomain(Domain domain) {
-        return domain == 0 ? hd1 : null;
+        return hd1;
       }
     };
     SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {
