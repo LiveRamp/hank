@@ -34,9 +34,9 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     super();
   }
 
-  private static final MockDomain domain1 = new MockDomain("domain1", 1, null, null, null, null);
-  private static final MockDomain domain2 = new MockDomain("domain2", 1, null, null, null, null);
-  private static final MockDomain domain3 = new MockDomain("domain3", 1, null, null, null, null);
+  private static final MockDomain domain1 = new MockDomain("domain1", 0, 1, null, null, null, null);
+  private static final MockDomain domain2 = new MockDomain("domain2", 1, 1, null, null, null, null);
+  private static final MockDomain domain3 = new MockDomain("domain3", 2, 1, null, null, null, null);
 
   private static final MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
     @Override
@@ -99,8 +99,8 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
 
   public void testCreateNewSequential() throws Exception {
     Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
-    map.put(new MockDomain("domain1", 1, null, null, null, null), new VersionOrAction(2));
-    map.put(new MockDomain("domain4", 1, null, null, null, null), new VersionOrAction(7));
+    map.put(new MockDomain("domain1", 0, 1, null, null, null, null), new VersionOrAction(2));
+    map.put(new MockDomain("domain4", 1, 1, null, null, null, null), new VersionOrAction(7));
     DomainGroup dgc = new MockDomainGroup("blah");
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
@@ -111,8 +111,8 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
 
   public void testCreateNewUnassign() throws Exception {
     Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
-    final Domain d1 = new MockDomain("domain1", 1, null, null, null, null);
-    final Domain d2 = new MockDomain("domain4", 1, null, null, null, null);
+    final Domain d1 = new MockDomain("domain1", 0, 1, null, null, null, null);
+    final Domain d2 = new MockDomain("domain4", 1, 1, null, null, null, null);
     map.put(d1, new VersionOrAction(2));
     map.put(d2, new VersionOrAction(Action.UNASSIGN));
     DomainGroup dgc = new MockDomainGroup("blah") {
@@ -136,8 +136,6 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
         }
       }
     };
-    dgc.addDomain(d1, 0);
-    dgc.addDomain(d2, 1);
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(ver.getDomainVersion(d1).getVersionOrAction(), new VersionOrAction(2));

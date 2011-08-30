@@ -67,7 +67,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
           globalOptions.get(DomainBuilderProperties.REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION) + "/"
               + domainName);
     }
-    return new MockDomain(domainName,
+    return new MockDomain(domainName, 0,
         this.numPartitions,
         new ModPartitioner(),
         new MapStorageEngine(domainName),
