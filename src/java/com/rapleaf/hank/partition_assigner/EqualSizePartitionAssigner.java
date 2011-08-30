@@ -1,23 +1,13 @@
 package com.rapleaf.hank.partition_assigner;
 
+import com.rapleaf.hank.coordinator.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-
 public class EqualSizePartitionAssigner implements PartitionAssigner {
   private Ring ring;
-  private DomainGroup domainGroup;
-  private int domainId;
-  private int version;
-  private Random random;
 
   public EqualSizePartitionAssigner() throws IOException {
   }
@@ -25,24 +15,24 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
   @Override
   public void assign(RingGroup ringGroup, int ringNum, Domain domain) throws IOException {
     ring = ringGroup.getRing(ringNum);
-    domainGroup = ringGroup.getDomainGroup();
-    domainId = domainGroup.getDomainId(domain.getName());
-    version = domainGroup.getLatestVersion().getVersionNumber();
-    random = new Random();
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
+    int version = domainGroup.getLatestVersion().getVersionNumber();
+    Random random = new Random();
 
     for (Host host : ring.getHosts()) {
-      if (host.getHostDomain(domainId) == null)
-        host.addDomain(domainId);
+      if (host.getHostDomain(domain) == null) {
+        host.addDomain(domain);
+      }
     }
 
     // make random assignments for any of the currently unassigned parts
     for (Integer partNum : ring.getUnassignedPartitions(domain)) {
-      getMinHostDomain().addPartition(partNum, version);
+      getMinHostDomain(domain).addPartition(partNum, version);
     }
 
-    while (!assignmentsBalanced()) {
-      HostDomain maxHostDomain = getMaxHostDomain();
-      HostDomain minHostDomain = getMinHostDomain();
+    while (!assignmentsBalanced(domain)) {
+      HostDomain maxHostDomain = getMaxHostDomain(domain);
+      HostDomain minHostDomain = getMinHostDomain(domain);
 
       // pick a random partition from the maxHost
       ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
@@ -70,19 +60,19 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     }
   }
 
-  private boolean assignmentsBalanced() throws IOException {
-    HostDomain maxHostDomain = getMaxHostDomain();
-    HostDomain minHostDomain = getMinHostDomain();
+  private boolean assignmentsBalanced(Domain domain) throws IOException {
+    HostDomain maxHostDomain = getMaxHostDomain(domain);
+    HostDomain minHostDomain = getMinHostDomain(domain);
     int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
         - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
-  private HostDomain getMinHostDomain() throws IOException {
+  private HostDomain getMinHostDomain(Domain domain) throws IOException {
     HostDomain minHostDomain = null;
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getHostDomain(domainId);
+      HostDomain hostDomain = host.getHostDomain(domain);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions < minNumPartitions) {
         minHostDomain = hostDomain;
@@ -93,11 +83,11 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
     return minHostDomain;
   }
 
-  private HostDomain getMaxHostDomain() throws IOException {
+  private HostDomain getMaxHostDomain(Domain domain) throws IOException {
     HostDomain maxHostDomain = null;
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
-      HostDomain hostDomain = host.getHostDomain(domainId);
+      HostDomain hostDomain = host.getHostDomain(domain);
       int numPartitions = hostDomain.getPartitions().size();
       if (numPartitions > maxNumPartitions) {
         maxHostDomain = hostDomain;
