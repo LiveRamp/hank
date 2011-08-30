@@ -267,6 +267,10 @@ public class ZkTestCase extends BaseTestCase {
   }
 
   protected Coordinator getMockCoordinator() throws Exception {
+    create(ZkPath.append(getRoot(), "domains"));
+    create(ZkPath.append(getRoot(), "domain_groups"));
+    create(ZkPath.append(getRoot(), "ring_groups"));
+
     final Coordinator coord = new ZooKeeperCoordinator.Factory().getCoordinator(
         ZooKeeperCoordinator.Factory.requiredOptions(getZkConnectString(), 100000000,
             ZkPath.append(getRoot(), "domains"),

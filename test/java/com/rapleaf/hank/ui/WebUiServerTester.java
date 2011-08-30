@@ -18,10 +18,6 @@ import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
-    create(ZkPath.append(getRoot(), "domains"));
-    create(ZkPath.append(getRoot(), "domain_groups"));
-    create(ZkPath.append(getRoot(), "ring_groups"));
-
     final Coordinator coord = getMockCoordinator();
 
     ClientConfigurator mockConf = new ClientConfigurator() {
