@@ -34,11 +34,6 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
-import com.rapleaf.hank.cli.AddDomain;
-import com.rapleaf.hank.cli.AddDomainGroup;
-import com.rapleaf.hank.cli.AddDomainToDomainGroup;
-import com.rapleaf.hank.cli.AddRing;
-import com.rapleaf.hank.cli.AddRingGroup;
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
