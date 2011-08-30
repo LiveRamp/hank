@@ -18,6 +18,7 @@ import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 
@@ -182,7 +183,24 @@ public class HankApiServlet extends HttpServlet {
     ringData.put("updated_to_version", ring.getUpdatingToVersionNumber());
     ringData.put("is_update_pending", ring.isUpdatePending());
     ringData.put("status", ring.getState().name());
+    ringData.put("hosts", getHostsMap(ring.getHosts()));
     return ringData;
+  }
+
+  private Map<String, Object> getHostsMap(Collection<Host> hosts) throws IOException {
+    Map<String, Object> ringsMap = new HashMap<String, Object>();
+    for (Host host : hosts) {
+      ringsMap.put(String.valueOf(host.getAddress()), getHostData(host));
+    }
+    return ringsMap;
+  }
+
+  private Map<String, Object> getHostData(Host host) throws IOException {
+    Map<String, Object> hostData =  new HashMap<String, Object>();
+    hostData.put("address", host.getAddress());
+    hostData.put("status", host.getState().name());
+    hostData.put("is_online", host.isOnline());
+    return hostData;
   }
 
   private void addDomainDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
