@@ -17,6 +17,9 @@ import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingState;
 
 public class HankApiServlet extends HttpServlet {
 
@@ -25,9 +28,14 @@ public class HankApiServlet extends HttpServlet {
     public static final String DOMAIN_VERSION = "domain_version";
     public static final String DOMAIN_GROUP = "domain_group";
     public static final String DOMAIN_GROUP_VERSION = "domain_group_version";
+    public static final String RING_GROUP = "ring_group";
 
     public static String[] getParamKeys() {
-      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION};
+      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION, RING_GROUP};
+    }
+
+    public static boolean paramsAreValid(Collection<String> params) {
+      return true;
     }
   }
 
@@ -88,14 +96,54 @@ public class HankApiServlet extends HttpServlet {
         addDomainDataToResponse(requestData, responseData);
       }
     }
-    if (requestData.containsKey(PARAMS.DOMAIN_GROUP)){
+    if (requestData.containsKey(PARAMS.RING_GROUP)) {
+      addRingGroupDataToResponse(requestData, responseData);
+    }
+    if (requestData.containsKey(PARAMS.DOMAIN_GROUP)) {
       if (requestData.containsKey(PARAMS.DOMAIN_GROUP_VERSION)) {
         addDomainGroupVersionDataToResponse(requestData, responseData);
       } else {
         addDomainGroupDataToResponse(requestData, responseData);
       }
     }
+
     return responseData;
+  }
+
+  private void addRingGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    RingGroup ringGroup = coordinator.getRingGroup((String) requestData.get(PARAMS.RING_GROUP));
+    if (ringGroup != null){
+      responseData.put(ringGroup.getName(), getRingGroupData(ringGroup));
+    }
+  }
+
+  private Map<String, Object> getRingGroupData(RingGroup ringGroup) throws IOException {
+    Map<String, Object> ringGroupData =  new HashMap<String, Object>();
+    ringGroupData.put("name", ringGroup.getName());
+    ringGroupData.put("current_version", ringGroup.getCurrentVersion());
+    ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersion());
+    ringGroupData.put("is_updating", ringGroup.isUpdating());
+    ringGroupData.put("is_data_deployer_online", ringGroup.isDataDeployerOnline());
+    ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));
+    return ringGroupData;
+  }
+
+  private Map<String, Object> getRingsMap(Collection<Ring> rings) throws IOException {
+    Map<String, Object> ringsMap = new HashMap<String, Object>();
+    for (Ring ring : rings) {
+      ringsMap.put(String.valueOf(ring.getRingNumber()), getRingData(ring));
+    }
+    return ringsMap;
+  }
+
+  private Map<String, Object> getRingData(Ring ring) throws IOException {
+    Map<String, Object> ringData =  new HashMap<String, Object>();
+    ringData.put("ring_number", ring.getRingNumber());
+    ringData.put("version_number", ring.getVersionNumber());
+    ringData.put("updated_to_version", ring.getUpdatingToVersionNumber());
+    ringData.put("is_update_pending", ring.isUpdatePending());
+    ringData.put("status", ring.getState().name());
+    return ringData;
   }
 
   private void addDomainDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
