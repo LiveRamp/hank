@@ -9,7 +9,6 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
@@ -26,11 +25,10 @@ import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
-import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
 public class TestEqualSizePartitionAssigner extends BaseTestCase {
-  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
-  private static final Domain domain = new MockDomain("TestDomain", 20, null, null, null, version);
+//  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
+  private static final Domain domain = new MockDomain("TestDomain");
 
   private static HashSet<Integer> unassigned = new HashSet<Integer>();
   private static HashSet<Integer> partsOn1 = new HashSet<Integer>();
@@ -115,7 +113,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     }
   }
 
-  private final static HostDomain hostDomain1 = new MockHostDomain(0, 0, 0, 1) {
+  private final static HostDomain hostDomain1 = new MockHostDomain(domain, 0, 0, 1) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
@@ -134,7 +132,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     }
   };
 
-  private final static HostDomain hostDomain2 = new MockHostDomain(0, 0, 0, 1) {
+  private final static HostDomain hostDomain2 = new MockHostDomain(domain, 0, 0, 1) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
@@ -153,7 +151,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     }
   };
 
-  private final static HostDomain hostDomain3 = new MockHostDomain(0, 0, 0, 1) {
+  private final static HostDomain hostDomain3 = new MockHostDomain(domain, 0, 0, 1) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();

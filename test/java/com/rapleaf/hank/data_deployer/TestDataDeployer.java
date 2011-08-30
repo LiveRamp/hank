@@ -85,7 +85,7 @@ public class TestDataDeployer extends TestCase {
 
           @Override
           public Domain getDomain() {
-            return 0;
+            return null;
           }
 
           @Override
@@ -189,7 +189,7 @@ public class TestDataDeployer extends TestCase {
 
           @Override
           public Domain getDomain() {
-            return 0;
+            return null;
           }
 
           @Override
