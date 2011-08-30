@@ -113,4 +113,16 @@ public class MockCoordinator implements Coordinator {
   public boolean deleteRingGroup(String ringGroupName) throws IOException {
     return false;
   }
+
+  @Override
+  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
+    // TODO Auto-generated method stub
+    return null;
+  }
 }
