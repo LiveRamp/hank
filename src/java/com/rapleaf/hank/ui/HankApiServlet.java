@@ -32,9 +32,10 @@ public class HankApiServlet extends HttpServlet {
     public static final String DOMAIN_GROUP = "domain_group";
     public static final String DOMAIN_GROUP_VERSION = "domain_group_version";
     public static final String RING_GROUP = "ring_group";
+    public static final String ALL_RING_GROUPS = "get_all_ring_groups";
 
     public static String[] getParamKeys() {
-      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION, RING_GROUP};
+      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION, RING_GROUP, ALL_RING_GROUPS};
     }
 
     public static boolean paramsAreValid(Collection<String> params) {
@@ -42,7 +43,8 @@ public class HankApiServlet extends HttpServlet {
           paramsMatch(params, DOMAIN, DOMAIN_VERSION) ||
           paramsMatch(params, DOMAIN_GROUP) ||
           paramsMatch(params, DOMAIN_GROUP, DOMAIN_GROUP_VERSION) ||
-          paramsMatch(params, RING_GROUP);
+          paramsMatch(params, RING_GROUP) ||
+          paramsMatch(params, ALL_RING_GROUPS);
     }
 
     private static boolean paramsMatch(Collection<String> params, String... expected) {
@@ -137,6 +139,8 @@ public class HankApiServlet extends HttpServlet {
       } else {
         addDomainDataToResponse(requestData, responseData);
       }
+    } else if (requestData.containsKey(Params.ALL_RING_GROUPS)) {
+      addAllRingGroupsDataToResponse(requestData, responseData);
     } else if (requestData.containsKey(Params.RING_GROUP)) {
       addRingGroupDataToResponse(requestData, responseData);
     } else if (requestData.containsKey(Params.DOMAIN_GROUP)) {
@@ -148,6 +152,12 @@ public class HankApiServlet extends HttpServlet {
     }
 
     return responseData;
+  }
+
+  private void addAllRingGroupsDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    for (RingGroup ringGroup : coordinator.getRingGroups()) {
+      responseData.put(ringGroup.getName(), getRingGroupData(ringGroup));
+    }
   }
 
   private void addRingGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
@@ -164,6 +174,7 @@ public class HankApiServlet extends HttpServlet {
     ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersion());
     ringGroupData.put("is_updating", ringGroup.isUpdating());
     ringGroupData.put("is_data_deployer_online", ringGroup.isDataDeployerOnline());
+    ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
     ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));
     return ringGroupData;
   }
