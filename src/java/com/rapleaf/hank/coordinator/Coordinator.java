@@ -66,12 +66,6 @@ public interface Coordinator {
   public Domain getDomain(String domainName);
 
   /**
-   * @param domainName
-   * @return
-   */
-  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException;
-
-  /**
    * Delete the domain with the given name. Please beware of removing a
    * domain if it is referenced in any domain groups - you will probably break
    * your installation if you remove one that's in use!
@@ -98,6 +92,12 @@ public interface Coordinator {
    * @return
    */
   public Set<DomainGroup> getDomainGroups();
+
+  /**
+   * @param domainName
+   * @return
+   */
+  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException;
 
   /**
    * @param domainGroupName
