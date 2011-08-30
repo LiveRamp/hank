@@ -113,7 +113,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public Domain getDomain(String domainName) {
-    return new MockDomain(domainName, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null, new MockDomainVersion(0, null));
+    return new MockDomain(domainName, 1, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null, new MockDomainVersion(0, null));
   }
 
   static public Configurator getConfigurator(int numPartitions) {
