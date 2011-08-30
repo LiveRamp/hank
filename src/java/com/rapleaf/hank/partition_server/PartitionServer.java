@@ -196,9 +196,17 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     host.setState(state);
   }
 
+  private synchronized void completeCommand() throws IOException {
+    host.completeCommand();
+  }
+
+  private synchronized void clearCommandQueue() throws IOException {
+    host.clearCommandQueue();
+  }
+
   private void update() {
     if (updateThread != null) {
-      throw new IllegalStateException("update got called again unexpectedly!");
+      throw new IllegalStateException("Update got called again unexpectedly!");
     }
     Runnable updateRunnable = new Runnable() {
       @Override
@@ -206,17 +214,20 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         try {
           IUpdateManager updateManager = getUpdateManager();
           updateManager.update();
-          LOG.info("Update is complete! recording state changes...");
-          setState(HostState.IDLE);
-          host.completeCommand();
-          updateThread = null;
+          LOG.info("Update succeeded.");
         } catch (Throwable e) {
-          // TODO: should this take the server down?
-          LOG.fatal("updater encountered a fatal error!", e);
+          LOG.fatal("Update failed. Updater encountered a fatal error:", e);
         }
+        try {
+          setState(HostState.IDLE);
+          completeCommand();
+        } catch (IOException e) {
+          LOG.fatal("Updater encountered an error while recording state changes.");
+        }
+        updateThread = null;
       }
     };
-    updateThread = new Thread(updateRunnable, "update manager thread");
+    updateThread = new Thread(updateRunnable, "Update manager thread");
     updateThread.start();
   }
 
