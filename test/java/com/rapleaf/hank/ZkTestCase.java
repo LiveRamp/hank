@@ -295,8 +295,6 @@ public class ZkTestCase extends BaseTestCase {
     ver.close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");
-    g1.addDomain(d0, 0);
-    g1.addDomain(d1, 1);
 
     g1.createNewVersion(new HashMap<Domain, VersionOrAction>() {
       {
@@ -306,7 +304,6 @@ public class ZkTestCase extends BaseTestCase {
     });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
-    g2.addDomain(d1, 0);
     g2.createNewVersion(new HashMap<Domain, VersionOrAction>() {
       {
         put(d1, new VersionOrAction(1));
@@ -315,7 +312,7 @@ public class ZkTestCase extends BaseTestCase {
 
     RingGroup rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     Ring r1 = rgAlpha.addRing(1);
-    r1.addHost(addy("alpha-1-1")).addDomain(0).addPartition(0, 1).setCount("Penguins", 4);
+    r1.addHost(addy("alpha-1-1")).addDomain(d0).addPartition(0, 1).setCount("Penguins", 4);
     r1.addHost(addy("alpha-1-2"));
     r1.addHost(addy("alpha-1-3"));
     Ring r2 = rgAlpha.addRing(2);
