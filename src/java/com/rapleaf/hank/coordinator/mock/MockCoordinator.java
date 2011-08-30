@@ -47,6 +47,10 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException {
+    return null;
+  }
+
   public DomainGroup getDomainGroup(String domainGroupName) {
     return null;
   }

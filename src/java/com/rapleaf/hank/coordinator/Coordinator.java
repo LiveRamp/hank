@@ -65,6 +65,11 @@ public interface Coordinator {
    */
   public Domain getDomain(String domainName);
 
+  /**
+   * @param domainName
+   * @return
+   */
+  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException;
 
   /**
    * Delete the domain with the given name. Please beware of removing a
