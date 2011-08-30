@@ -15,26 +15,15 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.VersionOrAction.Action;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
 
 public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(DataDeployer.class);
@@ -133,7 +122,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         for (Ring ring : ringGroup.getRings()) {
           for (Host host : ring.getHosts()) {
             for (HostDomain hd : host.getAssignedDomains()) {
-              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(domainGroup.getHostDomain(hd.getDomain()));
+              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(hd.getDomain());
               for (HostDomainPartition hdp : hd.getPartitions()) {
                 // if the dgvdv is tagged as an action instead of as a version
                 // number, then we should take action rather than just update
@@ -160,7 +149,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
 
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
-    synchronized(lock) {
+    synchronized (lock) {
       LOG.debug("Got an updated ring group version!");
       ringGroup = newRingGroup;
     }
@@ -169,7 +158,7 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   @Override
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
     synchronized (lock) {
-      LOG.debug("Got an updated domain group version: " + newDomainGroup + "!" );
+      LOG.debug("Got an updated domain group version: " + newDomainGroup + "!");
       domainGroup = newDomainGroup;
     }
   }
