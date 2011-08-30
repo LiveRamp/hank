@@ -15,15 +15,30 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-import java.io.IOException;
-import java.util.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -291,13 +306,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
-    try {
-      ZkDomain domain = (ZkDomain) ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
-      domainsByName.put(domainName, domain);
-      return domain;
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    throw new NotImplementedException("Crap, need to write some code to choose domain ids!");
+//    try {
+//      ZkDomain domain = (ZkDomain) ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
+//      domainsByName.put(domainName, domain);
+//      return domain;
+//    } catch (Exception e) {
+//      throw new IOException(e);
+//    }
   }
 
   public Domain updateDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {

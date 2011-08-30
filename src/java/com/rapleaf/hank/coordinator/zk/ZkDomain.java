@@ -15,23 +15,25 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.log4j.Logger;
+import org.apache.zookeeper.KeeperException;
+import org.yaml.snakeyaml.Yaml;
+
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.log4j.Logger;
-import org.apache.zookeeper.KeeperException;
-import org.yaml.snakeyaml.Yaml;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomain extends AbstractDomain {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -66,7 +68,7 @@ public class ZkDomain extends AbstractDomain {
     return new ZkDomain(zk, domainPath);
   }
 
-  public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName, int id) throws IOException, InterruptedException, KeeperException {
+  public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     // Delete nodes
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_NUM_PARTS));
@@ -231,5 +233,10 @@ public class ZkDomain extends AbstractDomain {
     } else if (!name.equals(other.name))
       return false;
     return true;
+  }
+
+  @Override
+  public int getId() {
+    throw new NotImplementedException();
   }
 }
