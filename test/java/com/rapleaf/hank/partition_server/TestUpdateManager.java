@@ -175,7 +175,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     @Override
     public Domain getDomain() {
-      return 1;
+      return null;
     }
 
     @Override
