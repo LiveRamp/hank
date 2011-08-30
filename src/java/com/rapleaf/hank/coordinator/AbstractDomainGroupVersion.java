@@ -4,10 +4,10 @@ package com.rapleaf.hank.coordinator;
 public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
 
   @Override
-  public DomainGroupVersionDomainVersion getDomainVersion(String domainName) {
+  public DomainGroupVersionDomainVersion getDomainVersion(Domain domain) {
     // TODO: implement domainVersions as a HashMap
     for (DomainGroupVersionDomainVersion domainVersion : getDomainVersions()) {
-      if (domainName.equals(domainVersion.getDomain().getName())) {
+      if (domain.getName().equals(domainVersion.getDomain().getName())) {
         return domainVersion;
       }
     }
