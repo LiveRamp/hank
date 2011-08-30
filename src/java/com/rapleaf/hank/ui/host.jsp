@@ -38,6 +38,8 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   &gt; <%= host.getAddress() %>
 </h3>
 
+<!-- Status and Commands -->
+
 <div>
   <h3>Status</h3>
   Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
@@ -69,8 +71,10 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   </form>
 </div>
 
+<!-- Domains and Partitions -->
+
 <div>
-  <h4>Domains + Parts</h4>
+  <h4>Domains + Partitions</h4>
   <form method="post" action="/host/add_domain_part">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
