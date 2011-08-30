@@ -75,8 +75,7 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
-  public Set<Host> getHostsForDomainPartition(int domainId,
-      int partition) throws IOException {
+  public Set<Host> getHostsForDomainPartition(Domain domain, int partition) throws IOException {
     return null;
   }
 
