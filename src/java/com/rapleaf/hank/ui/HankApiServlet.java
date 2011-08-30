@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -33,16 +34,19 @@ public class HankApiServlet extends HttpServlet {
     public static final String DOMAIN_GROUP_VERSION = "domain_group_version";
     public static final String RING_GROUP = "ring_group";
     public static final String ALL_RING_GROUPS = "get_all_ring_groups";
+    public static final String GET_DEPLOY_STATUS = "get_deploy_status";
 
     public static String[] getParamKeys() {
-      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION, RING_GROUP, ALL_RING_GROUPS};
+      return new String[] {DOMAIN, DOMAIN_VERSION, DOMAIN_GROUP, DOMAIN_GROUP_VERSION, RING_GROUP, ALL_RING_GROUPS, GET_DEPLOY_STATUS};
     }
 
     public static boolean paramsAreValid(Collection<String> params) {
       return paramsMatch(params, DOMAIN) ||
           paramsMatch(params, DOMAIN, DOMAIN_VERSION) ||
+          paramsMatch(params, DOMAIN, GET_DEPLOY_STATUS) ||
           paramsMatch(params, DOMAIN_GROUP) ||
           paramsMatch(params, DOMAIN_GROUP, DOMAIN_GROUP_VERSION) ||
+          paramsMatch(params, DOMAIN_GROUP, GET_DEPLOY_STATUS) ||
           paramsMatch(params, RING_GROUP) ||
           paramsMatch(params, ALL_RING_GROUPS);
     }
@@ -136,6 +140,8 @@ public class HankApiServlet extends HttpServlet {
     if (requestData.containsKey(Params.DOMAIN)) {
       if (requestData.containsKey(Params.DOMAIN_VERSION)) {
         addDomainVersionDataToResponse(requestData, responseData);
+      } else if (requestData.containsKey(Params.GET_DEPLOY_STATUS)) {
+        addDomainDeployStatusToResponse(requestData, responseData);
       } else {
         addDomainDataToResponse(requestData, responseData);
       }
@@ -146,6 +152,8 @@ public class HankApiServlet extends HttpServlet {
     } else if (requestData.containsKey(Params.DOMAIN_GROUP)) {
       if (requestData.containsKey(Params.DOMAIN_GROUP_VERSION)) {
         addDomainGroupVersionDataToResponse(requestData, responseData);
+      } else if (requestData.containsKey(Params.GET_DEPLOY_STATUS)) {
+        addDomainGroupDeployStatusToResponse(requestData, responseData);
       } else {
         addDomainGroupDataToResponse(requestData, responseData);
       }
@@ -218,6 +226,46 @@ public class HankApiServlet extends HttpServlet {
     Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
     if (domain != null){
       responseData.put(domain.getName(), getDomainData(domain));
+    }
+  }
+
+  private void addDomainDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
+    if (domain != null) {
+      Set<DomainGroup> domainGroups = coordinator.getDomainGroupsForDomain(domain.getName());
+      for (DomainGroup domainGroup : domainGroups) {
+        Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup.getName());
+
+        for (RingGroup ringGroup : ringGroups) {
+          Map<String, Object> ringGroupMap = new HashMap<String, Object>();
+          Integer currentDomainGroupVersion = ringGroup.getCurrentVersion();
+          addDomainVersionToRingGroupMap("current_version", domain, domainGroup, ringGroupMap, currentDomainGroupVersion);
+
+          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersion();
+          addDomainVersionToRingGroupMap("updating_to_version", domain, domainGroup, ringGroupMap, updatedToDomainGroupVersion);
+          responseData.put(ringGroup.getName(), ringGroupMap);
+        }
+      }
+    }
+  }
+
+  private void addDomainVersionToRingGroupMap(String key, Domain domain, DomainGroup domainGroup, Map<String, Object> ringGroupMap, Integer domainGroupVersion) throws IOException {
+    if (domainGroupVersion != null) {
+      int domainVersion = domainGroup.getVersionByNumber(domainGroupVersion).getDomainVersion(domain.getName()).getVersionOrAction().getVersion();
+      ringGroupMap.put(key, domainVersion);
+    }
+  }
+
+  private void addDomainGroupDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
+    DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
+    if (domainGroup != null) {
+      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup.getName());
+      for (RingGroup ringGroup : ringGroups) {
+        Map<String, Object> ringGroupMap = new HashMap<String, Object>();
+        ringGroupMap.put("current_version", ringGroup.getCurrentVersion());
+        ringGroupMap.put("update_to_version", ringGroup.getUpdatingToVersion());
+        responseData.put(ringGroup.getName(), ringGroupMap);
+      }
     }
   }
 
