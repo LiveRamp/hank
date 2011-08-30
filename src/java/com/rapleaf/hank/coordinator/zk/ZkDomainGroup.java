@@ -188,14 +188,14 @@ public class ZkDomainGroup extends AbstractDomainGroup {
         + ", domainGroupVersions=" + domainGroupVersions + ", groupName=" + groupName + "]";
   }
 
-  public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName, Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
+  public static ZkDomainGroup create(ZooKeeperPlus zk, String dgRoot, String domainGroupName, Coordinator coord) throws InterruptedException, KeeperException, IOException {
     String domainGroupPath = ZkPath.append(dgRoot, domainGroupName);
     zk.create(domainGroupPath, null);
     zk.create(ZkPath.append(domainGroupPath, "versions"), null);
     zk.create(ZkPath.append(domainGroupPath, "domains"), null);
     zk.create(ZkPath.append(domainGroupPath, ".complete"), null);
     zk.setData(domainGroupPath, new byte[]{1}, -1);
-    return new ZkDomainGroup(zk, domainGroupPath, coordinator);
+    return new ZkDomainGroup(zk, domainGroupPath, coord);
   }
 
 }
