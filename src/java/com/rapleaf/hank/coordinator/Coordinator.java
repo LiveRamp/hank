@@ -94,10 +94,10 @@ public interface Coordinator {
   public Set<DomainGroup> getDomainGroups();
 
   /**
-   * @param domainName
+   * @param domain
    * @return
    */
-  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException;
+  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException;
 
   /**
    * @param domainGroupName
@@ -129,7 +129,7 @@ public interface Coordinator {
    * @param domainGroupName
    * @return
    */
-  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName);
+  public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup);
 
   /**
    * @param ringGroupName

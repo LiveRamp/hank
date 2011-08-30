@@ -15,27 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -208,14 +196,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException {
-    Set<DomainGroup> groups = new HashSet<DomainGroup>();
-    for (DomainGroup group : domainGroups.values()) {
-      if (group.getDomainId(domainName) != null){
-        groups.add(group);
+  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
+    Set<DomainGroupVersion> domainGroupVersions = new HashSet<DomainGroupVersion>();
+    for (DomainGroup dg : domainGroups.values()) {
+      for (DomainGroupVersion dgv : dg.getVersions()) {
+        DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(domain);
+        if (dgvdv != null) {
+          domainGroupVersions.add(dgv);
+        }
       }
     }
-    return groups;
+    return domainGroupVersions;
   }
 
   public DomainGroup getDomainGroup(String domainGroupName) {
@@ -281,9 +272,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
-  public Set<RingGroup> getRingGroupsForDomainGroup(String domainGroupName) {
+  public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
+    String domainGroupName = domainGroup.getName();
     Set<RingGroup> groups = new HashSet<RingGroup>();
-    for (RingGroup group : ringGroupConfigs.values()){
+    for (RingGroup group : ringGroupConfigs.values()) {
       if (group.getDomainGroup().getName().equals(domainGroupName)) {
         groups.add(group);
       }
