@@ -1,17 +1,17 @@
 package com.rapleaf.hank.coordinator;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
-
 public class MockHostDomain extends AbstractHostDomain {
-  private final int domainId;
+  private final Domain domain;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
 
-  public MockHostDomain(int domainId, int... triples) {
-    this.domainId = domainId;
+  public MockHostDomain(Domain domain, int... triples) {
+    this.domain = domain;
 
     for (int i = 0; i < triples.length; i += 3) {
       parts.add(new MockHostDomainPartition(triples[i], triples[i + 1],
@@ -26,7 +26,7 @@ public class MockHostDomain extends AbstractHostDomain {
 
   @Override
   public Domain getDomain() {
-    return domainId;
+    return domain;
   }
 
   @Override
