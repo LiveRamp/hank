@@ -15,52 +15,48 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.StorageEngine;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.StorageEngine;
+import java.util.concurrent.*;
 
 /**
  * Manages the domain update process.
  */
 class UpdateManager implements IUpdateManager {
+  private static final int TERMINATION_CHECK_TIMEOUT_MS = 1000;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class UpdateToDo implements Runnable {
     private final StorageEngine engine;
-    private final int partNum;
+    private final int partitionNumber;
     private final Queue<Throwable> exceptionQueue;
     private final int toDomainVersion;
-    private final HostDomainPartition part;
+    private final HostDomainPartition partition;
     private final String domainName;
     private final int toDomainGroupVersion;
     private final Set<Integer> excludeVersions;
 
-    public UpdateToDo(StorageEngine engine, int partNum, Queue<Throwable> exceptionQueue, int toDomainVersion, HostDomainPartition part, String domainName, int toDomainGroupVersion, Set<Integer> excludeVersions) {
+    public UpdateToDo(StorageEngine engine,
+                      int partitionNumber,
+                      Queue<Throwable> exceptionQueue,
+                      int toDomainVersion,
+                      HostDomainPartition partition,
+                      String domainName,
+                      int toDomainGroupVersion,
+                      Set<Integer> excludeVersions) {
       this.engine = engine;
-      this.partNum = partNum;
+      this.partitionNumber = partitionNumber;
       this.exceptionQueue = exceptionQueue;
       this.toDomainVersion = toDomainVersion;
-      this.part = part;
+      this.partition = partition;
       this.domainName = domainName;
       this.toDomainGroupVersion = toDomainGroupVersion;
       this.excludeVersions = excludeVersions;
@@ -69,11 +65,11 @@ class UpdateManager implements IUpdateManager {
     @Override
     public void run() {
       try {
-        LOG.info(String.format("%s part %d to version %d starting (%s)", domainName, partNum, toDomainVersion, engine.toString()));
-        engine.getUpdater(configurator, partNum).update(toDomainVersion, excludeVersions);
-        part.setCurrentDomainGroupVersion(toDomainGroupVersion);
-        part.setUpdatingToDomainGroupVersion(null);
-        LOG.info(String.format("UpdateToDo %s part %d completed.", engine.toString(), partNum));
+        LOG.info(String.format("%s part %d to version %d starting (%s)", domainName, partitionNumber, toDomainVersion, engine.toString()));
+        engine.getUpdater(configurator, partitionNumber).update(toDomainVersion, excludeVersions);
+        partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
+        partition.setUpdatingToDomainGroupVersion(null);
+        LOG.info(String.format("UpdateToDo %s part %d completed.", engine.toString(), partitionNumber));
       } catch (Throwable e) {
         LOG.fatal("Failed to complete an UpdateToDo!", e);
         exceptionQueue.add(e);
@@ -141,7 +137,7 @@ class UpdateManager implements IUpdateManager {
           executor.execute(new UpdateToDo(engine,
               part.getPartNum(),
               exceptionQueue,
-              dgvdv.getVersionNumber(),
+              dgvdv.getVersionOrAction().getVersion(),
               part,
               domain.getName(),
               part.getUpdatingToDomainGroupVersion(),
@@ -151,15 +147,21 @@ class UpdateManager implements IUpdateManager {
     }
 
     try {
+      // Wait for all tasks to finish
       boolean terminated = false;
       executor.shutdown();
       while (!terminated) {
         LOG.debug("Waiting for update executor to complete...");
-        terminated = executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
-        if (!exceptionQueue.isEmpty()) {
-          LOG.fatal("An UpdateToDo encountered an exception:", exceptionQueue.poll());
-          throw new RuntimeException("Failed to complete update!");
+        terminated = executor.awaitTermination(TERMINATION_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+      }
+      // Detect failed tasks
+      if (!exceptionQueue.isEmpty()) {
+        LOG.fatal(String.format("%d exceptions encountered while running UpdateToDo:", exceptionQueue.size()));
+        int i = 0;
+        for (Throwable t : exceptionQueue) {
+          LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
         }
+        throw new RuntimeException("Failed to complete update!");
       }
     } catch (InterruptedException e) {
       LOG.debug("Interrupted while waiting for update to complete. Terminating.");

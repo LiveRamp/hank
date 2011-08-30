@@ -49,6 +49,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.curly.Curly;
@@ -297,18 +298,18 @@ public class ZkTestCase extends BaseTestCase {
     g1.addDomain(d0, 0);
     g1.addDomain(d1, 1);
 
-    g1.createNewVersion(new HashMap<Domain, Integer>() {
+    g1.createNewVersion(new HashMap<Domain, VersionOrAction>() {
       {
-        put(d0, 1);
-        put(d1, 1);
+        put(d0, new VersionOrAction(1));
+        put(d1, new VersionOrAction(1));
       }
     });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
     g2.addDomain(d1, 0);
-    g2.createNewVersion(new HashMap<Domain, Integer>() {
+    g2.createNewVersion(new HashMap<Domain, VersionOrAction>() {
       {
-        put(d1, 1);
+        put(d1, new VersionOrAction(1));
       }
     });
 

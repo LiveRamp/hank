@@ -126,6 +126,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
           first = false;
           }
           %>
+          <option value="unassign">unassign</option>
         </select>
       </td>
     </tr>
@@ -152,7 +153,14 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
       <%
         for (DomainGroupVersionDomainVersion dcv : new TreeSet<DomainGroupVersionDomainVersion>(dgcv.getDomainVersions())) {
       %>
-      <li><%=dcv.getDomain().getName()%> @ v<%=dcv.getVersionNumber() %></li>
+      <li>
+        <%=dcv.getDomain().getName()%>
+        <% if (dcv.getVersionOrAction().isAction()) { %>
+        (unassigned)
+        <% } else { %>
+        @ v<%= dcv.getVersionOrAction().getVersion() %>
+        <% } %>
+      </li>
       <% } %>
     </ul>
   </li>

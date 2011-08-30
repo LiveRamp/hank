@@ -256,9 +256,16 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getDomainGroupVersionDomainVersionsMap(Collection<DomainGroupVersionDomainVersion> versions) throws IOException {
     Map<String, Object> versionsMap =  new HashMap<String, Object>();
     for (DomainGroupVersionDomainVersion v : versions){
-      versionsMap.put(v.getDomain().getName(), getDomainVersionData(v.getDomain().getVersionByNumber(v.getVersionNumber())));
+      versionsMap.put(String.valueOf(v.getVersionOrAction()), getDomainGroupVersionDomainVersionData(v));
     }
     return versionsMap;
+  }
+
+  private Map<String, Object> getDomainGroupVersionDomainVersionData(DomainGroupVersionDomainVersion version) throws IOException {
+    Map<String, Object> data =  new HashMap<String, Object>();
+    data.put("version_number", version.getVersionOrAction());
+    data.put("domain", getDomainData(version.getDomain()));
+    return data;
   }
 
   private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {

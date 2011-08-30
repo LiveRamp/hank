@@ -16,12 +16,14 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 
 public class MockDomainGroup extends AbstractDomainGroup {
   private final String name;
+  private final Map<Domain, Integer> domains = new HashMap<Domain, Integer>();
 
   public MockDomainGroup(String name) {
     this.name = name;
@@ -61,14 +63,15 @@ public class MockDomainGroup extends AbstractDomainGroup {
   }
 
   public void addDomain(Domain domain, int domainId) {
+    domains.put(domain, domainId);
   }
 
   public DomainGroupVersion createNewVersion(
-      Map<Domain, Integer> domainIdToVersion) {
+      Map<Domain,VersionOrAction> domainIdToVersion) {
     return null;
   }
 
   public Set<Domain> getDomains() throws IOException {
-    return null;
+    return domains.keySet();
   }
 }
