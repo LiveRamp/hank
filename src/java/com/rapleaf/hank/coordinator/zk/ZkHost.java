@@ -124,9 +124,9 @@ public class ZkHost extends AbstractHost {
     commandQueueWatcher = new CommandQueueWatcher();
     domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
       @Override
-      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        if (!basePath.equals(".complete")) {
-          return new ZkHostDomain(zk, basePath, coordinator.getDomain(relPath));
+      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String domainName) throws KeeperException, InterruptedException {
+        if (!ZkPath.isHidden(domainName)) {
+          return new ZkHostDomain(zk, basePath, coordinator.getDomain(domainName));
         }
         return null;
       }
