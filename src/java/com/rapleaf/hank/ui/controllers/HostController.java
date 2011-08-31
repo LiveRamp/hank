@@ -5,13 +5,12 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
@@ -108,14 +107,13 @@ public class HostController extends Controller {
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
-    throw new NotImplementedException("needs reimplement");
-//    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-//    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-//    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-//    HostDomain dc = hc.getHostDomain(Integer.parseInt(req.getParameter("d")));
-//    HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
-//    pd.setDeletable(deletable);
-//
-//    redirectBack(resp, rgc, rc, hc);
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
+    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
+    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    HostDomain dc = hc.getHostDomain(coordinator.getDomain(req.getParameter("d")));
+    HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
+    pd.setDeletable(deletable);
+
+    redirectBack(resp, rgc, rc, hc);
   }
 }
