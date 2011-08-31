@@ -5,9 +5,12 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
 
   @Override
   public DomainGroupVersionDomainVersion getDomainVersion(Domain domain) {
-    // TODO: implement domainVersions as a HashMap
+    if (domain == null || domain.getName() == null) {
+      return null;
+    }
     for (DomainGroupVersionDomainVersion domainVersion : getDomainVersions()) {
-      if (domain.getName().equals(domainVersion.getDomain().getName())) {
+      if (domainVersion.getDomain() != null &&
+          domain.getName().equals(domainVersion.getDomain().getName())) {
         return domainVersion;
       }
     }
