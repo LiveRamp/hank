@@ -37,9 +37,9 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
 
   public ZkDomainGroupVersion(ZooKeeperPlus zk,
-      Coordinator coordinator,
-      String versionPath,
-      DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
+                              Coordinator coordinator,
+                              String versionPath,
+                              DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
     Matcher m = VERSION_NAME_PATTERN.matcher(ZkPath.getFilename(versionPath));
     if (!m.matches()) {
@@ -53,13 +53,11 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
       throw new IllegalStateException(versionPath + " is not yet complete!");
     }
 
-    List<String> relativePaths = zk.getChildren(versionPath, false);
+    List<String> relativePaths = zk.getChildrenNotHidden(versionPath, false);
     domainVersions = new HashSet<DomainGroupVersionDomainVersion>();
-    for (String relativePath : relativePaths) {
-      if (!relativePath.equals(COMPLETE_NODE_NAME)) {
-        domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, ZkPath.append(versionPath, relativePath),
-            coordinator.getDomain(relativePath)));
-      }
+    for (String domainName : relativePaths) {
+      domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, ZkPath.append(versionPath, domainName),
+          coordinator.getDomain(domainName)));
     }
   }
 
@@ -92,7 +90,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     for (Entry<Domain, VersionOrAction> entry : domainNameToVersion.entrySet()) {
       zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (entry.getValue().encode()).getBytes());
     }
-    zk.create(ZkPath.append(actualPath, ".complete"), null);
+    zk.create(ZkPath.append(actualPath, COMPLETE_NODE_NAME), null);
     // touch it again to notify watchers
     zk.setData(actualPath, new byte[1], -1);
     return new ZkDomainGroupVersion(zk, coordinator, actualPath, domainGroup);
