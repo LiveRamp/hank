@@ -40,8 +40,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
-  private final DomainGroup domainGroup;
   private final RingGroup ringGroup;
+  private final Coordinator coordinator;
 
   private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
 
@@ -59,8 +59,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * @throws TException
    */
   public HankSmartClient(Coordinator coordinator, String ringGroupName, int numConnectionsPerHost) throws IOException, TException {
+    this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
-    this.domainGroup = ringGroup.getDomainGroup();
 
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
@@ -77,7 +77,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
-      domainPartToHostList.put(domainGroup.getDomainId(domain.getName()), partitionToAddress);
+      domainPartToHostList.put(domain.getId(), partitionToAddress);
 
       for (int i = 0; i < domain.getNumParts(); i++) {
         partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
@@ -121,36 +121,19 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   @Override
   public HankResponse get(String domainName, ByteBuffer key) throws TException {
-    int partition = -1;
-    Integer domainId = null;
-    try {
-      domainId = domainGroup.getDomainId(domainName);
-    } catch (IOException e1) {
-      // TODO: this might be bad
-      LOG.error(e1);
-    }
+    int partition;
 
-    if (domainId != null) {
-      Domain domain;
-      try {
-        domain = domainGroup.getHostDomain(domainId);
-      } catch (IOException e) {
-        // TODO: this might be bad.
-        LOG.error(e);
-        return NO_SUCH_DOMAIN;
-      }
-      if (domain != null) {
-        partition = domain.getPartitioner().partition(key, domain.getNumParts());
-      } else {
-        return NO_SUCH_DOMAIN;
-      }
+    Domain domain;
+    domain = this.coordinator.getDomain(domainName);
+    if (domain != null) {
+      partition = domain.getPartitioner().partition(key, domain.getNumParts());
     } else {
       return NO_SUCH_DOMAIN;
     }
 
-    Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domainId);
+    Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
     if (partitionToConnectionSet == null) {
-      String errMsg = String.format("Got a null domain->part map for domain %s (%d)!", domainName, domainId);
+      String errMsg = String.format("Got a null domain->part map for domain %s (%d)!", domainName, domain.getId());
       LOG.error(errMsg);
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
@@ -158,12 +141,12 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     PartitionServerConnectionSet connectionSet = partitionToConnectionSet.get(partition);
     if (connectionSet == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      String errMsg = String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domainName, domainId, partition);
+      String errMsg = String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domainName, domain.getId(), partition);
       LOG.error(errMsg);
       return HankResponse.xception(HankExceptions.internal_error(errMsg));
     }
     LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
-    return connectionSet.get(domainId, key);
+    return connectionSet.get(domain.getId(), key);
   }
 
   @Override
