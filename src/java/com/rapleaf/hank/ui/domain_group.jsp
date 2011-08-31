@@ -26,61 +26,6 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 
 <h1>Domain Group <%= domainGroup.getName() %></h1>
 
-<h2>Domains + Ids</h2>
-<table width=300 class='table-blue'>
-  <tr>
-    <th width=100%>Name</th>
-    <th>ID</th>
-    <th></th>
-  </tr>
-  <%
-    for (Domain domain : new TreeSet<Domain>(domainGroup.getDomains())) {
-  %>
-  <tr>
-    <td><a href="/domain.jsp?n=<%=URLEnc.encode(domain.getName())%>"><%=domain.getName()%></a></td>
-    <td><%=domainGroup.getDomainId(domain.getName())%></td>
-    <td>
-      <% if (domainGroup.isDomainRemovable(domain)) { %>
-      <form action="/domain_group/unassign" method=post>
-        <input type=hidden name="n" value="<%= domainGroup.getName() %>"/>
-        <input type=hidden name="domain" value="<%= domain.getName() %>"/>
-        <input type=submit value="Remove from domain group"
-          onclick="return confirm('Are you sure you want to remove domain <%= domain.getName() %> from this domain group? This action cannot be undone automatically.');"/>
-      </form>
-      <% } %>
-    </td>
-  </tr>
-  <%
-    }
-  %>
-</table>
-
-<%
-  Set<Domain> s = new TreeSet<Domain>(coord.getDomains());
-  s.removeAll(domainGroup.getDomains());
-
-  if (!s.isEmpty()) {
-%>
-<form action="/domain_group/add_domain" method=post>
-  <input type=hidden name="n" value="<%=domainGroup.getName()%>"/>
-
-  Add domain:
-  <br/>
-  <select name="d">
-  <%
-    for (Domain domain : s) {
-  %>
-    <option><%=domain.getName()%></option>
-  <%
-    }
-  %>
-  </select>
-  <input type=submit value="Add"/>
-</form>
-<%
-  }
-%>
-
 <h2>Actions</h2>
 <form method=post action="/domain_group/delete">
   <input type=hidden name="name" value="<%= domainGroup.getName() %>"/>
@@ -101,7 +46,7 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
       <th>Version (default: most recent)</th>
     </tr>
   <%
-    for (Domain domain : new TreeSet<Domain>(domainGroup.getDomains())) {
+    for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
     if (!domain.getVersions().isEmpty()) {
   %>
     <tr>

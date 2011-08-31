@@ -354,7 +354,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
-      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, null);
+      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, this);
       synchronized (domainGroups) {
         domainGroups.put(name, dgc);
       }

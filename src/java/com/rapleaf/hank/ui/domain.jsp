@@ -29,6 +29,10 @@
 
 <table>
   <tr>
+    <td>ID:</td>
+    <td><%= domain.getId() %></td>
+  </tr>
+  <tr>
     <td>
       Number of partitions:
     </td>

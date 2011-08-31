@@ -29,7 +29,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <table class='table-blue'>
     <tr>
       <th>Name</th>
-      <th>Domains</th>
       <th>Cur Ver #</th>
     </tr>
     <%
@@ -37,14 +36,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
-        <td>
-        <%
-        boolean first = true;
-        for (Domain domain : domainGroup.getDomains()) { %>
-          <% if (!first) { %>,<% } first = false;%>
-          <%= domain.getName() %>
-        <% } %>
-        </td>
         <td><%= domainGroup.getLatestVersion() == null ? "" : domainGroup.getLatestVersion().getVersionNumber() %></td>
       </tr>
       <%

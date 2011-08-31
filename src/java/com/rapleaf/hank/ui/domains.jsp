@@ -27,6 +27,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <table class='table-blue'>
     <tr>
       <th>Name</th>
+      <th>ID</th>
       <th>Partitioner</th>
       <th>Num Partitions</th>
       <th>Storage Engine</th>
@@ -36,6 +37,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     %>
       <tr>
         <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>
+        <td><%= domain.getId() %></td>
         <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
         <td class='centered'><%= domain.getNumParts() %></td>
         <td><%= domain.getStorageEngineFactoryClass().getName() %></td>
