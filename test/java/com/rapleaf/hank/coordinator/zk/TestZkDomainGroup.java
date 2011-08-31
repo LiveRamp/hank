@@ -22,11 +22,13 @@ import java.util.Map;
 import org.apache.zookeeper.KeeperException;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
@@ -50,8 +52,19 @@ public class TestZkDomainGroup extends ZkTestCase {
   private final String domains_root = ZkPath.append(getRoot(), "domains");
 
   public void testLoad() throws Exception {
-    Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
-    Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
+    final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+
+    Coordinator coord = new MockCoordinator() {
+      @Override
+      public Domain getDomain(String domainName) {
+        if (domainName.equals("domain0")) {
+          return d0;
+        } else {
+          return d1;
+        }
+      }
+    };
 
     create(ZkPath.append(dg_root, "versions"));
     create(ZkPath.append(dg_root, "versions/v1"));
@@ -62,7 +75,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
     create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");
 
-    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root, null);
+    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root, coord);
 
     assertEquals(1, dgc.getVersions().size());
     assertEquals(1, ((DomainGroupVersion) dgc.getVersions().toArray()[0]).getVersionNumber());
@@ -70,13 +83,24 @@ public class TestZkDomainGroup extends ZkTestCase {
   }
 
   public void testDomainsAndListener() throws Exception {
-    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", null);
+    final Domain d0 = createDomain("domain0");
+    final Domain d1 = createDomain("domain1");
+
+    Coordinator coord = new MockCoordinator() {
+      @Override
+      public Domain getDomain(String domainName) {
+        if (domainName.equals("domain0")) {
+          return d0;
+        } else {
+          return d1;
+        }
+      }
+    };
+
+    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", coord);
     MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
     dgc.setListener(listener);
     assertNull(listener.calledWith);
-
-    final Domain d0 = createDomain("domain0");
-    final Domain d1 = createDomain("domain1");
 
     assertNull(listener.calledWith);
 

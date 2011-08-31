@@ -103,7 +103,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     for (String version : versions) {
       String versionPath = ZkPath.append(dgPath, "versions", version);
       if (ZkDomainGroupVersion.isComplete(versionPath, zk)) {
-        ZkDomainGroupVersion ver = new ZkDomainGroupVersion(zk, null, versionPath, this);
+        ZkDomainGroupVersion ver = new ZkDomainGroupVersion(zk, getCoord(), versionPath, this);
         dgcvs.put(ver.getVersionNumber(), ver);
       }
     }

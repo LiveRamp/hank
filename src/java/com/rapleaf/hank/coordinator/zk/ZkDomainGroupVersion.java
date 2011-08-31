@@ -37,10 +37,9 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
 
   public ZkDomainGroupVersion(ZooKeeperPlus zk,
-                              Coordinator coordinator,
-                              String versionPath,
-                              DomainGroup domainGroup)
-      throws InterruptedException, KeeperException, IOException {
+      Coordinator coordinator,
+      String versionPath,
+      DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
     Matcher m = VERSION_NAME_PATTERN.matcher(ZkPath.getFilename(versionPath));
     if (!m.matches()) {
