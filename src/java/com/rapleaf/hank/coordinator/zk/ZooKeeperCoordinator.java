@@ -52,6 +52,7 @@ import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+  private static final String KEY_DOMAIN_ID_COUNTER = ".domain_id_counter";
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
 
   /**
@@ -138,7 +139,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private boolean isSessionExpired = false;
 
   private final Map<String, ZkDomain> domainsByName = new HashMap<String, ZkDomain>();
-  ;
+
   private final Map<String, ZkDomainGroup> domainGroups = new HashMap<String, ZkDomainGroup>();
   private final Map<String, ZkRingGroup> ringGroupConfigs = new HashMap<String, ZkRingGroup>();
 
@@ -242,7 +243,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildren(domainsRoot, false);
     for (String domainName : domainNames) {
-      domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
+      if (!domainName.startsWith(".")) {
+        domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
+      }
     }
   }
 
@@ -316,17 +319,18 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   private int getNextDomainId() throws KeeperException, InterruptedException {
-    if (zk.exists(domainsRoot + "/.domain_id_counter", false) == null) {
-      zk.create(domainsRoot + "/.domain_id_counter", Integer.toString(1).getBytes());
+    final String domainIdCounterPath = ZkPath.append(domainsRoot, KEY_DOMAIN_ID_COUNTER);
+    if (zk.exists(domainIdCounterPath, false) == null) {
+      zk.create(domainIdCounterPath, Integer.toString(1).getBytes());
       return 1;
     }
     while (true) {
       final Stat stat = new Stat();
-      final byte[] data = zk.getData(domainsRoot + "/.domain_id_counter", false, stat);
+      final byte[] data = zk.getData(domainIdCounterPath, false, stat);
       int lastVersionNumber = Integer.parseInt(new String(data));
       try {
         lastVersionNumber++;
-        zk.setData(domainsRoot + "/.domain_id_counter", Integer.toString(lastVersionNumber).getBytes(), stat.getVersion());
+        zk.setData(domainIdCounterPath, Integer.toString(lastVersionNumber).getBytes(), stat.getVersion());
         return lastVersionNumber;
       } catch (KeeperException.BadVersionException e) {
         LOG.debug("tried to set the domain id counter to " + lastVersionNumber + " but was preempted by another writer. Retrying.");
