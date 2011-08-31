@@ -15,36 +15,16 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-
-import junit.framework.TestCase;
-
 import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import junit.framework.TestCase;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
@@ -62,7 +42,8 @@ public class TestDataDeployer extends TestCase {
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       @Override
       public DomainGroupVersion getLatestVersion() {
-        return new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)new MockDomainGroupVersionDomainVersion(domain, 1)), null, 2);
+        return new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)
+            new MockDomainGroupVersionDomainVersion(domain, 1)), null, 2);
       }
 
       @Override
@@ -72,7 +53,7 @@ public class TestDataDeployer extends TestCase {
     };
 
     final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0,
-      1);
+        1);
 
     final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
@@ -85,7 +66,7 @@ public class TestDataDeployer extends TestCase {
 
           @Override
           public Domain getDomain() {
-            return null;
+            return domain;
           }
 
           @Override
@@ -104,7 +85,7 @@ public class TestDataDeployer extends TestCase {
     };
 
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
-      Collections.EMPTY_SET) {
+        Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -166,7 +147,7 @@ public class TestDataDeployer extends TestCase {
         };
 
         return new MockDomainGroupVersion(
-          Collections.singleton((DomainGroupVersionDomainVersion) dv), null, 2);
+            Collections.singleton((DomainGroupVersionDomainVersion) dv), null, 2);
       }
 
       @Override
@@ -176,7 +157,7 @@ public class TestDataDeployer extends TestCase {
     };
 
     final MockHostDomainPartition mockHostDomainPartitionConfig = new MockHostDomainPartition(0, 0,
-      1);
+        1);
 
     final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
@@ -189,7 +170,7 @@ public class TestDataDeployer extends TestCase {
 
           @Override
           public Domain getDomain() {
-            return null;
+            return domain;
           }
 
           @Override
@@ -208,7 +189,7 @@ public class TestDataDeployer extends TestCase {
     };
 
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
-      Collections.EMPTY_SET) {
+        Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -265,7 +246,7 @@ public class TestDataDeployer extends TestCase {
     };
 
     final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
-      Collections.EMPTY_SET) {
+        Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;

@@ -111,8 +111,8 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
     } else {
-      final DomainGroupVersion version = domainGroup.getLatestVersion();
-      int latestVersionNumber = version.getVersionNumber();
+      final DomainGroupVersion dgv = domainGroup.getLatestVersion();
+      int latestVersionNumber = dgv.getVersionNumber();
       if (ringGroup.getCurrentVersion() < latestVersionNumber) {
         // We can start a new update of this ring group.
 
@@ -122,17 +122,23 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
         for (Ring ring : ringGroup.getRings()) {
           for (Host host : ring.getHosts()) {
             for (HostDomain hd : host.getAssignedDomains()) {
-              final DomainGroupVersionDomainVersion domainVersion = version.getDomainVersion(hd.getDomain());
-              for (HostDomainPartition hdp : hd.getPartitions()) {
-                // if the dgvdv is tagged as an action instead of as a version
-                // number, then we should take action rather than just update
-                // the version number on the hdp
-                if (domainVersion.getVersionOrAction().isAction() && domainVersion.getVersionOrAction().getAction() == Action.UNASSIGN) {
-                  // if it's an unassign action, then we just want to mark all
-                  // the parts as deletable.
-                  hdp.setDeletable(true);
-                } else {
-                  hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+              final DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(hd.getDomain());
+              if (dgvdv == null) {
+                LOG.error(String.format("Could not determine DomainGroupVersionDomainVersion for domain %s on host %s. Will not update.",
+                    hd.getDomain(), host.getAddress()));
+              } else {
+                for (HostDomainPartition hdp : hd.getPartitions()) {
+                  // if the dgvdv is tagged as an action instead of as a version
+                  // number, then we should take action rather than just update
+                  // the version number on the hdp
+                  if (dgvdv.getVersionOrAction().isAction() &&
+                      dgvdv.getVersionOrAction().getAction() == Action.UNASSIGN) {
+                    // if it's an unassign action, then we just want to mark all
+                    // the parts as deletable.
+                    hdp.setDeletable(true);
+                  } else {
+                    hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+                  }
                 }
               }
             }
