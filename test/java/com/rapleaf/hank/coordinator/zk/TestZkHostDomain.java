@@ -19,14 +19,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHostDomain extends ZkTestCase {
 
   public void testIt() throws Exception {
-    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), 1);
-    assertEquals(1, hdc.getDomain());
+    Domain d0 = new MockDomain("d0");
+    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), d0);
+    assertEquals(d0, hdc.getDomain());
     assertEquals(0, hdc.getPartitions().size());
     dumpZk();
     hdc.addPartition(1, 1);

@@ -128,7 +128,7 @@ public class ZkRingGroup extends AbstractRingGroup {
       @Override
       public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (relPath.matches("ring-\\d+")) {
-          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this);
+          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, null);
         }
         return null;
       }

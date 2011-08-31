@@ -55,7 +55,7 @@ public class TestZkRing extends ZkTestCase {
     ZkRing ringConf = ZkRing.create(getZk(), ring_group_root, 1, null, 1);
     ringConf.close();
 
-    ringConf = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null);
+    ringConf = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null, null);
 
     assertEquals("ring number", 1, ringConf.getRingNumber());
     assertNull("version number", ringConf.getVersionNumber());
@@ -106,7 +106,7 @@ public class TestZkRing extends ZkTestCase {
     ringConf.close();
 
     // assure that hosts reload well, too
-    ringConf = new ZkRing(getZk(), ring_root, null);
+    ringConf = new ZkRing(getZk(), ring_root, null, null);
     assertEquals(1, ringConf.getHosts().size());
 
     assertEquals(Collections.singleton(hc), ringConf.getHosts());
@@ -125,7 +125,7 @@ public class TestZkRing extends ZkTestCase {
     assertEquals(RingState.DOWN, rc.getState());
     rc.setState(RingState.UP);
     assertEquals(RingState.UP, rc.getState());
-    rc = new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-1"), null);
+    rc = new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-1"), null, null);
     assertEquals(RingState.UP, rc.getState());
   }
 
@@ -177,7 +177,7 @@ public class TestZkRing extends ZkTestCase {
     ZkRing rc = ZkRing.create(getZk(), ZkPath.append(getRoot(), "ring-group-one"), 1, null, 10);
     rc.delete();
     try {
-      new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-group-one/ring-1"), null);
+      new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-group-one/ring-1"), null, null);
       fail("should have had an exception!");
     } catch (KeeperException.NoNodeException e) {
       // expected
