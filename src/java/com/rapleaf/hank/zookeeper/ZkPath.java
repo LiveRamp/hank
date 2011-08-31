@@ -15,6 +15,9 @@
  */
 package com.rapleaf.hank.zookeeper;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class ZkPath {
 
   // Create a string representing a Zookeeper path. Each argument is a sub-directory
@@ -43,8 +46,18 @@ public class ZkPath {
   }
 
   // Return true if the given path is a hidden file, i.e. the corresponding filename
-  // starts with a dot.
+  // starts with a period.
   public static boolean isHidden(String path) {
     return getFilename(path).startsWith(".");
+  }
+
+  public static List<String> filterOutHiddenPaths(List<String> paths) {
+    List<String> pathsNonHidden = new ArrayList<String>(paths.size());
+    for (String path : paths) {
+      if (!ZkPath.isHidden(path)) {
+        pathsNonHidden.add(path);
+      }
+    }
+    return pathsNonHidden;
   }
 }

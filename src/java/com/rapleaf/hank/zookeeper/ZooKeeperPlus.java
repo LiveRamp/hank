@@ -125,4 +125,13 @@ public class ZooKeeperPlus extends ZooKeeper {
       return;
     }
   }
+
+  // Get not hidden children (children that do not start with a period)
+  public List<String> getChildrenNotHidden(String path, boolean watch) throws InterruptedException, KeeperException {
+    return ZkPath.filterOutHiddenPaths(super.getChildren(path, watch));
+  }
+
+  public List<String> getChildrenNotHidden(String path, Watcher watcher) throws InterruptedException, KeeperException {
+    return ZkPath.filterOutHiddenPaths(super.getChildren(path, watcher));
+  }
 }
