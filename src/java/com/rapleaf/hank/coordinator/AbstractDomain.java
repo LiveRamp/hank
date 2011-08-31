@@ -54,7 +54,7 @@ public abstract class AbstractDomain implements Domain {
   @Override
   public DomainVersion getLatestVersion() throws IOException {
     SortedSet<DomainVersion> versions = getVersions();
-    if (versions.size() == 0) {
+    if (versions == null || versions.size() == 0) {
       return null;
     } else {
       return versions.last();
