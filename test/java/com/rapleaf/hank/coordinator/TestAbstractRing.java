@@ -1,20 +1,20 @@
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
 
   private static class SlightlyLessAbstractRing extends AbstractRing {
     protected SlightlyLessAbstractRing(int ringNum,
-        RingGroup ringGroupConfig) {
+                                       RingGroup ringGroupConfig) {
       super(ringNum, ringGroupConfig);
     }
 
@@ -115,8 +115,8 @@ public class TestAbstractRing extends BaseTestCase {
   public void testGetHostsForDomainPartition() throws Exception {
     final Domain d0 = new MockDomain("d0");
     final Host hc = new MockHost(LOCALHOST) {
-      HostDomain hd1 = new MockHostDomain(d0, 0, 1, 1, 2, 2, 2, 2);
-      HostDomain hd2 = new MockHostDomain(null, 0, 1, 2, 2, 2, 2, 2);
+      HostDomain hd1 = new MockHostDomain(d0, 1, 1, 2, 2, 2, 2);
+      HostDomain hd2 = new MockHostDomain(null, 1, 2, 2, 2, 2, 2);
 
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
