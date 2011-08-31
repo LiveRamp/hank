@@ -1,8 +1,6 @@
 package com.rapleaf.hank.ui.controllers;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -10,9 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.ui.URLEnc;
 
 public class DomainGroupController extends Controller {
@@ -60,34 +55,35 @@ public class DomainGroupController extends Controller {
   }
 
   private void doAddVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    String dgName = URLEnc.decode(req.getParameter("n"));
-
-    DomainGroup dg = coordinator.getDomainGroup(dgName);
-
-    Map<Domain, VersionOrAction> domainVersions = new HashMap<Domain, VersionOrAction>();
-    for (Domain domain : dg.getDomains()) {
-      String version = req.getParameter(domain.getName() + "_version");
-      if (version == null) {
-        throw new IOException("Version for domain " + domain.getName() + " was not specified.");
-      }
-
-      VersionOrAction v;
-
-      // we want to allow domain groups with unassigned domains for the purpose
-      // of removing them from the group
-      if (version.equals("unassign")) {
-        v = new VersionOrAction(VersionOrAction.Action.UNASSIGN);
-      } else {
-        // plain ol' version assignment
-        v = new VersionOrAction(Integer.parseInt(version));
-      }
-
-      domainVersions.put(domain, v);
-    }
-
-    dg.createNewVersion(domainVersions);
-
-    resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
+    throw new NotImplementedException("needs reimplemented");
+//    String dgName = URLEnc.decode(req.getParameter("n"));
+//
+//    DomainGroup dg = coordinator.getDomainGroup(dgName);
+//
+//    Map<Domain, VersionOrAction> domainVersions = new HashMap<Domain, VersionOrAction>();
+//    for (Domain domain : dg.getDomains()) {
+//      String version = req.getParameter(domain.getName() + "_version");
+//      if (version == null) {
+//        throw new IOException("Version for domain " + domain.getName() + " was not specified.");
+//      }
+//
+//      VersionOrAction v;
+//
+//      // we want to allow domain groups with unassigned domains for the purpose
+//      // of removing them from the group
+//      if (version.equals("unassign")) {
+//        v = new VersionOrAction(VersionOrAction.Action.UNASSIGN);
+//      } else {
+//        // plain ol' version assignment
+//        v = new VersionOrAction(Integer.parseInt(version));
+//      }
+//
+//      domainVersions.put(domain, v);
+//    }
+//
+//    dg.createNewVersion(domainVersions);
+//
+//    resp.sendRedirect("/domain_group.jsp?n=" + req.getParameter("n"));
   }
 
   private void doCreate(HttpServletRequest req, HttpServletResponse response) throws IOException {
