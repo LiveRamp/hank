@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
-  private static final String COMPLETE_NODE_NAME = ".complete";
   private final DomainGroup domainGroup;
   private final int versionNumber;
   private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
@@ -77,7 +76,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   }
 
   public static boolean isComplete(String versionPath, ZooKeeper zk) throws KeeperException, InterruptedException {
-    return zk.exists(ZkPath.append(versionPath, COMPLETE_NODE_NAME), false) != null;
+    return zk.exists(ZkPath.append(versionPath, DotComplete.NODE_NAME), false) != null;
   }
 
   public static DomainGroupVersion create(ZooKeeperPlus zk,
@@ -90,7 +89,7 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     for (Entry<Domain, VersionOrAction> entry : domainNameToVersion.entrySet()) {
       zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (entry.getValue().encode()).getBytes());
     }
-    zk.create(ZkPath.append(actualPath, COMPLETE_NODE_NAME), null);
+    zk.create(ZkPath.append(actualPath, DotComplete.NODE_NAME), null);
     // touch it again to notify watchers
     zk.setData(actualPath, new byte[1], -1);
     return new ZkDomainGroupVersion(zk, coordinator, actualPath, domainGroup);

@@ -15,30 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
-import com.rapleaf.hank.coordinator.AbstractRing;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ZkRing extends AbstractRing implements Watcher {
   private static final Logger LOG = Logger.getLogger(ZkRing.class);
@@ -252,7 +241,7 @@ public class ZkRing extends AbstractRing implements Watcher {
       if (zk.exists(hostPath, false) == null) {
         return false;
       }
-      zk.delete(ZkPath.append(hostPath, ".complete"), -1);
+      zk.delete(ZkPath.append(hostPath, DotComplete.NODE_NAME), -1);
       zk.deleteNodeRecursively(hostPath);
 
       return true;

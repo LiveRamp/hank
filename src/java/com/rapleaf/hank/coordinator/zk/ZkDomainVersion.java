@@ -29,7 +29,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     zk.create(versionPath, null);
     zk.create(ZkPath.append(versionPath, "parts"), null);
     zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
-    zk.create(ZkPath.append(versionPath, ".complete"), null);
+    zk.create(ZkPath.append(versionPath, DotComplete.NODE_NAME), null);
     return new ZkDomainVersion(zk, versionPath);
   }
 

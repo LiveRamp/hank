@@ -16,24 +16,18 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.KeeperException;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
@@ -70,7 +64,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     create(ZkPath.append(dg_root, "versions/v1"));
     create(ZkPath.append(dg_root, "versions/v1/domain0"), "1");
     create(ZkPath.append(dg_root, "versions/v1/domain1"), "1");
-    create(ZkPath.append(dg_root, "versions/v1/.complete"), "1");
+    create(ZkPath.append(dg_root, "versions/v1/" + DotComplete.NODE_NAME), "1");
     create(ZkPath.append(dg_root, "versions/v2"));
     create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
     create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");

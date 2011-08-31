@@ -17,7 +17,7 @@ public class ZkPartitionInfo implements PartitionInfo {
       zk.create(partPath, null);
       zk.createLong(ZkPath.append(partPath, "num_bytes"), numBytes);
       zk.createLong(ZkPath.append(partPath, "num_records"), numRecords);
-      zk.create(ZkPath.append(partPath, ".complete"), null);
+      zk.create(ZkPath.append(partPath, DotComplete.NODE_NAME), null);
     }
     return new ZkPartitionInfo(zk, partPath);
   }

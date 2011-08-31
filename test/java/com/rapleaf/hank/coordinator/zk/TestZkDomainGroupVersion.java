@@ -15,21 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
@@ -122,7 +116,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
         }
       }
     };
-    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord , getRoot(), map, dgc);
+    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(2, ver.getDomainVersions().size());
     ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
@@ -177,7 +171,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     for (int i = 0; i < pairs.length; i += 2) {
       create(ZkPath.append(versionPath(versionNumber), "domain" + pairs[i]), (Integer.toString(pairs[i + 1])));
     }
-    create(ZkPath.append(versionPath(versionNumber), ".complete"));
+    create(ZkPath.append(versionPath(versionNumber), DotComplete.NODE_NAME));
   }
 
   private String versionPath(int versionNumber) {
