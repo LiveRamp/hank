@@ -41,4 +41,10 @@ public class ZkPath {
     }
     return tokens[tokens.length - 1];
   }
+
+  // Return true if the given path is a hidden file, i.e. the corresponding filename
+  // starts with a dot.
+  public static boolean isHidden(String path) {
+    return getFilename(path).startsWith(".");
+  }
 }
