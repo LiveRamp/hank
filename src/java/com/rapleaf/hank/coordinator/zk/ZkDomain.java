@@ -66,7 +66,7 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
-    zk.create(ZkPath.append(domainPath, ".complete"), null);
+    zk.create(ZkPath.append(domainPath, DotComplete.NODE_NAME), null);
     return new ZkDomain(zk, domainPath);
   }
 
@@ -159,8 +159,8 @@ public class ZkDomain extends AbstractDomain {
 
   public boolean delete() throws IOException {
     try {
-      // first, delete the .complete so everyone knows it's gone
-      zk.delete(ZkPath.append(domainPath, ".complete"), -1);
+      // first, delete the completion marker so everyone knows it's gone
+      zk.delete(ZkPath.append(domainPath, DotComplete.NODE_NAME), -1);
 
       // delete the rest
       zk.deleteNodeRecursively(domainPath);

@@ -54,7 +54,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
         // ignore
       }
       try {
-        zk.create(ZkPath.append(hdpPath, ".complete"), null);
+        zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
       } catch (KeeperException.NodeExistsException e) {
         // ignore
       }

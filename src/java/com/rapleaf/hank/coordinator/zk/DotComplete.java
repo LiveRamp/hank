@@ -10,6 +10,9 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 public class DotComplete implements CompletionDetector {
+
+  public static final String NODE_NAME = ".complete";
+
   public static final class CreationWatcher implements Watcher {
     private final String relPath;
     private final CompletionAwaiter awaiter;
@@ -33,7 +36,7 @@ public class DotComplete implements CompletionDetector {
 
   @Override
   public void detectCompletion(ZooKeeperPlus zk, String basePath, String relPath, CompletionAwaiter awaiter) throws KeeperException, InterruptedException {
-    if (zk.exists(ZkPath.append(basePath, relPath, ".complete"), new CreationWatcher(relPath, awaiter)) != null) {
+    if (zk.exists(ZkPath.append(basePath, relPath, NODE_NAME), new CreationWatcher(relPath, awaiter)) != null) {
       awaiter.completed(relPath);
     }
   }

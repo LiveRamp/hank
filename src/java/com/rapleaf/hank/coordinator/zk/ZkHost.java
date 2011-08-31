@@ -34,7 +34,6 @@ public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
 
   private static final String STATUS_PATH_SEGMENT = "status";
-  private static final String COMPLETE_PATH_SEGMENT = ".complete";
   private static final String PARTS_PATH_SEGMENT = "parts";
   private static final String COMMAND_QUEUE_PATH_SEGMENT = "command_queue";
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "current_command";
@@ -99,7 +98,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(hostPath, COMPLETE_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
     return new ZkHost(zk, coordinator, hostPath);
   }
 

@@ -15,19 +15,18 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
@@ -54,7 +53,7 @@ public class ZkHostDomain extends AbstractHostDomain {
         new ElementLoader<ZkHostDomainPartition>() {
           @Override
           public ZkHostDomainPartition load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            if (relPath.equals(".complete")) {
+            if (relPath.equals(DotComplete.NODE_NAME)) {
               return null;
             }
             return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath));
