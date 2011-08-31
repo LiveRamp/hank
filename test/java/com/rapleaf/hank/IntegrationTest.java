@@ -193,10 +193,6 @@ public class IntegrationTest extends ZkTestCase {
     create(domainGroupsRoot);
     create(ringGroupsRoot);
 
-    Configurator config = new YamlClientConfigurator(clientConfigYml);
-
-    Coordinator coord = config.getCoordinator();
-
     PrintWriter pw = new PrintWriter(new FileWriter(clientConfigYml));
     pw.println("coordinator:");
     pw.println("  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory");
@@ -207,6 +203,10 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("    domain_groups_root: " + domainGroupsRoot);
     pw.println("    ring_groups_root: " + ringGroupsRoot);
     pw.close();
+
+    Configurator config = new YamlClientConfigurator(clientConfigYml);
+
+    Coordinator coord = config.getCoordinator();
 
     StringWriter sw = new StringWriter();
     pw = new PrintWriter(sw);
