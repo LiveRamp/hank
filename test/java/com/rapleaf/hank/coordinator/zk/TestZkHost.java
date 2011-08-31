@@ -22,16 +22,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     assertEquals(ADDRESS, c.getAddress());
     assertEquals(0, c.getCommandQueue().size());
     assertNull(c.getCurrentCommand());
@@ -40,7 +42,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testStateChangeListener() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     MockHostStateChangeListener mockListener = new MockHostStateChangeListener();
     c.setStateChangeListener(mockListener);
 
@@ -62,7 +64,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testSetState() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost host = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(host.isOnline());
 
@@ -77,7 +79,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testCommandQueue() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     assertEquals(Collections.EMPTY_LIST, c.getCommandQueue());
     assertNull(c.getCurrentCommand());
 
@@ -104,7 +106,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testCommandQueueListener() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     MockHostCommandQueueChangeListener l2 = new MockHostCommandQueueChangeListener();
     c.setCommandQueueChangeListener(l2);
     MockHostStateChangeListener l1 = new MockHostStateChangeListener();
@@ -155,33 +157,39 @@ public class TestZkHost extends ZkTestCase {
     assertNull(l2.calledWith);
   }
 
+  private static final Domain d0 = new MockDomain("d0");
+
   public void testDomains() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
     assertEquals(0, c.getAssignedDomains().size());
 
-    c.addDomain(0);
+    c.addDomain(d0);
     HostDomain hostDomainConf = (HostDomain) c.getAssignedDomains().toArray()[0];
     assertEquals(0, hostDomainConf.getDomain());
 
-    assertEquals(0, c.getHostDomain(0).getDomain());
+    assertEquals(0, c.getHostDomain(d0).getDomain());
   }
 
   public void testDuplicateDomainAdd() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
-    c.addDomain(0);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
+    c.addDomain(d0);
     try {
-      c.addDomain(0);
+      c.addDomain(d0);
       fail("should have thrown an exception!");
     } catch (IOException e) {
       // yay!
     }
   }
 
+  private static final Domain d10 = new MockDomain("d10");
+  private static final Domain d11 = new MockDomain("d11");
+  private static final Domain d12 = new MockDomain("d12");
+
   public void testCounters() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), getRoot(), ADDRESS);
-    c.addDomain(10).addPartition(9, 8).setCount("Unicorns", 17);
-    c.addDomain(11).addPartition(3, 2).setCount("Unicorns", 13);
-    c.addDomain(12).addPartition(1, 1).setCount("Centaurs", 5);
+    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
+    c.addDomain(d10).addPartition(9, 8).setCount("Unicorns", 17);
+    c.addDomain(d11).addPartition(3, 2).setCount("Unicorns", 13);
+    c.addDomain(d12).addPartition(1, 1).setCount("Centaurs", 5);
     Set<String> aggregateCountKeys = new HashSet<String>() {
       {
         add("Unicorns");
