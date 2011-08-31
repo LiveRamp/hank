@@ -227,7 +227,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    * @throws KeeperException
    */
   private void loadAllDomains() throws InterruptedException, KeeperException {
-    List<String> domainNames = zk.getChildrenNonHidden(domainsRoot, false);
+    List<String> domainNames = zk.getChildrenNotHidden(domainsRoot, false);
     for (String domainName : domainNames) {
       domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
     }
