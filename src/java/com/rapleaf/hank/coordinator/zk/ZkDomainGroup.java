@@ -105,20 +105,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion getLatestVersion() throws IOException {
-    SortedMap<Integer, DomainGroupVersion> vers;
-    try {
-      vers = loadVersions();
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-    if (vers.isEmpty()) {
-      return null;
-    }
-    return vers.get(vers.lastKey());
-  }
-
-  @Override
   public SortedSet<DomainGroupVersion> getVersions() throws IOException {
     TreeSet<DomainGroupVersion> s = new TreeSet<DomainGroupVersion>();
     try {

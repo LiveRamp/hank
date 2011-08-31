@@ -38,10 +38,6 @@ public class MockDomainGroup extends AbstractDomainGroup {
     return 0;
   }
 
-  public DomainGroupVersion getLatestVersion() {
-    return null;
-  }
-
   public String getName() {
     return name;
   }
