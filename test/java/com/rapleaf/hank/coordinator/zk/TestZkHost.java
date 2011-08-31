@@ -15,19 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
@@ -51,7 +47,7 @@ public class TestZkHost extends ZkTestCase {
     }
 
     assertNull("should not receive a callback until something is changed...",
-      mockListener.calledWith);
+        mockListener.calledWith);
 
     c.setState(HostState.SERVING);
     synchronized (mockListener) {
@@ -165,9 +161,8 @@ public class TestZkHost extends ZkTestCase {
 
     c.addDomain(d0);
     HostDomain hostDomainConf = (HostDomain) c.getAssignedDomains().toArray()[0];
-    assertEquals(0, hostDomainConf.getDomain());
-
-    assertEquals(0, c.getHostDomain(d0).getDomain());
+    assertEquals(0, hostDomainConf.getDomain().getId());
+    assertEquals(0, c.getHostDomain(d0).getDomain().getId());
   }
 
   public void testDuplicateDomainAdd() throws Exception {
