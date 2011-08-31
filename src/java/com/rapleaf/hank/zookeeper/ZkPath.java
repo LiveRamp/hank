@@ -46,7 +46,7 @@ public class ZkPath {
   }
 
   // Return true if the given path is a hidden file, i.e. the corresponding filename
-  // starts with a dot.
+  // starts with a period.
   public static boolean isHidden(String path) {
     return getFilename(path).startsWith(".");
   }
