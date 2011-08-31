@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
 
 /**
  * Encapsulates all the information about a given Domain.
@@ -33,7 +33,7 @@ public interface Domain extends Comparable<Domain> {
 
   /**
    * The number of partitions this domain is configured for.
-   * 
+   *
    * @return
    */
   public int getNumParts();
@@ -49,11 +49,13 @@ public interface Domain extends Comparable<Domain> {
   /**
    * Returns the set of DomainVersionConfigs for this Domain in version-numbered
    * order.
-   * 
+   *
    * @return
    * @throws IOException
    */
   public SortedSet<DomainVersion> getVersions() throws IOException;
+
+  public DomainVersion getLatestVersion() throws IOException;
 
   /**
    * Attempt to open a new version of this domain. If there isn't another
@@ -61,7 +63,7 @@ public interface Domain extends Comparable<Domain> {
    * available version number. If there is another version open, then the return
    * value is null, indicating that another writer has the version lock and you
    * should try again later.
-   * 
+   *
    * @return
    */
   public DomainVersion openNewVersion() throws IOException;

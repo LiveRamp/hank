@@ -47,14 +47,28 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
     </tr>
   <%
     for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
-    if (!domain.getVersions().isEmpty()) {
   %>
     <tr>
       <td>
         <%= domain.getName() %>
       </td>
       <td>
+
+          <%
+          SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
+          revSorted.addAll(domain.getVersions());
+          boolean first = true;
+          for (DomainVersion ver : revSorted) {
+            if (ver.isDefunct()) {
+              continue;
+            }
+          %>
+
+        <input type="text" name="<%=domain.getName() %>_version" />
+        <input type="checkbox" name="<%=domain.getName() %>_included" />
+
         <select name="<%=domain.getName() %>_version">
+          <option value="none">unassign</option>
           <%
           SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
           revSorted.addAll(domain.getVersions());
@@ -69,12 +83,13 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
           first = false;
           }
           %>
-          <option value="unassign">unassign</option>
         </select>
+
+
+
       </td>
     </tr>
   <%
-    }
   }
   %>
 

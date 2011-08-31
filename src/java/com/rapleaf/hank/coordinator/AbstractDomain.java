@@ -17,6 +17,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.SortedSet;
 
 public abstract class AbstractDomain implements Domain {
   public DomainVersion getOpenedVersion() throws IOException {
@@ -48,6 +49,16 @@ public abstract class AbstractDomain implements Domain {
       }
     }
     return null;
+  }
+
+  @Override
+  public DomainVersion getLatestVersion() throws IOException {
+    SortedSet<DomainVersion> versions = getVersions();
+    if (versions.size() == 0) {
+      return null;
+    } else {
+      return versions.last();
+    }
   }
 
   @Override
