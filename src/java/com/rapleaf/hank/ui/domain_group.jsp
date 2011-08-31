@@ -58,12 +58,10 @@ tr.not_included td {
     onclick="return confirm('Are you sure you want to delete this domain group? This action cannot be undone.');"/>
 </form>
 
-<h2>Versions</h2>
+<h2>Create New Version</h2>
 
 <form method="post" action="/domain_group/add_version">
   <input type=hidden name="n" value="<%=domainGroup.getName()%>"/>
-
-  Add a new version:<br/>
 
   <table class='table-blue'>
     <tr>
@@ -114,10 +112,11 @@ tr.not_included td {
   %>
 
   </table>
-  <input type=submit value="Add"/> <br/>
-  <span style="color: red; font-weight:bold">This will likely trigger a data deploy!</span>
+  <input type=submit value="Create"/>
+  <span style="color: red; font-weight:bold"> (This will likely trigger a data deploy!)</span>
 </form>
 
+<h2>Existing Versions</h2>
 
 <ul>
   <%
