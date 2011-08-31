@@ -34,4 +34,10 @@ public class MockDomainGroupVersionDomainVersion extends AbstractDomainGroupVers
   public VersionOrAction getVersionOrAction() {
     return new VersionOrAction(versionNumber);
   }
+
+  @Override
+  public void delete() {
+    // TODO Auto-generated method stub
+    
+  }
 }

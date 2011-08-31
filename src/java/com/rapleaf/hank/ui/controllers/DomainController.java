@@ -5,11 +5,12 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.RingGroup;
 
 public class DomainController extends Controller {
 
@@ -83,18 +84,23 @@ public class DomainController extends Controller {
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-//    final Domain domain = coordinator.getDomain(req.getParameter("name"));
-    throw new NotImplementedException("needs to be reimplemented");
-//    // check if this domain is in use anywhere
-//    for (DomainGroup dg : coordinator.getDomainGroups()) {
-//      if (dg.getDomains().contains(domain)) {
-//        resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
-//        return;
-//      }
-//    }
-//
-//    coordinator.deleteDomain(domain.getName());
-//    resp.sendRedirect("/domains.jsp");
+    final Domain domain = coordinator.getDomain(req.getParameter("name"));
+    // check if this domain is in use anywhere
+    for (RingGroup rg : coordinator.getRingGroups()) {
+      if (rg.getCurrentVersion() == null) {
+        continue;
+      }
+
+      DomainGroup dg = rg.getDomainGroup();
+      DomainGroupVersion dgv = dg.getVersionByNumber(rg.getCurrentVersion());
+      if (dgv.containsDomain(domain)) {
+        resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
+        return;
+      }
+    }
+
+    coordinator.deleteDomain(domain.getName());
+    resp.sendRedirect("/domains.jsp");
   }
 
   private void doUpdateDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {

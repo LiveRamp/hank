@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 
 public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
 
@@ -20,5 +22,24 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
   @Override
   public int compareTo(DomainGroupVersion o) {
     return Integer.valueOf(getVersionNumber()).compareTo(o.getVersionNumber());
+  }
+
+  @Override
+  public boolean containsDomain(Domain domain) {
+    for (DomainGroupVersionDomainVersion dgvdv : getDomainVersions()) {
+      if (dgvdv.getDomain().equals(domain)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public void removeDomain(Domain domain) throws IOException {
+    for (DomainGroupVersionDomainVersion dgvdv : getDomainVersions()) {
+      if (dgvdv.getDomain().equals(domain)) {
+        dgvdv.delete();
+      }
+    }
   }
 }

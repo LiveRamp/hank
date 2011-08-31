@@ -15,17 +15,24 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
+
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.KeeperException;
 
 public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
   private final Domain domain;
   private final VersionOrAction versionOrAction;
+  private final ZooKeeperPlus zk;
+  private final String path;
 
   public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domain) throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.path = path;
     this.domain = domain;
     versionOrAction = VersionOrAction.parse(zk.getString(path));
   }
@@ -44,5 +51,14 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
   public String toString() {
     return "ZkDomainConfigVersion [domain=" + domain
         + ", versionNumber=" + versionOrAction + "]";
+  }
+
+  @Override
+  public void delete() throws IOException {
+    try {
+      zk.deleteNodeRecursively(path);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 }

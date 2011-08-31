@@ -1,5 +1,7 @@
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 public abstract class AbstractDomainGroup implements DomainGroup {
   private final Coordinator coord;
 
@@ -14,5 +16,12 @@ public abstract class AbstractDomainGroup implements DomainGroup {
 
   protected Coordinator getCoord() {
     return coord;
+  }
+
+  @Override
+  public void removeDomainFromAllVersions(Domain domain) throws IOException {
+    for (DomainGroupVersion dgv : getVersions()) {
+      dgv.removeDomain(domain);
+    }
   }
 }

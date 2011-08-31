@@ -392,9 +392,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public boolean deleteDomain(String domainName) throws IOException {
     ZkDomain domain = domainsByName.remove(domainName);
+
     if (domain == null) {
       return false;
     }
+
+    // remove domain from all domain group versions
+    for (DomainGroup dg : getDomainGroups()) {
+      dg.removeDomainFromAllVersions(domain);
+    }
+
     return domain.delete();
   }
 

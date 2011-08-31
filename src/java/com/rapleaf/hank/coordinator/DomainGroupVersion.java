@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.Set;
 
 /**
@@ -37,4 +38,8 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
    * @return
    */
   public DomainGroupVersionDomainVersion getDomainVersion(Domain domain);
+
+  public boolean containsDomain(Domain domain);
+
+  public void removeDomain(Domain domain) throws IOException;
 }

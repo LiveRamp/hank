@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 /**
  * Represents a given domain in a domain group's version, capturing the domain
  * version.
@@ -26,4 +28,6 @@ public interface DomainGroupVersionDomainVersion extends Comparable<DomainGroupV
    * The domain version that this domain is within the domain group version. 
    */
   public VersionOrAction getVersionOrAction();
+
+  public void delete() throws IOException;
 }
