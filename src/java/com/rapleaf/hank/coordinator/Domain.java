@@ -57,6 +57,8 @@ public interface Domain extends Comparable<Domain> {
 
   public DomainVersion getLatestVersion() throws IOException;
 
+  public DomainVersion getLatestVersionNotOpenNotDefunct() throws IOException;
+
   /**
    * Attempt to open a new version of this domain. If there isn't another
    * version already open, the return value is a new DomainVersion with the next
