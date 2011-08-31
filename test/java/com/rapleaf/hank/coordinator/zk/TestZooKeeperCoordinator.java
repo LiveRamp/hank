@@ -51,8 +51,18 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   public void testAddDomain() throws Exception {
     coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
     Domain domain = coord.getDomain("myDomain");
+    assertEquals(1, domain.getId());
     assertNotNull(domain);
     assertEquals("myDomain", domain.getName());
+    assertEquals(1234, domain.getNumParts());
+    assertTrue(domain.getStorageEngine() instanceof ConstantStorageEngine);
+    assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);
+
+    coord.addDomain("myDomain2", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
+    domain = coord.getDomain("myDomain2");
+    assertEquals(2, domain.getId());
+    assertNotNull(domain);
+    assertEquals("myDomain2", domain.getName());
     assertEquals(1234, domain.getNumParts());
     assertTrue(domain.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);

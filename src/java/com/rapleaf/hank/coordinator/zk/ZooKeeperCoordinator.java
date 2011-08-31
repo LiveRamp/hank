@@ -23,10 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.data.Stat;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
@@ -306,14 +306,32 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
-    throw new NotImplementedException("Crap, need to write some code to choose domain ids!");
-//    try {
-//      ZkDomain domain = (ZkDomain) ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName);
-//      domainsByName.put(domainName, domain);
-//      return domain;
-//    } catch (Exception e) {
-//      throw new IOException(e);
-//    }
+    try {
+      ZkDomain domain = (ZkDomain) ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, getNextDomainId());
+      domainsByName.put(domainName, domain);
+      return domain;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  private int getNextDomainId() throws KeeperException, InterruptedException {
+    if (zk.exists(domainsRoot + "/.domain_id_counter", false) == null) {
+      zk.create(domainsRoot + "/.domain_id_counter", Integer.toString(1).getBytes());
+      return 1;
+    }
+    while (true) {
+      final Stat stat = new Stat();
+      final byte[] data = zk.getData(domainsRoot + "/.domain_id_counter", false, stat);
+      int lastVersionNumber = Integer.parseInt(new String(data));
+      try {
+        lastVersionNumber++;
+        zk.setData(domainsRoot + "/.domain_id_counter", Integer.toString(lastVersionNumber).getBytes(), stat.getVersion());
+        return lastVersionNumber;
+      } catch (KeeperException.BadVersionException e) {
+        LOG.debug("tried to set the domain id counter to " + lastVersionNumber + " but was preempted by another writer. Retrying.");
+      }
+    }
   }
 
   public Domain updateDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {

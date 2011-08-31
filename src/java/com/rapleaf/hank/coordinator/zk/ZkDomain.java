@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
@@ -43,6 +42,7 @@ public class ZkDomain extends AbstractDomain {
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
   private static final String KEY_VERSIONS = "versions";
+  private static final String KEY_ID = "id";
 
   private String name;
   private int numParts;
@@ -56,9 +56,12 @@ public class ZkDomain extends AbstractDomain {
 
   private final Map<String, ZkDomainVersion> versions;
 
+  private final int id;
+
   public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName, int id) throws KeeperException, InterruptedException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     zk.create(domainPath, null);
+    zk.create(ZkPath.append(domainPath, KEY_ID), (Integer.toString(id)).getBytes());
     zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
@@ -86,6 +89,7 @@ public class ZkDomain extends AbstractDomain {
   public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domainPath = domainPath;
+    this.id = zk.getInt(ZkPath.append(domainPath, KEY_ID));
     this.name = ZkPath.getFilename(domainPath);
     this.numParts = zk.getInt(ZkPath.append(domainPath, KEY_NUM_PARTS));
     this.storageEngineOptions =
@@ -237,6 +241,6 @@ public class ZkDomain extends AbstractDomain {
 
   @Override
   public int getId() {
-    throw new NotImplementedException();
+    return id;
   }
 }

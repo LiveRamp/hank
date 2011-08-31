@@ -29,6 +29,7 @@ public class TestZkDomain extends ZkTestCase {
 
   public void testCreate() throws Exception {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
+    assertEquals(0, dc.getId());
     assertEquals("domain0", dc.getName());
     assertEquals(1024, dc.getNumParts());
     assertEquals(ConstantStorageEngine.Factory.class.getName(), dc.getStorageEngineFactoryName());
@@ -42,6 +43,7 @@ public class TestZkDomain extends ZkTestCase {
     ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
     ZkDomain dc = new ZkDomain(getZk(), ZkPath.append(getRoot(), "domain0"));
 
+    assertEquals(0, dc.getId());
     assertEquals("domain0", dc.getName());
     assertEquals(1024, dc.getNumParts());
     assertEquals(ConstantStorageEngine.Factory.class.getName(), dc.getStorageEngineFactoryName());
