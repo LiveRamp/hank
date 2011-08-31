@@ -88,7 +88,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         for (HostDomain hdc : host.getAssignedDomains()) {
-          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartToAddresses.get(hdc.getDomain());
+          Domain domain = hdc.getDomain();
+          if (domain == null) {
+            throw new IOException(String.format("Could not load Domain from HostDomain %s", hdc.toString()));
+          }
+          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartToAddresses.get(domain.getId());
+          if (partToAddresses == null) {
+            throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
+          }
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
             List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartNum());
             partList.add(host.getAddress());
@@ -125,10 +132,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Domain domain;
     domain = this.coordinator.getDomain(domainName);
-    if (domain != null) {
-      partition = domain.getPartitioner().partition(key, domain.getNumParts());
-    } else {
+    if (domain == null) {
       return NO_SUCH_DOMAIN;
+    } else {
+      partition = domain.getPartitioner().partition(key, domain.getNumParts());
     }
 
     Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
