@@ -15,16 +15,30 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
-import java.io.IOException;
-import java.util.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.CoordinatorFactory;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -257,7 +271,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
       ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
-      ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc));
+      ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc, null));
     }
   }
 
@@ -353,7 +367,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
     try {
       RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
-          (ZkDomainGroup) getDomainGroup(domainGroupName));
+          (ZkDomainGroup) getDomainGroup(domainGroupName), this);
       ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {

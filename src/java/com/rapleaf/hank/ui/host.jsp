@@ -83,9 +83,9 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     Add a domain/part:<br/>
     <select name="domainId">
       <%
-        for (Domain domain : ringGroup.getDomainGroup().getDomains()) {
+        for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getLatestVersion().getDomainVersions()) {
       %>
-      <option value="<%=ringGroup.getDomainGroup().getDomainId(domain.getName())%>"><%=domain.getName()%></option>
+      <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
       <%
         }
       %>
@@ -122,7 +122,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     List<HostDomain> hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
     Collections.sort(hostDomains);
     for (HostDomain hdc : hostDomains) {
-      Domain domain = ringGroup.getDomainGroup().getDomain(hdc.getDomainId());
+      Domain domain = hdc.getDomain();
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
       if (domain == null) {
   %>
@@ -169,7 +169,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
     Collections.sort(hostDomains);
     for (HostDomain hdc : hostDomains) {
-      Domain domain = ringGroup.getDomainGroup().getDomain(hdc.getDomainId());
+      Domain domain = hdc.getDomain();
       if (domain == null) {
   %>
     <div>Unknown Domain</div>
@@ -190,7 +190,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
           <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
           <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-          <input type="hidden" name="d" value="<%= hdc.getDomainId() %>"/>
+          <input type="hidden" name="d" value="<%= hdc.getDomain().getName() %>"/>
           <input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
           <input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"
           <% if (!hdpc.isDeletable()) { %>
@@ -218,7 +218,7 @@ for (String countID : host.getAggregateCountKeys()) {
         <ul>
           <% Long domainCount = currentDomain.getAggregateCount(countID); %>
           <% if (domainCount != null) { %>
-            <li> domain <%=currentDomain.getDomainId()%>:  <%=domainCount%>
+            <li> domain <%=currentDomain.getDomain().getName()%>:  <%=domainCount%>
               <ul>
                 <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
                   <% Long partCount = hdp.getCount(countID); %>

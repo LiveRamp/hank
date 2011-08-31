@@ -38,7 +38,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
-  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coord) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
       throw new IllegalStateException(
           "You cannot create a ring group for a domain group that has no versions!");
@@ -47,7 +47,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     zk.create(ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT),
         (Integer.toString(domainGroup.getLatestVersion().getVersionNumber())).getBytes());
-    return new ZkRingGroup(zk, path, domainGroup);
+    return new ZkRingGroup(zk, path, domainGroup, coord);
   }
 
   private final class StateChangeListener implements Watcher {
@@ -117,7 +117,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   private final WatchedInt currentVersion;
   private final WatchedInt updatingToVersion;
 
-  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup)
+  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup, final Coordinator coord)
       throws InterruptedException, KeeperException {
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
@@ -128,7 +128,7 @@ public class ZkRingGroup extends AbstractRingGroup {
       @Override
       public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (relPath.matches("ring-\\d+")) {
-          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, null);
+          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, coord);
         }
         return null;
       }

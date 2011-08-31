@@ -127,7 +127,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     Map<Domain, VersionOrAction> domainIdToVersion = new HashMap<Domain, VersionOrAction>();
     dgc.createNewVersion(domainIdToVersion);
 
-    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc);
+    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc, null);
     Ring rc = rg.addRing(1);
     rc.addHost(new PartitionServerAddress("localhost", 1));
 

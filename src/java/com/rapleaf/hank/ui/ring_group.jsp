@@ -115,6 +115,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
   <div class='box-section'>
     <h3>Query</h3>
+    <% if (ringGroup.getCurrentVersion() == null) { %>
+      Query disabled because no domain group version is currently deployed!
+    <% } else { %>
     <div class='box-section-content'>
       <form action="/ring_group.jsp" method=post>
         <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
@@ -123,9 +126,11 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <br/>
         <select name="d">
           <%
-            for (Domain domain : ringGroup.getDomainGroup().getDomains()) {
+            for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
           %>
-          <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(domain.getName()) ? " selected" : "" %>><%= domain.getName() %></option>
+          <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgvdv.getDomain().getName()) ? " selected" : "" %>>
+            <%= dgvdv.getDomain().getName() %>
+          </option>
           <% } %>
         </select>
         <br/>
@@ -169,7 +174,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
             </div>
             <%
           } else {
-        %>
+          %>
           <div style="font-weight:bold; color:green">Found</div>
 
           <%
@@ -224,7 +229,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
             <%= valueString %>
           </div>
 
-        <% }} %>
+        <% }}} %>
       </form>
     </div>
   </div>
