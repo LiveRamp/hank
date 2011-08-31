@@ -15,51 +15,26 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.THsHaServer.Args;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
-
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.partitioner.MapPartitioner;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
@@ -148,9 +123,12 @@ public class TestHankSmartClient extends BaseTestCase {
         "mock part daemon #2");
     thread2.start();
 
-    final Host hostConfig1 = getHostConfig(new PartitionServerAddress("localhost",
+    final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
+        new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
+
+    final Host hostConfig1 = getHostConfig(existentDomain, new PartitionServerAddress("localhost",
         server1Port), 0);
-    final Host hostConfig2 = getHostConfig(new PartitionServerAddress("localhost",
+    final Host hostConfig2 = getHostConfig(existentDomain, new PartitionServerAddress("localhost",
         server2Port), 1);
 
     final MockRing mockRingConfig = new MockRing(null, null, 1, RingState.UP) {
@@ -173,8 +151,6 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
-        new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
     MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
         {
@@ -216,6 +192,15 @@ public class TestHankSmartClient extends BaseTestCase {
       public RingGroup getRingGroup(String ringGroupName) {
         return mockRingGroupConfig;
       }
+
+      @Override
+      public Domain getDomain(String domainName) {
+        if (domainName.equals("existent_domain")) {
+          return existentDomain;
+        } else {
+          return null;
+        }
+      }
     };
 
     Thread.sleep(1000);
@@ -238,7 +223,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private Host getHostConfig(PartitionServerAddress address, final int partNum)
+  private Host getHostConfig(final Domain domain, PartitionServerAddress address, final int partNum)
       throws IOException {
     MockHost hc = new MockHost(address) {
       @Override
@@ -252,7 +237,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
           @Override
           public Domain getDomain() {
-            return null;
+            return domain;
           }
 
           @Override

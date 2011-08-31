@@ -46,4 +46,9 @@ public abstract class AbstractHostDomain implements HostDomain {
     }
     return aggregateCountKeys;
   }
+
+  @Override
+  public String toString() {
+    return String.format("AbstractHostDomain [domain=%s]", getDomain());
+  }
 }

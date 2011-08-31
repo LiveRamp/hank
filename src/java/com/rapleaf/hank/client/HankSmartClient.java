@@ -73,11 +73,11 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
 
-    Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainPartToHostList = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+    Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartToAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
-      domainPartToHostList.put(domain.getId(), partitionToAddress);
+      domainToPartToAddresses.put(domain.getId(), partitionToAddress);
 
       for (int i = 0; i < domain.getNumParts(); i++) {
         partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
@@ -88,9 +88,16 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         for (HostDomain hdc : host.getAssignedDomains()) {
-          Map<Integer, List<PartitionServerAddress>> domainMap = domainPartToHostList.get(hdc.getDomain());
+          Domain domain = hdc.getDomain();
+          if (domain == null) {
+            throw new IOException(String.format("Could not load Domain from HostDomain %s", hdc.toString()));
+          }
+          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartToAddresses.get(domain.getId());
+          if (partToAddresses == null) {
+            throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
+          }
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
-            List<PartitionServerAddress> partList = domainMap.get(hdcp.getPartNum());
+            List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartNum());
             partList.add(host.getAddress());
           }
         }
@@ -104,18 +111,18 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       }
     }
 
-    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> entry1 : domainPartToHostList.entrySet()) {
-      Map<Integer, PartitionServerConnectionSet> domainMap = new HashMap<Integer, PartitionServerConnectionSet>();
-      for (Map.Entry<Integer, List<PartitionServerAddress>> entry2 : entry1.getValue().entrySet()) {
+    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartToAddressesEntry : domainToPartToAddresses.entrySet()) {
+      Map<Integer, PartitionServerConnectionSet> partToAddresses = new HashMap<Integer, PartitionServerConnectionSet>();
+      for (Map.Entry<Integer, List<PartitionServerAddress>> partToAddressesEntry : domainToPartToAddressesEntry.getValue().entrySet()) {
         List<PartitionServerConnection> clientBundles = new ArrayList<PartitionServerConnection>();
-        for (PartitionServerAddress address : entry2.getValue()) {
+        for (PartitionServerAddress address : partToAddressesEntry.getValue()) {
           for (PartitionServerConnection conn : connectionCache.get(address)) {
             clientBundles.add(conn);
           }
         }
-        domainMap.put(entry2.getKey(), new PartitionServerConnectionSet(clientBundles));
+        partToAddresses.put(partToAddressesEntry.getKey(), new PartitionServerConnectionSet(clientBundles));
       }
-      domainToPartitionToConnectionSet.put(entry1.getKey(), domainMap);
+      domainToPartitionToConnectionSet.put(domainToPartToAddressesEntry.getKey(), partToAddresses);
     }
   }
 
@@ -125,10 +132,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Domain domain;
     domain = this.coordinator.getDomain(domainName);
-    if (domain != null) {
-      partition = domain.getPartitioner().partition(key, domain.getNumParts());
-    } else {
+    if (domain == null) {
       return NO_SUCH_DOMAIN;
+    } else {
+      partition = domain.getPartitioner().partition(key, domain.getNumParts());
     }
 
     Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());

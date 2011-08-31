@@ -54,4 +54,9 @@ public abstract class AbstractDomain implements Domain {
   public int compareTo(Domain other) {
     return getName().compareTo(other.getName());
   }
+
+  @Override
+  public String toString() {
+    return String.format("AbstractDomain [id=%d, name=%s]", getId(), getName());
+  }
 }
