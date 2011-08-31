@@ -1,16 +1,19 @@
 package com.rapleaf.hank.ui.controllers;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
-import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.ui.URLEnc;
+import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.NotImplementedException;
-
-import java.io.IOException;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.ui.URLEnc;
 
 public class RingController extends Controller {
 
@@ -49,16 +52,15 @@ public class RingController extends Controller {
   }
 
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    throw new NotImplementedException("needs reimplement");
-//    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-//    int ringNum = Integer.parseInt(req.getParameter("n"));
-//
-//    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
-//    for (Domain dc : rgc.getDomainGroup().getDomains()) {
-//      partitionAssigner.assign(rgc, ringNum, dc);
-//    }
-//
-//    resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rgc.getName(), ringNum));
+    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
+    int ringNum = Integer.parseInt(req.getParameter("n"));
+
+    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
+    for (DomainGroupVersionDomainVersion dc : rgc.getDomainGroup().getLatestVersion().getDomainVersions()) {
+      partitionAssigner.assign(rgc, ringNum, dc.getDomain());
+    }
+
+    resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rgc.getName(), ringNum));
   }
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {

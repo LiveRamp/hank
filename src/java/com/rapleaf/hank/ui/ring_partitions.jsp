@@ -33,12 +33,12 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <%
   int total = 0;
-  for (Domain dc : ringGroup.getDomainGroup().getDomains()) {
-    total += ring.getUnassignedPartitions(dc).size();
+  for (DomainGroupVersionDomainVersion dc : ringGroup.getDomainGroup().getLatestVersion().getDomainVersions()) {
+    total += ring.getUnassignedPartitions(dc.getDomain()).size();
   }
   %>
   <% if (total > 0) { %>
-  There are <%=total%> unassigned partitions in <%=ringGroup.getDomainGroup().getDomains().size()%> domains.
+  There are <%=total%> unassigned partitions in <%=ringGroup.getDomainGroup().getLatestVersion().getDomainVersions().size()%> domains.
   <% } %>
   <form action="/ring/redistribute_partitions_for_ring" method=post>
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
@@ -48,15 +48,15 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h3>Assignment visualization</h3>
   <%
-  for (Domain d : ringGroup.getDomainGroup().getDomains()) {
-    Set<Integer> unassignedParts = ring.getUnassignedPartitions(d);
+  for (DomainGroupVersionDomainVersion d : ringGroup.getDomainGroup().getLatestVersion().getDomainVersions()) {
+    Set<Integer> unassignedParts = ring.getUnassignedPartitions(d.getDomain());
 
-    int squareDim = (int)Math.floor(Math.sqrt(d.getNumParts()));
+    int squareDim = (int)Math.floor(Math.sqrt(d.getDomain().getNumParts()));
   %>
     <div style="float:left; padding:3px">
-      <div><%= d.getName() %></div>
+      <div><%= d.getDomain().getName() %></div>
       <table cellspacing=1 cellpadding=0>
-        <% for (int i = 0; i < d.getNumParts(); i++) { %>
+        <% for (int i = 0; i < d.getDomain().getNumParts(); i++) { %>
           <% if (i % squareDim == 0) { %>
           <tr>
           <% } %>
