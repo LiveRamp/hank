@@ -7,8 +7,7 @@
 <%@page import="java.util.*"%>
 
 <%
-  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
-
+Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParameter("n")));
 %>
 
@@ -19,6 +18,32 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <jsp:include page="_head.jsp" />
 <title>Domain Group <%= domainGroup.getName() %></title>
+<script type="text/javascript">
+function toggleDisabled(id) {
+  element = document.getElementById(id);
+  if (element.disabled == true) {
+    element.disabled = false;
+  } else {
+    element.disabled = true;
+  }
+}
+function toggleClass(id, a, b) {
+  element = document.getElementById(id);
+  if (element.className == a) {
+    element.className = b;
+  } else {
+    element.className = a;
+  }
+}
+</script>
+<style type="text/css">
+tr.included td {
+}
+tr.not_included td {
+  opacity: 0.8;
+  background-color: #c0c0c0;
+}
+</style>
 </head>
 <body>
 
@@ -43,51 +68,46 @@ DomainGroup domainGroup = coord.getDomainGroup(URLEnc.decode(request.getParamete
   <table class='table-blue'>
     <tr>
       <th>Domain</th>
-      <th>Version (default: most recent)</th>
+      <th>Include</th>
+      <th>Version (default is most recent)</th>
+      <th>Current version</th>
     </tr>
   <%
+    DomainGroupVersion latestDomainGroupVersion = domainGroup.getLatestVersion();
     for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
   %>
-    <tr>
+    <%
+      DomainVersion latestVersion = domain.getLatestVersionNotOpenNotDefunct();
+      DomainGroupVersionDomainVersion latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
+      boolean included = latestDgvdv != null;
+    %>
+    <tr id="<%= domain.getId() %>_tr" <%= included ? "class='included'" : "class='not_included'" %> >
       <td>
-        <%= domain.getName() %>
+        <a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a>
       </td>
-      <td>
 
-          <%
-          SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
-          revSorted.addAll(domain.getVersions());
-          boolean first = true;
-          for (DomainVersion ver : revSorted) {
-            if (ver.isDefunct()) {
-              continue;
-            }
-          %>
+        <% if (latestVersion != null) { %>
+        <td>
+        <input type="checkbox"
+               name="<%=domain.getName() %>_included"
+               onclick="toggleDisabled('<%= domain.getId() %>_version'); toggleClass('<%= domain.getId() %>_tr', 'included', 'not_included')"
+               <%= included ? "checked='checked'" : "" %> />
+        </td>
+        <td>
+        <input id="<%= domain.getId() %>_version"
+               type="text"
+               name="<%=domain.getName() %>_version"
+               value="<%= latestVersion.getVersionNumber() %>"
+               <%= included ? "" : "disabled='disabled'" %> />
+        </td>
+        <td>
+          <%= included ? latestDgvdv.getVersionOrAction().getVersion() : "-" %>
+        </td>
 
-        <input type="text" name="<%=domain.getName() %>_version" />
-        <input type="checkbox" name="<%=domain.getName() %>_included" />
+        <% } else { %>
+          <td>No valid version available.</td><td></td><td></td>
+        <% } %>
 
-        <select name="<%=domain.getName() %>_version">
-          <option value="none">unassign</option>
-          <%
-          SortedSet<DomainVersion> revSorted = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
-          revSorted.addAll(domain.getVersions());
-          boolean first = true;
-          for (DomainVersion ver : revSorted) {
-            if (ver.isDefunct()) {
-              continue;
-            }
-          %>
-          <option<%= first ? " selected" : "" %>><%= ver.getVersionNumber() %></option>
-          <%
-          first = false;
-          }
-          %>
-        </select>
-
-
-
-      </td>
     </tr>
   <%
   }
