@@ -1,7 +1,5 @@
 package com.rapleaf.hank.coordinator;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +19,7 @@ public class MockHostDomain extends AbstractHostDomain {
 
   @Override
   public HostDomainPartition addPartition(int partNum, int initialVersion) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
