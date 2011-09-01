@@ -85,4 +85,9 @@ public abstract class AbstractRing implements Ring {
   public int compareTo(Ring other) {
     return Integer.valueOf(ringNum).compareTo(other.getRingNumber());
   }
+
+  @Override
+  public String toString() {
+    return String.format("AbstractRing [ring group=%s, ring=%d]", this.getRingGroup().getName(), this.getRingNumber());
+  }
 }
