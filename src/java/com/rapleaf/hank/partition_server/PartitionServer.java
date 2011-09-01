@@ -153,7 +153,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
             startThriftServer();
           } catch (Exception e) {
             // TODO deal with exception. server is probably going down unexpectedly
-            LOG.fatal("Server thread died with exception!", e);
+            LOG.fatal("PartitionServer server thread encountered a fatal exception.", e);
           }
         }
       };

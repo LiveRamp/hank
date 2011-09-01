@@ -48,17 +48,23 @@ class PartitionServerHandler implements IfaceWithShutdown {
         .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(address);
     if (ring == null) {
-      throw new IOException(String.format("Could not get Ring for PartitionServerAddress %s", address.toString()));
+      throw new IOException(String.format("Could not get Ring for PartitionServerAddress %s", address));
     }
 
     // Get the domain group for the ring
     DomainGroup domainGroup = ring.getRingGroup().getDomainGroup();
     if (domainGroup == null) {
-      throw new IOException(String.format("Could not get DomainGroup for Ring ", ring.toString()));
+      throw new IOException(String.format("Could not get DomainGroup for Ring %s", ring));
+    }
+
+    // Get the corresponding version number
+    Integer versionNumber = ring.getVersionNumber();
+    if (versionNumber == null) {
+      throw new IOException(String.format("Could not get current version number of Ring %s", ring));
     }
 
     // Get the corresponding domain group version
-    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ring.getVersionNumber());
+    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(versionNumber);
     if (domainGroupVersion == null) {
       throw new IOException(String.format("Could not get DomainGroupVersion for DomainGroup %s on Ring %s",
           domainGroup.toString(), ring.toString()));
