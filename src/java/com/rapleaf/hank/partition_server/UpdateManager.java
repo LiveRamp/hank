@@ -108,7 +108,7 @@ class UpdateManager implements IUpdateManager {
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
     DomainGroup domainGroup = ringGroup.getDomainGroup();
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroup.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroup.getVersionByNumber(ringGroup.getUpdatingToVersion()).getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
 
       Set<Integer> excludeVersions = new HashSet<Integer>();
