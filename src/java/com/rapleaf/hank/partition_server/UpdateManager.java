@@ -78,13 +78,13 @@ class UpdateManager implements IUpdateManager {
   }
 
   private final PartitionServerConfigurator configurator;
-  private final Host hostConfig;
+  private final Host host;
   private final RingGroup ringGroupConfig;
   private final Ring ringConfig;
 
-  public UpdateManager(PartitionServerConfigurator configurator, Host hostConfig, RingGroup ringGroupConfig, Ring ringConfig) throws IOException {
+  public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroupConfig, Ring ringConfig) throws IOException {
     this.configurator = configurator;
-    this.hostConfig = hostConfig;
+    this.host = host;
     this.ringGroupConfig = ringGroupConfig;
     this.ringConfig = ringConfig;
   }
@@ -120,7 +120,7 @@ class UpdateManager implements IUpdateManager {
 
       StorageEngine engine = domain.getStorageEngine();
 
-      for (HostDomainPartition part : hostConfig.getHostDomain(domain).getPartitions()) {
+      for (HostDomainPartition part : host.getHostDomain(domain).getPartitions()) {
         if (part.isDeletable()) {
           Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
           deleter.delete();
