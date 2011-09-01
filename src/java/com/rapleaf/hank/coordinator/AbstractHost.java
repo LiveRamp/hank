@@ -45,9 +45,9 @@ public abstract class AbstractHost implements Host {
   public HostDomain getHostDomain(Domain domain) {
     // TODO: this should be done with a map and caching
     try {
-      for (HostDomain hdc : getAssignedDomains()) {
-        if (hdc.getDomain() == domain) {
-          return hdc;
+      for (HostDomain hostDomain : getAssignedDomains()) {
+        if (hostDomain.getDomain().equals(domain)) {
+          return hostDomain;
         }
       }
     } catch (IOException e) {
