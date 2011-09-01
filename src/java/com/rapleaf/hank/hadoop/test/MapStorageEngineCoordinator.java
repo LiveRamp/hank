@@ -16,6 +16,10 @@
 
 package com.rapleaf.hank.hadoop.test;
 
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Map;
+
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
@@ -28,10 +32,6 @@ import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
-
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 // Configuration used for testing.
 public class MapStorageEngineCoordinator extends MockCoordinator {

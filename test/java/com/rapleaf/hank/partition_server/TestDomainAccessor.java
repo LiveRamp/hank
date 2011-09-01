@@ -1,11 +1,11 @@
 package com.rapleaf.hank.partition_server;
 
+import java.nio.ByteBuffer;
+
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.partitioner.MapPartitioner;
 import com.rapleaf.hank.storage.mock.MockReader;
-
-import java.nio.ByteBuffer;
 
 public class TestDomainAccessor extends BaseTestCase {
   public void testSetUpAndServe() throws Exception {

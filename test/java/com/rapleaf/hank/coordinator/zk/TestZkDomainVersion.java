@@ -1,10 +1,11 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs.Ids;
+
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs.Ids;
 
 public class TestZkDomainVersion extends ZkTestCase {
   public void testCreate() throws Exception {

@@ -16,12 +16,12 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.util.ReverseComparator;
-
 import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import com.rapleaf.hank.util.ReverseComparator;
 
 public abstract class AbstractDomain implements Domain {
   public DomainVersion getOpenedVersion() throws IOException {

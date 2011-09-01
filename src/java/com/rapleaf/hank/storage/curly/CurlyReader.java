@@ -15,14 +15,14 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.util.EncodingHelper;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.util.EncodingHelper;
 
 public class CurlyReader implements Reader {
   private final Reader keyfile;

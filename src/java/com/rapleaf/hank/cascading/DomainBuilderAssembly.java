@@ -16,6 +16,11 @@
 
 package com.rapleaf.hank.cascading;
 
+import java.nio.ByteBuffer;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -27,12 +32,9 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
+
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-
-import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
 

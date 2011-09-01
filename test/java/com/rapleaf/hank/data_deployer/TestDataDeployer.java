@@ -15,16 +15,36 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.VersionOrAction.Action;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-import junit.framework.TestCase;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
+
+import junit.framework.TestCase;
+
+import com.rapleaf.hank.config.DataDeployerConfigurator;
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.MockDomainGroup;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
+import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.coordinator.MockHostDomainPartition;
+import com.rapleaf.hank.coordinator.MockRing;
+import com.rapleaf.hank.coordinator.MockRingGroup;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestDataDeployer extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {

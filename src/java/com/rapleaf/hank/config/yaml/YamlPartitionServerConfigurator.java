@@ -15,11 +15,15 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
-
-import java.io.IOException;
-import java.util.*;
 
 public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implements PartitionServerConfigurator {
   private static final String PARTITION_SERVER_SECTION_KEY = "partition_server";

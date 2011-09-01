@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
 
 public final class Fetcher implements IFetcher {
   private static final Logger LOG = Logger.getLogger(Fetcher.class);

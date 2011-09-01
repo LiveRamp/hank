@@ -1,8 +1,8 @@
 package com.rapleaf.hank.cascading;
 
-import cascading.tap.Tap;
-
 import java.util.Map;
+
+import cascading.tap.Tap;
 
 public class TapOrTapMap {
 

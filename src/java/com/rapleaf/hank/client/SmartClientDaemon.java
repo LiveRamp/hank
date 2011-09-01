@@ -15,20 +15,21 @@
  */
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.generated.SmartClient;
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 
-import java.io.IOException;
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.generated.SmartClient;
 
 /**
  * Run a HankSmartClient inside a Thrift server so non-Java clients can

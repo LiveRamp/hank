@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 public class CueballReader implements Reader {
 

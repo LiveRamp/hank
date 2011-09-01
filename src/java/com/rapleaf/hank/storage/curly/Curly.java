@@ -15,25 +15,39 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.HdfsFileOps;
 import com.rapleaf.hank.storage.cueball.IFileOpsFactory;
 import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.util.FsUtils;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Curly is a storage engine designed for larger, variable-sized values. It uses

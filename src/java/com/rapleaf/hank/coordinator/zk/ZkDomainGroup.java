@@ -15,19 +15,30 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
-import java.io.IOException;
-import java.util.*;
+import com.rapleaf.hank.coordinator.AbstractDomainGroup;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomainGroup extends AbstractDomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);

@@ -1,13 +1,14 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
 
 public class DotComplete implements CompletionDetector {
 

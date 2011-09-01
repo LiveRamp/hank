@@ -1,9 +1,10 @@
 package com.rapleaf.hank.zookeeper;
 
-import com.rapleaf.hank.ZkTestCase;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import com.rapleaf.hank.ZkTestCase;
 
 public class TestWatchedInt extends ZkTestCase {
   public void testIt() throws Exception {

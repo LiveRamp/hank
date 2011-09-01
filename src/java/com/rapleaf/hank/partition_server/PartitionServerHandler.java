@@ -15,19 +15,28 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Set;
+
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Set;
 
 /**
  * Implements the actual data serving logic of the PartitionServer

@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.storage.Result;
-import com.rapleaf.hank.storage.map.MapReader;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+
+import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";

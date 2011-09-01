@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.map;
 
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.Result;
 
 public class MapReader implements Reader {
 

@@ -15,17 +15,18 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";

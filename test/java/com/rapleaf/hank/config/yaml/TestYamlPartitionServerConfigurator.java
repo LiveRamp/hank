@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
+
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestYamlPartitionServerConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";

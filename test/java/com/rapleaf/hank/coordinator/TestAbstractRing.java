@@ -1,13 +1,13 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);

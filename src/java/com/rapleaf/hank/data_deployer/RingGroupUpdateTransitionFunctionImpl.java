@@ -15,12 +15,18 @@
  */
 package com.rapleaf.hank.data_deployer;
 
-import com.rapleaf.hank.coordinator.*;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
+
+import org.apache.log4j.Logger;
+
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingState;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 

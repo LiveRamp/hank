@@ -15,11 +15,11 @@
  */
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartitionServer;
-import com.rapleaf.hank.generated.PartitionServer.Client;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -29,10 +29,11 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.PartitionServer;
+import com.rapleaf.hank.generated.PartitionServer.Client;
 
 final class PartitionServerConnection implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(PartitionServerConnection.class);

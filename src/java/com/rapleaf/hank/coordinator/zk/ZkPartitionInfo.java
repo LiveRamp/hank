@@ -1,9 +1,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.KeeperException;
 
 public class ZkPartitionInfo implements PartitionInfo {
   private final int partNum;

@@ -1,10 +1,16 @@
 package com.rapleaf.hank.partition_assigner;
 
-import com.rapleaf.hank.coordinator.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
+
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 
 public class EqualSizePartitionAssigner implements PartitionAssigner {
   private Ring ring;

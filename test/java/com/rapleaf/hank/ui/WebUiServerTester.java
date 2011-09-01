@@ -14,7 +14,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {

@@ -1,10 +1,7 @@
 package com.rapleaf.hank.ui;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.ui.controllers.*;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.net.URL;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
@@ -14,7 +11,15 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import java.net.URL;
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.ui.controllers.DomainController;
+import com.rapleaf.hank.ui.controllers.DomainGroupController;
+import com.rapleaf.hank.ui.controllers.HostController;
+import com.rapleaf.hank.ui.controllers.RingController;
+import com.rapleaf.hank.ui.controllers.RingGroupController;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class WebUiServer {
   @SuppressWarnings("unused")

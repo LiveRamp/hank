@@ -15,13 +15,21 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.zookeeper.ZkPath;
+import java.util.Collections;
+
 import org.apache.zookeeper.KeeperException;
 
-import java.util.Collections;
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.RingStateChangeListener;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkRing extends ZkTestCase {
 

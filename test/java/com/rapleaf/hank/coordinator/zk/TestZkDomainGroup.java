@@ -16,18 +16,24 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.zookeeper.KeeperException;
+
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.KeeperException;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {

@@ -1,9 +1,9 @@
 package com.rapleaf.hank.zookeeper;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -11,9 +11,10 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class TestWatchedMap extends ZkTestCase {
   private static final class StringElementLoader implements ElementLoader<String> {

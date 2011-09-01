@@ -15,20 +15,32 @@
  */
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
-import com.rapleaf.hank.util.Bytes;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingStateChangeListener;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.util.Bytes;
 
 /**
  * HankSmartClient implements the logic of determining which PartitionServer to
