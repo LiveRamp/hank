@@ -79,14 +79,14 @@ class UpdateManager implements IUpdateManager {
 
   private final PartitionServerConfigurator configurator;
   private final Host host;
-  private final RingGroup ringGroupConfig;
-  private final Ring ringConfig;
+  private final RingGroup ringGroup;
+  private final Ring ring;
 
-  public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroupConfig, Ring ringConfig) throws IOException {
+  public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroup, Ring ring) throws IOException {
     this.configurator = configurator;
     this.host = host;
-    this.ringGroupConfig = ringGroupConfig;
-    this.ringConfig = ringConfig;
+    this.ringGroup = ringGroup;
+    this.ring = ring;
   }
 
   public void update() throws IOException {
@@ -107,7 +107,7 @@ class UpdateManager implements IUpdateManager {
         factory);
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    DomainGroup domainGroup = ringGroupConfig.getDomainGroup();
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
 
@@ -127,8 +127,8 @@ class UpdateManager implements IUpdateManager {
           part.delete();
         } else if (part.getUpdatingToDomainGroupVersion() != null) {
           LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
-              ringGroupConfig.getName(),
-              ringConfig.getRingNumber(),
+              ringGroup.getName(),
+              ring.getRingNumber(),
               domain.getName(),
               part.getPartNum(),
               part.getCurrentDomainGroupVersion(),
