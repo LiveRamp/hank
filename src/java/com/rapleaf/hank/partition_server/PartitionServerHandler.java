@@ -44,12 +44,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator) throws IOException {
     // find the ring config
-    Ring ringConfig = configurator.getCoordinator()
+    Ring ring = configurator.getCoordinator()
         .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(address);
 
     // get the domain group config for the ring
-    DomainGroup domainGroup = ringConfig.getRingGroup().getDomainGroup();
+    DomainGroup domainGroup = ring.getRingGroup().getDomainGroup();
 
     // determine the max domain id so we can bound the array
     int maxDomainId = 0;
@@ -70,7 +70,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = domainVersion.getDomain().getId();
-      Set<HostDomainPartition> partitions = ringConfig
+      Set<HostDomainPartition> partitions = ring
           .getHostByAddress(address).getHostDomain(domain)
           .getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
