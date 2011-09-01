@@ -57,7 +57,7 @@ import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 public class TestUpdateManager extends BaseTestCase {
 
-  private final class MRG extends MockRingGroup {
+  private class MRG extends MockRingGroup {
     private MRG(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
       super(dcg, name, ringConfigs);
     }
@@ -206,8 +206,16 @@ public class TestUpdateManager extends BaseTestCase {
 
     DomainGroup mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
 
-    final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig,
-        "myRingGroup", null);
+    final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null) {
+      @Override
+      public Integer getUpdatingToVersion() {
+        try {
+          return getDomainGroup().getLatestVersion().getVersionNumber();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    };
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHostConfig,
@@ -295,9 +303,17 @@ public class TestUpdateManager extends BaseTestCase {
   private DomainGroup getMockDomainGroupConfig(
       final StorageEngine mockStorageEngine) {
     DomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
+      private DomainGroupVersion dgv;
+
       @Override
       public DomainGroupVersion getLatestVersion() {
-        return getMockDomainGroupConfigVersion(mockStorageEngine);
+        dgv = getMockDomainGroupConfigVersion(mockStorageEngine);
+        return dgv;
+      }
+
+      @Override
+      public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+        return dgv;
       }
     };
     return mockDomainGroupConfig;
