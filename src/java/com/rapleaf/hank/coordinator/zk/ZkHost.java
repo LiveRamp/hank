@@ -123,9 +123,13 @@ public class ZkHost extends AbstractHost {
     commandQueueWatcher = new CommandQueueWatcher();
     domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
       @Override
-      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String domainName) throws KeeperException, InterruptedException {
-        if (!ZkPath.isHidden(domainName)) {
-          return new ZkHostDomain(zk, basePath, coordinator.getDomain(domainName));
+      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (!ZkPath.isHidden(relPath)) {
+          Domain domain = coordinator.getDomain(relPath);
+          if (domain == null) {
+            throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
+          }
+          return new ZkHostDomain(zk, basePath, domain);
         }
         return null;
       }
