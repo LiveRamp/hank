@@ -55,7 +55,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private final ZooKeeperPlus zk;
   private final String path;
 
-  private Map<String, T> internalMap = new HashMap<String, T>();
+  private final Map<String, T> internalMap = new HashMap<String, T>();
   private final Object notifyMutex = new Object();
   private final ElementLoader<T> elementLoader;
   private final CompletionDetector completionDetector;
