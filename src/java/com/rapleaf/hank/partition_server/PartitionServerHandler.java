@@ -48,19 +48,20 @@ class PartitionServerHandler implements IfaceWithShutdown {
         .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(address);
     if (ring == null) {
-      throw new IOException(String.format("Could not get Ring for PartitionServerAddress %s", address));
+      throw new IOException(String.format("Could not get Ring for PartitionServerAddress %s", address.toString()));
     }
 
     // Get the domain group for the ring
     DomainGroup domainGroup = ring.getRingGroup().getDomainGroup();
     if (domainGroup == null) {
-      throw new IOException(String.format("Could not get DomainGroup for Ring ", ring));
+      throw new IOException(String.format("Could not get DomainGroup for Ring ", ring.toString()));
     }
 
     // Get the corresponding domain group version
     DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ring.getVersionNumber());
     if (domainGroupVersion == null) {
-      throw new IOException(String.format("Could not get DomainGroupVersion for DomainGroup %s on Ring %s", domainGroup, ring));
+      throw new IOException(String.format("Could not get DomainGroupVersion for DomainGroup %s on Ring %s",
+          domainGroup.toString(), ring.toString()));
     }
 
     // Determine the max domain id so we can bound the array
