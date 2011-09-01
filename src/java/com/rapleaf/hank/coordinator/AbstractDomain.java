@@ -87,6 +87,12 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
+  public boolean equals(Object other) {
+    return other.getClass().equals(AbstractDomain.class)
+        && this.getId() == ((AbstractDomain) other).getId();
+  }
+
+  @Override
   public String toString() {
     return String.format("AbstractDomain [id=%d, name=%s]", getId(), getName());
   }
