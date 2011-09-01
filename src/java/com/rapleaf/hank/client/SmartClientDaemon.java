@@ -15,21 +15,20 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.generated.SmartClient;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 
-import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.generated.SmartClient;
+import java.io.IOException;
 
 /**
  * Run a HankSmartClient inside a Thrift server so non-Java clients can
@@ -43,6 +42,8 @@ public class SmartClientDaemon {
   private final String ringGroupName;
   private Thread serverThread;
   private TServer server;
+  private static final int WAITING_FOR_SERVER_MAX_TENTATIVES = 30;
+  private static final int WAITING_FOR_SERVER_TIMEOUT_MS = 1000;
 
   public SmartClientDaemon(SmartClientDaemonConfigurator configurator) {
     this.configurator = configurator;
@@ -52,8 +53,9 @@ public class SmartClientDaemon {
 
   /**
    * start serving the thrift server. doesn't return.
-   * @throws IOException 
-   * @throws TException 
+   *
+   * @throws IOException
+   * @throws TException
    */
   private void serve() throws IOException, TException {
     // set up the service handler
@@ -85,7 +87,7 @@ public class SmartClientDaemon {
    * Start serving the Thrift server. Returns when the server is up.
    */
   public void startServer() {
-    Runnable r = new Runnable(){
+    Runnable r = new Runnable() {
       @Override
       public void run() {
         try {
@@ -98,11 +100,21 @@ public class SmartClientDaemon {
     serverThread = new Thread(r, "Client Thrift Server thread");
     serverThread.start();
     try {
-      while (server == null || !server.isServing()) {
-        LOG.debug("waiting for smart client daemon server to come online...");
-        Thread.sleep(100);
+      int tentative = 0;
+      // Wait for thrift server to come online
+      while (tentative < WAITING_FOR_SERVER_MAX_TENTATIVES &&
+          (server == null || !server.isServing())) {
+        LOG.debug("Waiting for smart client server to come online...");
+        Thread.sleep(WAITING_FOR_SERVER_TIMEOUT_MS);
+        ++tentative;
       }
-      LOG.debug("smart client server is online.");
+      // Check if Thrift server failed to come online
+      if (server == null || !server.isServing()) {
+        throw new RuntimeException(
+            String.format("Waited SmartClient server to come online for %d seconds, but it did not.",
+                (WAITING_FOR_SERVER_MAX_TENTATIVES * WAITING_FOR_SERVER_TIMEOUT_MS) / 1000));
+      }
+      LOG.debug("Smart client server is online.");
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for server thread to start", e);
     }
@@ -110,7 +122,7 @@ public class SmartClientDaemon {
 
   private void run() {
     startServer();
-    while(true) {
+    while (true) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {
