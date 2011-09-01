@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class MockDomain extends AbstractDomain {
   private final String name;
@@ -73,7 +73,7 @@ public class MockDomain extends AbstractDomain {
 
   @Override
   public String toString() {
-    return "MockDomainConfig [name=" + name + ", numParts=" + numParts
+    return "MockDomain [id=" + getId() + ", name=" + name + ", numParts=" + numParts
         + ", part=" + part + ", storageEngine=" + storageEngine + ", version="
         + version + "]";
   }
