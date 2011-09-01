@@ -118,6 +118,10 @@ public class ZkHost extends AbstractHost {
     this.hostPath = hostPath;
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
 
+    if (coordinator == null) {
+      throw new RuntimeException("Cannot initialize a ZkHost with a null Coordinator.");
+    }
+
     stateChangeWatcher = new StateChangeWatcher();
     stateChangeWatcher.setWatch();
     commandQueueWatcher = new CommandQueueWatcher();
