@@ -186,7 +186,7 @@ public class TestZkHost extends ZkTestCase {
   private static final Domain d12 = new MockDomain("d12");
 
   public void testCounters() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), null, getRoot(), ADDRESS);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS);
     c.addDomain(d10).addPartition(9, 8).setCount("Unicorns", 17);
     c.addDomain(d11).addPartition(3, 2).setCount("Unicorns", 13);
     c.addDomain(d12).addPartition(1, 1).setCount("Centaurs", 5);
