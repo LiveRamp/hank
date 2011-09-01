@@ -121,13 +121,11 @@ public class MockCoordinator implements Coordinator {
 
   @Override
   public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
-    // TODO Auto-generated method stub
     return null;
   }
 
   @Override
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
-    // TODO Auto-generated method stub
     return null;
   }
 }

@@ -15,22 +15,16 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.storage.Updater;
+import com.rapleaf.hank.storage.cueball.*;
+import com.rapleaf.hank.util.EncodingHelper;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.storage.Updater;
-import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.cueball.CueballMerger;
-import com.rapleaf.hank.storage.cueball.Fetcher;
-import com.rapleaf.hank.storage.cueball.ICueballMerger;
-import com.rapleaf.hank.storage.cueball.IFetcher;
-import com.rapleaf.hank.storage.cueball.IFileOps;
-import com.rapleaf.hank.storage.cueball.ValueTransformer;
-import com.rapleaf.hank.util.EncodingHelper;
 
 public class CurlyUpdater implements Updater {
   public static final class OffsetTransformer implements ValueTransformer {
@@ -74,14 +68,13 @@ public class CurlyUpdater implements Updater {
   }
 
   CurlyUpdater(String localPartitionRoot,
-      int keyHashSize,
-      int offsetSize,
-      IFetcher fetcher,
-      ICurlyMerger curlyMerger,
-      ICueballMerger cueballMerger,
-      CompressionCodec compressonCodec,
-      int hashIndexBits)
-  {
+               int keyHashSize,
+               int offsetSize,
+               IFetcher fetcher,
+               ICurlyMerger curlyMerger,
+               ICueballMerger cueballMerger,
+               CompressionCodec compressonCodec,
+               int hashIndexBits) {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
     this.offsetSize = offsetSize;
@@ -123,40 +116,40 @@ public class CurlyUpdater implements Updater {
     if (cueballBases.isEmpty()) {
       if (cueballDeltas.isEmpty()) {
         throw new IllegalStateException("There are no cueball bases or deltas in "
-          + localPartitionRoot + " after the fetcher ran!"); 
+            + localPartitionRoot + " after the fetcher ran!");
       }
       cueballBases.add(cueballDeltas.first());
       cueballDeltas.remove(cueballDeltas.first());
     }
     String latestCueballBase = cueballBases.last();
-    SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCurlyBase);
+    SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCueballBase);
 
-    if (relevantCueballDeltas.isEmpty()) {
-      // no need to merge! in fact, we're done.
-    } else {
-      // run the cueball merger
-      String newCueballBasePath = localPartitionRoot + "/"
-        + String.format("%05d", Cueball.parseVersionNumber(relevantCueballDeltas.last()))
+    // run the cueball merger
+    String newCueballBasePath = localPartitionRoot + "/"
+        + Cueball.padVersionNumber(toVersion)
         + ".base.cueball";
-      cueballMerger.merge(latestCueballBase,
-          relevantCueballDeltas,
-          newCueballBasePath,
-          keyHashSize,
-          offsetSize,
-          new OffsetTransformer(offsetSize, offsetAdjustments),
-          hashIndexBits,
-          compressionCodec);
-  
-      // rename the modified base to the current version
-      String newCurlyBasePath = localPartitionRoot + "/"
-        + String.format("%05d", Curly.parseVersionNumber(relevantCurlyDeltas.last()))
-        + ".base.curly";
-      // TODO: this can fail. watch it.
-      new File(latestCurlyBase).renameTo(new File(newCurlyBasePath));
-    }
 
-    // delete all the old curly bases
-    deleteFiles(curlyBases.headSet(latestCurlyBase), cueballBases.headSet(latestCueballBase), curlyDeltas, cueballDeltas);
+    cueballMerger.merge(latestCueballBase,
+        relevantCueballDeltas,
+        newCueballBasePath,
+        keyHashSize,
+        offsetSize,
+        new OffsetTransformer(offsetSize, offsetAdjustments),
+        hashIndexBits,
+        compressionCodec);
+
+    // Rename the modified Curly base to the current version
+    String newCurlyBasePath = localPartitionRoot + "/"
+        + Curly.padVersionNumber(toVersion)
+        + ".base.curly";
+    // TODO: this can fail. watch it.
+    new File(latestCueballBase).renameTo(new File(newCurlyBasePath));
+
+    // Delete all the old files
+    deleteFiles(curlyBases.headSet(latestCueballBase),
+        cueballBases.headSet(latestCueballBase),
+        curlyDeltas,
+        cueballDeltas);
   }
 
   private int getLocalVersionNumber() {
@@ -179,9 +172,8 @@ public class CurlyUpdater implements Updater {
   }
 
   public static void getBasesAndDeltas(String localPartitionRoot,
-      SortedSet<String> bases,
-      SortedSet<String> deltas)
-  {
+                                       SortedSet<String> bases,
+                                       SortedSet<String> deltas) {
     File local = new File(localPartitionRoot);
     String[] filesInLocal = local.list();
 
@@ -200,13 +192,14 @@ public class CurlyUpdater implements Updater {
 
   /**
    * Convenience method for deleting all the files in a bunch of sets
+   *
    * @param sets
    */
   private static void deleteFiles(Set<String>... sets) {
     for (Set<String> set : sets) {
       for (String s : set) {
         if (!new File(s).delete()) {
-          throw new RuntimeException("failed to delete file " + s);
+          throw new RuntimeException("Failed to delete file " + s);
         }
       }
     }

@@ -201,7 +201,7 @@ public class Curly implements StorageEngine {
     return new CurlyWriter(outputStream, cueballWriter, offsetSize);
   }
 
-  private String padVersion(int versionNumber) {
+  public static String padVersionNumber(int versionNumber) {
     return String.format("%05d", versionNumber);
   }
 
@@ -258,7 +258,7 @@ public class Curly implements StorageEngine {
   }
 
   private String getName(int versionNumber, boolean base) {
-    String s = padVersion(versionNumber) + ".";
+    String s = padVersionNumber(versionNumber) + ".";
     if (base) {
       s += "base";
     } else {

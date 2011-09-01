@@ -111,7 +111,5 @@ public class MockRing extends AbstractRing {
 
   @Override
   public void delete() throws IOException {
-    // TODO Auto-generated method stub
-
   }
 }

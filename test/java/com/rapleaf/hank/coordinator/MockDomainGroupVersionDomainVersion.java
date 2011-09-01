@@ -37,7 +37,5 @@ public class MockDomainGroupVersionDomainVersion extends AbstractDomainGroupVers
 
   @Override
   public void delete() {
-    // TODO Auto-generated method stub
-    
   }
 }

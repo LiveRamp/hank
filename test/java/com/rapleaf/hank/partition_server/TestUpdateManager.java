@@ -15,38 +15,9 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionInfo;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.Deleter;
@@ -54,6 +25,9 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.mock.MockDeleter;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
+import java.io.IOException;
+import java.util.*;
 
 public class TestUpdateManager extends BaseTestCase {
 
@@ -131,23 +105,19 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     public void removeCount(String countID) throws IOException {
-      // TODO Auto-generated method stub
     }
 
     @Override
     public void setCount(String countID, long count) throws IOException {
-      // TODO Auto-generated method stub
     }
 
     @Override
     public Long getCount(String countID) throws IOException {
-      // TODO Auto-generated method stub
       return null;
     }
 
     @Override
     public Set<String> getCountKeys() throws IOException {
-      // TODO Auto-generated method stub
       return null;
     }
 
@@ -287,7 +257,7 @@ public class TestUpdateManager extends BaseTestCase {
 
               @Override
               public void addPartitionInfo(int partNum, long numBytes,
-                  long numRecords) throws IOException {
+                                           long numRecords) throws IOException {
               }
             }));
       }

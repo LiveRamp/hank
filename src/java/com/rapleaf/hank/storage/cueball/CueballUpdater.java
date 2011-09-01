@@ -15,15 +15,14 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.storage.Updater;
+import org.apache.log4j.Logger;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.storage.Updater;
 
 public class CueballUpdater implements Updater {
   private static final Logger LOG = Logger.getLogger(CueballUpdater.class);
@@ -37,13 +36,12 @@ public class CueballUpdater implements Updater {
   private final int hashIndexBits;
 
   CueballUpdater(String localPartitionRoot,
-      int keyHashSize,
-      int valueSize,
-      IFetcher fetcher,
-      ICueballMerger merger,
-      CompressionCodec compressionCodec,
-      int hashIndexBits)
-  {
+                 int keyHashSize,
+                 int valueSize,
+                 IFetcher fetcher,
+                 ICueballMerger merger,
+                 CompressionCodec compressionCodec,
+                 int hashIndexBits) {
     this.localPartitionRoot = localPartitionRoot;
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
@@ -54,13 +52,12 @@ public class CueballUpdater implements Updater {
   }
 
   public CueballUpdater(String localPartitionRoot,
-      int keyHashSize,
-      int valueSize,
-      IFileOps fileOps,
-      IFileSelector fileSelector,
-      CompressionCodec compressionCodec,
-      int hashIndexBits)
-  {
+                        int keyHashSize,
+                        int valueSize,
+                        IFileOps fileOps,
+                        IFileSelector fileSelector,
+                        CompressionCodec compressionCodec,
+                        int hashIndexBits) {
     this(localPartitionRoot,
         keyHashSize,
         valueSize,
@@ -73,10 +70,10 @@ public class CueballUpdater implements Updater {
   @Override
   public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
     fetcher.fetch(getLocalVersionNumber(), toVersion, excludeVersions);
-    resolveLocalDir();
+    resolveLocalDir(toVersion);
   }
 
-  private void resolveLocalDir() throws IOException {
+  private void resolveLocalDir(int toVersion) throws IOException {
     SortedSet<String> bases = Cueball.getBases(localPartitionRoot);
     SortedSet<String> deltas = Cueball.getDeltas(localPartitionRoot);
 
@@ -85,7 +82,7 @@ public class CueballUpdater implements Updater {
       LOG.info("Didn't find any bases. Using first delta instead.");
       if (deltas.isEmpty()) {
         throw new IllegalStateException("There are no bases or deltas in "
-          + localPartitionRoot + " after the fetcher ran!"); 
+            + localPartitionRoot + " after the fetcher ran!");
       }
       bases.add(deltas.first());
       deltas.remove(deltas.first());
@@ -94,8 +91,9 @@ public class CueballUpdater implements Updater {
     SortedSet<String> relevantDeltas = deltas.tailSet(latestBase);
 
     String newBasePath = localPartitionRoot + "/"
-        + Cueball.padVersion(Cueball.parseVersionNumber(relevantDeltas.last()))
+        + Cueball.padVersionNumber(toVersion)
         + ".base.cueball";
+
     merger.merge(latestBase,
         relevantDeltas,
         newBasePath,

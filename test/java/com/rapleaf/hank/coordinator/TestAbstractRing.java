@@ -66,14 +66,11 @@ public class TestAbstractRing extends BaseTestCase {
 
     @Override
     public boolean removeHost(PartitionServerAddress address) {
-      // TODO Auto-generated method stub
       return false;
     }
 
     @Override
     public void delete() throws IOException {
-      // TODO Auto-generated method stub
-
     }
   }
 
