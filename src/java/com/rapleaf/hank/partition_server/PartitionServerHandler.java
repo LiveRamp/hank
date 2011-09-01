@@ -43,40 +43,40 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator) throws IOException {
-    // find the ring config
+    // Find the ring
     Ring ring = configurator.getCoordinator()
         .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(address);
 
-    // get the domain group config for the ring
+    // Get the domain group for the ring
     DomainGroup domainGroup = ring.getRingGroup().getDomainGroup();
 
-    // determine the max domain id so we can bound the array
+    // Get the corresponding domain group version
+    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ring.getVersionNumber());
+
+    // Determine the max domain id so we can bound the array
     int maxDomainId = 0;
-    for (DomainGroupVersionDomainVersion dcv : domainGroup.getLatestVersion()
-        .getDomainVersions()) {
-      int domainId = dcv.getDomain().getId();
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      int domainId = dgvdv.getDomain().getId();
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
       }
     }
-
     domainAccessors = new DomainAccessor[maxDomainId + 1];
 
-    // loop over the domains and get set up
-    for (DomainGroupVersionDomainVersion domainVersion :
-        domainGroup.getLatestVersion().getDomainVersions()) {
-      Domain domain = domainVersion.getDomain();
+    // Loop over the domains and get set up
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 
-      int domainId = domainVersion.getDomain().getId();
+      int domainId = dgvdv.getDomain().getId();
       Set<HostDomainPartition> partitions = ring
           .getHostByAddress(address).getHostDomain(domain)
           .getPartitions();
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
-      // instantiate the PartitionAccessor array
+      // Instantiate the PartitionAccessor array
       PartitionAccessor[] partitionAccessors =
           new PartitionAccessor[domain.getNumParts()];
       for (HostDomainPartition partition : partitions) {
@@ -90,15 +90,15 @@ class PartitionServerHandler implements IfaceWithShutdown {
         // Determine at which DomainVersion the partition should be
         int domainGroupVersionDomainVersionNumber;
         try {
-          DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(partition.getCurrentDomainGroupVersion());
-          if (domainGroupVersion == null) {
+          DomainGroupVersion partitionDomainGroupVersion = domainGroup.getVersionByNumber(partition.getCurrentDomainGroupVersion());
+          if (partitionDomainGroupVersion == null) {
             throw new IOException(String.format("Could not get version %d of DomainGroup %s.",
                 partition.getCurrentDomainGroupVersion(), domainGroup.getName()));
           }
-          DomainGroupVersionDomainVersion domainGroupVersionDomainVersion = domainGroupVersion.getDomainVersion(domain);
+          DomainGroupVersionDomainVersion domainGroupVersionDomainVersion = partitionDomainGroupVersion.getDomainVersion(domain);
           if (domainGroupVersionDomainVersion == null) {
             throw new IOException(String.format("Could not get DomainVersion for domain %s in DomainGroupVersion %d.",
-                domain.getName(), domainGroupVersion.getVersionNumber()));
+                domain.getName(), partitionDomainGroupVersion.getVersionNumber()));
           }
           domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersionOrAction().getVersion();
         } catch (Exception e) {
