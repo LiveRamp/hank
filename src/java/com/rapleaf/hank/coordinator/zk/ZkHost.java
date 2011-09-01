@@ -38,6 +38,58 @@ public class ZkHost extends AbstractHost {
   private static final String COMMAND_QUEUE_PATH_SEGMENT = "command_queue";
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "current_command";
 
+  private final ZooKeeperPlus zk;
+  private final String hostPath;
+  private final PartitionServerAddress address;
+
+  private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
+  private final StateChangeWatcher stateChangeWatcher;
+
+  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
+  private final CommandQueueWatcher commandQueueWatcher;
+  private final WatchedMap<ZkHostDomain> domains;
+
+  public static ZkHost create(ZooKeeperPlus zk,
+                              Coordinator coordinator,
+                              String root,
+                              PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
+    String hostPath = ZkPath.append(root, partitionServerAddress.toString());
+    LOG.trace("creating host " + hostPath);
+    zk.create(hostPath, null);
+    zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
+    return new ZkHost(zk, coordinator, hostPath);
+  }
+
+  public ZkHost(ZooKeeperPlus zk, final Coordinator coordinator, String hostPath) throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.hostPath = hostPath;
+    this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
+
+    if (coordinator == null) {
+      throw new RuntimeException("Cannot initialize a ZkHost with a null Coordinator.");
+    }
+
+    stateChangeWatcher = new StateChangeWatcher();
+    stateChangeWatcher.setWatch();
+    commandQueueWatcher = new CommandQueueWatcher();
+    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
+      @Override
+      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (!ZkPath.isHidden(relPath)) {
+          Domain domain = coordinator.getDomain(relPath);
+          if (domain == null) {
+            throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
+          }
+          return new ZkHostDomain(zk, basePath, domain);
+        }
+        return null;
+      }
+    }/*, new DotComplete()*/);
+  }
+
   private class CommandQueueWatcher extends HankWatcher {
     protected CommandQueueWatcher() throws KeeperException, InterruptedException {
       super();
@@ -86,58 +138,6 @@ public class ZkHost extends AbstractHost {
         zk.getData(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), this, new Stat());
       }
     }
-  }
-
-  public static ZkHost create(ZooKeeperPlus zk,
-                              Coordinator coordinator,
-                              String root,
-                              PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
-    String hostPath = ZkPath.append(root, partitionServerAddress.toString());
-    LOG.trace("creating host " + hostPath);
-    zk.create(hostPath, null);
-    zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
-    return new ZkHost(zk, coordinator, hostPath);
-  }
-
-  private final ZooKeeperPlus zk;
-  private final String hostPath;
-  private final PartitionServerAddress address;
-
-  private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
-  private final StateChangeWatcher stateChangeWatcher;
-
-  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
-  private final CommandQueueWatcher commandQueueWatcher;
-  private final WatchedMap<ZkHostDomain> domains;
-
-  public ZkHost(ZooKeeperPlus zk, final Coordinator coordinator, String hostPath) throws KeeperException, InterruptedException {
-    this.zk = zk;
-    this.hostPath = hostPath;
-    this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
-
-    if (coordinator == null) {
-      throw new RuntimeException("Cannot initialize a ZkHost with a null Coordinator.");
-    }
-
-    stateChangeWatcher = new StateChangeWatcher();
-    stateChangeWatcher.setWatch();
-    commandQueueWatcher = new CommandQueueWatcher();
-    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
-      @Override
-      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        if (!ZkPath.isHidden(relPath)) {
-          Domain domain = coordinator.getDomain(relPath);
-          if (domain == null) {
-            throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
-          }
-          return new ZkHostDomain(zk, basePath, domain);
-        }
-        return null;
-      }
-    }/*, new DotComplete()*/);
   }
 
   @Override

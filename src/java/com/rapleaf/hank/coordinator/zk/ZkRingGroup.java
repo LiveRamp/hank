@@ -38,7 +38,20 @@ public class ZkRingGroup extends AbstractRingGroup {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
-  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coord) throws KeeperException, InterruptedException, IOException {
+  private final String ringGroupName;
+  private DomainGroup domainGroup;
+  private final Map<String, ZkRing> ringsByNumber;
+  private final String ringGroupPath;
+  private final String currentVerPath;
+  private final String updatingToVersionPath;
+  private final String dataDeployerOnlinePath;
+  private final ZooKeeperPlus zk;
+  private final Coordinator coordinator;
+
+  private final WatchedInt currentVersion;
+  private final WatchedInt updatingToVersion;
+
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
       throw new IllegalStateException(
           "You cannot create a ring group for a domain group that has no versions!");
@@ -47,7 +60,37 @@ public class ZkRingGroup extends AbstractRingGroup {
     zk.create(ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT),
         (Integer.toString(domainGroup.getLatestVersion().getVersionNumber())).getBytes());
-    return new ZkRingGroup(zk, path, domainGroup, coord);
+    return new ZkRingGroup(zk, path, domainGroup, coordinator);
+  }
+
+  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup, final Coordinator coordinator)
+      throws InterruptedException, KeeperException {
+    this.zk = zk;
+    this.ringGroupPath = ringGroupPath;
+    this.domainGroup = domainGroup;
+    this.coordinator = coordinator;
+
+    if (coordinator == null) {
+      throw new RuntimeException("Cannot initialize a ZkRingGroup with a null Coordinator.");
+    }
+
+    ringGroupName = ZkPath.getFilename(ringGroupPath);
+    ringsByNumber = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
+      @Override
+      public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (relPath.matches("ring-\\d+")) {
+          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, coordinator);
+        }
+        return null;
+      }
+    });
+
+    currentVerPath = ZkPath.append(ringGroupPath, CURRENT_VERSION_PATH_SEGMENT);
+    updatingToVersionPath = ZkPath.append(ringGroupPath, UPDATING_TO_VERSION_PATH_SEGMENT);
+    dataDeployerOnlinePath = ZkPath.append(ringGroupPath, "data_deployer_online");
+
+    currentVersion = new WatchedInt(zk, currentVerPath, true, null);
+    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true, null);
   }
 
   private final class StateChangeListener implements Watcher {
@@ -103,43 +146,6 @@ public class ZkRingGroup extends AbstractRingGroup {
         zk.getData(updatingToVersionPath, this, new Stat());
       }
     }
-  }
-
-  private final String ringGroupName;
-  private DomainGroup domainGroup;
-  private final Map<String, ZkRing> ringsByNumber;
-  private final String ringGroupPath;
-  private final String currentVerPath;
-  private final String updatingToVersionPath;
-  private final String dataDeployerOnlinePath;
-  private final ZooKeeperPlus zk;
-
-  private final WatchedInt currentVersion;
-  private final WatchedInt updatingToVersion;
-
-  public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup, final Coordinator coord)
-      throws InterruptedException, KeeperException {
-    this.zk = zk;
-    this.ringGroupPath = ringGroupPath;
-    this.domainGroup = domainGroup;
-    ringGroupName = ZkPath.getFilename(ringGroupPath);
-
-    ringsByNumber = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
-      @Override
-      public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        if (relPath.matches("ring-\\d+")) {
-          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, coord);
-        }
-        return null;
-      }
-    });
-
-    currentVerPath = ZkPath.append(ringGroupPath, CURRENT_VERSION_PATH_SEGMENT);
-    updatingToVersionPath = ZkPath.append(ringGroupPath, UPDATING_TO_VERSION_PATH_SEGMENT);
-    dataDeployerOnlinePath = ZkPath.append(ringGroupPath, "data_deployer_online");
-
-    currentVersion = new WatchedInt(zk, currentVerPath, true, null);
-    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true, null);
   }
 
   @Override
@@ -248,7 +254,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      ZkRing rc = ZkRing.create(zk, ringGroupPath, ringNum, this,
+      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this,
           isUpdating() ? getUpdatingToVersion() : getCurrentVersion());
       ringsByNumber.put(Integer.toString(rc.getRingNumber()), rc);
       return rc;

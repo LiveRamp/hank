@@ -37,14 +37,46 @@ public class ZkRing extends AbstractRing implements Watcher {
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
   private static final String STATUS_PATH_SEGMENT = "status";
 
-  public static ZkRing create(ZooKeeperPlus zk, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
+  private final String ringPath;
+
+  private final Map<PartitionServerAddress, Host> hosts = new HashMap<PartitionServerAddress, Host>();
+  private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
+  private final StateChangeWatcher stateChangeWatcher;
+
+  private final WatchedInt currentVersionNumber;
+  private final WatchedInt updatingToVersionNumber;
+
+  private final ZooKeeperPlus zk;
+
+  private final Coordinator coordinator;
+
+  public static ZkRing create(ZooKeeperPlus zk, Coordinator coordinator, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
     String ringPath = ZkPath.append(ringGroup, "ring-" + ringNum);
     zk.create(ringPath, null);
     zk.create(ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), (Integer.toString(initVersion)).getBytes());
     zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.DOWN.toString().getBytes());
     zk.create(ZkPath.append(ringPath, "hosts"), null);
-    return new ZkRing(zk, ringPath, group, null);
+    return new ZkRing(zk, ringPath, group, coordinator);
+  }
+
+  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroup, Coordinator coordinator)
+      throws InterruptedException, KeeperException {
+    super(parseRingNum(ringPath), ringGroup);
+    this.zk = zk;
+    this.ringPath = ringPath;
+    this.coordinator = coordinator;
+
+    if (coordinator == null) {
+      throw new RuntimeException("Cannot initialize a ZkRing with a null Coordinator.");
+    }
+
+    // enumerate hosts
+    refreshAndRegister();
+    this.stateChangeWatcher = new StateChangeWatcher();
+
+    currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT));
+    updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT));
   }
 
   private final class StateChangeWatcher implements Watcher {
@@ -80,34 +112,6 @@ public class ZkRing extends AbstractRing implements Watcher {
     }
   }
 
-  private final String ringPath;
-
-  private final Map<PartitionServerAddress, Host> hosts = new HashMap<PartitionServerAddress, Host>();
-  private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
-  private final StateChangeWatcher stateChangeWatcher;
-
-  private final WatchedInt currentVersionNumber;
-  private final WatchedInt updatingToVersionNumber;
-
-  private final ZooKeeperPlus zk;
-
-  private final Coordinator coord;
-
-  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroup, Coordinator coord)
-      throws InterruptedException, KeeperException {
-    super(parseRingNum(ringPath), ringGroup);
-    this.zk = zk;
-    this.ringPath = ringPath;
-    this.coord = coord;
-
-    // enumerate hosts
-    refreshAndRegister();
-    this.stateChangeWatcher = new StateChangeWatcher();
-
-    currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT));
-    updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT));
-  }
-
   private static int parseRingNum(String ringPath) {
     Matcher matcher = RING_NUMBER_PATTERN.matcher(ZkPath.getFilename(ringPath));
     matcher.matches();
@@ -125,7 +129,7 @@ public class ZkRing extends AbstractRing implements Watcher {
       // only replace the Host if we don't already have an instance.
       // (otherwise we'll destroy their watches unnecessarily!)
       if (!this.hosts.containsKey(PartitionServerAddress.parse(host))) {
-        Host hostConf = new ZkHost(zk, coord, ZkPath.append(ringPath, "hosts", host));
+        Host hostConf = new ZkHost(zk, coordinator, ZkPath.append(ringPath, "hosts", host));
         this.hosts.put(hostConf.getAddress(), hostConf);
       }
     }
@@ -175,7 +179,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   @Override
   public Host addHost(PartitionServerAddress address) throws IOException {
     try {
-      return ZkHost.create(zk, coord, ZkPath.append(ringPath, "hosts"), address);
+      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, "hosts"), address);
     } catch (Exception e) {
       throw new IOException(e);
     }

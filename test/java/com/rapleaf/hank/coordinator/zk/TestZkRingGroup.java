@@ -15,16 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Collections;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.Collections;
 
 public class TestZkRingGroup extends ZkTestCase {
   public final class MockRingGroupChangeListener implements RingGroupChangeListener {
@@ -127,7 +122,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    Ring rc = ZkRing.create(getZk(), ring_group, ringNum, null, 1);
+    Ring rc = ZkRing.create(getZk(), null, ring_group, ringNum, null, 1);
     rc.addHost(new PartitionServerAddress("localhost", ringNum));
   }
 

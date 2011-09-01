@@ -15,26 +15,6 @@
  */
 package com.rapleaf.hank;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.DataDeployerConfigurator;
@@ -44,19 +24,11 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.data_deployer.DataDeployer;
 import com.rapleaf.hank.generated.HankExceptions;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
-import com.rapleaf.hank.generated.HankResponse._Fields;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
@@ -68,6 +40,17 @@ import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
@@ -206,7 +189,7 @@ public class IntegrationTest extends ZkTestCase {
 
     Configurator config = new YamlClientConfigurator(clientConfigYml);
 
-    Coordinator coord = config.getCoordinator();
+    Coordinator coordinator = config.getCoordinator();
 
     StringWriter sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -218,7 +201,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("remote_domain_root: " + DOMAIN_0_DATAFILES);
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
     pw.close();
-    coord.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
+    coordinator.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
     sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -231,7 +214,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
     pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
     pw.close();
-    coord.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
+    coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
     // write a base version of each domain
     Map<ByteBuffer, ByteBuffer> domain0DataItems = new HashMap<ByteBuffer, ByteBuffer>();
@@ -244,7 +227,7 @@ public class IntegrationTest extends ZkTestCase {
     domain0DataItems.put(bb(7), bb(7, 3));
     domain0DataItems.put(bb(8), bb(8, 4));
 
-    writeOut(coord.getDomain("domain0"), domain0DataItems, 1, true, DOMAIN_0_DATAFILES);
+    writeOut(coordinator.getDomain("domain0"), domain0DataItems, 1, true, DOMAIN_0_DATAFILES);
 
     Map<ByteBuffer, ByteBuffer> domain1DataItems = new HashMap<ByteBuffer, ByteBuffer>();
     domain1DataItems.put(bb(4), bb(1, 1));
@@ -256,18 +239,18 @@ public class IntegrationTest extends ZkTestCase {
     domain1DataItems.put(bb(6), bb(7, 3));
     domain1DataItems.put(bb(5), bb(8, 4));
 
-    writeOut(coord.getDomain("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
 
     // configure domain group
-    final DomainGroup dg1 = coord.addDomainGroup("dg1");
+    final DomainGroup dg1 = coordinator.addDomainGroup("dg1");
 
     LOG.debug("-------- domain is created --------");
 
     // simulate publisher pushing out a new version
     DomainGroup domainGroup = null;
-    coord = config.getCoordinator();
+    coordinator = config.getCoordinator();
     for (int i = 0; i < 15; i++) {
-      domainGroup = coord.getDomainGroup("dg1");
+      domainGroup = coordinator.getDomainGroup("dg1");
       if (domainGroup != null) {
         break;
       }
@@ -276,22 +259,46 @@ public class IntegrationTest extends ZkTestCase {
     assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
 
     Map<Domain, VersionOrAction> versionMap = new HashMap<Domain, VersionOrAction>();
-    versionMap.put(coord.getDomain("domain0"), new VersionOrAction(1));
-    versionMap.put(coord.getDomain("domain1"), new VersionOrAction(1));
+    versionMap.put(coordinator.getDomain("domain0"), new VersionOrAction(1));
+    versionMap.put(coordinator.getDomain("domain1"), new VersionOrAction(1));
     domainGroup.createNewVersion(versionMap);
 
     // configure ring group
-    final RingGroup rg1 = coord.addRingGroup("rg1", "dg1");
+    final RingGroup rg1 = coordinator.addRingGroup("rg1", "dg1");
 
     // add ring 1
     final Ring rg1r1 = rg1.addRing(1);
-    rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"));
-    rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"));
+    Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"));
+    Host r1h2 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"));
 
     // add ring 2
     final Ring rg1r2 = rg1.addRing(2);
-    rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"));
-    rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"));
+    Host r2h1 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"));
+    Host r2h2 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"));
+
+    // Add domains
+    // Domain0
+    HostDomain r1h1d0 = r1h1.addDomain(coordinator.getDomain("domain0"));
+    HostDomain r1h2d0 = r1h2.addDomain(coordinator.getDomain("domain0"));
+    HostDomain r2h1d0 = r2h1.addDomain(coordinator.getDomain("domain0"));
+    HostDomain r2h2d0 = r2h2.addDomain(coordinator.getDomain("domain0"));
+    // Domain1
+    HostDomain r1h1d1 = r1h1.addDomain(coordinator.getDomain("domain1"));
+    HostDomain r1h2d1 = r1h2.addDomain(coordinator.getDomain("domain1"));
+    HostDomain r2h1d1 = r2h1.addDomain(coordinator.getDomain("domain1"));
+    HostDomain r2h2d1 = r2h2.addDomain(coordinator.getDomain("domain1"));
+
+    // Add partitions
+    // Domain0
+    r1h1d0.addPartition(0, 0);
+    r1h2d0.addPartition(1, 0);
+    r2h1d0.addPartition(0, 0);
+    r2h2d0.addPartition(1, 0);
+    // Domain1
+    r1h1d1.addPartition(0, 0);
+    r1h2d1.addPartition(1, 0);
+    r2h1d1.addPartition(0, 0);
+    r2h2d1.addPartition(1, 0);
 
     // launch 2x 2-node rings
     startDaemons(new PartitionServerAddress("localhost", 50000));
@@ -314,7 +321,7 @@ public class IntegrationTest extends ZkTestCase {
     boolean found = false;
     for (int i = 0; i < 15; i++) {
       HankResponse r = dumbClient.get("domain0", bb(1));
-      if (r.isSet(_Fields.VALUE)) {
+      if (r.isSet(HankResponse._Fields.VALUE)) {
         found = true;
         break;
       }
@@ -348,17 +355,17 @@ public class IntegrationTest extends ZkTestCase {
     domain1Delta.put(bb(4), bb(6, 6));
     domain1Delta.put(bb(5), bb(5, 5));
 
-    writeOut(coord.getDomain("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
 
     versionMap = new HashMap<Domain, VersionOrAction>();
-    versionMap.put(coord.getDomain("domain0"), new VersionOrAction(1));
-    versionMap.put(coord.getDomain("domain1"), new VersionOrAction(2));
+    versionMap.put(coordinator.getDomain("domain0"), new VersionOrAction(1));
+    versionMap.put(coordinator.getDomain("domain1"), new VersionOrAction(2));
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
     // wait until the rings have been updated to the new version
-    coord = config.getCoordinator();
-    final RingGroup ringGroupConfig = coord.getRingGroup("rg1");
+    coordinator = config.getCoordinator();
+    final RingGroup ringGroupConfig = coordinator.getRingGroup("rg1");
     for (int i = 0; i < 30; i++) {
       if (ringGroupConfig.isUpdating()) {
         LOG.info("Ring group is still updating. Sleeping...");

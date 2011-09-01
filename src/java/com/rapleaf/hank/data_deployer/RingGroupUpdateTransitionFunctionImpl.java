@@ -38,7 +38,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         LOG.info("Ring "
             + ring.getRingNumber()
             + " is updating to version " + ring.getUpdatingToVersionNumber()
-            +" and is " + ring.getState() + ".");
+            + " and is " + ring.getState() + ".");
 
         switch (ring.getState()) {
           case UP:
@@ -77,7 +77,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             // we just finished stopping
             // start up all the updaters
             LOG.info("Ring " + ring.getRingNumber()
-                + " is " + ring.getState() +  ", so we're going to start UPDATING.");
+                + " is " + ring.getState() + ", so we're going to start UPDATING.");
             ring.commandAll(HostCommand.EXECUTE_UPDATE);
             ring.setState(RingState.UPDATING);
             break;
@@ -132,7 +132,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               ring.updateComplete();
             } else {
               LOG.info("Ring " + ring.getRingNumber()
-                  + " still has hosts that are not SERVING. Waiting for them to come up.");
+                  + " still has hosts that are not SERVING. Waiting for them to come up:");
+              for (Host host : ring.getHosts()) {
+                LOG.info(String.format("  [%s] %s", host.getState(), host));
+              }
             }
 
             break;

@@ -15,30 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * An implementation of the Coordinator built on top of the Apache ZooKeeper
@@ -141,7 +127,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private final Map<String, ZkDomain> domainsByName = new HashMap<String, ZkDomain>();
 
   private final Map<String, ZkDomainGroup> domainGroups = new HashMap<String, ZkDomainGroup>();
-  private final Map<String, ZkRingGroup> ringGroupConfigs = new HashMap<String, ZkRingGroup>();
+  private final Map<String, ZkRingGroup> ringGroups = new HashMap<String, ZkRingGroup>();
 
   private final String domainsRoot;
   private final String domainGroupsRoot;
@@ -230,7 +216,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public RingGroup getRingGroup(String ringGroupName) {
-    return ringGroupConfigs.get(ringGroupName);
+    return ringGroups.get(ringGroupName);
   }
 
   /**
@@ -269,7 +255,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     for (String ringGroupName : ringGroupNameList) {
       String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
       ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
-      ringGroupConfigs.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc, null));
+      ringGroups.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc, this));
     }
   }
 
@@ -284,14 +270,14 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public Set<RingGroup> getRingGroups() {
-    return new HashSet<RingGroup>(ringGroupConfigs.values());
+    return new HashSet<RingGroup>(ringGroups.values());
   }
 
   @Override
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
     String domainGroupName = domainGroup.getName();
     Set<RingGroup> groups = new HashSet<RingGroup>();
-    for (RingGroup group : ringGroupConfigs.values()) {
+    for (RingGroup group : ringGroups.values()) {
       if (group.getDomainGroup().getName().equals(domainGroupName)) {
         groups.add(group);
       }
@@ -366,7 +352,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     try {
       RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
           (ZkDomainGroup) getDomainGroup(domainGroupName), this);
-      ringGroupConfigs.put(ringGroupName, (ZkRingGroup) rg);
+      ringGroups.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {
       throw new IOException(e);
@@ -414,7 +400,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public boolean deleteRingGroup(String ringGroupName) throws IOException {
-    ZkRingGroup ringGroup = ringGroupConfigs.remove(ringGroupName);
+    ZkRingGroup ringGroup = ringGroups.remove(ringGroupName);
     if (ringGroup == null) {
       return false;
     }

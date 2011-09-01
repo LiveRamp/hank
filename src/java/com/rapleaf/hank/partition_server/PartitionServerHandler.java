@@ -48,17 +48,21 @@ class PartitionServerHandler implements IfaceWithShutdown {
         .getRingGroup(configurator.getRingGroupName())
         .getRingForHost(address);
     if (ring == null) {
-      throw new IOException(String.format("Could not get Ring for PartitionServerAddress %s", address));
+      throw new IOException(String.format("Could not get Ring of PartitionServerAddress %s", address));
     }
 
     // Get the domain group for the ring
     DomainGroup domainGroup = ring.getRingGroup().getDomainGroup();
     if (domainGroup == null) {
-      throw new IOException(String.format("Could not get DomainGroup for Ring %s", ring));
+      throw new IOException(String.format("Could not get DomainGroup of Ring %s", ring));
     }
 
-    // Get the corresponding version number
-    Integer versionNumber = ring.getVersionNumber();
+    // Get the corresponding version number either the one we just updated to,
+    // or the current one.
+    Integer versionNumber = ring.getUpdatingToVersionNumber();
+    if (versionNumber == null) {
+      versionNumber = ring.getVersionNumber();
+    }
     if (versionNumber == null) {
       throw new IOException(String.format("Could not get current version number of Ring %s", ring));
     }
@@ -66,8 +70,14 @@ class PartitionServerHandler implements IfaceWithShutdown {
     // Get the corresponding domain group version
     DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(versionNumber);
     if (domainGroupVersion == null) {
-      throw new IOException(String.format("Could not get DomainGroupVersion for DomainGroup %s on Ring %s",
+      throw new IOException(String.format("Could not get DomainGroupVersion of DomainGroup %s on Ring %s",
           domainGroup.toString(), ring.toString()));
+    }
+
+    // Get the corresponding Host
+    Host host = ring.getHostByAddress(address);
+    if (host == null) {
+      throw new IOException(String.format("Could not get Host at address %s of Ring %s", address, ring));
     }
 
     // Determine the max domain id so we can bound the array
@@ -86,9 +96,14 @@ class PartitionServerHandler implements IfaceWithShutdown {
       StorageEngine engine = domain.getStorageEngine();
 
       int domainId = dgvdv.getDomain().getId();
-      Set<HostDomainPartition> partitions = ring
-          .getHostByAddress(address).getHostDomain(domain)
-          .getPartitions();
+      HostDomain hostDomain = host.getHostDomain(domain);
+      if (hostDomain == null) {
+        throw new IOException(String.format("Could not get HostDomain of Domain %s on Host %s", domain, host));
+      }
+      Set<HostDomainPartition> partitions = hostDomain.getPartitions();
+      if (partitions == null) {
+        throw new IOException(String.format("Could not get partitions assignements of HostDomain %s", hostDomain));
+      }
       LOG.info(String.format("Assigned %d/%d partitions in domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
@@ -125,9 +140,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
         Reader reader = engine.getReader(configurator, partition.getPartNum());
         // Check that Reader's version number and current domain group version number match
-        if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
+        if (reader.getVersionNumber() == null || !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
           LOG.error(String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
-              partition.getPartNum(), domain.getName(), reader.getVersionNumber(), partition.getCurrentDomainGroupVersion()));
+              partition.getPartNum(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber));
           reader = null;
         }
         LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
@@ -149,8 +164,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
       return domainAccessor.get(key);
     } catch (IOException e) {
       String errMsg = String.format(
-          "Exception during get! Domain: %d (%s) Key: %s", domainId,
-          domainAccessor.getName(), Bytes.bytesToHexString(key));
+          "Exception during get! Domain: %s (domain #%d) Key: %s",
+          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
       LOG.error(errMsg, e);
 
       return HankResponse.xception(HankExceptions.internal_error(errMsg + " " + e.getMessage()));
