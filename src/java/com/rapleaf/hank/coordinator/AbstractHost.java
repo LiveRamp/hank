@@ -55,4 +55,9 @@ public abstract class AbstractHost implements Host {
     }
     return null;
   }
+
+  @Override
+  public String toString() {
+    return String.format("AbstractHost [address=%s]", this.getAddress());
+  }
 }
