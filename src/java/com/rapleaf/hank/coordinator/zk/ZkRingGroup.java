@@ -71,7 +71,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     this.coordinator = coordinator;
 
     if (coordinator == null) {
-      throw new RuntimeException("Cannot initialize a ZkRingGroup with a null Coordinator.");
+      throw new IllegalArgumentException("Cannot initialize a ZkRingGroup with a null Coordinator.");
     }
 
     ringGroupName = ZkPath.getFilename(ringGroupPath);

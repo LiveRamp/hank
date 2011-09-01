@@ -25,6 +25,7 @@ import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -127,7 +128,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     Map<Domain, VersionOrAction> domainIdToVersion = new HashMap<Domain, VersionOrAction>();
     dgc.createNewVersion(domainIdToVersion);
 
-    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc, null);
+    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc, new MockCoordinator());
     Ring rc = rg.addRing(1);
     rc.addHost(new PartitionServerAddress("localhost", 1));
 
