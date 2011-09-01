@@ -311,11 +311,6 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public String toString() {
-    return "ZkHostConfig [address=" + address + "]";
-  }
-
-  @Override
   public void cancelStateChangeListener(HostStateChangeListener listener) {
     synchronized (stateListeners) {
       stateListeners.remove(listener);
