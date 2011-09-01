@@ -62,8 +62,8 @@ public class TestPartitionServerHandler extends BaseTestCase {
         @Override
         public Set<HostDomainPartition> getPartitions() throws IOException {
           return new HashSet<HostDomainPartition>(Arrays.asList(
-              new MockHostDomainPartition(0, 1, 2),
-              new MockHostDomainPartition(4, 1, 2)));
+              new MockHostDomainPartition(0, 0, 2),
+              new MockHostDomainPartition(4, 0, 2)));
         }
 
         @Override
@@ -132,7 +132,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
       @Override
       public DomainGroupVersion getVersionByNumber(int versionNumber) {
-        assertEquals(1, versionNumber);
+        assertEquals(0, versionNumber);
         return dgv;
       }
     };
