@@ -61,6 +61,18 @@ public class TestHankApiServlet extends ZkTestCase {
     assertNotEmptyResponse(new String[]{"ring_group"}, new String[]{"RG_Alpha"});
   }
 
+  @Test
+  public void testDeployStatusForDomain() throws IOException {
+    assertEmptyResponse(new String[]{"deploy_status_for_domain"}, new String[]{"blah"});
+    assertNotEmptyResponse(new String[]{"deploy_status_for_domain"}, new String[]{"domain0"});
+  }
+
+  @Test
+  public void testDeployStatusForDomainGroup() throws IOException {
+    assertEmptyResponse(new String[]{"deploy_status_for_domain_group"}, new String[]{"blah"});
+    assertNotEmptyResponse(new String[]{"deploy_status_for_domain_group"}, new String[]{"Group_1"});
+  }
+
   private void assertEmptyResponse(String[] params, String[] values) throws IOException {
     assertEquals("Response should be empty", "{}", getResponse(params, values).getContentAsString());
   }
