@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.OutputStreamFactory;
@@ -53,12 +51,12 @@ public class ConstantStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
-    throw new NotImplementedException();
+    throw new UnsupportedOperationException();
   }
 
   @Override
