@@ -34,7 +34,7 @@ class UpdateManager implements IUpdateManager {
   private static final int TERMINATION_CHECK_TIMEOUT_MS = 1000;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
-  private final class UpdateToDo implements Runnable {
+  private final class PartitionUpdate implements Runnable {
     private final StorageEngine engine;
     private final int partitionNumber;
     private final Queue<Throwable> exceptionQueue;
@@ -44,14 +44,14 @@ class UpdateManager implements IUpdateManager {
     private final int toDomainGroupVersion;
     private final Set<Integer> excludeVersions;
 
-    public UpdateToDo(StorageEngine engine,
-                      int partitionNumber,
-                      Queue<Throwable> exceptionQueue,
-                      int toDomainVersion,
-                      HostDomainPartition partition,
-                      String domainName,
-                      int toDomainGroupVersion,
-                      Set<Integer> excludeVersions) {
+    public PartitionUpdate(StorageEngine engine,
+                           int partitionNumber,
+                           Queue<Throwable> exceptionQueue,
+                           int toDomainVersion,
+                           HostDomainPartition partition,
+                           String domainName,
+                           int toDomainGroupVersion,
+                           Set<Integer> excludeVersions) {
       this.engine = engine;
       this.partitionNumber = partitionNumber;
       this.exceptionQueue = exceptionQueue;
@@ -69,9 +69,9 @@ class UpdateManager implements IUpdateManager {
         engine.getUpdater(configurator, partitionNumber).update(toDomainVersion, excludeVersions);
         partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
         partition.setUpdatingToDomainGroupVersion(null);
-        LOG.info(String.format("UpdateToDo %s part %d completed.", engine.toString(), partitionNumber));
+        LOG.info(String.format("PartitionUpdate %s part %d completed.", engine.toString(), partitionNumber));
       } catch (Throwable e) {
-        LOG.fatal("Failed to complete an UpdateToDo!", e);
+        LOG.fatal("Failed to complete a PartitionUpdate!", e);
         exceptionQueue.add(e);
       }
     }
@@ -136,7 +136,7 @@ class UpdateManager implements IUpdateManager {
                 part.getPartNum(),
                 part.getCurrentDomainGroupVersion(),
                 part.getUpdatingToDomainGroupVersion()));
-            executor.execute(new UpdateToDo(engine,
+            executor.execute(new PartitionUpdate(engine,
                 part.getPartNum(),
                 exceptionQueue,
                 dgvdv.getVersionOrAction().getVersion(),
@@ -159,7 +159,7 @@ class UpdateManager implements IUpdateManager {
       }
       // Detect failed tasks
       if (!exceptionQueue.isEmpty()) {
-        LOG.fatal(String.format("%d exceptions encountered while running UpdateToDo:", exceptionQueue.size()));
+        LOG.fatal(String.format("%d exceptions encountered while running PartitionUpdate:", exceptionQueue.size()));
         int i = 0;
         for (Throwable t : exceptionQueue) {
           LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
