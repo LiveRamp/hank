@@ -76,7 +76,10 @@ tr.not_included td {
   %>
     <%
       DomainVersion latestVersion = domain.getLatestVersionNotOpenNotDefunct();
-      DomainGroupVersionDomainVersion latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
+      DomainGroupVersionDomainVersion latestDgvdv;
+      if (latestDomainGroupVersion != null) {
+        latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
+      }
       boolean included = latestDgvdv != null;
     %>
     <tr id="<%= domain.getId() %>_tr" <%= included ? "class='included'" : "class='not_included'" %> >
