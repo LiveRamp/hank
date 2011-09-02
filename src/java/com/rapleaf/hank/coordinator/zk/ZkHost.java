@@ -15,33 +15,20 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.KeeperException.Code;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.AbstractHost;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.*;
 
 public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
@@ -72,6 +59,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
+
     zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
     return new ZkHost(zk, coordinator, hostPath);
   }

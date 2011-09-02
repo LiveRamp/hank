@@ -15,21 +15,13 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Collections;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.KeeperException;
+
+import java.util.Collections;
 
 public class TestZkRing extends ZkTestCase {
 
@@ -111,15 +103,15 @@ public class TestZkRing extends ZkTestCase {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
     assertEquals(0, ring.getHosts().size());
 
-    Host hc = ring.addHost(LOCALHOST);
-    assertEquals(LOCALHOST, hc.getAddress());
+    Host host = ring.addHost(LOCALHOST);
+    assertEquals(LOCALHOST, host.getAddress());
     for (int i = 0; i < 20; i++) {
       if (!ring.getHosts().isEmpty()) {
         break;
       }
       Thread.sleep(100);
     }
-    assertEquals(Collections.singleton(hc), ring.getHosts());
+    assertEquals(Collections.singleton(host), ring.getHosts());
 
     assertEquals(LOCALHOST, ring.getHostByAddress(LOCALHOST).getAddress());
     ring.close();
@@ -128,7 +120,7 @@ public class TestZkRing extends ZkTestCase {
     ring = new ZkRing(getZk(), ring_root, null, coordinator);
     assertEquals(1, ring.getHosts().size());
 
-    assertEquals(Collections.singleton(hc), ring.getHosts());
+    assertEquals(Collections.singleton(host), ring.getHosts());
 
     assertEquals(LOCALHOST, ring.getHostByAddress(LOCALHOST).getAddress());
 

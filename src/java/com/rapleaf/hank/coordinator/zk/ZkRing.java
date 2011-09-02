@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
@@ -25,11 +26,12 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ZkRing extends AbstractRing implements Watcher {
+public class ZkRing extends AbstractRing {
   private static final Logger LOG = Logger.getLogger(ZkRing.class);
 
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
@@ -40,7 +42,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   private final String ringPath;
 
-  private final Map<PartitionServerAddress, Host> hosts = new HashMap<PartitionServerAddress, Host>();
+  private final WatchedMap<Host> hosts;
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
 
@@ -61,7 +63,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     return new ZkRing(zk, ringPath, group, coordinator);
   }
 
-  public ZkRing(ZooKeeperPlus zk, String ringPath, RingGroup ringGroup, Coordinator coordinator)
+  public ZkRing(ZooKeeperPlus zk, final String ringPath, RingGroup ringGroup, final Coordinator coordinator)
       throws InterruptedException, KeeperException {
     super(parseRingNum(ringPath), ringGroup);
     this.zk = zk;
@@ -72,8 +74,11 @@ public class ZkRing extends AbstractRing implements Watcher {
       throw new RuntimeException("Cannot initialize a ZkRing with a null Coordinator.");
     }
 
-    // enumerate hosts
-    refreshAndRegister();
+    hosts = new WatchedMap<Host>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<Host>() {
+      public Host load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
+        return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath));
+      }
+    });
     this.stateChangeWatcher = new StateChangeWatcher();
 
     currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT));
@@ -119,23 +124,6 @@ public class ZkRing extends AbstractRing implements Watcher {
     return Integer.parseInt(matcher.group(1));
   }
 
-  private synchronized void refreshHosts() throws InterruptedException, KeeperException {
-    // get the children and simultaneously reset the watch. this is important so
-    // we don't miss events.
-    List<String> hosts = zk.getChildren(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), this);
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Refreshing hosts with host strings: " + hosts);
-    }
-    for (String host : hosts) {
-      // only replace the Host if we don't already have an instance.
-      // (otherwise we'll destroy their watches unnecessarily!)
-      if (!this.hosts.containsKey(PartitionServerAddress.parse(host))) {
-        Host hostConf = new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, host));
-        this.hosts.put(hostConf.getAddress(), hostConf);
-      }
-    }
-  }
-
   @Override
   public RingState getState() throws IOException {
     String statusString = null;
@@ -174,7 +162,7 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   @Override
   public Host getHostByAddress(PartitionServerAddress address) {
-    return hosts.get(address);
+    return hosts.get(address.toString());
   }
 
   @Override
@@ -183,26 +171,6 @@ public class ZkRing extends AbstractRing implements Watcher {
       return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address);
     } catch (Exception e) {
       throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void process(WatchedEvent event) {
-    LOG.debug(event);
-    switch (event.getType()) {
-      case NodeChildrenChanged:
-        refreshAndRegister();
-    }
-  }
-
-  private void refreshAndRegister() {
-    try {
-      refreshHosts();
-    } catch (InterruptedException e) {
-      // eek.
-      LOG.error("Interrupted while trying to refesh hosts!", e);
-    } catch (KeeperException e) {
-      LOG.error("Unexpected KeeperException!", e);
     }
   }
 
@@ -238,7 +206,8 @@ public class ZkRing extends AbstractRing implements Watcher {
 
   @Override
   public boolean removeHost(PartitionServerAddress address) throws IOException {
-    if (hosts.remove(address) == null) {
+    String addressStr = address.toString();
+    if (hosts.remove(addressStr) == null) {
       return false;
     }
     try {
