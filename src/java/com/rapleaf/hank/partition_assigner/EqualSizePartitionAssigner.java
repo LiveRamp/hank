@@ -1,16 +1,10 @@
 package com.rapleaf.hank.partition_assigner;
 
+import com.rapleaf.hank.coordinator.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
 
 public class EqualSizePartitionAssigner implements PartitionAssigner {
   private Ring ring;
@@ -21,8 +15,7 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
   @Override
   public void assign(RingGroup ringGroup, int ringNum, Domain domain) throws IOException {
     ring = ringGroup.getRing(ringNum);
-    DomainGroup domainGroup = ringGroup.getDomainGroup();
-    int version = domainGroup.getLatestVersion().getVersionNumber();
+    int version = ringGroup.getCurrentVersion();
     Random random = new Random();
 
     for (Host host : ring.getHosts()) {
