@@ -15,7 +15,12 @@ public class EqualSizePartitionAssigner implements PartitionAssigner {
   @Override
   public void assign(RingGroup ringGroup, int ringNum, Domain domain) throws IOException {
     ring = ringGroup.getRing(ringNum);
-    int version = ringGroup.getCurrentVersion();
+    int version;
+    if (ringGroup.getCurrentVersion() != null) {
+     version = ringGroup.getCurrentVersion();
+    } else {
+      version = ringGroup.getUpdatingToVersion();
+    }
     Random random = new Random();
 
     for (Host host : ring.getHosts()) {
