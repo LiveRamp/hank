@@ -121,7 +121,7 @@ class UpdateManager implements IUpdateManager {
       StorageEngine engine = domain.getStorageEngine();
       HostDomain hd = host.getHostDomain(domain);
       if (hd == null) {
-        LOG.error(String.format("Could not get HostDomain for domain %s on host %h. Will not update.", domain, host));
+        LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
       } else {
         for (HostDomainPartition part : hd.getPartitions()) {
           if (part.isDeletable()) {
