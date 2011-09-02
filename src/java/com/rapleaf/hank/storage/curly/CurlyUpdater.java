@@ -146,7 +146,7 @@ public class CurlyUpdater implements Updater {
     new File(latestCueballBase).renameTo(new File(newCurlyBasePath));
 
     // Delete all the old files
-    deleteFiles(curlyBases.headSet(latestCueballBase),
+    deleteFiles(curlyBases.headSet(latestCurlyBase),
         cueballBases.headSet(latestCueballBase),
         curlyDeltas,
         cueballDeltas);
