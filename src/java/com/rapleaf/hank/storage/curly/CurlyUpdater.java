@@ -124,28 +124,33 @@ public class CurlyUpdater implements Updater {
     String latestCueballBase = cueballBases.last();
     SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCueballBase);
 
-    // run the cueball merger
-    String newCueballBasePath = localPartitionRoot + "/"
-        + Cueball.padVersionNumber(toVersion)
-        + ".base.cueball";
+    // Determine new cueball base path
+    String newCueballBasePath = localPartitionRoot + "/" + Cueball.padVersionNumber(toVersion) + ".base.cueball";
+    // Build new cueball base
+    if (relevantCueballDeltas.isEmpty()) {
+      // Simply rename cueball base
+      // TODO: this can fail. watch it.
+      new File(latestCueballBase).renameTo(new File(newCueballBasePath));
+    } else {
+      // Run cueball merger
+      cueballMerger.merge(latestCueballBase,
+          relevantCueballDeltas,
+          newCueballBasePath,
+          keyHashSize,
+          offsetSize,
+          new OffsetTransformer(offsetSize, offsetAdjustments),
+          hashIndexBits,
+          compressionCodec);
+    }
 
-    cueballMerger.merge(latestCueballBase,
-        relevantCueballDeltas,
-        newCueballBasePath,
-        keyHashSize,
-        offsetSize,
-        new OffsetTransformer(offsetSize, offsetAdjustments),
-        hashIndexBits,
-        compressionCodec);
-
-    // Rename the modified Curly base to the current version
-    String newCurlyBasePath = localPartitionRoot + "/"
-        + Curly.padVersionNumber(toVersion)
-        + ".base.curly";
+    // Determine new curly base path
+    String newCurlyBasePath = localPartitionRoot + "/" + Curly.padVersionNumber(toVersion) + ".base.curly";
+    // Rename new curly base
     // TODO: this can fail. watch it.
-    new File(latestCueballBase).renameTo(new File(newCurlyBasePath));
+    new File(latestCurlyBase).renameTo(new File(newCurlyBasePath));
 
     // Delete all the old files
+    // TODO: this can fail. watch it.
     deleteFiles(curlyBases.headSet(latestCurlyBase),
         cueballBases.headSet(latestCueballBase),
         curlyDeltas,
