@@ -15,30 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
-import com.rapleaf.hank.coordinator.AbstractRing;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.RingStateChangeListener;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ZkRing extends AbstractRing implements Watcher {
   private static final Logger LOG = Logger.getLogger(ZkRing.class);
@@ -47,6 +36,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
   private static final String STATUS_PATH_SEGMENT = "status";
+  private static final String HOSTS_PATH_SEGMENT = "hosts";
 
   private final String ringPath;
 
@@ -67,7 +57,7 @@ public class ZkRing extends AbstractRing implements Watcher {
     zk.create(ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), (Integer.toString(initVersion)).getBytes());
     zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.DOWN.toString().getBytes());
-    zk.create(ZkPath.append(ringPath, "hosts"), null);
+    zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
     return new ZkRing(zk, ringPath, group, coordinator);
   }
 
@@ -132,7 +122,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   private synchronized void refreshHosts() throws InterruptedException, KeeperException {
     // get the children and simultaneously reset the watch. this is important so
     // we don't miss events.
-    List<String> hosts = zk.getChildren(ZkPath.append(ringPath, "hosts"), this);
+    List<String> hosts = zk.getChildren(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), this);
     if (LOG.isTraceEnabled()) {
       LOG.trace("Refreshing hosts with host strings: " + hosts);
     }
@@ -140,7 +130,7 @@ public class ZkRing extends AbstractRing implements Watcher {
       // only replace the Host if we don't already have an instance.
       // (otherwise we'll destroy their watches unnecessarily!)
       if (!this.hosts.containsKey(PartitionServerAddress.parse(host))) {
-        Host hostConf = new ZkHost(zk, coordinator, ZkPath.append(ringPath, "hosts", host));
+        Host hostConf = new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, host));
         this.hosts.put(hostConf.getAddress(), hostConf);
       }
     }
@@ -190,7 +180,7 @@ public class ZkRing extends AbstractRing implements Watcher {
   @Override
   public Host addHost(PartitionServerAddress address) throws IOException {
     try {
-      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, "hosts"), address);
+      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -252,7 +242,7 @@ public class ZkRing extends AbstractRing implements Watcher {
       return false;
     }
     try {
-      String hostPath = ZkPath.append(ringPath, "hosts", address.toString());
+      String hostPath = ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, address.toString());
       if (zk.exists(hostPath, false) == null) {
         return false;
       }
