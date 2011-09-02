@@ -76,7 +76,7 @@ tr.not_included td {
   %>
     <%
       DomainVersion latestVersion = domain.getLatestVersionNotOpenNotDefunct();
-      DomainGroupVersionDomainVersion latestDgvdv;
+      DomainGroupVersionDomainVersion latestDgvdv = null;
       if (latestDomainGroupVersion != null) {
         latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
       }
