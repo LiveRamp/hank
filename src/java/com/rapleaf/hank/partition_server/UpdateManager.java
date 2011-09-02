@@ -15,30 +15,17 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.StorageEngine;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.StorageEngine;
+import java.util.concurrent.*;
 
 /**
  * Manages the domain update process.
@@ -136,29 +123,29 @@ class UpdateManager implements IUpdateManager {
       if (hd == null) {
         LOG.error(String.format("Could not get HostDomain for domain %s on host %h. Will not update.", domain, host));
       } else {
-      for (HostDomainPartition part : hd.getPartitions()) {
-        if (part.isDeletable()) {
-          Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
-          deleter.delete();
-          part.delete();
-        } else if (part.getUpdatingToDomainGroupVersion() != null) {
-          LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
-              ringGroup.getName(),
-              ring.getRingNumber(),
-              domain.getName(),
-              part.getPartNum(),
-              part.getCurrentDomainGroupVersion(),
-              part.getUpdatingToDomainGroupVersion()));
-          executor.execute(new UpdateToDo(engine,
-              part.getPartNum(),
-              exceptionQueue,
-              dgvdv.getVersionOrAction().getVersion(),
-              part,
-              domain.getName(),
-              part.getUpdatingToDomainGroupVersion(),
-              excludeVersions));
+        for (HostDomainPartition part : hd.getPartitions()) {
+          if (part.isDeletable()) {
+            Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
+            deleter.delete();
+            part.delete();
+          } else if (part.getUpdatingToDomainGroupVersion() != null) {
+            LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
+                ringGroup.getName(),
+                ring.getRingNumber(),
+                domain.getName(),
+                part.getPartNum(),
+                part.getCurrentDomainGroupVersion(),
+                part.getUpdatingToDomainGroupVersion()));
+            executor.execute(new UpdateToDo(engine,
+                part.getPartNum(),
+                exceptionQueue,
+                dgvdv.getVersionOrAction().getVersion(),
+                part,
+                domain.getName(),
+                part.getUpdatingToDomainGroupVersion(),
+                excludeVersions));
+          }
         }
-      }
       }
     }
 
