@@ -35,7 +35,9 @@ import java.io.IOException;
  * The main class of the PartitionServer.
  */
 public class PartitionServer implements HostCommandQueueChangeListener {
+
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
+  private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
 
   private final PartitionServerConfigurator configurator;
   private Thread serverThread;
@@ -72,9 +74,9 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     processCommands();
     while (!goingDown) {
       try {
-        Thread.sleep(1000);
+        Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
       } catch (InterruptedException e) {
-        LOG.debug("Interrupted in run loop. Exiting.");
+        LOG.debug("Interrupted in run loop. Exiting.", e);
         break;
       }
     }
