@@ -15,29 +15,21 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.util.HostUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.util.HostUtils;
+import java.io.IOException;
 
 /**
  * The main class of the PartitionServer.
@@ -212,7 +204,70 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     host.clearCommandQueue();
   }
 
-  private void update() {
+  private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
+    HostState state = host.getState();
+    switch (nextCommand) {
+      case EXECUTE_UPDATE:
+        processExecuteUpdate(state);
+        break;
+      case GO_TO_IDLE:
+        processGoToIdle(state);
+        break;
+      case SERVE_DATA:
+        processServeData(state);
+        break;
+    }
+  }
+
+  private void processServeData(HostState state) throws IOException {
+    switch (state) {
+      case IDLE:
+        serveData();
+        setState(HostState.SERVING);
+        completeCommand();
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.SERVE_DATA
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  private void processGoToIdle(HostState state) throws IOException {
+    switch (state) {
+      case SERVING:
+        stopServingData();
+        setState(HostState.IDLE);
+        completeCommand();
+        break;
+      case UPDATING:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but current state is " + state
+            + ", which cannot be stopped. Will wait until completion.");
+        break;
+      default:
+        LOG.debug("received command " + HostCommand.GO_TO_IDLE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  private void processExecuteUpdate(HostState state) throws IOException {
+    switch (state) {
+      case IDLE:
+        setState(HostState.UPDATING);
+        executeUpdate();
+        break;
+      case SERVING:
+        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
+      default:
+        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
+            + " but not compatible with current state " + state
+            + ". Ignoring.");
+    }
+  }
+
+  private void executeUpdate() {
     if (updateThread != null) {
       throw new IllegalStateException("Update got called again unexpectedly!");
     }
@@ -237,69 +292,6 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     };
     updateThread = new Thread(updateRunnable, "Update manager thread");
     updateThread.start();
-  }
-
-  private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
-    HostState state = host.getState();
-    switch (nextCommand) {
-      case EXECUTE_UPDATE:
-        processExecuteUpdate(state);
-        break;
-      case GO_TO_IDLE:
-        processGoToIdle(state);
-        break;
-      case SERVE_DATA:
-        processServeData(state);
-        break;
-    }
-  }
-
-  private void processServeData(HostState state) throws IOException {
-    switch (state) {
-      case IDLE:
-        serveData();
-        setState(HostState.SERVING);
-        host.completeCommand();
-        break;
-      default:
-        LOG.debug("received command " + HostCommand.SERVE_DATA
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-    }
-  }
-
-  private void processGoToIdle(HostState state) throws IOException {
-    switch (state) {
-      case SERVING:
-        stopServingData();
-        setState(HostState.IDLE);
-        host.completeCommand();
-        break;
-      case UPDATING:
-        LOG.debug("received command " + HostCommand.GO_TO_IDLE
-            + " but current state is " + state
-            + ", which cannot be stopped. Will wait until completion.");
-        break;
-      default:
-        LOG.debug("received command " + HostCommand.GO_TO_IDLE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-    }
-  }
-
-  private void processExecuteUpdate(HostState state) throws IOException {
-    switch (state) {
-      case IDLE:
-        setState(HostState.UPDATING);
-        update();
-        break;
-      case SERVING:
-        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
-      default:
-        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-    }
   }
 
   public static void main(String[] args) throws Throwable {
