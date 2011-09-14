@@ -13,40 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.ring_group_conductor;
+
+import com.rapleaf.hank.config.RingGroupConductorConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+import junit.framework.TestCase;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
-import junit.framework.TestCase;
-
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.coordinator.VersionOrAction.Action;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-
-public class TestDataDeployer extends TestCase {
+public class TestRingGroupConductor extends TestCase {
   public class MockRingGroupUpdateTransitionFunction implements RingGroupUpdateTransitionFunction {
     public RingGroup calledWithRingGroup;
 
@@ -122,7 +102,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    DataDeployerConfigurator mockConfig = new DataDeployerConfigurator() {
+    RingGroupConductorConfigurator mockConfig = new RingGroupConductorConfigurator() {
       @Override
       public long getSleepInterval() {
         return 100;
@@ -144,7 +124,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
+    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
     daemon.processUpdates(mockRingGroupConf, domainGroup);
 
     assertNull(mockTransFunc.calledWithRingGroup);
@@ -226,7 +206,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    DataDeployerConfigurator mockConfig = new DataDeployerConfigurator() {
+    RingGroupConductorConfigurator mockConfig = new RingGroupConductorConfigurator() {
       @Override
       public long getSleepInterval() {
         return 100;
@@ -248,7 +228,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
+    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
     daemon.processUpdates(mockRingGroupConf, domainGroup);
 
     assertNull(mockTransFunc.calledWithRingGroup);
@@ -283,7 +263,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
 
-    DataDeployerConfigurator mockConfig = new DataDeployerConfigurator() {
+    RingGroupConductorConfigurator mockConfig = new RingGroupConductorConfigurator() {
       @Override
       public long getSleepInterval() {
         return 100;
@@ -305,7 +285,7 @@ public class TestDataDeployer extends TestCase {
       }
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
-    DataDeployer daemon = new DataDeployer(mockConfig, mockTransFunc);
+    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
     daemon.processUpdates(mockRingGroupConf, domainGroup);
 
     assertEquals(mockRingGroupConf, mockTransFunc.calledWithRingGroup);

@@ -15,11 +15,12 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -27,21 +28,15 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.AbstractRingGroup;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup {
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
+  protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
   private final String ringGroupName;
@@ -50,7 +45,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   private final String ringGroupPath;
   private final String currentVerPath;
   private final String updatingToVersionPath;
-  private final String dataDeployerOnlinePath;
+  private final String ringGroupConductorOnlinePath;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
 
@@ -93,7 +88,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
     currentVerPath = ZkPath.append(ringGroupPath, CURRENT_VERSION_PATH_SEGMENT);
     updatingToVersionPath = ZkPath.append(ringGroupPath, UPDATING_TO_VERSION_PATH_SEGMENT);
-    dataDeployerOnlinePath = ZkPath.append(ringGroupPath, "data_deployer_online");
+    ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
 
     currentVersion = new WatchedInt(zk, currentVerPath, true, null);
     updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true, null);
@@ -185,10 +180,10 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public boolean claimDataDeployer() throws IOException {
+  public boolean claimRingGroupConductor() throws IOException {
     try {
-      if (zk.exists(dataDeployerOnlinePath, false) == null) {
-        zk.create(dataDeployerOnlinePath, null, CreateMode.EPHEMERAL);
+      if (zk.exists(ringGroupConductorOnlinePath, false) == null) {
+        zk.create(ringGroupConductorOnlinePath, null, CreateMode.EPHEMERAL);
         return true;
       }
       return false;
@@ -198,14 +193,14 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public void releaseDataDeployer() throws IOException {
+  public void releaseRingGroupConductor() throws IOException {
     try {
-      if (zk.exists(dataDeployerOnlinePath, false) != null) {
-        zk.delete(dataDeployerOnlinePath, -1);
+      if (zk.exists(ringGroupConductorOnlinePath, false) != null) {
+        zk.delete(ringGroupConductorOnlinePath, -1);
         return;
       }
       throw new IllegalStateException(
-          "Can't release the data deployer lock when it's not currently set!");
+          "Can't release the ring group conductor lock when it's not currently set!");
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -270,9 +265,9 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public boolean isDataDeployerOnline() throws IOException {
+  public boolean isRingGroupConductorOnline() throws IOException {
     try {
-      return zk.exists(dataDeployerOnlinePath, false) != null;
+      return zk.exists(ringGroupConductorOnlinePath, false) != null;
     } catch (Exception e) {
       throw new IOException(e);
     }

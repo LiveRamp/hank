@@ -13,12 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.config;
 
-import java.io.IOException;
 
-import com.rapleaf.hank.coordinator.RingGroup;
+public interface RingGroupConductorConfigurator extends Configurator {
+  public String getRingGroupName();
 
-public interface RingGroupUpdateTransitionFunction {
-  public void manageTransitions(RingGroup ringGroup) throws IOException;
+  public long getSleepInterval();
 }

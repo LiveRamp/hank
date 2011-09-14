@@ -1,28 +1,14 @@
 package com.rapleaf.hank.ui;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.rapleaf.hank.coordinator.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
+import java.io.IOException;
+import java.util.*;
 
 public class HankApiServlet extends HttpServlet {
 
@@ -183,7 +169,7 @@ public class HankApiServlet extends HttpServlet {
     ringGroupData.put("current_version", ringGroup.getCurrentVersion());
     ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersion());
     ringGroupData.put("is_updating", ringGroup.isUpdating());
-    ringGroupData.put("is_data_deployer_online", ringGroup.isDataDeployerOnline());
+    ringGroupData.put("is_ring_group_conductor_online", ringGroup.isRingGroupConductorOnline());
     ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
     ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));
     return ringGroupData;

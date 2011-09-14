@@ -23,44 +23,48 @@ public interface RingGroup {
 
   /**
    * Get a Set of all RingConfigs in this Ring Group.
+   *
    * @return
    */
   public Set<Ring> getRings();
 
   /**
    * Get a RingConfig by the ring number.
+   *
    * @param ringNumber
    * @return
    */
   public Ring getRing(int ringNumber)
-  throws IOException;
+      throws IOException;
 
   /**
    * Get the DomainGroupConfig for this Ring Group.
+   *
    * @return
    */
   public DomainGroup getDomainGroup();
 
   /**
    * Find the RingConfig that applies to a given host
+   *
    * @param hostAddress
    * @return
    */
   public Ring getRingForHost(PartitionServerAddress hostAddress)
-  throws IOException;
+      throws IOException;
 
   /**
-   * Claim the title of Data Deployer for this ring group.
+   * Claim the title of Ring Group Conductor for this ring group.
    *
-   * @return true if the current session has successfully claimed Data Deployer
+   * @return true if the current session has successfully claimed Conductor
    *         status. false otherwise.
    * @throws IOException
    */
-  public boolean claimDataDeployer() throws IOException;
+  public boolean claimRingGroupConductor() throws IOException;
 
-  public void releaseDataDeployer() throws IOException;
+  public void releaseRingGroupConductor() throws IOException;
 
-  public boolean isDataDeployerOnline() throws IOException;
+  public boolean isRingGroupConductorOnline() throws IOException;
 
   public boolean isUpdating() throws IOException;
 

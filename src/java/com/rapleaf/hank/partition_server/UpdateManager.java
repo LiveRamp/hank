@@ -91,11 +91,11 @@ class UpdateManager implements IUpdateManager {
 
   public void update() throws IOException {
     ThreadFactory factory = new ThreadFactory() {
-      private int x = 0;
+      private int threadID = 0;
 
       @Override
       public Thread newThread(Runnable r) {
-        return new Thread(r, "Updater Thread Pool Thread #" + ++x);
+        return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
       }
     };
 

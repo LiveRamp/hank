@@ -56,12 +56,12 @@ public class MockRingGroup implements RingGroup {
   }
 
   @Override
-  public boolean claimDataDeployer() {
+  public boolean claimRingGroupConductor() {
     return false;
   }
 
   @Override
-  public void releaseDataDeployer() {
+  public void releaseRingGroupConductor() {
   }
 
   @Override
@@ -98,7 +98,7 @@ public class MockRingGroup implements RingGroup {
   }
 
   @Override
-  public boolean isDataDeployerOnline() throws IOException {
+  public boolean isRingGroupConductorOnline() throws IOException {
     return false;
   }
 }

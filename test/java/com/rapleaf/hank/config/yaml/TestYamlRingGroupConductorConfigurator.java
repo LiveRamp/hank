@@ -15,16 +15,15 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import junit.framework.TestCase;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-import junit.framework.TestCase;
-
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-
-public class TestYamlDataDeployerConfigurator extends TestCase {
-  private static final String PATH = "/tmp/yaml_data_deployer_configurator.yml";
+public class TestYamlRingGroupConductorConfigurator extends TestCase {
+  private static final String PATH = "/tmp/yaml_ring_group_conductor_configurator.yml";
 
   @Override
   protected void setUp() throws Exception {
@@ -32,7 +31,7 @@ public class TestYamlDataDeployerConfigurator extends TestCase {
     new File(PATH).delete();
     PrintWriter pw = new PrintWriter(new FileWriter(PATH));
     pw.println("---");
-    pw.println("data_deployer:");
+    pw.println("ring_group_conductor:");
     pw.println("  ring_group_name: myRingGroup");
     pw.println("  sleep_interval: 1000");
     pw.println("coordinator:");
@@ -43,7 +42,7 @@ public class TestYamlDataDeployerConfigurator extends TestCase {
   }
 
   public void testIt() throws Exception {
-    YamlDataDeployerConfigurator c = new YamlDataDeployerConfigurator(PATH);
+    YamlRingGroupConductorConfigurator c = new YamlRingGroupConductorConfigurator(PATH);
     assertEquals(1000, c.getSleepInterval());
     assertEquals("myRingGroup", c.getRingGroupName());
     assertTrue(c.getCoordinator() instanceof MockCoordinator);

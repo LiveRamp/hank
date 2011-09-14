@@ -1,5 +1,5 @@
-data_deployer:
-  # replace this with the name of the ring group you want the data deployer to manage
+ring_group_conductor:
+  # replace this with the name of the ring group you want the conductor to manage
   ring_group_name: myRingGroup
   # low values affect CPU usage. you probably don't need to touch this.
   sleep_interval: 1000

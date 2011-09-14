@@ -13,24 +13,12 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.ring_group_conductor;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
 import junit.framework.TestCase;
 
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingState;
+import java.util.*;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MRC extends MockRing {
@@ -183,7 +171,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertEquals(RingState.UPDATING, r1.getState());
   }
 
-  // this case will only occur when the data deployer has died or something.
+  // this case will only occur when the Ring Group Conductor has died or something.
   public void testUpdatedToComingUp() throws Exception {
     MRC r1 = new MRC(1, RingState.UPDATED, 1, 2, new PartitionServerAddress("localhost", 1)) {
       @Override

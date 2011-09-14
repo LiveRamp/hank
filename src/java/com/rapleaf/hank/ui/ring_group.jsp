@@ -54,7 +54,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         %>
       </div>
       <div>
-        Data Deployer is <%=ringGroup.isDataDeployerOnline() ? "online" : "offline"%>
+        Ring Group Conductor is <%=ringGroup.isRingGroupConductorOnline() ? "online" : "offline"%>
       </div>
     </div>
   </div>

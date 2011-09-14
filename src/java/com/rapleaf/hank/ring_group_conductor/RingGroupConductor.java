@@ -13,10 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.ring_group_conductor;
 
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
+import com.rapleaf.hank.config.RingGroupConductorConfigurator;
+import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.util.CommandLineChecker;
@@ -24,12 +24,11 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
-import java.util.Set;
 
-public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeListener {
-  private static final Logger LOG = Logger.getLogger(DataDeployer.class);
+public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
+  private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
-  private final DataDeployerConfigurator config;
+  private final RingGroupConductorConfigurator config;
   private final String ringGroupName;
   private final Coordinator coord;
   private final Object lock = new Object();
@@ -41,11 +40,11 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
 
   private boolean goingDown = false;
 
-  public DataDeployer(DataDeployerConfigurator config) {
+  public RingGroupConductor(RingGroupConductorConfigurator config) {
     this(config, new RingGroupUpdateTransitionFunctionImpl());
   }
 
-  DataDeployer(DataDeployerConfigurator config, RingGroupUpdateTransitionFunction transFunc) {
+  RingGroupConductor(RingGroupConductorConfigurator config, RingGroupUpdateTransitionFunction transFunc) {
     this.config = config;
     this.transFunc = transFunc;
     ringGroupName = config.getRingGroupName();
@@ -53,16 +52,16 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
   }
 
   public void run() throws IOException {
-    LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " starting.");
-    boolean claimedDataDeployer = false;
+    LOG.info("Ring Group Conductor Daemon for ring group " + ringGroupName + " starting.");
+    boolean claimedRingGroupConductor = false;
     try {
       ringGroup = coord.getRingGroup(ringGroupName);
 
-      // attempt to claim the data deployer title
-      if (ringGroup.claimDataDeployer()) {
-        claimedDataDeployer = true;
+      // attempt to claim the ring group conductor title
+      if (ringGroup.claimRingGroupConductor()) {
+        claimedRingGroupConductor = true;
 
-        // we are now *the* data deployer for this ring group.
+        // we are now *the* ring group conductor for this ring group.
         domainGroup = ringGroup.getDomainGroup();
 
         // set a watch on the ring group
@@ -91,16 +90,16 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
           // daemon is going down.
         }
       } else {
-        LOG.info("Attempted to claim data deployer status, but there was already a lock in place!");
+        LOG.info("Attempted to claim Ring Group Conductor status, but there was already a lock in place!");
       }
     } catch (Throwable t) {
       LOG.fatal("unexpected exception!", t);
     } finally {
-      if (claimedDataDeployer) {
-        ringGroup.releaseDataDeployer();
+      if (claimedRingGroupConductor) {
+        ringGroup.releaseRingGroupConductor();
       }
     }
-    LOG.info("Data Deployer Daemon for ring group " + ringGroupName + " shutting down.");
+    LOG.info("Ring Group Conductor Daemon for ring group " + ringGroupName + " shutting down.");
   }
 
   void processUpdates(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
@@ -175,13 +174,13 @@ public class DataDeployer implements RingGroupChangeListener, DomainGroupChangeL
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, DataDeployer.class);
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, RingGroupConductor.class);
     String configPath = args[0];
     String log4jprops = args[1];
 
-    DataDeployerConfigurator configurator = new YamlDataDeployerConfigurator(configPath);
+    RingGroupConductorConfigurator configurator = new YamlRingGroupConductorConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
-    new DataDeployer(configurator).run();
+    new RingGroupConductor(configurator).run();
   }
 
   public void stop() {

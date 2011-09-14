@@ -15,18 +15,31 @@
  */
 package com.rapleaf.hank;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
+import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.RingGroupConductorConfigurator;
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
+import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
+import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.partition_server.PartitionServer;
+import com.rapleaf.hank.partitioner.Murmur64Partitioner;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.cueball.LocalFileOps;
+import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -35,40 +48,9 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
-import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.DataDeployerConfigurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlDataDeployerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
-import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.data_deployer.DataDeployer;
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.partition_server.PartitionServer;
-import com.rapleaf.hank.partitioner.Murmur64Partitioner;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.cueball.LocalFileOps;
-import com.rapleaf.hank.storage.curly.Curly;
-import com.rapleaf.hank.util.Bytes;
-import com.rapleaf.hank.zookeeper.ZkPath;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
   private final class SmartClientRunnable implements Runnable {
@@ -98,24 +80,24 @@ public class IntegrationTest extends ZkTestCase {
     }
   }
 
-  private final class DataDeployerRunnable implements Runnable {
-    private DataDeployerConfigurator configurator;
-    private DataDeployer daemon;
+  private final class RingGroupConductorRunnable implements Runnable {
+    private RingGroupConductorConfigurator configurator;
+    private RingGroupConductor daemon;
 
-    public DataDeployerRunnable() throws Exception {
-      String configPath = localTmpDir + "/data_deployer_config.yml";
+    public RingGroupConductorRunnable() throws Exception {
+      String configPath = localTmpDir + "/ring_group_conductor_config.yml";
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("data_deployer:");
+      pw.println("ring_group_conductor:");
       pw.println("  sleep_interval: 1000");
       pw.println("  ring_group_name: rg1");
       coordinatorConfig(pw);
       pw.close();
-      configurator = new YamlDataDeployerConfigurator(configPath);
+      configurator = new YamlRingGroupConductorConfigurator(configPath);
     }
 
     public void run() {
       try {
-        daemon = new DataDeployer(configurator);
+        daemon = new RingGroupConductor(configurator);
         daemon.run();
       } catch (Exception e) {
         LOG.fatal("crap, some exception", e);
@@ -182,8 +164,8 @@ public class IntegrationTest extends ZkTestCase {
   private final Map<PartitionServerAddress, Thread> partDaemonThreads = new HashMap<PartitionServerAddress, Thread>();
   private final Map<PartitionServerAddress, PartitionServerRunnable> partDaemonRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
 
-  private Thread dataDeployerThread;
-  private DataDeployerRunnable dataDeployerRunnable;
+  private Thread ringGroupConductorThread;
+  private RingGroupConductorRunnable ringGroupConductorRunnable;
   private SmartClientRunnable smartClientRunnable;
 
   public void testItAll() throws Throwable {
@@ -324,8 +306,8 @@ public class IntegrationTest extends ZkTestCase {
     startDaemons(new PartitionServerAddress("localhost", 50002));
     startDaemons(new PartitionServerAddress("localhost", 50003));
 
-    // launch the data deployer
-    startDataDeployer();
+    // launch the Ring Group Conductor
+    startRingGroupConductor();
 
     // launch a smart client server
     startSmartClientServer();
@@ -436,7 +418,7 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.xception(HankExceptions.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
     // shut it all down
-    stopDataDeployer();
+    stopRingGroupConductor();
     stopSmartClient();
 
     stopDaemons(new PartitionServerAddress("localhost", 50002));
@@ -455,17 +437,17 @@ public class IntegrationTest extends ZkTestCase {
     smartClientRunnable.pleaseStop();
   }
 
-  private void startDataDeployer() throws Exception {
-    LOG.debug("starting data deployer");
-    dataDeployerRunnable = new DataDeployerRunnable();
-    dataDeployerThread = new Thread(dataDeployerRunnable, "data deployer thread");
-    dataDeployerThread.start();
+  private void startRingGroupConductor() throws Exception {
+    LOG.debug("starting Ring Group Conductor");
+    ringGroupConductorRunnable = new RingGroupConductorRunnable();
+    ringGroupConductorThread = new Thread(ringGroupConductorRunnable, "Ring Group Conductor thread");
+    ringGroupConductorThread.start();
   }
 
-  private void stopDataDeployer() throws Exception {
-    LOG.debug("stopping data deployer");
-    dataDeployerRunnable.pleaseStop();
-    dataDeployerThread.join();
+  private void stopRingGroupConductor() throws Exception {
+    LOG.debug("stopping Ring Group Conductor");
+    ringGroupConductorRunnable.pleaseStop();
+    ringGroupConductorThread.join();
   }
 
   private void startDaemons(PartitionServerAddress a) throws Exception {

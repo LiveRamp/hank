@@ -15,18 +15,12 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.Collections;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.Collections;
 
 public class TestZkRingGroup extends ZkTestCase {
 
@@ -119,17 +113,17 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRings().toArray()[0]).getRingNumber());
   }
 
-  public void testClaimDataDeployer() throws Exception {
+  public void testClaimRingGroupConductor() throws Exception {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg, coordinator);
-    create(ZkPath.append(ring_group, "data_deployer_online"));
-    assertFalse(rg.claimDataDeployer());
-    getZk().delete(ZkPath.append(ring_group, "data_deployer_online"), -1);
-    assertTrue(rg.claimDataDeployer());
-    assertFalse(rg.claimDataDeployer());
-    rg.releaseDataDeployer();
-    assertTrue(rg.claimDataDeployer());
+    create(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT));
+    assertFalse(rg.claimRingGroupConductor());
+    getZk().delete(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT), -1);
+    assertTrue(rg.claimRingGroupConductor());
+    assertFalse(rg.claimRingGroupConductor());
+    rg.releaseRingGroupConductor();
+    assertTrue(rg.claimRingGroupConductor());
   }
 
   public void testDelete() throws Exception {

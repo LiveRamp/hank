@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.data_deployer;
+package com.rapleaf.hank.ring_group_conductor;
 
 import java.io.IOException;
 import java.util.LinkedList;
