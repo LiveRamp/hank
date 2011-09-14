@@ -71,7 +71,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   public void run() throws IOException {
     setState(HostState.IDLE);
 
-    processCommands();
+    processCurrentCommand();
     while (!goingDown) {
       try {
         Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
@@ -92,7 +92,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   @Override
   public void onCommandQueueChange(Host host) {
-    processCommands();
+    processCurrentCommand();
   }
 
   protected IfaceWithShutdown getHandler() throws IOException {
@@ -103,19 +103,25 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     return new UpdateManager(configurator, host, ringGroup, ring);
   }
 
-  private synchronized void processCommands() {
+  private synchronized void processCurrentCommand() {
     try {
-      if (host.getCurrentCommand() != null) {
-        processCurrentCommand(host, host.getCurrentCommand());
+      HostCommand command = host.getCurrentCommand();
+      // If there is no current command, move on to the next one.
+      if (command == null) {
+        command = host.nextCommand();
       }
-      while (!host.getCommandQueue().isEmpty()) {
-        HostCommand nextCommand = host.processNextCommand();
-        processCurrentCommand(host, nextCommand);
+      // If there is a command available, process it.
+      if (command != null) {
+        processCommand(command);
       }
     } catch (IOException e) {
-      // TODO
-      LOG.error("Uh oh, failed to process all the commands in the queue, somehow...", e);
+      // TODO: deal with this exception
+      LOG.error("Failed to process current command.", e);
     }
+  }
+
+  private synchronized HostCommand nextCommand() throws IOException {
+    return host.nextCommand();
   }
 
   /**
@@ -198,17 +204,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     host.setState(state);
   }
 
-  private synchronized void completeCommand() throws IOException {
-    host.completeCommand();
-  }
-
   private synchronized void clearCommandQueue() throws IOException {
     host.clearCommandQueue();
   }
 
-  private void processCurrentCommand(Host host, HostCommand nextCommand) throws IOException {
+  private void processCommand(HostCommand command) throws IOException {
     HostState state = host.getState();
-    switch (nextCommand) {
+    switch (command) {
       case EXECUTE_UPDATE:
         processExecuteUpdate(state);
         break;
@@ -226,12 +228,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       case IDLE:
         serveData();
         setState(HostState.SERVING);
-        completeCommand();
+        nextCommand();
         break;
       default:
         LOG.debug("received command " + HostCommand.SERVE_DATA
             + " but not compatible with current state " + state
             + ". Ignoring.");
+        nextCommand();
     }
   }
 
@@ -240,17 +243,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       case SERVING:
         stopServingData();
         setState(HostState.IDLE);
-        completeCommand();
-        break;
-      case UPDATING:
-        LOG.debug("received command " + HostCommand.GO_TO_IDLE
-            + " but current state is " + state
-            + ", which cannot be stopped. Will wait until completion.");
+        nextCommand();
         break;
       default:
         LOG.debug("received command " + HostCommand.GO_TO_IDLE
             + " but not compatible with current state " + state
             + ". Ignoring.");
+        nextCommand();
     }
   }
 
@@ -259,16 +258,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       case IDLE:
         setState(HostState.UPDATING);
         executeUpdate();
-        // Get back to IDLE even in case of failure
-        setState(HostState.IDLE);
-        completeCommand();
+        // Next command is set by the updater thread
         break;
-      case SERVING:
-        LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
       default:
         LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
             + " but not compatible with current state " + state
             + ". Ignoring.");
+        nextCommand();
     }
   }
 
@@ -286,6 +282,18 @@ public class PartitionServer implements HostCommandQueueChangeListener {
           LOG.info("Update succeeded.");
         } catch (Throwable e) {
           LOG.fatal("Update failed. Updater encountered a fatal error:", e);
+        }
+        // Go back to IDLE even in case of failure
+        try {
+          setState(HostState.IDLE);
+        } catch (IOException e) {
+          LOG.fatal("Failed to record state change.", e);
+        }
+        // Move on to next command
+        try {
+          nextCommand();
+        } catch (IOException e) {
+          LOG.fatal("Failed to move on to next command.", e);
         }
         updateThread = null;
       }

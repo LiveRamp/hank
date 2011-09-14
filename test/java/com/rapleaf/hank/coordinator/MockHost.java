@@ -75,11 +75,6 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public void completeCommand() throws IOException {
-    currentCommand = null;
-  }
-
-  @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     commandQueue.add(command);
   }
@@ -90,8 +85,12 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public HostCommand processNextCommand() throws IOException {
-    currentCommand = commandQueue.remove(0);
+  public HostCommand nextCommand() throws IOException {
+    if (commandQueue.size() > 0) {
+      currentCommand = commandQueue.remove(0);
+    } else {
+      currentCommand = null;
+    }
     return currentCommand;
   }
 

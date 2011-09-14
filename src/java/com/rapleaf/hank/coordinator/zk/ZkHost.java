@@ -251,15 +251,6 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public void completeCommand() throws IOException {
-    try {
-      zk.setData(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null, -1);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     try {
       zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT, "command_"),
@@ -285,7 +276,7 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public HostCommand processNextCommand() throws IOException {
+  public HostCommand nextCommand() throws IOException {
     try {
       // get the queue and sort so we have correct ordering
       List<String> children = zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), false);

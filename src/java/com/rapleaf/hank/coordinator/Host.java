@@ -28,6 +28,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Return this host's current state.
+   *
    * @return
    * @throws IOException
    */
@@ -53,6 +54,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * The listener will be notified when host state changes.
+   *
    * @param listener
    * @throws IOException
    */
@@ -60,6 +62,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Removes the specified listener.
+   *
    * @param listener
    */
   public void cancelStateChangeListener(HostStateChangeListener listener);
@@ -75,32 +78,28 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Get the (immutable) list of commands in this host's command queue.
+   *
    * @return
    * @throws IOException
    */
   public List<HostCommand> getCommandQueue() throws IOException;
 
   /**
-   * Return the command at the head of this host's command queue and set it as
-   * the current command.
+   * Discard the current command. Set the head of this host's
+   * command queue as the current command and return it.
    *
    * @return
    * @throws IOException
    */
-  public HostCommand processNextCommand() throws IOException;
+  public HostCommand nextCommand() throws IOException;
 
   /**
    * Get the currently pending command.
+   *
    * @return
    * @throws IOException
    */
   public HostCommand getCurrentCommand() throws IOException;
-
-  /**
-   * Discard the current command.
-   * @throws IOException
-   */
-  public void completeCommand() throws IOException;
 
   /**
    * The listener will be notified when there are changes to this host's command
@@ -113,6 +112,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Get the HostDomainConfigs for the domains assigned to this host.
+   *
    * @return
    * @throws IOException
    */
@@ -120,6 +120,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Add a new domain to this host.
+   *
    * @param domain
    * @return
    * @throws IOException
@@ -128,6 +129,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Get the HostDomainConfig for the provided domainId.
+   *
    * @param domain
    * @return
    */
@@ -135,6 +137,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Get the aggregate count of a counter across all HostDomainPartitions
+   *
    * @param countId
    * @return
    * @throws IOException
@@ -143,6 +146,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Gets a set of aggregate counter keys across all HostDomainPartitions
+   *
    * @return
    * @throws IOException
    */
@@ -150,6 +154,7 @@ public interface Host extends Comparable<Host> {
 
   /**
    * Clear this hosts's command queue.
+   *
    * @throws IOException
    */
   public void clearCommandQueue() throws IOException;

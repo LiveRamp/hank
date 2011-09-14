@@ -1,20 +1,11 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.ui.URLEnc;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.ui.URLEnc;
+import java.io.IOException;
 
 public class HostController extends Controller {
   private final Coordinator coordinator;
@@ -61,59 +52,59 @@ public class HostController extends Controller {
   }
 
   protected void doDiscardCurrentCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    hc.processNextCommand();
-    redirectBack(resp, rgc, rc, hc);
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    h.nextCommand();
+    redirectBack(resp, rg, r, h);
   }
 
   protected void doClearCommandQueue(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    hc.clearCommandQueue();
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    h.clearCommandQueue();
 
-    redirectBack(resp, rgc, rc, hc);
+    redirectBack(resp, rg, r, h);
   }
 
   private void redirectBack(HttpServletResponse resp, RingGroup rgc, Ring rc, Host hc) throws IOException {
     resp.sendRedirect(String.format("/host.jsp?g=%s&r=%s&h=%s", rgc.getName(), rc.getRingNumber(),
-      URLEnc.encode(hc.getAddress().toString())));
+        URLEnc.encode(hc.getAddress().toString())));
   }
 
   protected void doEnqueueCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    hc.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    h.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
-    redirectBack(resp, rgc, rc, hc);
+    redirectBack(resp, rg, r, h);
   }
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     final Domain domain = coordinator.getDomain(req.getParameter("domainId"));
-    HostDomain d = hc.getHostDomain(domain);
+    HostDomain d = h.getHostDomain(domain);
     if (d == null) {
-      d = hc.addDomain(domain);
+      d = h.addDomain(domain);
     }
     d.addPartition(Integer.parseInt(req.getParameter("partNum")),
-      Integer.parseInt(req.getParameter("initialVersion")));
+        Integer.parseInt(req.getParameter("initialVersion")));
 
-    redirectBack(resp, rgc, rc, hc);
+    redirectBack(resp, rg, r, h);
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring rc = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    Host hc = rc.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    HostDomain dc = hc.getHostDomain(coordinator.getDomain(req.getParameter("d")));
-    HostDomainPartition pd = dc.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
-    pd.setDeletable(deletable);
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    HostDomain hd = h.getHostDomain(coordinator.getDomain(req.getParameter("d")));
+    HostDomainPartition hdp = hd.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
+    hdp.setDeletable(deletable);
 
-    redirectBack(resp, rgc, rc, hc);
+    redirectBack(resp, rg, r, h);
   }
 }

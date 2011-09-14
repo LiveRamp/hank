@@ -15,27 +15,19 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.thrift.TException;
-
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class TestPartitionServer extends BaseTestCase {
   private final class MockUpdateManager implements IUpdateManager {
     public boolean updateCalled = false;
+
     @Override
     public void update() throws IOException {
       updateCalled = true;
@@ -47,26 +39,26 @@ public class TestPartitionServer extends BaseTestCase {
     }
   }
 
-  private static final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("localhost", 1));
+  private static final MockHost mockHost = new MockHost(new PartitionServerAddress("localhost", 1));
 
-  private static final Ring mockRingConfig = new MockRing(null, null, 0, null) {
+  private static final Ring mockRing = new MockRing(null, null, 0, null) {
     @Override
     public Host getHostByAddress(PartitionServerAddress address) {
-      return mockHostConfig;
+      return mockHost;
     }
   };
 
-  private static final RingGroup mockRingGroupConfig = new MockRingGroup(null, "myRingGroup", null) {
+  private static final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null) {
     @Override
     public Ring getRingForHost(PartitionServerAddress hostAddress) {
-      return mockRingConfig;
+      return mockRing;
     }
   };
 
   private static final MockCoordinator mockCoord = new MockCoordinator() {
     @Override
     public RingGroup getRingGroup(String ringGroupName) {
-      return mockRingGroupConfig;
+      return mockRingGroup;
     }
   };
 
@@ -74,15 +66,18 @@ public class TestPartitionServer extends BaseTestCase {
 
   public void testColdStartAndShutDown() throws Exception {
     final MockUpdateManager mockUpdateManager = new MockUpdateManager();
-    final PartitionServer server = new PartitionServer(CONFIGURATOR, "localhost") {
+    final PartitionServer partitionServer = new PartitionServer(CONFIGURATOR, "localhost") {
       @Override
       protected IfaceWithShutdown getHandler() throws IOException {
         return new IfaceWithShutdown() {
           @Override
-          public HankResponse get(int domainId, ByteBuffer key) throws TException {return null;}
+          public HankResponse get(int domainId, ByteBuffer key) throws TException {
+            return null;
+          }
 
           @Override
-          public void shutDown() throws InterruptedException {}
+          public void shutDown() throws InterruptedException {
+          }
         };
       }
 
@@ -96,44 +91,43 @@ public class TestPartitionServer extends BaseTestCase {
       @Override
       public void run() {
         try {
-          server.run();
+          partitionServer.run();
         } catch (IOException e) {
           fail("exception!" + e);
         }
       }
     };
-    Thread t = new Thread(serverRunnable, "server thread");
+    Thread t = new Thread(serverRunnable, "PartitionServer thread");
 
     // TODO: test here for when starting up with commands in the queue...
 
     t.start();
     Thread.sleep(1000);
-    assertEquals(HostState.IDLE, mockHostConfig.getState());
+    assertEquals(HostState.IDLE, mockHost.getState());
 
     // should move smoothly from startable to idle
-    mockHostConfig.enqueueCommand(HostCommand.SERVE_DATA);
-    server.onCommandQueueChange(mockHostConfig);
-    assertEquals("Daemon state is now SERVING",
-        HostState.SERVING,
-        mockHostConfig.getState());
+    mockHost.enqueueCommand(HostCommand.SERVE_DATA);
+    partitionServer.onCommandQueueChange(mockHost);
+    assertEquals(HostState.SERVING, mockHost.getState());
 
-    mockHostConfig.enqueueCommand(HostCommand.GO_TO_IDLE);
-    server.onCommandQueueChange(mockHostConfig);
-    assertEquals("Daemon state is now IDLE",
-        HostState.IDLE,
-        mockHostConfig.getState());
+    mockHost.enqueueCommand(HostCommand.GO_TO_IDLE);
+    partitionServer.onCommandQueueChange(mockHost);
+    assertEquals(HostState.IDLE, mockHost.getState());
 
-    mockHostConfig.enqueueCommand(HostCommand.EXECUTE_UPDATE);
-    server.onCommandQueueChange(mockHostConfig);
-    assertEquals("Daemon state is now UPDATING",
-        HostState.UPDATING,
-        mockHostConfig.getState());
+    mockHost.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    partitionServer.onCommandQueueChange(mockHost);
+    assertEquals(HostState.UPDATING, mockHost.getState());
+
     Thread.sleep(1500);
-    assertTrue("update called", mockUpdateManager.updateCalled);
-    assertNull("current command cleared", mockHostConfig.getCurrentCommand());
 
-    server.stop();
+    assertTrue("Update called", mockUpdateManager.updateCalled);
+    assertNull("Current command cleared", mockHost.getCurrentCommand());
+    assertEquals(HostState.IDLE, mockHost.getState());
+
+    partitionServer.stop();
+    assertEquals(HostState.IDLE, mockHost.getState());
+
     t.join();
-    assertEquals(HostState.OFFLINE, mockHostConfig.getState());
+    assertEquals(HostState.OFFLINE, mockHost.getState());
   }
 }

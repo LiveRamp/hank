@@ -15,20 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
@@ -92,12 +88,10 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(Arrays.asList(HostCommand.GO_TO_IDLE, HostCommand.SERVE_DATA), c.getCommandQueue());
     assertNull(c.getCurrentCommand());
 
-    assertEquals(HostCommand.GO_TO_IDLE, c.processNextCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, c.nextCommand());
     assertEquals(HostCommand.GO_TO_IDLE, c.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), c.getCommandQueue());
 
-    c.completeCommand();
-    assertNull(c.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), c.getCommandQueue());
 
     c.clearCommandQueue();
@@ -134,25 +128,25 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
-    c.processNextCommand();
+    c.nextCommand();
     l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
-    c.processNextCommand();
+    c.nextCommand();
     l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
-    c.processNextCommand();
+    c.nextCommand();
     l2.waitForNotification();
     assertNull(l1.calledWith);
     assertEquals(c, l2.calledWith);
     l2.calledWith = null;
 
-    c.processNextCommand();
+    c.nextCommand();
     l2.waitForNotification(true);
     assertNull(l1.calledWith);
     assertNull(l2.calledWith);
