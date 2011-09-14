@@ -259,6 +259,9 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       case IDLE:
         setState(HostState.UPDATING);
         executeUpdate();
+        // Get back to IDLE even in case of failure
+        setState(HostState.IDLE);
+        completeCommand();
         break;
       case SERVING:
         LOG.debug("Going directly from SERVING to UPDATING is not currently supported.");
@@ -271,7 +274,8 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   private void executeUpdate() {
     if (updateThread != null) {
-      throw new IllegalStateException("Update got called again unexpectedly!");
+      LOG.error("Update got called while one is already running!");
+      return;
     }
     Runnable updateRunnable = new Runnable() {
       @Override
@@ -282,12 +286,6 @@ public class PartitionServer implements HostCommandQueueChangeListener {
           LOG.info("Update succeeded.");
         } catch (Throwable e) {
           LOG.fatal("Update failed. Updater encountered a fatal error:", e);
-        }
-        try {
-          setState(HostState.IDLE);
-          completeCommand();
-        } catch (IOException e) {
-          LOG.fatal("Updater encountered an error while recording state changes.");
         }
         updateThread = null;
       }
