@@ -42,7 +42,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   private final PartitionServerConfigurator configurator;
   private Thread serverThread;
   private TServer server;
-  private boolean goingDown = false;
+  private boolean stopping = false;
   private final PartitionServerAddress hostAddress;
   private final Host host;
 
@@ -72,7 +72,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     setState(HostState.IDLE);
 
     processCurrentCommand();
-    while (!goingDown) {
+    while (!stopping) {
       try {
         Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
       } catch (InterruptedException e) {
@@ -85,7 +85,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   public void stop() throws IOException {
     // don't wait to be started again.
-    goingDown = true;
+    stopping = true;
     stopServingData();
     setState(HostState.IDLE);
   }
