@@ -26,33 +26,12 @@ import java.nio.ByteBuffer;
 
 public class TestPartitionServer extends BaseTestCase {
 
-  private final class SleepingUpdateManager extends MockUpdateManager {
-    public boolean updateCalled = false;
-
-    @Override
-    public void update() throws IOException {
-      updateCalled = true;
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  private final class FailingUpdateManager extends MockUpdateManager {
-    @Override
-    public void update() throws IOException {
-      throw new IOException("Failure");
-    }
-  }
-
-  private static final MockHost mockHost = new MockHost(new PartitionServerAddress("localhost", 1));
+  private static final MockHost host = new MockHost(new PartitionServerAddress("localhost", 1));
 
   private static final Ring mockRing = new MockRing(null, null, 0, null) {
     @Override
     public Host getHostByAddress(PartitionServerAddress address) {
-      return mockHost;
+      return host;
     }
   };
 
@@ -72,61 +51,126 @@ public class TestPartitionServer extends BaseTestCase {
 
   private static final MockPartitionServerConfigurator CONFIGURATOR = new MockPartitionServerConfigurator(12345, mockCoord, "myRingGroup", null);
 
+  private class MockPartitionServer extends PartitionServer {
+
+    public MockPartitionServer() throws IOException {
+      super(CONFIGURATOR, "localhost");
+    }
+
+    @Override
+    protected IfaceWithShutdown getHandler() throws IOException {
+      return new IfaceWithShutdown() {
+        @Override
+        public HankResponse get(int domainId, ByteBuffer key) throws TException {
+          return null;
+        }
+
+        @Override
+        public void shutDown() throws InterruptedException {
+        }
+      };
+    }
+
+    @Override
+    protected IUpdateManager getUpdateManager() {
+      return null;
+    }
+  }
+
+  private final class SleepingUpdateManager extends MockUpdateManager {
+    public boolean updateCalled = false;
+
+    @Override
+    public void update() throws IOException {
+      updateCalled = true;
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  private final class FailingUpdateManager extends MockUpdateManager {
+    public boolean updateFailed = false;
+
+    @Override
+    public void update() throws IOException {
+      try {
+        Thread.sleep(1000);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+      updateFailed = true;
+      throw new IOException("Failure");
+    }
+  }
+
+  // TODO: test for when starting up with commands in the queue...
+
   public void testColdStartAndShutDown() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
-    final PartitionServer partitionServer = new PartitionServer(CONFIGURATOR, "localhost") {
-      @Override
-      protected IfaceWithShutdown getHandler() throws IOException {
-        return new IfaceWithShutdown() {
-          @Override
-          public HankResponse get(int domainId, ByteBuffer key) throws TException {
-            return null;
-          }
-
-          @Override
-          public void shutDown() throws InterruptedException {
-          }
-        };
-      }
-
+    final PartitionServer partitionServer = new MockPartitionServer() {
       @Override
       protected IUpdateManager getUpdateManager() {
         return updateManager;
       }
     };
 
-    Thread t = createPartitionServerThread(partitionServer);
+    Thread thread = createPartitionServerThread(partitionServer);
 
-    // TODO: test here for when starting up with commands in the queue...
-
-    t.start();
+    thread.start();
     Thread.sleep(1000);
-    assertEquals(HostState.IDLE, mockHost.getState());
+    assertEquals(HostState.IDLE, host.getState());
 
-    // should move smoothly from startable to idle
-    mockHost.enqueueCommand(HostCommand.SERVE_DATA);
-    partitionServer.onCommandQueueChange(mockHost);
-    assertEquals(HostState.SERVING, mockHost.getState());
+    host.enqueueCommand(HostCommand.SERVE_DATA);
+    partitionServer.onCommandQueueChange(host);
+    assertEquals(HostState.SERVING, host.getState());
 
-    mockHost.enqueueCommand(HostCommand.GO_TO_IDLE);
-    partitionServer.onCommandQueueChange(mockHost);
-    assertEquals(HostState.IDLE, mockHost.getState());
+    host.enqueueCommand(HostCommand.GO_TO_IDLE);
+    partitionServer.onCommandQueueChange(host);
+    assertEquals(HostState.IDLE, host.getState());
 
-    mockHost.enqueueCommand(HostCommand.EXECUTE_UPDATE);
-    partitionServer.onCommandQueueChange(mockHost);
-    assertEquals(HostState.UPDATING, mockHost.getState());
+    host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    partitionServer.onCommandQueueChange(host);
+    assertEquals(HostState.UPDATING, host.getState());
 
     Thread.sleep(1500);
 
     assertTrue("Update called", updateManager.updateCalled);
-    assertNull("Current command cleared", mockHost.getCurrentCommand());
-    assertEquals(HostState.IDLE, mockHost.getState());
+    assertNull("Current command cleared", host.getCurrentCommand());
+    assertEquals(HostState.IDLE, host.getState());
 
     partitionServer.stop();
-    assertEquals(HostState.IDLE, mockHost.getState());
+    assertEquals(HostState.IDLE, host.getState());
 
-    t.join();
-    assertEquals(HostState.OFFLINE, mockHost.getState());
+    thread.join();
+    assertEquals(HostState.OFFLINE, host.getState());
+  }
+
+  public void testUpdateFailure() throws Exception {
+    final FailingUpdateManager updateManager = new FailingUpdateManager();
+    final PartitionServer partitionServer = new MockPartitionServer() {
+      @Override
+      protected IUpdateManager getUpdateManager() {
+        return updateManager;
+      }
+    };
+
+    Thread thread = createPartitionServerThread(partitionServer);
+
+    thread.start();
+    Thread.sleep(1000);
+    assertEquals(HostState.IDLE, host.getState());
+    host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    partitionServer.onCommandQueueChange(host);
+    assertEquals(HostState.UPDATING, host.getState());
+    Thread.sleep(1500);
+    assertEquals(HostState.IDLE, host.getState());
+    assertTrue("Update failed", updateManager.updateFailed);
+    assertNull("Current command cleared", host.getCurrentCommand());
+    Thread.sleep(1000);
+    assertEquals("Still IDLE after failed update.", HostState.IDLE, host.getState());
   }
 
   // Create a runnable thread that runs the given partition server
