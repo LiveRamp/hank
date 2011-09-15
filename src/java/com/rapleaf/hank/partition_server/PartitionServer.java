@@ -90,12 +90,12 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   }
 
   // Stop the partition server. Can be called from another thread.
-  public synchronized void stop() throws IOException {
+  public synchronized void stop() {
     stopNotSynchronized();
   }
 
   // Stop the partition server
-  private void stopNotSynchronized() throws IOException {
+  private void stopNotSynchronized() {
     stopping = true;
   }
 
@@ -124,8 +124,8 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         processCommand(command, host.getState());
       }
     } catch (IOException e) {
-      // TODO: deal with this exception
       LOG.error("Failed to process current command.", e);
+      stopNotSynchronized();
     }
   }
 
