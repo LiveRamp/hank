@@ -204,10 +204,6 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     host.setState(state);
   }
 
-  private synchronized void clearCommandQueue() throws IOException {
-    host.clearCommandQueue();
-  }
-
   private void processCommand(HostCommand command) throws IOException {
     HostState state = host.getState();
     switch (command) {
