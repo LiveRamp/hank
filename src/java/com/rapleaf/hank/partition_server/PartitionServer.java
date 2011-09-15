@@ -40,8 +40,8 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
 
   private final PartitionServerConfigurator configurator;
-  private Thread serverThread;
-  private TServer server;
+  private Thread dataServerThread;
+  private TServer dataServer;
   private boolean stopping = false;
   private final PartitionServerAddress hostAddress;
   private final Host host;
@@ -69,7 +69,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   }
 
   public void run() throws IOException {
-    setState(HostState.IDLE);
+    setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
 
     processCurrentCommand();
     while (!stopping) {
@@ -80,19 +80,23 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         break;
       }
     }
-    setState(HostState.OFFLINE);
-  }
-
-  public void stop() throws IOException {
-    // don't wait to be started again.
-    stopping = true;
+    LOG.info("Partition server main thread is stopping.");
+    // Shuting down
     stopServingData();
-    setState(HostState.IDLE);
+    if (updateThread != null) {
+      // TODO: deal with the execute update thread
+    }
+    setState(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
   }
 
-  @Override
-  public void onCommandQueueChange(Host host) {
-    processCurrentCommand();
+  // Stop the partition server. Can be called from another thread.
+  public synchronized void stop() throws IOException {
+    stopNotSynchronized();
+  }
+
+  // Stop the partition server
+  private void stopNotSynchronized() throws IOException {
+    stopping = true;
   }
 
   protected IfaceWithShutdown getHandler() throws IOException {
@@ -101,6 +105,11 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   protected IUpdateManager getUpdateManager() throws IOException {
     return new UpdateManager(configurator, host, ringGroup, ring);
+  }
+
+  @Override
+  public void onCommandQueueChange(Host host) {
+    processCurrentCommand();
   }
 
   private synchronized void processCurrentCommand() {
@@ -112,7 +121,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       }
       // If there is a command available, process it.
       if (command != null) {
-        processCommand(command);
+        processCommand(command, host.getState());
       }
     } catch (IOException e) {
       // TODO: deal with this exception
@@ -120,92 +129,27 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     }
   }
 
-  private synchronized HostCommand nextCommand() throws IOException {
-    return host.nextCommand();
-  }
-
-  /**
-   * Start serving the thrift server. doesn't return.
-   *
-   * @throws TTransportException
-   * @throws IOException
-   * @throws InterruptedException
-   */
-  private void startThriftServer() throws TTransportException, IOException, InterruptedException {
-    // set up the service handler
-    IfaceWithShutdown handler = getHandler();
-
-    // launch the thrift server
-    TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
-    Args options = new Args(serverSocket);
-    options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
-    options.workerThreads(configurator.getNumThreads());
-    options.protocolFactory(new TCompactProtocol.Factory());
-    server = new THsHaServer(options);
-    LOG.debug("Launching Thrift server...");
-    server.serve();
-    LOG.debug("Thrift server exited.");
-    handler.shutDown();
-    LOG.debug("Handler shutdown.");
-  }
-
-  /**
-   * Start serving the data. Returns when the server is up.
-   */
-  private void serveData() {
-    if (server == null) {
-      Runnable r = new Runnable() {
-        @Override
-        public void run() {
-          try {
-            startThriftServer();
-          } catch (Exception e) {
-            // TODO deal with exception. server is probably going down unexpectedly
-            LOG.fatal("PartitionServer server thread encountered a fatal exception.", e);
-          }
-        }
-      };
-      serverThread = new Thread(r, "PartitionServer Thrift Server thread");
-      LOG.info("Launching server thread...");
-      serverThread.start();
-      try {
-        while (server == null || !server.isServing()) {
-          LOG.debug("Server isn't online yet. Waiting...");
-          Thread.sleep(1000);
-        }
-        LOG.info("Thrift server online and serving.");
-      } catch (InterruptedException e) {
-        throw new RuntimeException("Interrupted waiting for server thread to start", e);
-      }
-    } else {
-      LOG.info("Told to start, but server was already running.");
-    }
-  }
-
-  /**
-   * Block until thrift server is down
-   */
-  private void stopServingData() {
-    if (server == null) {
-      return;
-    }
-
-    server.stop();
-    try {
-      serverThread.join();
-    } catch (InterruptedException e) {
-      LOG.debug("Interrupted while waiting for server thread to stop. Continuing.", e);
-    }
-    server = null;
-    serverThread = null;
-  }
-
   private synchronized void setState(HostState state) throws IOException {
-    host.setState(state);
+    // In case of failure to set host state, stop the partition server and rethrow the exception.
+    try {
+      host.setState(state);
+    } catch (IOException e) {
+      stopNotSynchronized();
+      throw e;
+    }
   }
 
-  private void processCommand(HostCommand command) throws IOException {
-    HostState state = host.getState();
+  private synchronized HostCommand nextCommand() throws IOException {
+    // In case of failure to move on to next command, stop the partition server and rethrow the exception.
+    try {
+      return host.nextCommand();
+    } catch (IOException e) {
+      stopNotSynchronized();
+      throw e;
+    }
+  }
+
+  private void processCommand(HostCommand command, HostState state) throws IOException {
     switch (command) {
       case EXECUTE_UPDATE:
         processExecuteUpdate(state);
@@ -223,14 +167,12 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     switch (state) {
       case IDLE:
         serveData();
-        setState(HostState.SERVING);
-        nextCommand();
+        setState(HostState.SERVING);  // In case of exception, server will stop and state will be coherent.
+        nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        LOG.debug("received command " + HostCommand.SERVE_DATA
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-        nextCommand();
+        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
+        nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
 
@@ -238,29 +180,25 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     switch (state) {
       case SERVING:
         stopServingData();
-        setState(HostState.IDLE);
-        nextCommand();
+        setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+        nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        LOG.debug("received command " + HostCommand.GO_TO_IDLE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-        nextCommand();
+        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
+        nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
 
   private void processExecuteUpdate(HostState state) throws IOException {
     switch (state) {
       case IDLE:
-        setState(HostState.UPDATING);
+        setState(HostState.UPDATING); // In case of exception, server will stop and state will be coherent.
         executeUpdate();
         // Next command is set by the updater thread
         break;
       default:
-        LOG.debug("have command " + HostCommand.EXECUTE_UPDATE
-            + " but not compatible with current state " + state
-            + ". Ignoring.");
-        nextCommand();
+        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
+        nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
 
@@ -281,13 +219,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         }
         // Go back to IDLE even in case of failure
         try {
-          setState(HostState.IDLE);
+          setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
           LOG.fatal("Failed to record state change.", e);
         }
         // Move on to next command
         try {
-          nextCommand();
+          nextCommand(); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
           LOG.fatal("Failed to move on to next command.", e);
         }
@@ -296,6 +234,86 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     };
     updateThread = new Thread(updateRunnable, "Update manager thread");
     updateThread.start();
+  }
+
+  /**
+   * Start serving the thrift server. doesn't return.
+   *
+   * @throws TTransportException
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  private void startThriftServer() throws TTransportException, IOException, InterruptedException {
+    // set up the service handler
+    IfaceWithShutdown handler = getHandler();
+
+    // launch the thrift server
+    TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
+    Args options = new Args(serverSocket);
+    options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
+    options.workerThreads(configurator.getNumThreads());
+    options.protocolFactory(new TCompactProtocol.Factory());
+    dataServer = new THsHaServer(options);
+    LOG.debug("Launching Thrift server...");
+    dataServer.serve();
+    LOG.debug("Thrift server exited.");
+    handler.shutDown();
+    LOG.debug("Handler shutdown.");
+  }
+
+  /**
+   * Start serving the data. Returns when the server is up.
+   */
+  private void serveData() {
+    if (dataServer != null) {
+      LOG.info("Data server is already running.");
+      return;
+    }
+    Runnable r = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          startThriftServer();
+        } catch (Exception e) {
+          // TODO deal with exception. server is probably going down unexpectedly
+          LOG.fatal("Data server thread encountered a fatal exception.", e);
+        }
+      }
+    };
+    dataServerThread = new Thread(r, "PartitionServer Thrift data server thread");
+    LOG.info("Launching data server thread...");
+    dataServerThread.start();
+    try {
+      while (dataServer == null || !dataServer.isServing()) {
+        LOG.debug("Data server isn't online yet. Waiting...");
+        Thread.sleep(1000);
+      }
+      LOG.info("Data server online and serving.");
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Interrupted waiting for data server thread to start", e);
+    }
+  }
+
+  /**
+   * Block until thrift server is down
+   */
+  private void stopServingData() {
+    if (dataServer == null) {
+      return;
+    }
+    LOG.info("Stopping data server thread.");
+    dataServer.stop();
+    try {
+      dataServerThread.join();
+    } catch (InterruptedException e) {
+      LOG.debug("Interrupted while waiting for data server thread to stop. Continuing.", e);
+    }
+    dataServer = null;
+    dataServerThread = null;
+  }
+
+  private String ignoreIncompatibleCommandMessage(HostCommand command, HostState state) {
+    return String.format("Ignoring command %s because it is incompatible with state %s.", command, state);
   }
 
   public static void main(String[] args) throws Throwable {

@@ -25,7 +25,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class TestPartitionServer extends BaseTestCase {
-  private final class MockUpdateManager implements IUpdateManager {
+
+  private final class SleepingUpdateManager extends MockUpdateManager {
     public boolean updateCalled = false;
 
     @Override
@@ -36,6 +37,13 @@ public class TestPartitionServer extends BaseTestCase {
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
+    }
+  }
+
+  private final class FailingUpdateManager extends MockUpdateManager {
+    @Override
+    public void update() throws IOException {
+      throw new IOException("Failure");
     }
   }
 
@@ -65,7 +73,7 @@ public class TestPartitionServer extends BaseTestCase {
   private static final MockPartitionServerConfigurator CONFIGURATOR = new MockPartitionServerConfigurator(12345, mockCoord, "myRingGroup", null);
 
   public void testColdStartAndShutDown() throws Exception {
-    final MockUpdateManager mockUpdateManager = new MockUpdateManager();
+    final SleepingUpdateManager updateManager = new SleepingUpdateManager();
     final PartitionServer partitionServer = new PartitionServer(CONFIGURATOR, "localhost") {
       @Override
       protected IfaceWithShutdown getHandler() throws IOException {
@@ -83,21 +91,11 @@ public class TestPartitionServer extends BaseTestCase {
 
       @Override
       protected IUpdateManager getUpdateManager() {
-        return mockUpdateManager;
+        return updateManager;
       }
     };
 
-    Runnable serverRunnable = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          partitionServer.run();
-        } catch (IOException e) {
-          fail("exception!" + e);
-        }
-      }
-    };
-    Thread t = new Thread(serverRunnable, "PartitionServer thread");
+    Thread t = createPartitionServerThread(partitionServer);
 
     // TODO: test here for when starting up with commands in the queue...
 
@@ -120,7 +118,7 @@ public class TestPartitionServer extends BaseTestCase {
 
     Thread.sleep(1500);
 
-    assertTrue("Update called", mockUpdateManager.updateCalled);
+    assertTrue("Update called", updateManager.updateCalled);
     assertNull("Current command cleared", mockHost.getCurrentCommand());
     assertEquals(HostState.IDLE, mockHost.getState());
 
@@ -129,5 +127,20 @@ public class TestPartitionServer extends BaseTestCase {
 
     t.join();
     assertEquals(HostState.OFFLINE, mockHost.getState());
+  }
+
+  // Create a runnable thread that runs the given partition server
+  public Thread createPartitionServerThread(final PartitionServer partitionServer) {
+    Runnable serverRunnable = new Runnable() {
+      @Override
+      public void run() {
+        try {
+          partitionServer.run();
+        } catch (IOException e) {
+          fail("Exception! " + e);
+        }
+      }
+    };
+    return new Thread(serverRunnable, "PartitionServer thread");
   }
 }
