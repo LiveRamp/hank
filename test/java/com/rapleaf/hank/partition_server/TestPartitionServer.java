@@ -16,6 +16,7 @@
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankResponse;
@@ -26,12 +27,48 @@ import java.nio.ByteBuffer;
 
 public class TestPartitionServer extends BaseTestCase {
 
-  private static final MockHost host = new MockHost(new PartitionServerAddress("localhost", 1));
+  private static final int PORT_1 = 12345;
+  private static final int PORT_2 = 12346;
+  private static final int PORT_3 = 12347;
+
+  // Normal host
+  private static final MockHost host = new MockHost(new PartitionServerAddress("localhost", PORT_1));
+  // Failing setState host
+  private static final MockHost failingSetStateHost = new MockHost(new PartitionServerAddress("localhost", PORT_2)) {
+    @Override
+    public void setState(HostState state) throws IOException {
+      super.setState(state);
+      if (state == HostState.SERVING) {
+        throw new IOException("Failure to set state.");
+      }
+    }
+  };
+  // Failing nextCommand host
+  private static final MockHost failingNextCommandHost = new MockHost(new PartitionServerAddress("localhost", PORT_3)) {
+    @Override
+    public HostCommand nextCommand() throws IOException {
+      HostCommand command = super.nextCommand();
+      if (command == HostCommand.SERVE_DATA) {
+        throw new IOException("Failure to move on to next command.");
+      } else {
+        return command;
+      }
+    }
+  };
 
   private static final Ring mockRing = new MockRing(null, null, 0, null) {
     @Override
     public Host getHostByAddress(PartitionServerAddress address) {
-      return host;
+      switch (address.getPortNumber()) {
+        case PORT_1:
+          return host;
+        case PORT_2:
+          return failingSetStateHost;
+        case PORT_3:
+          return failingNextCommandHost;
+        default:
+          throw new RuntimeException("Unknown host.");
+      }
     }
   };
 
@@ -49,12 +86,14 @@ public class TestPartitionServer extends BaseTestCase {
     }
   };
 
-  private static final MockPartitionServerConfigurator CONFIGURATOR = new MockPartitionServerConfigurator(12345, mockCoord, "myRingGroup", null);
+  private static final MockPartitionServerConfigurator CONFIGURATOR1 = new MockPartitionServerConfigurator(PORT_1, mockCoord, "myRingGroup", null);
+  private static final MockPartitionServerConfigurator CONFIGURATOR2 = new MockPartitionServerConfigurator(PORT_2, mockCoord, "myRingGroup", null);
+  private static final MockPartitionServerConfigurator CONFIGURATOR3 = new MockPartitionServerConfigurator(PORT_3, mockCoord, "myRingGroup", null);
 
   private class MockPartitionServer extends PartitionServer {
 
-    public MockPartitionServer() throws IOException {
-      super(CONFIGURATOR, "localhost");
+    public MockPartitionServer(PartitionServerConfigurator configurator, String hostname) throws IOException {
+      super(configurator, hostname);
     }
 
     @Override
@@ -110,7 +149,7 @@ public class TestPartitionServer extends BaseTestCase {
 
   public void testColdStartAndShutDown() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
-    final PartitionServer partitionServer = new MockPartitionServer() {
+    final PartitionServer partitionServer = new MockPartitionServer(CONFIGURATOR1, "localhost") {
       @Override
       protected IUpdateManager getUpdateManager() {
         return updateManager;
@@ -150,7 +189,7 @@ public class TestPartitionServer extends BaseTestCase {
 
   public void testUpdateFailure() throws Exception {
     final FailingUpdateManager updateManager = new FailingUpdateManager();
-    final PartitionServer partitionServer = new MockPartitionServer() {
+    final PartitionServer partitionServer = new MockPartitionServer(CONFIGURATOR1, "localhost") {
       @Override
       protected IUpdateManager getUpdateManager() {
         return updateManager;
@@ -171,6 +210,30 @@ public class TestPartitionServer extends BaseTestCase {
     assertNull("Current command cleared", host.getCurrentCommand());
     Thread.sleep(1000);
     assertEquals("Still IDLE after failed update.", HostState.IDLE, host.getState());
+  }
+
+  public void testHostSetStateFailure() throws Exception {
+    final PartitionServer partitionServer = new MockPartitionServer(CONFIGURATOR2, "localhost");
+    Thread thread = createPartitionServerThread(partitionServer);
+    thread.start();
+    Thread.sleep(1000);
+    assertEquals(HostState.IDLE, failingSetStateHost.getState());
+    failingSetStateHost.enqueueCommand(HostCommand.SERVE_DATA);
+    partitionServer.onCommandQueueChange(failingSetStateHost);
+    Thread.sleep(1000);
+    assertEquals("Went OFFLINE after failed state update.", HostState.OFFLINE, failingSetStateHost.getState());
+  }
+
+  public void testHostNextCommandFailure() throws Exception {
+    final PartitionServer partitionServer = new MockPartitionServer(CONFIGURATOR3, "localhost");
+    Thread thread = createPartitionServerThread(partitionServer);
+    thread.start();
+    Thread.sleep(1000);
+    assertEquals(HostState.IDLE, failingNextCommandHost.getState());
+    failingNextCommandHost.enqueueCommand(HostCommand.SERVE_DATA);
+    partitionServer.onCommandQueueChange(failingNextCommandHost);
+    Thread.sleep(1000);
+    assertEquals("Went OFFLINE after failed next command.", HostState.OFFLINE, failingNextCommandHost.getState());
   }
 
   // Create a runnable thread that runs the given partition server
