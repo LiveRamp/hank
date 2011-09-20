@@ -155,8 +155,6 @@ public class TestPartitionServer extends BaseTestCase {
     }
   }
 
-  // TODO: test for when starting up with commands in the queue...
-
   public void testColdStartAndShutDown() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
