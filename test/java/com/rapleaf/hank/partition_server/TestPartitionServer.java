@@ -191,7 +191,48 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
     partitionServer.stop();
+
+    thread.join();
+    assertEquals(HostState.OFFLINE, fixtures.host.getState());
+  }
+
+  public void testNonEmptyCommandQueue() throws Exception {
+    final SleepingUpdateManager updateManager = new SleepingUpdateManager();
+    final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
+      @Override
+      protected IUpdateManager getUpdateManager() {
+        return updateManager;
+      }
+    };
+    // Enqueue commands
+    fixtures.host.enqueueCommand(HostCommand.SERVE_DATA);
+    fixtures.host.enqueueCommand(HostCommand.GO_TO_IDLE);
+    fixtures.host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    fixtures.host.enqueueCommand(HostCommand.SERVE_DATA);
+
+    Thread thread = createPartitionServerThread(partitionServer);
+
+    thread.start();
+    Thread.sleep(2000);
+    assertEquals(HostState.SERVING, fixtures.host.getState());
+
+    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.IDLE, fixtures.host.getState());
+
+    partitionServer.onCommandQueueChange(fixtures.host);
+    assertEquals(HostState.UPDATING, fixtures.host.getState());
+
+    Thread.sleep(1500);
+    assertTrue("Update called", updateManager.updateCalled);
+
+    assertEquals(HostState.IDLE, fixtures.host.getState());
+
+    partitionServer.onCommandQueueChange(fixtures.host);
+    assertEquals(HostState.SERVING, fixtures.host.getState());
+
+    assertNull("Current command cleared", fixtures.host.getCurrentCommand());
+
+    partitionServer.stop();
 
     thread.join();
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
