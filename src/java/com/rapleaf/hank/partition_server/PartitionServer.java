@@ -266,7 +266,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
    */
   private void serveData() {
     if (dataServer != null) {
-      LOG.info("Data server is already running.");
+      LOG.info("Data server is already running. Cannot serve data.");
       return;
     }
     Runnable r = new Runnable() {
@@ -275,8 +275,10 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         try {
           startThriftServer();
         } catch (Exception e) {
-          // TODO deal with exception. server is probably going down unexpectedly
-          LOG.fatal("Data server thread encountered a fatal exception.", e);
+          // Data server is probably going down unexpectedly, stop the partition server
+          LOG.fatal("Data server thread encountered a fatal exception and is stopping.", e);
+          // Stop partition server main thread
+          stop();
         }
       }
     };
