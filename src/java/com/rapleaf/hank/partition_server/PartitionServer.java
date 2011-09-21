@@ -68,7 +68,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     host.setCommandQueueChangeListener(this);
   }
 
-  public void run() throws IOException {
+  public void run() throws IOException, InterruptedException {
     setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
 
     processCurrentCommand();
@@ -80,11 +80,15 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         break;
       }
     }
-    LOG.info("Partition server main thread is stopping.");
     // Shuting down
+    LOG.info("Partition server main thread is stopping.");
+    // Stop serving data
     stopServingData();
+    // Stop updating if necessary
     if (updateThread != null) {
-      // TODO: deal with the execute update thread
+      LOG.info("Update thread is still running. Interrupting and waiting for it to finish...");
+      updateThread.interrupt();
+      updateThread.join(); // In case of interrupt exception, server will stop and state will be coherent.
     }
     setState(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
   }
@@ -229,6 +233,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         } catch (IOException e) {
           LOG.fatal("Failed to move on to next command.", e);
         }
+        // Signal that update thread is done.
         updateThread = null;
       }
     };
