@@ -292,7 +292,7 @@ public class TestPartitionServer extends BaseTestCase {
       public void run() {
         try {
           partitionServer.run();
-        } catch (IOException e) {
+        } catch (Exception e) {
           fail("Exception! " + e);
         }
       }

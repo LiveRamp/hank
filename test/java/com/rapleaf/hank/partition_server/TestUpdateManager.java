@@ -31,165 +31,254 @@ import java.util.*;
 
 public class TestUpdateManager extends BaseTestCase {
 
-  private class MRG extends MockRingGroup {
-    private MRG(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
-      super(dcg, name, ringConfigs);
-    }
+  private Fixtures fixtures;
 
-    @Override
-    public Ring getRingForHost(PartitionServerAddress hostAddress) {
-      return mockRingConfig;
-    }
+  public void setUp() throws Exception {
+    super.setUp();
+    this.fixtures = new Fixtures();
   }
 
-  private static final MockDeleter MOCK_DELETER = new MockDeleter(1);
+  private static class Fixtures {
 
-  private final class MSE extends MockStorageEngine {
-    private final MockUpdater mockUpdater;
+    private class MRG extends MockRingGroup {
+      private MRG(DomainGroup dcg, String name, Set<Ring> rings) {
+        super(dcg, name, rings);
+      }
 
-    private MSE(MockUpdater mockUpdater) {
-      this.mockUpdater = mockUpdater;
+      @Override
+      public Ring getRingForHost(PartitionServerAddress hostAddress) {
+        return mockRing;
+      }
     }
 
-    @Override
-    public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
-      return mockUpdater;
+    private RingGroup getMockRingGroup(DomainGroup domainGroup) {
+      return new MRG(domainGroup, "myRingGroup", null) {
+        @Override
+        public Integer getUpdatingToVersion() {
+          try {
+            return getDomainGroup().getLatestVersion().getVersionNumber();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      };
     }
 
-    @Override
-    public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
-        throws IOException {
-      return MOCK_DELETER;
+    private final Ring mockRing = new MockRing(null, null, 0, null) {
+      @Override
+      public Host getHostByAddress(PartitionServerAddress address) {
+        return mockHost;
+      }
+    };
+
+    private final MockDeleter MOCK_DELETER = new MockDeleter(1);
+
+    protected final class MSE extends MockStorageEngine {
+      private final Updater updater;
+
+      private MSE(Updater updater) {
+        this.updater = updater;
+      }
+
+      @Override
+      public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+        return updater;
+      }
+
+      @Override
+      public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
+          throws IOException {
+        return MOCK_DELETER;
+      }
+    }
+
+    protected StorageEngine getMockStorageEngine(Updater updater) {
+      return new MSE(updater);
+    }
+
+    private final HostDomainPartition HOST_DOMAIN_PARTITION = new AbstractHostDomainPartition() {
+      private Integer updatingToVersion = 1;
+      private Integer currentVersion = 0;
+      private boolean deletable = false;
+
+      @Override
+      public void setUpdatingToDomainGroupVersion(Integer version)
+          throws IOException {
+        updatingToVersion = version;
+      }
+
+      @Override
+      public void setCurrentDomainGroupVersion(int version) throws IOException {
+        currentVersion = version;
+      }
+
+      @Override
+      public Integer getUpdatingToDomainGroupVersion() throws IOException {
+        return updatingToVersion;
+      }
+
+      @Override
+      public int getPartNum() {
+        return 0;
+      }
+
+      @Override
+      public Integer getCurrentDomainGroupVersion() throws IOException {
+        return currentVersion;
+      }
+
+      @Override
+      public boolean isDeletable() throws IOException {
+        return deletable;
+      }
+
+      @Override
+      public void setDeletable(boolean deletable) throws IOException {
+        this.deletable = deletable;
+      }
+
+      public void removeCount(String countID) throws IOException {
+      }
+
+      @Override
+      public void setCount(String countID, long count) throws IOException {
+      }
+
+      @Override
+      public Long getCount(String countID) throws IOException {
+        return null;
+      }
+
+      @Override
+      public Set<String> getCountKeys() throws IOException {
+        return null;
+      }
+
+      @Override
+      public void delete() throws IOException {
+      }
+    };
+    private final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(
+        1, 0, 0) {
+      @Override
+      public Integer getUpdatingToDomainGroupVersion() throws IOException {
+        return null;
+      }
+    };
+
+    private final HostDomain hostDomain = new AbstractHostDomain() {
+      @Override
+      public Set<HostDomainPartition> getPartitions() throws IOException {
+        Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
+        partitions.add(HOST_DOMAIN_PARTITION);
+        partitions.add(PARTITION_FOR_DELETION);
+        return partitions;
+      }
+
+      @Override
+      public Domain getDomain() {
+        return null;
+      }
+
+      @Override
+      public HostDomainPartition addPartition(int partNum, int initialVersion) {
+        return null;
+      }
+    };
+
+    private final Host mockHost = new MockHost(
+        new PartitionServerAddress("localhost", 1)) {
+      @Override
+      public HostDomain getHostDomain(Domain domain) {
+        return hostDomain;
+      }
+    };
+
+    private DomainGroupVersion getMockDomainGroupVersion(final StorageEngine mockStorageEngine) {
+      final MockDomain domain = new MockDomain("myDomain", 1, 1,
+          new ConstantPartitioner(), mockStorageEngine, null, null) {
+        @Override
+        public SortedSet<DomainVersion> getVersions() {
+          return new TreeSet<DomainVersion>(
+              Arrays.asList(new AbstractDomainVersion() {
+                @Override
+                public void setDefunct(boolean isDefunct) throws IOException {
+                }
+
+                @Override
+                public boolean isDefunct() throws IOException {
+                  return true;
+                }
+
+                @Override
+                public int getVersionNumber() {
+                  return 45;
+                }
+
+                @Override
+                public Set<PartitionInfo> getPartitionInfos() throws IOException {
+                  return null;
+                }
+
+                @Override
+                public Long getClosedAt() throws IOException {
+                  return null;
+                }
+
+                @Override
+                public void close() throws IOException {
+                }
+
+                @Override
+                public void cancel() throws IOException {
+                }
+
+                @Override
+                public void addPartitionInfo(int partNum, long numBytes,
+                                             long numRecords) throws IOException {
+                }
+              }));
+        }
+      };
+      // the domain version for this domain group version will be 0
+      final DomainGroupVersionDomainVersion dgvdv =
+          new MockDomainGroupVersionDomainVersion(domain, 0);
+      // the domain group version number is 1. note the difference between dgv
+      // and dgvdv's version numbers - this is intentional
+      return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
+    }
+
+    private DomainGroup getMockDomainGroup(final StorageEngine mockStorageEngine) {
+      DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
+        private DomainGroupVersion dgv;
+
+        @Override
+        public DomainGroupVersion getLatestVersion() {
+          dgv = getMockDomainGroupVersion(mockStorageEngine);
+          return dgv;
+        }
+
+        @Override
+        public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+          return dgv;
+        }
+      };
+      return mockDomainGroup;
     }
   }
-
-  private static final HostDomainPartition HOST_DOMAIN_PARTITION = new AbstractHostDomainPartition() {
-    private Integer updatingToVersion = 1;
-    private Integer currentVersion = 0;
-    private boolean deletable = false;
-
-    @Override
-    public void setUpdatingToDomainGroupVersion(Integer version)
-        throws IOException {
-      updatingToVersion = version;
-    }
-
-    @Override
-    public void setCurrentDomainGroupVersion(int version) throws IOException {
-      currentVersion = version;
-    }
-
-    @Override
-    public Integer getUpdatingToDomainGroupVersion() throws IOException {
-      return updatingToVersion;
-    }
-
-    @Override
-    public int getPartNum() {
-      return 0;
-    }
-
-    @Override
-    public Integer getCurrentDomainGroupVersion() throws IOException {
-      return currentVersion;
-    }
-
-    @Override
-    public boolean isDeletable() throws IOException {
-      return deletable;
-    }
-
-    @Override
-    public void setDeletable(boolean deletable) throws IOException {
-      this.deletable = deletable;
-    }
-
-    public void removeCount(String countID) throws IOException {
-    }
-
-    @Override
-    public void setCount(String countID, long count) throws IOException {
-    }
-
-    @Override
-    public Long getCount(String countID) throws IOException {
-      return null;
-    }
-
-    @Override
-    public Set<String> getCountKeys() throws IOException {
-      return null;
-    }
-
-    @Override
-    public void delete() throws IOException {
-    }
-  };
-
-  private static final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(
-      1, 0, 0) {
-    @Override
-    public Integer getUpdatingToDomainGroupVersion() throws IOException {
-      return null;
-    }
-  };
-
-  private static final HostDomain hostDomain = new AbstractHostDomain() {
-    @Override
-    public Set<HostDomainPartition> getPartitions() throws IOException {
-      Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
-      partitions.add(HOST_DOMAIN_PARTITION);
-      partitions.add(PARTITION_FOR_DELETION);
-      return partitions;
-    }
-
-    @Override
-    public Domain getDomain() {
-      return null;
-    }
-
-    @Override
-    public HostDomainPartition addPartition(int partNum, int initialVersion) {
-      return null;
-    }
-  };
-
-  private static final Host mockHostConfig = new MockHost(
-      new PartitionServerAddress("localhost", 1)) {
-    @Override
-    public HostDomain getHostDomain(Domain domain) {
-      return hostDomain;
-    }
-  };
-
-  private static final Ring mockRingConfig = new MockRing(null, null, 0, null) {
-    @Override
-    public Host getHostByAddress(PartitionServerAddress address) {
-      return mockHostConfig;
-    }
-  };
 
   public void testUpdate() throws Exception {
     final MockUpdater mockUpdater = new MockUpdater();
 
-    StorageEngine mockStorageEngine = new MSE(mockUpdater);
+    StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
 
-    DomainGroup mockDomainGroupConfig = getMockDomainGroupConfig(mockStorageEngine);
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
 
-    final RingGroup mockRingGroupConfig = new MRG(mockDomainGroupConfig, "myRingGroup", null) {
-      @Override
-      public Integer getUpdatingToVersion() {
-        try {
-          return getDomainGroup().getLatestVersion().getVersionNumber();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    };
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
-        null, "myRingGroup", "/local/data/dir"), mockHostConfig,
-        mockRingGroupConfig, mockRingConfig);
+        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
+        mockRingGroup, fixtures.mockRing);
     ud.update();
     assertTrue("update() was called on the storage engine",
         mockUpdater.isUpdated());
@@ -198,94 +287,73 @@ public class TestUpdateManager extends BaseTestCase {
     assertEquals("update() called with proper args", Integer.valueOf(0),
         mockUpdater.updatedToVersion);
     assertEquals("current version", Integer.valueOf(1),
-        HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
+        fixtures.HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
     assertNull("updating to version",
-        HOST_DOMAIN_PARTITION.getUpdatingToDomainGroupVersion());
+        fixtures.HOST_DOMAIN_PARTITION.getUpdatingToDomainGroupVersion());
 
-    assertFalse("host domain contains the partition", MOCK_DELETER.hasDeleted());
+    assertFalse("host domain contains the partition", fixtures.MOCK_DELETER.hasDeleted());
     assertFalse("host domain partition has not yet been deleted",
-        PARTITION_FOR_DELETION.isDeleted());
+        fixtures.PARTITION_FOR_DELETION.isDeleted());
 
-    PARTITION_FOR_DELETION.setDeletable(true);
+    fixtures.PARTITION_FOR_DELETION.setDeletable(true);
     ud.update();
 
     assertTrue("host domain does not contain the partition",
-        MOCK_DELETER.hasDeleted());
+        fixtures.MOCK_DELETER.hasDeleted());
     assertTrue("host domain partition has been deleted",
-        PARTITION_FOR_DELETION.isDeleted());
+        fixtures.PARTITION_FOR_DELETION.isDeleted());
   }
 
-  private static DomainGroupVersion getMockDomainGroupConfigVersion(
-      final StorageEngine mockStorageEngine) {
-    final MockDomain domain = new MockDomain("myDomain", 1, 1,
-        new ConstantPartitioner(), mockStorageEngine, null, null) {
+  public void testFailedUpdateTask() throws Exception {
+    final MockUpdater failingUpdater = new MockUpdater() {
       @Override
-      public SortedSet<DomainVersion> getVersions() {
-        return new TreeSet<DomainVersion>(
-            Arrays.asList(new AbstractDomainVersion() {
-              @Override
-              public void setDefunct(boolean isDefunct) throws IOException {
-              }
-
-              @Override
-              public boolean isDefunct() throws IOException {
-                return true;
-              }
-
-              @Override
-              public int getVersionNumber() {
-                return 45;
-              }
-
-              @Override
-              public Set<PartitionInfo> getPartitionInfos() throws IOException {
-                return null;
-              }
-
-              @Override
-              public Long getClosedAt() throws IOException {
-                return null;
-              }
-
-              @Override
-              public void close() throws IOException {
-              }
-
-              @Override
-              public void cancel() throws IOException {
-              }
-
-              @Override
-              public void addPartitionInfo(int partNum, long numBytes,
-                                           long numRecords) throws IOException {
-              }
-            }));
+      public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
+        super.update(toVersion, excludeVersions);
+        throw new IOException("Failed to update.");
       }
     };
-    // the domain version for this domain group version will be 0
-    final DomainGroupVersionDomainVersion dgvdv = new MockDomainGroupVersionDomainVersion(
-        domain, 0);
-    // the domain group version number is 1. note the difference between dgv
-    // and dgvdv's version numbers - this is intentional
-    return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
+
+    StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(failingUpdater);
+
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
+
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+
+    UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
+        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
+        mockRingGroup, fixtures.mockRing);
+
+    try {
+      ud.update();
+      assertTrue("update() should have been called on the storage engine", failingUpdater.isUpdated());
+      fail("Should throw an IOException when a task update fails.");
+    } catch (IOException e) {
+      // Correct behavior
+    }
   }
 
-  private DomainGroup getMockDomainGroupConfig(
-      final StorageEngine mockStorageEngine) {
-    DomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
-      private DomainGroupVersion dgv;
+  public void testInterruptedUpdateTask() throws Exception {
+    final MockUpdater mockUpdater = new MockUpdater();
 
-      @Override
-      public DomainGroupVersion getLatestVersion() {
-        dgv = getMockDomainGroupConfigVersion(mockStorageEngine);
-        return dgv;
-      }
+    StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
 
-      @Override
-      public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
-        return dgv;
-      }
-    };
-    return mockDomainGroupConfig;
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
+
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+
+    UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
+        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
+        mockRingGroup, fixtures.mockRing);
+
+    try {
+      // Interrupt to simulate update cancellation
+      Thread.currentThread().interrupt();
+      // Launch update
+      ud.update();
+      assertTrue("update() should have been called on the storage engine", mockUpdater.isUpdated());
+      fail("Should throw an IOException when update is interrupted.");
+    } catch (IOException e) {
+      // Correct behavior
+    }
   }
 }

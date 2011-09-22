@@ -31,10 +31,12 @@ import java.util.concurrent.*;
  * Manages the domain update process.
  */
 class UpdateManager implements IUpdateManager {
-  private static final int TERMINATION_CHECK_TIMEOUT_MS = 1000;
+  private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_MS = 1000;
+  private static final long UPDATE_EXECUTOR_TIMEOUT_VALUE = 1;
+  private static final TimeUnit UPDATE_EXECUTOR_TIMEOUT_UNIT = TimeUnit.DAYS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
-  private final class PartitionUpdate implements Runnable {
+  private final class PartitionUpdateTask implements Runnable {
     private final StorageEngine engine;
     private final int partitionNumber;
     private final Queue<Throwable> exceptionQueue;
@@ -44,14 +46,14 @@ class UpdateManager implements IUpdateManager {
     private final int toDomainGroupVersion;
     private final Set<Integer> excludeVersions;
 
-    public PartitionUpdate(StorageEngine engine,
-                           int partitionNumber,
-                           Queue<Throwable> exceptionQueue,
-                           int toDomainVersion,
-                           HostDomainPartition partition,
-                           String domainName,
-                           int toDomainGroupVersion,
-                           Set<Integer> excludeVersions) {
+    public PartitionUpdateTask(StorageEngine engine,
+                               int partitionNumber,
+                               Queue<Throwable> exceptionQueue,
+                               int toDomainVersion,
+                               HostDomainPartition partition,
+                               String domainName,
+                               int toDomainGroupVersion,
+                               Set<Integer> excludeVersions) {
       this.engine = engine;
       this.partitionNumber = partitionNumber;
       this.exceptionQueue = exceptionQueue;
@@ -71,7 +73,7 @@ class UpdateManager implements IUpdateManager {
         partition.setUpdatingToDomainGroupVersion(null);
         LOG.info(String.format("PartitionUpdate %s part %d completed.", engine.toString(), partitionNumber));
       } catch (Throwable e) {
-        LOG.fatal("Failed to complete a PartitionUpdate!", e);
+        LOG.fatal("Failed to complete a PartitionUpdateTask!", e);
         exceptionQueue.add(e);
       }
     }
@@ -89,6 +91,7 @@ class UpdateManager implements IUpdateManager {
     this.ring = ring;
   }
 
+  // When an Exception is thrown, the update has failed.
   public void update() throws IOException {
     ThreadFactory factory = new ThreadFactory() {
       private int threadID = 0;
@@ -102,7 +105,8 @@ class UpdateManager implements IUpdateManager {
     ExecutorService executor = new ThreadPoolExecutor(
         configurator.getNumConcurrentUpdates(),
         configurator.getNumConcurrentUpdates(),
-        1, TimeUnit.DAYS,
+        UPDATE_EXECUTOR_TIMEOUT_VALUE,
+        UPDATE_EXECUTOR_TIMEOUT_UNIT,
         new LinkedBlockingQueue<Runnable>(),
         factory);
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
@@ -136,7 +140,7 @@ class UpdateManager implements IUpdateManager {
                 part.getPartNum(),
                 part.getCurrentDomainGroupVersion(),
                 part.getUpdatingToDomainGroupVersion()));
-            executor.execute(new PartitionUpdate(engine,
+            executor.execute(new PartitionUpdateTask(engine,
                 part.getPartNum(),
                 exceptionQueue,
                 dgvdv.getVersionOrAction().getVersion(),
@@ -149,25 +153,55 @@ class UpdateManager implements IUpdateManager {
       }
     }
 
-    try {
-      // Wait for all tasks to finish
-      boolean terminated = false;
-      executor.shutdown();
-      while (!terminated) {
-        LOG.debug("Waiting for update executor to complete...");
-        terminated = executor.awaitTermination(TERMINATION_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-      }
-      // Detect failed tasks
-      if (!exceptionQueue.isEmpty()) {
-        LOG.fatal(String.format("%d exceptions encountered while running PartitionUpdate:", exceptionQueue.size()));
-        int i = 0;
-        for (Throwable t : exceptionQueue) {
-          LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
+    // Execute all tasks and wait for them to finish
+    IOException failedUpdateException = null;
+    boolean keepWaiting = true;
+    executor.shutdown();
+    while (keepWaiting) {
+      LOG.debug("Waiting for update executor to complete...");
+      try {
+        boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        if (terminated) {
+          // We finished executing all tasks
+          keepWaiting = false;
+        } else {
+          // Timeout elapsed and current thread was not interrupted. Record failed update and stop waiting.
+          keepWaiting = false;
+          failedUpdateException = new IOException("Failed to complete update: timeout elapsed before all tasks finished.");
         }
-        throw new RuntimeException("Failed to complete update!");
+      } catch (InterruptedException e) {
+        // Received interruption (stop request).
+        // Swallow the interrupted state and ask the executor to shutdown immediately
+        LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
+            " and wait for those that were running to finish).");
+        keepWaiting = true;
+        executor.shutdownNow();
+        // Record failed update exception (we need to keep waiting)
+        failedUpdateException = new IOException("Failed to complete update: update interruption was requested.");
       }
-    } catch (InterruptedException e) {
-      LOG.debug("Interrupted while waiting for update to complete. Terminating.");
+    }
+
+    // Detect failed tasks
+    IOException failedTasksException = null;
+    if (!exceptionQueue.isEmpty()) {
+      LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
+      int i = 0;
+      for (Throwable t : exceptionQueue) {
+        LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
+      }
+      failedTasksException = new IOException(String.format(
+          "Failed to complete update: %d exceptions encountered while running partition update tasks.",
+          exceptionQueue.size()));
+    }
+
+    // First detect failed update
+    if (failedUpdateException != null) {
+      throw failedUpdateException;
+    }
+
+    // Then detect failed tasks
+    if (failedTasksException != null) {
+      throw failedTasksException;
     }
   }
 }
