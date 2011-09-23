@@ -94,6 +94,9 @@ public class DomainBuilderProperties {
   // Lazily load the Coordinator
   public Coordinator getCoordinator() {
     if (coordinator == null) {
+      if (configurator == null) {
+        throw new RuntimeException("Provided Hank Configurator is null. Cannot create Coordinator.");
+      }
       coordinator = configurator.createCoordinator();
     }
     return coordinator;
