@@ -181,7 +181,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   public void shutDown() throws InterruptedException {
     for (DomainAccessor domainAccessor : domainAccessors) {
-      domainAccessor.shutDown();
+      if (domainAccessor != null) {
+        domainAccessor.shutDown();
+      }
     }
   }
 }
