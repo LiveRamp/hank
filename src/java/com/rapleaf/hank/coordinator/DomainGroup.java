@@ -47,5 +47,15 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public DomainGroupVersion createNewVersion(Map<Domain,VersionOrAction> domainNameToVersion) throws IOException;
 
+  /**
+   * Creates a new domain group version containing all the domains in the latest
+   * domain group version with their version numbers fast-forwarded to the
+   * latest non-defunct closed version.
+   * 
+   * @return
+   * @throws IOException
+   */
+  public DomainGroupVersion createNewFastForwardVersion() throws IOException;
+
   public void removeDomainFromAllVersions(Domain domain) throws IOException;
 }

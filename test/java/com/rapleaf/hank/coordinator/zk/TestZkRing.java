@@ -31,7 +31,7 @@ public class TestZkRing extends ZkTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     create(ZkPath.append(getRoot(), "ring-group-one"));
-    this.coordinator = new MockCoordinator();
+    TestZkRing.coordinator = new MockCoordinator();
   }
 
   private static final class MockListener implements RingStateChangeListener {

@@ -1,6 +1,8 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 
 public abstract class AbstractDomainGroup implements DomainGroup {
@@ -34,5 +36,21 @@ public abstract class AbstractDomainGroup implements DomainGroup {
     for (DomainGroupVersion dgv : getVersions()) {
       dgv.removeDomain(domain);
     }
+  }
+
+  @Override
+  public DomainGroupVersion createNewFastForwardVersion() throws IOException {
+    Map<Domain, VersionOrAction> domainNameToVersion = new HashMap<Domain, VersionOrAction>();
+
+    // find the latest domain group version
+    DomainGroupVersion dgv = getLatestVersion();
+
+    // create map of new domains and versions
+    for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
+      domainNameToVersion.put(dgvdv.getDomain(), new VersionOrAction(dgvdv.getDomain().getLatestVersionNotOpenNotDefunct().getVersionNumber()));
+    }
+
+    // call regular version creation method
+    return createNewVersion(domainNameToVersion);
   }
 }
