@@ -40,6 +40,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
 
   private final PartitionServerConfigurator configurator;
+  private final Coordinator coordinator;
   private Thread dataServerThread;
   private TServer dataServer;
   private boolean stopping = false;
@@ -54,7 +55,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
 
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
-    Coordinator coordinator = configurator.getCoordinator();
+    this.coordinator = configurator.createCoordinator();
     hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
     ringGroup = coordinator.getRingGroup(configurator.getRingGroupName());
     ring = ringGroup.getRingForHost(hostAddress);
@@ -104,7 +105,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   }
 
   protected IfaceWithShutdown getHandler() throws IOException {
-    return new PartitionServerHandler(hostAddress, configurator);
+    return new PartitionServerHandler(hostAddress, configurator, coordinator);
   }
 
   protected IUpdateManager getUpdateManager() throws IOException {

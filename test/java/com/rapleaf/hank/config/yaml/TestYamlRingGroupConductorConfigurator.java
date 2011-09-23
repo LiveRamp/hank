@@ -45,7 +45,7 @@ public class TestYamlRingGroupConductorConfigurator extends TestCase {
     YamlRingGroupConductorConfigurator c = new YamlRingGroupConductorConfigurator(PATH);
     assertEquals(1000, c.getSleepInterval());
     assertEquals("myRingGroup", c.getRingGroupName());
-    assertTrue(c.getCoordinator() instanceof MockCoordinator);
-    assertTrue(((MockCoordinator)c.getCoordinator()).getInitOptions().containsKey("blah"));
+    assertTrue(c.createCoordinator() instanceof MockCoordinator);
+    assertTrue(((MockCoordinator)c.createCoordinator()).getInitOptions().containsKey("blah"));
   }
 }

@@ -1,22 +1,16 @@
 package com.rapleaf.hank.hadoop;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.hadoop.mapred.JobConf;
-
 import cascading.flow.FlowProcess;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.VersionType;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.hadoop.mapred.JobConf;
+
+import java.io.*;
+import java.util.Map;
+import java.util.Properties;
 
 public class DomainBuilderProperties {
 
@@ -31,6 +25,7 @@ public class DomainBuilderProperties {
   private final VersionType versionType;
   private final String outputPath;
   private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
+  private Coordinator coordinator;
 
   // With a default output format
   // Get output path from the Coordinator
@@ -40,7 +35,7 @@ public class DomainBuilderProperties {
     this.domainName = domainName;
     this.versionType = versionType;
     this.configurator = configurator;
-    this.outputPath = getRemoteDomainRoot(domainName, configurator);
+    this.outputPath = getRemoteDomainRoot(domainName, getCoordinator());
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
   }
 
@@ -53,7 +48,7 @@ public class DomainBuilderProperties {
     this.domainName = domainName;
     this.versionType = versionType;
     this.configurator = configurator;
-    this.outputPath = getRemoteDomainRoot(domainName, configurator);
+    this.outputPath = getRemoteDomainRoot(domainName, getCoordinator());
     this.outputFormatClass = outputFormatClass;
   }
 
@@ -85,23 +80,23 @@ public class DomainBuilderProperties {
   }
 
   public Domain getDomain() {
-    return getConfigurator().getCoordinator().getDomain(domainName);
+    return getCoordinator().getDomain(domainName);
   }
 
   public String getDomainName() {
     return domainName;
   }
 
-  public Configurator getConfigurator() {
-    return configurator;
-  }
-
-  public VersionType getVersionType() {
-    return versionType;
-  }
-
   public String getOutputPath() {
     return outputPath;
+  }
+
+  // Lazily load the Coordinator
+  public Coordinator getCoordinator() {
+    if (coordinator == null) {
+      coordinator = configurator.createCoordinator();
+    }
+    return coordinator;
   }
 
   public String getTmpOutputPath(int versionNumber) {
@@ -121,7 +116,7 @@ public class DomainBuilderProperties {
     // Configuration
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATOR),
-        buildConfigurationString(getConfigurator()));
+        buildConfigurationString(configurator));
     // Version type
     properties.setProperty(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
@@ -147,7 +142,7 @@ public class DomainBuilderProperties {
     // Configuration
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATOR),
-        buildConfigurationString(getConfigurator()));
+        buildConfigurationString(configurator));
     // Version type
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
@@ -170,8 +165,9 @@ public class DomainBuilderProperties {
   // TODO: maybe refactor and move the flow process stuff to the cascading package
 
   // FlowProcess
+  // Note: this creates a new Coordinator instance everytime it's called
   public static Domain getDomain(String domainName, FlowProcess flowProcess) {
-    return getConfigurator(domainName, flowProcess).getCoordinator().getDomain(domainName);
+    return getConfigurator(domainName, flowProcess).createCoordinator().getDomain(domainName);
   }
 
   public static Configurator getConfigurator(String domainName, FlowProcess flowProcess) {
@@ -197,9 +193,10 @@ public class DomainBuilderProperties {
   }
 
   // JobConf
+  // Note: this creates a new Coordinator instance everytime it's called
   public static Domain getDomain(JobConf conf) {
     String domainName = getDomainName(conf);
-    return getConfigurator(conf).getCoordinator().getDomain(domainName);
+    return getConfigurator(conf).createCoordinator().getDomain(domainName);
   }
 
   public static String getDomainName(JobConf conf) {
@@ -254,13 +251,9 @@ public class DomainBuilderProperties {
     return result;
   }
 
-  static public String getRemoteDomainRoot(String domainName, Configurator configurator) {
-    if (configurator == null) {
-      throw new RuntimeException("Supplied Configurator is null.");
-    }
-    Coordinator coordinator = configurator.getCoordinator();
+  static public String getRemoteDomainRoot(String domainName, Coordinator coordinator) {
     if (coordinator == null) {
-      throw new RuntimeException("Could not get Coordinator from supplied Configurator.");
+      throw new RuntimeException("Could not get remote domain root, a null Coordinator was supplied.");
     }
     Domain domain = coordinator.getDomain(domainName);
     if (domain == null) {

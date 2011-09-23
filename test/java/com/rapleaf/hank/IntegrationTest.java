@@ -189,7 +189,7 @@ public class IntegrationTest extends ZkTestCase {
 
     Configurator config = new YamlClientConfigurator(clientConfigYml);
 
-    Coordinator coordinator = config.getCoordinator();
+    Coordinator coordinator = config.createCoordinator();
 
     StringWriter sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -248,7 +248,7 @@ public class IntegrationTest extends ZkTestCase {
 
     // simulate publisher pushing out a new version
     DomainGroup domainGroup = null;
-    coordinator = config.getCoordinator();
+    coordinator = config.createCoordinator();
     for (int i = 0; i < 15; i++) {
       domainGroup = coordinator.getDomainGroup("dg1");
       if (domainGroup != null) {
@@ -364,7 +364,7 @@ public class IntegrationTest extends ZkTestCase {
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
     // wait until the rings have been updated to the new version
-    coordinator = config.getCoordinator();
+    coordinator = config.createCoordinator();
     final RingGroup ringGroupConfig = coordinator.getRingGroup("rg1");
     for (int i = 0; i < 30; i++) {
       if (ringGroupConfig.isUpdating()) {

@@ -28,9 +28,9 @@ import java.io.IOException;
 public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
-  private final RingGroupConductorConfigurator config;
+  private final RingGroupConductorConfigurator configurator;
   private final String ringGroupName;
-  private final Coordinator coord;
+  private final Coordinator coordinator;
   private final Object lock = new Object();
 
   private RingGroup ringGroup;
@@ -40,22 +40,22 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
 
   private boolean goingDown = false;
 
-  public RingGroupConductor(RingGroupConductorConfigurator config) {
-    this(config, new RingGroupUpdateTransitionFunctionImpl());
+  public RingGroupConductor(RingGroupConductorConfigurator configurator) {
+    this(configurator, new RingGroupUpdateTransitionFunctionImpl());
   }
 
-  RingGroupConductor(RingGroupConductorConfigurator config, RingGroupUpdateTransitionFunction transFunc) {
-    this.config = config;
+  RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) {
+    this.configurator = configurator;
     this.transFunc = transFunc;
-    ringGroupName = config.getRingGroupName();
-    coord = config.getCoordinator();
+    ringGroupName = configurator.getRingGroupName();
+    this.coordinator = configurator.createCoordinator();
   }
 
   public void run() throws IOException {
     LOG.info("Ring Group Conductor Daemon for ring group " + ringGroupName + " starting.");
     boolean claimedRingGroupConductor = false;
     try {
-      ringGroup = coord.getRingGroup(ringGroupName);
+      ringGroup = coordinator.getRingGroup(ringGroupName);
 
       // attempt to claim the ring group conductor title
       if (ringGroup.claimRingGroupConductor()) {
@@ -84,7 +84,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
             }
 
             processUpdates(snapshotRingGroup, snapshotDomainGroup);
-            Thread.sleep(config.getSleepInterval());
+            Thread.sleep(configurator.getSleepInterval());
           }
         } catch (InterruptedException e) {
           // daemon is going down.

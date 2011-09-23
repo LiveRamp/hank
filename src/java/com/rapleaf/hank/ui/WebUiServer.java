@@ -1,7 +1,10 @@
 package com.rapleaf.hank.ui;
 
-import java.net.URL;
-
+import com.rapleaf.hank.config.ClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.ui.controllers.*;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.jetty.server.Handler;
@@ -11,34 +14,24 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.ui.controllers.DomainController;
-import com.rapleaf.hank.ui.controllers.DomainGroupController;
-import com.rapleaf.hank.ui.controllers.HostController;
-import com.rapleaf.hank.ui.controllers.RingController;
-import com.rapleaf.hank.ui.controllers.RingGroupController;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.net.URL;
 
 public class WebUiServer {
   @SuppressWarnings("unused")
   private static final Logger LOG = Logger.getLogger(WebUiServer.class);
 
-  private final ClientConfigurator cc;
+  private final Coordinator coordinator;
   private final int port;
 
   private final IClientCache clientCache;
 
-  public WebUiServer(ClientConfigurator cc, IClientCache clientCache, int port) {
-    this.cc = cc;
+  public WebUiServer(Coordinator coordinator, IClientCache clientCache, int port) {
+    this.coordinator = coordinator;
     this.clientCache = clientCache;
     this.port = port;
   }
 
   void run() throws Exception {
-    Coordinator coordinator = cc.getCoordinator();
-
     // get the server
     Server server = new Server(port);
 
@@ -82,7 +75,8 @@ public class WebUiServer {
     Logger.getLogger("com.rapleaf.hank").setLevel(Level.INFO);
     String clientConfigPath = args[0];
     int port = Integer.parseInt(args[1]);
-    ClientConfigurator cc = new YamlClientConfigurator(clientConfigPath);
-    new WebUiServer(cc, new ClientCache(cc.getCoordinator()), port).run();
+    ClientConfigurator configurator = new YamlClientConfigurator(clientConfigPath);
+    Coordinator coordinator = configurator.createCoordinator();
+    new WebUiServer(coordinator, new ClientCache(coordinator), port).run();
   }
 }

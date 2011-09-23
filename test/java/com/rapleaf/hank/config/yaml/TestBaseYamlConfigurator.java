@@ -15,21 +15,21 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class TestBaseYamlConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/bad4.yml";
 
   private static class TestImplOfBaseYamlConfigurator extends BaseYamlConfigurator {
     public TestImplOfBaseYamlConfigurator(String path) throws IOException,
-    InvalidConfigurationException {
+        InvalidConfigurationException {
       super(path);
     }
   }
@@ -95,7 +95,7 @@ public class TestBaseYamlConfigurator extends BaseTestCase {
     pw.println("    blah: blah");
     pw.close();
     TestImplOfBaseYamlConfigurator conf = new TestImplOfBaseYamlConfigurator(configPath);
-    Coordinator coord = conf.getCoordinator();
-    assertTrue(coord instanceof MockCoordinator);
+    Coordinator coordinator = conf.createCoordinator();
+    assertTrue(coordinator instanceof MockCoordinator);
   }
 }

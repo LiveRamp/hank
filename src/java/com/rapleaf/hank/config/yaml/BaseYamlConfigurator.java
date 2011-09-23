@@ -79,7 +79,7 @@ public abstract class BaseYamlConfigurator implements Configurator {
   }
 
   @Override
-  public Coordinator getCoordinator() {
+  public Coordinator createCoordinator() {
     try {
       validate();
     } catch (InvalidConfigurationException e) {

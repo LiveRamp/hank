@@ -15,21 +15,20 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.generated.SmartClient;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 
-import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
-import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.generated.SmartClient;
+import java.io.IOException;
 
 /**
  * Run a HankSmartClient inside a Thrift server so non-Java clients can
@@ -39,7 +38,7 @@ public class SmartClientDaemon {
   private static final Logger LOG = Logger.getLogger(SmartClientDaemon.class);
 
   private final SmartClientDaemonConfigurator configurator;
-  private final Coordinator coord;
+  private final Coordinator coordinator;
   private final String ringGroupName;
   private Thread serverThread;
   private TServer server;
@@ -48,7 +47,7 @@ public class SmartClientDaemon {
 
   public SmartClientDaemon(SmartClientDaemonConfigurator configurator) {
     this.configurator = configurator;
-    this.coord = configurator.getCoordinator();
+    this.coordinator = configurator.createCoordinator();
     this.ringGroupName = configurator.getRingGroupName();
   }
 
@@ -60,7 +59,7 @@ public class SmartClientDaemon {
    */
   private void serve() throws IOException, TException {
     // set up the service handler
-    HankSmartClient handler = new HankSmartClient(coord, ringGroupName, 1);
+    HankSmartClient handler = new HankSmartClient(coordinator, ringGroupName, 1);
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getPortNumber());

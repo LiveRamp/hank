@@ -21,7 +21,7 @@ public class WebUiServerTester extends ZkTestCase {
 
     ClientConfigurator mockConf = new ClientConfigurator() {
       @Override
-      public Coordinator getCoordinator() {
+      public Coordinator createCoordinator() {
         return coord;
       }
     };

@@ -114,7 +114,7 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
-      public Coordinator getCoordinator() {
+      public Coordinator createCoordinator() {
         return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {
@@ -218,7 +218,7 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
-      public Coordinator getCoordinator() {
+      public Coordinator createCoordinator() {
         return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {
@@ -275,7 +275,7 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
-      public Coordinator getCoordinator() {
+      public Coordinator createCoordinator() {
         return new MockCoordinator() {
           @Override
           public RingGroup getRingGroup(String ringGroupName) {

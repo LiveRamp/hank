@@ -16,11 +16,6 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.nio.ByteBuffer;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-
 import cascading.flow.FlowProcess;
 import cascading.operation.BaseOperation;
 import cascading.operation.Function;
@@ -32,9 +27,12 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
-
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+
+import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -72,8 +70,8 @@ public class DomainBuilderAssembly extends SubAssembly {
     }
 
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
-      // Load domain config lazily
-      loadDomainConfig(flowProcess);
+      // Load domain lazily
+      loadDomain(flowProcess);
 
       // Compute partition and comparable key
       TupleEntry tupleEntry = call.getArguments();
@@ -89,7 +87,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       call.getOutputCollector().add(new Tuple(partition, comparableKeyBytesWritable));
     }
 
-    private void loadDomainConfig(FlowProcess flowProcess) {
+    private void loadDomain(FlowProcess flowProcess) {
       if (domain == null) {
         domain = DomainBuilderProperties.getDomain(domainName, flowProcess);
       }

@@ -46,7 +46,7 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public Coordinator getCoordinator() {
+  public Coordinator createCoordinator() {
     return coordinator;
   }
 

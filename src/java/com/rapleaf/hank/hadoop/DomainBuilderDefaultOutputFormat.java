@@ -16,15 +16,14 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.VersionType;
+import java.io.IOException;
 
 
 public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
@@ -37,7 +36,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat 
     // Load configuration items
     String domainName = DomainBuilderProperties.getDomainName(conf);
     VersionType versionType = DomainBuilderProperties.getVersionType(domainName, conf);
-    // Load config
+    // Load domain
     Domain domain = DomainBuilderProperties.getDomain(conf);
     // Build RecordWriter with the Domain
     return new DomainBuilderRecordWriter(domain, versionType, new HDFSOutputStreamFactory(fs, outputPath));
