@@ -41,6 +41,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final DomainAccessor[] domainAccessors;
 
+  // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator,
                                 Coordinator coordinator) throws IOException {
