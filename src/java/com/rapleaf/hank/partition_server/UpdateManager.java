@@ -31,7 +31,8 @@ import java.util.concurrent.*;
  * Manages the domain update process.
  */
 class UpdateManager implements IUpdateManager {
-  private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_MS = 1000;
+  private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
+  private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final long UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE = 1;
   private static final TimeUnit UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
@@ -160,7 +161,8 @@ class UpdateManager implements IUpdateManager {
     while (keepWaiting) {
       LOG.debug("Waiting for update executor to complete...");
       try {
-        boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
+            UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
         if (terminated) {
           // We finished executing all tasks
           keepWaiting = false;
