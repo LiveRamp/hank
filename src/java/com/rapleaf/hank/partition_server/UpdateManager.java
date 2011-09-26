@@ -171,10 +171,9 @@ class UpdateManager implements IUpdateManager {
         }
       } catch (InterruptedException e) {
         // Received interruption (stop request).
-        // Swallow the interrupted state and ask the executor to shutdown immediately
+        // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
         LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
             " and wait for those that were running to finish).");
-        keepWaiting = true;
         executor.shutdownNow();
         // Record failed update exception (we need to keep waiting)
         failedUpdateException = new IOException("Failed to complete update: update interruption was requested.");
