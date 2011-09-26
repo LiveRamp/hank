@@ -12,7 +12,6 @@ import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.MockHostDomain;
@@ -25,6 +24,7 @@ import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.RingState;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 
 public class TestEqualSizePartitionAssigner extends BaseTestCase {
 //  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));

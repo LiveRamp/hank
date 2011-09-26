@@ -19,6 +19,7 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.StorageEngine;

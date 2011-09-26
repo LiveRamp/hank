@@ -9,6 +9,7 @@ import java.util.TreeSet;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
 public class TestAbstractDomainGroup extends BaseTestCase {

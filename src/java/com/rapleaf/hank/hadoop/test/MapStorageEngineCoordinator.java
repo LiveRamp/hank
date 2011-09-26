@@ -39,7 +39,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
   private int numPartitions = 1;
   private Map<String, Object> globalOptions = new HashMap<String, Object>();
 
-  MapStorageEngineCoordinator(Map<String, Object> options) {
+  public MapStorageEngineCoordinator(Map<String, Object> options) {
     super(options);
     if (options != null) {
       Integer numPartitions = (Integer) options.get("numPartitions");

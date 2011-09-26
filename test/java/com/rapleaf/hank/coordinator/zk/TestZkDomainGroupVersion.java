@@ -24,11 +24,11 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
