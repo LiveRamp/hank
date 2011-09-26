@@ -32,8 +32,8 @@ import java.util.concurrent.*;
  */
 class UpdateManager implements IUpdateManager {
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_MS = 1000;
-  private static final long UPDATE_EXECUTOR_TIMEOUT_VALUE = 1;
-  private static final TimeUnit UPDATE_EXECUTOR_TIMEOUT_UNIT = TimeUnit.DAYS;
+  private static final long UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE = 1;
+  private static final TimeUnit UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class PartitionUpdateTask implements Runnable {
@@ -105,8 +105,8 @@ class UpdateManager implements IUpdateManager {
     ExecutorService executor = new ThreadPoolExecutor(
         configurator.getNumConcurrentUpdates(),
         configurator.getNumConcurrentUpdates(),
-        UPDATE_EXECUTOR_TIMEOUT_VALUE,
-        UPDATE_EXECUTOR_TIMEOUT_UNIT,
+        UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE,
+        UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT,
         new LinkedBlockingQueue<Runnable>(),
         factory);
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
@@ -165,9 +165,7 @@ class UpdateManager implements IUpdateManager {
           // We finished executing all tasks
           keepWaiting = false;
         } else {
-          // Timeout elapsed and current thread was not interrupted. Record failed update and stop waiting.
-          keepWaiting = false;
-          failedUpdateException = new IOException("Failed to complete update: timeout elapsed before all tasks finished.");
+          // Timeout elapsed and current thread was not interrupted. Keep waiting.
         }
       } catch (InterruptedException e) {
         // Received interruption (stop request).
