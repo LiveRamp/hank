@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,8 @@ public class MockHost extends AbstractHost {
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
+  private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
+  private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -64,6 +67,11 @@ public class MockHost extends AbstractHost {
     return currentCommand;
   }
 
+  private void setCurrentCommand(HostCommand command) {
+    currentCommand = command;
+    notifyCurrentCommandChangeListeners();
+  }
+
   @Override
   public boolean isOnline() throws IOException {
     return state != HostState.OFFLINE;
@@ -77,6 +85,7 @@ public class MockHost extends AbstractHost {
   @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     commandQueue.add(command);
+    notifyCommandQueueChangeListeners();
   }
 
   @Override
@@ -87,16 +96,34 @@ public class MockHost extends AbstractHost {
   @Override
   public HostCommand nextCommand() throws IOException {
     if (commandQueue.size() > 0) {
-      currentCommand = commandQueue.remove(0);
+      setCurrentCommand(commandQueue.remove(0));
+      notifyCommandQueueChangeListeners();
     } else {
-      currentCommand = null;
+      setCurrentCommand(null);
     }
     return currentCommand;
   }
 
   @Override
-  public void setCommandQueueChangeListener(
-      HostCommandQueueChangeListener listener) throws IOException {
+  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) throws IOException {
+    commandQueueChangeListeners.add(listener);
+  }
+
+  protected void notifyCommandQueueChangeListeners() {
+    for (HostCommandQueueChangeListener listener : commandQueueChangeListeners) {
+      listener.onCommandQueueChange(this);
+    }
+  }
+
+  @Override
+  public void setCurrentCommandChangeListener(HostCurrentCommandChangeListener listener) throws IOException {
+    currentCommandChangeListeners.add(listener);
+  }
+
+  protected void notifyCurrentCommandChangeListeners() {
+    for (HostCurrentCommandChangeListener listener : currentCommandChangeListeners) {
+      listener.onCurrentCommandChange(MockHost.this);
+    }
   }
 
   @Override
@@ -106,5 +133,6 @@ public class MockHost extends AbstractHost {
   @Override
   public void clearCommandQueue() throws IOException {
     commandQueue.clear();
+    notifyCommandQueueChangeListeners();
   }
 }

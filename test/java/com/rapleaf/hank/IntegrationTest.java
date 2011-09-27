@@ -147,7 +147,7 @@ public class IntegrationTest extends ZkTestCase {
     }
 
     public void pleaseStop() throws Exception {
-      server.stop();
+      server.stopSynchronized();
     }
   }
 

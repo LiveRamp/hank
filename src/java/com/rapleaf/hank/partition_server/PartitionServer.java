@@ -34,7 +34,7 @@ import java.io.IOException;
 /**
  * The main class of the PartitionServer.
  */
-public class PartitionServer implements HostCommandQueueChangeListener {
+public class PartitionServer implements HostCommandQueueChangeListener, HostCurrentCommandChangeListener {
 
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
@@ -44,6 +44,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   private Thread dataServerThread;
   private TServer dataServer;
   private boolean stopping = false;
+  private boolean hasProcessedCommandOnStartup = false;
   private final PartitionServerAddress hostAddress;
   private final Host host;
 
@@ -67,12 +68,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       throw new RuntimeException("Could not get host configuration for host: " + hostAddress);
     }
     host.setCommandQueueChangeListener(this);
+    host.setCurrentCommandChangeListener(this);
   }
 
   public void run() throws IOException, InterruptedException {
-    setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+    setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
 
-    processCurrentCommand();
+    processCommandOnStartup();
     while (!stopping) {
       try {
         Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
@@ -91,16 +93,16 @@ public class PartitionServer implements HostCommandQueueChangeListener {
       updateThread.interrupt();
       updateThread.join(); // In case of interrupt exception, server will stop and state will be coherent.
     }
-    setState(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
+    setStateSynchronized(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
   }
 
   // Stop the partition server. Can be called from another thread.
-  public synchronized void stop() {
-    stopNotSynchronized();
+  public synchronized void stopSynchronized() {
+    stop();
   }
 
   // Stop the partition server
-  private void stopNotSynchronized() {
+  private void stop() {
     stopping = true;
   }
 
@@ -113,43 +115,73 @@ public class PartitionServer implements HostCommandQueueChangeListener {
   }
 
   @Override
-  public void onCommandQueueChange(Host host) {
-    processCurrentCommand();
-  }
-
-  private synchronized void processCurrentCommand() {
+  public synchronized void onCommandQueueChange(Host host) {
+    // Do not process anything when we have not yet tried to process a command when starting up.
+    if (!hasProcessedCommandOnStartup) {
+      return;
+    }
     try {
       HostCommand command = host.getCurrentCommand();
-      // If there is no current command, move on to the next one.
       if (command == null) {
-        command = host.nextCommand();
+        // When command queue changes, and current command is empty, move on to next command
+        host.nextCommand();
+      } else {
+        // A current command was already in place, we are still processing it. Do nothing.
       }
-      // If there is a command available, process it.
+    } catch (IOException e) {
+      LOG.error("Failed to move on to next command.", e);
+      stop();
+    }
+  }
+
+  @Override
+  public synchronized void onCurrentCommandChange(Host host) {
+    // Do not process anything when stopping
+    if (stopping) {
+      return;
+    }
+    try {
+      HostCommand command = host.getCurrentCommand();
       if (command != null) {
         processCommand(command, host.getState());
       }
     } catch (IOException e) {
       LOG.error("Failed to process current command.", e);
-      stopNotSynchronized();
+      stop();
     }
   }
 
-  private synchronized void setState(HostState state) throws IOException {
+  public synchronized void processCommandOnStartup() {
+    try {
+      HostCommand command = host.getCurrentCommand();
+      if (command != null) {
+        processCommand(command, host.getState());
+      } else {
+        host.nextCommand();
+      }
+    } catch (IOException e) {
+      LOG.error("Failed to process current command on startup.", e);
+      stop();
+    }
+    hasProcessedCommandOnStartup = true;
+  }
+
+  private synchronized void setStateSynchronized(HostState state) throws IOException {
     // In case of failure to set host state, stop the partition server and rethrow the exception.
     try {
       host.setState(state);
     } catch (IOException e) {
-      stopNotSynchronized();
+      stop();
       throw e;
     }
   }
 
-  private synchronized HostCommand nextCommand() throws IOException {
+  private synchronized HostCommand nextCommandSynchronized() throws IOException {
     // In case of failure to move on to next command, stop the partition server and rethrow the exception.
     try {
       return host.nextCommand();
     } catch (IOException e) {
-      stopNotSynchronized();
+      stop();
       throw e;
     }
   }
@@ -168,42 +200,42 @@ public class PartitionServer implements HostCommandQueueChangeListener {
     }
   }
 
-  private void processServeData(HostState state) throws IOException {
-    switch (state) {
-      case IDLE:
-        serveData();
-        setState(HostState.SERVING);  // In case of exception, server will stop and state will be coherent.
-        nextCommand(); // In case of exception, server will stop and state will be coherent.
-        break;
-      default:
-        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
-        nextCommand(); // In case of exception, server will stop and state will be coherent.
-    }
-  }
-
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
       case SERVING:
         stopServingData();
-        setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
-        nextCommand(); // In case of exception, server will stop and state will be coherent.
+        host.setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+        host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
         LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
-        nextCommand(); // In case of exception, server will stop and state will be coherent.
+        host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
 
   private void processExecuteUpdate(HostState state) throws IOException {
     switch (state) {
       case IDLE:
-        setState(HostState.UPDATING); // In case of exception, server will stop and state will be coherent.
+        host.setState(HostState.UPDATING); // In case of exception, server will stop and state will be coherent.
         executeUpdate();
         // Next command is set by the updater thread
         break;
       default:
         LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
-        nextCommand(); // In case of exception, server will stop and state will be coherent.
+        host.nextCommand(); // In case of exception, server will stop and state will be coherent.
+    }
+  }
+
+  private void processServeData(HostState state) throws IOException {
+    switch (state) {
+      case IDLE:
+        serveData();
+        host.setState(HostState.SERVING);  // In case of exception, server will stop and state will be coherent.
+        host.nextCommand(); // In case of exception, server will stop and state will be coherent.
+        break;
+      default:
+        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
+        host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
 
@@ -224,13 +256,13 @@ public class PartitionServer implements HostCommandQueueChangeListener {
         }
         // Go back to IDLE even in case of failure
         try {
-          setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+          setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
           LOG.fatal("Failed to record state change.", e);
         }
         // Move on to next command
         try {
-          nextCommand(); // In case of exception, server will stop and state will be coherent.
+          nextCommandSynchronized(); // In case of exception, server will stop and state will be coherent.
         } catch (IOException e) {
           LOG.fatal("Failed to move on to next command.", e);
         }
@@ -284,7 +316,7 @@ public class PartitionServer implements HostCommandQueueChangeListener {
           // Data server is probably going down unexpectedly, stop the partition server
           LOG.fatal("Data server thread encountered a fatal exception and is stopping.", e);
           // Stop partition server main thread
-          stop();
+          stopSynchronized();
         }
       }
     };

@@ -111,6 +111,14 @@ public interface Host extends Comparable<Host> {
   public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) throws IOException;
 
   /**
+   * The listener will be notified when there are changes to this host's current command
+   *
+   * @param listener
+   * @throws IOException
+   */
+  public void setCurrentCommandChangeListener(HostCurrentCommandChangeListener listener) throws IOException;
+
+  /**
    * Get the HostDomainConfigs for the domains assigned to this host.
    *
    * @return

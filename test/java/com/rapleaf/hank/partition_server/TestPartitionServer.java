@@ -56,12 +56,7 @@ public class TestPartitionServer extends BaseTestCase {
     final MockHost failingNextCommandHost = new MockHost(new PartitionServerAddress("localhost", PORT_3)) {
       @Override
       public HostCommand nextCommand() throws IOException {
-        HostCommand command = super.nextCommand();
-        if (command == HostCommand.SERVE_DATA) {
-          throw new IOException("Failure to move on to next command.");
-        } else {
-          return command;
-        }
+        throw new IOException("Failure to move on to next command.");
       }
     };
 
@@ -70,10 +65,13 @@ public class TestPartitionServer extends BaseTestCase {
       public Host getHostByAddress(PartitionServerAddress address) {
         switch (address.getPortNumber()) {
           case PORT_1:
+            // Mock Host
             return host;
           case PORT_2:
+            // Failing setState() Host
             return failingSetStateHost;
           case PORT_3:
+            // Failing nextCommand() Host
             return failingNextCommandHost;
           default:
             throw new RuntimeException("Unknown host.");
@@ -171,15 +169,12 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.SERVE_DATA);
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.SERVING, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.GO_TO_IDLE);
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.UPDATING, fixtures.host.getState());
 
     Thread.sleep(1500);
@@ -188,7 +183,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertNull("Current command cleared", fixtures.host.getCurrentCommand());
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
-    partitionServer.stop();
+    partitionServer.stopSynchronized();
 
     thread.join();
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
@@ -212,25 +207,18 @@ public class TestPartitionServer extends BaseTestCase {
 
     thread.start();
     Thread.sleep(2000);
-    assertEquals(HostState.SERVING, fixtures.host.getState());
 
-    partitionServer.onCommandQueueChange(fixtures.host);
-    assertEquals(HostState.IDLE, fixtures.host.getState());
-
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.UPDATING, fixtures.host.getState());
 
-    Thread.sleep(1500);
     assertTrue("Update called", updateManager.updateCalled);
 
-    assertEquals(HostState.IDLE, fixtures.host.getState());
+    Thread.sleep(1500);
 
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.SERVING, fixtures.host.getState());
 
     assertNull("Current command cleared", fixtures.host.getCurrentCommand());
 
-    partitionServer.stop();
+    partitionServer.stopSynchronized();
 
     thread.join();
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
@@ -251,7 +239,6 @@ public class TestPartitionServer extends BaseTestCase {
     Thread.sleep(1000);
     assertEquals(HostState.IDLE, fixtures.host.getState());
     fixtures.host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
-    partitionServer.onCommandQueueChange(fixtures.host);
     assertEquals(HostState.UPDATING, fixtures.host.getState());
     Thread.sleep(1500);
     assertEquals(HostState.IDLE, fixtures.host.getState());
@@ -268,7 +255,6 @@ public class TestPartitionServer extends BaseTestCase {
     Thread.sleep(1000);
     assertEquals(HostState.IDLE, fixtures.failingSetStateHost.getState());
     fixtures.failingSetStateHost.enqueueCommand(HostCommand.SERVE_DATA);
-    partitionServer.onCommandQueueChange(fixtures.failingSetStateHost);
     Thread.sleep(1500);
     assertEquals("Went OFFLINE after failed state update.", HostState.OFFLINE, fixtures.failingSetStateHost.getState());
   }
@@ -278,10 +264,7 @@ public class TestPartitionServer extends BaseTestCase {
     Thread thread = createPartitionServerThread(partitionServer);
     thread.start();
     Thread.sleep(1000);
-    assertEquals(HostState.IDLE, fixtures.failingNextCommandHost.getState());
-    fixtures.failingNextCommandHost.enqueueCommand(HostCommand.SERVE_DATA);
-    partitionServer.onCommandQueueChange(fixtures.failingNextCommandHost);
-    Thread.sleep(1500);
+    assertEquals(HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
     assertEquals("Went OFFLINE after failed next command.", HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
   }
 
@@ -293,7 +276,8 @@ public class TestPartitionServer extends BaseTestCase {
         try {
           partitionServer.run();
         } catch (Exception e) {
-          fail("Exception! " + e);
+          e.printStackTrace();
+          fail("Exception!");
         }
       }
     };
