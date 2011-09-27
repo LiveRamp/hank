@@ -123,6 +123,15 @@ public interface Ring extends Comparable<Ring> {
   public boolean removeHost(PartitionServerAddress address) throws IOException;
 
   /**
+   * Return true if each partition in the given domain group version is assigned to at least one host
+   *
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
+  public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException;
+
+  /**
    * Get the set of partition IDs that are not currently assigned to a host.
    *
    * @param domain

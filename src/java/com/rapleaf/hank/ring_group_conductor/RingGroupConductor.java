@@ -25,7 +25,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 
-public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
+public class  RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
   private final RingGroupConductorConfigurator configurator;

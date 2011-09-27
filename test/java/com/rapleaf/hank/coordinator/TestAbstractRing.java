@@ -1,13 +1,13 @@
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
@@ -156,5 +156,142 @@ public class TestAbstractRing extends BaseTestCase {
     assertEquals(Collections.singleton(h1), rc.getHostsInState(HostState.IDLE));
     assertEquals(Collections.singleton(h2), rc.getHostsInState(HostState.SERVING));
     assertEquals(Collections.singleton(h3), rc.getHostsInState(HostState.OFFLINE));
+  }
+
+  public void testIsAssigned() throws Exception {
+
+    class LocalMockDomainGroupVersion extends MockDomainGroupVersion {
+      public LocalMockDomainGroupVersion(Set<DomainGroupVersionDomainVersion> domainVersions) {
+        super(domainVersions, null, 0);
+      }
+    }
+
+    class LocalMockHost extends MockHost {
+      HostDomain hostDomain;
+
+      public LocalMockHost() {
+        super(null);
+        this.hostDomain = null;
+      }
+
+      public void setHostDomain(HostDomain hostDomain) {
+        this.hostDomain = hostDomain;
+      }
+
+      public void clearHostDomain() {
+        this.hostDomain = null;
+      }
+
+      @Override
+      public HostDomain getHostDomain(Domain domain) {
+        if (this.hostDomain != null && this.hostDomain.getDomain().getName().equals(domain.getName())) {
+          return hostDomain;
+        } else {
+          return null;
+        }
+      }
+    }
+
+    class LocalMockDomain extends MockDomain {
+      public LocalMockDomain(String name, int numParts) {
+        super(name, 0, numParts, null, null, null, null);
+      }
+    }
+
+    class LocalMockHostDomain extends MockHostDomain {
+
+      private Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
+
+      public LocalMockHostDomain(Domain domain, int... assignedPartitions) {
+        super(domain);
+        for (int partition : assignedPartitions) {
+          partitions.add(new MockHostDomainPartition(partition, 0, 0));
+        }
+      }
+
+      @Override
+      public Set<HostDomainPartition> getPartitions() {
+        return partitions;
+      }
+    }
+
+    final LocalMockHost h1 = new LocalMockHost();
+    final LocalMockHost h2 = new LocalMockHost();
+
+    MockRing r = new MockRing(null, null, 0, null) {
+      Set<Host> hosts = new HashSet<Host>() {{
+        add(h1);
+        add(h2);
+      }};
+
+      @Override
+      public Set<Host> getHosts() {
+        return hosts;
+      }
+    };
+
+    final MockDomain d1 = new LocalMockDomain("d1", 1);
+    final MockDomain d2 = new LocalMockDomain("d2", 3);
+    final MockDomain d3 = new LocalMockDomain("d3", 3);
+
+    DomainGroupVersion dgvEmpty = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>());
+    DomainGroupVersion dgv1 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
+      add(new MockDomainGroupVersionDomainVersion(d1, 0));
+    }});
+
+    DomainGroupVersion dgv2 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
+      add(new MockDomainGroupVersionDomainVersion(d1, 0));
+      add(new MockDomainGroupVersionDomainVersion(d2, 0));
+    }});
+
+    DomainGroupVersion dgv3 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
+      add(new MockDomainGroupVersionDomainVersion(d3, 0));
+    }});
+
+    // Test empty DomainGroupVersion
+    assertEquals(true, r.isAssigned(dgvEmpty));
+
+    // Test DomainGroupVersion with one domain
+    h1.clearHostDomain();
+    h2.clearHostDomain();
+    assertEquals(false, r.isAssigned(dgv1));
+    h1.setHostDomain(new LocalMockHostDomain(d1));
+    assertEquals(false, r.isAssigned(dgv1));
+    h1.setHostDomain(new LocalMockHostDomain(d1, 0));
+    assertEquals(true, r.isAssigned(dgv1));
+
+    // Test DomainGroupVersion with multiple domains
+    h1.clearHostDomain();
+    h2.clearHostDomain();
+    assertEquals(false, r.isAssigned(dgv2));
+    h1.setHostDomain(new LocalMockHostDomain(d1, 0));
+    h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1));
+    assertEquals(false, r.isAssigned(dgv2));
+    h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1, 2));
+    assertEquals(true, r.isAssigned(dgv2));
+
+    // Test DomainGroupVersion with one domain on multiple hosts
+    h1.clearHostDomain();
+    h2.clearHostDomain();
+    assertEquals(false, r.isAssigned(dgv3));
+    h1.setHostDomain(new LocalMockHostDomain(d3, 0));
+    assertEquals(false, r.isAssigned(dgv3));
+    h2.setHostDomain(new LocalMockHostDomain(d3, 1));
+    assertEquals(false, r.isAssigned(dgv3));
+    h1.setHostDomain(new LocalMockHostDomain(d3, 0, 2));
+    assertEquals(true, r.isAssigned(dgv3));
+
+    // Test DomainGroupVersion with one domain on multiple hosts with repeated partitions
+    h1.clearHostDomain();
+    h2.clearHostDomain();
+    assertEquals(false, r.isAssigned(dgv3));
+    h1.setHostDomain(new LocalMockHostDomain(d3, 0));
+    assertEquals(false, r.isAssigned(dgv3));
+    h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
+    h2.setHostDomain(new LocalMockHostDomain(d3, 1));
+    assertEquals(false, r.isAssigned(dgv3));
+    h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1, 2));
+    h2.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
+    assertEquals(true, r.isAssigned(dgv3));
   }
 }
