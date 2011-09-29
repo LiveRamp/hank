@@ -36,4 +36,6 @@ public interface IFileOps {
    * @throws IOException
    */
   public void copyToLocal(String fileName) throws IOException;
+
+  public boolean attemptDeleteRemote(String path);
 }

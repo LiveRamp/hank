@@ -37,6 +37,12 @@ public class TestFetcher extends BaseTestCase {
     public List<String> listFiles() throws IOException {
       return Arrays.asList("x", "y", "z");
     }
+
+    @Override
+    public boolean attemptDeleteRemote(String path) {
+      // TODO Auto-generated method stub
+      return false;
+    }
   }
 
   private class MFS implements IFileSelector {

@@ -74,4 +74,14 @@ public class LocalFileOps implements IFileOps {
     }
     return fullPaths;
   }
+
+  @Override
+  public boolean attemptDeleteRemote(String path) {
+    // TODO: test this
+    final File file = new File(path);
+    if (file.exists()) {
+      return file.delete();
+    }
+    return false;
+  }
 }
