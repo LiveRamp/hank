@@ -18,8 +18,12 @@ package com.rapleaf.hank.storage.mock;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import org.apache.commons.lang.NotImplementedException;
+
+import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.DomainVersionCleaner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -56,5 +60,10 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
     return null;
+  }
+
+  @Override
+  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
+    throw new NotImplementedException();
   }
 }

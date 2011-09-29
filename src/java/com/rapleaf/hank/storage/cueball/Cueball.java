@@ -15,21 +15,37 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.*;
-import com.rapleaf.hank.util.FsUtils;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.NotImplementedException;
+
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.hasher.Hasher;
+import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.storage.Updater;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.FsUtils;
 
 /**
  * Cueball is a storage engine optimized for small, fixed-size values.
@@ -219,5 +235,10 @@ public class Cueball implements StorageEngine {
         + ", hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
         + ", keyHashSize=" + keyHashSize + ", remoteDomainRoot="
         + remoteDomainRoot + ", valueSize=" + valueSize + "]";
+  }
+
+  @Override
+  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
+    throw new NotImplementedException();
   }
 }

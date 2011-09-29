@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
+import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.DomainVersionCleaner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -72,6 +74,11 @@ public class ConstantStorageEngine implements StorageEngine {
 
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
     throw new UnsupportedOperationException();
   }
 }

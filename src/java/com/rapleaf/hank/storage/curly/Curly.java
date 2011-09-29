@@ -31,12 +31,16 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.DomainVersionCleaner;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -276,5 +280,10 @@ public class Curly implements StorageEngine {
         + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
         + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
         + "]";
+  }
+
+  @Override
+  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
+    throw new NotImplementedException();
   }
 }
