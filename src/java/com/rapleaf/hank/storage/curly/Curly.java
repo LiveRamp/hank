@@ -31,8 +31,6 @@ import java.util.SortedSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
@@ -284,6 +282,6 @@ public class Curly implements StorageEngine {
 
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
-    throw new NotImplementedException();
+    return new CurlyDomainVersionCleaner(remoteDomainRoot, fileOpsFactory.getFileOps(null, remoteDomainRoot));
   }
 }

@@ -5,8 +5,8 @@ import java.io.IOException;
 import com.rapleaf.hank.storage.DomainVersionCleaner;
 
 public class CueballDomainVersionCleaner implements DomainVersionCleaner {
-  private final IFileOps fs;
-  private final String domainVersionsRoot;
+  protected final IFileOps fs;
+  protected final String domainVersionsRoot;
 
   public CueballDomainVersionCleaner(String domainVersionsRoot, IFileOps fs) {
     this.domainVersionsRoot = domainVersionsRoot;
