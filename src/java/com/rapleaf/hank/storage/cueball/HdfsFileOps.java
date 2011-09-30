@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -57,7 +56,12 @@ public class HdfsFileOps implements IFileOps {
   }
 
   @Override
-  public boolean attemptDeleteRemote(String path) {
-    throw new NotImplementedException();
+  public boolean attemptDeleteRemote(String path) throws IOException {
+    Path p = new Path(path);
+    if (fs.exists(p)) {
+      fs.delete(p, false);
+      return true;
+    } 
+    return false;
   }
 }

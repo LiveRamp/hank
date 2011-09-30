@@ -37,5 +37,5 @@ public interface IFileOps {
    */
   public void copyToLocal(String fileName) throws IOException;
 
-  public boolean attemptDeleteRemote(String path);
+  public boolean attemptDeleteRemote(String path) throws IOException;
 }

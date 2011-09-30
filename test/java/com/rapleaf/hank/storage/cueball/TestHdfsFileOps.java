@@ -16,7 +16,8 @@ public class TestHdfsFileOps extends BaseTestCase {
 
   public void testListFiles() throws Exception {
     HdfsFileOps hdfsFileOps = new HdfsFileOps(localTmpDir, ROOT);
-    assertEquals(new HashSet<String>(Arrays.asList(ROOT + "/file1.txt", ROOT + "/file2.txt")), new HashSet<String>(hdfsFileOps.listFiles()));
+    assertEquals(new HashSet<String>(Arrays.asList(ROOT + "/file1.txt", ROOT + "/file2.txt")),
+      new HashSet<String>(hdfsFileOps.listFiles()));
   }
 
   public void testCopyToLocal() throws Exception {
@@ -24,6 +25,16 @@ public class TestHdfsFileOps extends BaseTestCase {
     HdfsFileOps hdfsFileOps = new HdfsFileOps(localTmpDir, ROOT);
     hdfsFileOps.copyToLocal(ROOT + "/file1.txt");
     assertTrue(new File(localTmpDir + "/file1.txt").exists());
+  }
+
+  public void testAttemptDeleteRemote() throws Exception {
+    HdfsFileOps hdfsFileOps = new HdfsFileOps(localTmpDir, ROOT);
+    assertTrue(fs.exists(new Path(ROOT, "file1.txt")));
+    assertTrue(hdfsFileOps.attemptDeleteRemote(ROOT + "/file1.txt"));
+    assertFalse(fs.exists(new Path(ROOT, "file1.txt")));
+
+    assertFalse(fs.exists(new Path(ROOT, "file3.txt")));
+    assertFalse(hdfsFileOps.attemptDeleteRemote(ROOT + "/file3.txt"));
   }
 
   @Override
