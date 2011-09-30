@@ -52,7 +52,7 @@ import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
-import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
@@ -280,12 +280,12 @@ public class ZkTestCase extends BaseTestCase {
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final Domain d0 = coord.addDomain("domain0", 1024, Curly.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
+    final Domain d0 = coord.addDomain("domain0", 1024, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
     DomainVersion ver = d0.openNewVersion();
     ver.close();
     ver = d0.openNewVersion();
     ver.addPartitionInfo(0, 1024, 55);
-    final Domain d1 = coord.addDomain("domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    final Domain d1 = coord.addDomain("domain1", 1024, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     ver = d1.openNewVersion();
     dumpZk();
     ver.addPartitionInfo(0, 1024, 55);

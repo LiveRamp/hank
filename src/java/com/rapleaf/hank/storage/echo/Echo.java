@@ -61,6 +61,10 @@ public class Echo implements StorageEngine {
 
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
-    throw new UnsupportedOperationException();
+    return new DomainVersionCleaner() {
+      @Override
+      public void cleanVersion(int versionNumber, int numParts) throws IOException {
+      }
+    };
   }
 }

@@ -81,6 +81,16 @@ public class DomainController extends Controller {
         doUpdateDomain(req, resp);
       }
     });
+    actions.put("cleanup", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        domain.getStorageEngine().getDomainVersionCleaner(null).cleanVersion(Integer.parseInt(req.getParameter("ver")), domain.getNumParts());
+        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        domainVersion.setDefunct(true);
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {

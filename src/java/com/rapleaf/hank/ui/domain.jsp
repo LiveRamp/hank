@@ -160,6 +160,15 @@
           onclick="return confirm('Are you sure you want to close this version? This can have adverse effects if done prematurely.');" />
       </form>
       <% } %>
+
+      <% if (version.isClosed() && !version.isDefunct()) { %>
+      <form action="/domain/cleanup" method="post">
+        <input type=hidden name="n" value="<%= domain.getName() %>" />
+        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
+        <input type=submit value="delete from remote storage"
+          onclick="return confirm('Are you sure you want to delete this version from remote storage? This action cannot be undone!');"/>
+      </form>
+      <% } %>
     </td>
   </tr>
   <% } %>
