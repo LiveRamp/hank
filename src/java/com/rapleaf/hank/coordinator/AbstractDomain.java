@@ -40,6 +40,9 @@ public abstract class AbstractDomain implements Domain {
   public long getTotalNumBytes() throws IOException {
     long total = 0;
     for (DomainVersion version : getVersions()) {
+      if (version.isDefunct()) {
+        continue;
+      }
       total += version.getTotalNumBytes();
     }
     return total;
