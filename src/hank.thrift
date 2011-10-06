@@ -17,6 +17,9 @@ union HankException {
 union HankBulkException {
   /** The domain passed in the request does not correspond to a valid domain */
   1: bool no_such_domain;
+
+  /** There was some internal error in the server. This is pretty bad. */
+  2: string internal_error;
 }
 
 union HankResponse {

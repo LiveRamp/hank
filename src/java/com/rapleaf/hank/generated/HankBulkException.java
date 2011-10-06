@@ -23,13 +23,18 @@ import org.slf4j.LoggerFactory;
 public class HankBulkException extends org.apache.thrift.TUnion<HankBulkException, HankBulkException._Fields> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HankBulkException");
   private static final org.apache.thrift.protocol.TField NO_SUCH_DOMAIN_FIELD_DESC = new org.apache.thrift.protocol.TField("no_such_domain", org.apache.thrift.protocol.TType.BOOL, (short)1);
+  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.STRING, (short)2);
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     /**
      * The domain passed in the request does not correspond to a valid domain
      */
-    NO_SUCH_DOMAIN((short)1, "no_such_domain");
+    NO_SUCH_DOMAIN((short)1, "no_such_domain"),
+    /**
+     * There was some internal error in the server. This is pretty bad.
+     */
+    INTERNAL_ERROR((short)2, "internal_error");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -46,6 +51,8 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
       switch(fieldId) {
         case 1: // NO_SUCH_DOMAIN
           return NO_SUCH_DOMAIN;
+        case 2: // INTERNAL_ERROR
+          return INTERNAL_ERROR;
         default:
           return null;
       }
@@ -90,6 +97,8 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.NO_SUCH_DOMAIN, new org.apache.thrift.meta_data.FieldMetaData("no_such_domain", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.INTERNAL_ERROR, new org.apache.thrift.meta_data.FieldMetaData("internal_error", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankBulkException.class, metaDataMap);
   }
@@ -115,6 +124,12 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
     return x;
   }
 
+  public static HankBulkException internal_error(String value) {
+    HankBulkException x = new HankBulkException();
+    x.setInternal_error(value);
+    return x;
+  }
+
 
   @Override
   protected void checkType(_Fields setField, Object value) throws ClassCastException {
@@ -124,6 +139,11 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
           break;
         }
         throw new ClassCastException("Was expecting value of type Boolean for field 'no_such_domain', but got " + value.getClass().getSimpleName());
+      case INTERNAL_ERROR:
+        if (value instanceof String) {
+          break;
+        }
+        throw new ClassCastException("Was expecting value of type String for field 'internal_error', but got " + value.getClass().getSimpleName());
       default:
         throw new IllegalArgumentException("Unknown field id " + setField);
     }
@@ -139,6 +159,15 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
             Boolean no_such_domain;
             no_such_domain = iprot.readBool();
             return no_such_domain;
+          } else {
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            return null;
+          }
+        case INTERNAL_ERROR:
+          if (field.type == INTERNAL_ERROR_FIELD_DESC.type) {
+            String internal_error;
+            internal_error = iprot.readString();
+            return internal_error;
           } else {
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
@@ -159,6 +188,10 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
         Boolean no_such_domain = (Boolean)value_;
         oprot.writeBool(no_such_domain);
         return;
+      case INTERNAL_ERROR:
+        String internal_error = (String)value_;
+        oprot.writeString(internal_error);
+        return;
       default:
         throw new IllegalStateException("Cannot write union with unknown field " + setField_);
     }
@@ -169,6 +202,8 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
     switch (setField) {
       case NO_SUCH_DOMAIN:
         return NO_SUCH_DOMAIN_FIELD_DESC;
+      case INTERNAL_ERROR:
+        return INTERNAL_ERROR_FIELD_DESC;
       default:
         throw new IllegalArgumentException("Unknown field id " + setField);
     }
@@ -208,8 +243,33 @@ public class HankBulkException extends org.apache.thrift.TUnion<HankBulkExceptio
     value_ = value;
   }
 
+  /**
+   * There was some internal error in the server. This is pretty bad.
+   */
+  public String getInternal_error() {
+    if (getSetField() == _Fields.INTERNAL_ERROR) {
+      return (String)getFieldValue();
+    } else {
+      throw new RuntimeException("Cannot get field 'internal_error' because union is currently set to " + getFieldDesc(getSetField()).name);
+    }
+  }
+
+  /**
+   * There was some internal error in the server. This is pretty bad.
+   */
+  public void setInternal_error(String value) {
+    if (value == null) throw new NullPointerException();
+    setField_ = _Fields.INTERNAL_ERROR;
+    value_ = value;
+  }
+
   public boolean isSetNo_such_domain() {
     return setField_ == _Fields.NO_SUCH_DOMAIN;
+  }
+
+
+  public boolean isSetInternal_error() {
+    return setField_ == _Fields.INTERNAL_ERROR;
   }
 
 
