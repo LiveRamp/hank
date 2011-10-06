@@ -8,6 +8,7 @@
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
+<%@page import="org.apache.thrift.*"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%!
 public List<Ring> sortedRcs(Collection<Ring> rcs) {
@@ -178,7 +179,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <div style="font-weight:bold; color:green">Found</div>
 
           <%
-          ByteBuffer valueBuffer = hankResponse.buffer_for_value();
+          ByteBuffer valueBuffer = hankResponse.bufferForValue();
           String valueString = Bytes.bytesToHexString(valueBuffer);
           String[] valueStrings = valueString.split(" ");
           %>
