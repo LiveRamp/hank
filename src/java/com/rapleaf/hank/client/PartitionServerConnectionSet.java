@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import org.apache.log4j.Logger;
@@ -35,6 +36,18 @@ public class PartitionServerConnectionSet {
   private final AtomicInteger nextIdx = new AtomicInteger(0);
 
   public PartitionServerConnectionSet(List<PartitionServerConnection> connections) {
+    // Check that all connections are compatible
+    Host host = null;
+    for (PartitionServerConnection connection : connections) {
+      if (host == null) {
+        host = connection.getHost();
+      } else {
+        if (!host.equals(connection.getHost())) {
+          throw new RuntimeException("Tried to create a partition server connection set with" +
+              " connections to multiple hosts.");
+        }
+      }
+    }
     this.connections.addAll(connections);
   }
 
