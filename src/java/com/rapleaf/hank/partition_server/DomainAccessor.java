@@ -15,22 +15,20 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Class that manages accessing data on behalf of a particular Domain.
  */
 class DomainAccessor {
 
-  private static final HankResponse WRONG_HOST = HankResponse
-      .xception(HankExceptions.wrong_host(true));
+  private static final HankResponse WRONG_HOST = HankResponse.xception(HankException.wrong_host(true));
 
   private static final Logger LOG = Logger.getLogger(DomainAccessor.class);
   private final Partitioner partitioner;

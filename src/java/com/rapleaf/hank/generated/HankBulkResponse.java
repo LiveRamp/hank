@@ -20,17 +20,15 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankResponse._Fields> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HankResponse");
-  private static final org.apache.thrift.protocol.TField NOT_FOUND_FIELD_DESC = new org.apache.thrift.protocol.TField("not_found", org.apache.thrift.protocol.TType.BOOL, (short)1);
-  private static final org.apache.thrift.protocol.TField VALUE_FIELD_DESC = new org.apache.thrift.protocol.TField("value", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField XCEPTION_FIELD_DESC = new org.apache.thrift.protocol.TField("xception", org.apache.thrift.protocol.TType.STRUCT, (short)3);
+public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse, HankBulkResponse._Fields> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HankBulkResponse");
+  private static final org.apache.thrift.protocol.TField RESPONSES_FIELD_DESC = new org.apache.thrift.protocol.TField("responses", org.apache.thrift.protocol.TType.LIST, (short)1);
+  private static final org.apache.thrift.protocol.TField XCEPTION_FIELD_DESC = new org.apache.thrift.protocol.TField("xception", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    NOT_FOUND((short)1, "not_found"),
-    VALUE((short)2, "value"),
-    XCEPTION((short)3, "xception");
+    RESPONSES((short)1, "responses"),
+    XCEPTION((short)2, "xception");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -45,11 +43,9 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // NOT_FOUND
-          return NOT_FOUND;
-        case 2: // VALUE
-          return VALUE;
-        case 3: // XCEPTION
+        case 1: // RESPONSES
+          return RESPONSES;
+        case 2: // XCEPTION
           return XCEPTION;
         default:
           return null;
@@ -93,51 +89,38 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NOT_FOUND, new org.apache.thrift.meta_data.FieldMetaData("not_found", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.VALUE, new org.apache.thrift.meta_data.FieldMetaData("value", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
+    tmpMap.put(_Fields.RESPONSES, new org.apache.thrift.meta_data.FieldMetaData("responses", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankResponse.class))));
     tmpMap.put(_Fields.XCEPTION, new org.apache.thrift.meta_data.FieldMetaData("xception", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankException.class)));
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankBulkException.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankResponse.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankBulkResponse.class, metaDataMap);
   }
 
-  public HankResponse() {
+  public HankBulkResponse() {
     super();
   }
 
-  public HankResponse(_Fields setField, Object value) {
+  public HankBulkResponse(_Fields setField, Object value) {
     super(setField, value);
   }
 
-  public HankResponse(HankResponse other) {
+  public HankBulkResponse(HankBulkResponse other) {
     super(other);
   }
-  public HankResponse deepCopy() {
-    return new HankResponse(this);
+  public HankBulkResponse deepCopy() {
+    return new HankBulkResponse(this);
   }
 
-  public static HankResponse not_found(boolean value) {
-    HankResponse x = new HankResponse();
-    x.setNot_found(value);
+  public static HankBulkResponse responses(List<HankResponse> value) {
+    HankBulkResponse x = new HankBulkResponse();
+    x.setResponses(value);
     return x;
   }
 
-  public static HankResponse value(ByteBuffer value) {
-    HankResponse x = new HankResponse();
-    x.setValue(value);
-    return x;
-  }
-
-  public static HankResponse value(byte[] value) {
-    HankResponse x = new HankResponse();
-    x.setValue(ByteBuffer.wrap(value));
-    return x;
-  }
-
-  public static HankResponse xception(HankException value) {
-    HankResponse x = new HankResponse();
+  public static HankBulkResponse xception(HankBulkException value) {
+    HankBulkResponse x = new HankBulkResponse();
     x.setXception(value);
     return x;
   }
@@ -146,21 +129,16 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   @Override
   protected void checkType(_Fields setField, Object value) throws ClassCastException {
     switch (setField) {
-      case NOT_FOUND:
-        if (value instanceof Boolean) {
+      case RESPONSES:
+        if (value instanceof List) {
           break;
         }
-        throw new ClassCastException("Was expecting value of type Boolean for field 'not_found', but got " + value.getClass().getSimpleName());
-      case VALUE:
-        if (value instanceof ByteBuffer) {
-          break;
-        }
-        throw new ClassCastException("Was expecting value of type ByteBuffer for field 'value', but got " + value.getClass().getSimpleName());
+        throw new ClassCastException("Was expecting value of type List<HankResponse> for field 'responses', but got " + value.getClass().getSimpleName());
       case XCEPTION:
-        if (value instanceof HankException) {
+        if (value instanceof HankBulkException) {
           break;
         }
-        throw new ClassCastException("Was expecting value of type HankException for field 'xception', but got " + value.getClass().getSimpleName());
+        throw new ClassCastException("Was expecting value of type HankBulkException for field 'xception', but got " + value.getClass().getSimpleName());
       default:
         throw new IllegalArgumentException("Unknown field id " + setField);
     }
@@ -171,28 +149,30 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
     _Fields setField = _Fields.findByThriftId(field.id);
     if (setField != null) {
       switch (setField) {
-        case NOT_FOUND:
-          if (field.type == NOT_FOUND_FIELD_DESC.type) {
-            Boolean not_found;
-            not_found = iprot.readBool();
-            return not_found;
-          } else {
-            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
-            return null;
-          }
-        case VALUE:
-          if (field.type == VALUE_FIELD_DESC.type) {
-            ByteBuffer value;
-            value = iprot.readBinary();
-            return value;
+        case RESPONSES:
+          if (field.type == RESPONSES_FIELD_DESC.type) {
+            List<HankResponse> responses;
+            {
+              org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
+              responses = new ArrayList<HankResponse>(_list0.size);
+              for (int _i1 = 0; _i1 < _list0.size; ++_i1)
+              {
+                HankResponse _elem2; // required
+                _elem2 = new HankResponse();
+                _elem2.read(iprot);
+                responses.add(_elem2);
+              }
+              iprot.readListEnd();
+            }
+            return responses;
           } else {
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
         case XCEPTION:
           if (field.type == XCEPTION_FIELD_DESC.type) {
-            HankException xception;
-            xception = new HankException();
+            HankBulkException xception;
+            xception = new HankBulkException();
             xception.read(iprot);
             return xception;
           } else {
@@ -211,16 +191,19 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   @Override
   protected void writeValue(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
     switch (setField_) {
-      case NOT_FOUND:
-        Boolean not_found = (Boolean)value_;
-        oprot.writeBool(not_found);
-        return;
-      case VALUE:
-        ByteBuffer value = (ByteBuffer)value_;
-        oprot.writeBinary(value);
+      case RESPONSES:
+        List<HankResponse> responses = (List<HankResponse>)value_;
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, responses.size()));
+          for (HankResponse _iter3 : responses)
+          {
+            _iter3.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
         return;
       case XCEPTION:
-        HankException xception = (HankException)value_;
+        HankBulkException xception = (HankBulkException)value_;
         xception.write(oprot);
         return;
       default:
@@ -231,10 +214,8 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   @Override
   protected org.apache.thrift.protocol.TField getFieldDesc(_Fields setField) {
     switch (setField) {
-      case NOT_FOUND:
-        return NOT_FOUND_FIELD_DESC;
-      case VALUE:
-        return VALUE_FIELD_DESC;
+      case RESPONSES:
+        return RESPONSES_FIELD_DESC;
       case XCEPTION:
         return XCEPTION_FIELD_DESC;
       default:
@@ -257,64 +238,36 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   }
 
 
-  public boolean getNot_found() {
-    if (getSetField() == _Fields.NOT_FOUND) {
-      return (Boolean)getFieldValue();
+  public List<HankResponse> getResponses() {
+    if (getSetField() == _Fields.RESPONSES) {
+      return (List<HankResponse>)getFieldValue();
     } else {
-      throw new RuntimeException("Cannot get field 'not_found' because union is currently set to " + getFieldDesc(getSetField()).name);
+      throw new RuntimeException("Cannot get field 'responses' because union is currently set to " + getFieldDesc(getSetField()).name);
     }
   }
 
-  public void setNot_found(boolean value) {
-    setField_ = _Fields.NOT_FOUND;
-    value_ = value;
-  }
-
-  public byte[] getValue() {
-    setValue(org.apache.thrift.TBaseHelper.rightSize(bufferForValue()));
-    ByteBuffer b = bufferForValue();
-    return b == null ? null : b.array();
-  }
-
-  public ByteBuffer bufferForValue() {
-    if (getSetField() == _Fields.VALUE) {
-      return (ByteBuffer)getFieldValue();
-    } else {
-      throw new RuntimeException("Cannot get field 'value' because union is currently set to " + getFieldDesc(getSetField()).name);
-    }
-  }
-
-  public void setValue(byte[] value) {
-    setValue(ByteBuffer.wrap(value));
-  }
-
-  public void setValue(ByteBuffer value) {
+  public void setResponses(List<HankResponse> value) {
     if (value == null) throw new NullPointerException();
-    setField_ = _Fields.VALUE;
+    setField_ = _Fields.RESPONSES;
     value_ = value;
   }
 
-  public HankException getXception() {
+  public HankBulkException getXception() {
     if (getSetField() == _Fields.XCEPTION) {
-      return (HankException)getFieldValue();
+      return (HankBulkException)getFieldValue();
     } else {
       throw new RuntimeException("Cannot get field 'xception' because union is currently set to " + getFieldDesc(getSetField()).name);
     }
   }
 
-  public void setXception(HankException value) {
+  public void setXception(HankBulkException value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.XCEPTION;
     value_ = value;
   }
 
-  public boolean isSetNot_found() {
-    return setField_ == _Fields.NOT_FOUND;
-  }
-
-
-  public boolean isSetValue() {
-    return setField_ == _Fields.VALUE;
+  public boolean isSetResponses() {
+    return setField_ == _Fields.RESPONSES;
   }
 
 
@@ -324,19 +277,19 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
 
 
   public boolean equals(Object other) {
-    if (other instanceof HankResponse) {
-      return equals((HankResponse)other);
+    if (other instanceof HankBulkResponse) {
+      return equals((HankBulkResponse)other);
     } else {
       return false;
     }
   }
 
-  public boolean equals(HankResponse other) {
+  public boolean equals(HankBulkResponse other) {
     return other != null && getSetField() == other.getSetField() && getFieldValue().equals(other.getFieldValue());
   }
 
   @Override
-  public int compareTo(HankResponse other) {
+  public int compareTo(HankBulkResponse other) {
     int lastComparison = org.apache.thrift.TBaseHelper.compareTo(getSetField(), other.getSetField());
     if (lastComparison == 0) {
       return org.apache.thrift.TBaseHelper.compareTo(getFieldValue(), other.getFieldValue());

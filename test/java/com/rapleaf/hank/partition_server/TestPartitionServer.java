@@ -19,11 +19,13 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 
 public class TestPartitionServer extends BaseTestCase {
 
@@ -109,6 +111,11 @@ public class TestPartitionServer extends BaseTestCase {
       return new IfaceWithShutdown() {
         @Override
         public HankResponse get(int domainId, ByteBuffer key) throws TException {
+          return null;
+        }
+
+        @Override
+        public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
           return null;
         }
 

@@ -15,20 +15,19 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.generated.HankException;
+import com.rapleaf.hank.generated.HankResponse;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
-import com.rapleaf.hank.generated.HankExceptions;
-import com.rapleaf.hank.generated.HankResponse;
-
 public class PartitionServerConnectionSet {
-  private static final HankResponse ZERO_REPLICAS = HankResponse.xception(HankExceptions.zero_replicas(true));
+  private static final HankResponse ZERO_REPLICAS = HankResponse.xception(HankException.zero_replicas(true));
 
   private static final Logger LOG = Logger.getLogger(PartitionServerConnectionSet.class);
 

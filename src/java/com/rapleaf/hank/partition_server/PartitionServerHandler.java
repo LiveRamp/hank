@@ -17,16 +17,19 @@ package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankBulkResponse;
+import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,8 +37,7 @@ import java.util.Set;
  */
 class PartitionServerHandler implements IfaceWithShutdown {
 
-  private static final HankResponse NO_SUCH_DOMAIN = HankResponse
-      .xception(HankExceptions.no_such_domain(true));
+  private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
@@ -168,8 +170,13 @@ class PartitionServerHandler implements IfaceWithShutdown {
           domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
       LOG.error(errMsg, e);
 
-      return HankResponse.xception(HankExceptions.internal_error(errMsg + " " + e.getMessage()));
+      return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
     }
+  }
+
+  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
+    //TODO: implement
+    throw new NotImplementedException();
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {

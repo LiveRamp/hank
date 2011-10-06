@@ -1,10 +1,10 @@
 namespace java com.rapleaf.hank.generated
 
-union HankExceptions {
+union HankException {
   /** The host queried is not assigned the key that was requested */
   1: bool wrong_host;
 
-  /** The domain_id passed in the request does not correspond to a valid domain */
+  /** The domain passed in the request does not correspond to a valid domain */
   2: bool no_such_domain;
 
   /** There were no available replicas for a given partition */
@@ -14,21 +14,36 @@ union HankExceptions {
   4: string internal_error;
 }
 
+union HankBulkException {
+  /** The domain passed in the request does not correspond to a valid domain */
+  1: bool no_such_domain;
+}
+
 union HankResponse {
-  /** Equivalent to a "null" value */
+  /* Equivalent to a "null" value */
   1: bool not_found;
 
-  /** if found, binary result */
+  /* If found, binary result */
   2: binary value;
 
-  /** error states */
-  3: HankExceptions xception;
+  /* Error states */
+  3: HankException xception;
+}
+
+union HankBulkResponse {
+  /* Individual responses */
+  1: list<HankResponse> responses;
+
+  /* Error states */
+  2: HankBulkException xception;
 }
 
 service PartitionServer {
   HankResponse get(1:i32 domain_id, 2:binary key);
+  HankBulkResponse getBulk(1:i32 domain_id, 2:list<binary> keys);
 }
 
 service SmartClient {
   HankResponse get(1:string domain_name, 2:binary key);
+  HankBulkResponse getBulk(1:string domain_name, 2:list<binary> keys);
 }

@@ -3,6 +3,7 @@ package com.rapleaf.hank.ui;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import org.apache.thrift.TException;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WebUiServerTester extends ZkTestCase {
@@ -39,6 +41,11 @@ public class WebUiServerTester extends ZkTestCase {
         }
 
         return HankResponse.not_found(true);
+      }
+
+      @Override
+      public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) throws TException {
+        return null;
       }
     };
     IClientCache clientCache = new IClientCache() {

@@ -21,7 +21,7 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
-import com.rapleaf.hank.generated.HankExceptions;
+import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.MapPartitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -86,11 +86,11 @@ public class TestPartitionServerHandler extends BaseTestCase {
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
 
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+    assertEquals(HankResponse.xception(HankException.wrong_host(true)),
         handler.get((byte) 0, K2));
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+    assertEquals(HankResponse.xception(HankException.wrong_host(true)),
         handler.get((byte) 0, K3));
-    assertEquals(HankResponse.xception(HankExceptions.wrong_host(true)),
+    assertEquals(HankResponse.xception(HankException.wrong_host(true)),
         handler.get((byte) 0, K4));
   }
 
@@ -99,7 +99,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
     HankResponse response = handler.get((byte) 0, K1);
     assertTrue(response.isSet(HankResponse._Fields.XCEPTION));
-    assertTrue(response.get_xception().isSet(HankExceptions._Fields.INTERNAL_ERROR));
+    assertTrue(response.getXception().isSet(HankException._Fields.INTERNAL_ERROR));
   }
 
   private PartitionServerHandler createHandler(final int readerVersionNumber) throws IOException {
