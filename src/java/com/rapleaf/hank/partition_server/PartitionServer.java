@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
@@ -356,19 +357,14 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     return String.format("Ignoring command %s because it is incompatible with state %s.", command, state);
   }
 
-  public static void main(String[] args) throws Throwable {
-    try {
-      CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, PartitionServer.class);
-      String configPath = args[0];
-      String log4jprops = args[1];
+  public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException {
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, PartitionServer.class);
+    String configPath = args[0];
+    String log4jprops = args[1];
 
-      PartitionServerConfigurator configurator = new YamlPartitionServerConfigurator(configPath);
-      PropertyConfigurator.configure(log4jprops);
+    PartitionServerConfigurator configurator = new YamlPartitionServerConfigurator(configPath);
+    PropertyConfigurator.configure(log4jprops);
 
-      new PartitionServer(configurator, HostUtils.getHostName()).run();
-    } catch (Throwable t) {
-      System.err.println("usage: bin/start_partition_server.sh <path to config.yml> <path to log4j properties>");
-      throw t;
-    }
+    new PartitionServer(configurator, HostUtils.getHostName()).run();
   }
 }
