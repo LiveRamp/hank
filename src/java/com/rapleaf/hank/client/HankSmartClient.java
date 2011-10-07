@@ -317,7 +317,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         // Note: keys and keyIds should be the same size
         while (keyIndexIterator.hasNext()) {
           int finalKeyIndex = keyIndexIterator.next();
-          allResponses.get(finalKeyIndex).setValue(response.getResponses().get(intermediateKeyIndex).getValue());
+          allResponses.set(finalKeyIndex, response.getResponses().get(intermediateKeyIndex));
           ++intermediateKeyIndex;
         }
       } else {
