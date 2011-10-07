@@ -256,6 +256,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     public BulkRequest() {
     }
 
+    // Note: key index is the original index of the key in the global bulk request. This allows us to place
+    // the corresponding HankResponse at the same index in the HankBulkResponse.
     public void addItem(ByteBuffer key, int keyIndex) {
       keys.add(key);
       keyIndices.add(keyIndex);
