@@ -42,6 +42,7 @@ import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
@@ -320,12 +321,16 @@ public class IntegrationTest extends ZkTestCase {
 
     boolean found = false;
     for (int i = 0; i < 15; i++) {
-      HankResponse r = dumbClient.get("domain0", bb(1));
-      if (r.isSet(HankResponse._Fields.VALUE)) {
-        found = true;
-        break;
+      try {
+        HankResponse r = dumbClient.get("domain0", bb(1));
+        LOG.trace(r);
+        if (r.isSet(HankResponse._Fields.VALUE)) {
+          found = true;
+          break;
+        }
+      } catch (TException e) {
+        LOG.error(e);
       }
-      LOG.trace(r);
       Thread.sleep(1000);
     }
 
