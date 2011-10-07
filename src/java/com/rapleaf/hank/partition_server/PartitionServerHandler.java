@@ -23,12 +23,12 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -175,8 +175,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
-    //TODO: implement
-    throw new NotImplementedException();
+    // Dumb implementation
+    HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>());
+    for (ByteBuffer key : keys) {
+      response.getResponses().add(get(domainId, key));
+    }
+    return response;
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {
