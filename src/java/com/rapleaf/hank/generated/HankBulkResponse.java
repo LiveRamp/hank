@@ -93,7 +93,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankResponse.class))));
     tmpMap.put(_Fields.XCEPTION, new org.apache.thrift.meta_data.FieldMetaData("xception", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankBulkException.class)));
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HankException.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankBulkResponse.class, metaDataMap);
   }
@@ -119,7 +119,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
     return x;
   }
 
-  public static HankBulkResponse xception(HankBulkException value) {
+  public static HankBulkResponse xception(HankException value) {
     HankBulkResponse x = new HankBulkResponse();
     x.setXception(value);
     return x;
@@ -135,10 +135,10 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
         }
         throw new ClassCastException("Was expecting value of type List<HankResponse> for field 'responses', but got " + value.getClass().getSimpleName());
       case XCEPTION:
-        if (value instanceof HankBulkException) {
+        if (value instanceof HankException) {
           break;
         }
-        throw new ClassCastException("Was expecting value of type HankBulkException for field 'xception', but got " + value.getClass().getSimpleName());
+        throw new ClassCastException("Was expecting value of type HankException for field 'xception', but got " + value.getClass().getSimpleName());
       default:
         throw new IllegalArgumentException("Unknown field id " + setField);
     }
@@ -171,8 +171,8 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
           }
         case XCEPTION:
           if (field.type == XCEPTION_FIELD_DESC.type) {
-            HankBulkException xception;
-            xception = new HankBulkException();
+            HankException xception;
+            xception = new HankException();
             xception.read(iprot);
             return xception;
           } else {
@@ -203,7 +203,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
         }
         return;
       case XCEPTION:
-        HankBulkException xception = (HankBulkException)value_;
+        HankException xception = (HankException)value_;
         xception.write(oprot);
         return;
       default:
@@ -252,15 +252,15 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
     value_ = value;
   }
 
-  public HankBulkException getXception() {
+  public HankException getXception() {
     if (getSetField() == _Fields.XCEPTION) {
-      return (HankBulkException)getFieldValue();
+      return (HankException)getFieldValue();
     } else {
       throw new RuntimeException("Cannot get field 'xception' because union is currently set to " + getFieldDesc(getSetField()).name);
     }
   }
 
-  public void setXception(HankBulkException value) {
+  public void setXception(HankException value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.XCEPTION;
     value_ = value;

@@ -7,19 +7,11 @@ union HankException {
   /** The domain passed in the request does not correspond to a valid domain */
   2: bool no_such_domain;
 
-  /** There were no available replicas for a given partition */
-  3: bool zero_replicas;
+  /** There were no available connections for a given partition */
+  3: bool no_connection_available;
 
   /** There was some internal error in the server. This is pretty bad. */
   4: string internal_error;
-}
-
-union HankBulkException {
-  /** The domain passed in the request does not correspond to a valid domain */
-  1: bool no_such_domain;
-
-  /** There was some internal error in the server. This is pretty bad. */
-  2: string internal_error;
 }
 
 union HankResponse {
@@ -38,7 +30,7 @@ union HankBulkResponse {
   1: list<HankResponse> responses;
 
   /* Error states */
-  2: HankBulkException xception;
+  2: HankException xception;
 }
 
 service PartitionServer {
