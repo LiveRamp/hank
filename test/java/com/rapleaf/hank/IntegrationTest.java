@@ -25,6 +25,7 @@ import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient;
@@ -354,6 +355,28 @@ public class IntegrationTest extends ZkTestCase {
     assertEquals(HankResponse.not_found(true), dumbClient.get("domain1", bb(99)));
 
     assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
+
+    // make a few bulk requests
+    List<ByteBuffer> bulkRequest1 = new ArrayList<ByteBuffer>();
+    bulkRequest1.add(bb(1));
+    bulkRequest1.add(bb(2));
+    bulkRequest1.add(bb(3));
+    bulkRequest1.add(bb(4));
+    List<HankResponse> bulkResponse1 = new ArrayList<HankResponse>();
+    bulkResponse1.add(HankResponse.value(bb(1, 1)));
+    bulkResponse1.add(HankResponse.value(bb(2, 2)));
+    bulkResponse1.add(HankResponse.value(bb(3, 3)));
+    bulkResponse1.add(HankResponse.value(bb(4, 4)));
+    List<ByteBuffer> bulkRequest2 = new ArrayList<ByteBuffer>();
+    bulkRequest2.add(bb(1));
+    bulkRequest2.add(bb(99));
+    List<HankResponse> bulkResponse2 = new ArrayList<HankResponse>();
+    bulkResponse2.add(HankResponse.value(bb(1, 1)));
+    bulkResponse2.add(HankResponse.not_found(true));
+
+    assertEquals(HankBulkResponse.responses(bulkResponse1), dumbClient.getBulk("domain0", bulkRequest1));
+    assertEquals(HankBulkResponse.responses(bulkResponse2), dumbClient.getBulk("domain0", bulkRequest2));
+    assertEquals(HankBulkResponse.xception(HankException.no_such_domain(true)), dumbClient.getBulk("domain2", bulkRequest1));
 
     // push a new version of one of the domains
     Map<ByteBuffer, ByteBuffer> domain1Delta = new HashMap<ByteBuffer, ByteBuffer>();
