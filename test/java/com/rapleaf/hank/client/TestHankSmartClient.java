@@ -25,7 +25,6 @@ import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.partitioner.MapPartitioner;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -58,22 +57,25 @@ public class TestHankSmartClient extends BaseTestCase {
   private class MockPartitionServerHandler implements PartitionServer.Iface {
     @SuppressWarnings("unused")
     private final int domainId;
-    private final ByteBuffer result;
+    private final HankResponse response;
+    private final HankBulkResponse bulkResponse;
 
     public MockPartitionServerHandler(int domainId, ByteBuffer result) {
       this.domainId = domainId;
-      this.result = result;
+      this.response = HankResponse.value(result);
+      List<HankResponse> responses = new ArrayList<HankResponse>();
+      responses.add(HankResponse.value(result));
+      this.bulkResponse = HankBulkResponse.responses(responses);
     }
 
     @Override
     public HankResponse get(int domainId, ByteBuffer key) throws TException {
-      return HankResponse.value(result);
+      return response;
     }
 
     @Override
     public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
-      //TODO: implement
-      throw new NotImplementedException();
+      return bulkResponse;
     }
   }
 
@@ -217,11 +219,25 @@ public class TestHankSmartClient extends BaseTestCase {
     try {
       HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup", 1);
 
-      assertEquals(HankResponse.xception(HankException.no_such_domain(true)),
-          c.get("nonexistent_domain", null));
+      // Test invalid get
+      assertEquals(HankResponse.xception(HankException.no_such_domain(true)), c.get("nonexistent_domain", null));
 
+      // Test get
       assertEquals(HankResponse.value(VALUE_1), c.get("existent_domain", KEY_1));
       assertEquals(HankResponse.value(VALUE_2), c.get("existent_domain", KEY_2));
+
+      // Test invalid getBulk
+      assertEquals(HankBulkResponse.xception(HankException.no_such_domain(true)), c.getBulk("nonexistent_domain", null));
+
+      // Test getBulk
+      HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<HankResponse>());
+      bulkResponse1.getResponses().add(HankResponse.value(VALUE_1));
+      bulkResponse1.getResponses().add(HankResponse.value(VALUE_2));
+      List<ByteBuffer> bulkResquest1 = new ArrayList<ByteBuffer>();
+      bulkResquest1.add(KEY_1);
+      bulkResquest1.add(KEY_2);
+      assertEquals(bulkResponse1, c.getBulk("existent_domain", bulkResquest1));
+
     } finally {
       server1.stop();
       server2.stop();

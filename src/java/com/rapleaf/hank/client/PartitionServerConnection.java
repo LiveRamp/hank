@@ -15,11 +15,12 @@
  */
 package com.rapleaf.hank.client;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.generated.HankBulkResponse;
+import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.generated.PartitionServer;
+import com.rapleaf.hank.generated.PartitionServer.Client;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -29,11 +30,11 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.PartitionServer;
-import com.rapleaf.hank.generated.PartitionServer.Client;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 final class PartitionServerConnection implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(PartitionServerConnection.class);
@@ -60,6 +61,10 @@ final class PartitionServerConnection implements HostStateChangeListener {
     this.host = host;
     host.setStateChangeListener(this);
     onHostStateChange(host);
+  }
+
+  public Host getHost() {
+    return host;
   }
 
   @Override
@@ -114,6 +119,32 @@ final class PartitionServerConnection implements HostStateChangeListener {
         return client.get(domainId, key);
       } catch (TException e2) {
         throw new IOException("Failed to execute get() again, giving up.", e2);
+      }
+    } finally {
+      unlock();
+    }
+  }
+
+  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws IOException {
+    if (!isAvailable()) {
+      throw new IOException("Connection is not available.");
+    }
+    lock();
+    // Connect if necessary
+    if (isDisconnected()) {
+      connect();
+    }
+    try {
+      return client.getBulk(domainId, keys);
+    } catch (TException e1) {
+      // Reconnect and retry
+      LOG.trace("Failed to execute getBulk(), reconnecting and retrying...");
+      disconnect();
+      connect();
+      try {
+        return client.getBulk(domainId, keys);
+      } catch (TException e2) {
+        throw new IOException("Failed to execute getBulk() again, giving up.", e2);
       }
     } finally {
       unlock();

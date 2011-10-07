@@ -21,16 +21,12 @@ import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.util.Bytes;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * HankSmartClient implements the logic of determining which PartitionServer to
@@ -38,16 +34,21 @@ import java.util.Map;
  * pool and detecting PartitionServer failures.
  */
 public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener {
+
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
+  private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
 
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
 
-  private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
+  //private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
+  private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
 
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
+
+  private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
@@ -72,21 +73,20 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
-    // preprocess the config to create skeleton domain -> part -> [hosts] map
+    // Preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
 
-    Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartToAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+    // Build domainToPartitionToPartitionServerAdresses
     for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
-      domainToPartToAddresses.put(domain.getId(), partitionToAddress);
-
       for (int i = 0; i < domain.getNumParts(); i++) {
         partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
       }
+      domainToPartitionToPartitionServerAddresses.put(domain.getId(), partitionToAddress);
     }
 
-    // populate the skeleton, while also establishing connections to online hosts
+    // Populate the skeleton, while also establishing connections to online hosts
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         for (HostDomain hdc : host.getAssignedDomains()) {
@@ -94,7 +94,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
           if (domain == null) {
             throw new IOException(String.format("Could not load Domain from HostDomain %s", hdc.toString()));
           }
-          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartToAddresses.get(domain.getId());
+          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartitionToPartitionServerAddresses.get(domain.getId());
           if (partToAddresses == null) {
             throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
           }
@@ -104,41 +104,37 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
           }
         }
 
-        // establish connection to hosts
+        // Establish connection to hosts
         List<PartitionServerConnection> hostConnections = new ArrayList<PartitionServerConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
           hostConnections.add(new PartitionServerConnection(host));
         }
-        connectionCache.put(host.getAddress(), hostConnections);
+        partitionServerAddressToConnectionSet.put(host.getAddress(), new PartitionServerConnectionSet(hostConnections));
       }
     }
 
-    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartToAddressesEntry : domainToPartToAddresses.entrySet()) {
-      Map<Integer, PartitionServerConnectionSet> partToAddresses = new HashMap<Integer, PartitionServerConnectionSet>();
-      for (Map.Entry<Integer, List<PartitionServerAddress>> partToAddressesEntry : domainToPartToAddressesEntry.getValue().entrySet()) {
-        List<PartitionServerConnection> clientBundles = new ArrayList<PartitionServerConnection>();
-        for (PartitionServerAddress address : partToAddressesEntry.getValue()) {
-          for (PartitionServerConnection conn : connectionCache.get(address)) {
-            clientBundles.add(conn);
-          }
+    // Build domainToPartitionToConnectionSet
+    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
+      Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = new HashMap<Integer, PartitionServerConnectionSet>();
+      for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
+        List<PartitionServerConnection> connections = new ArrayList<PartitionServerConnection>();
+        for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
+          connections.addAll(partitionServerAddressToConnectionSet.get(address).getConnections());
         }
-        partToAddresses.put(partToAddressesEntry.getKey(), new PartitionServerConnectionSet(clientBundles));
+        partitionToConnectionSet.put(partitionToAddressesEntry.getKey(), new PartitionServerConnectionSet(connections));
       }
-      domainToPartitionToConnectionSet.put(domainToPartToAddressesEntry.getKey(), partToAddresses);
+      domainToPartitionToConnectionSet.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionSet);
     }
   }
 
   @Override
   public HankResponse get(String domainName, ByteBuffer key) throws TException {
-    int partition;
-
-    Domain domain;
-    domain = this.coordinator.getDomain(domainName);
+    Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
       return NO_SUCH_DOMAIN;
-    } else {
-      partition = domain.getPartitioner().partition(key, domain.getNumParts());
     }
+
+    int partition = domain.getPartitioner().partition(key, domain.getNumParts());
 
     Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
     if (partitionToConnectionSet == null) {
@@ -160,8 +156,88 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   @Override
   public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) throws TException {
-    //TODO: implement
-    throw new NotImplementedException();
+
+    // Get Domain
+    Domain domain = coordinator.getDomain(domainName);
+    if (domain == null) {
+      return NO_SUCH_DOMAIN_BULK;
+    }
+
+    // Get partition to partition server addresses for given domain
+    Map<Integer, List<PartitionServerAddress>> partitionToPartitionServerAddresses = domainToPartitionToPartitionServerAddresses.get(domain.getId());
+    if (partitionToPartitionServerAddresses == null) {
+      String errMsg = String.format("Got a null set of partition to hosts pairs when looking for domain %s.", domain.getName());
+      LOG.error(errMsg);
+      return HankBulkResponse.xception(HankException.internal_error(errMsg));
+    }
+
+    // Build requests for each partition server
+
+    Map<PartitionServerAddress, BulkRequest> partitionServerTobulkRequest = new HashMap<PartitionServerAddress, BulkRequest>();
+
+    int keyId = 0;
+    for (ByteBuffer key : keys) {
+      // Determine key's partition
+      int partition = domain.getPartitioner().partition(key, domain.getNumParts());
+
+      // Get list of partition server addresses for this partition
+      List<PartitionServerAddress> partitionServerAddresses = partitionToPartitionServerAddresses.get(partition);
+      if (partitionServerAddresses == null) {
+        String errMsg = String.format("Got a null set of hosts for partition %d in domain %s (%d).", partition, domain.getName(), domain.getId());
+        LOG.error(errMsg);
+        return HankBulkResponse.xception(HankException.internal_error(errMsg));
+      }
+      if (partitionServerAddresses.size() == 0) {
+        String errMsg = String.format("Got an empty set of hosts for partition %d in domain %s (%d).", partition, domain.getName(), domain.getId());
+        LOG.error(errMsg);
+        return HankBulkResponse.xception(HankException.internal_error(errMsg));
+      }
+
+      // For now, we query the first partition server that has this partition
+      // TODO: improve this by also querying other hosts that have that same partition
+      PartitionServerAddress partitionServerAddress = partitionServerAddresses.get(0);
+
+      // Add this key to the bulk request object corresponding to the chosen partition server
+      if (!partitionServerTobulkRequest.containsKey(partitionServerAddress)) {
+        partitionServerTobulkRequest.put(partitionServerAddress, new BulkRequest());
+      }
+      partitionServerTobulkRequest.get(partitionServerAddress).addItem(key, keyId);
+
+      // Update keyId
+      ++keyId;
+    }
+
+    // Prepare responses list
+    List<HankResponse> allResponses = new ArrayList<HankResponse>(keys.size());
+    for (int i = 0; i < keys.size(); ++i) {
+      allResponses.add(new HankResponse());
+    }
+
+    LOG.trace("Looking in domain " + domainName + " for " + keys.size() + " keys");
+
+    // Create threads to execute requests
+    List<Thread> requestThreads = new ArrayList<Thread>(partitionServerTobulkRequest.keySet().size());
+    for (Map.Entry<PartitionServerAddress, BulkRequest> entry : partitionServerTobulkRequest.entrySet()) {
+      PartitionServerAddress partitionServerAddress = entry.getKey();
+      BulkRequest bulkRequest = entry.getValue();
+      // Find connection set
+      PartitionServerConnectionSet connectionSet = partitionServerAddressToConnectionSet.get(partitionServerAddress);
+      Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionSet, allResponses));
+      thread.start();
+      requestThreads.add(thread);
+    }
+
+    // Wait for all threads
+    for (Thread thread : requestThreads) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        return HankBulkResponse.xception(
+            HankException.internal_error("HankSmartClient was interrupted while executing a bulk get request."));
+      }
+    }
+
+    return HankBulkResponse.responses(allResponses);
   }
 
   @Override
@@ -171,5 +247,82 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   @Override
   public void onRingStateChange(Ring ring) {
+  }
+
+  private static class BulkRequest {
+    private final List<Integer> keyIds = new ArrayList<Integer>();
+    private final List<ByteBuffer> keys = new ArrayList<ByteBuffer>();
+
+    public BulkRequest() {
+    }
+
+    public void addItem(ByteBuffer key, int keyId) {
+      keys.add(key);
+      keyIds.add(keyId);
+    }
+
+    public List<ByteBuffer> getKeys() {
+      return keys;
+    }
+
+    public List<Integer> getKeyIds() {
+      return keyIds;
+    }
+  }
+
+  private static class GetBulkRunnable implements Runnable {
+    private final int domainId;
+    private final BulkRequest bulkRequest;
+    private final PartitionServerConnectionSet connectionSet;
+    private final List<HankResponse> allResponses;
+
+    public GetBulkRunnable(int domainId,
+                           BulkRequest bulkRequest,
+                           PartitionServerConnectionSet connectionSet,
+                           List<HankResponse> allResponses) {
+      this.domainId = domainId;
+      this.bulkRequest = bulkRequest;
+      this.connectionSet = connectionSet;
+      this.allResponses = allResponses;
+    }
+
+    public void run() {
+      HankBulkResponse response;
+      // Execute request
+      try {
+        response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
+      } catch (TException e) {
+        // Fill responses with error
+        for (int responseId : bulkRequest.getKeyIds()) {
+          LOG.error("Failed to getBulk()", e);
+          allResponses.get(responseId).setXception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
+        }
+        return;
+      }
+      // Request succeeded
+      if (response.isSetXception()) {
+        // Fill responses with error
+        for (int responseId : bulkRequest.getKeyIds()) {
+          allResponses.get(responseId).setXception(response.getXception());
+        }
+      } else if (response.isSetResponses()) {
+        // Valid response, load results into final response
+        if (response.getResponses().size() != bulkRequest.getKeys().size()) {
+          throw new RuntimeException(
+              String.format("Number of responses in bulk response (%d) does not match number of keys requested (%d)",
+                  response.getResponses().size(), bulkRequest.getKeys().size()));
+        }
+        Iterator<Integer> keyIdIterator = bulkRequest.getKeyIds().iterator();
+        int intermediateKeyId = 0;
+        // Note: keys and keyIds should be the same size
+        while (keyIdIterator.hasNext()) {
+          int finalKeyId = keyIdIterator.next();
+          allResponses.get(finalKeyId).setValue(response.getResponses().get(intermediateKeyId).getValue());
+          ++intermediateKeyId;
+        }
+      } else {
+        throw new RuntimeException("Unknown bulk response type.");
+      }
+    }
   }
 }
