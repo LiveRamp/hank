@@ -175,7 +175,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Map<PartitionServerAddress, BulkRequest> partitionServerTobulkRequest = new HashMap<PartitionServerAddress, BulkRequest>();
 
-    int keyId = 0;
+    int keyIndex = 0;
     for (ByteBuffer key : keys) {
       // Determine key's partition
       int partition = domain.getPartitioner().partition(key, domain.getNumParts());
@@ -201,10 +201,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       if (!partitionServerTobulkRequest.containsKey(partitionServerAddress)) {
         partitionServerTobulkRequest.put(partitionServerAddress, new BulkRequest());
       }
-      partitionServerTobulkRequest.get(partitionServerAddress).addItem(key, keyId);
+      partitionServerTobulkRequest.get(partitionServerAddress).addItem(key, keyIndex);
 
-      // Update keyId
-      ++keyId;
+      // Update key index
+      ++keyIndex;
     }
 
     // Prepare responses list
@@ -250,23 +250,23 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   private static class BulkRequest {
-    private final List<Integer> keyIds = new ArrayList<Integer>();
+    private final List<Integer> keyIndices = new ArrayList<Integer>();
     private final List<ByteBuffer> keys = new ArrayList<ByteBuffer>();
 
     public BulkRequest() {
     }
 
-    public void addItem(ByteBuffer key, int keyId) {
+    public void addItem(ByteBuffer key, int keyIndex) {
       keys.add(key);
-      keyIds.add(keyId);
+      keyIndices.add(keyIndex);
     }
 
     public List<ByteBuffer> getKeys() {
       return keys;
     }
 
-    public List<Integer> getKeyIds() {
-      return keyIds;
+    public List<Integer> getKeyIndices() {
+      return keyIndices;
     }
   }
 
@@ -293,17 +293,17 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
       } catch (TException e) {
         // Fill responses with error
-        for (int responseId : bulkRequest.getKeyIds()) {
+        for (int responseIndex : bulkRequest.getKeyIndices()) {
           LOG.error("Failed to getBulk()", e);
-          allResponses.get(responseId).setXception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
+          allResponses.get(responseIndex).setXception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
         }
         return;
       }
       // Request succeeded
       if (response.isSetXception()) {
         // Fill responses with error
-        for (int responseId : bulkRequest.getKeyIds()) {
-          allResponses.get(responseId).setXception(response.getXception());
+        for (int responseIndex : bulkRequest.getKeyIndices()) {
+          allResponses.get(responseIndex).setXception(response.getXception());
         }
       } else if (response.isSetResponses()) {
         // Valid response, load results into final response
@@ -312,13 +312,13 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
               String.format("Number of responses in bulk response (%d) does not match number of keys requested (%d)",
                   response.getResponses().size(), bulkRequest.getKeys().size()));
         }
-        Iterator<Integer> keyIdIterator = bulkRequest.getKeyIds().iterator();
-        int intermediateKeyId = 0;
+        Iterator<Integer> keyIndexIterator = bulkRequest.getKeyIndices().iterator();
+        int intermediateKeyIndex = 0;
         // Note: keys and keyIds should be the same size
-        while (keyIdIterator.hasNext()) {
-          int finalKeyId = keyIdIterator.next();
-          allResponses.get(finalKeyId).setValue(response.getResponses().get(intermediateKeyId).getValue());
-          ++intermediateKeyId;
+        while (keyIndexIterator.hasNext()) {
+          int finalKeyIndex = keyIndexIterator.next();
+          allResponses.get(finalKeyIndex).setValue(response.getResponses().get(intermediateKeyIndex).getValue());
+          ++intermediateKeyIndex;
         }
       } else {
         throw new RuntimeException("Unknown bulk response type.");
