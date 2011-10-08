@@ -65,6 +65,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
+    if (ringGroup == null) {
+      throw new IOException("Could not find Ring Group " + ringGroupName + " with Coordinator " + coordinator.toString());
+    }
+
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
     for (Ring ring : ringGroup.getRings()) {
