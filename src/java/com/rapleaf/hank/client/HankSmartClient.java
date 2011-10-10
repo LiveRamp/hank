@@ -301,29 +301,29 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         // Fill responses with error
         for (int responseIndex : bulkRequest.getKeyIndices()) {
           LOG.error("Failed to getBulk()", e);
-          allResponses.get(responseIndex).setXception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
+          allResponses.get(responseIndex).set_xception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
         }
         return;
       }
       // Request succeeded
-      if (response.isSetXception()) {
+      if (response.is_set_xception()) {
         // Fill responses with error
         for (int responseIndex : bulkRequest.getKeyIndices()) {
-          allResponses.get(responseIndex).setXception(response.getXception());
+          allResponses.get(responseIndex).set_xception(response.get_xception());
         }
-      } else if (response.isSetResponses()) {
+      } else if (response.is_set_responses()) {
         // Valid response, load results into final response
-        if (response.getResponses().size() != bulkRequest.getKeys().size()) {
+        if (response.get_responses().size() != bulkRequest.getKeys().size()) {
           throw new RuntimeException(
               String.format("Number of responses in bulk response (%d) does not match number of keys requested (%d)",
-                  response.getResponses().size(), bulkRequest.getKeys().size()));
+                  response.get_responses().size(), bulkRequest.getKeys().size()));
         }
         Iterator<Integer> keyIndexIterator = bulkRequest.getKeyIndices().iterator();
         int intermediateKeyIndex = 0;
         // Note: keys and keyIds should be the same size
         while (keyIndexIterator.hasNext()) {
           int finalKeyIndex = keyIndexIterator.next();
-          allResponses.set(finalKeyIndex, response.getResponses().get(intermediateKeyIndex));
+          allResponses.set(finalKeyIndex, response.get_responses().get(intermediateKeyIndex));
           ++intermediateKeyIndex;
         }
       } else {
