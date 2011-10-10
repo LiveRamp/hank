@@ -99,7 +99,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
     HankResponse response = handler.get((byte) 0, K1);
     assertTrue(response.isSet(HankResponse._Fields.XCEPTION));
-    assertTrue(response.getXception().isSet(HankException._Fields.INTERNAL_ERROR));
+    assertTrue(response.get_xception().isSet(HankException._Fields.INTERNAL_ERROR));
   }
 
   private PartitionServerHandler createHandler(final int readerVersionNumber) throws IOException {

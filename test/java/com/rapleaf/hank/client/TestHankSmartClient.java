@@ -231,8 +231,8 @@ public class TestHankSmartClient extends BaseTestCase {
 
       // Test getBulk
       HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<HankResponse>());
-      bulkResponse1.getResponses().add(HankResponse.value(VALUE_1));
-      bulkResponse1.getResponses().add(HankResponse.value(VALUE_2));
+      bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
+      bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
       List<ByteBuffer> bulkResquest1 = new ArrayList<ByteBuffer>();
       bulkResquest1.add(KEY_1);
       bulkResquest1.add(KEY_2);
