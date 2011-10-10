@@ -161,7 +161,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
             key = ByteBuffer.wrap(request.getParameter("k").getBytes("UTF-8"));
           }
           HankResponse hankResponse = client.get(URLEnc.decode(request.getParameter("d")), key);
-          if (hankResponse.isSet(HankResponse._Fields.XCEPTION)) {
+          if (hankResponse.is_set_xception()) {
             // uh oh!
           %>
           <div style="color:red; font-weight: bold">
@@ -179,7 +179,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <div style="font-weight:bold; color:green">Found</div>
 
           <%
-          ByteBuffer valueBuffer = hankResponse.bufferForValue();
+          ByteBuffer valueBuffer = hankResponse.buffer_for_value();
           String valueString = Bytes.bytesToHexString(valueBuffer);
           String[] valueStrings = valueString.split(" ");
           %>
