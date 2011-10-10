@@ -176,6 +176,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
     // Dumb implementation
+    // TODO: Make it less dumb
     HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>());
     for (ByteBuffer key : keys) {
       response.get_responses().add(get(domainId, key));
