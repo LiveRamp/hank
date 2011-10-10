@@ -5,6 +5,7 @@
  */
 package com.rapleaf.hank.generated;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -138,25 +139,25 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
 
   public static HankException wrong_host(boolean value) {
     HankException x = new HankException();
-    x.setWrong_host(value);
+    x.set_wrong_host(value);
     return x;
   }
 
   public static HankException no_such_domain(boolean value) {
     HankException x = new HankException();
-    x.setNo_such_domain(value);
+    x.set_no_such_domain(value);
     return x;
   }
 
   public static HankException no_connection_available(boolean value) {
     HankException x = new HankException();
-    x.setNo_connection_available(value);
+    x.set_no_connection_available(value);
     return x;
   }
 
   public static HankException internal_error(String value) {
     HankException x = new HankException();
-    x.setInternal_error(value);
+    x.set_internal_error(value);
     return x;
   }
 
@@ -297,7 +298,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * The host queried is not assigned the key that was requested
    */
-  public boolean getWrong_host() {
+  public boolean get_wrong_host() {
     if (getSetField() == _Fields.WRONG_HOST) {
       return (Boolean)getFieldValue();
     } else {
@@ -308,7 +309,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * The host queried is not assigned the key that was requested
    */
-  public void setWrong_host(boolean value) {
+  public void set_wrong_host(boolean value) {
     setField_ = _Fields.WRONG_HOST;
     value_ = value;
   }
@@ -316,7 +317,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * The domain passed in the request does not correspond to a valid domain
    */
-  public boolean getNo_such_domain() {
+  public boolean get_no_such_domain() {
     if (getSetField() == _Fields.NO_SUCH_DOMAIN) {
       return (Boolean)getFieldValue();
     } else {
@@ -327,7 +328,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * The domain passed in the request does not correspond to a valid domain
    */
-  public void setNo_such_domain(boolean value) {
+  public void set_no_such_domain(boolean value) {
     setField_ = _Fields.NO_SUCH_DOMAIN;
     value_ = value;
   }
@@ -335,7 +336,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * There were no available connections for a given partition
    */
-  public boolean getNo_connection_available() {
+  public boolean get_no_connection_available() {
     if (getSetField() == _Fields.NO_CONNECTION_AVAILABLE) {
       return (Boolean)getFieldValue();
     } else {
@@ -346,7 +347,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * There were no available connections for a given partition
    */
-  public void setNo_connection_available(boolean value) {
+  public void set_no_connection_available(boolean value) {
     setField_ = _Fields.NO_CONNECTION_AVAILABLE;
     value_ = value;
   }
@@ -354,7 +355,7 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * There was some internal error in the server. This is pretty bad.
    */
-  public String getInternal_error() {
+  public String get_internal_error() {
     if (getSetField() == _Fields.INTERNAL_ERROR) {
       return (String)getFieldValue();
     } else {
@@ -365,28 +366,28 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   /**
    * There was some internal error in the server. This is pretty bad.
    */
-  public void setInternal_error(String value) {
+  public void set_internal_error(String value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.INTERNAL_ERROR;
     value_ = value;
   }
 
-  public boolean isSetWrong_host() {
+  public boolean is_set_wrong_host() {
     return setField_ == _Fields.WRONG_HOST;
   }
 
 
-  public boolean isSetNo_such_domain() {
+  public boolean is_set_no_such_domain() {
     return setField_ == _Fields.NO_SUCH_DOMAIN;
   }
 
 
-  public boolean isSetNo_connection_available() {
+  public boolean is_set_no_connection_available() {
     return setField_ == _Fields.NO_CONNECTION_AVAILABLE;
   }
 
 
-  public boolean isSetInternal_error() {
+  public boolean is_set_internal_error() {
     return setField_ == _Fields.INTERNAL_ERROR;
   }
 
@@ -413,14 +414,22 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   }
 
 
-  /**
-   * If you'd like this to perform more respectably, use the hashcode generator option.
-   */
   @Override
   public int hashCode() {
-    return 0;
+    HashCodeBuilder hcb = new HashCodeBuilder();
+    hcb.append(this.getClass().getName());
+    org.apache.thrift.TFieldIdEnum setField = getSetField();
+    if (setField != null) {
+      hcb.append(setField.getThriftFieldId());
+      Object value = getFieldValue();
+      if (value instanceof org.apache.thrift.TEnum) {
+        hcb.append(((org.apache.thrift.TEnum)getFieldValue()).getValue());
+      } else {
+        hcb.append(value);
+      }
+    }
+    return hcb.toHashCode();
   }
-
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
     try {
       write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));

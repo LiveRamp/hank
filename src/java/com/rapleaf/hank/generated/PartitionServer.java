@@ -5,6 +5,7 @@
  */
 package com.rapleaf.hank.generated;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -67,8 +68,8 @@ public class PartitionServer {
     public void send_get(int domain_id, ByteBuffer key) throws org.apache.thrift.TException
     {
       get_args args = new get_args();
-      args.setDomain_id(domain_id);
-      args.setKey(key);
+      args.set_domain_id(domain_id);
+      args.set_key(key);
       sendBase("get", args);
     }
 
@@ -76,7 +77,7 @@ public class PartitionServer {
     {
       get_result result = new get_result();
       receiveBase(result, "get");
-      if (result.isSetSuccess()) {
+      if (result.is_set_success()) {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "get failed: unknown result");
@@ -91,8 +92,8 @@ public class PartitionServer {
     public void send_getBulk(int domain_id, List<ByteBuffer> keys) throws org.apache.thrift.TException
     {
       getBulk_args args = new getBulk_args();
-      args.setDomain_id(domain_id);
-      args.setKeys(keys);
+      args.set_domain_id(domain_id);
+      args.set_keys(keys);
       sendBase("getBulk", args);
     }
 
@@ -100,7 +101,7 @@ public class PartitionServer {
     {
       getBulk_result result = new getBulk_result();
       receiveBase(result, "getBulk");
-      if (result.isSetSuccess()) {
+      if (result.is_set_success()) {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getBulk failed: unknown result");
@@ -143,8 +144,8 @@ public class PartitionServer {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("get", org.apache.thrift.protocol.TMessageType.CALL, 0));
         get_args args = new get_args();
-        args.setDomain_id(domain_id);
-        args.setKey(key);
+        args.set_domain_id(domain_id);
+        args.set_key(key);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -178,8 +179,8 @@ public class PartitionServer {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getBulk", org.apache.thrift.protocol.TMessageType.CALL, 0));
         getBulk_args args = new getBulk_args();
-        args.setDomain_id(domain_id);
-        args.setKeys(keys);
+        args.set_domain_id(domain_id);
+        args.set_keys(keys);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -340,7 +341,7 @@ public class PartitionServer {
     {
       this();
       this.domain_id = domain_id;
-      setDomain_idIsSet(true);
+      set_domain_id_isSet(true);
       this.key = key;
     }
 
@@ -351,7 +352,7 @@ public class PartitionServer {
       __isset_bit_vector.clear();
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.domain_id = other.domain_id;
-      if (other.isSetKey()) {
+      if (other.is_set_key()) {
         this.key = org.apache.thrift.TBaseHelper.copyBinary(other.key);
 ;
       }
@@ -363,63 +364,63 @@ public class PartitionServer {
 
     @Override
     public void clear() {
-      setDomain_idIsSet(false);
+      set_domain_id_isSet(false);
       this.domain_id = 0;
       this.key = null;
     }
 
-    public int getDomain_id() {
+    public int get_domain_id() {
       return this.domain_id;
     }
 
-    public get_args setDomain_id(int domain_id) {
+    public get_args set_domain_id(int domain_id) {
       this.domain_id = domain_id;
-      setDomain_idIsSet(true);
+      set_domain_id_isSet(true);
       return this;
     }
 
-    public void unsetDomain_id() {
+    public void unset_domain_id() {
       __isset_bit_vector.clear(__DOMAIN_ID_ISSET_ID);
     }
 
     /** Returns true if field domain_id is set (has been assigned a value) and false otherwise */
-    public boolean isSetDomain_id() {
+    public boolean is_set_domain_id() {
       return __isset_bit_vector.get(__DOMAIN_ID_ISSET_ID);
     }
 
-    public void setDomain_idIsSet(boolean value) {
+    public void set_domain_id_isSet(boolean value) {
       __isset_bit_vector.set(__DOMAIN_ID_ISSET_ID, value);
     }
 
-    public byte[] getKey() {
-      setKey(org.apache.thrift.TBaseHelper.rightSize(key));
+    public byte[] get_key() {
+      set_key(org.apache.thrift.TBaseHelper.rightSize(key));
       return key == null ? null : key.array();
     }
 
-    public ByteBuffer bufferForKey() {
+    public ByteBuffer buffer_for_key() {
       return key;
     }
 
-    public get_args setKey(byte[] key) {
-      setKey(key == null ? (ByteBuffer)null : ByteBuffer.wrap(key));
+    public get_args set_key(byte[] key) {
+      set_key(key == null ? (ByteBuffer)null : ByteBuffer.wrap(key));
       return this;
     }
 
-    public get_args setKey(ByteBuffer key) {
+    public get_args set_key(ByteBuffer key) {
       this.key = key;
       return this;
     }
 
-    public void unsetKey() {
+    public void unset_key() {
       this.key = null;
     }
 
     /** Returns true if field key is set (has been assigned a value) and false otherwise */
-    public boolean isSetKey() {
+    public boolean is_set_key() {
       return this.key != null;
     }
 
-    public void setKeyIsSet(boolean value) {
+    public void set_key_isSet(boolean value) {
       if (!value) {
         this.key = null;
       }
@@ -429,17 +430,17 @@ public class PartitionServer {
       switch (field) {
       case DOMAIN_ID:
         if (value == null) {
-          unsetDomain_id();
+          unset_domain_id();
         } else {
-          setDomain_id((Integer)value);
+          set_domain_id((Integer)value);
         }
         break;
 
       case KEY:
         if (value == null) {
-          unsetKey();
+          unset_key();
         } else {
-          setKey((ByteBuffer)value);
+          set_key((ByteBuffer)value);
         }
         break;
 
@@ -449,10 +450,10 @@ public class PartitionServer {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case DOMAIN_ID:
-        return Integer.valueOf(getDomain_id());
+        return Integer.valueOf(get_domain_id());
 
       case KEY:
-        return getKey();
+        return get_key();
 
       }
       throw new IllegalStateException();
@@ -466,9 +467,9 @@ public class PartitionServer {
 
       switch (field) {
       case DOMAIN_ID:
-        return isSetDomain_id();
+        return is_set_domain_id();
       case KEY:
-        return isSetKey();
+        return is_set_key();
       }
       throw new IllegalStateException();
     }
@@ -495,8 +496,8 @@ public class PartitionServer {
           return false;
       }
 
-      boolean this_present_key = true && this.isSetKey();
-      boolean that_present_key = true && that.isSetKey();
+      boolean this_present_key = true && this.is_set_key();
+      boolean that_present_key = true && that.is_set_key();
       if (this_present_key || that_present_key) {
         if (!(this_present_key && that_present_key))
           return false;
@@ -509,7 +510,19 @@ public class PartitionServer {
 
     @Override
     public int hashCode() {
-      return 0;
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_domain_id = true;
+      builder.append(present_domain_id);
+      if (present_domain_id)
+        builder.append(domain_id);
+
+      boolean present_key = true && (is_set_key());
+      builder.append(present_key);
+      if (present_key)
+        builder.append(key);
+
+      return builder.toHashCode();
     }
 
     public int compareTo(get_args other) {
@@ -520,21 +533,21 @@ public class PartitionServer {
       int lastComparison = 0;
       get_args typedOther = (get_args)other;
 
-      lastComparison = Boolean.valueOf(isSetDomain_id()).compareTo(typedOther.isSetDomain_id());
+      lastComparison = Boolean.valueOf(is_set_domain_id()).compareTo(typedOther.is_set_domain_id());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDomain_id()) {
+      if (is_set_domain_id()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domain_id, typedOther.domain_id);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetKey()).compareTo(typedOther.isSetKey());
+      lastComparison = Boolean.valueOf(is_set_key()).compareTo(typedOther.is_set_key());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetKey()) {
+      if (is_set_key()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.key, typedOther.key);
         if (lastComparison != 0) {
           return lastComparison;
@@ -560,7 +573,7 @@ public class PartitionServer {
           case 1: // DOMAIN_ID
             if (field.type == org.apache.thrift.protocol.TType.I32) {
               this.domain_id = iprot.readI32();
-              setDomain_idIsSet(true);
+              set_domain_id_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
@@ -733,7 +746,7 @@ public class PartitionServer {
      * Performs a deep copy on <i>other</i>.
      */
     public get_result(get_result other) {
-      if (other.isSetSuccess()) {
+      if (other.is_set_success()) {
         this.success = new HankResponse(other.success);
       }
     }
@@ -747,25 +760,25 @@ public class PartitionServer {
       this.success = null;
     }
 
-    public HankResponse getSuccess() {
+    public HankResponse get_success() {
       return this.success;
     }
 
-    public get_result setSuccess(HankResponse success) {
+    public get_result set_success(HankResponse success) {
       this.success = success;
       return this;
     }
 
-    public void unsetSuccess() {
+    public void unset_success() {
       this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
+    public boolean is_set_success() {
       return this.success != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
+    public void set_success_isSet(boolean value) {
       if (!value) {
         this.success = null;
       }
@@ -775,9 +788,9 @@ public class PartitionServer {
       switch (field) {
       case SUCCESS:
         if (value == null) {
-          unsetSuccess();
+          unset_success();
         } else {
-          setSuccess((HankResponse)value);
+          set_success((HankResponse)value);
         }
         break;
 
@@ -787,7 +800,7 @@ public class PartitionServer {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return get_success();
 
       }
       throw new IllegalStateException();
@@ -801,7 +814,7 @@ public class PartitionServer {
 
       switch (field) {
       case SUCCESS:
-        return isSetSuccess();
+        return is_set_success();
       }
       throw new IllegalStateException();
     }
@@ -819,8 +832,8 @@ public class PartitionServer {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true && this.is_set_success();
+      boolean that_present_success = true && that.is_set_success();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
@@ -833,7 +846,14 @@ public class PartitionServer {
 
     @Override
     public int hashCode() {
-      return 0;
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_success = true && (is_set_success());
+      builder.append(present_success);
+      if (present_success)
+        builder.append(success);
+
+      return builder.toHashCode();
     }
 
     public int compareTo(get_result other) {
@@ -844,11 +864,11 @@ public class PartitionServer {
       int lastComparison = 0;
       get_result typedOther = (get_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(is_set_success()).compareTo(typedOther.is_set_success());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
+      if (is_set_success()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
         if (lastComparison != 0) {
           return lastComparison;
@@ -893,7 +913,7 @@ public class PartitionServer {
     public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       oprot.writeStructBegin(STRUCT_DESC);
 
-      if (this.isSetSuccess()) {
+      if (this.is_set_success()) {
         oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
         this.success.write(oprot);
         oprot.writeFieldEnd();
@@ -1035,7 +1055,7 @@ public class PartitionServer {
     {
       this();
       this.domain_id = domain_id;
-      setDomain_idIsSet(true);
+      set_domain_id_isSet(true);
       this.keys = keys;
     }
 
@@ -1046,7 +1066,7 @@ public class PartitionServer {
       __isset_bit_vector.clear();
       __isset_bit_vector.or(other.__isset_bit_vector);
       this.domain_id = other.domain_id;
-      if (other.isSetKeys()) {
+      if (other.is_set_keys()) {
         List<ByteBuffer> __this__keys = new ArrayList<ByteBuffer>();
         for (ByteBuffer other_element : other.keys) {
           ByteBuffer temp_binary_element = org.apache.thrift.TBaseHelper.copyBinary(other_element);
@@ -1063,68 +1083,68 @@ public class PartitionServer {
 
     @Override
     public void clear() {
-      setDomain_idIsSet(false);
+      set_domain_id_isSet(false);
       this.domain_id = 0;
       this.keys = null;
     }
 
-    public int getDomain_id() {
+    public int get_domain_id() {
       return this.domain_id;
     }
 
-    public getBulk_args setDomain_id(int domain_id) {
+    public getBulk_args set_domain_id(int domain_id) {
       this.domain_id = domain_id;
-      setDomain_idIsSet(true);
+      set_domain_id_isSet(true);
       return this;
     }
 
-    public void unsetDomain_id() {
+    public void unset_domain_id() {
       __isset_bit_vector.clear(__DOMAIN_ID_ISSET_ID);
     }
 
     /** Returns true if field domain_id is set (has been assigned a value) and false otherwise */
-    public boolean isSetDomain_id() {
+    public boolean is_set_domain_id() {
       return __isset_bit_vector.get(__DOMAIN_ID_ISSET_ID);
     }
 
-    public void setDomain_idIsSet(boolean value) {
+    public void set_domain_id_isSet(boolean value) {
       __isset_bit_vector.set(__DOMAIN_ID_ISSET_ID, value);
     }
 
-    public int getKeysSize() {
+    public int get_keys_size() {
       return (this.keys == null) ? 0 : this.keys.size();
     }
 
-    public java.util.Iterator<ByteBuffer> getKeysIterator() {
+    public java.util.Iterator<ByteBuffer> get_keys_iterator() {
       return (this.keys == null) ? null : this.keys.iterator();
     }
 
-    public void addToKeys(ByteBuffer elem) {
+    public void add_to_keys(ByteBuffer elem) {
       if (this.keys == null) {
         this.keys = new ArrayList<ByteBuffer>();
       }
       this.keys.add(elem);
     }
 
-    public List<ByteBuffer> getKeys() {
+    public List<ByteBuffer> get_keys() {
       return this.keys;
     }
 
-    public getBulk_args setKeys(List<ByteBuffer> keys) {
+    public getBulk_args set_keys(List<ByteBuffer> keys) {
       this.keys = keys;
       return this;
     }
 
-    public void unsetKeys() {
+    public void unset_keys() {
       this.keys = null;
     }
 
     /** Returns true if field keys is set (has been assigned a value) and false otherwise */
-    public boolean isSetKeys() {
+    public boolean is_set_keys() {
       return this.keys != null;
     }
 
-    public void setKeysIsSet(boolean value) {
+    public void set_keys_isSet(boolean value) {
       if (!value) {
         this.keys = null;
       }
@@ -1134,17 +1154,17 @@ public class PartitionServer {
       switch (field) {
       case DOMAIN_ID:
         if (value == null) {
-          unsetDomain_id();
+          unset_domain_id();
         } else {
-          setDomain_id((Integer)value);
+          set_domain_id((Integer)value);
         }
         break;
 
       case KEYS:
         if (value == null) {
-          unsetKeys();
+          unset_keys();
         } else {
-          setKeys((List<ByteBuffer>)value);
+          set_keys((List<ByteBuffer>)value);
         }
         break;
 
@@ -1154,10 +1174,10 @@ public class PartitionServer {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case DOMAIN_ID:
-        return Integer.valueOf(getDomain_id());
+        return Integer.valueOf(get_domain_id());
 
       case KEYS:
-        return getKeys();
+        return get_keys();
 
       }
       throw new IllegalStateException();
@@ -1171,9 +1191,9 @@ public class PartitionServer {
 
       switch (field) {
       case DOMAIN_ID:
-        return isSetDomain_id();
+        return is_set_domain_id();
       case KEYS:
-        return isSetKeys();
+        return is_set_keys();
       }
       throw new IllegalStateException();
     }
@@ -1200,8 +1220,8 @@ public class PartitionServer {
           return false;
       }
 
-      boolean this_present_keys = true && this.isSetKeys();
-      boolean that_present_keys = true && that.isSetKeys();
+      boolean this_present_keys = true && this.is_set_keys();
+      boolean that_present_keys = true && that.is_set_keys();
       if (this_present_keys || that_present_keys) {
         if (!(this_present_keys && that_present_keys))
           return false;
@@ -1214,7 +1234,19 @@ public class PartitionServer {
 
     @Override
     public int hashCode() {
-      return 0;
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_domain_id = true;
+      builder.append(present_domain_id);
+      if (present_domain_id)
+        builder.append(domain_id);
+
+      boolean present_keys = true && (is_set_keys());
+      builder.append(present_keys);
+      if (present_keys)
+        builder.append(keys);
+
+      return builder.toHashCode();
     }
 
     public int compareTo(getBulk_args other) {
@@ -1225,21 +1257,21 @@ public class PartitionServer {
       int lastComparison = 0;
       getBulk_args typedOther = (getBulk_args)other;
 
-      lastComparison = Boolean.valueOf(isSetDomain_id()).compareTo(typedOther.isSetDomain_id());
+      lastComparison = Boolean.valueOf(is_set_domain_id()).compareTo(typedOther.is_set_domain_id());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetDomain_id()) {
+      if (is_set_domain_id()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domain_id, typedOther.domain_id);
         if (lastComparison != 0) {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetKeys()).compareTo(typedOther.isSetKeys());
+      lastComparison = Boolean.valueOf(is_set_keys()).compareTo(typedOther.is_set_keys());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetKeys()) {
+      if (is_set_keys()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.keys, typedOther.keys);
         if (lastComparison != 0) {
           return lastComparison;
@@ -1265,7 +1297,7 @@ public class PartitionServer {
           case 1: // DOMAIN_ID
             if (field.type == org.apache.thrift.protocol.TType.I32) {
               this.domain_id = iprot.readI32();
-              setDomain_idIsSet(true);
+              set_domain_id_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             }
@@ -1455,7 +1487,7 @@ public class PartitionServer {
      * Performs a deep copy on <i>other</i>.
      */
     public getBulk_result(getBulk_result other) {
-      if (other.isSetSuccess()) {
+      if (other.is_set_success()) {
         this.success = new HankBulkResponse(other.success);
       }
     }
@@ -1469,25 +1501,25 @@ public class PartitionServer {
       this.success = null;
     }
 
-    public HankBulkResponse getSuccess() {
+    public HankBulkResponse get_success() {
       return this.success;
     }
 
-    public getBulk_result setSuccess(HankBulkResponse success) {
+    public getBulk_result set_success(HankBulkResponse success) {
       this.success = success;
       return this;
     }
 
-    public void unsetSuccess() {
+    public void unset_success() {
       this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
+    public boolean is_set_success() {
       return this.success != null;
     }
 
-    public void setSuccessIsSet(boolean value) {
+    public void set_success_isSet(boolean value) {
       if (!value) {
         this.success = null;
       }
@@ -1497,9 +1529,9 @@ public class PartitionServer {
       switch (field) {
       case SUCCESS:
         if (value == null) {
-          unsetSuccess();
+          unset_success();
         } else {
-          setSuccess((HankBulkResponse)value);
+          set_success((HankBulkResponse)value);
         }
         break;
 
@@ -1509,7 +1541,7 @@ public class PartitionServer {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return getSuccess();
+        return get_success();
 
       }
       throw new IllegalStateException();
@@ -1523,7 +1555,7 @@ public class PartitionServer {
 
       switch (field) {
       case SUCCESS:
-        return isSetSuccess();
+        return is_set_success();
       }
       throw new IllegalStateException();
     }
@@ -1541,8 +1573,8 @@ public class PartitionServer {
       if (that == null)
         return false;
 
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
+      boolean this_present_success = true && this.is_set_success();
+      boolean that_present_success = true && that.is_set_success();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
@@ -1555,7 +1587,14 @@ public class PartitionServer {
 
     @Override
     public int hashCode() {
-      return 0;
+      HashCodeBuilder builder = new HashCodeBuilder();
+
+      boolean present_success = true && (is_set_success());
+      builder.append(present_success);
+      if (present_success)
+        builder.append(success);
+
+      return builder.toHashCode();
     }
 
     public int compareTo(getBulk_result other) {
@@ -1566,11 +1605,11 @@ public class PartitionServer {
       int lastComparison = 0;
       getBulk_result typedOther = (getBulk_result)other;
 
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(typedOther.isSetSuccess());
+      lastComparison = Boolean.valueOf(is_set_success()).compareTo(typedOther.is_set_success());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetSuccess()) {
+      if (is_set_success()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, typedOther.success);
         if (lastComparison != 0) {
           return lastComparison;
@@ -1615,7 +1654,7 @@ public class PartitionServer {
     public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
       oprot.writeStructBegin(STRUCT_DESC);
 
-      if (this.isSetSuccess()) {
+      if (this.is_set_success()) {
         oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
         this.success.write(oprot);
         oprot.writeFieldEnd();

@@ -5,6 +5,7 @@
  */
 package com.rapleaf.hank.generated;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -120,25 +121,25 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
 
   public static HankResponse not_found(boolean value) {
     HankResponse x = new HankResponse();
-    x.setNot_found(value);
+    x.set_not_found(value);
     return x;
   }
 
   public static HankResponse value(ByteBuffer value) {
     HankResponse x = new HankResponse();
-    x.setValue(value);
+    x.set_value(value);
     return x;
   }
 
   public static HankResponse value(byte[] value) {
     HankResponse x = new HankResponse();
-    x.setValue(ByteBuffer.wrap(value));
+    x.set_value(ByteBuffer.wrap(value));
     return x;
   }
 
   public static HankResponse xception(HankException value) {
     HankResponse x = new HankResponse();
-    x.setXception(value);
+    x.set_xception(value);
     return x;
   }
 
@@ -257,7 +258,7 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   }
 
 
-  public boolean getNot_found() {
+  public boolean get_not_found() {
     if (getSetField() == _Fields.NOT_FOUND) {
       return (Boolean)getFieldValue();
     } else {
@@ -265,18 +266,18 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
     }
   }
 
-  public void setNot_found(boolean value) {
+  public void set_not_found(boolean value) {
     setField_ = _Fields.NOT_FOUND;
     value_ = value;
   }
 
-  public byte[] getValue() {
-    setValue(org.apache.thrift.TBaseHelper.rightSize(bufferForValue()));
-    ByteBuffer b = bufferForValue();
+  public byte[] get_value() {
+    set_value(org.apache.thrift.TBaseHelper.rightSize(buffer_for_value()));
+    ByteBuffer b = buffer_for_value();
     return b == null ? null : b.array();
   }
 
-  public ByteBuffer bufferForValue() {
+  public ByteBuffer buffer_for_value() {
     if (getSetField() == _Fields.VALUE) {
       return (ByteBuffer)getFieldValue();
     } else {
@@ -284,17 +285,17 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
     }
   }
 
-  public void setValue(byte[] value) {
-    setValue(ByteBuffer.wrap(value));
+  public void set_value(byte[] value) {
+    set_value(ByteBuffer.wrap(value));
   }
 
-  public void setValue(ByteBuffer value) {
+  public void set_value(ByteBuffer value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.VALUE;
     value_ = value;
   }
 
-  public HankException getXception() {
+  public HankException get_xception() {
     if (getSetField() == _Fields.XCEPTION) {
       return (HankException)getFieldValue();
     } else {
@@ -302,23 +303,23 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
     }
   }
 
-  public void setXception(HankException value) {
+  public void set_xception(HankException value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.XCEPTION;
     value_ = value;
   }
 
-  public boolean isSetNot_found() {
+  public boolean is_set_not_found() {
     return setField_ == _Fields.NOT_FOUND;
   }
 
 
-  public boolean isSetValue() {
+  public boolean is_set_value() {
     return setField_ == _Fields.VALUE;
   }
 
 
-  public boolean isSetXception() {
+  public boolean is_set_xception() {
     return setField_ == _Fields.XCEPTION;
   }
 
@@ -345,14 +346,22 @@ public class HankResponse extends org.apache.thrift.TUnion<HankResponse, HankRes
   }
 
 
-  /**
-   * If you'd like this to perform more respectably, use the hashcode generator option.
-   */
   @Override
   public int hashCode() {
-    return 0;
+    HashCodeBuilder hcb = new HashCodeBuilder();
+    hcb.append(this.getClass().getName());
+    org.apache.thrift.TFieldIdEnum setField = getSetField();
+    if (setField != null) {
+      hcb.append(setField.getThriftFieldId());
+      Object value = getFieldValue();
+      if (value instanceof org.apache.thrift.TEnum) {
+        hcb.append(((org.apache.thrift.TEnum)getFieldValue()).getValue());
+      } else {
+        hcb.append(value);
+      }
+    }
+    return hcb.toHashCode();
   }
-
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
     try {
       write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));

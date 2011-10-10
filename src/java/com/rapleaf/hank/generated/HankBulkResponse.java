@@ -5,6 +5,7 @@
  */
 package com.rapleaf.hank.generated;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -115,13 +116,13 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
 
   public static HankBulkResponse responses(List<HankResponse> value) {
     HankBulkResponse x = new HankBulkResponse();
-    x.setResponses(value);
+    x.set_responses(value);
     return x;
   }
 
   public static HankBulkResponse xception(HankException value) {
     HankBulkResponse x = new HankBulkResponse();
-    x.setXception(value);
+    x.set_xception(value);
     return x;
   }
 
@@ -238,7 +239,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
   }
 
 
-  public List<HankResponse> getResponses() {
+  public List<HankResponse> get_responses() {
     if (getSetField() == _Fields.RESPONSES) {
       return (List<HankResponse>)getFieldValue();
     } else {
@@ -246,13 +247,13 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
     }
   }
 
-  public void setResponses(List<HankResponse> value) {
+  public void set_responses(List<HankResponse> value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.RESPONSES;
     value_ = value;
   }
 
-  public HankException getXception() {
+  public HankException get_xception() {
     if (getSetField() == _Fields.XCEPTION) {
       return (HankException)getFieldValue();
     } else {
@@ -260,18 +261,18 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
     }
   }
 
-  public void setXception(HankException value) {
+  public void set_xception(HankException value) {
     if (value == null) throw new NullPointerException();
     setField_ = _Fields.XCEPTION;
     value_ = value;
   }
 
-  public boolean isSetResponses() {
+  public boolean is_set_responses() {
     return setField_ == _Fields.RESPONSES;
   }
 
 
-  public boolean isSetXception() {
+  public boolean is_set_xception() {
     return setField_ == _Fields.XCEPTION;
   }
 
@@ -298,14 +299,22 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
   }
 
 
-  /**
-   * If you'd like this to perform more respectably, use the hashcode generator option.
-   */
   @Override
   public int hashCode() {
-    return 0;
+    HashCodeBuilder hcb = new HashCodeBuilder();
+    hcb.append(this.getClass().getName());
+    org.apache.thrift.TFieldIdEnum setField = getSetField();
+    if (setField != null) {
+      hcb.append(setField.getThriftFieldId());
+      Object value = getFieldValue();
+      if (value instanceof org.apache.thrift.TEnum) {
+        hcb.append(((org.apache.thrift.TEnum)getFieldValue()).getValue());
+      } else {
+        hcb.append(value);
+      }
+    }
+    return hcb.toHashCode();
   }
-
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
     try {
       write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
