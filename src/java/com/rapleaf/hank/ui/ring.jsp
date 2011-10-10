@@ -19,7 +19,7 @@
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
+RingGroup ringGroup = coord.getRingGroup(URLEnc.decode(request.getParameter("g")));
 
 Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 %>
