@@ -43,11 +43,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
 
-  //private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
   private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
-
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
-
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
   /**
