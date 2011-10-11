@@ -55,6 +55,7 @@ public class PartitionServerConnectionSet {
         PartitionServerConnection connection = connections.get(pos);
         if (!connection.isAvailable()) {
           LOG.trace("Connection " + connection + " was not available, so skipped it.");
+          numAttempts++;
           continue;
         }
         try {
@@ -62,8 +63,9 @@ public class PartitionServerConnectionSet {
           break;
         } catch (IOException e) {
           LOG.trace("Failed to execute with connection " + connection + ", so skipped it.", e);
+          numAttempts++;
+          continue;
         }
-        numAttempts++;
       }
       if (numAttempts >= maxAttempts) {
         noConnectionAvailable();
