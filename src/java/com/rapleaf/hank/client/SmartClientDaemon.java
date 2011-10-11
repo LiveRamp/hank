@@ -19,6 +19,7 @@ import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.SmartClient;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
@@ -134,6 +135,8 @@ public class SmartClientDaemon {
   }
 
   public static void main(String[] args) throws Throwable {
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"},
+        SmartClientDaemon.class);
     String configPath = args[0];
     String log4jProps = args[1];
     PropertyConfigurator.configure(log4jProps);

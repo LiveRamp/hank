@@ -358,7 +358,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException {
-    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"}, PartitionServer.class);
+    CommandLineChecker.check(args, new String[]{"configuration_file_path", "log4j_properties_file_path"},
+        PartitionServer.class);
     String configPath = args[0];
     String log4jprops = args[1];
 
