@@ -23,7 +23,6 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -85,36 +84,24 @@ public class ZkRing extends AbstractRing {
     updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT));
   }
 
-  private final class StateChangeWatcher implements Watcher {
-    private boolean cancelled = false;
+  private final class StateChangeWatcher extends HankWatcher {
 
-    public StateChangeWatcher() throws KeeperException, InterruptedException {
-      register();
+    protected StateChangeWatcher() throws KeeperException, InterruptedException {
+      super();
     }
 
-    private void register() throws KeeperException, InterruptedException {
+    public void setWatch() throws KeeperException, InterruptedException {
       zk.getData(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), this, null);
     }
 
     @Override
-    public void process(WatchedEvent event) {
+    public void realProcess(WatchedEvent event) {
       switch (event.getType()) {
         case NodeDataChanged:
           for (RingStateChangeListener listener : stateChangeListeners) {
             listener.onRingStateChange(ZkRing.this);
           }
-          if (!cancelled) {
-            try {
-              register();
-            } catch (Exception e) {
-              LOG.error("failed to reregister watch!", e);
-            }
-          }
       }
-    }
-
-    public void cancel() {
-      cancelled = true;
     }
   }
 
