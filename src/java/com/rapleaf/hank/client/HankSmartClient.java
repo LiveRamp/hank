@@ -120,7 +120,6 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     // Build domainToPartitionToConnectionSet
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
-      LOG.info("Loading partition to connection mappings for domain #" + domainToPartitionToAddressesEntry.getKey());
       Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = new HashMap<Integer, PartitionServerConnectionSet>();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
         List<PartitionServerConnection> connections = new ArrayList<PartitionServerConnection>();
