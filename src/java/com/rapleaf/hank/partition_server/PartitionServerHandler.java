@@ -142,7 +142,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
         Reader reader = engine.getReader(configurator, partition.getPartNum());
         // Check that Reader's version number and current domain group version number match
-        if (reader.getVersionNumber() != null || !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
+        if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
               partition.getPartNum(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber);
           LOG.error(msg);
