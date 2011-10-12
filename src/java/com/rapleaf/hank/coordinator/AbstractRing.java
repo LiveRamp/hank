@@ -104,6 +104,32 @@ public abstract class AbstractRing implements Ring {
     return true;
   }
 
+  public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException {
+    // Check that each domain of the given domain group version is assigned to this ring
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      // Find all assigned partitions of that domain across hosts
+      Set<Integer> assignedPartitions = new HashSet<Integer>();
+      for (Host host : getHosts()) {
+        HostDomain hostDomain = host.getHostDomain(domain);
+        if (hostDomain != null) {
+          for (HostDomainPartition partition : hostDomain.getPartitions()) {
+            // If the partition is not currently at the given domain group version, the ring is not up-to-date
+            if (partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
+              return false;
+            }
+            assignedPartitions.add(partition.getPartNum());
+          }
+        }
+      }
+      // Check that all of that domain's partitions are assigned at least once. If not, the ring is not up-to-date
+      if (assignedPartitions.size() != domain.getNumParts()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @Override
   public int compareTo(Ring other) {
     return Integer.valueOf(ringNum).compareTo(other.getRingNumber());

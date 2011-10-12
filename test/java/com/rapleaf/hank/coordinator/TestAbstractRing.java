@@ -161,8 +161,9 @@ public class TestAbstractRing extends BaseTestCase {
   public void testIsAssigned() throws Exception {
 
     class LocalMockDomainGroupVersion extends MockDomainGroupVersion {
-      public LocalMockDomainGroupVersion(Set<DomainGroupVersionDomainVersion> domainVersions) {
-        super(domainVersions, null, 0);
+      public LocalMockDomainGroupVersion(Set<DomainGroupVersionDomainVersion> domainVersions,
+                                         int versionNumber) {
+        super(domainVersions, null, versionNumber);
       }
     }
 
@@ -234,22 +235,28 @@ public class TestAbstractRing extends BaseTestCase {
     final MockDomain d2 = new LocalMockDomain("d2", 3);
     final MockDomain d3 = new LocalMockDomain("d3", 3);
 
-    DomainGroupVersion dgvEmpty = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>());
+    DomainGroupVersion dgvEmpty = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>(), 0);
     DomainGroupVersion dgv1 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
       add(new MockDomainGroupVersionDomainVersion(d1, 0));
-    }});
+    }}, 0);
 
     DomainGroupVersion dgv2 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
       add(new MockDomainGroupVersionDomainVersion(d1, 0));
       add(new MockDomainGroupVersionDomainVersion(d2, 0));
-    }});
+    }}, 0);
+
+    DomainGroupVersion dgv2_updated = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
+      add(new MockDomainGroupVersionDomainVersion(d1, 1));
+      add(new MockDomainGroupVersionDomainVersion(d2, 1));
+    }}, 1);
 
     DomainGroupVersion dgv3 = new LocalMockDomainGroupVersion(new HashSet<DomainGroupVersionDomainVersion>() {{
       add(new MockDomainGroupVersionDomainVersion(d3, 0));
-    }});
+    }}, 0);
 
     // Test empty DomainGroupVersion
     assertEquals(true, r.isAssigned(dgvEmpty));
+    assertEquals(true, r.isUpToDate(dgvEmpty));
 
     // Test DomainGroupVersion with one domain
     h1.clearHostDomain();
@@ -269,6 +276,18 @@ public class TestAbstractRing extends BaseTestCase {
     assertEquals(false, r.isAssigned(dgv2));
     h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1, 2));
     assertEquals(true, r.isAssigned(dgv2));
+    // Test dgv2_updated
+    assertEquals(false, r.isUpToDate(dgv2_updated));
+    Set<HostDomainPartition> h1d1_partitions = h1.getHostDomain(d1).getPartitions();
+    Set<HostDomainPartition> h2d2_partitions = h2.getHostDomain(d2).getPartitions();
+    for (HostDomainPartition partition : h1d1_partitions) {
+      partition.setCurrentDomainGroupVersion(dgv2_updated.getVersionNumber());
+    }
+    assertEquals(false, r.isUpToDate(dgv2_updated));
+    for (HostDomainPartition partition : h2d2_partitions) {
+      partition.setCurrentDomainGroupVersion(dgv2_updated.getVersionNumber());
+    }
+    assertEquals(true, r.isUpToDate(dgv2_updated));
 
     // Test DomainGroupVersion with one domain on multiple hosts
     h1.clearHostDomain();
