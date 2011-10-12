@@ -7,49 +7,47 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class UniformPartitionAssigner implements PartitionAssigner {
-  private Ring ring;
 
   public UniformPartitionAssigner() throws IOException {
   }
 
   @Override
-  public void assign(RingGroup ringGroup, int ringNum, Domain domain) throws IOException {
-    ring = ringGroup.getRing(ringNum);
-    int version;
-    if (ringGroup.getCurrentVersion() != null) {
-     version = ringGroup.getCurrentVersion();
-    } else {
-      version = ringGroup.getUpdatingToVersion();
-    }
+  public void assign(DomainGroupVersion domainGroupVersion, Ring ring) throws IOException {
     Random random = new Random();
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      int version = dgvdv.getVersionOrAction().getVersion();
 
-    for (Host host : ring.getHosts()) {
-      if (host.getHostDomain(domain) == null) {
-        host.addDomain(domain);
+      // Add domain to hosts when necessary
+      for (Host host : ring.getHosts()) {
+        if (host.getHostDomain(domain) == null) {
+          host.addDomain(domain);
+        }
       }
-    }
 
-    // make random assignments for any of the currently unassigned parts
-    for (Integer partNum : ring.getUnassignedPartitions(domain)) {
-      getMinHostDomain(domain).addPartition(partNum, version);
-    }
+      // make random assignments for any of the currently unassigned parts
+      for (Integer partNum : ring.getUnassignedPartitions(domain)) {
+        getMinHostDomain(ring, domain).addPartition(partNum, version);
+      }
 
-    while (!assignmentsBalanced(domain)) {
-      HostDomain maxHostDomain = getMaxHostDomain(domain);
-      HostDomain minHostDomain = getMinHostDomain(domain);
+      while (!assignmentsBalanced(ring, domain)) {
+        HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
+        HostDomain minHostDomain = getMinHostDomain(ring, domain);
 
-      // pick a random partition from the maxHost
-      ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
-      partitions.addAll(maxHostDomain.getPartitions());
-      final HostDomainPartition toMove = partitions.get(random.nextInt(partitions.size()));
+        // pick a random partition from the maxHost
+        ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
+        partitions.addAll(maxHostDomain.getPartitions());
+        final HostDomainPartition toMove = partitions.get(random.nextInt(partitions.size()));
 
-      // assign it to the min host. note that we assign it before we unassign it
-      // to ensure that if we fail at this point, we haven't left any parts
-      // unassigned.
-      minHostDomain.addPartition(toMove.getPartNum(), version);
+        // assign it to the min host. note that we assign it before we unassign it
+        // to ensure that if we fail at this point, we haven't left any parts
+        // unassigned.
+        minHostDomain.addPartition(toMove.getPartNum(), version);
 
-      // unassign it from the max host
-      unassign(toMove);
+        // unassign it from the max host
+        unassign(toMove);
+      }
+
     }
   }
 
@@ -64,15 +62,15 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     }
   }
 
-  private boolean assignmentsBalanced(Domain domain) throws IOException {
-    HostDomain maxHostDomain = getMaxHostDomain(domain);
-    HostDomain minHostDomain = getMinHostDomain(domain);
+  private boolean assignmentsBalanced(Ring ring, Domain domain) throws IOException {
+    HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
+    HostDomain minHostDomain = getMinHostDomain(ring, domain);
     int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
         - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
-  private HostDomain getMinHostDomain(Domain domain) throws IOException {
+  private HostDomain getMinHostDomain(Ring ring, Domain domain) throws IOException {
     HostDomain minHostDomain = null;
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
@@ -87,7 +85,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     return minHostDomain;
   }
 
-  private HostDomain getMaxHostDomain(Domain domain) throws IOException {
+  private HostDomain getMaxHostDomain(Ring ring, Domain domain) throws IOException {
     HostDomain maxHostDomain = null;
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
