@@ -115,7 +115,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       for (HostDomainPartition partition : partitions) {
         if (partition.getCurrentDomainGroupVersion() == null) {
           LOG.error(String.format(
-              "Could not load Reader for partition #%d of domain %s because the partition's current version is null.",
+              "Could not load Reader for partition #%d of Domain %s because the partition's current version is null.",
               partition.getPartNum(), domain.getName()));
           continue;
         }
@@ -125,19 +125,20 @@ class PartitionServerHandler implements IfaceWithShutdown {
         try {
           DomainGroupVersion partitionDomainGroupVersion = domainGroup.getVersionByNumber(partition.getCurrentDomainGroupVersion());
           if (partitionDomainGroupVersion == null) {
-            throw new IOException(String.format("Could not get version %d of DomainGroup %s.",
+            throw new IOException(String.format("Could not get version %d of Domain Group %s.",
                 partition.getCurrentDomainGroupVersion(), domainGroup.getName()));
           }
           DomainGroupVersionDomainVersion domainGroupVersionDomainVersion = partitionDomainGroupVersion.getDomainVersion(domain);
           if (domainGroupVersionDomainVersion == null) {
-            throw new IOException(String.format("Could not get DomainVersion for domain %s in DomainGroupVersion %d.",
+            throw new IOException(String.format("Could not get Domain Version for Domain %s in Domain Group Version %d.",
                 domain.getName(), partitionDomainGroupVersion.getVersionNumber()));
           }
           domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersionOrAction().getVersion();
         } catch (Exception e) {
-          domainGroupVersionDomainVersionNumber = -1;
-          LOG.error(String.format("Could not determine at which DomainVersion partition #%d of domain %s should be.",
-              partition.getPartNum(), domain.getName()), e);
+          final String msg = String.format("Could not determine at which Domain Version partition #%d of Domain %s should be.",
+              partition.getPartNum(), domain.getName());
+          LOG.error(msg, e);
+          throw new IOException(msg, e);
         }
 
         Reader reader = engine.getReader(configurator, partition.getPartNum());
@@ -146,7 +147,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
               partition.getPartNum(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber);
           LOG.error(msg);
-          throw new RuntimeException(msg);
+          throw new IOException(msg);
         }
         LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
             partition.getPartNum(), domain.getName()));

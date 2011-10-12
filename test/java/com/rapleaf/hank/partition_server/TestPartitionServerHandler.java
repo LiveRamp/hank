@@ -15,33 +15,9 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.coordinator.AbstractHostDomain;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
@@ -52,6 +28,14 @@ import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestPartitionServerHandler extends BaseTestCase {
   private static final ByteBuffer K1 = bb(1);
@@ -96,6 +80,14 @@ public class TestPartitionServerHandler extends BaseTestCase {
     }
   };
 
+  public void testDontServeNotUpToDatePartition() throws IOException, TException {
+    try {
+      PartitionServerHandler handler = createHandler(42);
+      fail("Should throw an exception.");
+    } catch (IOException e) {
+    }
+  }
+
   public void testSetUpAndServe() throws Exception {
     PartitionServerHandler handler = createHandler(1);
 
@@ -120,7 +112,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         return new MockReader(configurator, partNum, V1, readerVersionNumber) {
           @Override
           public Integer getVersionNumber() {
-            return null;
+            return readerVersionNumber;
           }
         };
       }
