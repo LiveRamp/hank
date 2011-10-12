@@ -11,7 +11,7 @@ import com.rapleaf.hank.coordinator.HostCommand;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.ui.URLEnc;
 
@@ -55,7 +55,7 @@ public class RingController extends Controller {
     RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
 
-    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
     for (DomainGroupVersionDomainVersion dc : rgc.getDomainGroup().getLatestVersion().getDomainVersions()) {
       partitionAssigner.assign(rgc, ringNum, dc.getDomain());
     }

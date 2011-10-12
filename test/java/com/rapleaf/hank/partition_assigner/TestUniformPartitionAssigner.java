@@ -1,32 +1,16 @@
 package com.rapleaf.hank.partition_assigner;
 
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomain;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
-
-public class TestEqualSizePartitionAssigner extends BaseTestCase {
+public class TestUniformPartitionAssigner extends BaseTestCase {
 //  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
   private static final Domain domain = new MockDomain("TestDomain");
 
@@ -207,7 +191,7 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     assertEquals(false, assignmentsBalanced(ring, domain));
 
     // Balance
-    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
 
     partitionAssigner.assign(ringGroup, 0, domain);
 

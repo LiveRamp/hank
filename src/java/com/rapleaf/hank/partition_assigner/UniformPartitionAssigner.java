@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class EqualSizePartitionAssigner implements PartitionAssigner {
+public class UniformPartitionAssigner implements PartitionAssigner {
   private Ring ring;
 
-  public EqualSizePartitionAssigner() throws IOException {
+  public UniformPartitionAssigner() throws IOException {
   }
 
   @Override
