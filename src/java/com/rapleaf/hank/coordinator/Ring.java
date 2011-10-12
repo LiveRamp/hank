@@ -124,6 +124,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Return true if each partition in the given domain group version is assigned to at least one host
+   * Note: This does not take versions into consideration.
    *
    * @param domainGroupVersion
    * @return
@@ -134,7 +135,7 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Return true if each partition in the given domain group version is assigned to at least one host
-   * and all the partition are at the given version.
+   * and all the partitions are at the given version.
    *
    * @param domainGroupVersion
    * @return
