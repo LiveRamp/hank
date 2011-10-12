@@ -42,4 +42,10 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "AbstractDomainGroupVersion [domainVersions=" + getDomainVersions() + ", domainGroup="
+        + getDomainGroup().getName() + ", versionNumber=" + getVersionNumber() + "]";
+  }
 }
