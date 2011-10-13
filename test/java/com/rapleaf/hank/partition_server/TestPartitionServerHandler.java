@@ -80,6 +80,14 @@ public class TestPartitionServerHandler extends BaseTestCase {
     }
   };
 
+  public void testDontServeNotUpToDatePartition() throws IOException, TException {
+    try {
+      PartitionServerHandler handler = createHandler(42);
+      fail("Should throw an exception.");
+    } catch (IOException e) {
+    }
+  }
+
   public void testSetUpAndServe() throws Exception {
     PartitionServerHandler handler = createHandler(1);
 
@@ -94,14 +102,6 @@ public class TestPartitionServerHandler extends BaseTestCase {
         handler.get((byte) 0, K4));
   }
 
-  public void testDontServeNotUpToDatePartition() throws IOException, TException {
-    PartitionServerHandler handler = createHandler(0);
-
-    HankResponse response = handler.get((byte) 0, K1);
-    assertTrue(response.isSet(HankResponse._Fields.XCEPTION));
-    assertTrue(response.get_xception().isSet(HankException._Fields.INTERNAL_ERROR));
-  }
-
   private PartitionServerHandler createHandler(final int readerVersionNumber) throws IOException {
     Partitioner partitioner = new MapPartitioner(K1, 0, K2, 1, K3, 2, K4, 3,
         K5, 4);
@@ -109,7 +109,12 @@ public class TestPartitionServerHandler extends BaseTestCase {
       @Override
       public Reader getReader(PartitionServerConfigurator configurator, int partNum)
           throws IOException {
-        return new MockReader(configurator, partNum, V1, readerVersionNumber);
+        return new MockReader(configurator, partNum, V1, readerVersionNumber) {
+          @Override
+          public Integer getVersionNumber() {
+            return readerVersionNumber;
+          }
+        };
       }
     };
     Domain domain = new MockDomain("myDomain", 0, 5, partitioner, storageEngine, null,

@@ -19,7 +19,7 @@
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
-RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
+RingGroup ringGroup = coord.getRingGroup(URLEnc.decode(request.getParameter("g")));
 
 Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 %>
@@ -78,8 +78,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
     <select name="command">
       <option></option>
-      <option value="GO_TO_IDLE">GO_TO_IDLE</option>
-      <option value="SERVE_DATA">SERVE_DATA</option>
+      <% for (HostCommand cmd : HostCommand.values()) { %>
+      <option value="<%= cmd.name() %>"><%= cmd.name() %></option>
+      <% } %>
     </select>
     <input type=submit value="Command"/>
   </form>

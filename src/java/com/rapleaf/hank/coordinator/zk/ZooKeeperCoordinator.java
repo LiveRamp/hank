@@ -229,15 +229,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllDomains() throws InterruptedException, KeeperException {
     List<String> domainNames = zk.getChildrenNotHidden(domainsRoot, false);
     for (String domainName : domainNames) {
+      LOG.info("Loading metadata for Domain " + domainName);
       domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
     }
   }
 
   private void loadAllDomainGroups() throws InterruptedException, KeeperException, IOException {
-    LOG.debug("Reloading all domain groups...");
     List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
     synchronized (domainGroups) {
       for (String domainGroupName : domainGroupNameList) {
+        LOG.info("Loading metadata for Domain Group " + domainGroupName);
         String dgPath = ZkPath.append(domainGroupsRoot, domainGroupName);
         boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
         if (isComplete) {
@@ -253,6 +254,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private void loadAllRingGroups() throws InterruptedException, KeeperException {
     List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
     for (String ringGroupName : ringGroupNameList) {
+      LOG.info("Loading metadata for Ring Group " + ringGroupName);
       String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
       ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
       ringGroups.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc, this));

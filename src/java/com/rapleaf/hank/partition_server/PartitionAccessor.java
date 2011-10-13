@@ -28,6 +28,9 @@ public class PartitionAccessor {
   private final AtomicLong hits;
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
+    if (reader == null) {
+      throw new IllegalArgumentException("Reader may not be null!");
+    }
     this.partition = partition;
     this.reader = reader;
     requests = new AtomicLong(0);
@@ -48,9 +51,6 @@ public class PartitionAccessor {
     // Increment requests counter
     LOG.info("Partition GET");
     requests.incrementAndGet();
-    if (reader == null) {
-      throw new IOException("No Reader is set up.");
-    }
     Result result = new Result();
     reader.get(key, result);
     if (result.isFound()) {

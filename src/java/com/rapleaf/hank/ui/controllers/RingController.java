@@ -1,19 +1,13 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
+import com.rapleaf.hank.ui.URLEnc;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.partition_assigner.EqualSizePartitionAssigner;
-import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.ui.URLEnc;
+import java.io.IOException;
 
 public class RingController extends Controller {
 
@@ -52,15 +46,15 @@ public class RingController extends Controller {
   }
 
   protected void doRedistributePartitionsForRing(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
     int ringNum = Integer.parseInt(req.getParameter("n"));
+    Ring ring = rg.getRing(ringNum);
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
+    // Assign current version (rebalance)
+    DomainGroupVersion currentVersion = rg.getDomainGroup().getVersionByNumber(rg.getCurrentVersion());
+    partitionAssigner.assign(currentVersion, ring);
 
-    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
-    for (DomainGroupVersionDomainVersion dc : rgc.getDomainGroup().getLatestVersion().getDomainVersions()) {
-      partitionAssigner.assign(rgc, ringNum, dc.getDomain());
-    }
-
-    resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rgc.getName(), ringNum));
+    resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rg.getName(), ringNum));
   }
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {

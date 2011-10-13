@@ -1,33 +1,16 @@
 package com.rapleaf.hank.partition_assigner;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.coordinator.MockDomainGroupVersion;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.MockHostDomain;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
-import com.rapleaf.hank.coordinator.MockRing;
-import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 
-public class TestEqualSizePartitionAssigner extends BaseTestCase {
-//  private static final DomainVersion version = new MockDomainVersion(0, new Long(0));
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+public class TestUniformPartitionAssigner extends BaseTestCase {
   private static final Domain domain = new MockDomain("TestDomain");
 
   private static HashSet<Integer> unassigned = new HashSet<Integer>();
@@ -61,13 +44,15 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     }
   };
 
-  private static final DomainGroupVersion dgv = new MockDomainGroupVersion(null, domainGroup, 0);
+  private static DomainGroupVersionDomainVersion dv = new MockDomainGroupVersionDomainVersion(domain, 0);
+  private static final DomainGroupVersion dgv = new MockDomainGroupVersion(Collections.singleton(dv), domainGroup, 0);
 
   private static final PartitionServerAddress pda1 = new PartitionServerAddress("host1", 12345);
   private static final PartitionServerAddress pda2 = new PartitionServerAddress("host2", 12345);
   private static final PartitionServerAddress pda3 = new PartitionServerAddress("host3", 12345);
 
   private static final HashSet<PartitionServerAddress> addresses = new HashSet<PartitionServerAddress>();
+
   static {
     addresses.add(pda1);
     addresses.add(pda2);
@@ -194,22 +179,14 @@ public class TestEqualSizePartitionAssigner extends BaseTestCase {
     rings.add(ring);
   }
 
-  static {
-    try {
-      domainGroup.createNewVersion(new HashMap<Domain, VersionOrAction>() {{put(domain, new VersionOrAction(0));}});
-    } catch (IOException e) {
-      fail(e.getMessage());
-    }
-  }
-
   public void testPartitioner() throws Exception {
     // Initially unbalanced
     assertEquals(false, assignmentsBalanced(ring, domain));
 
     // Balance
-    PartitionAssigner partitionAssigner = new EqualSizePartitionAssigner();
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
 
-    partitionAssigner.assign(ringGroup, 0, domain);
+    partitionAssigner.assign(dgv, ringGroup.getRing(0));
 
     // Now balanced
     assertEquals(true, assignmentsBalanced(ring, domain));

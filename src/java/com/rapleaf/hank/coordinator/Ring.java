@@ -124,12 +124,24 @@ public interface Ring extends Comparable<Ring> {
 
   /**
    * Return true if each partition in the given domain group version is assigned to at least one host
+   * Note: This does not take versions into consideration.
    *
    * @param domainGroupVersion
    * @return
    * @throws IOException
    */
   public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException;
+
+
+  /**
+   * Return true if each partition in the given domain group version is assigned to at least one host
+   * and all the partitions are at the given version.
+   *
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
+  public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException;
 
   /**
    * Get the set of partition IDs that are not currently assigned to a host.

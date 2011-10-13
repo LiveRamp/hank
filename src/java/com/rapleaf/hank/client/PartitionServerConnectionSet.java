@@ -51,11 +51,11 @@ public class PartitionServerConnectionSet {
       int maxAttempts = connections.size();
       LOG.trace("There are " + connections.size() + " connections");
       while (numAttempts < maxAttempts) {
-        numAttempts++;
         int pos = nextIdx.getAndIncrement() % connections.size();
         PartitionServerConnection connection = connections.get(pos);
         if (!connection.isAvailable()) {
           LOG.trace("Connection " + connection + " was not available, so skipped it.");
+          numAttempts++;
           continue;
         }
         try {
@@ -63,9 +63,11 @@ public class PartitionServerConnectionSet {
           break;
         } catch (IOException e) {
           LOG.trace("Failed to execute with connection " + connection + ", so skipped it.", e);
+          numAttempts++;
+          continue;
         }
       }
-      if (numAttempts > maxAttempts) {
+      if (numAttempts >= maxAttempts) {
         noConnectionAvailable();
         LOG.trace("None of the " + connections.size() + " connections were available.");
       }

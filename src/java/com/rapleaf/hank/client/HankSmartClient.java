@@ -43,11 +43,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
 
-  //private final Map<PartitionServerAddress, List<PartitionServerConnection>> connectionCache = new HashMap<PartitionServerAddress, List<PartitionServerConnection>>();
   private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
-
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
-
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
   /**
@@ -109,6 +106,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         }
 
         // Establish connection to hosts
+        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host);
         List<PartitionServerConnection> hostConnections = new ArrayList<PartitionServerConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
           hostConnections.add(new PartitionServerConnection(host));

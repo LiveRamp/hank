@@ -23,23 +23,23 @@ import java.util.Set;
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
-  private final int curVer;
-  private final int nextVer;
+  private int currentDomainGroupVersion;
+  private final int updatingToDomainGroupVersion;
   public int updatingToVersion;
   private Map<String, Long> counters = new HashMap<String, Long>();
   private boolean deletable;
   private boolean isDeleted;
 
-  public MockHostDomainPartition(int partNum, int curVer, int nextVer) {
+  public MockHostDomainPartition(int partNum, int currentDomainGroupVersion, int updatingToDomainGroupVersion) {
     this.partNum = partNum;
-    this.curVer = curVer;
-    this.nextVer = nextVer;
+    this.currentDomainGroupVersion = currentDomainGroupVersion;
+    this.updatingToDomainGroupVersion = updatingToDomainGroupVersion;
     deletable = false;
   }
 
   @Override
   public Integer getCurrentDomainGroupVersion() throws IOException {
-    return curVer;
+    return currentDomainGroupVersion;
   }
 
   @Override
@@ -49,11 +49,12 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public Integer getUpdatingToDomainGroupVersion() throws IOException {
-    return nextVer;
+    return updatingToDomainGroupVersion;
   }
 
   @Override
   public void setCurrentDomainGroupVersion(int version) {
+    currentDomainGroupVersion = version;
   }
 
   @Override
