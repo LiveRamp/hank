@@ -25,7 +25,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 
-public class  RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
+public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
   private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
   private final RingGroupConductorConfigurator configurator;
@@ -119,31 +119,36 @@ public class  RingGroupConductor implements RingGroupChangeListener, DomainGroup
         // set the ring group's updating version to the new domain group version
         // this will mark all the subordinate rings and hosts for update as well.
         LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
-        for (Ring ring : ringGroup.getRings()) {
-          for (Host host : ring.getHosts()) {
-            for (HostDomain hd : host.getAssignedDomains()) {
-              final DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(hd.getDomain());
-              if (dgvdv == null) {
-                LOG.error(String.format("Could not determine DomainGroupVersionDomainVersion for domain %s on host %s. Will not update.",
-                    hd.getDomain(), host.getAddress()));
-              } else {
-                for (HostDomainPartition hdp : hd.getPartitions()) {
-                  // if the dgvdv is tagged as an action instead of as a version
-                  // number, then we should take action rather than just update
-                  // the version number on the hdp
-                  if (dgvdv.getVersionOrAction().isAction() &&
-                      dgvdv.getVersionOrAction().getAction() == Action.UNASSIGN) {
-                    // if it's an unassign action, then we just want to mark all
-                    // the parts as deletable.
-                    hdp.setDeletable(true);
-                  } else {
-                    hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+
+        if (!ringGroup.isAssigned(dgv)) {
+          LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName + ". Cancelling update.");
+        } else {
+          for (Ring ring : ringGroup.getRings()) {
+            for (Host host : ring.getHosts()) {
+              for (HostDomain hd : host.getAssignedDomains()) {
+                final DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(hd.getDomain());
+                if (dgvdv == null) {
+                  LOG.error(String.format("Could not determine DomainGroupVersionDomainVersion for domain %s on host %s. Will not update.",
+                      hd.getDomain(), host.getAddress()));
+                } else {
+                  for (HostDomainPartition hdp : hd.getPartitions()) {
+                    // if the dgvdv is tagged as an action instead of as a version
+                    // number, then we should take action rather than just update
+                    // the version number on the hdp
+                    if (dgvdv.getVersionOrAction().isAction() &&
+                        dgvdv.getVersionOrAction().getAction() == Action.UNASSIGN) {
+                      // if it's an unassign action, then we just want to mark all
+                      // the parts as deletable.
+                      hdp.setDeletable(true);
+                    } else {
+                      hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
+                    }
                   }
                 }
               }
             }
+            ring.setUpdatingToVersion(latestVersionNumber);
           }
-          ring.setUpdatingToVersion(latestVersionNumber);
         }
         ringGroup.setUpdatingToVersion(latestVersionNumber);
       } else {
