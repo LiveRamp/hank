@@ -9,4 +9,4 @@ if [ -f "$BINDIR"/partition_server_extra.sh ]; then
   . "$BINDIR"/partition_server_extra.sh
 fi
 
-java --XX:+UseConcMarkSweepGC $EXTRA_JVM_ARGS -cp "$CLASSPATH" com.rapleaf.hank.partition_server.PartitionServer $@
+java -XX:+UseConcMarkSweepGC $EXTRA_JVM_ARGS -cp "$CLASSPATH" com.rapleaf.hank.partition_server.PartitionServer $@
