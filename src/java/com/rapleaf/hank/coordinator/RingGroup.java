@@ -79,4 +79,8 @@ public interface RingGroup {
   public Integer getUpdatingToVersion() throws IOException;
 
   Ring addRing(int ringNum) throws IOException;
+
+  public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException;
+
+  public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException;
 }
