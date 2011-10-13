@@ -63,7 +63,7 @@ class DomainAccessor {
    * @throws IOException
    */
   public HankResponse get(ByteBuffer key) throws IOException {
-    LOG.info("Domain GET");
+    LOG.trace("Domain GET");
     int partition = partitioner.partition(key, partitionAccessors.length);
     PartitionAccessor partitionAccessor = partitionAccessors[partition];
     if (partitionAccessor == null) {

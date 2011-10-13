@@ -1,15 +1,14 @@
 package com.rapleaf.hank.partition_server;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.log4j.Logger;
-
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
@@ -49,7 +48,7 @@ public class PartitionAccessor {
 
   public HankResponse get(ByteBuffer key) throws IOException {
     // Increment requests counter
-    LOG.info("Partition GET");
+    LOG.trace("Partition GET");
     requests.incrementAndGet();
     Result result = new Result();
     reader.get(key, result);
