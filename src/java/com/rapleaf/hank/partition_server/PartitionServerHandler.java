@@ -182,7 +182,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
         return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
       }
     } finally {
-      getTimerAggregator.add(timer.getDuration());
+      if (getTimerAggregator.isActive()) {
+        getTimerAggregator.add(timer.getDuration());
+      }
     }
   }
 
@@ -197,7 +199,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
       return response;
     } finally {
-      getBulkTimerAggregator.add(timer.getDuration());
+      if (getBulkTimerAggregator.isActive()) {
+        getBulkTimerAggregator.add(timer.getDuration());
+      }
     }
   }
 

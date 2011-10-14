@@ -27,6 +27,7 @@ public class HankTimerAggregator {
   private final String name;
   private ArrayList<Long> durations;
   private final int statsComputationWindow;
+  private final boolean isActive;
 
   private long totalDuration = 0;
   private Long minDuration = Long.MAX_VALUE;
@@ -35,10 +36,18 @@ public class HankTimerAggregator {
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
-    durations = new ArrayList<Long>(statsComputationWindow);
+    this.isActive = LOG.isDebugEnabled();
+    this.durations = new ArrayList<Long>(statsComputationWindow);
+  }
+
+  public boolean isActive() {
+    return isActive;
   }
 
   public synchronized void add(long durationNanos) {
+    if (!isActive) {
+      return;
+    }
     totalDuration += durationNanos;
     if (durationNanos < minDuration) {
       minDuration = durationNanos;
@@ -53,10 +62,6 @@ public class HankTimerAggregator {
     }
   }
 
-  public long getCount() {
-    return durations.size();
-  }
-
   private void clear() {
     totalDuration = 0;
     minDuration = Long.MAX_VALUE;
@@ -65,8 +70,8 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    if (LOG.isInfoEnabled()) {
-      LOG.info("Statistics for Timer: " + name + ", count: " + durations.size()
+    if (isActive) {
+      LOG.debug("Statistics for Timer: " + name + ", count: " + durations.size()
           + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
           + ", min duration: " + minDuration / 1000000d + "ms"
           + ", max duration: " + maxDuration / 1000000d + "ms");
