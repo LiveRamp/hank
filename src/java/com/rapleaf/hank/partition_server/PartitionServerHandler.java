@@ -166,7 +166,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
     HankTimer timer = getTimerAggregator.getTimer();
     try {
-      DomainAccessor domainAccessor = getDomainAccessor(domainId & 0xff);
+      DomainAccessor domainAccessor = getDomainAccessor(domainId);
 
       if (domainAccessor == null) {
         return NO_SUCH_DOMAIN;
@@ -202,7 +202,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {
-    if (domainAccessors.length <= domainId) {
+    if (domainId < 0 || domainAccessors.length <= domainId) {
       return null;
     }
     return domainAccessors[domainId];
