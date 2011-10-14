@@ -20,6 +20,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.performance.HankTimerAggregator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
@@ -42,6 +44,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
   private final DomainAccessor[] domainAccessors;
+
+  private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1024);
+  private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1024);
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
@@ -159,31 +164,41 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
-    DomainAccessor domainAccessor = getDomainAccessor(domainId & 0xff);
-
-    if (domainAccessor == null) {
-      return NO_SUCH_DOMAIN;
-    }
+    HankTimer timer = new HankTimer();
     try {
-      return domainAccessor.get(key);
-    } catch (IOException e) {
-      String errMsg = String.format(
-          "Exception during get! Domain: %s (domain #%d) Key: %s",
-          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
-      LOG.error(errMsg, e);
+      DomainAccessor domainAccessor = getDomainAccessor(domainId & 0xff);
 
-      return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
+      if (domainAccessor == null) {
+        return NO_SUCH_DOMAIN;
+      }
+      try {
+        return domainAccessor.get(key);
+      } catch (IOException e) {
+        String errMsg = String.format(
+            "Exception during get! Domain: %s (domain #%d) Key: %s",
+            domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
+        LOG.error(errMsg, e);
+
+        return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
+      }
+    } finally {
+      getTimerAggregator.add(timer.getDuration());
     }
   }
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
-    // Dumb implementation
-    // TODO: Make it less dumb
-    HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>());
-    for (ByteBuffer key : keys) {
-      response.get_responses().add(get(domainId, key));
+    HankTimer timer = new HankTimer();
+    try {
+      // Dumb implementation
+      // TODO: Make it less dumb
+      HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>());
+      for (ByteBuffer key : keys) {
+        response.get_responses().add(get(domainId, key));
+      }
+      return response;
+    } finally {
+      getBulkTimerAggregator.add(timer.getDuration());
     }
-    return response;
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {
