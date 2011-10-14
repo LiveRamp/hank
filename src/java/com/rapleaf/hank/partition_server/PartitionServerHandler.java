@@ -202,7 +202,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {
-    if (domainId < 0 || domainAccessors.length <= domainId) {
+    if (domainAccessors.length <= domainId) {
       return null;
     }
     return domainAccessors[domainId];
