@@ -164,10 +164,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws TException {
-    HankTimer timer = null;
-    if (getTimerAggregator.isActive()) {
-      timer = new HankTimer();
-    }
+    HankTimer timer = getTimerAggregator.getTimer();
     try {
       DomainAccessor domainAccessor = getDomainAccessor(domainId & 0xff);
 
@@ -185,17 +182,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
         return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
       }
     } finally {
-      if (getTimerAggregator.isActive()) {
-        getTimerAggregator.add(timer.getDuration());
-      }
+      getTimerAggregator.add(timer);
     }
   }
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
-    HankTimer timer = null;
-    if (getBulkTimerAggregator.isActive()) {
-      timer = new HankTimer();
-    }
+    HankTimer timer = getBulkTimerAggregator.getTimer();
     try {
       // Dumb implementation
       // TODO: Make it less dumb
@@ -205,9 +197,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
       return response;
     } finally {
-      if (getBulkTimerAggregator.isActive()) {
-        getBulkTimerAggregator.add(timer.getDuration());
-      }
+      getBulkTimerAggregator.add(timer);
     }
   }
 

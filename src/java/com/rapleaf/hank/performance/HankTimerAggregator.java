@@ -40,14 +40,24 @@ public class HankTimerAggregator {
     this.durations = new ArrayList<Long>(statsComputationWindow);
   }
 
-  public boolean isActive() {
-    return isActive;
+  // Return a new HankTimer if active, null otherwise
+  public HankTimer getTimer() {
+    if (!isActive) {
+      return null;
+    }
+    return new HankTimer();
   }
 
-  public synchronized void add(long durationNanos) {
+  // Aggregate the given timer only if the aggregator is active
+  // Will not add synchronization overhead if not active.
+  public void add(HankTimer timer) {
     if (!isActive) {
       return;
     }
+    add(timer.getDuration());
+  }
+
+  private synchronized void add(long durationNanos) {
     totalDuration += durationNanos;
     if (durationNanos < minDuration) {
       minDuration = durationNanos;
@@ -70,11 +80,9 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    if (isActive) {
-      LOG.debug("Statistics for Timer: " + name + ", count: " + durations.size()
-          + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
-          + ", min duration: " + minDuration / 1000000d + "ms"
-          + ", max duration: " + maxDuration / 1000000d + "ms");
-    }
+    LOG.debug("Statistics for Timer: " + name + ", count: " + durations.size()
+        + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
+        + ", min duration: " + minDuration / 1000000d + "ms"
+        + ", max duration: " + maxDuration / 1000000d + "ms");
   }
 }
