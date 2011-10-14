@@ -137,6 +137,7 @@ public abstract class AbstractRing implements Ring {
 
   @Override
   public String toString() {
-    return String.format("AbstractRing [ringGroup=%s, ring=%d, version=%d, updatingToVersion=%d]", this.getRingGroup().getName(), this.getRingNumber(), this.getVersionNumber(), this.getUpdatingToVersionNumber());
+    return String.format("AbstractRing [ringGroup=%s, ring=%d, version=%d, updatingToVersion=%d]",
+        (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber(), this.getVersionNumber(), this.getUpdatingToVersionNumber());
   }
 }

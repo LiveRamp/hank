@@ -102,7 +102,7 @@ tr.not_included td {
                <%= included ? "" : "disabled='disabled'" %> />
         </td>
         <td>
-          <%= included ? latestDgvdv.getVersionOrAction().getVersion() : "-" %>
+          <%= included ? latestDgvdv.getVersion() : "-" %>
         </td>
 
         <% } else { %>
@@ -135,11 +135,7 @@ tr.not_included td {
       %>
       <li>
         <%=dcv.getDomain().getName()%>
-        <% if (dcv.getVersionOrAction().isAction()) { %>
-        (unassigned)
-        <% } else { %>
-        @ v<%= dcv.getVersionOrAction().getVersion() %>
-        <% } %>
+        @ v<%= dcv.getVersion() %>
       </li>
       <% } %>
     </ul>

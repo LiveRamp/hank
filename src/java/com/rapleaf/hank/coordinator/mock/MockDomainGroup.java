@@ -15,17 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
+import com.rapleaf.hank.coordinator.AbstractDomainGroup;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-
-import com.rapleaf.hank.coordinator.AbstractDomainGroup;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
 
 public class MockDomainGroup extends AbstractDomainGroup {
   private final String name;
@@ -69,8 +68,7 @@ public class MockDomainGroup extends AbstractDomainGroup {
     domains.put(domain, domainId);
   }
 
-  public DomainGroupVersion createNewVersion(
-      Map<Domain, VersionOrAction> domainIdToVersion) {
+  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainIdToVersion) {
     return null;
   }
 

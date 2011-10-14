@@ -15,20 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.VersionOrAction;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.HashMap;
+import java.util.Map;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
@@ -98,7 +93,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddRingGroup() throws Exception {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
-    Map<Domain, VersionOrAction> domainIdToVersion = new HashMap<Domain, VersionOrAction>();
+    Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
     dg.createNewVersion(domainIdToVersion);
     RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
@@ -125,7 +120,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0);
 
     ZkDomainGroup dgc = ZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup", null);
-    Map<Domain, VersionOrAction> domainIdToVersion = new HashMap<Domain, VersionOrAction>();
+    Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
     dgc.createNewVersion(domainIdToVersion);
 
     ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc, new MockCoordinator());

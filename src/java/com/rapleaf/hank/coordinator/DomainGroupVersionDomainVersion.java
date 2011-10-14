@@ -25,9 +25,9 @@ public interface DomainGroupVersionDomainVersion extends Comparable<DomainGroupV
   public Domain getDomain();
 
   /**
-   * The domain version that this domain is within the domain group version. 
+   * The domain version that this domain is within the domain group version.
    */
-  public VersionOrAction getVersionOrAction();
+  public Integer getVersion();
 
   public void delete() throws IOException;
 }

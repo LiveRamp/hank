@@ -40,14 +40,14 @@ public abstract class AbstractDomainGroup implements DomainGroup {
 
   @Override
   public DomainGroupVersion createNewFastForwardVersion() throws IOException {
-    Map<Domain, VersionOrAction> domainNameToVersion = new HashMap<Domain, VersionOrAction>();
+    Map<Domain, Integer> domainNameToVersion = new HashMap<Domain, Integer>();
 
     // find the latest domain group version
     DomainGroupVersion dgv = getLatestVersion();
 
     // create map of new domains and versions
     for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
-      domainNameToVersion.put(dgvdv.getDomain(), new VersionOrAction(dgvdv.getDomain().getLatestVersionNotOpenNotDefunct().getVersionNumber()));
+      domainNameToVersion.put(dgvdv.getDomain(), dgvdv.getDomain().getLatestVersionNotOpenNotDefunct().getVersionNumber());
     }
 
     // call regular version creation method

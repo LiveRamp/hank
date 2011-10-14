@@ -15,12 +15,10 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.KeeperException;
 
 public class TestZkDomainGroupVersionDomainVersion extends ZkTestCase {
   private final String path = ZkPath.append(getRoot(), "myDomain");
@@ -32,19 +30,13 @@ public class TestZkDomainGroupVersionDomainVersion extends ZkTestCase {
   public void testLoad1() throws Exception {
     create(path, "7");
     DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
-    assertEquals(7, dcv.getVersionOrAction().getVersion());
-  }
-
-  public void testLoad2() throws Exception {
-    create(path, "UNASSIGN");
-    DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
-    assertEquals(VersionOrAction.Action.UNASSIGN, dcv.getVersionOrAction().getAction());
+    assertEquals(7, dcv.getVersion().intValue());
   }
 
   public void testDelete() throws Exception {
     create(path, "7");
     DomainGroupVersionDomainVersion dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);
-    assertEquals(7, dcv.getVersionOrAction().getVersion());
+    assertEquals(7, dcv.getVersion().intValue());
     dcv.delete();
     try {
       dcv = new ZkDomainGroupVersionDomainVersion(getZk(), path, null);

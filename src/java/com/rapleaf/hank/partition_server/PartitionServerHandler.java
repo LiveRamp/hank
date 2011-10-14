@@ -138,7 +138,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
             throw new IOException(String.format("Could not get Domain Version for Domain %s in Domain Group Version %d.",
                 domain.getName(), partitionDomainGroupVersion.getVersionNumber()));
           }
-          domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersionOrAction().getVersion();
+          domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersion();
         } catch (Exception e) {
           final String msg = String.format("Could not determine at which Domain Version partition #%d of Domain %s should be.",
               partition.getPartNum(), domain.getName());

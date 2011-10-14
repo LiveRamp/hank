@@ -144,7 +144,7 @@ class UpdateManager implements IUpdateManager {
             executor.execute(new PartitionUpdateTask(engine,
                 part.getPartNum(),
                 exceptionQueue,
-                dgvdv.getVersionOrAction().getVersion(),
+                dgvdv.getVersion(),
                 part,
                 domain.getName(),
                 part.getUpdatingToDomainGroupVersion(),

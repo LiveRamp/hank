@@ -58,6 +58,6 @@ public abstract class AbstractHost implements Host {
 
   @Override
   public String toString() {
-    return String.format("AbstractHost [address=%s]", this.getAddress());
+    return String.format("AbstractHost [address=%s]", getAddress());
   }
 }

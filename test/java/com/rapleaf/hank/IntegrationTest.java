@@ -260,9 +260,9 @@ public class IntegrationTest extends ZkTestCase {
     }
     assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
 
-    Map<Domain, VersionOrAction> versionMap = new HashMap<Domain, VersionOrAction>();
-    versionMap.put(coordinator.getDomain("domain0"), new VersionOrAction(1));
-    versionMap.put(coordinator.getDomain("domain1"), new VersionOrAction(1));
+    Map<Domain, Integer> versionMap = new HashMap<Domain, Integer>();
+    versionMap.put(coordinator.getDomain("domain0"), 1);
+    versionMap.put(coordinator.getDomain("domain1"), 1);
     domainGroup.createNewVersion(versionMap);
 
     // configure ring group
@@ -385,9 +385,9 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coordinator.getDomain("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
 
-    versionMap = new HashMap<Domain, VersionOrAction>();
-    versionMap.put(coordinator.getDomain("domain0"), new VersionOrAction(1));
-    versionMap.put(coordinator.getDomain("domain1"), new VersionOrAction(2));
+    versionMap = new HashMap<Domain, Integer>();
+    versionMap.put(coordinator.getDomain("domain0"), 1);
+    versionMap.put(coordinator.getDomain("domain1"), 2);
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 

@@ -16,7 +16,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     Random random = new Random();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      int version = dgvdv.getVersionOrAction().getVersion();
+      int version = dgvdv.getVersion();
 
       // Add domain to hosts when necessary
       for (Host host : ring.getHosts()) {

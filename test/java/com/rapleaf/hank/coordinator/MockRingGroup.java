@@ -18,7 +18,7 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.Set;
 
-public class MockRingGroup implements RingGroup {
+public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final DomainGroup dcg;
   private final String name;
   private final Set<Ring> ringConfigs;

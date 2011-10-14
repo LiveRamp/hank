@@ -31,8 +31,8 @@ public class MockDomainGroupVersionDomainVersion extends AbstractDomainGroupVers
   }
 
   @Override
-  public VersionOrAction getVersionOrAction() {
-    return new VersionOrAction(versionNumber);
+  public Integer getVersion() {
+    return versionNumber;
   }
 
   @Override

@@ -18,7 +18,6 @@ package com.rapleaf.hank.ring_group_conductor;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.VersionOrAction.Action;
 import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
@@ -124,7 +123,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         if (!ringGroup.isAssigned(dgv)) {
           LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName);
           for (Ring ring : ringGroup.getRings()) {
-            LOG.info("Assigning Ring Group " + ringGroupName + " to Ring " + ring);
+            LOG.info("Assigning Domain Group Version " + dgv + " to Ring " + ring);
             new UniformPartitionAssigner().assign(dgv, ring);
           }
         } else {
@@ -140,8 +139,8 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
                     // if the dgvdv is tagged as an action instead of as a version
                     // number, then we should take action rather than just update
                     // the version number on the hdp
-                    if (dgvdv.getVersionOrAction().isAction() &&
-                        dgvdv.getVersionOrAction().getAction() == Action.UNASSIGN) {
+                    if (false) {
+                      // TODO: Implement test
                       // if it's an unassign action, then we just want to mark all
                       // the parts as deletable.
                       hdp.setDeletable(true);

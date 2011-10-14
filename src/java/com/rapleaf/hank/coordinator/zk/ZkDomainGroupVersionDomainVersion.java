@@ -15,18 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.VersionOrAction;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
 
 public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
   private final Domain domain;
-  private final VersionOrAction versionOrAction;
+  private final Integer version;
   private final ZooKeeperPlus zk;
   private final String path;
 
@@ -34,7 +32,7 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
     this.zk = zk;
     this.path = path;
     this.domain = domain;
-    versionOrAction = VersionOrAction.parse(zk.getString(path));
+    version = Integer.valueOf(zk.getString(path));
   }
 
   @Override
@@ -43,14 +41,14 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
   }
 
   @Override
-  public VersionOrAction getVersionOrAction() {
-    return versionOrAction;
+  public Integer getVersion() {
+    return version;
   }
 
   @Override
   public String toString() {
     return "ZkDomainConfigVersion [domain=" + domain
-        + ", versionNumber=" + versionOrAction + "]";
+        + ", versionNumber=" + version + "]";
   }
 
   @Override

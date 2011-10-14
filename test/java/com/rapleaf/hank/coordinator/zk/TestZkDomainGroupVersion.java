@@ -15,21 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
@@ -106,11 +100,11 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   }
 
   public void testCreateNewSequential() throws Exception {
-    Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
+    Map<Domain, Integer> map = new HashMap<Domain, Integer>();
     final MockDomain d1 = new MockDomain("domain1", 0, 1, null, null, null, null);
-    map.put(d1, new VersionOrAction(2));
+    map.put(d1, 2);
     final MockDomain d4 = new MockDomain("domain4", 1, 1, null, null, null, null);
-    map.put(d4, new VersionOrAction(7));
+    map.put(d4, 7);
     DomainGroup dgc = new MockDomainGroup("blah");
     Coordinator coord = new MockCoordinator() {
       @Override
@@ -130,11 +124,10 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   }
 
   public void testCreateNewUnassign() throws Exception {
-    Map<Domain, VersionOrAction> map = new HashMap<Domain, VersionOrAction>();
+    Map<Domain, Integer> map = new HashMap<Domain, Integer>();
     final Domain d1 = new MockDomain("domain1", 0, 1, null, null, null, null);
     final Domain d2 = new MockDomain("domain4", 1, 1, null, null, null, null);
-    map.put(d1, new VersionOrAction(2));
-    map.put(d2, new VersionOrAction(Action.UNASSIGN));
+    map.put(d1, 2);
     Coordinator coord = new MockCoordinator() {
       @Override
       public Domain getDomain(String domainName) {
@@ -168,8 +161,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     };
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
     assertEquals(0, ver.getVersionNumber());
-    assertEquals(ver.getDomainVersion(d1).getVersionOrAction(), new VersionOrAction(2));
-    assertEquals(ver.getDomainVersion(d2).getVersionOrAction(), new VersionOrAction(Action.UNASSIGN));
+    assertEquals(ver.getDomainVersion(d1).getVersion().intValue(), 2);
   }
 
   private void version(int versionNumber, int... pairs) throws Exception {

@@ -82,12 +82,12 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   public static DomainGroupVersion create(ZooKeeperPlus zk,
                                           Coordinator coordinator,
                                           String versionsRoot,
-                                          Map<Domain, VersionOrAction> domainNameToVersion,
+                                          Map<Domain, Integer> domainNameToVersion,
                                           DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     // grab the next possible version number
     String actualPath = zk.create(ZkPath.append(versionsRoot, "v"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT_SEQUENTIAL);
-    for (Entry<Domain, VersionOrAction> entry : domainNameToVersion.entrySet()) {
-      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), (entry.getValue().encode()).getBytes());
+    for (Entry<Domain, Integer> entry : domainNameToVersion.entrySet()) {
+      zk.create(ZkPath.append(actualPath, entry.getKey().getName()), entry.getValue().toString().getBytes());
     }
     zk.create(ZkPath.append(actualPath, DotComplete.NODE_NAME), null);
     // touch it again to notify watchers

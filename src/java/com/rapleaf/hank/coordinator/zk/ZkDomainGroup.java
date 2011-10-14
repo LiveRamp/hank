@@ -15,30 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
-import com.rapleaf.hank.coordinator.AbstractDomainGroup;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.VersionOrAction;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.*;
 
 public class ZkDomainGroup extends AbstractDomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -146,7 +135,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion createNewVersion(Map<Domain, VersionOrAction> domainNameToVersion) throws IOException {
+  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException {
     try {
       DomainGroupVersion version = ZkDomainGroupVersion.create(zk, getCoord(),
           ZkPath.append(dgPath, "versions"), domainNameToVersion, this);

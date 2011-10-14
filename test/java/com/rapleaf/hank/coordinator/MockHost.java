@@ -49,11 +49,6 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public HostDomain getHostDomain(Domain domain) {
-    return null;
-  }
-
-  @Override
   public HostState getState() throws IOException {
     return state;
   }

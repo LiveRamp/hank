@@ -45,13 +45,13 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public void setListener(DomainGroupChangeListener listener);
 
-  public DomainGroupVersion createNewVersion(Map<Domain,VersionOrAction> domainNameToVersion) throws IOException;
+  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException;
 
   /**
    * Creates a new domain group version containing all the domains in the latest
    * domain group version with their version numbers fast-forwarded to the
    * latest non-defunct closed version.
-   * 
+   *
    * @return
    * @throws IOException
    */
