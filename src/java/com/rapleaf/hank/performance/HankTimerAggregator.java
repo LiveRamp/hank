@@ -65,7 +65,7 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    if (false) {
+    if (LOG.isInfoEnabled()) {
       LOG.info("Statistics for Timer: " + name + ", count: " + durations.size()
           + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
           + ", min duration: " + minDuration / 1000000d + "ms"
