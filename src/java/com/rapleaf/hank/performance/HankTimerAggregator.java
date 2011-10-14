@@ -22,6 +22,8 @@ import java.util.ArrayList;
 
 public class HankTimerAggregator {
 
+  private static final boolean ACTIVATED = true;
+
   private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
 
   private final String name;
@@ -36,7 +38,7 @@ public class HankTimerAggregator {
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
-    this.isActive = LOG.isDebugEnabled();
+    this.isActive = ACTIVATED;
     this.durations = new ArrayList<Long>(statsComputationWindow);
   }
 
@@ -80,7 +82,7 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    LOG.debug("Statistics for Timer: " + name + ", count: " + durations.size()
+    LOG.info("Statistics for Timer: " + name + ", count: " + durations.size()
         + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
         + ", min duration: " + minDuration / 1000000d + "ms"
         + ", max duration: " + maxDuration / 1000000d + "ms");
