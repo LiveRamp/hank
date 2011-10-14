@@ -17,7 +17,6 @@
 package com.rapleaf.hank.performance;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 
 import java.util.ArrayList;
 
@@ -66,7 +65,7 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    if (LOG.getLevel().isGreaterOrEqual(Priority.INFO)) {
+    if (false) {
       LOG.info("Statistics for Timer: " + name + ", count: " + durations.size()
           + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
           + ", min duration: " + minDuration / 1000000d + "ms"
