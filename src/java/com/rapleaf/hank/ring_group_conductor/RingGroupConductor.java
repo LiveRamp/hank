@@ -19,6 +19,7 @@ import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.VersionOrAction.Action;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -121,7 +122,11 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
 
         if (!ringGroup.isAssigned(dgv)) {
-          LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName + ". Cancelling update.");
+          LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName);
+          for (Ring ring : ringGroup.getRings()) {
+            LOG.info("Assigning Ring Group " + ringGroupName + " to Ring " + ring);
+            new UniformPartitionAssigner().assign(dgv, ring);
+          }
         } else {
           for (Ring ring : ringGroup.getRings()) {
             for (Host host : ring.getHosts()) {
