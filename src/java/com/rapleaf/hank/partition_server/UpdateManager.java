@@ -130,7 +130,7 @@ class UpdateManager implements IUpdateManager {
       } else {
         for (HostDomainPartition part : hd.getPartitions()) {
           if (part.isDeletable()) {
-            Deleter deleter = engine.getDeleter(configurator, part.getPartNum());
+            Deleter deleter = engine.getDeleter(configurator, part.getPartitionNumber());
             deleter.delete();
             part.delete();
           } else if (part.getUpdatingToDomainGroupVersion() != null) {
@@ -138,11 +138,11 @@ class UpdateManager implements IUpdateManager {
                 ringGroup.getName(),
                 ring.getRingNumber(),
                 domain.getName(),
-                part.getPartNum(),
+                part.getPartitionNumber(),
                 part.getCurrentDomainGroupVersion(),
                 part.getUpdatingToDomainGroupVersion()));
             executor.execute(new PartitionUpdateTask(engine,
-                part.getPartNum(),
+                part.getPartitionNumber(),
                 exceptionQueue,
                 dgvdv.getVersion(),
                 part,

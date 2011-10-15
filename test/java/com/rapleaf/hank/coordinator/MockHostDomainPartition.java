@@ -43,7 +43,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public int getPartNum() {
+  public int getPartitionNumber() {
     return partNum;
   }
 

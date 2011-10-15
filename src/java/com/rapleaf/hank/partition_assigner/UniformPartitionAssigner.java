@@ -42,7 +42,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
         // assign it to the min host. note that we assign it before we unassign it
         // to ensure that if we fail at this point, we haven't left any parts
         // unassigned.
-        minHostDomain.addPartition(toMove.getPartNum(), version);
+        minHostDomain.addPartition(toMove.getPartitionNumber(), version);
 
         // unassign it from the max host
         unassign(toMove);

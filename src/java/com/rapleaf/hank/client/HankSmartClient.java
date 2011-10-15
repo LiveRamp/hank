@@ -100,7 +100,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
             throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
           }
           for (HostDomainPartition hdcp : hdc.getPartitions()) {
-            List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartNum());
+            List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
             partList.add(host.getAddress());
           }
         }

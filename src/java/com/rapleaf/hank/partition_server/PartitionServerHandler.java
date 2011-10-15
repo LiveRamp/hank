@@ -121,7 +121,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
         if (partition.getCurrentDomainGroupVersion() == null) {
           LOG.error(String.format(
               "Could not load Reader for partition #%d of Domain %s because the partition's current version is null.",
-              partition.getPartNum(), domain.getName()));
+              partition.getPartitionNumber(), domain.getName()));
           continue;
         }
 
@@ -141,22 +141,22 @@ class PartitionServerHandler implements IfaceWithShutdown {
           domainGroupVersionDomainVersionNumber = domainGroupVersionDomainVersion.getVersion();
         } catch (Exception e) {
           final String msg = String.format("Could not determine at which Domain Version partition #%d of Domain %s should be.",
-              partition.getPartNum(), domain.getName());
+              partition.getPartitionNumber(), domain.getName());
           LOG.error(msg, e);
           throw new IOException(msg, e);
         }
 
-        Reader reader = engine.getReader(configurator, partition.getPartNum());
+        Reader reader = engine.getReader(configurator, partition.getPartitionNumber());
         // Check that Reader's version number and current domain group version number match
         if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
-              partition.getPartNum(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber);
+              partition.getPartitionNumber(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber);
           LOG.error(msg);
           throw new IOException(msg);
         }
         LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
-            partition.getPartNum(), domain.getName()));
-        partitionAccessors[partition.getPartNum()] = new PartitionAccessor(partition, reader);
+            partition.getPartitionNumber(), domain.getName()));
+        partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
       }
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(domain.getName(), partitionAccessors, domain.getPartitioner());

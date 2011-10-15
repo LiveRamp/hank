@@ -22,7 +22,7 @@ import java.util.Set;
  * Info about a partition within a given HostDomain.
  */
 public interface HostDomainPartition extends Comparable<HostDomainPartition> {
-  public int getPartNum();
+  public int getPartitionNumber();
 
   public Integer getCurrentDomainGroupVersion() throws IOException;
 

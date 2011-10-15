@@ -119,7 +119,7 @@ public class TestUpdateManager extends BaseTestCase {
       }
 
       @Override
-      public int getPartNum() {
+      public int getPartitionNumber() {
         return 0;
       }
 

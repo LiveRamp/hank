@@ -239,7 +239,7 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
     for (Host host : ring.getHosts()) {
       HostDomain hostDomain = host.getHostDomain(domainId);
       for (HostDomainPartition hdp : hostDomain.getPartitions()) {
-        int partNum = hdp.getPartNum();
+        int partNum = hdp.getPartitionNumber();
         if (partNums.contains(partNum))
           return false;
         partNums.add(partNum);

@@ -85,7 +85,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public int getPartNum() {
+  public int getPartitionNumber() {
     return partNum;
   }
 

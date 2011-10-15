@@ -14,7 +14,7 @@ public abstract class AbstractHostDomain implements HostDomain {
   public HostDomainPartition getPartitionByNumber(int partNum)
       throws IOException {
     for (HostDomainPartition p : getPartitions()) {
-      if (p.getPartNum() == partNum) {
+      if (p.getPartitionNumber() == partNum) {
         return p;
       }
     }

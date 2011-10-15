@@ -34,7 +34,7 @@ public class TestZkHostDomain extends ZkTestCase {
     dumpZk();
     hdc.addPartition(1, 1);
     assertEquals(1, hdc.getPartitions().size());
-    assertEquals(1, ((HostDomainPartition) hdc.getPartitions().toArray()[0]).getPartNum());
+    assertEquals(1, ((HostDomainPartition) hdc.getPartitions().toArray()[0]).getPartitionNumber());
 
     hdc.addPartition(0, 1).setCount("Elephants", 10);
     for (HostDomainPartition hdp : hdc.getPartitions()) {
