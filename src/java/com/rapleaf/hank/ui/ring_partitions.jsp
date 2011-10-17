@@ -33,7 +33,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <%
   int total = 0;
-  DomainGroupVersion currentVersion = ring.getDomainGroup().getVersionByNumber(ring.getVersionNumber());
+  DomainGroupVersion currentVersion = ring.getRingGroup().getDomainGroup().getVersionByNumber(ring.getVersionNumber());
   for (DomainGroupVersionDomainVersion dc : currentVersion.getDomainVersions()) {
     total += ring.getUnassignedPartitions(dc.getDomain()).size();
   }
