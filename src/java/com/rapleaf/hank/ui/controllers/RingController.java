@@ -50,9 +50,18 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("n"));
     Ring ring = rg.getRing(ringNum);
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
-    // Assign current version (rebalance)
-    DomainGroupVersion currentVersion = rg.getDomainGroup().getVersionByNumber(rg.getCurrentVersion());
-    partitionAssigner.assign(currentVersion, ring);
+    String versionStr = req.getParameter("v");
+    DomainGroupVersion version;
+    if (versionStr == null) {
+      // Assign current version (rebalance)
+      version = rg.getDomainGroup().getVersionByNumber(rg.getCurrentVersion());
+    } else {
+      // Assign specified version
+      int versionNumber = Integer.parseInt(versionStr);
+      version = rg.getDomainGroup().getVersionByNumber(versionNumber);
+    }
+    // Perform assignment
+    partitionAssigner.assign(version, ring);
 
     resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rg.getName(), ringNum));
   }
