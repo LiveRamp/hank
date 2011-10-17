@@ -43,7 +43,7 @@ public class ZkPartitionInfo implements PartitionInfo {
   }
 
   @Override
-  public int getPartNum() {
+  public int getPartitionNumber() {
     return partNum;
   }
 

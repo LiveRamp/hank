@@ -6,13 +6,13 @@ import com.rapleaf.hank.zookeeper.ZkPath;
 public class TestZkPartitionInfo extends ZkTestCase {
   public void testCreate() throws Exception {
     ZkPartitionInfo pi = ZkPartitionInfo.create(getZk(), getRoot(), 1, 15000, 550);
-    assertEquals(1, pi.getPartNum());
+    assertEquals(1, pi.getPartitionNumber());
     assertEquals(15000, pi.getNumBytes());
     assertEquals(550, pi.getNumRecords());
 
     // should not throw an exception
     pi = ZkPartitionInfo.create(getZk(), getRoot(), 1, 15000, 550);
-    assertEquals(1, pi.getPartNum());
+    assertEquals(1, pi.getPartitionNumber());
     assertEquals(15000, pi.getNumBytes());
     assertEquals(550, pi.getNumRecords());
   }
@@ -21,7 +21,7 @@ public class TestZkPartitionInfo extends ZkTestCase {
     ZkPartitionInfo.create(getZk(), getRoot(), 1, 15000, 550);
 
     ZkPartitionInfo pi = new ZkPartitionInfo(getZk(), ZkPath.append(getRoot(), "part-1"));
-    assertEquals(1, pi.getPartNum());
+    assertEquals(1, pi.getPartitionNumber());
     assertEquals(15000, pi.getNumBytes());
     assertEquals(550, pi.getNumRecords());
   }
