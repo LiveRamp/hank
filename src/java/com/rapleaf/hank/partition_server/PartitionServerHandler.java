@@ -45,8 +45,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final DomainAccessor[] domainAccessors;
 
-  private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1024);
-  private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1024);
+  private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1000);
+  private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1000);
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
