@@ -130,6 +130,11 @@ class UpdateManager implements IUpdateManager {
       } else {
         for (HostDomainPartition part : hd.getPartitions()) {
           if (part.isDeletable()) {
+            LOG.debug(String.format("Deleting deletable partition group-%s/ring-%d/domain-%s/part-%d",
+                ringGroup.getName(),
+                ring.getRingNumber(),
+                domain.getName(),
+                part.getPartitionNumber()));
             Deleter deleter = engine.getDeleter(configurator, part.getPartitionNumber());
             deleter.delete();
             part.delete();
