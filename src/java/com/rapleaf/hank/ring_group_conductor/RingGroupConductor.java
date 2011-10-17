@@ -132,21 +132,16 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
               for (HostDomain hd : host.getAssignedDomains()) {
                 final DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(hd.getDomain());
                 if (dgvdv == null) {
-                  LOG.error(String.format("Could not determine DomainGroupVersionDomainVersion for domain %s on host %s. Will not update.",
-                      hd.getDomain(), host.getAddress()));
+                  // This HostDomain's domain is not included in the version we are updating to. Garbage collect it.
+                  LOG.info(String.format(
+                      "Garbage collecting domain %s on host %s since it is updating to domain group version %s.",
+                      hd.getDomain(), host.getAddress(), dgv));
+                  for (HostDomainPartition hdp : hd.getPartitions()) {
+                      hdp.setDeletable(true);
+                  }
                 } else {
                   for (HostDomainPartition hdp : hd.getPartitions()) {
-                    // if the dgvdv is tagged as an action instead of as a version
-                    // number, then we should take action rather than just update
-                    // the version number on the hdp
-                    if (false) {
-                      // TODO: Implement test
-                      // if it's an unassign action, then we just want to mark all
-                      // the parts as deletable.
-                      hdp.setDeletable(true);
-                    } else {
                       hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
-                    }
                   }
                 }
               }

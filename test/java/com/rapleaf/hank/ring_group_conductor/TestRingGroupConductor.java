@@ -186,4 +186,103 @@ public class TestRingGroupConductor extends TestCase {
 
     assertEquals(mockRingGroupConf, mockTransFunc.calledWithRingGroup);
   }
+
+  public void testProcessesUnassignDomains() throws Exception {
+    final MockDomain domain = new MockDomain("domain");
+    final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
+
+      @Override
+      public DomainGroupVersion getLatestVersion() {
+        return new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), null, 2);
+      }
+
+      @Override
+      public Domain getDomain(int domainId) {
+        return domain;
+      }
+    };
+
+    final MockHostDomainPartition mockHostDomainPartition = new MockHostDomainPartition(0, 0, 1);
+    final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
+      @Override
+      public Set<HostDomain> getAssignedDomains() throws IOException {
+
+        return Collections.singleton((HostDomain) new AbstractHostDomain() {
+
+          @Override
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+            return null;
+          }
+
+          @Override
+          public Domain getDomain() {
+            return domain;
+          }
+
+          @Override
+          public Set<HostDomainPartition> getPartitions() {
+            return Collections.singleton((HostDomainPartition) mockHostDomainPartition);
+          }
+        });
+      }
+    };
+
+    final MockRing mockRing = new MockRing(null, null, 1, null) {
+      @Override
+      public Set<Host> getHosts() {
+        return Collections.singleton((Host) mockHostConfig);
+      }
+    };
+
+    final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
+      @Override
+      public DomainGroup getDomainGroup() {
+        return domainGroup;
+      }
+
+      @Override
+      public Integer getCurrentVersion() {
+        return 1;
+      }
+
+      @Override
+      public Set<Ring> getRings() {
+        return Collections.singleton((Ring) mockRing);
+      }
+    };
+
+    RingGroupConductorConfigurator mockConfig = new RingGroupConductorConfigurator() {
+      @Override
+      public long getSleepInterval() {
+        return 100;
+      }
+
+      @Override
+      public String getRingGroupName() {
+        return "myRingGroup";
+      }
+
+      @Override
+      public Coordinator createCoordinator() {
+        return new MockCoordinator() {
+          @Override
+          public RingGroup getRingGroup(String ringGroupName) {
+            return mockRingGroup;
+          }
+        };
+      }
+    };
+
+    MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
+
+    RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
+
+    daemon.processUpdates(mockRingGroup, domainGroup);
+
+    assertNull(mockTransFunc.calledWithRingGroup);
+
+    assertEquals(2, mockRingGroup.updateToVersion);
+    assertEquals(Integer.valueOf(2), mockRing.updatingToVersion);
+    assertEquals(true, mockHostDomainPartition.isDeletable());
+  }
 }
