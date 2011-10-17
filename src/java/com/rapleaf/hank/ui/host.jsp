@@ -182,7 +182,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     %>
     <tr>
       <td></td>
-      <td><%= hdpc.getPartNum() %></td>
+      <td><%= hdpc.getPartitionNumber() %></td>
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
       <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
       <td>
@@ -191,7 +191,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
           <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
           <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
           <input type="hidden" name="d" value="<%= hdc.getDomain().getName() %>"/>
-          <input type="hidden" name="p" value="<%= hdpc.getPartNum() %>"/>
+          <input type="hidden" name="p" value="<%= hdpc.getPartitionNumber() %>"/>
           <input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"
           <% if (!hdpc.isDeletable()) { %>
             onclick="return confirm('Are you sure you want to mark this partition for deletion?');"
@@ -223,7 +223,7 @@ for (String countID : host.getAggregateCountKeys()) {
                 <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
                   <% Long partCount = hdp.getCount(countID); %>
                   <% if (partCount != null) { %>
-                    <li>partition <%= hdp.getPartNum() %>: <%= partCount%></li>
+                    <li>partition <%= hdp.getPartitionNumber() %>: <%= partCount%></li>
                   <% } %>
                 <% } %>
               </ul>
