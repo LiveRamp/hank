@@ -15,18 +15,12 @@
  */
 package com.rapleaf.hank.ring_group_conductor;
 
+import com.rapleaf.hank.coordinator.*;
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import org.apache.log4j.Logger;
-
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingState;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
@@ -120,6 +114,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             // sweet, we're done updating, so we can start all our daemons now
             LOG.info("Ring " + ring.getRingNumber()
                 + " is fully updated. Commanding hosts to start up.");
+            ring.updateComplete();
             ring.commandAll(HostCommand.SERVE_DATA);
             ring.setState(RingState.COMING_UP);
             break;
@@ -133,9 +128,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             if (numHostsServing == ring.getHosts().size()) {
               // yay! we're all online!
               LOG.info("Ring " + ring.getRingNumber()
-                  + " is fully online. Completing update.");
+                  + " is fully online.");
               ring.setState(RingState.UP);
-              ring.updateComplete();
             } else {
               LOG.info("Ring " + ring.getRingNumber()
                   + " still has hosts that are not SERVING. Waiting for them to come up:");
