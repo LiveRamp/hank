@@ -291,6 +291,20 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals("Went OFFLINE after failed to start data server.", HostState.OFFLINE, fixtures.host.getState());
   }
 
+  public void testFailToStartWhenHostIsAlreadyOnline() throws IOException, InterruptedException {
+    final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost");
+    Thread thread = createPartitionServerThread(partitionServer);
+    thread.start();
+    Thread.sleep(500);
+    try {
+      new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost");
+      fail("Should fail to start when host is already online.");
+    } catch (Exception e) {
+    }
+    partitionServer.stopSynchronized();
+    thread.join();
+  }
+
   // Create a runnable thread that runs the given partition server
   public Thread createPartitionServerThread(final PartitionServer partitionServer) {
     Runnable serverRunnable = new Runnable() {
