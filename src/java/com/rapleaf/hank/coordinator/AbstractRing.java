@@ -92,7 +92,9 @@ public abstract class AbstractRing implements Ring {
         HostDomain hostDomain = host.getHostDomain(domain);
         if (hostDomain != null) {
           for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            assignedPartitions.add(partition.getPartitionNumber());
+            if (!partition.isDeletable()) {
+              assignedPartitions.add(partition.getPartitionNumber());
+            }
           }
         }
       }
@@ -118,7 +120,9 @@ public abstract class AbstractRing implements Ring {
             if (partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
               return false;
             }
-            assignedPartitions.add(partition.getPartitionNumber());
+            if (!partition.isDeletable()) {
+              assignedPartitions.add(partition.getPartitionNumber());
+            }
           }
         }
       }
