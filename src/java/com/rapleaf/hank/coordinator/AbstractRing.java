@@ -74,9 +74,7 @@ public abstract class AbstractRing implements Ring {
         continue;
       }
       for (HostDomainPartition hdpc : hdc.getPartitions()) {
-        if (!hdpc.isDeletable()) {
-          unassignedParts.remove(hdpc.getPartitionNumber());
-        }
+        unassignedParts.remove(hdpc.getPartitionNumber());
       }
     }
 
