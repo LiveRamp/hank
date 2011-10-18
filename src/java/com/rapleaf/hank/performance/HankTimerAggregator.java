@@ -18,7 +18,7 @@ package com.rapleaf.hank.performance;
 
 import org.apache.log4j.Logger;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 
 public class HankTimerAggregator {
 
@@ -27,19 +27,21 @@ public class HankTimerAggregator {
   private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
 
   private final String name;
-  private ArrayList<Long> durations;
+  private long[] durations;
+  private int count;
   private final int statsComputationWindow;
   private final boolean isActive;
 
-  private long totalDuration = 0;
-  private Long minDuration = Long.MAX_VALUE;
-  private Long maxDuration = Long.MIN_VALUE;
+  private long totalDuration;
+  private Long minDuration;
+  private Long maxDuration;
+  double[] deciles = new double[9];
 
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
     this.isActive = ACTIVATED;
-    this.durations = new ArrayList<Long>(statsComputationWindow);
+    clear();
   }
 
   // Return a new HankTimer if active, null otherwise
@@ -67,24 +69,53 @@ public class HankTimerAggregator {
     if (durationNanos > maxDuration) {
       maxDuration = durationNanos;
     }
-    durations.add(durationNanos);
-    if (durations.size() >= statsComputationWindow) {
+    durations[count++] = durationNanos;
+    if (count >= statsComputationWindow) {
       logStats();
       clear();
     }
   }
 
   private void clear() {
+    durations = new long[statsComputationWindow];
+    count = 0;
     totalDuration = 0;
     minDuration = Long.MAX_VALUE;
     maxDuration = Long.MIN_VALUE;
-    durations.clear();
   }
 
   private void logStats() {
-    LOG.info("Statistics for Timer: " + name + ", count: " + durations.size()
-        + ", avg duration: " + (totalDuration / (double) durations.size()) / 1000000d + "ms"
-        + ", min duration: " + minDuration / 1000000d + "ms"
-        + ", max duration: " + maxDuration / 1000000d + "ms");
+    // Sort durations
+    Arrays.sort(durations);
+    // Compute deciles
+    for (int i = 0; i < 9; ++i) {
+      deciles[i] = durations[(count / 10) * (i + 1)];
+    }
+    // Build log string
+    StringBuilder logStr = new StringBuilder();
+    logStr.append("Statistics for Timer: ");
+    logStr.append(name);
+    logStr.append(", count: ");
+    logStr.append(count);
+    logStr.append(", min duration: ");
+    logStr.append(minDuration / 1000000d);
+    logStr.append("ms");
+    logStr.append(", avg duration: ");
+    logStr.append((totalDuration / (double) count) / 1000000d);
+    logStr.append("ms");
+    logStr.append(", median duration: ");
+    logStr.append(deciles[4] / 1000000d);
+    logStr.append("ms");
+    logStr.append(", max duration: ");
+    logStr.append(maxDuration / 1000000d);
+    logStr.append("ms");
+    for (int i = 0; i < 9; ++i) {
+      logStr.append(", ");
+      logStr.append((i + 1) * 10);
+      logStr.append("%: ");
+      logStr.append((deciles[i] / 1000000d));
+      logStr.append("ms");
+    }
+    LOG.info(logStr.toString());
   }
 }
