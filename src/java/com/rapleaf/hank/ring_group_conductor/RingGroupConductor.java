@@ -114,49 +114,57 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       // There's already an update in progress. Let's just move that one along as necessary.
       transFunc.manageTransitions(ringGroup);
     } else {
-      final DomainGroupVersion dgv = domainGroup.getLatestVersion();
-      int latestVersionNumber = dgv.getVersionNumber();
-      if (ringGroup.getCurrentVersion() < latestVersionNumber) {
+      // Check if there is a new version available for this ring group
+      final DomainGroupVersion domainGroupVersion = domainGroup.getLatestVersion();
+      if (domainGroupVersion != null &&
+          ringGroup.getCurrentVersion() < domainGroupVersion.getVersionNumber()) {
         // We can start a new update of this ring group.
 
-        // set the ring group's updating version to the new domain group version
-        // this will mark all the subordinate rings and hosts for update as well.
-        LOG.info("Ring group " + ringGroupName + " is in need of an update. Starting the update now...");
+        LOG.info("There is a new domain group version available for ring group " + ringGroupName
+            + ": " + domainGroupVersion);
 
-        if (!ringGroup.isAssigned(dgv)) {
-          LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName);
+        // Check that new version is correctly assigned to ring group. If not, assign it.
+        if (!ringGroup.isAssigned(domainGroupVersion)) {
+          LOG.info("Domain Group Version " + domainGroupVersion
+              + " is not correctly assigned to Ring Group " + ringGroupName + ". Assigning.");
           for (Ring ring : ringGroup.getRings()) {
-            LOG.info("Assigning Domain Group Version " + dgv + " to Ring " + ring);
-            partitionAssigner.assign(dgv, ring);
+            LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
+            partitionAssigner.assign(domainGroupVersion, ring);
           }
         } else {
-          for (Ring ring : ringGroup.getRings()) {
-            for (Host host : ring.getHosts()) {
-              for (HostDomain hd : host.getAssignedDomains()) {
-                final DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(hd.getDomain());
-                if (dgvdv == null) {
-                  // This HostDomain's domain is not included in the version we are updating to. Garbage collect it.
-                  LOG.info(String.format(
-                      "Garbage collecting domain %s on host %s since it is updating to domain group version %s.",
-                      hd.getDomain(), host.getAddress(), dgv));
-                  for (HostDomainPartition hdp : hd.getPartitions()) {
-                      hdp.setDeletable(true);
-                  }
-                } else {
-                  for (HostDomainPartition hdp : hd.getPartitions()) {
-                      hdp.setUpdatingToDomainGroupVersion(latestVersionNumber);
-                  }
-                }
-              }
-            }
-            ring.setUpdatingToVersion(latestVersionNumber);
-          }
-          ringGroup.setUpdatingToVersion(latestVersionNumber);
+          // We are ready to update this ring group
+          LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
+          startUpdate(ringGroup, domainGroupVersion);
         }
       } else {
         LOG.info("No updates in process and no updates pending.");
       }
     }
+  }
+
+  private void startUpdate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        for (HostDomain hd : host.getAssignedDomains()) {
+          final DomainGroupVersionDomainVersion dgvdv = domainGroupVersion.getDomainVersion(hd.getDomain());
+          if (dgvdv == null) {
+            // This HostDomain's domain is not included in the version we are updating to. Garbage collect it.
+            LOG.info(String.format(
+                "Garbage collecting domain %s on host %s since it is updating to domain group version %s.",
+                hd.getDomain(), host.getAddress(), domainGroupVersion));
+            for (HostDomainPartition hdp : hd.getPartitions()) {
+              hdp.setDeletable(true);
+            }
+          } else {
+            for (HostDomainPartition hdp : hd.getPartitions()) {
+              hdp.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
+            }
+          }
+        }
+      }
+      ring.setUpdatingToVersion(domainGroupVersion.getVersionNumber());
+    }
+    ringGroup.setUpdatingToVersion(domainGroupVersion.getVersionNumber());
   }
 
 
