@@ -18,6 +18,7 @@ package com.rapleaf.hank.ring_group_conductor;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
@@ -32,23 +33,25 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private final String ringGroupName;
   private final Coordinator coordinator;
   private final Object lock = new Object();
+  private final PartitionAssigner partitionAssigner;
 
   private RingGroup ringGroup;
   private DomainGroup domainGroup;
 
   private final RingGroupUpdateTransitionFunction transFunc;
 
-  private boolean goingDown = false;
+  private boolean stopping = false;
 
-  public RingGroupConductor(RingGroupConductorConfigurator configurator) {
+  public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
     this(configurator, new RingGroupUpdateTransitionFunctionImpl());
   }
 
-  RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) {
+  RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {
     this.configurator = configurator;
     this.transFunc = transFunc;
     ringGroupName = configurator.getRingGroupName();
     this.coordinator = configurator.createCoordinator();
+    partitionAssigner = new UniformPartitionAssigner();
   }
 
   public void run() throws IOException {
@@ -71,9 +74,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         domainGroup.setListener(this);
 
         // loop until we're taken down
-        goingDown = false;
+        stopping = false;
         try {
-          while (!goingDown) {
+          while (!stopping) {
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
             RingGroup snapshotRingGroup;
@@ -124,7 +127,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
           LOG.info("Domain Group Version " + dgv + " is not correctly assigned to Ring Group " + ringGroupName);
           for (Ring ring : ringGroup.getRings()) {
             LOG.info("Assigning Domain Group Version " + dgv + " to Ring " + ring);
-            new UniformPartitionAssigner().assign(dgv, ring);
+            partitionAssigner.assign(dgv, ring);
           }
         } else {
           for (Ring ring : ringGroup.getRings()) {
@@ -148,8 +151,8 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
             }
             ring.setUpdatingToVersion(latestVersionNumber);
           }
+          ringGroup.setUpdatingToVersion(latestVersionNumber);
         }
-        ringGroup.setUpdatingToVersion(latestVersionNumber);
       } else {
         LOG.info("No updates in process and no updates pending.");
       }
@@ -188,6 +191,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   }
 
   public void stop() {
-    goingDown = true;
+    stopping = true;
   }
 }
