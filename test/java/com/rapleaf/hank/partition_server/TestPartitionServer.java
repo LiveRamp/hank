@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import org.apache.thrift.TException;
+import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -273,6 +274,21 @@ public class TestPartitionServer extends BaseTestCase {
     thread.join();
     assertEquals(HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
     assertEquals("Went OFFLINE after failed next command.", HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
+  }
+
+  public void testFailingThriftDataServer() throws Exception {
+    final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
+      @Override
+      protected void startThriftServer() throws TTransportException, IOException, InterruptedException {
+        throw new RuntimeException("Failed to start Thrift server.");
+      }
+    };
+    fixtures.host.enqueueCommand(HostCommand.SERVE_DATA);
+    Thread thread = createPartitionServerThread(partitionServer);
+    thread.start();
+    thread.join();
+    assertEquals(HostState.OFFLINE, fixtures.host.getState());
+    assertEquals("Went OFFLINE after failed to start data server.", HostState.OFFLINE, fixtures.host.getState());
   }
 
   // Create a runnable thread that runs the given partition server

@@ -42,14 +42,17 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
-  private Thread dataServerThread;
-  private TServer dataServer;
+
   private boolean stopping = false;
   private boolean hasProcessedCommandOnStartup = false;
   private final PartitionServerAddress hostAddress;
   private final Host host;
 
   private Thread updateThread;
+
+  private TServer dataServer;
+  private Thread dataServerThread;
+  private boolean waitForDataServer;
 
   private final RingGroup ringGroup;
 
@@ -282,7 +285,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
    * @throws IOException
    * @throws InterruptedException
    */
-  private void startThriftServer() throws TTransportException, IOException, InterruptedException {
+  protected void startThriftServer() throws TTransportException, IOException, InterruptedException {
     // set up the service handler
     IfaceWithShutdown handler = getHandler();
 
@@ -304,6 +307,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
    * Start serving the data. Returns when the server is up.
    */
   private void serveData() {
+    waitForDataServer = true;
     if (dataServer != null) {
       LOG.info("Data server is already running. Cannot serve data.");
       return;
@@ -316,6 +320,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
         } catch (Exception e) {
           // Data server is probably going down unexpectedly, stop the partition server
           LOG.fatal("Data server thread encountered a fatal exception and is stopping.", e);
+          // Stop waiting for data server
+          waitForDataServer = false;
           // Stop partition server main thread
           stopSynchronized();
         }
@@ -326,10 +332,16 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     dataServerThread.start();
     try {
       while (dataServer == null || !dataServer.isServing()) {
+        if (!waitForDataServer) {
+          LOG.info("Data server encountered an error. Stopping to wait for it to start.");
+          break;
+        }
         LOG.debug("Data server isn't online yet. Waiting...");
         Thread.sleep(1000);
       }
-      LOG.info("Data server online and serving.");
+      if (dataServer != null && dataServer.isServing()) {
+        LOG.info("Data server online and serving.");
+      }
     } catch (InterruptedException e) {
       throw new RuntimeException("Interrupted waiting for data server thread to start", e);
     }
