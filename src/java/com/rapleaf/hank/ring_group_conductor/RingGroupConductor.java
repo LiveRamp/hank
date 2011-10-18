@@ -116,30 +116,51 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     } else {
       // Check if there is a new version available for this ring group
       final DomainGroupVersion domainGroupVersion = domainGroup.getLatestVersion();
-      if (domainGroupVersion != null &&
-          ringGroup.getCurrentVersion() < domainGroupVersion.getVersionNumber()) {
-        // We can start a new update of this ring group.
-
-        LOG.info("There is a new domain group version available for ring group " + ringGroupName
-            + ": " + domainGroupVersion);
-
-        // Check that new version is correctly assigned to ring group. If not, assign it.
-        if (!ringGroup.isAssigned(domainGroupVersion)) {
-          LOG.info("Domain Group Version " + domainGroupVersion
-              + " is not correctly assigned to Ring Group " + ringGroupName + ". Assigning.");
-          for (Ring ring : ringGroup.getRings()) {
-            LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
-            partitionAssigner.assign(domainGroupVersion, ring);
-          }
+      if (domainGroupVersion != null && ringGroup.getCurrentVersion() < domainGroupVersion.getVersionNumber()) {
+        // There is a more recent version available
+        if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
+          LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
         } else {
-          // We are ready to update this ring group
-          LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
-          startUpdate(ringGroup, domainGroupVersion);
+          // We can start a new update of this ring group.
+          LOG.info("There is a new domain group version available for ring group " + ringGroupName
+              + ": " + domainGroupVersion);
+
+          // Check that new version is correctly assigned to ring group. If not, assign it.
+          if (!ringGroup.isAssigned(domainGroupVersion)) {
+            LOG.info("Domain Group Version " + domainGroupVersion
+                + " is not correctly assigned to Ring Group " + ringGroupName + ". Assigning.");
+            for (Ring ring : ringGroup.getRings()) {
+              LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
+              partitionAssigner.assign(domainGroupVersion, ring);
+            }
+          } else {
+            // We are ready to update this ring group
+            LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
+            startUpdate(ringGroup, domainGroupVersion);
+          }
         }
       } else {
         LOG.info("No updates in process and no updates pending.");
       }
     }
+  }
+
+  // Check that all domains included in the given domain group version exist and that the specified versions
+  // are not defunct or open.
+  private boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      if (domain == null) {
+        return false;
+      }
+      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+      if (domainVersion == null
+          || !domainVersion.isClosed()
+          || domainVersion.isDefunct()) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private void startUpdate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
