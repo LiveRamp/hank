@@ -83,7 +83,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     Add a domain/part:<br/>
     <select name="domainId">
       <%
-        for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getLatestVersion().getDomainVersions()) {
+        for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
       %>
       <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
       <%
