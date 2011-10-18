@@ -262,7 +262,7 @@ public class TestPartitionServer extends BaseTestCase {
     Thread.sleep(1000);
     assertEquals(HostState.IDLE, fixtures.failingSetStateHost.getState());
     fixtures.failingSetStateHost.enqueueCommand(HostCommand.SERVE_DATA);
-    Thread.sleep(1500);
+    thread.join();
     assertEquals("Went OFFLINE after failed state update.", HostState.OFFLINE, fixtures.failingSetStateHost.getState());
   }
 
@@ -270,7 +270,7 @@ public class TestPartitionServer extends BaseTestCase {
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR3, "localhost");
     Thread thread = createPartitionServerThread(partitionServer);
     thread.start();
-    Thread.sleep(1000);
+    thread.join();
     assertEquals(HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
     assertEquals("Went OFFLINE after failed next command.", HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
   }
