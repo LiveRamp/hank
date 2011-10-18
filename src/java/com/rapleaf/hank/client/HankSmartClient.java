@@ -78,7 +78,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     DomainGroup domainGroup = ringGroup.getDomainGroup();
 
     // Build domainToPartitionToPartitionServerAdresses
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroup.getLatestVersion().getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion domainVersion :
+        domainGroup.getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
       for (int i = 0; i < domain.getNumParts(); i++) {
@@ -95,7 +96,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
           if (domain == null) {
             throw new IOException(String.format("Could not load Domain from HostDomain %s", hdc.toString()));
           }
-          Map<Integer, List<PartitionServerAddress>> partToAddresses = domainToPartitionToPartitionServerAddresses.get(domain.getId());
+          Map<Integer, List<PartitionServerAddress>> partToAddresses =
+              domainToPartitionToPartitionServerAddresses.get(domain.getId());
           if (partToAddresses == null) {
             throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
           }
