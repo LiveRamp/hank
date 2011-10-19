@@ -218,6 +218,10 @@ public class IntegrationTest extends ZkTestCase {
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
+    // create empty versions of each domain
+    coordinator.getDomain("domain0").openNewVersion().close();
+    coordinator.getDomain("domain1").openNewVersion().close();
+
     // write a base version of each domain
     Map<ByteBuffer, ByteBuffer> domain0DataItems = new HashMap<ByteBuffer, ByteBuffer>();
     domain0DataItems.put(bb(1), bb(1, 1));
@@ -244,7 +248,7 @@ public class IntegrationTest extends ZkTestCase {
     writeOut(coordinator.getDomain("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
 
     // configure domain group
-    final DomainGroup dg1 = coordinator.addDomainGroup("dg1");
+    coordinator.addDomainGroup("dg1");
 
     LOG.debug("-------- domain is created --------");
 
@@ -494,6 +498,8 @@ public class IntegrationTest extends ZkTestCase {
   }
 
   private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {
+    // Create new version
+    domain.openNewVersion().close();
     // partition keys and values
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer, ByteBuffer>>();
     Partitioner p = domain.getPartitioner();
@@ -514,7 +520,6 @@ public class IntegrationTest extends ZkTestCase {
       LOG.trace(String.format("putting %s -> %s into partition %d", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue()), partNum));
       part.put(pair.getKey(), pair.getValue());
     }
-
     StorageEngine engine = domain.getStorageEngine();
     new File(domainRoot).mkdirs();
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
