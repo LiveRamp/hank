@@ -42,6 +42,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
+  private final int numConnectionsPerHost;
 
   private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
@@ -66,6 +67,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       throw new IOException("Could not find Ring Group " + ringGroupName + " with Coordinator " + coordinator.toString());
     }
 
+    this.numConnectionsPerHost = numConnectionsPerHost;
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
     for (Ring ring : ringGroup.getRings()) {
@@ -78,10 +80,17 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // Preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     if (domainGroup == null) {
+      LOG.error("Could not get domain group of ring group " + ringGroup);
       return;
     }
-    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ringGroup.getCurrentVersion());
+    Integer currentVersion = ringGroup.getCurrentVersion();
+    if (currentVersion == null) {
+      LOG.error("Could not get current version of ring group " + ringGroup);
+      return;
+    }
+    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(currentVersion);
     if (domainGroupVersion == null) {
+      LOG.error("Could not get version " + currentVersion + " of domain group " + domainGroup);
       return;
     }
 
@@ -155,7 +164,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
     if (partitionToConnectionSet == null) {
-      String errMsg = String.format("Got a null domain->part map for domain %s (%d)!", domainName, domain.getId());
+      String errMsg = String.format("Could not get domain->partition map for domain %s (id: %d)!", domainName, domain.getId());
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
@@ -163,7 +172,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     PartitionServerConnectionSet connectionSet = partitionToConnectionSet.get(partition);
     if (connectionSet == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      String errMsg = String.format("Got a null list of hosts for domain %s (%d) when looking for partition %d", domainName, domain.getId(), partition);
+      String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d", domainName, domain.getId(), partition);
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
@@ -259,7 +268,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
-    LOG.debug("Smart Client notified of ring group change!");
+    LOG.debug("Smart client notified of ring group change");
+    try {
+      loadCache(numConnectionsPerHost);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    } catch (TException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
