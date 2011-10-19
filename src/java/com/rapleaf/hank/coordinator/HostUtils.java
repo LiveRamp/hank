@@ -16,8 +16,6 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.coordinator.zk.HostDomainUtils;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;

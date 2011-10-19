@@ -19,6 +19,7 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
+import com.rapleaf.hank.coordinator.HostDomainUtils;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 import java.util.HashSet;

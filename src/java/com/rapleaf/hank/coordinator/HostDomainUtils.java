@@ -14,10 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.coordinator.zk;
-
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostDomainPartition;
+package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.HashSet;
