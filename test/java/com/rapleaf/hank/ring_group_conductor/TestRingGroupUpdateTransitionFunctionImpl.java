@@ -189,6 +189,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
+    assertTrue("r1 should have been set to update complete", r1.updateCompleteCalled);
     assertEquals("r1's hosts should be commanded to start", HostCommand.SERVE_DATA, r1.allCommanded);
     assertEquals(RingState.COMING_UP, r1.getState());
   }
@@ -211,7 +212,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     MRG rg = new MRG(1, 2, r1);
     getFunc().manageTransitions(rg);
 
-    assertTrue("r1 should have been set to update complete", r1.updateCompleteCalled);
+    //assertTrue("r1 should have been set to update complete", r1.updateCompleteCalled);
     assertEquals(RingState.UP, r1.getState());
   }
 }
