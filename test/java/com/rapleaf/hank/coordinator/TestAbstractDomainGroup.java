@@ -49,6 +49,6 @@ public class TestAbstractDomainGroup extends BaseTestCase {
       }
     };
 
-    mdg.createNewFastForwardVersion();
+    DomainGroupUtils.createNewFastForwardVersion(mdg);
   }
 }

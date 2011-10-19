@@ -57,7 +57,7 @@ public class TestUpdateManager extends BaseTestCase {
         @Override
         public Integer getUpdatingToVersion() {
           try {
-            return getDomainGroup().getLatestVersion().getVersionNumber();
+            return DomainGroupUtils.getLatestVersion(getDomainGroup()).getVersionNumber();
           } catch (IOException e) {
             throw new RuntimeException(e);
           }
@@ -250,13 +250,15 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     private DomainGroup getMockDomainGroup(final StorageEngine mockStorageEngine) {
-      DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
-        private DomainGroupVersion dgv;
+      return new MockDomainGroup("myDomainGroup") {
+        private DomainGroupVersion dgv = getMockDomainGroupVersion(mockStorageEngine);
+        private SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+          add(dgv);
+        }};
 
         @Override
-        public DomainGroupVersion getLatestVersion() {
-          dgv = getMockDomainGroupVersion(mockStorageEngine);
-          return dgv;
+        public SortedSet<DomainGroupVersion> getVersions() {
+          return versions;
         }
 
         @Override
@@ -264,7 +266,6 @@ public class TestUpdateManager extends BaseTestCase {
           return dgv;
         }
       };
-      return mockDomainGroup;
     }
   }
 

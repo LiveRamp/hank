@@ -32,10 +32,7 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestPartitionServerHandler extends BaseTestCase {
   private static final ByteBuffer K1 = bb(1);
@@ -113,11 +110,14 @@ public class TestPartitionServerHandler extends BaseTestCase {
         domain, 1);
     final MockDomainGroupVersion dgv = new MockDomainGroupVersion(
         Collections.singleton((DomainGroupVersionDomainVersion) dgvdv), null, 1);
+    final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+      add(dgv);
+    }};
 
     final MockDomainGroup dg = new MockDomainGroup("myDomainGroup") {
       @Override
-      public DomainGroupVersion getLatestVersion() {
-        return dgv;
+      public SortedSet<DomainGroupVersion> getVersions() {
+        return versions;
       }
 
       @Override

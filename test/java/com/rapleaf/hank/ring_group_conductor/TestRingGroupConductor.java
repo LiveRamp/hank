@@ -153,9 +153,13 @@ public class TestRingGroupConductor extends TestCase {
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
+      final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+        add(new MockDomainGroupVersion(null, null, 2));
+      }};
+
       @Override
-      public DomainGroupVersion getLatestVersion() {
-        return new MockDomainGroupVersion(null, null, 2);
+      public SortedSet<DomainGroupVersion> getVersions() {
+        return versions;
       }
     };
 
@@ -209,9 +213,13 @@ public class TestRingGroupConductor extends TestCase {
     final MockDomain domain = new MockDomain("domain");
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
 
+      final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+        add(new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), null, 2));
+      }};
+
       @Override
-      public DomainGroupVersion getLatestVersion() {
-        return new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), null, 2);
+      public SortedSet<DomainGroupVersion> getVersions() {
+        return versions;
       }
 
       @Override

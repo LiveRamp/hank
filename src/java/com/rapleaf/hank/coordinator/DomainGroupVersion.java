@@ -33,13 +33,9 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
   /**
    * Get the DomainGroupVersionDomainVersion from this DomainGroupVersion that
    * corresponds to the given Domain.
-   * 
+   *
    * @param domain
    * @return
    */
   public DomainGroupVersionDomainVersion getDomainVersion(Domain domain);
-
-  public boolean containsDomain(Domain domain);
-
-  public void removeDomain(Domain domain) throws IOException;
 }

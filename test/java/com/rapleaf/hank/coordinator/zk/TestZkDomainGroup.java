@@ -69,11 +69,11 @@ public class TestZkDomainGroup extends ZkTestCase {
     create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
     create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");
 
-    ZkDomainGroup dgc = new ZkDomainGroup(getZk(), dg_root, coord);
+    ZkDomainGroup dg = new ZkDomainGroup(getZk(), dg_root, coord);
 
-    assertEquals(1, dgc.getVersions().size());
-    assertEquals(1, ((DomainGroupVersion) dgc.getVersions().toArray()[0]).getVersionNumber());
-    assertEquals(1, dgc.getLatestVersion().getVersionNumber());
+    assertEquals(1, dg.getVersions().size());
+    assertEquals(1, ((DomainGroupVersion) dg.getVersions().toArray()[0]).getVersionNumber());
+    assertEquals(1, DomainGroupUtils.getLatestVersion(dg).getVersionNumber());
   }
 
   public void testDomainsAndListener() throws Exception {

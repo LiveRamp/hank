@@ -34,28 +34,9 @@ public interface DomainGroup extends Comparable<DomainGroup> {
    */
   public SortedSet<DomainGroupVersion> getVersions() throws IOException;
 
-  /**
-   * Convenience method to get the most recent version of the domain group.
-   * @return
-   * @throws IOException
-   */
-  public DomainGroupVersion getLatestVersion() throws IOException;
-
   public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException;
 
   public void setListener(DomainGroupChangeListener listener);
 
   public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException;
-
-  /**
-   * Creates a new domain group version containing all the domains in the latest
-   * domain group version with their version numbers fast-forwarded to the
-   * latest non-defunct closed version.
-   *
-   * @return
-   * @throws IOException
-   */
-  public DomainGroupVersion createNewFastForwardVersion() throws IOException;
-
-  public void removeDomainFromAllVersions(Domain domain) throws IOException;
 }

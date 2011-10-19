@@ -36,7 +36,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
-        <td><%= domainGroup.getLatestVersion() == null ? "" : domainGroup.getLatestVersion().getVersionNumber() %></td>
+        <td><%= domainGroup.getLatestVersion() == null ? "" : DomainGroupUtils.getLatestVersion(domainGroup).getVersionNumber() %></td>
       </tr>
       <%
     }

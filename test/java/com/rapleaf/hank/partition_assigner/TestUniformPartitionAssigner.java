@@ -6,9 +6,7 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestUniformPartitionAssigner extends BaseTestCase {
   private static final Domain domain = new MockDomain("TestDomain");
@@ -38,9 +36,13 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
       return domain;
     }
 
+    final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+      add(dgv);
+    }};
+
     @Override
-    public DomainGroupVersion getLatestVersion() {
-      return dgv;
+    public SortedSet<DomainGroupVersion> getVersions() {
+      return versions;
     }
   };
 
