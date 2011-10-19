@@ -44,15 +44,6 @@ public interface Host extends Comparable<Host> {
   public void setState(HostState state) throws IOException;
 
   /**
-   * Returns true when the host is online. Note that this is distinct from
-   * "serving data" - a host is online when it's NOT offline.
-   *
-   * @return
-   * @throws IOException
-   */
-  public boolean isOnline() throws IOException;
-
-  /**
    * The listener will be notified when host state changes.
    *
    * @param listener
@@ -142,23 +133,6 @@ public interface Host extends Comparable<Host> {
    * @return
    */
   public HostDomain getHostDomain(Domain domain);
-
-  /**
-   * Get the aggregate count of a counter across all HostDomainPartitions
-   *
-   * @param countId
-   * @return
-   * @throws IOException
-   */
-  public Long getAggregateCount(String countId) throws IOException;
-
-  /**
-   * Gets a set of aggregate counter keys across all HostDomainPartitions
-   *
-   * @return
-   * @throws IOException
-   */
-  public Set<String> getAggregateCountKeys() throws IOException;
 
   /**
    * Clear this hosts's command queue.

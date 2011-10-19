@@ -35,7 +35,7 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(0, c.getCommandQueue().size());
     assertNull(c.getCurrentCommand());
     assertEquals(HostState.OFFLINE, c.getState());
-    assertFalse(c.isOnline());
+    assertFalse(HostUtils.isOnline(c));
   }
 
   public void testStateChangeListener() throws Exception {
@@ -63,15 +63,15 @@ public class TestZkHost extends ZkTestCase {
   public void testSetState() throws Exception {
     ZkHost host = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS);
     assertEquals(HostState.OFFLINE, host.getState());
-    assertFalse(host.isOnline());
+    assertFalse(HostUtils.isOnline(host));
 
     host.setState(HostState.IDLE);
     assertEquals(HostState.IDLE, host.getState());
-    assertTrue(host.isOnline());
+    assertTrue(HostUtils.isOnline(host));
 
     host.setState(HostState.OFFLINE);
     assertEquals(HostState.OFFLINE, host.getState());
-    assertFalse(host.isOnline());
+    assertFalse(HostUtils.isOnline(host));
     host.close();
   }
 
@@ -190,9 +190,9 @@ public class TestZkHost extends ZkTestCase {
         add("Centaurs");
       }
     };
-    assertEquals(5, c.getAggregateCount("Centaurs").intValue());
-    assertEquals(30, c.getAggregateCount("Unicorns").intValue());
-    assertNull(c.getAggregateCount("Gargoyles"));
-    assertNotNull(c.getAggregateCountKeys().equals(aggregateCountKeys));
+    assertEquals(5, HostUtils.getAggregateCount(c, "Centaurs").intValue());
+    assertEquals(30, HostUtils.getAggregateCount(c, "Unicorns").intValue());
+    assertNull(HostUtils.getAggregateCount(c, "Gargoyles"));
+    assertNotNull(HostUtils.getAggregateCountKeys(c).equals(aggregateCountKeys));
   }
 }

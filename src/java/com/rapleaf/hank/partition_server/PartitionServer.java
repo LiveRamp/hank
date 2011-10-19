@@ -20,7 +20,6 @@ import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.util.HostUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -31,6 +30,8 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
+
+import static com.rapleaf.hank.util.LocalHostUtils.getHostName;
 
 /**
  * The main class of the PartitionServer.
@@ -71,7 +72,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     if (host == null) {
       throw new RuntimeException("Could not get host for host address: " + hostAddress);
     }
-    if (host.isOnline()) {
+    if (HostUtils.isOnline(host)) {
       throw new RuntimeException("Could not start a partition server for host " + host
           + " since it is already online.");
     }
@@ -382,6 +383,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     PartitionServerConfigurator configurator = new YamlPartitionServerConfigurator(configPath);
     PropertyConfigurator.configure(log4jprops);
 
-    new PartitionServer(configurator, HostUtils.getHostName()).run();
+    new PartitionServer(configurator, getHostName()).run();
   }
 }

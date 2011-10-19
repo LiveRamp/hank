@@ -18,8 +18,8 @@ package com.rapleaf.hank.util;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-public final class HostUtils {
-  private HostUtils() {}
+public final class LocalHostUtils {
+  private LocalHostUtils() {}
 
   public static String getHostName() throws UnknownHostException {
     return InetAddress.getLocalHost().getHostName();

@@ -68,11 +68,6 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public boolean isOnline() throws IOException {
-    return state != HostState.OFFLINE;
-  }
-
-  @Override
   public void setState(HostState state) throws IOException {
     this.state = state;
   }

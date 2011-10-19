@@ -209,7 +209,7 @@ public class HankApiServlet extends HttpServlet {
     Map<String, Object> hostData = new HashMap<String, Object>();
     hostData.put("address", host.getAddress());
     hostData.put("status", host.getState().name());
-    hostData.put("is_online", host.isOnline());
+    hostData.put("is_online", HostUtils.isOnline(host));
     return hostData;
   }
 
