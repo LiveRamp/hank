@@ -191,7 +191,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     try {
       // Dumb implementation
       // TODO: Make it less dumb
-      HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>());
+      HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
       for (ByteBuffer key : keys) {
         response.get_responses().add(get(domainId, key));
       }
