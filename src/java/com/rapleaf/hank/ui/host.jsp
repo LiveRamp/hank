@@ -216,7 +216,7 @@ for (String countID : HostUtils.getAggregateCountKeys(host)) {
     <% for (HostDomain currentDomain : host.getAssignedDomains()) { %>
       <li>
         <ul>
-          <% Long domainCount = DomainUtils.getAggregateCount(currentDomain, countID); %>
+          <% Long domainCount = HostDomainUtils.getAggregateCount(currentDomain, countID); %>
           <% if (domainCount != null) { %>
             <li> domain <%=currentDomain.getDomain().getName()%>:  <%=domainCount%>
               <ul>
