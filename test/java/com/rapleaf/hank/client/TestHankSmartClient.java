@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class TestHankSmartClient extends BaseTestCase {
+public class  TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
 
   private static class ServerRunnable implements Runnable {
@@ -137,20 +137,20 @@ public class TestHankSmartClient extends BaseTestCase {
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
         new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
 
-    final Host hostConfig1 = getHostConfig(existentDomain, new PartitionServerAddress("localhost",
+    final Host host1 = getHost(existentDomain, new PartitionServerAddress("localhost",
         server1Port), 0);
-    final Host hostConfig2 = getHostConfig(existentDomain, new PartitionServerAddress("localhost",
+    final Host host2 = getHost(existentDomain, new PartitionServerAddress("localhost",
         server2Port), 1);
 
-    final MockRing mockRingConfig = new MockRing(null, null, 1, RingState.UP) {
+    final MockRing mockRing = new MockRing(null, null, 1, RingState.UP) {
       @Override
       public Set<Host> getHostsForDomainPartition(Domain domain, int partition)
           throws IOException {
         assertEquals(1, domain.getId());
         if (partition == 0) {
-          return Collections.singleton(hostConfig1);
+          return Collections.singleton(host1);
         } else if (partition == 1) {
-          return Collections.singleton(hostConfig2);
+          return Collections.singleton(host2);
         }
         fail("got partition id " + partition + " which is invalid");
         throw new IllegalStateException();
@@ -158,11 +158,11 @@ public class TestHankSmartClient extends BaseTestCase {
 
       @Override
       public Set<Host> getHosts() {
-        return new HashSet<Host>(Arrays.asList(hostConfig1, hostConfig2));
+        return new HashSet<Host>(Arrays.asList(host1, host2));
       }
     };
 
-    MockDomainGroup mockDomainGroupConfig = new MockDomainGroup("myDomainGroup") {
+    MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
         {
           put(1, existentDomain);
@@ -184,24 +184,24 @@ public class TestHankSmartClient extends BaseTestCase {
       }
 
       @Override
-      public DomainGroupVersion getLatestVersion() {
+      public DomainGroupVersion getVersionByNumber(int version) {
         return new MockDomainGroupVersion(
             new HashSet<DomainGroupVersionDomainVersion>(
                 Arrays.asList(new MockDomainGroupVersionDomainVersion(
                     existentDomain, 1))), this, 1);
       }
     };
-    final MockRingGroup mockRingGroupConfig = new MockRingGroup(
-        mockDomainGroupConfig, "myRingGroup", null) {
+    final MockRingGroup mockRingGroup = new MockRingGroup(
+        mockDomainGroup, "myRingGroup", null) {
       @Override
       public Set<Ring> getRings() {
-        return Collections.singleton((Ring) mockRingConfig);
+        return Collections.singleton((Ring) mockRing);
       }
     };
     Coordinator mockCoord = new MockCoordinator() {
       @Override
       public RingGroup getRingGroup(String ringGroupName) {
-        return mockRingGroupConfig;
+        return mockRingGroup;
       }
 
       @Override
@@ -248,7 +248,7 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private Host getHostConfig(final Domain domain, PartitionServerAddress address, final int partNum)
+  private Host getHost(final Domain domain, PartitionServerAddress address, final int partNum)
       throws IOException {
     MockHost hc = new MockHost(address) {
       @Override

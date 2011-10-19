@@ -74,12 +74,19 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
+    clearCache();
     // Preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
+    if (domainGroup == null) {
+      return;
+    }
+    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ringGroup.getCurrentVersion());
+    if (domainGroupVersion == null) {
+      return;
+    }
 
     // Build domainToPartitionToPartitionServerAdresses
-    for (DomainGroupVersionDomainVersion domainVersion :
-        domainGroup.getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
+    for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
       for (int i = 0; i < domain.getNumParts(); i++) {
@@ -129,6 +136,12 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       }
       domainToPartitionToConnectionSet.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionSet);
     }
+  }
+
+  private void clearCache() {
+    partitionServerAddressToConnectionSet.clear();
+    domainToPartitionToConnectionSet.clear();
+    domainToPartitionToPartitionServerAddresses.clear();
   }
 
   @Override
