@@ -74,16 +74,22 @@ final class PartitionServerConnection implements HostStateChangeListener {
         switch (host.getState()) {
           case SERVING:
             lock();
-            disconnect();
-            connect();
-            unlock();
+            try {
+              disconnect();
+              connect();
+            } finally {
+              unlock();
+            }
             break;
 
           default:
             lock();
-            disconnect();
-            state = PartitionServerConnectionState.STANDBY;
-            unlock();
+            try {
+              disconnect();
+              state = PartitionServerConnectionState.STANDBY;
+            } finally {
+              unlock();
+            }
         }
       } catch (IOException e) {
         LOG.error("Exception while trying to get host state!", e);
@@ -104,11 +110,11 @@ final class PartitionServerConnection implements HostStateChangeListener {
       throw new IOException("Connection is not available.");
     }
     lock();
-    // Connect if necessary
-    if (isDisconnected()) {
-      connect();
-    }
     try {
+      // Connect if necessary
+      if (isDisconnected()) {
+        connect();
+      }
       return client.get(domainId, key);
     } catch (TException e1) {
       // Reconnect and retry
@@ -130,11 +136,11 @@ final class PartitionServerConnection implements HostStateChangeListener {
       throw new IOException("Connection is not available.");
     }
     lock();
-    // Connect if necessary
-    if (isDisconnected()) {
-      connect();
-    }
     try {
+      // Connect if necessary
+      if (isDisconnected()) {
+        connect();
+      }
       return client.getBulk(domainId, keys);
     } catch (TException e1) {
       // Reconnect and retry
