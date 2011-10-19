@@ -51,7 +51,7 @@ public abstract class AbstractDomain implements Domain {
   @Override
   public DomainVersion getVersionByNumber(int versionNumber) throws IOException {
     for (DomainVersion v : getVersions()) {
-      if (v.getVersionNumber() == versionNumber) {
+      if (v != null && v.getVersionNumber() == versionNumber) {
         return v;
       }
     }

@@ -66,16 +66,6 @@ public class TestPartitionServerHandler extends BaseTestCase {
               new MockHostDomainPartition(0, 0, 2),
               new MockHostDomainPartition(4, 0, 2)));
         }
-
-        @Override
-        public Long getAggregateCount(String countID) throws IOException {
-          return null;
-        }
-
-        @Override
-        public Set<String> getAggregateCountKeys() throws IOException {
-          return null;
-        }
       };
     }
   };

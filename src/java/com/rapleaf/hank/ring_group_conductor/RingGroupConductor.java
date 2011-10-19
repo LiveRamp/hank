@@ -118,13 +118,12 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       final DomainGroupVersion domainGroupVersion = domainGroup.getLatestVersion();
       if (domainGroupVersion != null && ringGroup.getCurrentVersion() < domainGroupVersion.getVersionNumber()) {
         // There is a more recent version available
+        LOG.info("There is a new domain group version available for ring group " + ringGroupName
+            + ": " + domainGroupVersion);
         if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
           LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
         } else {
           // We can start a new update of this ring group.
-          LOG.info("There is a new domain group version available for ring group " + ringGroupName
-              + ": " + domainGroupVersion);
-
           // Check that new version is correctly assigned to ring group. If not, assign it.
           if (!ringGroup.isAssigned(domainGroupVersion)) {
             LOG.info("Domain Group Version " + domainGroupVersion
@@ -157,6 +156,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       if (domainVersion == null
           || !domainVersion.isClosed()
           || domainVersion.isDefunct()) {
+        LOG.debug("Version " + dgvdv.getVersion()
+            + " of domain " + domain.getName()
+            + " is null, closed or defunct. Hence domain group version " + domainGroupVersion + " is not deployable.");
         return false;
       }
     }

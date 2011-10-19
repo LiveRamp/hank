@@ -15,14 +15,14 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestZkHostDomain extends ZkTestCase {
 
@@ -47,9 +47,9 @@ public class TestZkHostDomain extends ZkTestCase {
       }
     };
 
-    assertEquals(20, hdc.getAggregateCount("Giraffes").intValue());
-    assertEquals(10, hdc.getAggregateCount("Elephants").intValue());
-    assertNull(hdc.getAggregateCount("Lions"));
-    assertNotNull(hdc.getAggregateCountKeys().equals(counterKeys));
+    assertEquals(20, HostDomainUtils.getAggregateCount(hdc, "Giraffes").intValue());
+    assertEquals(10, HostDomainUtils.getAggregateCount(hdc, "Elephants").intValue());
+    assertNull(HostDomainUtils.getAggregateCount(hdc, "Lions"));
+    assertNotNull(HostDomainUtils.getAggregateCountKeys(hdc).equals(counterKeys));
   }
 }

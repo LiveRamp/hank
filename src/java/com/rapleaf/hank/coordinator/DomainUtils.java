@@ -13,20 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.Set;
-
-/**
- * Info about a given host's view of a domain.
- */
-public interface HostDomain extends Comparable<HostDomain> {
-  public Domain getDomain();
-
-  public Set<HostDomainPartition> getPartitions() throws IOException;
-
-  public HostDomainPartition getPartitionByNumber(int partNum) throws IOException;
-
-  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException;
+public final class DomainUtils {
+  private DomainUtils() {}
 }

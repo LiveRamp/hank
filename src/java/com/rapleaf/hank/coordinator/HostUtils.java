@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.coordinator.zk.HostDomainUtils;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -49,7 +51,7 @@ public final class HostUtils {
     long aggregateCount = 0;
     boolean notNull = false;
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Long currentCount = hostDomain.getAggregateCount(countID);
+      Long currentCount = HostDomainUtils.getAggregateCount(hostDomain, countID);
       if (currentCount != null) {
         notNull = true;
         aggregateCount += currentCount;
@@ -71,7 +73,7 @@ public final class HostUtils {
   public static Set<String> getAggregateCountKeys(Host host) throws IOException {
     Set<String> aggregateCountKeys = new HashSet<String>();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      aggregateCountKeys.addAll(hostDomain.getAggregateCountKeys());
+      aggregateCountKeys.addAll(HostDomainUtils.getAggregateCountKeys(hostDomain));
     }
     return aggregateCountKeys;
   }
