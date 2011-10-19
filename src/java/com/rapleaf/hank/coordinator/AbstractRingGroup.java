@@ -25,4 +25,21 @@ public abstract class AbstractRingGroup implements RingGroup {
     }
     return true;
   }
+
+  @Override
+  public String toString() {
+    try {
+      return "AbstractRingGroup [name=" + getName()
+          + ", domain group=" + getDomainGroup()
+          + ", current version=" + getCurrentVersion()
+          + ", updating to version=" + getUpdatingToVersion()
+          + "]";
+    } catch (IOException e) {
+      return "AbstractRingGroup [name=" + getName()
+          + ", domain group=" + getDomainGroup()
+          + ", current version=?"
+          + ", updating to version=?"
+          + "]";
+    }
+  }
 }
