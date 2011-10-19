@@ -26,7 +26,6 @@ import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -163,7 +162,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  public HankResponse get(int domainId, ByteBuffer key) throws TException {
+  public HankResponse get(int domainId, ByteBuffer key) {
     HankTimer timer = getTimerAggregator.getTimer();
     try {
       DomainAccessor domainAccessor = getDomainAccessor(domainId);
@@ -186,7 +185,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
+  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
     HankTimer timer = getBulkTimerAggregator.getTimer();
     try {
       // Dumb implementation
