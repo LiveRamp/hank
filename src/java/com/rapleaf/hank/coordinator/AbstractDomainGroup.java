@@ -47,7 +47,7 @@ public abstract class AbstractDomainGroup implements DomainGroup {
 
     // create map of new domains and versions
     for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
-      domainNameToVersion.put(dgvdv.getDomain(), dgvdv.getDomain().getLatestVersionNotOpenNotDefunct().getVersionNumber());
+      domainNameToVersion.put(dgvdv.getDomain(), DomainUtils.getLatestVersionNotOpenNotDefunct(dgvdv.getDomain()).getVersionNumber());
     }
 
     // call regular version creation method

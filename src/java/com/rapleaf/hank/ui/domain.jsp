@@ -96,7 +96,7 @@
 <h3>Versions</h3>
 
 <div>
-  <% if (domain.getOpenedVersion() == null) { %>
+  <% if (DomainUtils.getOpenedVersion(domain) == null) { %>
   No open version.
   <form method="post" action="/domain/new_version">
     <input type="hidden" name="n" value="<%= domain.getName() %>"/>
@@ -104,12 +104,12 @@
     <input type="submit" value="I understand. Open and close a new version."/>
   </form>
   <% } else { %>
-  Version #<%= domain.getOpenedVersion().getVersionNumber() %> is currently open.
+  Version #<%= DomainUtils.getOpenedVersion(domain).getVersionNumber() %> is currently open.
   <% } %>
 </div>
 
 <div>
-  Total of <%= FileUtils.byteCountToDisplaySize(domain.getTotalNumBytes()) %> in <%= domain.getVersions().size() %> versions.
+  Total of <%= FileUtils.byteCountToDisplaySize(DomainUtils.getTotalNumBytes(domain)) %> in <%= domain.getVersions().size() %> versions.
 </div>
 
 <table class='table-blue'>

@@ -16,10 +16,13 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainUtils;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.VersionType;
+import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -28,12 +31,9 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.mapred.Reporter;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.VersionType;
-import com.rapleaf.hank.storage.Writer;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 // Base class of output formats used to build domains.
 public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
@@ -122,7 +122,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
             + " has already been written.");
       }
       // Set up new writer
-      DomainVersion domainVersion = domain.getOpenedVersion();
+      DomainVersion domainVersion = DomainUtils.getOpenedVersion(domain);
       if (domainVersion == null) {
         throw new IOException("There is no version currently open for domain "
             + domain.getName());
@@ -134,7 +134,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        domain.getOpenedVersion().addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
+        DomainUtils.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
         writer.close();
       }
     }

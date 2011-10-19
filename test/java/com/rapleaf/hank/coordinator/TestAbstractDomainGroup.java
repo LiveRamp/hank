@@ -5,23 +5,28 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
-import java.io.IOException;
 import java.util.*;
 
 public class TestAbstractDomainGroup extends BaseTestCase {
   public void testCreateNewFastForwardVersion() throws Exception {
     final Domain d1 = new MockDomain("d1") {
       @Override
-      public DomainVersion getLatestVersionNotOpenNotDefunct() throws IOException {
-        return new MockDomainVersion(7, 0L);
-      }
-    };
+      public SortedSet<DomainVersion> getVersions() {
+        return new TreeSet<DomainVersion>() {{
+          add(new MockDomainVersion(7, 0L));
+        }};
+        }
+      };
+
     final Domain d2 = new MockDomain("d2") {
       @Override
-      public DomainVersion getLatestVersionNotOpenNotDefunct() throws IOException {
-        return new MockDomainVersion(99, 0L);
-      }
-    };
+      public SortedSet<DomainVersion> getVersions() {
+        return new TreeSet<DomainVersion>() {{
+          add(new MockDomainVersion(99, 0L));
+        }};
+        }
+      };
+
     final Domain d3 = new MockDomain("d3");
 
     DomainGroupVersionDomainVersion d1v1 = new MockDomainGroupVersionDomainVersion(d1, 1);

@@ -42,7 +42,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <div>
   <h3>Status</h3>
-  Currently <%= host.getState() %> <%= host.isOnline() ? "(online)" : "" %><br/>
+  Currently <%= host.getState() %> <%= HostUtils.isOnline(host) ? "(online)" : "" %><br/>
   <form method="post" action="/host/discard_current_command">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
@@ -209,14 +209,14 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 <h4>Counters</h4>
 <ul>
 <%
-for (String countID : host.getAggregateCountKeys()) {
+for (String countID : HostUtils.getAggregateCountKeys(host)) {
   %>
-  <li> <%= countID %>: <%= host.getAggregateCount(countID)%>
+  <li> <%= countID %>: <%= HostUtils.getAggregateCount(host, countID)%>
   <ul>
     <% for (HostDomain currentDomain : host.getAssignedDomains()) { %>
       <li>
         <ul>
-          <% Long domainCount = currentDomain.getAggregateCount(countID); %>
+          <% Long domainCount = DomainUtils.getAggregateCount(currentDomain, countID); %>
           <% if (domainCount != null) { %>
             <li> domain <%=currentDomain.getDomain().getName()%>:  <%=domainCount%>
               <ul>

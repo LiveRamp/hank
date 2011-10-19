@@ -75,7 +75,7 @@ tr.not_included td {
     for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
   %>
     <%
-      DomainVersion latestVersion = domain.getLatestVersionNotOpenNotDefunct();
+      DomainVersion latestVersion = DomainUtils.getLatestVersionNotOpenNotDefunct(domain);
       DomainGroupVersionDomainVersion latestDgvdv = null;
       if (latestDomainGroupVersion != null) {
         latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);

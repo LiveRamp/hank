@@ -16,69 +16,15 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.util.ReverseComparator;
-
 import java.io.IOException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 public abstract class AbstractDomain implements Domain {
-  public DomainVersion getOpenedVersion() throws IOException {
-    if (getVersions().isEmpty()) {
-      return null;
-    }
-    DomainVersion last = getVersions().last();
-    if (last.isClosed()) {
-      return null;
-    } else {
-      return last;
-    }
-  }
-
-  @Override
-  public long getTotalNumBytes() throws IOException {
-    long total = 0;
-    for (DomainVersion version : getVersions()) {
-      if (version.isDefunct()) {
-        continue;
-      }
-      total += version.getTotalNumBytes();
-    }
-    return total;
-  }
 
   @Override
   public DomainVersion getVersionByNumber(int versionNumber) throws IOException {
     for (DomainVersion v : getVersions()) {
       if (v != null && v.getVersionNumber() == versionNumber) {
         return v;
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public DomainVersion getLatestVersion() throws IOException {
-    SortedSet<DomainVersion> versions = getVersions();
-    if (versions == null || versions.size() == 0) {
-      return null;
-    } else {
-      return versions.last();
-    }
-  }
-
-  @Override
-  public DomainVersion getLatestVersionNotOpenNotDefunct() throws IOException {
-    Set<DomainVersion> originalVersions = getVersions();
-    if (originalVersions == null || originalVersions.size() == 0) {
-      return null;
-    }
-    SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
-    versions.addAll(originalVersions);
-    for (DomainVersion version : versions) {
-      if (version.isClosed() && !version.isDefunct()) {
-        return version;
       }
     }
     return null;

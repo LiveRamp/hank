@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedSet;
 
 /**
  * Encapsulates all the information about a given Domain.
@@ -55,10 +55,6 @@ public interface Domain extends Comparable<Domain> {
    */
   public SortedSet<DomainVersion> getVersions() throws IOException;
 
-  public DomainVersion getLatestVersion() throws IOException;
-
-  public DomainVersion getLatestVersionNotOpenNotDefunct() throws IOException;
-
   /**
    * Attempt to open a new version of this domain. If there isn't another
    * version already open, the return value is a new DomainVersion with the next
@@ -69,18 +65,6 @@ public interface Domain extends Comparable<Domain> {
    * @return
    */
   public DomainVersion openNewVersion() throws IOException;
-
-  /**
-   * @return The current opened version, null if there is none.
-   */
-  public DomainVersion getOpenedVersion() throws IOException;
-
-  /**
-   * Get the sum of the num bytes used for all versions.
-   * @return
-   * @throws IOException
-   */
-  public long getTotalNumBytes() throws IOException;
 
   public DomainVersion getVersionByNumber(int versionNumber) throws IOException;
 }
