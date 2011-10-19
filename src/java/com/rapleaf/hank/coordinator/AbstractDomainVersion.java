@@ -28,4 +28,25 @@ public abstract class AbstractDomainVersion implements DomainVersion {
     }
     return total;
   }
+
+  @Override
+  public String toString() {
+    Boolean isClosed;
+    Boolean isDefunct;
+    try {
+      isClosed = isClosed();
+    } catch (IOException e) {
+      isClosed = null;
+    }
+    try {
+      isDefunct = isDefunct();
+    } catch (IOException e) {
+      isDefunct = null;
+    }
+      return "AbstractDomainVersion ["
+          + "version=" + getVersionNumber()
+          + "closed=" + isClosed
+          + "defunct=" + isDefunct
+          + "]";
+  }
 }
