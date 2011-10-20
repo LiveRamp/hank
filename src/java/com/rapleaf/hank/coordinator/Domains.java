@@ -23,8 +23,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public final class DomainUtils {
-  private DomainUtils() {
+public final class Domains {
+  private Domains() {
   }
 
   /**

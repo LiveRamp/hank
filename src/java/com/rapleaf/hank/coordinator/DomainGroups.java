@@ -61,7 +61,7 @@ public final class DomainGroups {
 
     // create map of new domains and versions
     for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
-      domainNameToVersion.put(dgvdv.getDomain(), DomainUtils.getLatestVersionNotOpenNotDefunct(dgvdv.getDomain()).getVersionNumber());
+      domainNameToVersion.put(dgvdv.getDomain(), Domains.getLatestVersionNotOpenNotDefunct(dgvdv.getDomain()).getVersionNumber());
     }
 
     // call regular version creation method

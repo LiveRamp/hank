@@ -17,7 +17,7 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainUtils;
+import com.rapleaf.hank.coordinator.Domains;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -122,7 +122,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
             + " has already been written.");
       }
       // Set up new writer
-      DomainVersion domainVersion = DomainUtils.getOpenedVersion(domain);
+      DomainVersion domainVersion = Domains.getOpenedVersion(domain);
       if (domainVersion == null) {
         throw new IOException("There is no version currently open for domain "
             + domain.getName());
@@ -134,7 +134,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        DomainUtils.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
+        Domains.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
         writer.close();
       }
     }
