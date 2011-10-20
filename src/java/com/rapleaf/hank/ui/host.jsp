@@ -74,19 +74,22 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 <!-- Domains and Partitions -->
 
 <div>
-  <h4>Domains + Partitions</h4>
+  <h4>Domains and Partitions</h4>
   <form method="post" action="/host/add_domain_part">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
     <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
 
-    Add a domain/part:<br/>
+    Add a domain partition:<br/>
     <select name="domainId">
       <%
-        for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
-      %>
-      <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
-      <%
+        Integer currentVersion = ringGroup.getCurrentVersion();
+        if (currentVersion != null) {
+          for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getVersionByNumber(currentVersion).getDomainVersions()) {
+          %>
+          <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
+          <%
+          }
         }
       %>
     </select>
@@ -235,5 +238,6 @@ for (String countID : Hosts.getAggregateCountKeys(host)) {
 <% } %>
 </li>
 </ul>
+
 </body>
 </html>
