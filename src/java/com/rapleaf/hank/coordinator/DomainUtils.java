@@ -24,7 +24,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public final class DomainUtils {
-  private DomainUtils() {}
+  private DomainUtils() {
+  }
 
   /**
    * @return The current opened version, null if there is none.
@@ -34,7 +35,7 @@ public final class DomainUtils {
       return null;
     }
     DomainVersion last = domain.getVersions().last();
-    if (last.isClosed()) {
+    if (DomainVersionUtils.isClosed(last)) {
       return null;
     } else {
       return last;
@@ -43,6 +44,7 @@ public final class DomainUtils {
 
   /**
    * Get the sum of the num bytes used for all versions.
+   *
    * @return
    * @throws IOException
    */
@@ -52,7 +54,7 @@ public final class DomainUtils {
       if (version.isDefunct()) {
         continue;
       }
-      total += version.getTotalNumBytes();
+      total += DomainVersionUtils.getTotalNumBytes(version);
     }
     return total;
   }
@@ -74,7 +76,7 @@ public final class DomainUtils {
     SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
     versions.addAll(originalVersions);
     for (DomainVersion version : versions) {
-      if (version.isClosed() && !version.isDefunct()) {
+      if (DomainVersionUtils.isClosed(version) && !version.isDefunct()) {
         return version;
       }
     }

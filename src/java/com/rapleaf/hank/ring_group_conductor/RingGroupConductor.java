@@ -154,7 +154,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       }
       DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
       if (domainVersion == null
-          || !domainVersion.isClosed()
+          || !DomainVersionUtils.isClosed(domainVersion)
           || domainVersion.isDefunct()) {
         LOG.debug("Version " + dgvdv.getVersion()
             + " of domain " + domain.getName()

@@ -7,34 +7,12 @@ public abstract class AbstractDomainVersion implements DomainVersion {
     return Integer.valueOf(getVersionNumber()).compareTo(domainVersion.getVersionNumber());
   }
 
-  public final boolean isClosed() throws IOException {
-    return getClosedAt() != null;
-  }
-
-  @Override
-  public long getTotalNumBytes() throws IOException {
-    long total = 0;
-    for (PartitionInfo pi : getPartitionInfos()) {
-      total += pi.getNumBytes();
-    }
-    return total;
-  }
-
-  @Override
-  public long getTotalNumRecords() throws IOException {
-    long total = 0;
-    for (PartitionInfo pi : getPartitionInfos()) {
-      total += pi.getNumRecords();
-    }
-    return total;
-  }
-
   @Override
   public String toString() {
     Boolean isClosed;
     Boolean isDefunct;
     try {
-      isClosed = isClosed();
+      isClosed = DomainVersionUtils.isClosed(this);
     } catch (IOException e) {
       isClosed = null;
     }
@@ -43,10 +21,10 @@ public abstract class AbstractDomainVersion implements DomainVersion {
     } catch (IOException e) {
       isDefunct = null;
     }
-      return "AbstractDomainVersion ["
-          + "version=" + getVersionNumber()
-          + "closed=" + isClosed
-          + "defunct=" + isDefunct
-          + "]";
+    return "AbstractDomainVersion ["
+        + "version=" + getVersionNumber()
+        + "closed=" + isClosed
+        + "defunct=" + isDefunct
+        + "]";
   }
 }

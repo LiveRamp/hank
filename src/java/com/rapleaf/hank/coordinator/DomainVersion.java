@@ -15,14 +15,6 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public Long getClosedAt() throws IOException;
 
   /**
-   * Has this domain version been closed?
-   *
-   * @return
-   * @throws IOException
-   */
-  public boolean isClosed() throws IOException;
-
-  /**
    * Complete this version.
    *
    * @throws IOException
@@ -38,12 +30,9 @@ public interface DomainVersion extends Comparable<DomainVersion> {
 
   public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException;
 
-  public long getTotalNumBytes() throws IOException;
-
-  public long getTotalNumRecords() throws IOException;
-
   /**
    * A defunct version should not be used or deployed.
+   *
    * @return
    * @throws IOException
    */

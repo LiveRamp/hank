@@ -1,20 +1,20 @@
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.coordinator.AbstractDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionUtils;
+import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.zookeeper.WatchedBoolean;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.data.Stat;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.data.Stat;
-
-import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.PartitionInfo;
-import com.rapleaf.hank.zookeeper.WatchedBoolean;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
   private static final String DEFUNCT_PATH_SEGMENT = "defunct";
@@ -85,7 +85,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public void cancel() throws IOException {
-    if (!isClosed()) {
+    if (!DomainVersionUtils.isClosed(this)) {
       try {
         zk.deleteNodeRecursively(path);
       } catch (Exception e) {

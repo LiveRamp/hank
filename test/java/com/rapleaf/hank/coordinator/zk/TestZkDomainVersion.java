@@ -1,18 +1,18 @@
 package com.rapleaf.hank.coordinator.zk;
 
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.ZooDefs.Ids;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionUtils;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.ZooDefs.Ids;
 
 public class TestZkDomainVersion extends ZkTestCase {
   public void testCreate() throws Exception {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
-    assertFalse(dv.isClosed());
+    assertFalse(DomainVersionUtils.isClosed(dv));
     assertFalse(dv.isDefunct());
   }
 
@@ -22,7 +22,7 @@ public class TestZkDomainVersion extends ZkTestCase {
     DomainVersion dv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "versions/version_" + 1));
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
-    assertFalse(dv.isClosed());
+    assertFalse(DomainVersionUtils.isClosed(dv));
     assertFalse(dv.isDefunct());
   }
 
@@ -30,7 +30,7 @@ public class TestZkDomainVersion extends ZkTestCase {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
-    assertFalse(dv.isClosed());
+    assertFalse(DomainVersionUtils.isClosed(dv));
 
     dv.cancel();
     assertNull(getZk().exists(ZkPath.append(getRoot(), "versions/version_1"), false));
@@ -40,12 +40,12 @@ public class TestZkDomainVersion extends ZkTestCase {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
-    assertFalse(dv.isClosed());
+    assertFalse(DomainVersionUtils.isClosed(dv));
 
     dv.close();
 
     assertNotNull(dv.getClosedAt());
-    assertTrue(dv.isClosed());
+    assertTrue(DomainVersionUtils.isClosed(dv));
   }
 
   public void testPartitionInfos() throws Exception {
