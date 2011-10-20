@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class HostUtils {
+public final class Hosts {
 
-  private HostUtils() {
+  private Hosts() {
   }
 
   /**

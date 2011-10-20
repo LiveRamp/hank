@@ -72,7 +72,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     if (host == null) {
       throw new RuntimeException("Could not get host for host address: " + hostAddress);
     }
-    if (HostUtils.isOnline(host)) {
+    if (Hosts.isOnline(host)) {
       throw new RuntimeException("Could not start a partition server for host " + host
           + " since it is already online.");
     }
