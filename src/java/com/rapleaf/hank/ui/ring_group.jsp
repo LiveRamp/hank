@@ -93,13 +93,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       for (Ring ring : sortedRcs(ringGroup.getRings())) {
     %>
     <tr>
-      <td><%=ring.getRingNumber()%></td>
+      <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">ring <%=ring.getRingNumber()%></a></td>
       <td><%=ring.getState()%></td>
       <td><%=ring.getVersionNumber()%></td>
       <td><%=ring.getUpdatingToVersionNumber()%></td>
       <td><%=ring.getHosts().size()%></td>
       <td>
-        <a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">details</a>
         <form action="/ring_group/delete_ring" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
           <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
