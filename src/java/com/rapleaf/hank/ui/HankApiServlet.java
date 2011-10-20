@@ -191,7 +191,7 @@ public class HankApiServlet extends HttpServlet {
     ringData.put("ring_number", ring.getRingNumber());
     ringData.put("version_number", ring.getVersionNumber());
     ringData.put("updating_to_version", ring.getUpdatingToVersionNumber());
-    ringData.put("is_update_pending", ring.isUpdatePending());
+    ringData.put("is_update_pending", Rings.isUpdatePending(ring));
     ringData.put("status", ring.getState().name());
     ringData.put("hosts", getHostsMap(ring.getHosts()));
     return ringData;

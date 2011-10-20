@@ -9,16 +9,15 @@ import java.io.IOException;
 import java.util.*;
 
 public class TestUniformPartitionAssigner extends BaseTestCase {
-  private static final Domain domain = new MockDomain("TestDomain");
+  private static final Domain domain = new MockDomain("TestDomain", 0, 20, null, null, null, null);
 
-  private static HashSet<Integer> unassigned = new HashSet<Integer>();
   private static HashSet<Integer> partsOn1 = new HashSet<Integer>();
   private static HashSet<Integer> partsOn2 = new HashSet<Integer>();
   private static HashSet<Integer> partsOn3 = new HashSet<Integer>();
 
   static {
     for (int i = 0; i < 10; i++) {
-      unassigned.add(i);
+      // Unassigned
     }
 
     for (int i = 10; i < 17; i++) {
@@ -169,11 +168,6 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
     @Override
     public Set<Host> getHosts() {
       return hosts;
-    }
-
-    @Override
-    public Set<Integer> getUnassignedPartitions(Domain domain) {
-      return unassigned;
     }
   };
 

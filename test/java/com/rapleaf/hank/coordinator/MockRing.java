@@ -22,7 +22,6 @@ import java.util.Set;
 public class MockRing extends AbstractRing {
   private RingState state;
   private final Set<Host> hosts;
-  public HostCommand allCommanded;
   public Integer updatingToVersion;
 
   public MockRing(Set<PartitionServerAddress> hosts, RingGroup rgc, int number, RingState state) {
@@ -71,27 +70,17 @@ public class MockRing extends AbstractRing {
 
   @Override
   public Host getHostByAddress(PartitionServerAddress address) {
-    return null;
-  }
-
-  @Override
-  public Set<Host> getHostsForDomainPartition(Domain domain, int partition) throws IOException {
+    for (Host host : hosts) {
+      if (host.getAddress().equals(address)) {
+        return host;
+      }
+    }
     return null;
   }
 
   @Override
   public void setState(RingState newState) throws IOException {
     state = newState;
-  }
-
-  @Override
-  public Set<Host> getHostsInState(HostState state) {
-    return null;
-  }
-
-  @Override
-  public void commandAll(HostCommand command) throws IOException {
-    this.allCommanded = command;
   }
 
   @Override
@@ -111,5 +100,15 @@ public class MockRing extends AbstractRing {
 
   @Override
   public void delete() throws IOException {
+  }
+
+  public boolean isAllCommanded(HostCommand command) {
+    for (Host host : getHosts()) {
+      MockHost mockHost = (MockHost) host;
+      if (mockHost.getLastEnqueuedCommand() != command) {
+        return false;
+      }
+    }
+    return true;
   }
 }

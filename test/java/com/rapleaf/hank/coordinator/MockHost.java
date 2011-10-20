@@ -26,6 +26,7 @@ public class MockHost extends AbstractHost {
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
+  private HostCommand lastEnqueuedCommand;
   private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
   private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
 
@@ -75,6 +76,7 @@ public class MockHost extends AbstractHost {
   @Override
   public void enqueueCommand(HostCommand command) throws IOException {
     commandQueue.add(command);
+    lastEnqueuedCommand = command;
     notifyCommandQueueChangeListeners();
   }
 
@@ -124,5 +126,9 @@ public class MockHost extends AbstractHost {
   public void clearCommandQueue() throws IOException {
     commandQueue.clear();
     notifyCommandQueueChangeListeners();
+  }
+
+  public HostCommand getLastEnqueuedCommand() {
+    return lastEnqueuedCommand;
   }
 }

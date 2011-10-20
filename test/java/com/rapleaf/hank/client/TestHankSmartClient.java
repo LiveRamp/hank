@@ -143,18 +143,6 @@ public class  TestHankSmartClient extends BaseTestCase {
         server2Port), 1);
 
     final MockRing mockRing = new MockRing(null, null, 1, RingState.UP) {
-      @Override
-      public Set<Host> getHostsForDomainPartition(Domain domain, int partition)
-          throws IOException {
-        assertEquals(1, domain.getId());
-        if (partition == 0) {
-          return Collections.singleton(host1);
-        } else if (partition == 1) {
-          return Collections.singleton(host2);
-        }
-        fail("got partition id " + partition + " which is invalid");
-        throw new IllegalStateException();
-      }
 
       @Override
       public Set<Host> getHosts() {

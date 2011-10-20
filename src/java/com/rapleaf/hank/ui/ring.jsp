@@ -41,7 +41,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <div>
     Ring status: <%=ring.getState()%> <br/>
     <%
-      if (ring.isUpdatePending()) {
+      if (Rings.isUpdatePending(ring)) {
     %>
     Currently updating from <%=ring.getVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
     <%

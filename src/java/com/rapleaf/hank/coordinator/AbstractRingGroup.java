@@ -10,7 +10,7 @@ public abstract class AbstractRingGroup implements RingGroup {
 
   public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : getRings()) {
-      if (!ring.isAssigned(domainGroupVersion)) {
+      if (!Rings.isAssigned(ring, domainGroupVersion)) {
         return false;
       }
     }
@@ -19,7 +19,7 @@ public abstract class AbstractRingGroup implements RingGroup {
 
   public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : getRings()) {
-      if (!ring.isUpToDate(domainGroupVersion)) {
+      if (!Rings.isUpToDate(ring, domainGroupVersion)) {
         return false;
       }
     }

@@ -47,13 +47,6 @@ public interface Ring extends Comparable<Ring> {
   public Integer getVersionNumber();
 
   /**
-   * Is an update ready to begin?
-   *
-   * @return
-   */
-  public boolean isUpdatePending();
-
-  /**
    * Get the next domain group version number for this Ring. If no update is
    * planned, then this will be null.
    *
@@ -68,33 +61,6 @@ public interface Ring extends Comparable<Ring> {
    * @throws IOException
    */
   public void updateComplete() throws IOException;
-
-  /**
-   * Enqueue <i>command</i> to all Hosts in this Ring.
-   *
-   * @param command
-   * @throws IOException
-   */
-  public void commandAll(HostCommand command) throws IOException;
-
-  /**
-   * Get the set of Hosts that can serve a given domain's partition.
-   *
-   * @param domain
-   * @param partition
-   * @return
-   * @throws IOException
-   */
-  public Set<Host> getHostsForDomainPartition(Domain domain, int partition) throws IOException;
-
-  /**
-   * Return all the hosts that are in the requested state.
-   *
-   * @param state
-   * @return
-   * @throws IOException
-   */
-  public Set<Host> getHostsInState(HostState state) throws IOException;
 
   /**
    * Set the updating-to version number.
@@ -121,36 +87,6 @@ public interface Ring extends Comparable<Ring> {
    * @throws IOException
    */
   public boolean removeHost(PartitionServerAddress address) throws IOException;
-
-  /**
-   * Return true if each partition in the given domain group version is assigned to at least one host
-   * Note: This does not take versions into consideration.
-   *
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
-  public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException;
-
-
-  /**
-   * Return true if each partition in the given domain group version is assigned to at least one host
-   * and all the partitions are at the given version.
-   *
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
-  public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException;
-
-  /**
-   * Get the set of partition IDs that are not currently assigned to a host.
-   *
-   * @param domain
-   * @return
-   * @throws IOException
-   */
-  public Set<Integer> getUnassignedPartitions(Domain domain) throws IOException;
 
   /**
    * @throws IOException

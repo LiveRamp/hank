@@ -33,7 +33,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     Queue<Ring> downable = new LinkedList<Ring>();
 
     for (Ring ring : ringGroup.getRings()) {
-      if (ring.isUpdatePending()) {
+      if (Rings.isUpdatePending(ring)) {
         anyUpdatesPending = true;
         LOG.info("Ring "
             + ring.getRingNumber()
@@ -56,7 +56,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             anyDownOrUpdating = true;
 
             // let's check if the ring is fully down or not.
-            int numHostsIdle = ring.getHostsInState(HostState.IDLE).size();
+            int numHostsIdle = Rings.getHostsInState(ring, HostState.IDLE).size();
             if (numHostsIdle == ring.getHosts().size()) {
               // sweet, everyone's either offline or idle.
               LOG.info("Ring "
@@ -78,7 +78,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             // start up all the updaters
             LOG.info("Ring " + ring.getRingNumber()
                 + " is " + ring.getState() + ", so we're going to start UPDATING.");
-            ring.commandAll(HostCommand.EXECUTE_UPDATE);
+            Rings.commandAll(ring, HostCommand.EXECUTE_UPDATE);
             ring.setState(RingState.UPDATING);
             break;
 
@@ -87,7 +87,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             anyDownOrUpdating = true;
 
             // let's check if we're done updating yet
-            int numHostsUpdating = ring.getHostsInState(HostState.UPDATING).size();
+            int numHostsUpdating = Rings.getHostsInState(ring, HostState.UPDATING).size();
             if (numHostsUpdating > 0) {
               // we're not done updating yet.
               LOG.info("Ring " + ring.getRingNumber() + " still has "
@@ -115,7 +115,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             LOG.info("Ring " + ring.getRingNumber()
                 + " is fully updated. Commanding hosts to start up.");
             ring.updateComplete();
-            ring.commandAll(HostCommand.SERVE_DATA);
+            Rings.commandAll(ring, HostCommand.SERVE_DATA);
             ring.setState(RingState.COMING_UP);
             break;
 
@@ -124,7 +124,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             anyDownOrUpdating = true;
 
             // let's check if we're all the way online yet
-            int numHostsServing = ring.getHostsInState(HostState.SERVING).size();
+            int numHostsServing = Rings.getHostsInState(ring, HostState.SERVING).size();
             if (numHostsServing == ring.getHosts().size()) {
               // yay! we're all online!
               LOG.info("Ring " + ring.getRingNumber()
@@ -158,7 +158,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       LOG.info("There were " + downable.size()
           + " candidates for the next ring to update. Selecting ring "
           + toDown.getRingNumber() + ".");
-      toDown.commandAll(HostCommand.GO_TO_IDLE);
+      Rings.commandAll(toDown, HostCommand.GO_TO_IDLE);
       toDown.setState(RingState.GOING_DOWN);
     }
 

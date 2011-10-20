@@ -79,19 +79,19 @@ public class TestZkRing extends ZkTestCase {
   public void testUpdatingSemantics() throws Exception {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
 
-    assertTrue("should be updating", ring.isUpdatePending());
+    assertTrue("should be updating", Rings.isUpdatePending(ring));
     assertNull("current version", ring.getVersionNumber());
     assertEquals("updating_to_version number", Integer.valueOf(1),
         ring.getUpdatingToVersionNumber());
 
     ring.updateComplete();
 
-    assertFalse("updating", ring.isUpdatePending());
+    assertFalse("updating", Rings.isUpdatePending(ring));
     assertEquals("current version", Integer.valueOf(1), ring.getVersionNumber());
     assertNull("updating to version", ring.getUpdatingToVersionNumber());
 
     ring.setUpdatingToVersion(7);
-    assertTrue("should be updating", ring.isUpdatePending());
+    assertTrue("should be updating", Rings.isUpdatePending(ring));
     assertEquals("current version", Integer.valueOf(1), ring.getVersionNumber());
     assertEquals("updating_to_version number", Integer.valueOf(7),
         ring.getUpdatingToVersionNumber());

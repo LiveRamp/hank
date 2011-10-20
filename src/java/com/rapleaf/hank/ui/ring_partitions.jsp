@@ -35,7 +35,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   int total = 0;
   DomainGroupVersion currentVersion = ring.getRingGroup().getDomainGroup().getVersionByNumber(ring.getVersionNumber());
   for (DomainGroupVersionDomainVersion dc : currentVersion.getDomainVersions()) {
-    total += ring.getUnassignedPartitions(dc.getDomain()).size();
+    total += Rings.getUnassignedPartitions(ring, dc.getDomain()).size();
   }
   %>
   <% if (total > 0) { %>
@@ -50,7 +50,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <h3>Assignment visualization</h3>
   <%
   for (DomainGroupVersionDomainVersion d : currentVersion.getDomainVersions()) {
-    Set<Integer> unassignedParts = ring.getUnassignedPartitions(d.getDomain());
+    Set<Integer> unassignedParts = Rings.getUnassignedPartitions(ring, d.getDomain());
 
     int squareDim = (int)Math.floor(Math.sqrt(d.getDomain().getNumParts()));
   %>

@@ -26,7 +26,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
       }
 
       // make random assignments for any of the currently unassigned parts
-      for (Integer partNum : ring.getUnassignedPartitions(domain)) {
+      for (Integer partNum : Rings.getUnassignedPartitions(ring, domain)) {
         getMinHostDomain(ring, domain).addPartition(partNum, version);
       }
 

@@ -75,19 +75,19 @@ public class TestAbstractRing extends BaseTestCase {
   }
 
   public void testIsUpdatePending() {
-    assertTrue(new SlightlyLessAbstractRing(1, null) {
+    assertTrue(Rings.isUpdatePending(new SlightlyLessAbstractRing(1, null) {
       @Override
       public Integer getUpdatingToVersionNumber() {
         return 5;
       }
-    }.isUpdatePending());
+    }));
 
-    assertFalse(new SlightlyLessAbstractRing(1, null) {
+    assertFalse(Rings.isUpdatePending(new SlightlyLessAbstractRing(1, null) {
       @Override
       public Integer getUpdatingToVersionNumber() {
         return null;
       }
-    }.isUpdatePending());
+    }));
   }
 
   public void testCommandAll() throws IOException {
@@ -103,7 +103,7 @@ public class TestAbstractRing extends BaseTestCase {
     assertNull(hc.getCurrentCommand());
     assertTrue(hc.getCommandQueue().isEmpty());
 
-    rc.commandAll(HostCommand.SERVE_DATA);
+    Rings.commandAll(rc, HostCommand.SERVE_DATA);
 
     assertNull(hc.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
@@ -125,16 +125,16 @@ public class TestAbstractRing extends BaseTestCase {
         return hd1;
       }
     };
-    SlightlyLessAbstractRing ringConf = new SlightlyLessAbstractRing(1, null) {
+    SlightlyLessAbstractRing ring = new SlightlyLessAbstractRing(1, null) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton(hc);
       }
     };
 
-    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(d0, 1));
-    assertEquals(Collections.singleton(hc), ringConf.getHostsForDomainPartition(d0, 2));
-    assertEquals(Collections.EMPTY_SET, ringConf.getHostsForDomainPartition(d0, 3));
+    assertEquals(Collections.singleton(hc), Rings.getHostsForDomainPartition(ring, d0, 1));
+    assertEquals(Collections.singleton(hc), Rings.getHostsForDomainPartition(ring, d0, 2));
+    assertEquals(Collections.EMPTY_SET, Rings.getHostsForDomainPartition(ring, d0, 3));
   }
 
   public void testGetHostsInState() throws Exception {
@@ -153,9 +153,9 @@ public class TestAbstractRing extends BaseTestCase {
     h2.setState(HostState.SERVING);
     h3.setState(HostState.OFFLINE);
 
-    assertEquals(Collections.singleton(h1), rc.getHostsInState(HostState.IDLE));
-    assertEquals(Collections.singleton(h2), rc.getHostsInState(HostState.SERVING));
-    assertEquals(Collections.singleton(h3), rc.getHostsInState(HostState.OFFLINE));
+    assertEquals(Collections.singleton(h1), Rings.getHostsInState(rc, HostState.IDLE));
+    assertEquals(Collections.singleton(h2), Rings.getHostsInState(rc, HostState.SERVING));
+    assertEquals(Collections.singleton(h3), Rings.getHostsInState(rc, HostState.OFFLINE));
   }
 
   public void testIsAssigned() throws Exception {
@@ -255,62 +255,62 @@ public class TestAbstractRing extends BaseTestCase {
     }}, 0);
 
     // Test empty DomainGroupVersion
-    assertEquals(true, r.isAssigned(dgvEmpty));
-    assertEquals(true, r.isUpToDate(dgvEmpty));
+    assertEquals(true, Rings.isAssigned(r, dgvEmpty));
+    assertEquals(true, Rings.isUpToDate(r, dgvEmpty));
 
     // Test DomainGroupVersion with one domain
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, r.isAssigned(dgv1));
+    assertEquals(false, Rings.isAssigned(r, dgv1));
     h1.setHostDomain(new LocalMockHostDomain(d1));
-    assertEquals(false, r.isAssigned(dgv1));
+    assertEquals(false, Rings.isAssigned(r, dgv1));
     h1.setHostDomain(new LocalMockHostDomain(d1, 0));
-    assertEquals(true, r.isAssigned(dgv1));
+    assertEquals(true, Rings.isAssigned(r, dgv1));
 
     // Test DomainGroupVersion with multiple domains
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, r.isAssigned(dgv2));
+    assertEquals(false, Rings.isAssigned(r, dgv2));
     h1.setHostDomain(new LocalMockHostDomain(d1, 0));
     h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1));
-    assertEquals(false, r.isAssigned(dgv2));
+    assertEquals(false, Rings.isAssigned(r, dgv2));
     h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1, 2));
-    assertEquals(true, r.isAssigned(dgv2));
+    assertEquals(true, Rings.isAssigned(r, dgv2));
     // Test dgv2_updated
-    assertEquals(false, r.isUpToDate(dgv2_updated));
+    assertEquals(false, Rings.isUpToDate(r, dgv2_updated));
     Set<HostDomainPartition> h1d1_partitions = h1.getHostDomain(d1).getPartitions();
     Set<HostDomainPartition> h2d2_partitions = h2.getHostDomain(d2).getPartitions();
     for (HostDomainPartition partition : h1d1_partitions) {
       partition.setCurrentDomainGroupVersion(dgv2_updated.getVersionNumber());
     }
-    assertEquals(false, r.isUpToDate(dgv2_updated));
+    assertEquals(false, Rings.isUpToDate(r, dgv2_updated));
     for (HostDomainPartition partition : h2d2_partitions) {
       partition.setCurrentDomainGroupVersion(dgv2_updated.getVersionNumber());
     }
-    assertEquals(true, r.isUpToDate(dgv2_updated));
+    assertEquals(true, Rings.isUpToDate(r, dgv2_updated));
 
     // Test DomainGroupVersion with one domain on multiple hosts
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0));
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h2.setHostDomain(new LocalMockHostDomain(d3, 1));
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 2));
-    assertEquals(true, r.isAssigned(dgv3));
+    assertEquals(true, Rings.isAssigned(r, dgv3));
 
     // Test DomainGroupVersion with one domain on multiple hosts with repeated partitions
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0));
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
     h2.setHostDomain(new LocalMockHostDomain(d3, 1));
-    assertEquals(false, r.isAssigned(dgv3));
+    assertEquals(false, Rings.isAssigned(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1, 2));
     h2.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
-    assertEquals(true, r.isAssigned(dgv3));
+    assertEquals(true, Rings.isAssigned(r, dgv3));
   }
 }

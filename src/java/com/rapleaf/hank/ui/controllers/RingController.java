@@ -89,7 +89,7 @@ public class RingController extends Controller {
     String rgName = req.getParameter("rgName");
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
     HostCommand command = HostCommand.valueOf(req.getParameter("command"));
-    coordinator.getRingGroup(rgName).getRing(ringNum).commandAll(command);
+    Rings.commandAll(coordinator.getRingGroup(rgName).getRing(ringNum), command);
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 }
