@@ -73,7 +73,7 @@ public class TestZkDomainGroup extends ZkTestCase {
 
     assertEquals(1, dg.getVersions().size());
     assertEquals(1, ((DomainGroupVersion) dg.getVersions().toArray()[0]).getVersionNumber());
-    assertEquals(1, DomainGroupUtils.getLatestVersion(dg).getVersionNumber());
+    assertEquals(1, DomainGroups.getLatestVersion(dg).getVersionNumber());
   }
 
   public void testDomainsAndListener() throws Exception {

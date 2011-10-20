@@ -387,7 +387,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     // remove domain from all domain group versions
     for (DomainGroup dg : getDomainGroups()) {
-      DomainGroupUtils.removeDomainFromAllVersions(dg, domain);
+      DomainGroups.removeDomainFromAllVersions(dg, domain);
     }
 
     return domain.delete();

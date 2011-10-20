@@ -57,7 +57,7 @@ public class TestUpdateManager extends BaseTestCase {
         @Override
         public Integer getUpdatingToVersion() {
           try {
-            return DomainGroupUtils.getLatestVersion(getDomainGroup()).getVersionNumber();
+            return DomainGroups.getLatestVersion(getDomainGroup()).getVersionNumber();
           } catch (IOException e) {
             throw new RuntimeException(e);
           }

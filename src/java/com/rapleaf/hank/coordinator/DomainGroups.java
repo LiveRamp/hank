@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 
-public final class DomainGroupUtils {
-  private DomainGroupUtils() {}
+public final class DomainGroups {
+  private DomainGroups() {}
 
   /**
    * Convenience method to get the most recent version of the domain group.
@@ -57,7 +57,7 @@ public final class DomainGroupUtils {
     Map<Domain, Integer> domainNameToVersion = new HashMap<Domain, Integer>();
 
     // find the latest domain group version
-    DomainGroupVersion dgv = DomainGroupUtils.getLatestVersion(domainGroup);
+    DomainGroupVersion dgv = DomainGroups.getLatestVersion(domainGroup);
 
     // create map of new domains and versions
     for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
