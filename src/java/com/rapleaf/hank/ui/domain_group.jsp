@@ -71,11 +71,11 @@ tr.not_included td {
       <th>Current version</th>
     </tr>
   <%
-    DomainGroupVersion latestDomainGroupVersion = DomainGroupUtils.getLatestVersion(domainGroup);
+    DomainGroupVersion latestDomainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
     for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
   %>
     <%
-      DomainVersion latestVersion = DomainUtils.getLatestVersionNotOpenNotDefunct(domain);
+      DomainVersion latestVersion = Domains.getLatestVersionNotOpenNotDefunct(domain);
       DomainGroupVersionDomainVersion latestDgvdv = null;
       if (latestDomainGroupVersion != null) {
         latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
