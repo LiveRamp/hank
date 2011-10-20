@@ -25,7 +25,7 @@
 
 <jsp:include page="_top_nav.jsp"/>
 
-<h1>Domain <%= domain.getName() %></h1>
+<h1>Domain <span class='currentItem'><%= domain.getName() %></span></h1>
 
 <table>
   <tr>
@@ -81,7 +81,7 @@
   </tr>
 </table>
 
-<h3>Actions</h3>
+<h2>Actions</h2>
 <form action="/domain/delete" method=post>
   <% if (request.getParameter("used_in_dg") != null) { %>
   <p style="font-weight: bold; color: red">
@@ -93,7 +93,7 @@
    onclick="return confirm('Are you sure you want to delete the domain <%= domain.getName() %>? This action cannot be undone.');"/>
 </form>
 
-<h3>Versions</h3>
+<h2>Versions</h2>
 
 <div>
   <% if (Domains.getOpenedVersion(domain) == null) { %>
@@ -173,6 +173,8 @@
   </tr>
   <% } %>
 </table>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

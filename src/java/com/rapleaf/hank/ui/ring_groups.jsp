@@ -27,10 +27,11 @@
 
   <jsp:include page="_top_nav.jsp" />
 
-
   <h1>Ring Groups</h1>
+
+  <h2>Create New Ring Group</h2>
+
   <form action="/ring_group/create" method=post>
-    Add a new ring group: <br/>
     <select name="dgName">
       <%
         for (DomainGroup dgc : coord.getDomainGroups()) {
@@ -43,9 +44,11 @@
     <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
   </form>
 
+  <h2>All Ring Groups</h2>
+
   <table class='table-blue'>
     <tr>
-      <th>Name</th>
+      <th>Ring Group</th>
       <th>Domain Group</th>
       <th>Status</th>
       <th></th>
@@ -89,6 +92,8 @@
     }
     %>
   </table>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

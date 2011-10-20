@@ -27,17 +27,28 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <jsp:include page="_top_nav.jsp" />
 
-  <a href="/ring.jsp?g=<%= ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">Back to ring</a>
+  <h1>
+  Ring Group <a href="/ring_group.jsp?name=<%=URLEnc.encode(ringGroup.getName())%>"><%=ringGroup.getName()%></a>
+  &gt;
+  <a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a>
+  &gt;
+  <span class='currentItem'>Partitions Assignment</span>
+  </h1>
 
-  <h3>Partition Assignment</h3>
+  <h2>Partition Assignment</h2>
 
   <%
   int total = 0;
-  DomainGroupVersion currentVersion = ring.getRingGroup().getDomainGroup().getVersionByNumber(ring.getVersionNumber());
-  for (DomainGroupVersionDomainVersion dc : currentVersion.getDomainVersions()) {
-    total += Rings.getUnassignedPartitions(ring, dc.getDomain()).size();
-  }
+  Integer versionNumber = ring.getVersionNumber();
+  if (versionNumber != null) {
+    DomainGroupVersion currentVersion = ring.getRingGroup().getDomainGroup().getVersionByNumber(versionNumber);
+    if (currentVersion != null && currentVersion.getDomainVersions() != null) {
+
+      for (DomainGroupVersionDomainVersion dc : currentVersion.getDomainVersions()) {
+        total += Rings.getUnassignedPartitions(ring, dc.getDomain()).size();
+      }
   %>
+
   <% if (total > 0) { %>
   There are <%=total%> unassigned partitions in <%= currentVersion.getDomainVersions().size() %> domains.
   <% } %>
@@ -47,7 +58,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type="submit" value="Assign all unassigned partitions and balance <%= ringGroup.getName() %>"/>
   </form>
 
-  <h3>Assignment visualization</h3>
+  <h2>Assignment visualization</h2>
   <%
   for (DomainGroupVersionDomainVersion d : currentVersion.getDomainVersions()) {
     Set<Integer> unassignedParts = Rings.getUnassignedPartitions(ring, d.getDomain());
@@ -71,6 +82,11 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       </table>
     </div>
   <% } %>
+
+  <% } %>
+  <% } %>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

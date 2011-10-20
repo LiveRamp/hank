@@ -38,10 +38,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 <body>
   <jsp:include page="_top_nav.jsp" />
 
-  <h1>Ring Group <%=ringGroup.getName()%></h1>
+  <h1>
+  Ring Group <span class='currentItem'><%=ringGroup.getName()%></span>
+  </h1>
 
   <div class='box-section'>
-    <h3>Status</h3>
+    <h2>Status</h2>
     <div class='box-section-content'>
       <div>
         <%
@@ -63,14 +65,14 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   </div>
 
   <div class='box-section'>
-    <h3>Configuration</h3>
+    <h2>Configuration</h2>
     <div class='box-section-content'>
       <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
     </div>
   </div>
 
 
-<h3>Actions</h3>
+<h2>Actions</h2>
   <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
     <input type=submit value="delete"
@@ -79,25 +81,25 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
 
   <div class='box-section'>
-  <h3>Rings</h3>
+  <h2>Rings</h2>
   <div class='box-section-content'>
   <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
   <table class='table-blue'>
     <tr>
-      <th>#</th>
+      <th>Ring</th>
       <th>Status</th>
       <th></th>
       <th></th>
-      <th>Cur. Ver.</th>
-      <th>Next Ver.</th>
-      <th># hosts</th>
+      <th>Current version</th>
+      <th>Next version</th>
+      <th>Number of hosts</th>
       <th></th>
     </tr>
     <%
       for (Ring ring : sortedRcs(ringGroup.getRings())) {
     %>
     <tr>
-      <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">ring <%=ring.getRingNumber()%></a></td>
+      <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
       <td><%=ring.getState()%></td>
       <%
       UpdateProgress progress = null;
@@ -142,7 +144,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   </div>
 
   <div class='box-section'>
-    <h3>Query</h3>
+    <h2>Query</h2>
     <% if (ringGroup.getCurrentVersion() == null) { %>
       Query disabled because no domain group version is currently deployed!
     <% } else { %>
@@ -261,6 +263,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       </form>
     </div>
   </div>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

@@ -11,23 +11,79 @@
 
 
 /* General styling */
+html, body {
+  padding: 0;
+  margin: 0;
+}
 
 body {
-  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Arial, Helvetica, sans-serif;\
 }
-
-
-h1 {
-  color: #133C65;
-}
-
 
 a {
-  color: #133C65;
+  color: #006482;
+  text-decoration: underline;
 }
 
 a:hover, a:active {
-  color: #2270B8;
+}
+
+/* Content */
+#content {
+  padding-left: 40px;
+  min-width: 600px;
+  max-width: 1000px;
+}
+
+/* Top navigation */
+#top-nav {
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: .4em;
+  padding-bottom: .4em;
+  width: 100%;
+  background-color: #404040;
+  border-width: 0 0 4px 0;
+  border-style: solid;
+  border-color: #8cdbf3;
+}
+
+#top-nav li {
+  display: inline;
+  padding-right: 1em;
+  padding-left: 1em;
+  border-width: 0 1px 0 0;
+  border-style: solid;
+  border-color: #808080;
+}
+
+#top-nav a {
+  color: white;
+  text-decoration: none;
+}
+
+/* Items */
+
+.currentItem {
+  color: #f59d05;
+}
+
+/* Titles */
+h1 {
+  color: #404040;
+  border-width: 0 0 4px 0;
+  border-style: solid;
+  border-color: #404040;
+}
+
+h2 {
+  padding: 0;
+  color: #404040;
+  border-width: 0 0 1px 0;
+  border-style: solid;
+  border-color: #a35b07;
+  width: 100%;
 }
 
 
@@ -36,16 +92,6 @@ a:hover, a:active {
 /* box-section */
 .box-section {
   margin: 10px 0px;
-  border: 1px solid #133C65;
-  border-radius: 5px;
-  width: 700px;
-}
-
-.box-section h3 {
-  margin: 0px;
-  padding: 5px;
-  background-color: #8cdbf3;
-  color: #133C65;
 }
 
 .box-section-content {
@@ -56,26 +102,27 @@ a:hover, a:active {
 /* table-blue */
 table.table-blue {
   margin: 10px 0px;
-  border: 1px solid #133C65;
+  border: 1px solid #404040;
   border-spacing: 0px;
   border-collapse: collapse;
-  min-width: 500px;
+  width: 100%;
 }
 
 table.table-blue tr {
-  border: 1px solid #133C65;
+  border: 1px solid #404040;
 }
 
 table.table-blue th {
+  font-weight: normal;
   padding: 4px;
-  color: #133C65;
+  color: white;
+  background-color: #404040;
   text-align: left;
 }
 
 table.table-blue td {
   margin: 0px;
   padding: 4px;
-  background-color: #8cdbf3;
 }
 
 /* Markup classes */

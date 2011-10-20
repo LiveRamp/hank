@@ -31,17 +31,19 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 </head>
 <body>
 
-<h3>
-  <a href="/ring_group.jsp?name=<%=ringGroup.getName() %>"><%= ringGroup.getName() %></a>
+<jsp:include page="_top_nav.jsp"/>
+
+<h1>
+  Ring Group <a href="/ring_group.jsp?name=<%=ringGroup.getName() %>"><%= ringGroup.getName() %></a>
   &gt;
-  <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">ring <%= ring.getRingNumber() %></a>
-  &gt; <%= host.getAddress() %>
-</h3>
+  <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">Ring <%= ring.getRingNumber() %></a>
+  &gt; <span class='currentItem'><%= host.getAddress() %></span>
+</h1>
 
 <!-- Status and Commands -->
 
 <div>
-  <h3>Status</h3>
+  <h2>Status</h2>
   Currently <%= host.getState() %> <%= Hosts.isOnline(host) ? "(online)" : "" %><br/>
   <form method="post" action="/host/discard_current_command">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
@@ -74,7 +76,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 <!-- Domains and Partitions -->
 
 <div>
-  <h4>Domains and Partitions</h4>
+  <h2>Domains and Partitions</h2>
   <form method="post" action="/host/add_domain_part">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
@@ -173,18 +175,15 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     Collections.sort(hostDomains);
     for (HostDomain hdc : hostDomains) {
       Domain domain = hdc.getDomain();
-      if (domain == null) {
-  %>
-    <div>Unknown Domain</div>
-  <%  } else { %>
-    <tr>
-      <th><%= domain.getName()%></th>
-    </tr>
-    <%
       for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
     %>
     <tr>
-      <td></td>
+      <td>
+      <% if (domain == null) { %>
+        Unknown Domain
+      <%  } else { %>
+        <%= domain.getName()%>
+      </td>
       <td><%= hdpc.getPartitionNumber() %></td>
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
       <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
@@ -209,7 +208,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   </table>
 </div>
 
-<h4>Counters</h4>
+<h2>Counters</h2>
 <ul>
 <%
 for (String countID : Hosts.getAggregateCountKeys(host)) {
@@ -238,6 +237,8 @@ for (String countID : Hosts.getAggregateCountKeys(host)) {
 <% } %>
 </li>
 </ul>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

@@ -23,13 +23,18 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <h1>Domains</h1>
 
-  <a href="new_domain.jsp">Create a new domain</a>
+  <h2>Create New Domain</h2>
+
+  <a href="new_domain.jsp">Create New Domain</a>
+
+  <h2>All Domains</h2>
+
   <table class='table-blue'>
     <tr>
-      <th>Name</th>
+      <th>Domain</th>
       <th>ID</th>
       <th>Partitioner</th>
-      <th>Num Partitions</th>
+      <th>Number of Partitions</th>
       <th>Storage Engine</th>
     </tr>
     <%
@@ -46,6 +51,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     }
     %>
   </table>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

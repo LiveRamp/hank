@@ -79,7 +79,7 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
           <select id="storageEngineFactorySelect" name="storageEngineFactorySelect"
              onchange="resetStorageEngineOptions();"
           >
-            <% 
+            <%
             for (StorageEngineFactory factory : knownStorageEngineFactories) {
             %>
             <option value="<%= factory.getClass().getName() %>"><%= factory.getPrettyName() %></option>
@@ -101,6 +101,8 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
   </table>
   <input type=submit value="Create"/> <a href="domains.jsp">Cancel</a>
   </form>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

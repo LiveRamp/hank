@@ -49,7 +49,7 @@ tr.not_included td {
 
 <jsp:include page="_top_nav.jsp" />
 
-<h1>Domain Group <%= domainGroup.getName() %></h1>
+<h1>Domain Group <span class='currentItem'><%= domainGroup.getName() %></span></h1>
 
 <h2>Actions</h2>
 <form method=post action="/domain_group/delete">
@@ -68,7 +68,7 @@ tr.not_included td {
       <th>Domain</th>
       <th>Include</th>
       <th>Version (default is most recent)</th>
-      <th>Current version</th>
+      <th>Current Version</th>
     </tr>
   <%
     DomainGroupVersion latestDomainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
@@ -142,5 +142,8 @@ tr.not_included td {
   </li>
   <% } %>
 </ul>
+
+<jsp:include page="_footer.jsp"/>
+
 </body>
 </html>

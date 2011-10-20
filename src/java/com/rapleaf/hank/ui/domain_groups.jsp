@@ -21,27 +21,33 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <jsp:include page="_top_nav.jsp" />
 
   <h1>Domain Groups</h1>
+
+  <h2>Create New Domain Group</h2>
+
   <form action="/domain_group/create" method=post>
-  Add a new domain group:<br/>
   <input type=text name="name" size=50/> <input type=submit value="Create"/>
   </form>
 
+  <h2>All Domain Groups</h2>
+
   <table class='table-blue'>
     <tr>
-      <th>Name</th>
-      <th>Cur Ver #</th>
+      <th>Domain Group</th>
+      <th>Current Version</th>
     </tr>
     <%
       for (DomainGroup domainGroup : new TreeSet<DomainGroup>(coord.getDomainGroups())) {
     %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
-        <td><%= domainGroup.getLatestVersion() == null ? "" : DomainGroups.getLatestVersion(domainGroup).getVersionNumber() %></td>
+        <td><%= DomainGroups.getLatestVersion(domainGroup) == null ? "" : DomainGroups.getLatestVersion(domainGroup).getVersionNumber() %></td>
       </tr>
       <%
     }
     %>
   </table>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

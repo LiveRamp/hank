@@ -37,7 +37,13 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <jsp:include page="_top_nav.jsp" />
 
-  <h1>Ring <%=ring.getRingNumber()%> in group <a href="/ring_group.jsp?name=<%=URLEnc.encode(ringGroup.getName())%>"><%=ringGroup.getName()%></a></h1>
+  <h1>
+  Ring Group <a href="/ring_group.jsp?name=<%=URLEnc.encode(ringGroup.getName())%>"><%=ringGroup.getName()%></a>
+  &gt;
+  <span class='currentItem'>Ring <%=ring.getRingNumber()%></span>
+  </h1>
+
+  <h2>Status</h2>
 
   <div>
     Ring status: <%=ring.getState()%> <br/>
@@ -54,7 +60,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     %>
   </div>
 
-  <h3>Hosts</h3>
+  <h2>Actions</h2>
 
   <form action="/ring/add_host" method=post>
     Add a new host: <br/>
@@ -86,15 +92,17 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type=submit value="Command"/>
   </form>
 
+  <h2>Hosts</h2>
+
   <table width=800 class='table-blue'>
     <tr>
-      <th><strong>Address</strong></th>
-      <th><strong>Status</strong></th>
+      <th>Host Address</th>
+      <th>Status</th>
       <th></th>
       <th></th>
-      <th><strong>Cur. Cmd.</strong></th>
-      <th><strong>Queue</strong></th>
-      <th><strong>Actions</strong></th>
+      <th>Current Command</th>
+      <th>Command Queue</th>
+      <th>Actions</th>
     </tr>
     <%
       Collection<Host> hosts = sortedHosts(ring.getHosts());
@@ -146,9 +154,11 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     %>
   </table>
 
-  <h3>Utilities</h3>
+  <h2>Utilities</h2>
 
   <a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Partition Assignment</a>
+
+<jsp:include page="_footer.jsp"/>
 
 </body>
 </html>
