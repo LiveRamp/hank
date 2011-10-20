@@ -18,8 +18,8 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
-public final class DomainGroupVersionUtils {
-  private DomainGroupVersionUtils() {}
+public final class DomainGroupVersions {
+  private DomainGroupVersions() {}
 
   public static boolean containsDomain(DomainGroupVersion domainGroupVersion, Domain domain) {
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {

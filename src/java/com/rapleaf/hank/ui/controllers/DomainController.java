@@ -97,7 +97,7 @@ public class DomainController extends Controller {
 
       DomainGroup dg = rg.getDomainGroup();
       DomainGroupVersion dgv = dg.getVersionByNumber(rg.getCurrentVersion());
-      if (DomainGroupVersionUtils.containsDomain(dgv, domain)) {
+      if (DomainGroupVersions.containsDomain(dgv, domain)) {
         resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
         return;
       }
