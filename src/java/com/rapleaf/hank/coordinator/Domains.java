@@ -48,7 +48,7 @@ public final class Domains {
    * @return
    * @throws IOException
    */
-  public long getTotalNumBytes(Domain domain) throws IOException {
+  public static long getTotalNumBytes(Domain domain) throws IOException {
     long total = 0;
     for (DomainVersion version : domain.getVersions()) {
       if (version.isDefunct()) {
@@ -59,7 +59,7 @@ public final class Domains {
     return total;
   }
 
-  public DomainVersion getLatestVersion(Domain domain) throws IOException {
+  public static DomainVersion getLatestVersion(Domain domain) throws IOException {
     SortedSet<DomainVersion> versions = domain.getVersions();
     if (versions == null || versions.size() == 0) {
       return null;

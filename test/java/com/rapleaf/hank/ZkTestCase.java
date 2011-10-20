@@ -17,6 +17,8 @@ package com.rapleaf.hank;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -267,23 +269,23 @@ public class ZkTestCase extends BaseTestCase {
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final Domain d0 = coord.addDomain("domain0", 1024, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
+    final Domain d0 = coord.addDomain("domain0", 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
     DomainVersion ver = d0.openNewVersion();
     ver.close();
     ver = d0.openNewVersion();
-    ver.addPartitionInfo(0, 1024, 55);
-    final Domain d1 = coord.addDomain("domain1", 1024, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    //ver.addPartitionInfo(0, 1024, 55);
+    final Domain d1 = coord.addDomain("domain1", 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     ver = d1.openNewVersion();
     dumpZk();
-    ver.addPartitionInfo(0, 1024, 55);
-    ver.addPartitionInfo(1, 32555, 7500000000L);
+    //ver.addPartitionInfo(0, 1024, 55);
+    //ver.addPartitionInfo(1, 32555, 7500000000L);
     ver.close();
     ver = d1.openNewVersion();
     ver.close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");
 
-    g1.createNewVersion(new HashMap<Domain, Integer>() {
+    DomainGroupVersion g1v1 = g1.createNewVersion(new HashMap<Domain, Integer>() {
       {
         put(d0, 1);
         put(d1, 1);
@@ -291,7 +293,7 @@ public class ZkTestCase extends BaseTestCase {
     });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
-    g2.createNewVersion(new HashMap<Domain, Integer>() {
+    DomainGroupVersion g2v1 = g2.createNewVersion(new HashMap<Domain, Integer>() {
       {
         put(d1, 1);
       }
@@ -299,7 +301,7 @@ public class ZkTestCase extends BaseTestCase {
 
     RingGroup rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     Ring r1 = rgAlpha.addRing(1);
-    r1.addHost(addy("alpha-1-1")).addDomain(d0).addPartition(0, 1).setCount("Penguins", 4);
+    r1.addHost(addy("alpha-1-1"));
     r1.addHost(addy("alpha-1-2"));
     r1.addHost(addy("alpha-1-3"));
     Ring r2 = rgAlpha.addRing(2);
@@ -336,6 +338,26 @@ public class ZkTestCase extends BaseTestCase {
     RingGroup rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
+
+
+    // Assign
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(1));
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(2));
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(3));
+    // Set updated partitions
+    int frequency = 1;
+    for (Host host : rgAlpha.getRing(1).getHosts()) {
+      ++frequency;
+      for (HostDomain hostDomain : host.getAssignedDomains()) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (partition.getPartitionNumber() % frequency == 0) {
+            partition.setCurrentDomainGroupVersion(partition.getUpdatingToDomainGroupVersion());
+            partition.setUpdatingToDomainGroupVersion(null);
+          }
+        }
+      }
+    }
 
     return coord;
   }

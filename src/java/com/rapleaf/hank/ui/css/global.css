@@ -6,7 +6,7 @@
  * [unused] 4x lightened light blue: #61c1e8
  * 8x lightened light blue: #8cdbf3
  * dark green:
- * light green: 
+ * light green:
  */
 
 
@@ -81,4 +81,22 @@ table.table-blue td {
 /* Markup classes */
 .centered {
   text-align: center;
+}
+
+/* Progress bars */
+.progress-bar {
+  padding: 0;
+  width: 80px;
+  height: 4px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: #133C65;
+  background-color: white;
+}
+
+.progress-bar-filler {
+  padding: 0;
+  margin: 0;
+  height: 4px;
+  background-color: #00d000;
 }

@@ -177,4 +177,13 @@ public class Rings {
     }
     return true;
   }
+
+  public static UpdateProgress computeUpdateProgress(Ring ring,
+                                                     DomainGroupVersion domainGroupVersion) throws IOException {
+    UpdateProgress result = new UpdateProgress();
+    for (Host host : ring.getHosts()) {
+      result.aggregate(Hosts.computeUpdateProgress(host, domainGroupVersion));
+    }
+    return result;
+  }
 }

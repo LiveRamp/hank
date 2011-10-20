@@ -42,4 +42,13 @@ public final class RingGroups {
     }
     return true;
   }
+
+  public static UpdateProgress computeUpdateProgress(RingGroup ringGroup,
+                                                     DomainGroupVersion domainGroupVersion) throws IOException {
+    UpdateProgress result = new UpdateProgress();
+    for (Ring ring : ringGroup.getRings()) {
+      result.aggregate(Rings.computeUpdateProgress(ring, domainGroupVersion));
+    }
+    return result;
+  }
 }

@@ -18,8 +18,12 @@ package com.rapleaf.hank.coordinator;
 
 public class UpdateProgress {
 
-  private final int numPartitions;
-  private final int numPartitionsUpToDate;
+  private int numPartitions;
+  private int numPartitionsUpToDate;
+
+  public UpdateProgress() {
+    this(0, 0);
+  }
 
   public UpdateProgress(int numPartitions, int numPartitionsUpToDate) {
     this.numPartitions = numPartitions;
@@ -40,5 +44,10 @@ public class UpdateProgress {
     } else {
       return (float) numPartitionsUpToDate / (float) numPartitions;
     }
+  }
+
+  public void aggregate(UpdateProgress other) {
+    numPartitions += other.numPartitions;
+    numPartitionsUpToDate += other.numPartitionsUpToDate;
   }
 }

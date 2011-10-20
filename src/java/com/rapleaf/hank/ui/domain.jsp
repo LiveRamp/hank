@@ -109,7 +109,7 @@
 </div>
 
 <div>
-  Total of <%= FileUtils.byteCountToDisplaySize(Domain.getTotalNumBytes(domain)) %> in <%= domain.getVersions().size() %> versions.
+  Total of <%= FileUtils.byteCountToDisplaySize(Domains.getTotalNumBytes(domain)) %> in <%= domain.getVersions().size() %> versions.
 </div>
 
 <table class='table-blue'>

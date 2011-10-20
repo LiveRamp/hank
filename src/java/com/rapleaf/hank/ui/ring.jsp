@@ -6,6 +6,7 @@
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
+<%@page import="java.text.DecimalFormat" %>
 
 <%!public List<Host> sortedHosts(Collection<Host> hosts) {
   if (hosts == null) {
@@ -89,6 +90,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <tr>
       <th><strong>Address</strong></th>
       <th><strong>Status</strong></th>
+      <th></th>
+      <th></th>
       <th><strong>Cur. Cmd.</strong></th>
       <th><strong>Queue</strong></th>
       <th><strong>Actions</strong></th>
@@ -100,7 +103,32 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     %>
     <tr>
       <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
-      <td><%= host.getState() %></td>
+      <td>
+      <%= host.getState() %>
+      </td>
+      <%
+      UpdateProgress progress = null;
+      if (Rings.isUpdatePending(ring)) {
+        DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ring.getUpdatingToVersionNumber());
+        if (domainGroupVersion != null) {
+          progress = Hosts.computeUpdateProgress(host, domainGroupVersion);
+        }
+      }
+      %>
+      <% if (progress != null) { %>
+      <td>
+        <div class='progress-bar'>
+          <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
+        </div>
+      </td>
+      <td>
+        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% updated
+        (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+      </td>
+      <% } else { %>
+      <td></td>
+      <td></td>
+      <% } %>
       <td><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
       <td>

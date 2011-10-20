@@ -10,6 +10,8 @@
 <%@page import="java.nio.ByteBuffer"%>
 <%@page import="org.apache.thrift.*"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
+<%@page import="java.text.DecimalFormat" %>
+
 <%!
 public List<Ring> sortedRcs(Collection<Ring> rcs) {
   List<Ring> sortedList = new ArrayList<Ring>(rcs);
@@ -84,6 +86,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <tr>
       <th>#</th>
       <th>Status</th>
+      <th></th>
+      <th></th>
       <th>Cur. Ver.</th>
       <th>Next Ver.</th>
       <th># hosts</th>
@@ -95,6 +99,30 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">ring <%=ring.getRingNumber()%></a></td>
       <td><%=ring.getState()%></td>
+      <%
+      UpdateProgress progress = null;
+      if (RingGroups.isUpdating(ringGroup)) {
+        DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getUpdatingToVersion());
+        if (domainGroupVersion != null) {
+          progress = Rings.computeUpdateProgress(ring, domainGroupVersion);
+        }
+      }
+      %>
+      <% if (progress != null) { %>
+      <td>
+        <div class='progress-bar'>
+          <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
+        </div>
+      </td>
+      <td>
+        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% updated
+        (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+      </td>
+      <% } else { %>
+      <td></td>
+      <td></td>
+      <% } %>
+
       <td><%=ring.getVersionNumber()%></td>
       <td><%=ring.getUpdatingToVersionNumber()%></td>
       <td><%=ring.getHosts().size()%></td>
