@@ -70,11 +70,6 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public boolean isUpdating() {
-    return false;
-  }
-
-  @Override
   public void setUpdatingToVersion(Integer versionNumber) {
     updateToVersion = versionNumber;
   }

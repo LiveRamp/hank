@@ -66,8 +66,6 @@ public interface RingGroup {
 
   public boolean isRingGroupConductorOnline() throws IOException;
 
-  public boolean isUpdating() throws IOException;
-
   public Integer getCurrentVersion() throws IOException;
 
   public void setUpdatingToVersion(Integer versionNumber) throws IOException;
@@ -79,8 +77,4 @@ public interface RingGroup {
   public Integer getUpdatingToVersion() throws IOException;
 
   Ring addRing(int ringNum) throws IOException;
-
-  public boolean isAssigned(DomainGroupVersion domainGroupVersion) throws IOException;
-
-  public boolean isUpToDate(DomainGroupVersion domainGroupVersion) throws IOException;
 }

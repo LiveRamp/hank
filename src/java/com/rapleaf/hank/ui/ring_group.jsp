@@ -43,7 +43,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <div class='box-section-content'>
       <div>
         <%
-          if(ringGroup.isUpdating()) {
+          if(RingGroups.isUpdating(ringGroup)) {
         %>
         An update from version <%=ringGroup.getCurrentVersion()%> to <%=ringGroup.getUpdatingToVersion()%> is in progress.
         <%

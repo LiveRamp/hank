@@ -163,8 +163,7 @@ public class TestRingGroupConductor extends TestCase {
       }
     };
 
-    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup",
-        Collections.EMPTY_SET) {
+    final MockRingGroup mockRingGroupConf = new MockRingGroup(null, "myRingGroup", Collections.EMPTY_SET) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -176,8 +175,8 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
-      public boolean isUpdating() {
-        return true;
+      public Integer getUpdatingToVersion() {
+        return 1;
       }
     };
 

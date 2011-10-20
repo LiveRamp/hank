@@ -171,7 +171,7 @@ public class HankApiServlet extends HttpServlet {
     ringGroupData.put("name", ringGroup.getName());
     ringGroupData.put("current_version", ringGroup.getCurrentVersion());
     ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersion());
-    ringGroupData.put("is_updating", ringGroup.isUpdating());
+    ringGroupData.put("is_updating", RingGroups.isUpdating(ringGroup));
     ringGroupData.put("is_ring_group_conductor_online", ringGroup.isRingGroupConductorOnline());
     ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
     ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));

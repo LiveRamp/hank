@@ -68,11 +68,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     public Integer getCurrentVersion() {
       return curVer;
     }
-
-    @Override
-    public boolean isUpdating() {
-      return true;
-    }
   }
 
   private static PartitionServerAddress address1 = new PartitionServerAddress("localhost", 1);

@@ -397,12 +397,12 @@ public class IntegrationTest extends ZkTestCase {
 
     // wait until the rings have been updated to the new version
     coordinator = config.createCoordinator();
-    final RingGroup ringGroupConfig = coordinator.getRingGroup("rg1");
+    final RingGroup ringGroup = coordinator.getRingGroup("rg1");
     for (int i = 0; i < 30; i++) {
-      if (ringGroupConfig.isUpdating()) {
+      if (RingGroups.isUpdating(ringGroup)) {
         LOG.info("Ring group is still updating. Sleeping...");
       } else {
-        if (ringGroupConfig.getCurrentVersion() == newVersion.getVersionNumber()) {
+        if (ringGroup.getCurrentVersion() == newVersion.getVersionNumber()) {
           break;
         } else {
           LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
@@ -411,7 +411,7 @@ public class IntegrationTest extends ZkTestCase {
       Thread.sleep(1000);
     }
 
-    assertFalse("ring group failed to finish updating after 30secs", ringGroupConfig.isUpdating());
+    assertFalse("ring group failed to finish updating after 30secs", RingGroups.isUpdating(ringGroup));
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
