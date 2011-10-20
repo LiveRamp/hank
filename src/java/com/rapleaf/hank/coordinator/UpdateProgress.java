@@ -16,12 +16,12 @@
 
 package com.rapleaf.hank.coordinator;
 
-public class UpdateStatus {
+public class UpdateProgress {
 
   private final int numPartitions;
   private final int numPartitionsUpToDate;
 
-  public UpdateStatus(int numPartitions, int numPartitionsUpToDate) {
+  public UpdateProgress(int numPartitions, int numPartitionsUpToDate) {
     this.numPartitions = numPartitions;
     this.numPartitionsUpToDate = numPartitionsUpToDate;
   }

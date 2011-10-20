@@ -75,7 +75,7 @@ public final class Hosts {
     return aggregateCountKeys;
   }
 
-  public static UpdateStatus getUpdateStatus(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+  public static UpdateProgress getUpdateProgress(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
     int numPartitions = 0;
     int numPartitionsUpToDate = 0;
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
@@ -95,6 +95,6 @@ public final class Hosts {
         }
       }
     }
-    return new UpdateStatus(numPartitions, numPartitionsUpToDate);
+    return new UpdateProgress(numPartitions, numPartitionsUpToDate);
   }
 }
