@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class HostDomainUtils {
+public final class HostDomains {
 
-  private HostDomainUtils() {}
+  private HostDomains() {}
 
   public static Long getAggregateCount(HostDomain hostDomain, String countID) throws IOException {
     long aggregateCount = 0;

@@ -49,7 +49,7 @@ public final class HostUtils {
     long aggregateCount = 0;
     boolean notNull = false;
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Long currentCount = HostDomainUtils.getAggregateCount(hostDomain, countID);
+      Long currentCount = HostDomains.getAggregateCount(hostDomain, countID);
       if (currentCount != null) {
         notNull = true;
         aggregateCount += currentCount;
@@ -70,7 +70,7 @@ public final class HostUtils {
   public static Set<String> getAggregateCountKeys(Host host) throws IOException {
     Set<String> aggregateCountKeys = new HashSet<String>();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      aggregateCountKeys.addAll(HostDomainUtils.getAggregateCountKeys(hostDomain));
+      aggregateCountKeys.addAll(HostDomains.getAggregateCountKeys(hostDomain));
     }
     return aggregateCountKeys;
   }
