@@ -130,7 +130,7 @@
   <tr>
     <td><%= version.getVersionNumber() %></td>
     <td>
-      <% if (version.isClosed()) { %>
+      <% if (DomainVersionUtils.isClosed(version)) { %>
       Closed
       <%   if (version.isDefunct()) { %>
       DEFUNCT
@@ -140,10 +140,10 @@
       Open - <%= version.getPartitionInfos().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
     </td>
-    <td><%= FileUtils.byteCountToDisplaySize(version.getTotalNumBytes()) %></td>
-    <td><%= String.format("%,d", version.getTotalNumRecords()) %></td>
+    <td><%= FileUtils.byteCountToDisplaySize(DomainVersionUtils.getTotalNumBytes(version)) %></td>
+    <td><%= String.format("%,d", DomainVersionUtils.getTotalNumRecords(version)) %></td>
     <td>
-      <% if (version.isClosed() && !version.isDefunct()) { %>
+      <% if (DomainVersionUtils.isClosed(version) && !version.isDefunct()) { %>
       <form action="/domain/defunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
@@ -152,7 +152,7 @@
       </form>
       <% } %>
 
-      <% if (version.getClosedAt() == null) { %>
+      <% if (!DomainVersionUtils.isClosed(version)) { %>
       <form action="/domain/close" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
@@ -161,7 +161,7 @@
       </form>
       <% } %>
 
-      <% if (version.isClosed() && !version.isDefunct()) { %>
+      <% if (DomainVersionUtils.isClosed(version) && !version.isDefunct()) { %>
       <form action="/domain/cleanup" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
