@@ -35,7 +35,7 @@ public final class DomainUtils {
       return null;
     }
     DomainVersion last = domain.getVersions().last();
-    if (DomainVersionUtils.isClosed(last)) {
+    if (DomainVersions.isClosed(last)) {
       return null;
     } else {
       return last;
@@ -54,7 +54,7 @@ public final class DomainUtils {
       if (version.isDefunct()) {
         continue;
       }
-      total += DomainVersionUtils.getTotalNumBytes(version);
+      total += DomainVersions.getTotalNumBytes(version);
     }
     return total;
   }
@@ -76,7 +76,7 @@ public final class DomainUtils {
     SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
     versions.addAll(originalVersions);
     for (DomainVersion version : versions) {
-      if (DomainVersionUtils.isClosed(version) && !version.isDefunct()) {
+      if (DomainVersions.isClosed(version) && !version.isDefunct()) {
         return version;
       }
     }

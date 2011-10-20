@@ -17,7 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersionUtils;
+import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -183,7 +183,7 @@ public class ZkDomain extends AbstractDomain {
       nextVerNum = 0;
     } else {
       DomainVersion last = getVersions().last();
-      if (!DomainVersionUtils.isClosed(last)) {
+      if (!DomainVersions.isClosed(last)) {
         return null;
       }
       nextVerNum = last.getVersionNumber() + 1;

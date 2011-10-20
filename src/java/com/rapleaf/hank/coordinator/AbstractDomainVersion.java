@@ -12,7 +12,7 @@ public abstract class AbstractDomainVersion implements DomainVersion {
     Boolean isClosed;
     Boolean isDefunct;
     try {
-      isClosed = DomainVersionUtils.isClosed(this);
+      isClosed = DomainVersions.isClosed(this);
     } catch (IOException e) {
       isClosed = null;
     }

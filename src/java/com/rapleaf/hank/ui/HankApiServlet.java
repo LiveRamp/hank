@@ -288,9 +288,9 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getDomainVersionData(DomainVersion version) throws IOException {
     Map<String, Object> versionData = new HashMap<String, Object>();
     versionData.put("version_number", version.getVersionNumber());
-    versionData.put("total_num_bytes", DomainVersionUtils.getTotalNumBytes(version));
-    versionData.put("total_num_records", DomainVersionUtils.getTotalNumRecords(version));
-    versionData.put("is_closed", DomainVersionUtils.isClosed(version));
+    versionData.put("total_num_bytes", DomainVersions.getTotalNumBytes(version));
+    versionData.put("total_num_records", DomainVersions.getTotalNumRecords(version));
+    versionData.put("is_closed", DomainVersions.isClosed(version));
     versionData.put("closed_at", version.getClosedAt());
 
     return versionData;

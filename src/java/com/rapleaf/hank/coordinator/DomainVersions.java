@@ -18,8 +18,8 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
-public final class DomainVersionUtils {
-  private DomainVersionUtils() {
+public final class DomainVersions {
+  private DomainVersions() {
   }
 
   public static boolean isClosed(DomainVersion domainVersion) throws IOException {

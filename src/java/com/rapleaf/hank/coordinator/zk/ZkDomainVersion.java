@@ -1,7 +1,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersionUtils;
+import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.coordinator.PartitionInfo;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
@@ -85,7 +85,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public void cancel() throws IOException {
-    if (!DomainVersionUtils.isClosed(this)) {
+    if (!DomainVersions.isClosed(this)) {
       try {
         zk.deleteNodeRecursively(path);
       } catch (Exception e) {
