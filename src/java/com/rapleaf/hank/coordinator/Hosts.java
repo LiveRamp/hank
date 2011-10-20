@@ -75,12 +75,11 @@ public final class Hosts {
     return aggregateCountKeys;
   }
 
-  public static UpdateProgress getUpdateProgress(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+  public static UpdateProgress computeUpdateProgress(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
     int numPartitions = 0;
     int numPartitionsUpToDate = 0;
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      Integer version = dgvdv.getVersion();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
@@ -88,7 +87,7 @@ public final class Hosts {
           if (!partition.isDeletable()) {
             ++numPartitions;
             if (partition.getCurrentDomainGroupVersion() != null
-                && partition.getCurrentDomainGroupVersion().equals(version)) {
+                && partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber())) {
               ++numPartitionsUpToDate;
             }
           }
