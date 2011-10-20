@@ -22,7 +22,8 @@ import java.util.Set;
 
 public final class HostUtils {
 
-  private HostUtils() {}
+  private HostUtils() {
+  }
 
   /**
    * Returns true when the host is online. Note that this is distinct from
@@ -35,7 +36,6 @@ public final class HostUtils {
   public static boolean isOnline(Host host) throws IOException {
     return host.getState() != HostState.OFFLINE;
   }
-
 
   /**
    * Get the aggregate count of a counter across all HostDomainPartitions
@@ -61,7 +61,6 @@ public final class HostUtils {
     return null;
   }
 
-
   /**
    * Gets a set of aggregate counter keys across all HostDomainPartitions
    *
@@ -74,5 +73,28 @@ public final class HostUtils {
       aggregateCountKeys.addAll(HostDomainUtils.getAggregateCountKeys(hostDomain));
     }
     return aggregateCountKeys;
+  }
+
+  public static UpdateStatus getUpdateStatus(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+    int numPartitions = 0;
+    int numPartitionsUpToDate = 0;
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      Integer version = dgvdv.getVersion();
+      HostDomain hostDomain = host.getHostDomain(domain);
+      if (hostDomain != null) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          // Ignore deletable partitions
+          if (!partition.isDeletable()) {
+            ++numPartitions;
+            if (partition.getCurrentDomainGroupVersion() != null
+                && partition.getCurrentDomainGroupVersion().equals(version)) {
+              ++numPartitionsUpToDate;
+            }
+          }
+        }
+      }
+    }
+    return new UpdateStatus(numPartitions, numPartitionsUpToDate);
   }
 }
