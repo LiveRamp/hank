@@ -52,13 +52,18 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     Current command: <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
   </form>
   Queued commands: <%= host.getCommandQueue() %>
+
+  <h2>Clear Command Queue</h2>
+
   <form method=post action="/host/clear_command_queue">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
     <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
     <input type=submit value="Clear command queue"/>
   </form>
-  <br/>
+
+  <h2>Enqueue Command</h2>
+
   <form action="/host/enqueue_command" method="post">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>

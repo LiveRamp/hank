@@ -60,7 +60,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     %>
   </div>
 
-  <h2>Actions</h2>
+  <h2>Add New Host</h2>
 
   <form action="/ring/add_host" method=post>
     Add a new host: <br/>
@@ -79,8 +79,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <input type=submit value="Add"/>
   </form>
 
+  <h2>Command All Hosts</h2>
+
   <form action="/ring/command_all" method=post>
-    Command all hosts: <br/>
     <input type=hidden name="rgName" value="<%=ringGroup.getName()%>"/>
     <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
     <select name="command">
@@ -91,6 +92,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     </select>
     <input type=submit value="Command"/>
   </form>
+
+  <h2>Utilities</h2>
+
+  <a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Partition Assignment</a>
 
   <h2>Hosts</h2>
 
@@ -153,10 +158,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       }
     %>
   </table>
-
-  <h2>Utilities</h2>
-
-  <a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Partition Assignment</a>
 
 <jsp:include page="_footer.jsp"/>
 

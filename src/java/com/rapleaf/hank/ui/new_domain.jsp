@@ -45,8 +45,10 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
 </head>
 <body onload="resetStorageEngineOptions();">
 
+<jsp:include page="_top_nav.jsp"/>
+
   <form action="/domain/create" method=post>
-  <h2>Create New Domain</h2>
+  <h1>Create New Domain</h1>
   <table>
     <tr>
       <td>Domain Name</td>
@@ -77,8 +79,7 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
       <td>
         <div>
           <select id="storageEngineFactorySelect" name="storageEngineFactorySelect"
-             onchange="resetStorageEngineOptions();"
-          >
+             onchange="resetStorageEngineOptions();">
             <%
             for (StorageEngineFactory factory : knownStorageEngineFactories) {
             %>
@@ -99,7 +100,7 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
       </td>
     </tr>
   </table>
-  <input type=submit value="Create"/> <a href="domains.jsp">Cancel</a>
+  <input type=submit value="Create"/>
   </form>
 
 <jsp:include page="_footer.jsp"/>
