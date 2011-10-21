@@ -121,6 +121,7 @@ table.table-blue th {
 }
 
 table.table-blue td {
+  font-size: .8em;
   margin: 0px;
   padding: 4px;
 }

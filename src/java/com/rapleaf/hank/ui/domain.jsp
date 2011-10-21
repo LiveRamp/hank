@@ -114,10 +114,10 @@
 
 <table class='table-blue'>
   <tr>
-    <th>#</th>
-    <th>status</th>
-    <th>size</th>
-    <th># records</th>
+    <th>Version Number</th>
+    <th>Status</th>
+    <th>Size</th>
+    <th>Number of Records</th>
     <th></th>
   </tr>
   <%
