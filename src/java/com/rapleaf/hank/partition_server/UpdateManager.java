@@ -68,13 +68,16 @@ class UpdateManager implements IUpdateManager {
     @Override
     public void run() {
       try {
-        LOG.info(String.format("%s part %d to version %d starting (%s)", domainName, partitionNumber, toDomainVersion, engine.toString()));
+        LOG.info(String.format("Partition update of %s partition %d to version %d starting (%s)",
+            domainName, partitionNumber, toDomainVersion, engine.toString()));
         engine.getUpdater(configurator, partitionNumber).update(toDomainVersion, excludeVersions);
         partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
         partition.setUpdatingToDomainGroupVersion(null);
-        LOG.info(String.format("PartitionUpdate %s part %d completed.", engine.toString(), partitionNumber));
+        LOG.info(String.format("Partition update of %s partition %d completed (%s).",
+            domainName, partitionNumber, engine.toString()));
       } catch (Throwable e) {
-        LOG.fatal("Failed to complete a PartitionUpdateTask!", e);
+        LOG.fatal(
+            String.format("Failed to complete partition update of %s partition %d.", domainName, partitionNumber),e);
         exceptionQueue.add(e);
       }
     }
