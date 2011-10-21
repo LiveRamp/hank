@@ -49,8 +49,8 @@ a:hover, a:active {
   border-color: #8cdbf3;
 }
 
-#top-nav li {
-  display: inline;
+#top-nav div {
+  /* display is on the element itself */
   padding-right: 1em;
   padding-left: 1em;
   border-width: 0 1px 0 0;
