@@ -165,9 +165,11 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
 
+    LOG.info("Loading metadata for coordinator " + this);
     loadAllDomains();
     loadAllDomainGroups();
     loadAllRingGroups();
+    LOG.info("Done loading metadata for coordinator " + this);
     watchForNewDomainGroups = new WatchForNewDomainGroups();
     myWatchers.add(watchForNewDomainGroups);
   }
