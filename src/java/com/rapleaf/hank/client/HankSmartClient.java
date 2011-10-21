@@ -94,7 +94,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       return;
     }
 
-    // Build domainToPartitionToPartitionServerAdresses
+    // Build domainToPartitionToPartitionServerAdresses with empty address lists
     for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
@@ -114,12 +114,12 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
           }
           Map<Integer, List<PartitionServerAddress>> partToAddresses =
               domainToPartitionToPartitionServerAddresses.get(domain.getId());
-          if (partToAddresses == null) {
-            throw new IOException(String.format("Could not load partToAddresses map for Domain %s", domain.getId()));
-          }
-          for (HostDomainPartition hdcp : hdc.getPartitions()) {
-            List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
-            partList.add(host.getAddress());
+          // Add this host to list of addresses only if this domain is in the domain group version
+          if (partToAddresses != null) {
+            for (HostDomainPartition hdcp : hdc.getPartitions()) {
+              List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
+              partList.add(host.getAddress());
+            }
           }
         }
 
