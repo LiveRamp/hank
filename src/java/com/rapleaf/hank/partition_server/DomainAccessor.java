@@ -15,13 +15,17 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class that manages accessing data on behalf of a particular Domain.
@@ -63,13 +67,37 @@ class DomainAccessor {
    * @throws IOException
    */
   public HankResponse get(ByteBuffer key) throws IOException {
+    ReaderResult result = new ReaderResult();
+    return get(key, result);
+  }
+
+  /**
+   * Get the value for <i>key</i>, placing it in result.
+   *
+   * @param keys
+   * @return response
+   * @throws IOException
+   */
+  public HankBulkResponse getBulk(List<ByteBuffer> keys) throws IOException {
+    LOG.trace("Domain GET BULK");
+    // Re-use the ReaderResult accros all requests
+    ReaderResult result = new ReaderResult();
+    HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
+    for (ByteBuffer key : keys) {
+      result.clear();
+      response.get_responses().add(get(key, result));
+    }
+    return response;
+  }
+
+  private HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     LOG.trace("Domain GET");
     int partition = partitioner.partition(key, partitionAccessors.length);
     PartitionAccessor partitionAccessor = partitionAccessors[partition];
     if (partitionAccessor == null) {
       return WRONG_HOST;
     }
-    return partitionAccessor.get(key);
+    return partitionAccessor.get(key, result);
   }
 
   /**

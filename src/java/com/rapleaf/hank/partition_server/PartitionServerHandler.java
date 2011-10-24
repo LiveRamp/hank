@@ -29,7 +29,6 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +38,7 @@ import java.util.Set;
 class PartitionServerHandler implements IfaceWithShutdown {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
+  private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
@@ -166,7 +166,6 @@ class PartitionServerHandler implements IfaceWithShutdown {
     HankTimer timer = getTimerAggregator.getTimer();
     try {
       DomainAccessor domainAccessor = getDomainAccessor(domainId);
-
       if (domainAccessor == null) {
         return NO_SUCH_DOMAIN;
       }
@@ -174,14 +173,17 @@ class PartitionServerHandler implements IfaceWithShutdown {
         return domainAccessor.get(key);
       } catch (IOException e) {
         String errMsg = String.format(
-            "Exception during get! Domain: %s (domain #%d) Key: %s",
+            "Exception during GET. Domain: %s (domain #%d) Key: %s",
             domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
         LOG.error(errMsg, e);
-        return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
+        return HankResponse.xception(
+            HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
       }
     } catch (Throwable t) {
-      LOG.fatal(t);
-      return HankResponse.xception(HankException.internal_error(t.getMessage()));
+      String errMsg = "Throwable during GET";
+      LOG.fatal(errMsg, t);
+      return HankResponse.xception(
+          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     } finally {
       getTimerAggregator.add(timer);
     }
@@ -190,16 +192,25 @@ class PartitionServerHandler implements IfaceWithShutdown {
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
     HankTimer timer = getBulkTimerAggregator.getTimer();
     try {
-      // Dumb implementation
-      // TODO: Make it less dumb
-      HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
-      for (ByteBuffer key : keys) {
-        response.get_responses().add(get(domainId, key));
+      DomainAccessor domainAccessor = getDomainAccessor(domainId);
+      if (domainAccessor == null) {
+        return NO_SUCH_DOMAIN_BULK;
       }
-      return response;
+      try {
+        return domainAccessor.getBulk(keys);
+      } catch (IOException e) {
+        String errMsg = String.format(
+            "Exception during GET BULK. Domain: %s (domain #%d) num keys: %d",
+            domainAccessor.getName(), domainId, keys.size());
+        LOG.error(errMsg, e);
+        return HankBulkResponse.xception(
+            HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
+      }
     } catch (Throwable t) {
-      LOG.fatal(t);
-      return HankBulkResponse.xception(HankException.internal_error(t.getMessage()));
+      String errMsg = "Throwable during GET BULK";
+      LOG.fatal(errMsg, t);
+      return HankBulkResponse.xception(
+          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     } finally {
       getBulkTimerAggregator.add(timer);
     }

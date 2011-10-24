@@ -46,16 +46,15 @@ public class PartitionAccessor {
     return partition;
   }
 
-  public HankResponse get(ByteBuffer key) throws IOException {
+  public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     // Increment requests counter
     LOG.trace("Partition GET");
     requests.incrementAndGet();
-    ReaderResult result = new ReaderResult();
     reader.get(key, result);
     if (result.isFound()) {
       // Increment hits counter
       hits.incrementAndGet();
-      return HankResponse.value(result.getBuffer());
+      return HankResponse.value(result.getBufferDeepCopy());
     } else {
       return NOT_FOUND;
     }

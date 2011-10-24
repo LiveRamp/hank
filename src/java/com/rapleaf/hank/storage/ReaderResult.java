@@ -15,16 +15,25 @@
  */
 package com.rapleaf.hank.storage;
 
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.util.Bytes;
 
+import java.nio.ByteBuffer;
+
 public class ReaderResult {
+
   private boolean isFound = false;
 
   private ByteBuffer buffer;
 
-  public ReaderResult() {}
+  public ReaderResult() {
+  }
+
+  public void clear() {
+    isFound = false;
+    if (buffer != null) {
+      buffer.clear();
+    }
+  }
 
   public boolean isFound() {
     return isFound;
@@ -64,5 +73,9 @@ public class ReaderResult {
     }
     sb.append("]");
     return sb.toString();
+  }
+
+  public ByteBuffer getBufferDeepCopy() {
+    return Bytes.byteBufferDeepCopy(buffer);
   }
 }
