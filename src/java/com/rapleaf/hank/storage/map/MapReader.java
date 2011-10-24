@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 
 public class MapReader implements Reader {
 
@@ -40,7 +40,7 @@ public class MapReader implements Reader {
   }
 
   @Override
-  public void get(ByteBuffer key, Result result) throws IOException {
+  public void get(ByteBuffer key, ReaderResult result) throws IOException {
     byte[] v = map.get(key);
     if (v == null) {
       result.notFound();

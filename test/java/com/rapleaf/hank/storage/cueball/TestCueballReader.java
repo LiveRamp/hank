@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 
 public class TestCueballReader extends AbstractCueballTest {
   public void testRead() throws Exception {
@@ -38,7 +38,7 @@ public class TestCueballReader extends AbstractCueballTest {
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
 
-    Result result = new Result();
+    ReaderResult result = new ReaderResult();
     reader.get(ByteBuffer.wrap(KEY1), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{1, 2, 1, 2, 1}), result.getBuffer());

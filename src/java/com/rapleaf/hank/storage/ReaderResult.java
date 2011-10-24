@@ -19,12 +19,12 @@ import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.util.Bytes;
 
-public class Result {
+public class ReaderResult {
   private boolean isFound = false;
 
   private ByteBuffer buffer;
 
-  public Result() {}
+  public ReaderResult() {}
 
   public boolean isFound() {
     return isFound;
@@ -41,7 +41,7 @@ public class Result {
   /**
    * TODO: should we grow to something slightly higher than requested? Like 10%
    * more? This would help us converge on a "big enough" buffer faster.
-   * 
+   *
    * @param size
    */
   public void requiresBufferSize(int size) {
@@ -56,7 +56,7 @@ public class Result {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Result [found=");
+    StringBuilder sb = new StringBuilder("ReaderResult [found=");
     sb.append(isFound);
     if (isFound) {
       sb.append(", data=");

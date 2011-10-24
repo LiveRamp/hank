@@ -3,7 +3,7 @@ package com.rapleaf.hank.partition_server;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class PartitionAccessor {
     // Increment requests counter
     LOG.trace("Partition GET");
     requests.incrementAndGet();
-    Result result = new Result();
+    ReaderResult result = new ReaderResult();
     reader.get(key, result);
     if (result.isFound()) {
       // Increment hits counter

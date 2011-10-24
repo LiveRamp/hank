@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.EncodingHelper;
 
 public class CurlyReader implements Reader {
@@ -40,7 +40,7 @@ public class CurlyReader implements Reader {
   }
 
   @Override
-  public void get(ByteBuffer key, Result result) throws IOException {
+  public void get(ByteBuffer key, ReaderResult result) throws IOException {
     // we want at least readBufferSize bytes of available space. we might resize
     // again later.
     result.requiresBufferSize(readBufferSize);

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
 
 public class EchoReader implements Reader {
@@ -15,7 +15,7 @@ public class EchoReader implements Reader {
   }
 
   @Override
-  public void get(ByteBuffer key, Result result) throws IOException {
+  public void get(ByteBuffer key, ReaderResult result) throws IOException {
     StringBuilder sb = new StringBuilder();
     sb.append("Original value: ");
     sb.append(Bytes.bytesToHexString(key));

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 
 public class MockReader implements Reader {
 
@@ -40,7 +40,7 @@ public class MockReader implements Reader {
   }
 
   @Override
-  public void get(ByteBuffer key, Result result) throws IOException {
+  public void get(ByteBuffer key, ReaderResult result) throws IOException {
     if (key.equals(ByteBuffer.wrap("nullKey".getBytes()))) {
       result.notFound();
     } else {

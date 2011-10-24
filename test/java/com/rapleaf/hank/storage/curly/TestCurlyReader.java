@@ -20,7 +20,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
@@ -58,7 +58,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
 
-    Result result = new Result();
+    ReaderResult result = new ReaderResult();
 
     reader.get(KEY1, result);
     assertTrue(result.isFound());

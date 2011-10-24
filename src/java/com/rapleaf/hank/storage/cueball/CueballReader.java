@@ -18,7 +18,7 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Result;
+import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
 
 import java.io.FileInputStream;
@@ -64,7 +64,7 @@ public class CueballReader implements Reader {
   }
 
   @Override
-  public void get(ByteBuffer key, Result result) throws IOException {
+  public void get(ByteBuffer key, ReaderResult result) throws IOException {
     result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
     // TODO: want to reuse this.
