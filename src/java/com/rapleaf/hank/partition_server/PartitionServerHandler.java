@@ -110,7 +110,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       if (partitions == null) {
         throw new IOException(String.format("Could not get partitions assignements of HostDomain %s", hostDomain));
       }
-      LOG.info(String.format("Assigned %d/%d partitions in domain %s",
+      LOG.info(String.format("Loading %d/%d partitions of domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
       // Instantiate the PartitionAccessor array
