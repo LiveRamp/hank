@@ -177,9 +177,11 @@ class PartitionServerHandler implements IfaceWithShutdown {
             "Exception during get! Domain: %s (domain #%d) Key: %s",
             domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
         LOG.error(errMsg, e);
-
         return HankResponse.xception(HankException.internal_error(errMsg + " " + e.getMessage()));
       }
+    } catch (Throwable t) {
+      LOG.fatal(t);
+      return HankResponse.xception(HankException.internal_error(t.getMessage()));
     } finally {
       getTimerAggregator.add(timer);
     }
@@ -195,6 +197,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
         response.get_responses().add(get(domainId, key));
       }
       return response;
+    } catch (Throwable t) {
+      LOG.fatal(t);
+      return HankBulkResponse.xception(HankException.internal_error(t.getMessage()));
     } finally {
       getBulkTimerAggregator.add(timer);
     }
