@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Result;
 import com.rapleaf.hank.util.Bytes;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class CueballReader implements Reader {
 
@@ -98,7 +98,7 @@ public class CueballReader implements Reader {
       int bufferOffset = getValueOffset(buffer.array(),
           uncompressedStart,
           uncompressedStart + decompressedLength,
-          ByteBuffer.wrap(keyHash));
+          keyHash);
 
       // -1 means that we didn't find the key
       if (bufferOffset > -1) {
@@ -113,11 +113,10 @@ public class CueballReader implements Reader {
     return versionNumber;
   }
 
-  private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, ByteBuffer key) {
+  private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {
     for (; off < limit; off += fullRecordSize) {
       int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off,
-          key.array(), key.arrayOffset() + key.position(),
-          keyHashSize);
+          key, 0, keyHashSize);
       // found match
       if (comparison == 0) {
         return off + keyHashSize;
