@@ -76,6 +76,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
+    LOG.info("Loading Hank's smart client metadata cache and connections.");
     clearCache();
     // Preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
