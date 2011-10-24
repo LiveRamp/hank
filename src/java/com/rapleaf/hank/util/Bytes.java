@@ -84,8 +84,10 @@ public final class Bytes {
     }
   }
 
+  // Make a deep copy of the remaining bytes of the given ByteBuffer.
+  // The new buffer's capacity is trimmed down to the required size (remaining bytes).
   public static ByteBuffer byteBufferDeepCopy(ByteBuffer src) {
-    ByteBuffer copy = ByteBuffer.allocate(src.capacity()).put(src.slice());
+    ByteBuffer copy = ByteBuffer.allocate(src.remaining()).put(src.slice());
     copy.flip();
     return copy;
   }
