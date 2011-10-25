@@ -15,11 +15,11 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import java.util.Collections;
-import java.util.Set;
-
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+
+import java.util.Collections;
+import java.util.Set;
 
 public class MockPartitionServerConfigurator implements PartitionServerConfigurator {
 
@@ -56,7 +56,12 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public int getNumThreads() {
+  public int getNumConcurrentConnections() {
+    return 1;
+  }
+
+  @Override
+  public int getNumConcurrentGets() {
     return 1;
   }
 

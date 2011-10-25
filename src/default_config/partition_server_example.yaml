@@ -9,6 +9,7 @@ partition_server:
   ring_group_name: rg1
   partition_server_daemon:
     num_worker_threads: 256
+    num_concurrent_gets: 256
   update_daemon:
     num_concurrent_updates: 1
 coordinator:

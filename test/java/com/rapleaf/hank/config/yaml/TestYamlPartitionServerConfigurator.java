@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
-
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 public class TestYamlPartitionServerConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
@@ -34,6 +34,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("  ring_group_name: rg1");
     pw.println("  partition_server_daemon:");
     pw.println("    num_worker_threads: 5");
+    pw.println("    num_concurrent_gets: 1");
     pw.println("  update_daemon:");
     pw.println("    num_concurrent_updates: 5");
     pw.println("coordinator:");
@@ -47,6 +48,6 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(1, conf.getServicePort());
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(5, conf.getNumConcurrentUpdates());
-    assertEquals(5, conf.getNumThreads());
+    assertEquals(5, conf.getNumConcurrentConnections());
   }
 }

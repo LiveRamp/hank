@@ -52,5 +52,7 @@ public interface PartitionServerConfigurator extends Configurator {
    * How many threads allowed to the Thrift Server.
    * @return
    */
-  public int getNumThreads();
+  public int getNumConcurrentConnections();
+
+  public int getNumConcurrentGets();
 }

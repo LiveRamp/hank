@@ -66,11 +66,12 @@ class DomainAccessor {
    * @return response
    * @throws IOException
    */
+  /*
   public HankResponse get(ByteBuffer key) throws IOException {
     ReaderResult result = new ReaderResult();
     return get(key, result);
   }
-
+  */
   /**
    * Get the value for <i>key</i>, placing it in result.
    *
@@ -78,6 +79,7 @@ class DomainAccessor {
    * @return response
    * @throws IOException
    */
+  /*
   public HankBulkResponse getBulk(List<ByteBuffer> keys) throws IOException {
     LOG.trace("Domain GET BULK");
     // Re-use the ReaderResult accros all requests
@@ -89,8 +91,8 @@ class DomainAccessor {
     }
     return response;
   }
-
-  private HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
+  */
+  public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     LOG.trace("Domain GET");
     int partition = partitioner.partition(key, partitionAccessors.length);
     PartitionAccessor partitionAccessor = partitionAccessors[partition];
