@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -24,8 +23,6 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Class that manages accessing data on behalf of a particular Domain.
@@ -54,7 +51,7 @@ class DomainAccessor {
     this.partitioner = partitioner;
     this.timeout = timeout;
 
-    updateThread = new Thread(new UpdateCounts());
+    updateThread = new Thread(new UpdateCounts(), "Update Counts");
     keepUpdating = true;
     updateThread.start();
   }
@@ -72,6 +69,7 @@ class DomainAccessor {
     return get(key, result);
   }
   */
+
   /**
    * Get the value for <i>key</i>, placing it in result.
    *
