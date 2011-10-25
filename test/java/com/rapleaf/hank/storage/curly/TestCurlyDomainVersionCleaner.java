@@ -8,8 +8,8 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.DomainVersionCleaner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalFileOps;
 import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.cueball.LocalFileOps;
 
 public class TestCurlyDomainVersionCleaner extends ZkTestCase {
   private String localDiskRoot = localTmpDir + "/local_disk_root";

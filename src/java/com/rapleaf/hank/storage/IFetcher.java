@@ -13,18 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage.cueball;
+package com.rapleaf.hank.storage;
 
-/**
- * Factory for getting IFileOps instances.
- */
-public interface IFileOpsFactory {
-  /**
-   * Get an IFileOps instance that is targeted at the specified remote and local
-   * directories.
-   *
-   * @param remoteRoot
-   * @return
-   */
-  public IFileOps getFileOps(String remoteRoot);
+import java.io.IOException;
+import java.util.Set;
+
+public interface IFetcher {
+  public void fetch(int fromVersion,
+                    int toVersion,
+                    Set<Integer> excludeVersions,
+                    String localDirectory) throws IOException;
 }

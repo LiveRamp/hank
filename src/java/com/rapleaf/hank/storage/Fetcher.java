@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage.cueball;
+package com.rapleaf.hank.storage;
 
 import org.apache.log4j.Logger;
 

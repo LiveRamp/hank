@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage.cueball;
+package com.rapleaf.hank.storage;
 
 import java.util.List;
 import java.util.Set;
@@ -26,7 +26,7 @@ public interface IFileSelector {
   /**
    * Is this file a file that we might want to copy? For instance, does it have
    * the right file extension?
-   * 
+   *
    * @param fileName
    * @param fromVersion
    * @param toVersion
@@ -39,7 +39,7 @@ public interface IFileSelector {
    * Given a list of relevant files, which ones should be copied? If 100% of
    * your selection logic can be implemented in isRelevant, then it is
    * acceptable to return the same set of input files as the output.
-   * 
+   *
    * @param relevantFiles
    * @param fromVersion
    * @param toVersion

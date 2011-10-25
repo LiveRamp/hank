@@ -1,4 +1,4 @@
-package com.rapleaf.hank.storage.cueball;
+package com.rapleaf.hank.storage;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;

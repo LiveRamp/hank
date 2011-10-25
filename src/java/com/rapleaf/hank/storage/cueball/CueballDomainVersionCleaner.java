@@ -3,6 +3,7 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.IOException;
 
 import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.IFileOps;
 
 public class CueballDomainVersionCleaner implements DomainVersionCleaner {
   protected final IFileOps fs;

@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage.cueball;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rapleaf.hank.storage.LocalFileOps;
 import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.BaseTestCase;

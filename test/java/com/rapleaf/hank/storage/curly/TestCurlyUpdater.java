@@ -23,11 +23,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.SortedSet;
 
+import com.rapleaf.hank.storage.MockFetcher;
 import junit.framework.TestCase;
 
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.storage.cueball.MockCueballMerger;
-import com.rapleaf.hank.storage.cueball.MockFetcher;
 import com.rapleaf.hank.util.FsUtils;
 
 public class TestCurlyUpdater extends TestCase {
@@ -58,7 +58,7 @@ public class TestCurlyUpdater extends TestCase {
     byte[] buf = new byte[]{1,0,0,50,0,0};
     trans.transform(buf, 0, 1);
     assertEquals(ByteBuffer.wrap(new byte[]{101,0,0}), ByteBuffer.wrap(buf, 0, 3));
- 
+
     trans.transform(buf, 3, 1);
     assertEquals(ByteBuffer.wrap(new byte[]{(byte)150,0,0}), ByteBuffer.wrap(buf, 3, 3));
 
@@ -228,7 +228,7 @@ public class TestCurlyUpdater extends TestCase {
   }
 
   private boolean deltaExists(int v) {
-    return exists(pad(v) + ".delta.cueball") 
+    return exists(pad(v) + ".delta.cueball")
       && exists(pad(v) + ".delta.curly");
   }
 

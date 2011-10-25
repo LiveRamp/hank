@@ -7,6 +7,7 @@ import java.util.Arrays;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalFileOps;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.EncodingHelper;

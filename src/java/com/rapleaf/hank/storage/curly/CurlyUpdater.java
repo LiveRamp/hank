@@ -16,6 +16,9 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.storage.Fetcher;
+import com.rapleaf.hank.storage.IFetcher;
+import com.rapleaf.hank.storage.IFileOps;
 import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.cueball.*;
 import com.rapleaf.hank.util.EncodingHelper;

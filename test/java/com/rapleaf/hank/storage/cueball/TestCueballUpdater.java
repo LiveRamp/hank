@@ -23,6 +23,7 @@ import java.util.HashSet;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.storage.MockFetcher;
 
 public class TestCueballUpdater extends BaseTestCase {
   private final String LOCAL_ROOT = localTmpDir + "/local";

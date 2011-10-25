@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.rapleaf.hank.storage.IFileSelector;
 import org.apache.log4j.Logger;
 
 public class CueballFileSelector implements IFileSelector {
@@ -50,7 +51,7 @@ public class CueballFileSelector implements IFileSelector {
     if (maxBase == null) {
       return relevantFiles;
     }
-    List<String> filesToCopy = new ArrayList<String>(); 
+    List<String> filesToCopy = new ArrayList<String>();
     for (String path : relevantFiles) {
       if (parseVersion(path) >= maxBase && !excludeVersions.contains(parseVersion(path))) {
         filesToCopy.add(path);

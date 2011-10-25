@@ -3,8 +3,8 @@ package com.rapleaf.hank.storage.curly;
 import java.io.IOException;
 
 import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.IFileOps;
 import com.rapleaf.hank.storage.cueball.CueballDomainVersionCleaner;
-import com.rapleaf.hank.storage.cueball.IFileOps;
 
 public class CurlyDomainVersionCleaner extends CueballDomainVersionCleaner implements DomainVersionCleaner {
   public CurlyDomainVersionCleaner(String domainVersionsRoot, IFileOps fs) {

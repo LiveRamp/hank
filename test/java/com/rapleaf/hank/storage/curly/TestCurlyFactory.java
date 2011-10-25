@@ -18,11 +18,11 @@ package com.rapleaf.hank.storage.curly;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.rapleaf.hank.storage.LocalFileOps;
 import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.cueball.LocalFileOps;
 import com.rapleaf.hank.storage.cueball.TestCueballFactory;
 
 public class TestCurlyFactory extends BaseTestCase {

@@ -25,9 +25,9 @@ import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.cueball.HdfsFileOps;
-import com.rapleaf.hank.storage.cueball.IFileOpsFactory;
-import com.rapleaf.hank.storage.cueball.LocalFileOps;
+import com.rapleaf.hank.storage.HdfsFileOps;
+import com.rapleaf.hank.storage.IFileOpsFactory;
+import com.rapleaf.hank.storage.LocalFileOps;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
