@@ -15,19 +15,18 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import org.apache.zookeeper.KeeperException;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ZkHostDomain extends AbstractHostDomain {
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
@@ -74,6 +73,9 @@ public class ZkHostDomain extends AbstractHostDomain {
 
   @Override
   public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
+    if (parts.containsKey(Integer.toString(partNum))) {
+      throw new IOException("Partition " + partNum + " is already assigned to host domain " + this);
+    }
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum,
         initialVersion);
     parts.put(Integer.toString(partNum), part);
