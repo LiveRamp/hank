@@ -36,6 +36,7 @@ public class HankTimerAggregator {
   private Long minDuration;
   private Long maxDuration;
   double[] deciles = new double[9];
+  private long totalUnderlyingCount;
 
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
@@ -54,14 +55,19 @@ public class HankTimerAggregator {
 
   // Aggregate the given timer only if the aggregator is active
   // Will not add synchronization overhead if not active.
-  public void add(HankTimer timer) {
+  // underlyingCount is used when the timed event represent a number of underlying events
+  public void add(HankTimer timer, int underlyingCount) {
     if (!isActive) {
       return;
     }
-    add(timer.getDuration());
+    add(timer.getDuration(), underlyingCount);
   }
 
-  private synchronized void add(long durationNanos) {
+  public void add(HankTimer timer) {
+    add(timer, 1);
+  }
+
+  private synchronized void add(long durationNanos, int underlyingCount) {
     totalDuration += durationNanos;
     if (durationNanos < minDuration) {
       minDuration = durationNanos;
@@ -70,6 +76,8 @@ public class HankTimerAggregator {
       maxDuration = durationNanos;
     }
     durations[count++] = durationNanos;
+    totalUnderlyingCount += underlyingCount;
+    // Dump stats if needed
     if (count >= statsComputationWindow) {
       logStats();
       clear();
@@ -82,6 +90,7 @@ public class HankTimerAggregator {
     totalDuration = 0;
     minDuration = Long.MAX_VALUE;
     maxDuration = Long.MIN_VALUE;
+    totalUnderlyingCount = 0;
   }
 
   private void logStats() {
@@ -97,6 +106,8 @@ public class HankTimerAggregator {
     logStr.append(name);
     logStr.append(", count: ");
     logStr.append(count);
+    logStr.append(", underlying count: ");
+    logStr.append(totalUnderlyingCount);
     logStr.append(", min duration: ");
     logStr.append(minDuration / 1000000d);
     logStr.append("ms");
@@ -116,6 +127,8 @@ public class HankTimerAggregator {
       logStr.append((deciles[i] / 1000000d));
       logStr.append("ms");
     }
+    logStr.append(", QPS: " + count / (totalDuration / 1000000000d));
+    logStr.append(", Underlying QPS: " + totalUnderlyingCount / (totalDuration / 1000000000d));
     LOG.info(logStr.toString());
   }
 }

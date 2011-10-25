@@ -320,7 +320,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       return HankBulkResponse.xception(
           HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     } finally {
-      getBulkTimerAggregator.add(timer);
+      getBulkTimerAggregator.add(timer, keys.size());
     }
   }
 
