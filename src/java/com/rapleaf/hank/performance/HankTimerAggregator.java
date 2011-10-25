@@ -128,7 +128,9 @@ public class HankTimerAggregator {
       logStr.append("ms");
     }
     logStr.append(", QPS: " + count / (totalDuration / 1000000000d));
-    logStr.append(", Underlying QPS: " + totalUnderlyingCount / (totalDuration / 1000000000d));
+    if (totalUnderlyingCount != count) {
+      logStr.append(", Underlying QPS: " + totalUnderlyingCount / (totalDuration / 1000000000d));
+    }
     LOG.info(logStr.toString());
   }
 }
