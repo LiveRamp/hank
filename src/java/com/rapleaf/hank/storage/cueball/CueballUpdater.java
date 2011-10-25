@@ -21,16 +21,13 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 import java.util.SortedSet;
 
-public class CueballUpdater implements Updater {
+public class CueballUpdater extends AbstractLocalUpdater {
   private static final Logger LOG = Logger.getLogger(CueballUpdater.class);
 
-  private final String localPartitionRoot;
   private final int keyHashSize;
   private final int valueSize;
-  private final IFetcher fetcher;
   private final ICueballMerger merger;
   private final CompressionCodec compressionCodec;
   private final int hashIndexBits;
@@ -42,10 +39,9 @@ public class CueballUpdater implements Updater {
                  ICueballMerger merger,
                  CompressionCodec compressionCodec,
                  int hashIndexBits) {
-    this.localPartitionRoot = localPartitionRoot;
+    super(fetcher, localPartitionRoot);
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
-    this.fetcher = fetcher;
     this.merger = merger;
     this.compressionCodec = compressionCodec;
     this.hashIndexBits = hashIndexBits;
@@ -67,22 +63,16 @@ public class CueballUpdater implements Updater {
         hashIndexBits);
   }
 
-  @Override
-  public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-    fetcher.fetch(getLocalVersionNumber(), toVersion, excludeVersions, localPartitionRoot);
-    resolveLocalDir(toVersion);
-  }
-
-  private void resolveLocalDir(int toVersion) throws IOException {
-    SortedSet<String> bases = Cueball.getBases(localPartitionRoot);
-    SortedSet<String> deltas = Cueball.getDeltas(localPartitionRoot);
+  protected void resolveLocalDir(int toVersion) throws IOException {
+    SortedSet<String> bases = Cueball.getBases(getLocalPartitionRoot());
+    SortedSet<String> deltas = Cueball.getDeltas(getLocalPartitionRoot());
 
     // merge the latest base and all the deltas newer than it
     if (bases.isEmpty()) {
       LOG.info("Didn't find any bases. Using first delta instead.");
       if (deltas.isEmpty()) {
         throw new IllegalStateException("There are no bases or deltas in "
-            + localPartitionRoot + " after the fetcher ran!");
+            + getLocalPartitionRoot() + " after the fetcher ran!");
       }
       bases.add(deltas.first());
       deltas.remove(deltas.first());
@@ -90,7 +80,7 @@ public class CueballUpdater implements Updater {
     String latestBase = bases.last();
     SortedSet<String> relevantDeltas = deltas.tailSet(latestBase);
 
-    String newBasePath = localPartitionRoot + "/"
+    String newBasePath = getLocalPartitionRoot() + "/"
         + Cueball.padVersionNumber(toVersion)
         + ".base.cueball";
 
@@ -118,8 +108,8 @@ public class CueballUpdater implements Updater {
     }
   }
 
-  private int getLocalVersionNumber() {
-    File local = new File(localPartitionRoot);
+  protected int getLatestLocalVersionNumber() {
+    File local = new File(getLocalPartitionRoot());
     String[] filesInLocal = local.list();
 
     int bestVer = -1;
