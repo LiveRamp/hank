@@ -1,11 +1,12 @@
 package com.rapleaf.hank.ui;
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -18,6 +19,28 @@ import java.util.Map;
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();
+
+    // Assign
+    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
+    RingGroup rgAlpha = coordinator.getRingGroup("rgAlpha");
+    DomainGroupVersion g1v1 = coordinator.getDomainGroup("g1").getVersionByNumber(1);
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(1));
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(2));
+    partitionAssigner.assign(g1v1, rgAlpha.getRing(3));
+    // Set updated partitions
+    int frequency = 1;
+    for (Host host : rgAlpha.getRing(1).getHosts()) {
+      ++frequency;
+      for (HostDomain hostDomain : host.getAssignedDomains()) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (partition.getPartitionNumber() % frequency == 0) {
+            partition.setCurrentDomainGroupVersion(partition.getUpdatingToDomainGroupVersion());
+            partition.setUpdatingToDomainGroupVersion(null);
+          }
+        }
+      }
+    }
+
     final Iface mockClient = new Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {
         {

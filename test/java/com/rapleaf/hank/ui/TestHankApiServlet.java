@@ -1,15 +1,13 @@
 package com.rapleaf.hank.ui;
 
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.rapleaf.hank.ZkTestCase;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import com.rapleaf.hank.ZkTestCase;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class TestHankApiServlet extends ZkTestCase {
 
@@ -18,7 +16,7 @@ public class TestHankApiServlet extends ZkTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    apiServlet = new  HankApiServlet(getMockCoordinator());
+    apiServlet = new HankApiServlet(getMockCoordinator());
   }
 
   @Test
