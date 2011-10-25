@@ -16,7 +16,7 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.storage.AbstractLocalUpdater;
+import com.rapleaf.hank.storage.AbstractLocalFetcherUpdater;
 import com.rapleaf.hank.storage.Fetcher;
 import com.rapleaf.hank.storage.IFetcher;
 import com.rapleaf.hank.storage.IFileOps;
@@ -32,7 +32,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class CurlyUpdater extends AbstractLocalUpdater {
+public class CurlyUpdater extends AbstractLocalFetcherUpdater {
 
   public static final class OffsetTransformer implements ValueTransformer {
     private final long[] offsetAdjustments;

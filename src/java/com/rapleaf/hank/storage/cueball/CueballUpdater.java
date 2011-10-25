@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 
-public class CueballUpdater extends AbstractLocalUpdater {
+public class CueballUpdater extends AbstractLocalFetcherUpdater {
   private static final Logger LOG = Logger.getLogger(CueballUpdater.class);
 
   private final int keyHashSize;

@@ -19,13 +19,13 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.util.Set;
 
-public abstract class AbstractLocalUpdater implements Updater {
+public abstract class AbstractLocalFetcherUpdater implements Updater {
 
   private final IFetcher fetcher;
   private final String localPartitionRoot;
 
 
-  public AbstractLocalUpdater(IFetcher fetcher, String localPartitionRoot) {
+  public AbstractLocalFetcherUpdater(IFetcher fetcher, String localPartitionRoot) {
     this.fetcher = fetcher;
     this.localPartitionRoot = localPartitionRoot;
   }
