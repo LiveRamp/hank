@@ -17,8 +17,6 @@ package com.rapleaf.hank;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
-import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -338,26 +336,6 @@ public class ZkTestCase extends BaseTestCase {
     RingGroup rgGamma = coord.addRingGroup("RG_Gamma", g2.getName());
     r1 = rgGamma.addRing(1);
     r1.addHost(addy("gamma-1-1"));
-
-
-    // Assign
-    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(1));
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(2));
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(3));
-    // Set updated partitions
-    int frequency = 1;
-    for (Host host : rgAlpha.getRing(1).getHosts()) {
-      ++frequency;
-      for (HostDomain hostDomain : host.getAssignedDomains()) {
-        for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          if (partition.getPartitionNumber() % frequency == 0) {
-            partition.setCurrentDomainGroupVersion(partition.getUpdatingToDomainGroupVersion());
-            partition.setUpdatingToDomainGroupVersion(null);
-          }
-        }
-      }
-    }
 
     return coord;
   }
