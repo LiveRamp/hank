@@ -15,12 +15,7 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,25 +25,24 @@ import java.util.List;
  */
 public class LocalFileOps implements IFileOps {
   private final String remoteRoot;
-  private final String localRoot;
 
   public static class Factory implements IFileOpsFactory {
     @Override
-    public IFileOps getFileOps(String localPath, String remotePath) {
-      return new LocalFileOps(remotePath, localPath);
+    public IFileOps getFileOps(String remoteRoot) {
+      return new LocalFileOps(remoteRoot);
     }
   }
 
-  public LocalFileOps(String remoteRoot, String localRoot) {
+  public LocalFileOps(String remoteRoot) {
     this.remoteRoot = remoteRoot;
-    this.localRoot = localRoot;
   }
 
   @Override
-  public void copyToLocal(String filePath) throws IOException {
-    InputStream in = new FileInputStream(filePath);
-    OutputStream out = new FileOutputStream(localRoot + "/" + new File(filePath).getName());
-    byte[] buf = new byte[32*1024];
+  public String copyToLocal(String remoteFilePath, String localDirectory) throws IOException {
+    String localPath = localDirectory + "/" + new File(remoteFilePath).getName();
+    InputStream in = new FileInputStream(remoteFilePath);
+    OutputStream out = new FileOutputStream(localPath);
+    byte[] buf = new byte[32 * 1024];
     while (true) {
       int amountRead = in.read(buf);
       if (amountRead == -1) {
@@ -58,6 +52,7 @@ public class LocalFileOps implements IFileOps {
     }
     in.close();
     out.close();
+    return localPath;
   }
 
   @Override

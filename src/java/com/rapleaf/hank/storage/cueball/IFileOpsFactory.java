@@ -22,10 +22,9 @@ public interface IFileOpsFactory {
   /**
    * Get an IFileOps instance that is targeted at the specified remote and local
    * directories.
-   * 
-   * @param localPath
-   * @param remotePath
+   *
+   * @param remoteRoot
    * @return
    */
-  public IFileOps getFileOps(String localPath, String remotePath);
+  public IFileOps getFileOps(String remoteRoot);
 }

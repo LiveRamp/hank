@@ -15,22 +15,19 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.rapleaf.hank.BaseTestCase;
+
+import java.io.IOException;
+import java.util.*;
 
 public class TestFetcher extends BaseTestCase {
   private class MFO implements IFileOps {
     Set<String> copyToLocalCalledWith = new HashSet<String>();
 
     @Override
-    public void copyToLocal(String fileName) {
-      copyToLocalCalledWith.add(fileName);
+    public String copyToLocal(String remoteFileName, String localDirectory) {
+      copyToLocalCalledWith.add(remoteFileName);
+      return null;
     }
 
     @Override
@@ -40,7 +37,6 @@ public class TestFetcher extends BaseTestCase {
 
     @Override
     public boolean attemptDeleteRemote(String path) {
-      // TODO Auto-generated method stub
       return false;
     }
   }
@@ -70,7 +66,7 @@ public class TestFetcher extends BaseTestCase {
     MFS mockFileSelector = new MFS();
     Fetcher f = new Fetcher(mockFileOps, mockFileSelector);
 
-    f.fetch(7, 10, Collections.singleton(9));
+    f.fetch(7, 10, Collections.singleton(9), null);
 
     assertEquals("isRelevantFile called with", new HashSet<String>(Arrays.asList("x", "y", "z")), mockFileSelector.isRelevantCalledWith);
     assertEquals("selectFilesToCopy called with", new HashSet<String>(Arrays.asList("x", "z")), mockFileSelector.selectFilesToCopyCalledWith);

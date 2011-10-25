@@ -25,6 +25,7 @@ import java.util.List;
 public interface IFileOps {
   /**
    * Get the list of files in the remote location.
+   *
    * @return
    * @throws IOException
    */
@@ -32,10 +33,13 @@ public interface IFileOps {
 
   /**
    * Copy the specified file from remote to local.
-   * @param fileName
+   *
+   * @param remoteFileName
+   * @param localDirectory
+   * @return
    * @throws IOException
    */
-  public void copyToLocal(String fileName) throws IOException;
+  public String copyToLocal(String remoteFileName, String localDirectory) throws IOException;
 
   public boolean attemptDeleteRemote(String path) throws IOException;
 }

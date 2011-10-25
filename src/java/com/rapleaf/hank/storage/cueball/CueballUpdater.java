@@ -69,7 +69,7 @@ public class CueballUpdater implements Updater {
 
   @Override
   public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-    fetcher.fetch(getLocalVersionNumber(), toVersion, excludeVersions);
+    fetcher.fetch(getLocalVersionNumber(), toVersion, excludeVersions, localPartitionRoot);
     resolveLocalDir(toVersion);
   }
 

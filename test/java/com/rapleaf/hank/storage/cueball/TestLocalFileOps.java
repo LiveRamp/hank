@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.BaseTestCase;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.HashSet;
-
-import com.rapleaf.hank.BaseTestCase;
 
 public class TestLocalFileOps extends BaseTestCase {
   private final String remote = localTmpDir + "/remote";
@@ -42,12 +42,12 @@ public class TestLocalFileOps extends BaseTestCase {
     write(p2, "blah2");
     write(p3, "blah3");
 
-    LocalFileOps f = new LocalFileOps(remote, local);
+    LocalFileOps f = new LocalFileOps(remote);
 
     assertEquals(new HashSet<String>(Arrays.asList(p1, p2, p3)), new HashSet<String>(f.listFiles()));
 
     assertFalse(new File(local + "/2").exists());
-    f.copyToLocal(p2);
+    f.copyToLocal(p2, local);
     assertTrue(new File(local + "/2").exists());
     FileInputStream in = new FileInputStream(local + "/2");
     byte[] bytes = new byte[5];

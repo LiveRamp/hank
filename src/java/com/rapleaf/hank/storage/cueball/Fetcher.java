@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import org.apache.log4j.Logger;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import org.apache.log4j.Logger;
 
 public final class Fetcher implements IFetcher {
   private static final Logger LOG = Logger.getLogger(Fetcher.class);
@@ -34,24 +34,24 @@ public final class Fetcher implements IFetcher {
   }
 
   @Override
-  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException {
+  public void fetch(int fromVersion,
+                    int toVersion,
+                    Set<Integer> excludeVersions,
+                    String localDirectory) throws IOException {
     List<String> remoteFiles = fileOps.listFiles();
     LOG.debug("Remote files: " + remoteFiles);
-
     if (remoteFiles != null) {
-      List<String> relevantFiles = new ArrayList(remoteFiles.size());
+      List<String> relevantFiles = new ArrayList<String>(remoteFiles.size());
       for (String fileName : remoteFiles) {
         if (fileSelector.isRelevantFile(fileName, fromVersion, toVersion, excludeVersions)) {
           relevantFiles.add(fileName);
         }
       }
       LOG.debug("Relevant files: " + relevantFiles);
-
       List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles, fromVersion, toVersion, excludeVersions);
-
       for (String fileName : filesToCopy) {
-        LOG.debug("Copying " + fileName + " to local");
-        fileOps.copyToLocal(fileName);
+        LOG.debug("Copying " + fileName + " to " + localDirectory);
+        fileOps.copyToLocal(fileName, localDirectory);
       }
     }
   }

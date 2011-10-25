@@ -19,5 +19,8 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface IFetcher {
-  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException;
+  public void fetch(int fromVersion,
+                    int toVersion,
+                    Set<Integer> excludeVersions,
+                    String localDirectory) throws IOException;
 }

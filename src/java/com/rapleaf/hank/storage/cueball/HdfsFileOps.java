@@ -1,23 +1,23 @@
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class HdfsFileOps implements IFileOps {
   private static final Logger LOG = Logger.getLogger(HdfsFileOps.class);
 
   public static final class Factory implements IFileOpsFactory {
     @Override
-    public IFileOps getFileOps(String localPath, String remotePath) {
+    public IFileOps getFileOps(String remoteRoot) {
       try {
-        return new HdfsFileOps(localPath, remotePath);
+        return new HdfsFileOps(remoteRoot);
       } catch (IOException e) {
         throw new RuntimeException("Failed to instantiate "
             + HdfsFileOps.class.getName() + " due to exception!", e);
@@ -26,19 +26,19 @@ public class HdfsFileOps implements IFileOps {
   }
 
   private final FileSystem fs;
-  private final String localRoot;
   private final String remoteRoot;
 
-  public HdfsFileOps(String localRoot, String remoteRoot) throws IOException {
-    this.localRoot = localRoot;
+  public HdfsFileOps(String remoteRoot) throws IOException {
     this.remoteRoot = remoteRoot;
     fs = FileSystem.get(new Configuration());
   }
 
   @Override
-  public void copyToLocal(String fileName) throws IOException {
-    Path remote = new Path(fileName);
-    fs.copyToLocalFile(remote, new Path(localRoot, remote.getName()));
+  public String copyToLocal(String remoteFileName, String localDirectory) throws IOException {
+    Path remote = new Path(remoteFileName);
+    Path local = new Path(localDirectory, remote.getName());
+    fs.copyToLocalFile(remote, local);
+    return local.toString();
   }
 
   @Override

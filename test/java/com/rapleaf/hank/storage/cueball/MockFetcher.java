@@ -25,13 +25,16 @@ public class MockFetcher implements IFetcher {
   private final String localRoot;
   public Set<Integer> excludeVersions;
 
-  public MockFetcher(String localRoot, String ... localFilesToCreate) {
+  public MockFetcher(String localRoot, String... localFilesToCreate) {
     this.localRoot = localRoot;
     this.localFilesToCreate = localFilesToCreate;
   }
 
   @Override
-  public void fetch(int fromVersion, int toVersion, Set<Integer> excludeVersions) throws IOException {
+  public void fetch(int fromVersion,
+                    int toVersion,
+                    Set<Integer> excludeVersions,
+                    String localDirectory) throws IOException {
     this.latestLocalVersion = fromVersion;
     this.excludeVersions = excludeVersions;
     for (String s : localFilesToCreate) {
