@@ -59,6 +59,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
 
   private final Ring ring;
 
+  private Thread shutdownHook;
+
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coordinator = configurator.createCoordinator();
@@ -81,8 +83,10 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
   }
 
   public void run() throws IOException, InterruptedException {
+    // Add shutdown hook
+    addShutdownHook();
+    // Initialize and process commands
     setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
-
     processCommandOnStartup();
     while (!stopping) {
       try {
@@ -103,6 +107,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
       updateThread.join(); // In case of interrupt exception, server will stop and state will be coherent.
     }
     setStateSynchronized(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
+    // Remove shutdown hook. We don't need it anymore as we just set the host state to OFFLINE
+    removeShutdownHook();
   }
 
   // Stop the partition server. Can be called from another thread.
@@ -372,6 +378,31 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
 
   private String ignoreIncompatibleCommandMessage(HostCommand command, HostState state) {
     return String.format("Ignoring command %s because it is incompatible with state %s.", command, state);
+  }
+
+  // Set the host to OFFLINE on VM shutdown
+  private void addShutdownHook() {
+    if (shutdownHook == null) {
+      shutdownHook = new Thread() {
+        @Override
+        public void run() {
+          try {
+            if (host != null) {
+              host.setState(HostState.OFFLINE);
+            }
+          } catch (IOException e) {
+            // When VM is exiting and we fail to set host to OFFLINE, swallow the exception
+          }
+        }
+      };
+      Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+  }
+
+  private void removeShutdownHook() {
+    if (shutdownHook != null) {
+      Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    }
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException {
