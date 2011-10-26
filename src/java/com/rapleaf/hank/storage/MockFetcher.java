@@ -22,11 +22,9 @@ import java.util.Set;
 public class MockFetcher implements IFetcher {
   public int latestLocalVersion;
   private String[] localFilesToCreate;
-  private final String localRoot;
   public Set<Integer> excludeVersions;
 
-  public MockFetcher(String localRoot, String... localFilesToCreate) {
-    this.localRoot = localRoot;
+  public MockFetcher(String... localFilesToCreate) {
     this.localFilesToCreate = localFilesToCreate;
   }
 
@@ -38,7 +36,7 @@ public class MockFetcher implements IFetcher {
     this.latestLocalVersion = fromVersion;
     this.excludeVersions = excludeVersions;
     for (String s : localFilesToCreate) {
-      new File(localRoot + "/" + s).createNewFile();
+      new File(localDirectory + "/" + s).createNewFile();
     }
   }
 }

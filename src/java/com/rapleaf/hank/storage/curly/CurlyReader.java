@@ -15,14 +15,15 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.util.EncodingHelper;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.util.EncodingHelper;
+import java.util.SortedSet;
 
 public class CurlyReader implements Reader {
   private final Reader keyfile;
@@ -32,11 +33,15 @@ public class CurlyReader implements Reader {
 
   public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyfileReader)
       throws IOException {
-    String latestBase = Curly.getBases(partitionRoot).last();
-    this.recordFile = new FileInputStream(latestBase).getChannel();
+    SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
+    if (bases == null || bases.size() == 0) {
+      throw new IOException("Could not detect any Curly base in " + partitionRoot);
+    }
+    CurlyFilePath latestBase = bases.last();
+    this.recordFile = new FileInputStream(latestBase.getPath()).getChannel();
     this.keyfile = keyfileReader;
     this.readBufferSize = recordFileReadBufferBytes;
-    this.versionNumber = Curly.parseVersionNumber(latestBase);
+    this.versionNumber = latestBase.getVersion();
   }
 
   @Override

@@ -19,7 +19,6 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.*;
 import org.apache.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 
@@ -63,24 +62,24 @@ public class CueballUpdater extends AbstractLocalFetcherUpdater {
         hashIndexBits);
   }
 
-  protected void resolveLocalDir(int toVersion) throws IOException {
-    SortedSet<String> bases = Cueball.getBases(getLocalPartitionRoot());
-    SortedSet<String> deltas = Cueball.getDeltas(getLocalPartitionRoot());
+  protected void runUpdate(int toVersion) throws IOException {
+    SortedSet<CueballFilePath> bases = Cueball.getBases(getLocalRoot(), getLocalWorkspaceRoot());
+    SortedSet<CueballFilePath> deltas = Cueball.getDeltas(getLocalRoot(), getLocalWorkspaceRoot());
 
     // merge the latest base and all the deltas newer than it
     if (bases.isEmpty()) {
       LOG.info("Didn't find any bases. Using first delta instead.");
       if (deltas.isEmpty()) {
         throw new IllegalStateException("There are no bases or deltas in "
-            + getLocalPartitionRoot() + " after the fetcher ran!");
+            + getLocalWorkspaceRoot() + " after the fetcher ran!");
       }
       bases.add(deltas.first());
       deltas.remove(deltas.first());
     }
-    String latestBase = bases.last();
-    SortedSet<String> relevantDeltas = deltas.tailSet(latestBase);
+    CueballFilePath latestBase = bases.last();
+    SortedSet<CueballFilePath> relevantDeltas = deltas.tailSet(latestBase);
 
-    String newBasePath = getLocalPartitionRoot() + "/"
+    String newBasePath = getLocalWorkspaceRoot() + "/"
         + Cueball.padVersionNumber(toVersion)
         + ".base.cueball";
 
@@ -94,35 +93,27 @@ public class CueballUpdater extends AbstractLocalFetcherUpdater {
         compressionCodec);
 
     // delete all the old bases
-    for (String oldBase : bases) {
-      // TODO: pay attention to this. it could fail and should be logged in that
-      // situation
-      new File(oldBase).delete();
-    }
-
+    // TODO: pay attention to this. it could fail and should be logged in that
+    // situation
+    deleteCueballFiles(bases);
     // delete all deltas
-    for (String oldDelta : deltas) {
-      // TODO: pay attention to this. it could fail and should be logged in that
-      // situation
-      new File(oldDelta).delete();
-    }
+    // TODO: pay attention to this. it could fail and should be logged in that
+    // situation
+    deleteCueballFiles(deltas);
   }
 
   protected int getLatestLocalVersionNumber() {
-    File local = new File(getLocalPartitionRoot());
-    String[] filesInLocal = local.list();
-
-    int bestVer = -1;
-
-    // identify all the bases and deltas
-    for (String file : filesInLocal) {
-      if (file.matches(Cueball.BASE_REGEX)) {
-        int thisVer = Cueball.parseVersionNumber(file);
-        if (thisVer > bestVer) {
-          bestVer = thisVer;
-        }
-      }
+    SortedSet<CueballFilePath> bases = Cueball.getBases(getLocalRoot());
+    if (bases != null && bases.size() > 0) {
+      return bases.last().getVersion();
+    } else {
+      return -1;
     }
-    return bestVer;
+  }
+
+  public static void deleteCueballFiles(SortedSet<CueballFilePath> file) throws IOException {
+    for (PartitionFileLocalPath p : file) {
+      PartitionFileLocalPath.delete(p);
+    }
   }
 }

@@ -14,19 +14,19 @@
  *  limitations under the License.
  */
 /**
- * 
+ *
  */
 package com.rapleaf.hank.storage.cueball;
+
+import com.rapleaf.hank.compress.CompressionCodec;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.SortedSet;
 
-import com.rapleaf.hank.compress.CompressionCodec;
-
 public class MockCueballMerger implements ICueballMerger {
-  public String latestBase;
-  public SortedSet<String> deltas;
+  public CueballFilePath latestBase;
+  public SortedSet<CueballFilePath> deltas;
   public String newBasePath;
   public int keyHashSize;
   public int valueSize;
@@ -34,10 +34,11 @@ public class MockCueballMerger implements ICueballMerger {
   public ValueTransformer valueTransformer;
 
   @Override
-  public void merge(String latestBase, SortedSet<String> deltas,
-      String newBasePath, int keyHashSize, int valueSize, ValueTransformer transformer, int hashIndexBits, CompressionCodec compressionCodec)
-  throws IOException {
-    this.called  = true;
+  public void merge(CueballFilePath latestBase, SortedSet<CueballFilePath> deltas,
+                    String newBasePath, int keyHashSize, int valueSize,
+                    ValueTransformer transformer, int hashIndexBits, CompressionCodec compressionCodec)
+      throws IOException {
+    this.called = true;
     this.latestBase = latestBase;
     this.deltas = deltas;
     this.newBasePath = newBasePath;

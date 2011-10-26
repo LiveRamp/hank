@@ -19,6 +19,6 @@ import java.io.IOException;
 import java.util.SortedSet;
 
 public interface ICurlyMerger {
-  public long[] merge(final String latestBase, final SortedSet<String> deltas)
-  throws IOException;
+  public long[] merge(final CurlyFilePath latestBase, final SortedSet<CurlyFilePath> deltas)
+      throws IOException;
 }

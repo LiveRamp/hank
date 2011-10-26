@@ -16,30 +16,99 @@
 
 package com.rapleaf.hank.storage;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 public abstract class AbstractLocalFetcherUpdater implements Updater {
 
   private final IFetcher fetcher;
-  private final String localPartitionRoot;
+  private final String localRoot;
+  private String localWorkspaceRoot;
 
-
-  public AbstractLocalFetcherUpdater(IFetcher fetcher, String localPartitionRoot) {
+  public AbstractLocalFetcherUpdater(IFetcher fetcher, String localRoot) {
     this.fetcher = fetcher;
-    this.localPartitionRoot = localPartitionRoot;
+    this.localRoot = localRoot;
   }
 
-  protected String getLocalPartitionRoot() {
-    return localPartitionRoot;
+  protected String getLocalRoot() {
+    return localRoot;
   }
 
-  protected abstract int getLatestLocalVersionNumber();
-
-  protected abstract void resolveLocalDir(int toVersion) throws IOException;
+  protected String getLocalWorkspaceRoot() {
+    return localWorkspaceRoot;
+  }
 
   public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-    fetcher.fetch(getLatestLocalVersionNumber(), toVersion, excludeVersions, localPartitionRoot);
-    resolveLocalDir(toVersion);
+    // Set up workspace directory
+    localWorkspaceRoot = localRoot
+        + "/_tmp_" + this.getClass().getSimpleName() + "_" + UUID.randomUUID().toString();
+    if (!new File(localWorkspaceRoot).mkdirs()) {
+      throw new IOException("Failed to create local workspace root " + localWorkspaceRoot);
+    }
+    // Run update
+    cleanWorkspaceRoot();
+    try {
+      // Fetch
+      fetcher.fetch(getLatestLocalVersionNumber(), toVersion, excludeVersions, localWorkspaceRoot);
+      // Update
+      runUpdate(toVersion);
+      // Commit
+      commitUpdate();
+    } finally {
+      deleteWorkspaceRoot();
+    }
+  }
+
+  protected abstract void runUpdate(int toVersion) throws IOException;
+
+  // -1 means no version available
+  protected abstract int getLatestLocalVersionNumber();
+
+  private void commitUpdate() {
+    // Move all files in workspace root to root
+    File[] files = new File(localWorkspaceRoot).listFiles();
+    if (files != null) {
+      Map<File, File> renamedFiles = new HashMap<File, File>(files.length);
+      for (File file : files) {
+        File renamedFile = new File(localRoot + "/" + file.getName());
+        if (file.renameTo(renamedFile)) {
+          renamedFiles.put(file, renamedFile);
+        } else {
+          // Failed to commit one file, reverting what we have commited so far
+          for (Map.Entry<File, File> entry : renamedFiles.entrySet()) {
+            if (!entry.getValue().renameTo(entry.getKey())) {
+              throw new RuntimeException("FATAL: failed to revert unsuccessful update commit.");
+            }
+          }
+        }
+      }
+    }
+  }
+
+  private void cleanWorkspaceRoot() throws IOException {
+    if (localWorkspaceRoot != null) {
+      File[] files = new File(localWorkspaceRoot).listFiles();
+      if (files != null) {
+        for (File file : files) {
+          if (!file.delete()) {
+            // Could not completely clean the workspace root, fail
+            throw new IOException("Could not delete file " + file.getPath()
+                + " while cleaning workspace directory " + localWorkspaceRoot);
+          }
+        }
+      }
+    }
+  }
+
+  private void deleteWorkspaceRoot() throws IOException {
+    if (localWorkspaceRoot != null) {
+      FileUtils.deleteDirectory(new File(localWorkspaceRoot));
+    }
   }
 }

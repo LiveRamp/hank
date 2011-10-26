@@ -16,21 +16,15 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.storage.AbstractLocalFetcherUpdater;
-import com.rapleaf.hank.storage.Fetcher;
-import com.rapleaf.hank.storage.IFetcher;
-import com.rapleaf.hank.storage.IFileOps;
-import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.cueball.CueballMerger;
-import com.rapleaf.hank.storage.cueball.ICueballMerger;
-import com.rapleaf.hank.storage.cueball.ValueTransformer;
+import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.cueball.*;
 import com.rapleaf.hank.util.EncodingHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
+
+import static com.rapleaf.hank.storage.cueball.CueballUpdater.deleteCueballFiles;
 
 public class CurlyUpdater extends AbstractLocalFetcherUpdater {
 
@@ -89,50 +83,60 @@ public class CurlyUpdater extends AbstractLocalFetcherUpdater {
     this.hashIndexBits = hashIndexBits;
   }
 
-  protected void resolveLocalDir(int toVersion) throws IOException {
+  protected void runUpdate(int toVersion) throws IOException {
     // figure out which curly files we want to merge
-    SortedSet<String> curlyBases = new TreeSet<String>();
-    SortedSet<String> curlyDeltas = new TreeSet<String>();
-    getBasesAndDeltas(getLocalPartitionRoot(), curlyBases, curlyDeltas);
+    SortedSet<CurlyFilePath> curlyBases = Curly.getBases(getLocalRoot(), getLocalWorkspaceRoot());
+    SortedSet<CurlyFilePath> curlyDeltas = Curly.getDeltas(getLocalRoot(), getLocalWorkspaceRoot());
 
     // merge the latest base and all the deltas newer than it
     if (curlyBases.isEmpty()) {
       if (curlyDeltas.isEmpty()) {
         throw new IllegalStateException("There are no curly bases in "
-            + getLocalPartitionRoot() + " after the fetcher ran!");
+            + getLocalRoot() + " and " + getLocalWorkspaceRoot() + " after the fetcher ran!");
       }
       curlyBases.add(curlyDeltas.first());
       curlyDeltas.remove(curlyDeltas.first());
     }
-    String latestCurlyBase = curlyBases.last();
-    SortedSet<String> relevantCurlyDeltas = curlyDeltas.tailSet(latestCurlyBase);
+
+    // Move current latest base to workspace dir and immediately name it the correct final name
+    CurlyFilePath currentLatestCurlyBase = curlyBases.last();
+    CurlyFilePath newCurlyBasePath = new CurlyFilePath(getLocalWorkspaceRoot()
+        + "/" + Curly.padVersionNumber(toVersion) + ".base.curly");
+    if (!new File(currentLatestCurlyBase.getPath()).renameTo(new File(newCurlyBasePath.getPath()))) {
+      throw new IOException("Failed to rename Curly base " + currentLatestCurlyBase.getPath()
+          + " to " + newCurlyBasePath.getPath());
+    }
+
+    SortedSet<CurlyFilePath> relevantCurlyDeltas = curlyDeltas.tailSet(currentLatestCurlyBase);
 
     // merge the curly files
-    long[] offsetAdjustments = curlyMerger.merge(latestCurlyBase, relevantCurlyDeltas);
+    long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, relevantCurlyDeltas);
 
     // figure out which cueball files we want to merge
-    SortedSet<String> cueballBases = Cueball.getBases(getLocalPartitionRoot());
-    SortedSet<String> cueballDeltas = Cueball.getDeltas(getLocalPartitionRoot());
+    SortedSet<CueballFilePath> cueballBases = Cueball.getBases(getLocalRoot(), getLocalWorkspaceRoot());
+    SortedSet<CueballFilePath> cueballDeltas = Cueball.getDeltas(getLocalRoot(), getLocalWorkspaceRoot());
     if (cueballBases.isEmpty()) {
       if (cueballDeltas.isEmpty()) {
         throw new IllegalStateException("There are no cueball bases or deltas in "
-            + getLocalPartitionRoot() + " after the fetcher ran!");
+            + getLocalRoot() + " and " + getLocalWorkspaceRoot() + " after the fetcher ran!");
       }
       cueballBases.add(cueballDeltas.first());
       cueballDeltas.remove(cueballDeltas.first());
     }
-    String latestCueballBase = cueballBases.last();
-    SortedSet<String> relevantCueballDeltas = cueballDeltas.tailSet(latestCueballBase);
+    CueballFilePath latestCueballBase = cueballBases.last();
+    SortedSet<CueballFilePath> relevantCueballDeltas = cueballDeltas.tailSet(latestCueballBase);
 
     // Determine new cueball base path
-    String newCueballBasePath = getLocalPartitionRoot() + "/" + Cueball.padVersionNumber(toVersion) + ".base.cueball";
-    // Build new cueball base
+    String newCueballBasePath = getLocalWorkspaceRoot() + "/" + Cueball.padVersionNumber(toVersion) + ".base.cueball";
+
+    // If no deltas, simply rename the base
     if (relevantCueballDeltas.isEmpty()) {
-      // Simply rename cueball base
-      // TODO: this can fail. watch it.
-      new File(latestCueballBase).renameTo(new File(newCueballBasePath));
+      if (!new File(latestCueballBase.getPath()).renameTo(new File(newCueballBasePath))) {
+        throw new IOException("Failed to rename Cueball base from " + latestCueballBase.getPath()
+            + " to " + newCueballBasePath);
+      }
     } else {
-      // Run cueball merger
+      // Build new cueball base
       cueballMerger.merge(latestCueballBase,
           relevantCueballDeltas,
           newCueballBasePath,
@@ -143,70 +147,32 @@ public class CurlyUpdater extends AbstractLocalFetcherUpdater {
           compressionCodec);
     }
 
-    // Determine new curly base path
-    String newCurlyBasePath = getLocalPartitionRoot() + "/" + Curly.padVersionNumber(toVersion) + ".base.curly";
-    // Rename new curly base
-    // TODO: this can fail. watch it.
-    new File(latestCurlyBase).renameTo(new File(newCurlyBasePath));
-
     // Delete all the old files
     // TODO: this can fail. watch it.
-    deleteFiles(curlyBases.headSet(latestCurlyBase),
-        cueballBases.headSet(latestCueballBase),
-        curlyDeltas,
-        cueballDeltas);
+    // Skip currentLatestCurlyBase because it has been renamed
+    deleteCurlyFiles(curlyBases.headSet(currentLatestCurlyBase));
+    // If there was no Cueball deltas, we simply renamed the base, so don't try to delete it
+    if (relevantCueballDeltas.isEmpty()) {
+      deleteCueballFiles(cueballBases.headSet(latestCueballBase));
+    } else {
+      deleteCueballFiles(cueballBases);
+    }
+    deleteCurlyFiles(curlyDeltas);
+    deleteCueballFiles(cueballDeltas);
   }
 
   protected int getLatestLocalVersionNumber() {
-    File local = new File(getLocalPartitionRoot());
-    String[] filesInLocal = local.list();
-
-    int bestVer = -1;
-    if (filesInLocal != null) {
-      // identify all the bases and deltas
-      for (String file : filesInLocal) {
-        if (file.matches(Curly.BASE_REGEX)) {
-          int thisVer = Curly.parseVersionNumber(file);
-          if (thisVer > bestVer) {
-            bestVer = thisVer;
-          }
-        }
-      }
-    }
-    return bestVer;
-  }
-
-  public static void getBasesAndDeltas(String localPartitionRoot,
-                                       SortedSet<String> bases,
-                                       SortedSet<String> deltas) {
-    File local = new File(localPartitionRoot);
-    String[] filesInLocal = local.list();
-
-    if (filesInLocal != null) {
-      // identify all the bases and deltas
-      for (String file : filesInLocal) {
-        if (file.matches(Curly.BASE_REGEX)) {
-          bases.add(localPartitionRoot + "/" + file);
-        }
-        if (file.matches(Curly.DELTA_REGEX)) {
-          deltas.add(localPartitionRoot + "/" + file);
-        }
-      }
+    SortedSet<CurlyFilePath> bases = Curly.getBases(getLocalRoot());
+    if (bases != null && bases.size() > 0) {
+      return bases.last().getVersion();
+    } else {
+      return -1;
     }
   }
 
-  /**
-   * Convenience method for deleting all the files in a bunch of sets
-   *
-   * @param sets
-   */
-  private static void deleteFiles(Set<String>... sets) {
-    for (Set<String> set : sets) {
-      for (String s : set) {
-        if (!new File(s).delete()) {
-          throw new RuntimeException("Failed to delete file " + s);
-        }
-      }
+  public static void deleteCurlyFiles(SortedSet<CurlyFilePath> file) throws IOException {
+    for (PartitionFileLocalPath p : file) {
+      PartitionFileLocalPath.delete(p);
     }
   }
 }

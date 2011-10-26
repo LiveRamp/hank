@@ -24,22 +24,22 @@ import java.util.SortedSet;
 public class CurlyMerger implements ICurlyMerger {
   private static final long TRANSFER_SIZE = 32 * 1024;
 
-  public long[] merge(final String latestBase,
-      final SortedSet<String> deltas)
-  throws IOException {
+  public long[] merge(final CurlyFilePath latestBase,
+                      final SortedSet<CurlyFilePath> deltas)
+      throws IOException {
     long[] offsetAdjustments = new long[deltas.size() + 1];
     offsetAdjustments[0] = 0;
 
-    FileChannel baseChannel = new RandomAccessFile(latestBase, "rw").getChannel();
+    FileChannel baseChannel = new RandomAccessFile(latestBase.getPath(), "rw").getChannel();
     long baseLength = baseChannel.size();
     long totalOffset = baseLength;
     baseChannel.position(baseLength);
 
     int i = 1;
-    for (String delta : deltas) {
+    for (CurlyFilePath delta : deltas) {
       offsetAdjustments[i] = totalOffset;
 
-      FileChannel deltaChannel = new FileInputStream(delta).getChannel();
+      FileChannel deltaChannel = new FileInputStream(delta.getPath()).getChannel();
       long bytesToRead = deltaChannel.size();
       totalOffset += bytesToRead;
 

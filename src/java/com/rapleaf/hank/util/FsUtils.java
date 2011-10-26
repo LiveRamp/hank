@@ -19,8 +19,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class FsUtils {
   private FsUtils() {
@@ -40,18 +40,23 @@ public final class FsUtils {
     }
   }
 
-  public static SortedSet<String> getMatchingPaths(String dir, String regex) {
-    SortedSet<String> matches = new TreeSet<String>();
-    File local = new File(dir);
-    String[] filesInLocal = local.list();
+  public static Set<String> getMatchingPaths(String regex, String... dirs) {
+    Set<String> matches = new HashSet<String>();
+    for (String dir : dirs) {
+      File local = new File(dir);
+      if (!local.isDirectory()) {
+        throw new RuntimeException(dir + " does not exist or is not a directory!");
+      }
+      String[] filesInLocal = local.list();
 
-    if (filesInLocal == null) {
-      throw new RuntimeException(dir + " does not exist or is not a directory!");
-    }
+      if (filesInLocal == null) {
+        throw new RuntimeException(dir + " does not exist or is not a directory!");
+      }
 
-    for (String file : filesInLocal) {
-      if (file.matches(regex)) {
-        matches.add(dir + "/" + file);
+      for (String file : filesInLocal) {
+        if (file.matches(regex)) {
+          matches.add(dir + "/" + file);
+        }
       }
     }
     return matches;

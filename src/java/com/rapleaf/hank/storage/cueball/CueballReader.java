@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.SortedSet;
 
 public class CueballReader implements Reader {
 
@@ -45,18 +46,21 @@ public class CueballReader implements Reader {
                        Hasher hasher,
                        int valueSize,
                        int hashIndexBits,
-                       CompressionCodec compressionCodec)
-      throws IOException {
-    String latestBase = Cueball.getBases(partitionRoot).last();
+                       CompressionCodec compressionCodec) throws IOException {
+    SortedSet<CueballFilePath> bases = Cueball.getBases(partitionRoot);
+    if (bases == null || bases.size() == 0) {
+      throw new IOException("Could not detect any Cueball base in " + partitionRoot);
+    }
+    CueballFilePath latestBase = bases.last();
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
     this.compressionCodec = compressionCodec;
     this.fullRecordSize = valueSize + keyHashSize;
     this.prefixer = new HashPrefixCalculator(hashIndexBits);
-    this.versionNumber = Cueball.parseVersionNumber(latestBase);
+    this.versionNumber = latestBase.getVersion();
 
-    channel = new FileInputStream(latestBase).getChannel();
+    channel = new FileInputStream(latestBase.getPath()).getChannel();
     Footer footer = new Footer(channel, hashIndexBits);
     hashIndex = footer.getHashIndex();
     maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();

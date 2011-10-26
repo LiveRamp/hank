@@ -15,15 +15,14 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.storage.MockFetcher;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
 
 public class TestCueballUpdater extends BaseTestCase {
   private final String LOCAL_ROOT = localTmpDir + "/local";
@@ -36,10 +35,10 @@ public class TestCueballUpdater extends BaseTestCase {
   public void testFirstDeltaTreatedAsBase() throws Exception {
     // blank local root
 
-    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00000.delta.cueball", "00001.delta.cueball");
+    MockFetcher fetcher = new MockFetcher("00000.delta.cueball", "00001.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
-      new NoCompressionCodec(), 1);
+        new NoCompressionCodec(), 1);
 
     updater.update(1, Collections.singleton(45));
 
@@ -48,28 +47,27 @@ public class TestCueballUpdater extends BaseTestCase {
     assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the merger got the right args
-    assertEquals(LOCAL_ROOT + "/00000.delta.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")),
-      merger.deltas);
+    assertTrue(merger.latestBase.getPath().endsWith("/00000.delta.cueball"));
+    assertEquals(1, merger.deltas.size());
+    assertTrue(merger.deltas.contains(new CueballFilePath(LOCAL_ROOT + "/00001.delta.cueball")));
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
-    assertEquals(LOCAL_ROOT + "/00001.base.cueball", merger.newBasePath);
 
     // make sure that the mock base created by the merger still exists
     assertTrue(localFileExists("/00001.base.cueball"));
     // old base should be deleted
     assertFalse(localFileExists("/00000.delta.cueball"));
     // delta that was fetched should be deleted
-    assertFalse(localFileExists(LOCAL_ROOT + "/00001.delta.cueball"));
+    assertFalse(localFileExists("/00001.delta.cueball"));
   }
 
   public void testBootstrapWithDeltas() throws Exception {
     // blank local root
 
-    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00000.base.cueball", "00001.delta.cueball");
+    MockFetcher fetcher = new MockFetcher("00000.base.cueball", "00001.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
-      new NoCompressionCodec(), 1);
+        new NoCompressionCodec(), 1);
 
     updater.update(1, Collections.singleton(45));
 
@@ -78,29 +76,28 @@ public class TestCueballUpdater extends BaseTestCase {
     assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the merger got the right args
-    assertEquals(LOCAL_ROOT + "/00000.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00001.delta.cueball")),
-      merger.deltas);
+    assertTrue(merger.latestBase.getPath().endsWith("/00000.base.cueball"));
+    assertEquals(1, merger.deltas.size());
+    assertTrue(merger.deltas.contains(new CueballFilePath(LOCAL_ROOT + "/00001.delta.cueball")));
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
-    assertEquals(LOCAL_ROOT + "/00001.base.cueball", merger.newBasePath);
 
     // make sure that the mock base created by the merger still exists
     assertTrue(localFileExists("/00001.base.cueball"));
     // old base should be deleted
     assertFalse(localFileExists("/00000.base.cueball"));
     // delta that was fetched should be deleted
-    assertFalse(localFileExists(LOCAL_ROOT + "/00001.delta.cueball"));
+    assertFalse(localFileExists("/00001.delta.cueball"));
   }
 
   public void testUpdateDeltaOnly() throws Exception {
     // local root with just a base in it
     makeLocalFile("00005.base.cueball");
 
-    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.delta.cueball", "00007.delta.cueball");
+    MockFetcher fetcher = new MockFetcher("00006.delta.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
-      new NoCompressionCodec(), 1);
+        new NoCompressionCodec(), 1);
 
     updater.update(7, Collections.singleton(45));
 
@@ -109,30 +106,30 @@ public class TestCueballUpdater extends BaseTestCase {
     assertEquals(Collections.singleton(45), fetcher.excludeVersions);
 
     // make sure the merger got the right args
-    assertEquals(LOCAL_ROOT + "/00005.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00006.delta.cueball", LOCAL_ROOT
-        + "/00007.delta.cueball")), merger.deltas);
+    assertEquals(LOCAL_ROOT + "/00005.base.cueball", merger.latestBase.getPath());
+    assertEquals(2, merger.deltas.size());
+    assertTrue(merger.deltas.contains(new CueballFilePath(LOCAL_ROOT + "/00006.delta.cueball")));
+    assertTrue(merger.deltas.contains(new CueballFilePath(LOCAL_ROOT + "/00007.delta.cueball")));
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
-    assertEquals(LOCAL_ROOT + "/00007.base.cueball", merger.newBasePath);
 
     // make sure that the mock base created by the merger still exists
     assertTrue(localFileExists("/00007.base.cueball"));
     // old base should be deleted
     assertFalse(localFileExists("/00005.base.cueball"));
     // delta that was fetched should be deleted
-    assertFalse(localFileExists(LOCAL_ROOT + "/00006.delta.cueball"));
-    assertFalse(localFileExists(LOCAL_ROOT + "/00007.delta.cueball"));
+    assertFalse(localFileExists("/00006.delta.cueball"));
+    assertFalse(localFileExists("/00007.delta.cueball"));
   }
 
   public void testUpdateBaseAndDelta() throws Exception {
     // local root with just a base in it
     makeLocalFile("00005.base.cueball");
 
-    MockFetcher fetcher = new MockFetcher(LOCAL_ROOT, "00006.base.cueball", "00007.delta.cueball");
+    MockFetcher fetcher = new MockFetcher("00006.base.cueball", "00007.delta.cueball");
     MockCueballMerger merger = new MockCueballMerger();
     CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
-      new NoCompressionCodec(), 1);
+        new NoCompressionCodec(), 1);
 
     updater.update(7, null);
 
@@ -140,20 +137,57 @@ public class TestCueballUpdater extends BaseTestCase {
     assertEquals(5, fetcher.latestLocalVersion);
 
     // make sure the merger got the right args
-    assertEquals(LOCAL_ROOT + "/00006.base.cueball", merger.latestBase);
-    assertEquals(new HashSet<String>(Arrays.asList(LOCAL_ROOT + "/00007.delta.cueball")),
-      merger.deltas);
+    assertTrue(merger.latestBase.getPath().endsWith("/00006.base.cueball"));
+    assertEquals(merger.deltas.size(), 1);
+    assertTrue(merger.deltas.contains(new CueballFilePath(LOCAL_ROOT + "/00007.delta.cueball")));
     assertEquals(12, merger.keyHashSize);
     assertEquals(5, merger.valueSize);
-    assertEquals(LOCAL_ROOT + "/00007.base.cueball", merger.newBasePath);
 
     // make sure that the mock base created by the merger still exists
     assertTrue(localFileExists("/00007.base.cueball"));
     // old base should be deleted
     assertFalse(localFileExists("/00005.base.cueball"));
     // delta that was fetched should be deleted
-    assertFalse(localFileExists(LOCAL_ROOT + "/00006.base.cueball"));
-    assertFalse(localFileExists(LOCAL_ROOT + "/00007.delta.cueball"));
+    assertFalse(localFileExists("/00006.base.cueball"));
+    assertFalse(localFileExists("/00007.delta.cueball"));
+  }
+
+  public void testFailingFetcher() throws Exception {
+    // local root with just a base in it
+    makeLocalFile("00005.base.cueball");
+
+    MockFetcher fetcher = new MockFetcher("00006.base.cueball", "00007.delta.cueball") {
+      @Override
+      public void fetch(int fromVersion,
+                        int toVersion,
+                        Set<Integer> excludeVersions,
+                        String localDirectory) throws IOException {
+        throw new IOException("Fail");
+      }
+    };
+
+    MockCueballMerger merger = new MockCueballMerger();
+    CueballUpdater updater = new CueballUpdater(LOCAL_ROOT, 12, 5, fetcher, merger,
+        new NoCompressionCodec(), 1);
+
+    try {
+      updater.update(7, Collections.singleton(45));
+      fail("Update should fail");
+    } catch (IOException e) {
+      // Good
+    }
+
+    // make sure the merger got the right args (we never merged)
+    assertNull(merger.latestBase);
+    assertNull(merger.deltas);
+    // original data still exists
+    assertTrue(localFileExists("/00005.base.cueball"));
+    // new base was never created
+    assertFalse(localFileExists("/00007.base.cueball"));
+    // base was never fetched
+    assertFalse(localFileExists("/00006.base.cueball"));
+    // delta was never fetched
+    assertFalse(localFileExists("/00007.delta.cueball"));
   }
 
   private boolean localFileExists(String localFile) {

@@ -13,21 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.storage.PartitionFileLocalPath;
 
-import java.io.IOException;
-import java.util.SortedSet;
+import java.io.File;
 
-public interface ICueballMerger {
-  public void merge(final CueballFilePath latestBase,
-                    final SortedSet<CueballFilePath> deltas,
-                    final String newBasePath,
-                    final int keyHashSize,
-                    final int valueSize,
-                    ValueTransformer transformer,
-                    int hashIndexBits,
-                    CompressionCodec compressionCodec)
-      throws IOException;
+public class CueballFilePath extends PartitionFileLocalPath {
+
+  public CueballFilePath(String path) {
+    super(path, Cueball.parseVersionNumber(new File(path).getName()));
+  }
 }

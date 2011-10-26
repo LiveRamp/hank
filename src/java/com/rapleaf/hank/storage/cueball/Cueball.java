@@ -179,12 +179,22 @@ public class Cueball implements StorageEngine {
     return String.format("%05d", versionNumber);
   }
 
-  public static SortedSet<String> getBases(String localPartitionRoot) {
-    return FsUtils.getMatchingPaths(localPartitionRoot, BASE_REGEX);
+  public static SortedSet<CueballFilePath> getBases(String... dirs) {
+    SortedSet<CueballFilePath> result = new TreeSet<CueballFilePath>();
+    Set<String> paths = FsUtils.getMatchingPaths(BASE_REGEX, dirs);
+    for (String path : paths) {
+      result.add(new CueballFilePath(path));
+    }
+    return result;
   }
 
-  public static SortedSet<String> getDeltas(String localPartitionRoot) {
-    return FsUtils.getMatchingPaths(localPartitionRoot, DELTA_REGEX);
+  public static SortedSet<CueballFilePath> getDeltas(String... dirs) {
+    SortedSet<CueballFilePath> result = new TreeSet<CueballFilePath>();
+    Set<String> paths = FsUtils.getMatchingPaths(DELTA_REGEX, dirs);
+    for (String path : paths) {
+      result.add(new CueballFilePath(path));
+    }
+    return result;
   }
 
   public static int parseVersionNumber(String name) {

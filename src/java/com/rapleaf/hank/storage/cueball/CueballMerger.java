@@ -15,36 +15,37 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.SortedSet;
 
-import com.rapleaf.hank.compress.CompressionCodec;
-
 
 public final class CueballMerger implements ICueballMerger {
-  public void merge(final String latestBase,
-      final SortedSet<String> deltas,
-      final String newBasePath,
-      final int keyHashSize,
-      final int valueSize,
-      ValueTransformer transformer,
-      int hashIndexBits,
-      CompressionCodec compressionCodec)
-  throws IOException {
+  public void merge(final CueballFilePath latestBase,
+                    final SortedSet<CueballFilePath> deltas,
+                    final String newBasePath,
+                    final int keyHashSize,
+                    final int valueSize,
+                    ValueTransformer transformer,
+                    int hashIndexBits,
+                    CompressionCodec compressionCodec) throws IOException {
+    // Perform merging
+
     StreamBuffer[] sbs = new StreamBuffer[deltas.size() + 1];
 
     // open the current base
-    StreamBuffer base = new StreamBuffer(latestBase, 0,
+    StreamBuffer base = new StreamBuffer(latestBase.getPath(), 0,
         keyHashSize, valueSize, hashIndexBits, compressionCodec);
     sbs[0] = base;
 
     // open all the deltas
     int i = 1;
-    for (String deltaPath : deltas) {
-      StreamBuffer db = new StreamBuffer(deltaPath, i,
+    for (CueballFilePath delta : deltas) {
+      StreamBuffer db = new StreamBuffer(delta.getPath(), i,
           keyHashSize, valueSize, hashIndexBits, compressionCodec);
       sbs[i++] = db;
     }

@@ -15,165 +15,161 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.OutputStream;
+import com.rapleaf.hank.compress.NoCompressionCodec;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.TreeSet;
 
-import com.rapleaf.hank.compress.NoCompressionCodec;
-
 public class TestCueballMerger extends AbstractCueballTest {
   private final String LOCAL_ROOT = localTmpDir;
 
-  private final String DELTA_2_FILE_PATH = LOCAL_ROOT + "/00002.delta.cueball";
+  private final CueballFilePath DELTA_2 = new CueballFilePath(LOCAL_ROOT + "/00002.delta.cueball");
 
-  private final String DELTA_1_FILE_PATH = LOCAL_ROOT + "/00001.delta.cueball";
+  private final CueballFilePath DELTA_1 = new CueballFilePath(LOCAL_ROOT + "/00001.delta.cueball");
 
-  private final String BASE_FILE_PATH = LOCAL_ROOT + "/00000.base.cueball";
+  private final CueballFilePath BASE = new CueballFilePath(LOCAL_ROOT + "/00000.base.cueball");
 
-  
+
   // base   k1 v1 k5 v5 | k10 v10
   // delta1 k1 v1 k2 v2 | k12 v12
   // delta2 k3 v3 k4 v4 | k11 v11
-  
-  
+
+
   private static final byte[] BASE_DATA = {
-    // key 1
-    0x01,// 2, 3, 4, 5,
-    // value 1
-    1, //4, 3, 2,
-    // key 5
-    0x05,// 6, 7, 8, 9,
-    // value 5
-    5, //8, 7, 6,
-    // key 10
-    (byte) 0x8a, //11, 12, 13, 14,
-    // value 10
-    10, //13, 12, 11,
-    // block 0 offset
-    0,0,0,0,0,0,0,0,
-    // block 1 offset
-    2,0,0,0,0,0,0,0,
-    // max uncompressed size
-    4,0,0,0,
-    // max compressed size
-    4,0,0,0,
+      // key 1
+      0x01,// 2, 3, 4, 5,
+      // value 1
+      1, //4, 3, 2,
+      // key 5
+      0x05,// 6, 7, 8, 9,
+      // value 5
+      5, //8, 7, 6,
+      // key 10
+      (byte) 0x8a, //11, 12, 13, 14,
+      // value 10
+      10, //13, 12, 11,
+      // block 0 offset
+      0, 0, 0, 0, 0, 0, 0, 0,
+      // block 1 offset
+      2, 0, 0, 0, 0, 0, 0, 0,
+      // max uncompressed size
+      4, 0, 0, 0,
+      // max compressed size
+      4, 0, 0, 0,
   };
 
   private static final byte[] DELTA_1_DATA = {
-    // key 1
-    0x01, //2, 3, 4, 5,
-    // value 1 - new version!
-    2, //4, 3, 2,
-    // key 2
-    0x02, //3, 4, 5, 6,
-    // value 2
-    2, //5, 4, 3,
-    // key 12
-    (byte) 0x8c, //1, 2, 3, 4,
-    // value 12
-    12, //1, 2, 3,
-    // block 0 offset
-    0,0,0,0,0,0,0,0,
-    // block 1 offset
-    4,0,0,0,0,0,0,0,
-    // max uncompressed size
-    4,0,0,0,
-    // max compressed size
-    4,0,0,0,
+      // key 1
+      0x01, //2, 3, 4, 5,
+      // value 1 - new version!
+      2, //4, 3, 2,
+      // key 2
+      0x02, //3, 4, 5, 6,
+      // value 2
+      2, //5, 4, 3,
+      // key 12
+      (byte) 0x8c, //1, 2, 3, 4,
+      // value 12
+      12, //1, 2, 3,
+      // block 0 offset
+      0, 0, 0, 0, 0, 0, 0, 0,
+      // block 1 offset
+      4, 0, 0, 0, 0, 0, 0, 0,
+      // max uncompressed size
+      4, 0, 0, 0,
+      // max compressed size
+      4, 0, 0, 0,
   };
 
   private static final byte[] DELTA_2_DATA = {
-    // key 3
-    0x03, //4, 5, 6, 7,
-    // value 3
-    3, //6, 5, 4,
-    // key 4
-    0x04, //5, 6, 7, 8,
-    // value 2
-    4, //7, 6, 5,
-    // key 11
-    (byte)0x8b, //12, 13, 14, 15,
-    // value 11
-    11, //14, 13, 12,
-    // block 0 offset
-    0,0,0,0,0,0,0,0,
-    // block 1 offset
-    4,0,0,0,0,0,0,0,
-    // max uncompressed size
-    4,0,0,0,
-    // max compressed size
-    4,0,0,0,
+      // key 3
+      0x03, //4, 5, 6, 7,
+      // value 3
+      3, //6, 5, 4,
+      // key 4
+      0x04, //5, 6, 7, 8,
+      // value 2
+      4, //7, 6, 5,
+      // key 11
+      (byte) 0x8b, //12, 13, 14, 15,
+      // value 11
+      11, //14, 13, 12,
+      // block 0 offset
+      0, 0, 0, 0, 0, 0, 0, 0,
+      // block 1 offset
+      4, 0, 0, 0, 0, 0, 0, 0,
+      // max uncompressed size
+      4, 0, 0, 0,
+      // max compressed size
+      4, 0, 0, 0,
   };
 
   private final String NEW_BASE_PATH = LOCAL_ROOT + "/00002.base.cueball";
 
   private static final byte[] EXPECTED_MERGED_DATA = {
-    // key 1
-    0x01, //2, 3, 4, 5,
-    // value 1
-    2, //4, 3, 2,
-    // key 2
-    0x02, //3, 4, 5, 6,
-    // value 2
-    2, //5, 4, 3,
-    // key 3
-    0x03, //4, 5, 6, 7,
-    // value 3
-    3, //6, 5, 4,
-    // key 4
-    0x04, //5, 6, 7, 8,
-    // value 4
-    4, //7, 6, 5,
-    // key 5
-    0x05, //6, 7, 8, 9, 
-    // value 5
-    5, //8, 7, 6,
-    // key 10
-    (byte)0x8a, //11, 12, 13, 14,
-    // value 10
-    10, //13, 12, 11,
-    // key 11
-    (byte)0x8b, //12, 13, 14, 15,
-    // value 11
-    11, //14, 13, 12,
-    // key 12
-    (byte) 0x8c, //1, 2, 3, 4,
-    // value 12
-    12, //1, 2, 3,
-    // block 0 offset
-    0,0,0,0,0,0,0,0,
-    // block 1 offset
-    10,0,0,0,0,0,0,0,
-    // max uncompressed size
-    10,0,0,0,
-    // max compressed size
-    10,0,0,0,
+      // key 1
+      0x01, //2, 3, 4, 5,
+      // value 1
+      2, //4, 3, 2,
+      // key 2
+      0x02, //3, 4, 5, 6,
+      // value 2
+      2, //5, 4, 3,
+      // key 3
+      0x03, //4, 5, 6, 7,
+      // value 3
+      3, //6, 5, 4,
+      // key 4
+      0x04, //5, 6, 7, 8,
+      // value 4
+      4, //7, 6, 5,
+      // key 5
+      0x05, //6, 7, 8, 9,
+      // value 5
+      5, //8, 7, 6,
+      // key 10
+      (byte) 0x8a, //11, 12, 13, 14,
+      // value 10
+      10, //13, 12, 11,
+      // key 11
+      (byte) 0x8b, //12, 13, 14, 15,
+      // value 11
+      11, //14, 13, 12,
+      // key 12
+      (byte) 0x8c, //1, 2, 3, 4,
+      // value 12
+      12, //1, 2, 3,
+      // block 0 offset
+      0, 0, 0, 0, 0, 0, 0, 0,
+      // block 1 offset
+      10, 0, 0, 0, 0, 0, 0, 0,
+      // max uncompressed size
+      10, 0, 0, 0,
+      // max compressed size
+      10, 0, 0, 0,
   };
 
   public void testMerge() throws Exception {
     new File(LOCAL_ROOT).mkdirs();
-    OutputStream s = new FileOutputStream(BASE_FILE_PATH);
+    OutputStream s = new FileOutputStream(BASE.getPath());
     s.write(BASE_DATA);
     s.flush();
     s.close();
 
-    s = new FileOutputStream(DELTA_1_FILE_PATH);
+    s = new FileOutputStream(DELTA_1.getPath());
     s.write(DELTA_1_DATA);
     s.flush();
     s.close();
 
-    s = new FileOutputStream(DELTA_2_FILE_PATH);
+    s = new FileOutputStream(DELTA_2.getPath());
     s.write(DELTA_2_DATA);
     s.flush();
     s.close();
 
-    new CueballMerger().merge(BASE_FILE_PATH,
-        new TreeSet<String>(Arrays.asList(DELTA_1_FILE_PATH, DELTA_2_FILE_PATH)),
+    new CueballMerger().merge(BASE,
+        new TreeSet<CueballFilePath>(Arrays.asList(DELTA_1, DELTA_2)),
         NEW_BASE_PATH,
         1,
         1,

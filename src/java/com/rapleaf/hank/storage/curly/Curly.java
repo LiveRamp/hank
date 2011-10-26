@@ -25,9 +25,6 @@ import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.HdfsFileOps;
-import com.rapleaf.hank.storage.IFileOpsFactory;
-import com.rapleaf.hank.storage.LocalFileOps;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -237,12 +234,22 @@ public class Curly implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  public static SortedSet<String> getBases(String localPartitionRoot) {
-    return FsUtils.getMatchingPaths(localPartitionRoot, BASE_REGEX);
+  public static SortedSet<CurlyFilePath> getBases(String... dirs) {
+    SortedSet<CurlyFilePath> result = new TreeSet<CurlyFilePath>();
+    Set<String> paths = FsUtils.getMatchingPaths(BASE_REGEX, dirs);
+    for (String path : paths) {
+      result.add(new CurlyFilePath(path));
+    }
+    return result;
   }
 
-  public static SortedSet<String> getDeltas(String localPartitionRoot) {
-    return FsUtils.getMatchingPaths(localPartitionRoot, DELTA_REGEX);
+  public static SortedSet<CurlyFilePath> getDeltas(String... dirs) {
+    SortedSet<CurlyFilePath> result = new TreeSet<CurlyFilePath>();
+    Set<String> paths = FsUtils.getMatchingPaths(DELTA_REGEX, dirs);
+    for (String path : paths) {
+      result.add(new CurlyFilePath(path));
+    }
+    return result;
   }
 
   private String getName(int versionNumber, boolean base) {
