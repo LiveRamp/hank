@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 public abstract class AbstractRing implements Ring {
   private final int ringNumber;
   private final RingGroup ringGroup;
@@ -33,6 +35,14 @@ public abstract class AbstractRing implements Ring {
   @Override
   public final int getRingNumber() {
     return ringNumber;
+  }
+
+  public DomainGroupVersion getVersion() throws IOException {
+    return getRingGroup().getDomainGroup().getVersionByNumber(getVersionNumber());
+  }
+
+  public DomainGroupVersion getUpdatingToVersion() throws IOException {
+    return getRingGroup().getDomainGroup().getVersionByNumber(getUpdatingToVersionNumber());
   }
 
   @Override

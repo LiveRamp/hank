@@ -29,6 +29,7 @@ public class MockHost extends AbstractHost {
   private HostCommand lastEnqueuedCommand;
   private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
   private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
+  private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -36,7 +37,16 @@ public class MockHost extends AbstractHost {
 
   @Override
   public HostDomain addDomain(Domain domain) throws IOException {
-    return null;
+    HostDomain hostDomain = new MockHostDomain(domain);
+    hostDomains.add(hostDomain);
+    return hostDomain;
+  }
+
+  public MockHostDomain addMockDomain(Domain domain,
+                                      int... numberAndVersionAndUpdatingToVersionTriples) throws IOException {
+    MockHostDomain hostDomain = new MockHostDomain(domain, numberAndVersionAndUpdatingToVersionTriples);
+    hostDomains.add(hostDomain);
+    return hostDomain;
   }
 
   @Override
@@ -46,7 +56,7 @@ public class MockHost extends AbstractHost {
 
   @Override
   public Set<HostDomain> getAssignedDomains() throws IOException {
-    return null;
+    return hostDomains;
   }
 
   @Override

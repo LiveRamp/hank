@@ -8,12 +8,13 @@ public class MockHostDomain extends AbstractHostDomain {
   private final Domain domain;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
 
-  public MockHostDomain(Domain domain, int... triples) {
+  public MockHostDomain(Domain domain, int... numberAndVersionAndUpdatingToVersionTriples) {
     this.domain = domain;
 
-    for (int i = 0; i < triples.length; i += 3) {
-      parts.add(new MockHostDomainPartition(triples[i], triples[i + 1],
-          triples[i + 2]));
+    for (int i = 0; i < numberAndVersionAndUpdatingToVersionTriples.length; i += 3) {
+      parts.add(new MockHostDomainPartition(numberAndVersionAndUpdatingToVersionTriples[i],
+          numberAndVersionAndUpdatingToVersionTriples[i + 1],
+          numberAndVersionAndUpdatingToVersionTriples[i + 2]));
     }
   }
 

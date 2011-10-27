@@ -94,19 +94,28 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                   + numHostsUpdating + " UPDATING hosts.");
               break;
             } else {
-              // hey, we're done updating!
-              // tell any offline hosts to stay down, since they've missed the
-              // update
-              // TODO: implement this
-
-              // set the ring state to updated
-              LOG.info("Ring " + ring.getRingNumber()
-                  + " has zero UPDATING hosts. It's UPDATED!");
-              ring.setState(RingState.UPDATED);
+              // No host is updating. Check that we are indeed up to date
+              DomainGroupVersion updatingToVersion = ring.getUpdatingToVersion();
+              if (Rings.isUpToDate(ring, updatingToVersion)) {
+                // Set the ring state to updated
+                LOG.info("Ring " + ring.getRingNumber() + " is UPDATED.");
+                ring.setState(RingState.UPDATED);
+                // note that we are intentionally falling through here so that we
+                // can go right into starting the hosts again.
+              } else {
+                // Ring is not up to date but no host was updating,
+                // telling hosts that are not up to date to UPDATE again since they probably failed.
+                LOG.info("No host in ring " + ring.getRingNumber() + " was UPDATING but the ring is not up to date.");
+                // Ring state is still UPDATING
+                for (Host host : ring.getHosts()) {
+                  if (!Hosts.isUpToDate(host, updatingToVersion)) {
+                    LOG.info("Commanding host " + host + " to UPDATE again since it is not up to date.");
+                    host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+                  }
+                }
+                break;
+              }
             }
-
-            // note that we are intentionally falling through here so that we
-            // can go right into starting the hosts again.
 
           case UPDATED:
             anyDownOrUpdating = true;

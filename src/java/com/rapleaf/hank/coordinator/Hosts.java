@@ -96,4 +96,33 @@ public final class Hosts {
     }
     return new UpdateProgress(numPartitions, numPartitionsUpToDate);
   }
+
+  /**
+   * Return true if all partitions assigned to that host for domains of the given domain group version
+   * are at the correct version.
+   *
+   * @param host
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
+  public static boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+    // Check that each domain of the given domain group version is up to date on this host
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      HostDomain hostDomain = host.getHostDomain(domain);
+      if (hostDomain != null) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          // Ignore deletable partitions
+          if (!partition.isDeletable()) {
+            // If the partition is not currently at the given domain group version, the host is not up-to-date
+            if (partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
+              return false;
+            }
+          }
+        }
+      }
+    }
+    return true;
+  }
 }

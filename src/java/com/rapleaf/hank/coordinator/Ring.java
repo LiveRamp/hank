@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface Ring extends Comparable<Ring> {
+
   public RingGroup getRingGroup();
 
   public int getRingNumber();
@@ -46,6 +47,8 @@ public interface Ring extends Comparable<Ring> {
    */
   public Integer getVersionNumber();
 
+  public DomainGroupVersion getVersion() throws IOException;
+
   /**
    * Get the next domain group version number for this Ring. If no update is
    * planned, then this will be null.
@@ -53,6 +56,8 @@ public interface Ring extends Comparable<Ring> {
    * @return
    */
   public Integer getUpdatingToVersionNumber();
+
+  public DomainGroupVersion getUpdatingToVersion() throws IOException;
 
   /**
    * Report that a planned update has succeeded, setting current version to
