@@ -19,7 +19,8 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 
 public final class RingGroups {
-  private RingGroups() {}
+  private RingGroups() {
+  }
 
   public static boolean isUpdating(RingGroup ringGroup) throws IOException {
     return ringGroup.getUpdatingToVersion() != null;
@@ -28,15 +29,6 @@ public final class RingGroups {
   public static boolean isAssigned(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isAssigned(ring, domainGroupVersion)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  public static boolean isUpToDate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
-    for (Ring ring : ringGroup.getRings()) {
-      if (!Rings.isUpToDate(ring, domainGroupVersion)) {
         return false;
       }
     }
