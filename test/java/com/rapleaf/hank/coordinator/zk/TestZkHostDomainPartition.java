@@ -15,11 +15,11 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestZkHostDomainPartition extends ZkTestCase {
   public void testIt() throws Exception {
@@ -64,5 +64,8 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     assertNull(hdpc.getCount("RandomCount"));
 
     assertNull(hdpc.getCount("NewCount"));
+
+    hdpc.delete();
+    assertNull(getZk().exists(hdpc.getPath(), false));
   }
 }
