@@ -55,7 +55,14 @@ public abstract class WatchedNode<T> {
         if (Log.isDebugEnabled()) {
           LOG.debug(String.format("Creating non-existent node %s with value %s", nodePath, initValue));
         }
-        zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        try {
+          zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException e) {
+          // The node was probably created just now, after we tested its existence. Rethrow if it still does not exist
+          if (zk.exists(nodePath, false) == null) {
+            throw e;
+          }
+        }
       }
     }
     update();
