@@ -29,7 +29,7 @@ public enum RingState {
    */
   GOING_DOWN,
   /**
-   * The ring is down - there are no part daemons still serving data.
+   * The ring is down - there are no partition servers still serving data.
    */
   DOWN,
   /**
@@ -41,7 +41,7 @@ public enum RingState {
    */
   UPDATED,
   /**
-   * The part daemons are starting up, but they're not completely started yet.
+   * The partition servers are starting up, but they're not completely started yet.
    */
   COMING_UP;
 }

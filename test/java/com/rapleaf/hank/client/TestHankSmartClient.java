@@ -108,7 +108,7 @@ public class TestHankSmartClient extends BaseTestCase {
     args.protocolFactory(new TCompactProtocol.Factory());
     TServer server1 = new THsHaServer(args);
     Thread thread1 = new Thread(new ServerRunnable(server1),
-        "mock part daemon #1");
+        "mock partition server #1");
     thread1.start();
 
     // launch server 2;
@@ -131,7 +131,7 @@ public class TestHankSmartClient extends BaseTestCase {
     args.protocolFactory(new TCompactProtocol.Factory());
     final TServer server2 = new THsHaServer(args);
     Thread thread2 = new Thread(new ServerRunnable(server2),
-        "mock part daemon #2");
+        "mock partition server #2");
     thread2.start();
 
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,

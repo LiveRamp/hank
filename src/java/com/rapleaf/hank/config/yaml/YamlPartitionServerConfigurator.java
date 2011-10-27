@@ -78,18 +78,18 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
       throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + RING_GROUP_NAME_KEY + " key!");
     }
 
-    // part daemon section
+    // partition server daemon section
     if (!partitionServerSection.containsKey(PARTITION_SERVER_DAEMON_SECTION_KEY)) {
       throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + PARTITION_SERVER_DAEMON_SECTION_KEY + " key!");
     }
-    Map<String, Object> partDaemonSection = (Map<String, Object>) partitionServerSection.get(PARTITION_SERVER_DAEMON_SECTION_KEY);
-    if (partDaemonSection == null) {
+    Map<String, Object> partitionServerDaemonSection = (Map<String, Object>) partitionServerSection.get(PARTITION_SERVER_DAEMON_SECTION_KEY);
+    if (partitionServerDaemonSection == null) {
       throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must not be null!");
     }
-    if (!partDaemonSection.containsKey(NUM_CONCURRENT_CONNECTIONS_KEY) || !(partDaemonSection.get(NUM_CONCURRENT_CONNECTIONS_KEY) instanceof Integer)) {
+    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_CONNECTIONS_KEY) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_CONNECTIONS_KEY) instanceof Integer)) {
       throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_CONNECTIONS_KEY + " key of type int!");
     }
-    if (!partDaemonSection.containsKey(NUM_CONCURRENT_GETS_KEY) || !(partDaemonSection.get(NUM_CONCURRENT_GETS_KEY) instanceof Integer)) {
+    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_GETS_KEY) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_GETS_KEY) instanceof Integer)) {
       throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_GETS_KEY + " key of type int!");
     }
 

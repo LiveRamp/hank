@@ -164,8 +164,8 @@ public class IntegrationTest extends ZkTestCase {
   private final String clientConfigYml = localTmpDir + "/config.yml";
   private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
   private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
-  private final Map<PartitionServerAddress, Thread> partDaemonThreads = new HashMap<PartitionServerAddress, Thread>();
-  private final Map<PartitionServerAddress, PartitionServerRunnable> partDaemonRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
+  private final Map<PartitionServerAddress, Thread> partitionServerThreads = new HashMap<PartitionServerAddress, Thread>();
+  private final Map<PartitionServerAddress, PartitionServerRunnable> partitionServerRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
 
   private Thread ringGroupConductorThread;
   private RingGroupConductorRunnable ringGroupConductorRunnable;
@@ -484,18 +484,18 @@ public class IntegrationTest extends ZkTestCase {
   }
 
   private void startDaemons(PartitionServerAddress a) throws Exception {
-    LOG.debug("Starting daemons for " + a);
+    LOG.debug("Starting partition servers for " + a);
     PartitionServerRunnable pr = new PartitionServerRunnable(a);
-    partDaemonRunnables.put(a, pr);
-    Thread pt = new Thread(pr, "part daemon thread for " + a);
-    partDaemonThreads.put(a, pt);
+    partitionServerRunnables.put(a, pr);
+    Thread pt = new Thread(pr, "partition server thread for " + a);
+    partitionServerThreads.put(a, pt);
     pt.start();
   }
 
   private void stopDaemons(PartitionServerAddress a) throws Exception {
-    LOG.debug("Stopping daemons for " + a);
-    partDaemonRunnables.get(a).pleaseStop();
-    partDaemonThreads.get(a).join();
+    LOG.debug("Stopping partition servers for " + a);
+    partitionServerRunnables.get(a).pleaseStop();
+    partitionServerThreads.get(a).join();
   }
 
   private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {

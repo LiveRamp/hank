@@ -1,11 +1,11 @@
 partition_server:
-  # add the directories that your part daemon should use to store/read data
+  # add the directories that your partition server should use to store/read data
   # NOTE: don't change these once you've started using them, since it will mess
   # up the hash/mod partitioning over your disks. (unless you're an expert.)
   local_data_dirs:
     - /path/to/some/data
   service_port: 12345
-  # change this to the name of the ring group this part daemon should join
+  # change this to the name of the ring group this partition server should join
   ring_group_name: rg1
   partition_server_daemon:
     num_worker_threads: 256
