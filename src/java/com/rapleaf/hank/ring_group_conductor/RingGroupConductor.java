@@ -168,20 +168,25 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private void startUpdate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        for (HostDomain hd : host.getAssignedDomains()) {
-          final DomainGroupVersionDomainVersion dgvdv = domainGroupVersion.getDomainVersion(hd.getDomain());
+        for (HostDomain hostDomain : host.getAssignedDomains()) {
+          final DomainGroupVersionDomainVersion dgvdv = domainGroupVersion.getDomainVersion(hostDomain.getDomain());
           if (dgvdv == null) {
             // This HostDomain's domain is not included in the version we are updating to. Garbage collect it.
             LOG.info(String.format(
                 "Garbage collecting domain %s on host %s since it is updating to domain group version %s.",
-                hd.getDomain(), host.getAddress(), domainGroupVersion));
-            for (HostDomainPartition hdp : hd.getPartitions()) {
-              hdp.setDeletable(true);
+                hostDomain.getDomain(), host.getAddress(), domainGroupVersion));
+            for (HostDomainPartition partition : hostDomain.getPartitions()) {
+              partition.setDeletable(true);
             }
-            hd.setDeletable(true);
+            hostDomain.setDeletable(true);
           } else {
-            for (HostDomainPartition hdp : hd.getPartitions()) {
-              hdp.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
+            for (HostDomainPartition partition : hostDomain.getPartitions()) {
+              // Partitions that we want to update
+              partition.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
+              // If partition is deletable, we want to keep it and we switch to non deletable
+              if (partition.isDeletable()) {
+                partition.setDeletable(false);
+              }
             }
           }
         }
