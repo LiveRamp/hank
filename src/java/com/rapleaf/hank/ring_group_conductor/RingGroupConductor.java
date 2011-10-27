@@ -41,6 +41,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private final RingGroupUpdateTransitionFunction transFunc;
 
   private boolean stopping = false;
+  private boolean claimedRingGroupConductor;
+
+  private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
     this(configurator, new RingGroupUpdateTransitionFunctionImpl());
@@ -55,8 +58,10 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   }
 
   public void run() throws IOException {
-    LOG.info("Ring Group Conductor Daemon for ring group " + ringGroupName + " starting.");
-    boolean claimedRingGroupConductor = false;
+    // Add shutdown hook
+    addShutdownHook();
+    claimedRingGroupConductor = false;
+    LOG.info("Ring Group Conductor for ring group " + ringGroupName + " starting.");
     try {
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -100,9 +105,12 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     } finally {
       if (claimedRingGroupConductor) {
         ringGroup.releaseRingGroupConductor();
+        claimedRingGroupConductor = false;
       }
     }
-    LOG.info("Ring Group Conductor Daemon for ring group " + ringGroupName + " shutting down.");
+    LOG.info("Ring Group Conductor for ring group " + ringGroupName + " shutting down.");
+    // Remove shutdown hook. We don't need it anymore
+    removeShutdownHook();
   }
 
   void processUpdates(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
@@ -210,6 +218,32 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     synchronized (lock) {
       LOG.debug("Got an updated domain group version: " + newDomainGroup + "!");
       domainGroup = newDomainGroup;
+    }
+  }
+
+  // Give up ring group conductor status on VM exit
+  private void addShutdownHook() {
+    if (shutdownHook == null) {
+      shutdownHook = new Thread() {
+        @Override
+        public void run() {
+          try {
+            if (claimedRingGroupConductor) {
+              ringGroup.releaseRingGroupConductor();
+              claimedRingGroupConductor = false;
+            }
+          } catch (IOException e) {
+            // When VM is exiting and we fail to release ring group conductor status, swallow the exception
+          }
+        }
+      };
+      Runtime.getRuntime().addShutdownHook(shutdownHook);
+    }
+  }
+
+  private void removeShutdownHook() {
+    if (shutdownHook != null) {
+      Runtime.getRuntime().removeShutdownHook(shutdownHook);
     }
   }
 

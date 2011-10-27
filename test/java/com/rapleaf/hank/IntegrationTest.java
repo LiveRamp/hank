@@ -430,7 +430,7 @@ public class IntegrationTest extends ZkTestCase {
 
     assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
-    // take down one of the nodes in one of the rings "unexpectedly"
+    // take down hosts of one ring "unexpectedly"
     stopDaemons(new PartitionServerAddress("localhost", 50000));
     stopDaemons(new PartitionServerAddress("localhost", 50001));
 
