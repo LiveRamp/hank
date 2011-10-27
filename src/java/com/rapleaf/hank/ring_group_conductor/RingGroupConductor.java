@@ -125,18 +125,15 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         } else {
           // We can start a new update of this ring group.
           // Check that new version is correctly assigned to ring group. If not, assign it.
-          if (!RingGroups.isAssigned(ringGroup, domainGroupVersion)) {
-            LOG.info("Domain Group Version " + domainGroupVersion
-                + " is not correctly assigned to Ring Group " + ringGroupName + ". Assigning.");
-            for (Ring ring : ringGroup.getRings()) {
+          for (Ring ring : ringGroup.getRings()) {
+            if (!Rings.isAssigned(ring, domainGroupVersion)) {
               LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
               partitionAssigner.assign(domainGroupVersion, ring);
             }
-          } else {
-            // We are ready to update this ring group
-            LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
-            startUpdate(ringGroup, domainGroupVersion);
           }
+          // We are ready to update this ring group
+          LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
+          startUpdate(ringGroup, domainGroupVersion);
         }
       } else {
         LOG.info("No updates in process and no updates pending.");

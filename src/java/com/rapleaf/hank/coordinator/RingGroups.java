@@ -25,15 +25,6 @@ public final class RingGroups {
     return ringGroup.getUpdatingToVersion() != null;
   }
 
-  public static boolean isAssigned(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
-    for (Ring ring : ringGroup.getRings()) {
-      if (!Rings.isAssigned(ring, domainGroupVersion)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   public static boolean isUpToDate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isUpToDate(ring, domainGroupVersion)) {
