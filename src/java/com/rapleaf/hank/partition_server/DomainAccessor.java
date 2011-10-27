@@ -56,40 +56,6 @@ class DomainAccessor {
     updateThread.start();
   }
 
-  /**
-   * Get the value for <i>key</i>, placing it in result.
-   *
-   * @param key
-   * @return response
-   * @throws IOException
-   */
-  /*
-  public HankResponse get(ByteBuffer key) throws IOException {
-    ReaderResult result = new ReaderResult();
-    return get(key, result);
-  }
-  */
-
-  /**
-   * Get the value for <i>key</i>, placing it in result.
-   *
-   * @param keys
-   * @return response
-   * @throws IOException
-   */
-  /*
-  public HankBulkResponse getBulk(List<ByteBuffer> keys) throws IOException {
-    LOG.trace("Domain GET BULK");
-    // Re-use the ReaderResult accros all requests
-    ReaderResult result = new ReaderResult();
-    HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
-    for (ByteBuffer key : keys) {
-      result.clear();
-      response.get_responses().add(get(key, result));
-    }
-    return response;
-  }
-  */
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     LOG.trace("Domain GET");
     int partition = partitioner.partition(key, partitionAccessors.length);
@@ -124,7 +90,7 @@ class DomainAccessor {
         try {
           Thread.sleep(timeout);
         } catch (InterruptedException e) {
-          LOG.error("Failed to sleep", e);
+          // Swallow InterruptedException
         }
       }
     }
