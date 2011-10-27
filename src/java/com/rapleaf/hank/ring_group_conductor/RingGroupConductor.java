@@ -178,6 +178,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
             for (HostDomainPartition hdp : hd.getPartitions()) {
               hdp.setDeletable(true);
             }
+            hd.setDeletable(true);
           } else {
             for (HostDomainPartition hdp : hd.getPartitions()) {
               hdp.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());

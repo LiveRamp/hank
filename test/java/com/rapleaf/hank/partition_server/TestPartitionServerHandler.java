@@ -46,14 +46,10 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
     @Override
     public HostDomain getHostDomain(Domain domain) {
-      return new AbstractHostDomain() {
+
+      return new MockHostDomain(domain) {
         @Override
         public HostDomainPartition addPartition(int partNum, int initialVersion) {
-          return null;
-        }
-
-        @Override
-        public Domain getDomain() {
           return null;
         }
 

@@ -70,15 +70,10 @@ public class TestRingGroupConductor extends TestCase {
     final MockHost mockHost = new MockHost(new PartitionServerAddress("locahost", 12345)) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain) new AbstractHostDomain() {
+        return Collections.singleton((HostDomain) new MockHostDomain(domain) {
           @Override
           public HostDomainPartition addPartition(int partNum, int initialVersion) {
             return null;
-          }
-
-          @Override
-          public Domain getDomain() {
-            return domain;
           }
 
           @Override
@@ -228,34 +223,30 @@ public class TestRingGroupConductor extends TestCase {
     };
 
     final MockHostDomainPartition mockHostDomainPartition = new MockHostDomainPartition(0, 0, 1);
-    final MockHost mockHostConfig = new MockHost(new PartitionServerAddress("locahost", 12345)) {
+    final MockHostDomain mockHostDomain = new MockHostDomain(domain) {
+      @Override
+      public HostDomainPartition addPartition(int partNum, int initialVersion) {
+        return null;
+      }
+
+      @Override
+      public Set<HostDomainPartition> getPartitions() {
+        return Collections.singleton((HostDomainPartition) mockHostDomainPartition);
+      }
+    };
+
+    final MockHost mockHost = new MockHost(new PartitionServerAddress("locahost", 12345)) {
+
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-
-        return Collections.singleton((HostDomain) new AbstractHostDomain() {
-
-          @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {
-            return null;
-          }
-
-          @Override
-          public Domain getDomain() {
-            return domain;
-          }
-
-          @Override
-          public Set<HostDomainPartition> getPartitions() {
-            return Collections.singleton((HostDomainPartition) mockHostDomainPartition);
-          }
-        });
+        return Collections.singleton((HostDomain) mockHostDomain);
       }
     };
 
     final MockRing mockRing = new MockRing(null, null, 1, null) {
       @Override
       public Set<Host> getHosts() {
-        return Collections.singleton((Host) mockHostConfig);
+        return Collections.singleton((Host) mockHost);
       }
     };
 
@@ -308,6 +299,9 @@ public class TestRingGroupConductor extends TestCase {
 
     assertEquals(2, mockRingGroup.updateToVersion);
     assertEquals(Integer.valueOf(2), mockRing.updatingToVersion);
+    // Partition is deletable
     assertEquals(true, mockHostDomainPartition.isDeletable());
+    // HostDomain is deletable
+    assertEquals(true, mockHostDomain.isDeletable());
   }
 }

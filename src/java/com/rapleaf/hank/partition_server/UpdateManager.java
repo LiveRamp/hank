@@ -77,7 +77,7 @@ class UpdateManager implements IUpdateManager {
             domainName, partitionNumber, engine.toString()));
       } catch (Throwable e) {
         LOG.fatal(
-            String.format("Failed to complete partition update of %s partition %d.", domainName, partitionNumber),e);
+            String.format("Failed to complete partition update of %s partition %d.", domainName, partitionNumber), e);
         exceptionQueue.add(e);
       }
     }
@@ -131,32 +131,37 @@ class UpdateManager implements IUpdateManager {
       if (hd == null) {
         LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
       } else {
-        for (HostDomainPartition part : hd.getPartitions()) {
-          if (part.isDeletable()) {
-            LOG.debug(String.format("Deleting deletable partition group-%s/ring-%d/domain-%s/part-%d",
-                ringGroup.getName(),
-                ring.getRingNumber(),
-                domain.getName(),
-                part.getPartitionNumber()));
-            Deleter deleter = engine.getDeleter(configurator, part.getPartitionNumber());
-            deleter.delete();
-            part.delete();
-          } else if (part.getUpdatingToDomainGroupVersion() != null) {
-            LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
-                ringGroup.getName(),
-                ring.getRingNumber(),
-                domain.getName(),
-                part.getPartitionNumber(),
-                part.getCurrentDomainGroupVersion(),
-                part.getUpdatingToDomainGroupVersion()));
-            executor.execute(new PartitionUpdateTask(engine,
-                part.getPartitionNumber(),
-                exceptionQueue,
-                dgvdv.getVersion(),
-                part,
-                domain.getName(),
-                part.getUpdatingToDomainGroupVersion(),
-                excludeVersions));
+        if (hd.isDeletable()) {
+          // Host Domain is selected for deletion. Delete it.
+          hd.delete();
+        } else {
+          for (HostDomainPartition part : hd.getPartitions()) {
+            if (part.isDeletable()) {
+              LOG.debug(String.format("Deleting deletable partition group-%s/ring-%d/domain-%s/part-%d",
+                  ringGroup.getName(),
+                  ring.getRingNumber(),
+                  domain.getName(),
+                  part.getPartitionNumber()));
+              Deleter deleter = engine.getDeleter(configurator, part.getPartitionNumber());
+              deleter.delete();
+              part.delete();
+            } else if (part.getUpdatingToDomainGroupVersion() != null) {
+              LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/part-%d from %d to %d",
+                  ringGroup.getName(),
+                  ring.getRingNumber(),
+                  domain.getName(),
+                  part.getPartitionNumber(),
+                  part.getCurrentDomainGroupVersion(),
+                  part.getUpdatingToDomainGroupVersion()));
+              executor.execute(new PartitionUpdateTask(engine,
+                  part.getPartitionNumber(),
+                  exceptionQueue,
+                  dgvdv.getVersion(),
+                  part,
+                  domain.getName(),
+                  part.getUpdatingToDomainGroupVersion(),
+                  excludeVersions));
+            }
           }
         }
       }

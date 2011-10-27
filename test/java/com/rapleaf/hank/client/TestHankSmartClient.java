@@ -38,7 +38,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class  TestHankSmartClient extends BaseTestCase {
+public class TestHankSmartClient extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
 
   private static class ServerRunnable implements Runnable {
@@ -241,16 +241,10 @@ public class  TestHankSmartClient extends BaseTestCase {
     MockHost hc = new MockHost(address) {
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
-        return Collections.singleton((HostDomain) new AbstractHostDomain() {
+        return Collections.singleton((HostDomain) new MockHostDomain(domain) {
           @Override
-          public HostDomainPartition addPartition(int partNum,
-                                                  int initialVersion) {
+          public HostDomainPartition addPartition(int partNum, int initialVersion) {
             return null;
-          }
-
-          @Override
-          public Domain getDomain() {
-            return domain;
           }
 
           @Override

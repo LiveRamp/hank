@@ -5,8 +5,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MockHostDomain extends AbstractHostDomain {
+
   private final Domain domain;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
+  private boolean deletable = false;
 
   public MockHostDomain(Domain domain, int... numberAndVersionAndUpdatingToVersionTriples) {
     this.domain = domain;
@@ -21,6 +23,20 @@ public class MockHostDomain extends AbstractHostDomain {
   @Override
   public HostDomainPartition addPartition(int partNum, int initialVersion) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isDeletable() throws IOException {
+    return deletable;
+  }
+
+  @Override
+  public void setDeletable(boolean deletable) throws IOException {
+    this.deletable = deletable;
+  }
+
+  @Override
+  public void delete() throws IOException {
   }
 
   @Override

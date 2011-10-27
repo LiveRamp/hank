@@ -99,6 +99,15 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
+  public void setDeletable(boolean deletable) throws IOException {
+    try {
+      this.deletable.set(deletable);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
   public void setCurrentDomainGroupVersion(int version) throws IOException {
     try {
       currentDomainGroupVersion.set(version);
@@ -111,15 +120,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public void setUpdatingToDomainGroupVersion(Integer version) throws IOException {
     try {
       updatingToDomainGroupVersion.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setDeletable(boolean deletable) throws IOException {
-    try {
-      this.deletable.set(deletable);
     } catch (Exception e) {
       throw new IOException(e);
     }

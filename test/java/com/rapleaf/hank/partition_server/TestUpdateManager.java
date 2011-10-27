@@ -167,18 +167,13 @@ public class TestUpdateManager extends BaseTestCase {
       }
     };
 
-    private final HostDomain hostDomain = new AbstractHostDomain() {
+    private final HostDomain hostDomain = new MockHostDomain(null) {
       @Override
       public Set<HostDomainPartition> getPartitions() throws IOException {
         Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
         partitions.add(HOST_DOMAIN_PARTITION);
         partitions.add(PARTITION_FOR_DELETION);
         return partitions;
-      }
-
-      @Override
-      public Domain getDomain() {
-        return null;
       }
 
       @Override
