@@ -127,9 +127,7 @@ public class Rings {
         HostDomain hostDomain = host.getHostDomain(domain);
         if (hostDomain != null) {
           for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            if (!partition.isDeletable()) {
-              assignedPartitions.add(partition.getPartitionNumber());
-            }
+            assignedPartitions.add(partition.getPartitionNumber());
           }
         }
       }
