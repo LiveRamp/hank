@@ -273,6 +273,13 @@ class PartitionServerHandler implements IfaceWithShutdown {
     getExecutor.execute(task);
   }
 
+  // Synchronized method to add multiple tasks to the executor
+  private synchronized void executeGetTasks(GetTask[] tasks) {
+    for (GetTask task : tasks) {
+      getExecutor.execute(task);
+    }
+  }
+
   // Add get task
   public HankResponse get(int domainId, ByteBuffer key) {
     HankTimer timer = getTimerAggregator.getTimer();
@@ -306,8 +313,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
       for (ByteBuffer key : keys) {
         GetTask task = new GetTask(new GetRunnable(domainId, key));
         tasks[taskId++] = task;
-        executeGetTask(task);
       }
+      executeGetTasks(tasks);
       // Wait for all get tasks and retrieve responses
       for (int i = 0; i < keys.size(); ++i) {
         try {
