@@ -45,14 +45,9 @@ public class TestUpdateManager extends BaseTestCase {
       private MRG(DomainGroup dcg, String name, Set<Ring> rings) {
         super(dcg, name, rings);
       }
-
-      @Override
-      public Ring getRingForHost(PartitionServerAddress hostAddress) {
-        return mockRing;
-      }
     }
 
-    private RingGroup getMockRingGroup(DomainGroup domainGroup) {
+    private RingGroup getMockRingGroup(DomainGroup domainGroup, final Ring ring) {
       return new MRG(domainGroup, "myRingGroup", null) {
         @Override
         public Integer getUpdatingToVersion() {
@@ -62,15 +57,22 @@ public class TestUpdateManager extends BaseTestCase {
             throw new RuntimeException(e);
           }
         }
+
+        @Override
+        public Ring getRingForHost(PartitionServerAddress hostAddress) {
+          return ring;
+        }
       };
     }
 
-    private final Ring mockRing = new MockRing(null, null, 0, null) {
-      @Override
-      public Host getHostByAddress(PartitionServerAddress address) {
-        return mockHost;
-      }
-    };
+    private Ring getMockRing(final Host host) {
+      return new MockRing(null, null, 0, null) {
+        @Override
+        public Host getHostByAddress(PartitionServerAddress address) {
+          return host;
+        }
+      };
+    }
 
     private final MockDeleter MOCK_DELETER = new MockDeleter(1);
 
@@ -159,40 +161,53 @@ public class TestUpdateManager extends BaseTestCase {
       public void delete() throws IOException {
       }
     };
-    private final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(
-        1, 0, 0) {
+    private final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(1, 0, 0) {
       @Override
       public Integer getUpdatingToDomainGroupVersion() throws IOException {
         return null;
       }
     };
 
-    private final HostDomain hostDomain = new MockHostDomain(null) {
-      @Override
-      public Set<HostDomainPartition> getPartitions() throws IOException {
-        Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
-        partitions.add(HOST_DOMAIN_PARTITION);
-        partitions.add(PARTITION_FOR_DELETION);
-        return partitions;
-      }
+    private MockHostDomain getMockHostDomain(Domain domain) {
+      return new MockHostDomain(domain) {
 
-      @Override
-      public HostDomainPartition addPartition(int partNum, int initialVersion) {
-        return null;
-      }
-    };
+        @Override
+        public Set<HostDomainPartition> getPartitions() throws IOException {
+          Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
+          partitions.add(HOST_DOMAIN_PARTITION);
+          partitions.add(PARTITION_FOR_DELETION);
+          return partitions;
+        }
 
-    private final Host mockHost = new MockHost(
-        new PartitionServerAddress("localhost", 1)) {
-      @Override
-      public HostDomain getHostDomain(Domain domain) {
-        return hostDomain;
-      }
-    };
+        @Override
+        public HostDomainPartition addPartition(int partNum, int initialVersion) {
+          return null;
+        }
+      };
+    }
 
-    private DomainGroupVersion getMockDomainGroupVersion(final StorageEngine mockStorageEngine) {
-      final MockDomain domain = new MockDomain("myDomain", 1, 1,
-          new ConstantPartitioner(), mockStorageEngine, null, null) {
+    private Host getMockHost(final HostDomain hostDomain) {
+      return new MockHost(new PartitionServerAddress("localhost", 1)) {
+        @Override
+        public HostDomain getHostDomain(Domain domain) {
+          return hostDomain;
+        }
+
+        @Override
+        public Set<HostDomain> getAssignedDomains() {
+          return Collections.singleton(hostDomain);
+        }
+      };
+    }
+
+    private Domain getMockDomain(final StorageEngine storageEngine) {
+      return new MockDomain("myDomain", 1, 1,
+          new ConstantPartitioner(), storageEngine, null, null) {
+        @Override
+        public StorageEngine getStorageEngine() {
+          return storageEngine;
+        }
+
         @Override
         public SortedSet<DomainVersion> getVersions() {
           return new TreeSet<DomainVersion>(
@@ -236,6 +251,9 @@ public class TestUpdateManager extends BaseTestCase {
               }));
         }
       };
+    }
+
+    private DomainGroupVersion getMockDomainGroupVersion(final Domain domain) {
       // the domain version for this domain group version will be 0
       final DomainGroupVersionDomainVersion dgvdv =
           new MockDomainGroupVersionDomainVersion(domain, 0);
@@ -244,9 +262,9 @@ public class TestUpdateManager extends BaseTestCase {
       return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
     }
 
-    private DomainGroup getMockDomainGroup(final StorageEngine mockStorageEngine) {
+    private DomainGroup getMockDomainGroup(final Domain domain) {
       return new MockDomainGroup("myDomainGroup") {
-        private DomainGroupVersion dgv = getMockDomainGroupVersion(mockStorageEngine);
+        private DomainGroupVersion dgv = getMockDomainGroupVersion(domain);
         private SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
           add(dgv);
         }};
@@ -268,14 +286,16 @@ public class TestUpdateManager extends BaseTestCase {
     final MockUpdater mockUpdater = new MockUpdater();
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
-
-    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
-
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
+    HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
+    Host mockHost = fixtures.getMockHost(mockHostDomain);
+    Ring mockRing = fixtures.getMockRing(mockHost);
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
-        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
-        mockRingGroup, fixtures.mockRing);
+        null, "myRingGroup", "/local/data/dir"), mockHost,
+        mockRingGroup, mockRing);
     ud.update();
     assertTrue("update() was called on the storage engine",
         mockUpdater.isUpdated());
@@ -292,6 +312,7 @@ public class TestUpdateManager extends BaseTestCase {
     assertFalse("host domain partition has not yet been deleted",
         fixtures.PARTITION_FOR_DELETION.isDeleted());
 
+    // Test partition deletion
     fixtures.PARTITION_FOR_DELETION.setDeletable(true);
     ud.update();
 
@@ -299,6 +320,48 @@ public class TestUpdateManager extends BaseTestCase {
         fixtures.MOCK_DELETER.hasDeleted());
     assertTrue("host domain partition has been deleted",
         fixtures.PARTITION_FOR_DELETION.isDeleted());
+  }
+
+  public void testGarbageCollectDomain() throws Exception {
+    final MockUpdater mockUpdater = new MockUpdater();
+
+    StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
+    Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
+    MockHostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
+    Host mockHost = fixtures.getMockHost(mockHostDomain);
+    Ring mockRing = fixtures.getMockRing(mockHost);
+
+    // Empty domain group version
+    DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
+      SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
+        add(new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), null, 0));
+      }};
+
+      @Override
+      public SortedSet<DomainGroupVersion> getVersions() {
+        return versions;
+      }
+
+      @Override
+      public DomainGroupVersion getVersionByNumber(int version) {
+        return versions.first();
+      }
+    };
+
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
+
+    UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
+        null, "myRingGroup", "/local/data/dir"), mockHost,
+        mockRingGroup, mockRing);
+
+    ud.update();
+
+    assertFalse("update() was not called on the storage engine",
+        mockUpdater.isUpdated());
+
+    assertTrue("host domain does not contain the partition", fixtures.MOCK_DELETER.hasDeleted());
+    assertTrue("host domain partition has been deleted", fixtures.PARTITION_FOR_DELETION.isDeleted());
+    assertTrue("host domain has been deleted", mockHostDomain.isDeleted());
   }
 
   public void testFailedUpdateTask() throws Exception {
@@ -311,14 +374,16 @@ public class TestUpdateManager extends BaseTestCase {
     };
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(failingUpdater);
-
-    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
-
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
+    HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
+    Host mockHost = fixtures.getMockHost(mockHostDomain);
+    Ring mockRing = fixtures.getMockRing(mockHost);
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
-        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
-        mockRingGroup, fixtures.mockRing);
+        null, "myRingGroup", "/local/data/dir"), mockHost,
+        mockRingGroup, mockRing);
 
     try {
       ud.update();
@@ -333,14 +398,16 @@ public class TestUpdateManager extends BaseTestCase {
     final MockUpdater mockUpdater = new MockUpdater();
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
-
-    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockStorageEngine);
-
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
+    HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
+    Host mockHost = fixtures.getMockHost(mockHostDomain);
+    Ring mockRing = fixtures.getMockRing(mockHost);
+    DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
+    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
-        null, "myRingGroup", "/local/data/dir"), fixtures.mockHost,
-        mockRingGroup, fixtures.mockRing);
+        null, "myRingGroup", "/local/data/dir"), mockHost,
+        mockRingGroup, mockRing);
 
     try {
       // Interrupt to simulate update cancellation

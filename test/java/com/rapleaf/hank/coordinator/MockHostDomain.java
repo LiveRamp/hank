@@ -6,9 +6,9 @@ import java.util.Set;
 
 public class MockHostDomain extends AbstractHostDomain {
 
-  private final Domain domain;
+  protected final Domain domain;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
-  private boolean deletable = false;
+  private boolean deleted = false;
 
   public MockHostDomain(Domain domain, int... numberAndVersionAndUpdatingToVersionTriples) {
     this.domain = domain;
@@ -26,17 +26,8 @@ public class MockHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public boolean isDeletable() throws IOException {
-    return deletable;
-  }
-
-  @Override
-  public void setDeletable(boolean deletable) throws IOException {
-    this.deletable = deletable;
-  }
-
-  @Override
   public void delete() throws IOException {
+    deleted = true;
   }
 
   @Override
@@ -47,5 +38,9 @@ public class MockHostDomain extends AbstractHostDomain {
   @Override
   public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
+  }
+
+  public boolean isDeleted() {
+    return deleted;
   }
 }

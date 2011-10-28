@@ -176,18 +176,10 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private void startUpdate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        for (HostDomain hostDomain : host.getAssignedDomains()) {
-          final DomainGroupVersionDomainVersion dgvdv = domainGroupVersion.getDomainVersion(hostDomain.getDomain());
-          if (dgvdv == null) {
-            // This HostDomain's domain is not included in the version we are updating to. Garbage collect it.
-            LOG.info(String.format(
-                "Garbage collecting domain %s on host %s since it is updating to domain group version %s.",
-                hostDomain.getDomain(), host.getAddress(), domainGroupVersion));
-            for (HostDomainPartition partition : hostDomain.getPartitions()) {
-              partition.setDeletable(true);
-            }
-            hostDomain.setDeletable(true);
-          } else {
+        for (DomainGroupVersionDomainVersion domainGroupVersionDomainVersion : domainGroupVersion.getDomainVersions()) {
+          Domain domain = domainGroupVersionDomainVersion.getDomain();
+          HostDomain hostDomain = host.getHostDomain(domain);
+          if (hostDomain != null) {
             for (HostDomainPartition partition : hostDomain.getPartitions()) {
               // Partitions that we want to update
               partition.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());

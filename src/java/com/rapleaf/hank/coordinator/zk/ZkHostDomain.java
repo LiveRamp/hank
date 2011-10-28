@@ -18,7 +18,6 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
-import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -31,14 +30,11 @@ import java.util.Set;
 
 public class ZkHostDomain extends AbstractHostDomain {
 
-  private static final String DELETABLE_PATH_SEGMENT = ".selected_for_deletion";
-
   private final ZooKeeperPlus zk;
   private final String root;
 
   private final WatchedMap<ZkHostDomainPartition> partitions;
   private final Domain domain;
-  private final WatchedBoolean deletable;
 
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
     try {
@@ -64,7 +60,6 @@ public class ZkHostDomain extends AbstractHostDomain {
             }
           }
         });
-    deletable = new WatchedBoolean(zk, ZkPath.append(root, DELETABLE_PATH_SEGMENT), true, false);
   }
 
   @Override
@@ -85,20 +80,6 @@ public class ZkHostDomain extends AbstractHostDomain {
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
     partitions.put(Integer.toString(partNum), part);
     return part;
-  }
-
-  @Override
-  public boolean isDeletable() throws IOException {
-    return deletable.get();
-  }
-
-  @Override
-  public void setDeletable(boolean deletable) throws IOException {
-    try {
-      this.deletable.set(deletable);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 
   @Override
