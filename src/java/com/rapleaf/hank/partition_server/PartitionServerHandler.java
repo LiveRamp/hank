@@ -70,6 +70,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
         new LinkedBlockingDeque<Runnable>(),
         new GetThreadFactory());
 
+    // Prestart core threads
+    getExecutor.prestartAllCoreThreads();
+
     // Find the ring
     Ring ring = coordinator.getRingGroup(configurator.getRingGroupName()).getRingForHost(address);
     if (ring == null) {
