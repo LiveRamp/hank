@@ -306,7 +306,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
       if (domainAccessor == null) {
         return NO_SUCH_DOMAIN_BULK;
       }
-      // Execute all get tasks
+      // Build all get tasks
       HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
       GetTask[] tasks = new GetTask[keys.size()];
       int taskId = 0;
@@ -314,6 +314,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
         GetTask task = new GetTask(new GetRunnable(domainId, key));
         tasks[taskId++] = task;
       }
+      // Execute all get tasks
       executeGetTasks(tasks);
       // Wait for all get tasks and retrieve responses
       for (int i = 0; i < keys.size(); ++i) {
