@@ -16,11 +16,23 @@
 
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 public abstract class AbstractDomainGroup implements DomainGroup {
   private final Coordinator coord;
 
   protected AbstractDomainGroup(Coordinator coord) {
     this.coord = coord;
+  }
+
+  @Override
+  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+    for (DomainGroupVersion domainGroupVersion : getVersions()) {
+      if (domainGroupVersion.getVersionNumber() == versionNumber) {
+        return domainGroupVersion;
+      }
+    }
+    return null;
   }
 
   @Override

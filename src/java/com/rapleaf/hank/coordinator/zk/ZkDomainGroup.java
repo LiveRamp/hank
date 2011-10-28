@@ -116,16 +116,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   @Override
-  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
-    for (DomainGroupVersion v : getVersions()) {
-      if (v.getVersionNumber() == versionNumber) {
-        return v;
-      }
-    }
-    return null;
-  }
-
-  @Override
   public void setListener(DomainGroupChangeListener listener) {
     try {
       new StateChangeWatcher(listener);

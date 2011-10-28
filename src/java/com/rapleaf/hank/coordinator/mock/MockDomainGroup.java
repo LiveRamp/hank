@@ -21,10 +21,7 @@ import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 public class MockDomainGroup extends AbstractDomainGroup {
   private final String name;
@@ -48,12 +45,7 @@ public class MockDomainGroup extends AbstractDomainGroup {
   }
 
   public SortedSet<DomainGroupVersion> getVersions() {
-    return null;
-  }
-
-  @Override
-  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
-    return null;
+    return new TreeSet<DomainGroupVersion>();
   }
 
   @Override

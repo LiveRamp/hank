@@ -341,11 +341,6 @@ public class TestUpdateManager extends BaseTestCase {
       public SortedSet<DomainGroupVersion> getVersions() {
         return versions;
       }
-
-      @Override
-      public DomainGroupVersion getVersionByNumber(int version) {
-        return versions.first();
-      }
     };
 
     RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
