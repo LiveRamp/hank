@@ -109,8 +109,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 // Ring state is still UPDATING
                 for (Host host : ring.getHosts()) {
                   if (!Hosts.isUpToDate(host, updatingToVersion)) {
-                    LOG.info("Commanding host " + host + " to UPDATE again since it is not up to date.");
-                    host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+                    LOG.info("Host " + host + "  needs to UPDATE again since it is not up to date.");
+                    if (!host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
+                      host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+                    }
                   }
                 }
                 break;
