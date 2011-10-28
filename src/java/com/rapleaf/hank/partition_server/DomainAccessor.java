@@ -35,25 +35,27 @@ class DomainAccessor {
   private final Partitioner partitioner;
   private final String name;
   private final PartitionAccessor[] partitionAccessors;
-  private final int timeout;
-  private final Thread updateThread;
-  private boolean keepUpdating;
+  private final int updateCountersThreadSleepTimeMS;
+  private final Thread updateCountersThread;
+  private boolean updateCounters;
+
+  private static final int UPDATE_COUNTERS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
 
   public DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
                         Partitioner partitioner) throws IOException {
-    this(name, partitionAccessors, partitioner, 60000);
+    this(name, partitionAccessors, partitioner, UPDATE_COUNTERS_THREAD_SLEEP_TIME_MS_DEFAULT);
   }
 
   DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
-                 Partitioner partitioner, int timeout) throws IOException {
+                 Partitioner partitioner, int updateCountersThreadSleepTimeMS) throws IOException {
     this.name = name;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
-    this.timeout = timeout;
+    this.updateCountersThreadSleepTimeMS = updateCountersThreadSleepTimeMS;
 
-    updateThread = new Thread(new UpdateCounts(), "Update Counts");
-    keepUpdating = true;
-    updateThread.start();
+    updateCountersThread = new Thread(new UpdateCounters(), "Update Counts");
+    updateCounters = true;
+    updateCountersThread.start();
   }
 
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
@@ -70,9 +72,9 @@ class DomainAccessor {
    * This thread periodically updates the counters on the HostDomainPartition
    * with the values in the cached counters
    */
-  private class UpdateCounts implements Runnable {
+  private class UpdateCounters implements Runnable {
     public void run() {
-      while (keepUpdating) {
+      while (updateCounters) {
         for (PartitionAccessor partitionAccessor : partitionAccessors) {
           if (partitionAccessor != null) {
             try {
@@ -84,11 +86,11 @@ class DomainAccessor {
         }
         // in case we were interrupted while updating counters, avoid doing an
         // unnecessary sleep
-        if (!keepUpdating) {
+        if (!updateCounters) {
           break;
         }
         try {
-          Thread.sleep(timeout);
+          Thread.sleep(updateCountersThreadSleepTimeMS);
         } catch (InterruptedException e) {
           // Swallow InterruptedException
         }
@@ -101,8 +103,8 @@ class DomainAccessor {
   }
 
   public void shutDown() throws InterruptedException {
-    keepUpdating = false;
-    updateThread.interrupt();
-    updateThread.join();
+    updateCounters = false;
+    updateCountersThread.interrupt();
+    updateCountersThread.join();
   }
 }
