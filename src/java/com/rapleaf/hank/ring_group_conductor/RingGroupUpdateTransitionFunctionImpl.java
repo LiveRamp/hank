@@ -33,7 +33,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     Queue<Ring> downable = new LinkedList<Ring>();
 
     for (Ring ring : ringGroup.getRings()) {
-      if (Rings.isUpdatePending(ring)) {
+      if (Rings.isUpdatePending(ring) || (ring.getState() != RingState.UP)) {
         anyUpdatesPending = true;
         LOG.info("Ring "
             + ring.getRingNumber()
