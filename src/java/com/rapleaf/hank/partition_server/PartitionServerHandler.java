@@ -268,16 +268,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  // Synchronized method to add a task to the executor
-  private synchronized void executeGetTask(GetTask task) {
+  // No need to synchronie since ThreadPoolExecutor's execute method is thread-safe
+  private void executeGetTask(GetTask task) {
     getExecutor.execute(task);
-  }
-
-  // Synchronized method to add multiple tasks to the executor
-  private synchronized void executeGetTasks(GetTask[] tasks) {
-    for (GetTask task : tasks) {
-      getExecutor.execute(task);
-    }
   }
 
   // Add get task
@@ -306,16 +299,15 @@ class PartitionServerHandler implements IfaceWithShutdown {
       if (domainAccessor == null) {
         return NO_SUCH_DOMAIN_BULK;
       }
-      // Build all get tasks
+      // Build and execute all get tasks
       HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
       GetTask[] tasks = new GetTask[keys.size()];
       int taskId = 0;
       for (ByteBuffer key : keys) {
         GetTask task = new GetTask(new GetRunnable(domainId, key));
+        executeGetTask(task);
         tasks[taskId++] = task;
       }
-      // Execute all get tasks
-      executeGetTasks(tasks);
       // Wait for all get tasks and retrieve responses
       for (int i = 0; i < keys.size(); ++i) {
         try {
