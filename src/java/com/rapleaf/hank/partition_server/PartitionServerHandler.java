@@ -67,7 +67,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
         configurator.getNumConcurrentGets(),
         GET_EXECUTOR_KEEP_ALIVE_VALUE,
         GET_EXECUTOR_KEEP_ALIVE_UNIT,
-        new LinkedBlockingDeque<Runnable>(),
+        new LinkedBlockingQueue<Runnable>(),
         new GetThreadFactory());
 
     // Prestart core threads
