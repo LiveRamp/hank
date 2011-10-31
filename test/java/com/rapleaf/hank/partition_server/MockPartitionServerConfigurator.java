@@ -61,7 +61,12 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public int getNumConcurrentGets() {
+  public int getNumConcurrentGetBulkTasks() {
+    return 1;
+  }
+
+  @Override
+  public int getGetBulkTaskSize() {
     return 1;
   }
 

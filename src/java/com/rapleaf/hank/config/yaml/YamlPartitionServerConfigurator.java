@@ -30,7 +30,8 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   private static final String NUM_CONCURRENT_CONNECTIONS_KEY = "num_worker_threads";
   private static final String UPDATE_DAEMON_SECTION_KEY = "update_daemon";
   private static final String NUM_CONCURRENT_UPDATES_KEY = "num_concurrent_updates";
-  private static final String NUM_CONCURRENT_GETS_KEY = "num_concurrent_gets";
+  private static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
+  private static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
 
   public YamlPartitionServerConfigurator(String path) throws IOException,
       InvalidConfigurationException {
@@ -89,8 +90,11 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
     if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_CONNECTIONS_KEY) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_CONNECTIONS_KEY) instanceof Integer)) {
       throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_CONNECTIONS_KEY + " key of type int!");
     }
-    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_GETS_KEY) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_GETS_KEY) instanceof Integer)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_GETS_KEY + " key of type int!");
+    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_GET_BULK_TASKS) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_GET_BULK_TASKS) instanceof Integer)) {
+      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_GET_BULK_TASKS + " key of type int!");
+    }
+    if (!partitionServerDaemonSection.containsKey(GET_BULK_TASK_SIZE) || !(partitionServerDaemonSection.get(GET_BULK_TASK_SIZE) instanceof Integer)) {
+      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + GET_BULK_TASK_SIZE + " key of type int!");
     }
 
     // update daemon section
@@ -117,7 +121,12 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   }
 
   @Override
-  public int getNumConcurrentGets() {
-    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(NUM_CONCURRENT_GETS_KEY)).intValue();
+  public int getNumConcurrentGetBulkTasks() {
+    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(NUM_CONCURRENT_GET_BULK_TASKS)).intValue();
+  }
+
+  @Override
+  public int getGetBulkTaskSize() {
+    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(GET_BULK_TASK_SIZE)).intValue();
   }
 }

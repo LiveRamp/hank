@@ -48,31 +48,33 @@ class PartitionServerHandler implements IfaceWithShutdown {
       HankException.internal_error("Interrupted while waiting for GET to complete."));
   private static final HankBulkResponse INTERRUPTED_GET_BULK = HankBulkResponse.xception(
       HankException.internal_error("Interrupted while waiting for GET BULK to complete."));
-
-  private final DomainAccessor[] domainAccessors;
-  private final ThreadPoolExecutor getExecutor;
-  private final long GET_EXECUTOR_KEEP_ALIVE_VALUE = 1;
-  private final TimeUnit GET_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
-  private static int GET_BULK_TASK_SIZE = 10;
+  private final int getBulkTaskSize;
+  private final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
+  private final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
   private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1000);
   private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1);
+
+  private final ThreadPoolExecutor getBulkTaskExecutor;
+  private final DomainAccessor[] domainAccessors;
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator,
                                 Coordinator coordinator) throws IOException {
     // Create the GET executor
-    getExecutor = new ThreadPoolExecutor(
-        configurator.getNumConcurrentGets(),
-        configurator.getNumConcurrentGets(),
-        GET_EXECUTOR_KEEP_ALIVE_VALUE,
-        GET_EXECUTOR_KEEP_ALIVE_UNIT,
+    getBulkTaskExecutor = new ThreadPoolExecutor(
+        configurator.getNumConcurrentGetBulkTasks(),
+        configurator.getNumConcurrentGetBulkTasks(),
+        GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE,
+        GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT,
         new LinkedBlockingQueue<Runnable>(),
         new GetBulkThreadFactory());
 
+    getBulkTaskSize = configurator.getGetBulkTaskSize();
+
     // Prestart core threads
-    getExecutor.prestartAllCoreThreads();
+    getBulkTaskExecutor.prestartAllCoreThreads();
 
     // Find the ring
     Ring ring = coordinator.getRingGroup(configurator.getRingGroupName()).getRingForHost(address);
@@ -205,12 +207,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
       // Build and execute all get bulk tasks
       HankBulkResponse bulkResponse = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
-      GetBulkTask[] tasks = new GetBulkTask[(keys.size() / GET_BULK_TASK_SIZE) + 1];
+      GetBulkTask[] tasks = new GetBulkTask[(keys.size() / getBulkTaskSize) + 1];
       int maxTaskIndex = 0;
-      for (int i = 0; i < keys.size(); i += GET_BULK_TASK_SIZE) {
+      for (int i = 0; i < keys.size(); i += getBulkTaskSize) {
         GetBulkTask task = new GetBulkTask(new GetBulkRunnable(domainId, keys, i));
         // No need to synchronize since ThreadPoolExecutor's execute() is thread-safe
-        getExecutor.execute(task);
+        getBulkTaskExecutor.execute(task);
         tasks[maxTaskIndex++] = task;
       }
       // Wait for all get tasks and retrieve responses
@@ -299,9 +301,9 @@ class PartitionServerHandler implements IfaceWithShutdown {
     public void run() {
       ReaderResult result = ((GetThread) Thread.currentThread()).getResult();
       result.clear();
-      responses = new HankResponse[GET_BULK_TASK_SIZE];
+      responses = new HankResponse[getBulkTaskSize];
       // Perform GET requests for keys starting at firstKeyIndex up to GET_BULK_TASK_SIZE keys or until the last key
-      for (int keyOffset = 0; keyOffset < GET_BULK_TASK_SIZE
+      for (int keyOffset = 0; keyOffset < getBulkTaskSize
           && (firstKeyIndex + keyOffset) < keys.size(); keyOffset++) {
         responses[keyOffset] =
             _get(PartitionServerHandler.this, domainId, keys.get(firstKeyIndex + keyOffset), result);
@@ -338,7 +340,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   public void shutDown() throws InterruptedException {
     // Shutdown GET tasks
-    getExecutor.shutdown();
+    getBulkTaskExecutor.shutdown();
     // Shutdown domain accessors
     for (DomainAccessor domainAccessor : domainAccessors) {
       if (domainAccessor != null) {

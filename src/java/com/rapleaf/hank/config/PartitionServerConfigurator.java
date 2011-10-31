@@ -23,6 +23,7 @@ import java.util.Set;
 public interface PartitionServerConfigurator extends Configurator {
   /**
    * Where are the daemons on this host allowed to write data?
+   *
    * @return
    */
   public Set<String> getLocalDataDirectories();
@@ -30,6 +31,7 @@ public interface PartitionServerConfigurator extends Configurator {
   /**
    * Which port should the Part Daemon launch it's Thrift service on? Which port
    * should the Update Daemon use to identify itself to the Coordinator?
+   *
    * @return
    */
   public int getServicePort();
@@ -44,15 +46,19 @@ public interface PartitionServerConfigurator extends Configurator {
 
   /**
    * How many concurrent updates the Update Daemon should allow to occur.
+   *
    * @return
    */
   public int getNumConcurrentUpdates();
 
   /**
    * How many threads allowed to the Thrift Server.
+   *
    * @return
    */
   public int getNumConcurrentConnections();
 
-  public int getNumConcurrentGets();
+  public int getNumConcurrentGetBulkTasks();
+
+  public int getGetBulkTaskSize();
 }

@@ -131,7 +131,8 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    - " + localTmpDir + "/" + hostDotPort);
       pw.println("  partition_server_daemon:");
       pw.println("    num_worker_threads: 1");
-      pw.println("    num_concurrent_gets: 1");
+      pw.println("    num_concurrent_get_bulk_tasks: 1");
+      pw.println("    get_bulk_task_size: 2");
       pw.println("  update_daemon:");
       pw.println("    num_concurrent_updates: 1");
       coordinatorConfig(pw);
