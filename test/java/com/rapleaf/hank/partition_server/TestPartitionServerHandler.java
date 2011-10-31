@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.MapPartitioner;
@@ -78,11 +79,37 @@ public class TestPartitionServerHandler extends BaseTestCase {
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
 
     assertEquals(HankResponse.xception(HankException.wrong_host(true)),
-        handler.get((byte) 0, K2));
+        handler.get(0, K2));
     assertEquals(HankResponse.xception(HankException.wrong_host(true)),
-        handler.get((byte) 0, K3));
+        handler.get(0, K3));
     assertEquals(HankResponse.xception(HankException.wrong_host(true)),
-        handler.get((byte) 0, K4));
+        handler.get(0, K4));
+  }
+
+  public void testSetUpAndServeBulk() throws Exception {
+    PartitionServerHandler handler = createHandler(1);
+
+    // Regular bulk request
+    List<ByteBuffer> keys1 = new ArrayList<ByteBuffer>();
+    keys1.add(K1);
+    keys1.add(K2);
+    keys1.add(K5);
+
+    ArrayList<HankResponse> responses1 = new ArrayList<HankResponse>();
+    responses1.add(HankResponse.value(V1));
+    responses1.add(HankResponse.xception(HankException.wrong_host(true)));
+    responses1.add(HankResponse.value(V1));
+
+    assertEquals(HankBulkResponse.responses(responses1), handler.getBulk(0, keys1));
+
+    // Large bulk request
+    List<ByteBuffer> keys2 = new ArrayList<ByteBuffer>();
+    ArrayList<HankResponse> responses2 = new ArrayList<HankResponse>();
+    for (int i = 0; i < 10000; ++i) {
+      keys2.add(K1);
+      responses2.add(HankResponse.value(V1));
+    }
+    assertEquals(HankBulkResponse.responses(responses2), handler.getBulk(0, keys2));
   }
 
   private PartitionServerHandler createHandler(final int readerVersionNumber) throws IOException {
