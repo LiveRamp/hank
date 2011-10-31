@@ -115,7 +115,7 @@
 <table class='table-blue'>
   <tr>
     <th>Version Number</th>
-    <th>Status</th>
+    <th>State</th>
     <th>Size</th>
     <th>Number of Records</th>
     <th></th>

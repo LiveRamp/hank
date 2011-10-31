@@ -50,7 +50,7 @@
     <tr>
       <th>Ring Group</th>
       <th>Domain Group</th>
-      <th>Status</th>
+      <th>State</th>
       <th></th>
       <th></th>
     </tr>

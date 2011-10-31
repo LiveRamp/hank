@@ -43,10 +43,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <span class='currentItem'>Ring <%=ring.getRingNumber()%></span>
   </h1>
 
-  <h2>Status</h2>
+  <h2>State</h2>
 
   <div>
-    Ring status: <%=ring.getState()%> <br/>
+    Ring state: <%=ring.getState()%> <br/>
     <%
       if (Rings.isUpdatePending(ring)) {
     %>
@@ -102,7 +102,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <table width=800 class='table-blue'>
     <tr>
       <th>Host Address</th>
-      <th>Status</th>
+      <th>State</th>
       <th></th>
       <th></th>
       <th>Current Command</th>

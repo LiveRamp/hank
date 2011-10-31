@@ -43,7 +43,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   </h1>
 
   <div class='box-section'>
-    <h2>Status</h2>
+    <h2>State</h2>
     <div class='box-section-content'>
       <div>
         <%
@@ -87,7 +87,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <table class='table-blue'>
     <tr>
       <th>Ring</th>
-      <th>Status</th>
+      <th>State</th>
       <th></th>
       <th></th>
       <th>Current version</th>
