@@ -22,11 +22,11 @@ public class WebUiServerTester extends ZkTestCase {
 
     // Assign
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
-    RingGroup rgAlpha = coordinator.getRingGroup("rgAlpha");
-    DomainGroupVersion g1v1 = coordinator.getDomainGroup("g1").getVersionByNumber(1);
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(1));
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(2));
-    partitionAssigner.assign(g1v1, rgAlpha.getRing(3));
+    RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
+    DomainGroupVersion dgv = DomainGroups.getLatestVersion(coordinator.getDomainGroup("Group_1"));
+    partitionAssigner.assign(dgv, rgAlpha.getRing(1));
+    partitionAssigner.assign(dgv, rgAlpha.getRing(2));
+    partitionAssigner.assign(dgv, rgAlpha.getRing(3));
     // Set updated partitions
     int frequency = 1;
     for (Host host : rgAlpha.getRing(1).getHosts()) {
