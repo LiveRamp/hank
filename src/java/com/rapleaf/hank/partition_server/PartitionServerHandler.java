@@ -222,33 +222,11 @@ class PartitionServerHandler implements IfaceWithShutdown {
     public void run() {
       ReaderResult result = ((GetThread) Thread.currentThread()).getResult();
       result.clear();
-      response = get(domainId, key, result);
+      response = _get(PartitionServerHandler.this, domainId, key, result);
     }
 
     public HankResponse getResponse() {
       return response;
-    }
-
-    private HankResponse get(int domainId, ByteBuffer key, ReaderResult result) {
-      DomainAccessor domainAccessor = getDomainAccessor(domainId);
-      if (domainAccessor == null) {
-        return NO_SUCH_DOMAIN;
-      }
-      try {
-        return domainAccessor.get(key, result);
-      } catch (IOException e) {
-        String errMsg = String.format(
-            "Exception during GET. Domain: %s (domain #%d) Key: %s",
-            domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
-        LOG.error(errMsg, e);
-        return HankResponse.xception(
-            HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
-      } catch (Throwable t) {
-        String errMsg = "Throwable during GET";
-        LOG.fatal(errMsg, t);
-        return HankResponse.xception(
-            HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
-      }
     }
   }
 
@@ -273,20 +251,34 @@ class PartitionServerHandler implements IfaceWithShutdown {
     getExecutor.execute(task);
   }
 
-  // Add get task
-  public HankResponse get(int domainId, ByteBuffer key) {
-    HankTimer timer = getTimerAggregator.getTimer();
+  private HankResponse _get(PartitionServerHandler partitionServerHandler, int domainId, ByteBuffer key, ReaderResult result) {
+    DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
+    if (domainAccessor == null) {
+      return NO_SUCH_DOMAIN;
+    }
     try {
-      GetTask task = new GetTask(new GetRunnable(domainId, key));
-      executeGetTask(task);
-      return task.getResponse();
-    } catch (InterruptedException e) {
-      return INTERRUPTED_GET;
+      return domainAccessor.get(key, result);
+    } catch (IOException e) {
+      String errMsg = String.format(
+          "Exception during GET. Domain: %s (domain #%d) Key: %s",
+          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
+      LOG.error(errMsg, e);
+      return HankResponse.xception(
+          HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
     } catch (Throwable t) {
       String errMsg = "Throwable during GET";
       LOG.fatal(errMsg, t);
       return HankResponse.xception(
           HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
+    }
+  }
+
+  public HankResponse get(int domainId, ByteBuffer key) {
+    HankTimer timer = getTimerAggregator.getTimer();
+    try {
+      // TODO: re-use result
+      ReaderResult result = new ReaderResult();
+      return _get(this, domainId, key, result);
     } finally {
       getTimerAggregator.add(timer);
     }
