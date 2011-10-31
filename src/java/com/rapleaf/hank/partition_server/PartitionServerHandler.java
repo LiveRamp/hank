@@ -53,6 +53,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private final ThreadPoolExecutor getExecutor;
   private final long GET_EXECUTOR_KEEP_ALIVE_VALUE = 1;
   private final TimeUnit GET_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
+  private static int GET_BULK_TASK_SIZE = 10;
 
   private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1000);
   private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1);
@@ -68,7 +69,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
         GET_EXECUTOR_KEEP_ALIVE_VALUE,
         GET_EXECUTOR_KEEP_ALIVE_UNIT,
         new LinkedBlockingQueue<Runnable>(),
-        new GetThreadFactory());
+        new GetBulkThreadFactory());
 
     // Prestart core threads
     getExecutor.prestartAllCoreThreads();
@@ -184,71 +185,55 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  private static class GetThread extends Thread {
-
-    private ReaderResult result = new ReaderResult();
-
-    public GetThread(Runnable runnable, String name) {
-      super(runnable, name);
-    }
-
-    public ReaderResult getResult() {
-      return result;
+  public HankResponse get(int domainId, ByteBuffer key) {
+    HankTimer timer = getTimerAggregator.getTimer();
+    try {
+      // TODO: re-use result
+      ReaderResult result = new ReaderResult();
+      return _get(this, domainId, key, result);
+    } finally {
+      getTimerAggregator.add(timer);
     }
   }
 
-  private static class GetThreadFactory implements ThreadFactory {
-
-    private int threadId = 0;
-
-    @Override
-    public Thread newThread(Runnable runnable) {
-      return new GetThread(runnable, "GET Thread " + threadId++);
+  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
+    HankTimer timer = getBulkTimerAggregator.getTimer();
+    try {
+      DomainAccessor domainAccessor = getDomainAccessor(domainId);
+      if (domainAccessor == null) {
+        return NO_SUCH_DOMAIN_BULK;
+      }
+      // Build and execute all get bulk tasks
+      HankBulkResponse bulkResponse = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
+      GetBulkTask[] tasks = new GetBulkTask[(keys.size() / GET_BULK_TASK_SIZE) + 1];
+      int maxTaskIndex = 0;
+      for (int i = 0; i < keys.size(); i += GET_BULK_TASK_SIZE) {
+        GetBulkTask task = new GetBulkTask(new GetBulkRunnable(domainId, keys, i));
+        // No need to synchronize since ThreadPoolExecutor's execute() is thread-safe
+        getExecutor.execute(task);
+        tasks[maxTaskIndex++] = task;
+      }
+      // Wait for all get tasks and retrieve responses
+      for (int taskIndex = 0; taskIndex < maxTaskIndex; ++taskIndex) {
+        HankResponse[] responses = tasks[taskIndex].getResponses();
+        for (HankResponse response : responses) {
+          // Check if we have retrieved all responses
+          if (bulkResponse.get_responses().size() == keys.size()) {
+            break;
+          } else {
+            bulkResponse.get_responses().add(response);
+          }
+        }
+      }
+      return bulkResponse;
+    } catch (Throwable t) {
+      String errMsg = "Throwable during GET BULK";
+      LOG.fatal(errMsg, t);
+      return HankBulkResponse.xception(
+          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
+    } finally {
+      getBulkTimerAggregator.add(timer, keys.size());
     }
-  }
-
-  private class GetRunnable implements Runnable {
-
-    private final int domainId;
-    private final ByteBuffer key;
-    private HankResponse response;
-
-    public GetRunnable(int domainId, ByteBuffer key) {
-      this.domainId = domainId;
-      this.key = key;
-    }
-
-    @Override
-    public void run() {
-      ReaderResult result = ((GetThread) Thread.currentThread()).getResult();
-      result.clear();
-      response = _get(PartitionServerHandler.this, domainId, key, result);
-    }
-
-    public HankResponse getResponse() {
-      return response;
-    }
-  }
-
-  private class GetTask extends FutureTask<Object> {
-
-    private final GetRunnable runnable;
-
-    public GetTask(GetRunnable runnable) {
-      super(runnable, new Object());
-      this.runnable = runnable;
-    }
-
-    // Wait for termination and return response
-    public HankResponse getResponse() throws ExecutionException, InterruptedException {
-      this.get();
-      return runnable.getResponse();
-    }
-  }
-
-  // No need to synchronie since ThreadPoolExecutor's execute method is thread-safe
-  private void executeGetTask(GetTask task) {
-    getExecutor.execute(task);
   }
 
   private HankResponse _get(PartitionServerHandler partitionServerHandler, int domainId, ByteBuffer key, ReaderResult result) {
@@ -273,49 +258,74 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  public HankResponse get(int domainId, ByteBuffer key) {
-    HankTimer timer = getTimerAggregator.getTimer();
-    try {
-      // TODO: re-use result
-      ReaderResult result = new ReaderResult();
-      return _get(this, domainId, key, result);
-    } finally {
-      getTimerAggregator.add(timer);
+  private static class GetThread extends Thread {
+
+    private ReaderResult result = new ReaderResult();
+
+    public GetThread(Runnable runnable, String name) {
+      super(runnable, name);
+    }
+
+    public ReaderResult getResult() {
+      return result;
     }
   }
 
-  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
-    HankTimer timer = getBulkTimerAggregator.getTimer();
-    try {
-      DomainAccessor domainAccessor = getDomainAccessor(domainId);
-      if (domainAccessor == null) {
-        return NO_SUCH_DOMAIN_BULK;
+  private static class GetBulkThreadFactory implements ThreadFactory {
+
+    private int threadId = 0;
+
+    @Override
+    public Thread newThread(Runnable runnable) {
+      return new GetThread(runnable, "GET Thread " + threadId++);
+    }
+  }
+
+  private class GetBulkRunnable implements Runnable {
+
+    private final int domainId;
+    private final List<ByteBuffer> keys;
+    private final int firstKeyIndex;
+    private HankResponse[] responses;
+
+    // Perform GET requests for keys starting at firstKeyIndex and in a window of size GET_BULK_TASK_SIZE
+    public GetBulkRunnable(int domainId, List<ByteBuffer> keys, int firstKeyIndex) {
+      this.domainId = domainId;
+      this.keys = keys;
+      this.firstKeyIndex = firstKeyIndex;
+    }
+
+    @Override
+    public void run() {
+      ReaderResult result = ((GetThread) Thread.currentThread()).getResult();
+      result.clear();
+      responses = new HankResponse[GET_BULK_TASK_SIZE];
+      // Perform GET requests for keys starting at firstKeyIndex up to GET_BULK_TASK_SIZE keys or until the last key
+      for (int keyOffset = 0; keyOffset < GET_BULK_TASK_SIZE
+          && (firstKeyIndex + keyOffset) < keys.size(); keyOffset++) {
+        responses[keyOffset] =
+            _get(PartitionServerHandler.this, domainId, keys.get(firstKeyIndex + keyOffset), result);
       }
-      // Build and execute all get tasks
-      HankBulkResponse response = HankBulkResponse.responses(new ArrayList<HankResponse>(keys.size()));
-      GetTask[] tasks = new GetTask[keys.size()];
-      int taskId = 0;
-      for (ByteBuffer key : keys) {
-        GetTask task = new GetTask(new GetRunnable(domainId, key));
-        executeGetTask(task);
-        tasks[taskId++] = task;
-      }
-      // Wait for all get tasks and retrieve responses
-      for (int i = 0; i < keys.size(); ++i) {
-        try {
-          response.get_responses().add(tasks[i].getResponse());
-        } catch (InterruptedException e) {
-          return INTERRUPTED_GET_BULK;
-        }
-      }
-      return response;
-    } catch (Throwable t) {
-      String errMsg = "Throwable during GET BULK";
-      LOG.fatal(errMsg, t);
-      return HankBulkResponse.xception(
-          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
-    } finally {
-      getBulkTimerAggregator.add(timer, keys.size());
+    }
+
+    public HankResponse[] getResponses() {
+      return responses;
+    }
+  }
+
+  private class GetBulkTask extends FutureTask<Object> {
+
+    private final GetBulkRunnable runnable;
+
+    public GetBulkTask(GetBulkRunnable runnable) {
+      super(runnable, new Object());
+      this.runnable = runnable;
+    }
+
+    // Wait for termination and return response
+    public HankResponse[] getResponses() throws ExecutionException, InterruptedException {
+      this.get();
+      return runnable.getResponses();
     }
   }
 
