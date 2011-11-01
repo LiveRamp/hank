@@ -29,6 +29,7 @@ public class MockHost extends AbstractHost {
   private HostCommand lastEnqueuedCommand;
   private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
   private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
+  private final Set<HostStateChangeListener> hostStateChangeListeners = new HashSet<HostStateChangeListener>();
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
 
   public MockHost(PartitionServerAddress address) {
@@ -66,6 +67,7 @@ public class MockHost extends AbstractHost {
 
   @Override
   public void setStateChangeListener(HostStateChangeListener listener) {
+    hostStateChangeListeners.add(listener);
   }
 
   @Override
@@ -81,6 +83,13 @@ public class MockHost extends AbstractHost {
   @Override
   public void setState(HostState state) throws IOException {
     this.state = state;
+    notifyHostStateChangeListeners();
+  }
+
+  private void notifyHostStateChangeListeners() {
+    for (HostStateChangeListener listener : hostStateChangeListeners) {
+      listener.onHostStateChange(this);
+    }
   }
 
   @Override
