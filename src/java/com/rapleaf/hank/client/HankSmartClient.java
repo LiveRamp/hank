@@ -272,17 +272,11 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
     LOG.debug("Smart client notified of ring group change");
-    try {
-      loadCache(numConnectionsPerHost);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (TException e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
   public void onRingStateChange(Ring ring) {
+    LOG.debug("Smart client notified of ring state change");
   }
 
   private static class BulkRequest {
