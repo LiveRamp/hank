@@ -116,7 +116,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     %>
     <tr>
       <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
-      <td>
+      <td class='<%= UiUtils.hostStateToClass(host.getState()) %>'>
       <%= host.getState() %>
       </td>
       <%
@@ -142,7 +142,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td></td>
       <td></td>
       <% } %>
-      <td><%= host.getCurrentCommand() %></td>
+      <td class='centered'><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
       <td>
         <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">

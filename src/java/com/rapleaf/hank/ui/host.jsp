@@ -44,7 +44,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <div>
   <h2>State</h2>
-  Currently <%= host.getState() %> <%= Hosts.isOnline(host) ? "(online)" : "" %><br/>
+  <span class='<%= UiUtils.hostStateToClass(host.getState()) %>'><%= host.getState() %></span>
   <form method="post" action="/host/discard_current_command">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>

@@ -92,7 +92,11 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th></th>
       <th>Current version</th>
       <th>Next version</th>
-      <th>Number of hosts</th>
+      <th>Hosts</th>
+      <th>Serving</th>
+      <th>Updating</th>
+      <th>Idle</th>
+      <th>Offline</th>
       <th></th>
     </tr>
     <%
@@ -100,7 +104,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     %>
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
-      <td><%=ring.getState()%></td>
+      <td class='centered'><%=ring.getState()%></td>
       <%
       UpdateProgress progress = null;
       if (RingGroups.isUpdating(ringGroup)) {
@@ -117,7 +121,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </div>
       </td>
       <td>
-        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% updated
+        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions updated
         (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
       </td>
       <% } else { %>
@@ -125,9 +129,40 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <td></td>
       <% } %>
 
-      <td><%=ring.getVersionNumber()%></td>
-      <td><%=ring.getUpdatingToVersionNumber()%></td>
-      <td><%=ring.getHosts().size()%></td>
+      <td class='centered'><%= ring.getVersionNumber() %></td>
+      <td class='centered'><%= ring.getUpdatingToVersionNumber() %></td>
+
+      <%
+      int hostsTotal = ring.getHosts().size();
+      int hostsServing = Rings.getHostsInState(ring, HostState.SERVING).size();
+      int hostsUpdating = Rings.getHostsInState(ring, HostState.UPDATING).size();
+      int hostsIdle = Rings.getHostsInState(ring, HostState.IDLE).size();
+      int hostsOffline = Rings.getHostsInState(ring, HostState.OFFLINE).size();
+      %>
+
+      <td class='host-total'><%= hostsTotal %></td>
+      <% if (hostsServing != 0) { %>
+        <td class='host-serving'><%= hostsServing %></td>
+      <% } else { %>
+        <td></td>
+      <% } %>
+      <% if (hostsUpdating != 0) { %>
+        <td class='host-updating'><%= hostsUpdating %></td>
+      <% } else { %>
+        <td></td>
+      <% } %>
+      <% if (hostsIdle != 0) { %>
+        <td class='host-idle'><%= hostsIdle %></td>
+      <% } else { %>
+        <td></td>
+      <% } %>
+      <% if (hostsOffline != 0) { %>
+        <td class='host-offline'><%= hostsOffline %></td>
+      <% } else { %>
+        <td></td>
+      <% } %>
+
+
       <td>
         <form action="/ring_group/delete_ring" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
@@ -146,7 +181,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <div class='box-section'>
     <h2>Query</h2>
     <% if (ringGroup.getCurrentVersion() == null) { %>
-      Query disabled because no domain group version is currently deployed!
+      Query disabled because no domain group version is currently deployed.
     <% } else { %>
     <div class='box-section-content'>
       <form action="/ring_group.jsp" method=post>

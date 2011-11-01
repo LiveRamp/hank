@@ -17,6 +17,8 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.TreeSet;
 
 public final class RingGroups {
   private RingGroups() {}
@@ -41,5 +43,30 @@ public final class RingGroups {
       result.aggregate(Rings.computeUpdateProgress(ring, domainGroupVersion));
     }
     return result;
+  }
+
+  public static int getNumHosts(RingGroup ringGroup) {
+    int result = 0;
+    for (Ring ring : ringGroup.getRings()) {
+      result += ring.getHosts().size();
+    }
+    return result;
+  }
+
+  public static Set<Host> getHostsInState(RingGroup ringGroup, HostState state) throws IOException {
+    Set<Host> result = new TreeSet<Host>();
+    for (Ring ring : ringGroup.getRings()) {
+      result.addAll(Rings.getHostsInState(ring, state));
+    }
+    return result;
+  }
+
+  public static ServingStatusAggregator
+  computeServingStatusAggregator(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
+    ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();
+    for (Ring ring : ringGroup.getRings()) {
+      servingStatusAggregator.aggregate(Rings.computeServingStatusAggregator(ring, domainGroupVersion));
+    }
+    return servingStatusAggregator;
   }
 }

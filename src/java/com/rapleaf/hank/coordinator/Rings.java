@@ -185,4 +185,13 @@ public class Rings {
     }
     return result;
   }
+
+  public static ServingStatusAggregator
+  computeServingStatusAggregator(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();
+    for (Host host : ring.getHosts()) {
+      servingStatusAggregator.aggregate(Hosts.computeServingStatusAggregator(host, domainGroupVersion));
+    }
+    return servingStatusAggregator;
+  }
 }

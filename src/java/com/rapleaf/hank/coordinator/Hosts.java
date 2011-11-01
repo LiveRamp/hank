@@ -125,4 +125,23 @@ public final class Hosts {
     }
     return true;
   }
+
+  public static ServingStatusAggregator
+  computeServingStatusAggregator(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+    ServingStatusAggregator result = new ServingStatusAggregator();
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        // Ignore deletable partitions
+        if (!partition.isDeletable()) {
+          // Check if partition is served and up to date
+          boolean servedAndUpToDate =
+              host.getState() == HostState.SERVING &&
+              partition.getCurrentDomainGroupVersion() == domainGroupVersion.getVersionNumber();
+          // Aggregate counts
+          result.add(hostDomain.getDomain(), partition.getPartitionNumber(), servedAndUpToDate);
+        }
+      }
+    }
+    return result;
+  }
 }

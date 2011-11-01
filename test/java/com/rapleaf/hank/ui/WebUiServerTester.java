@@ -41,6 +41,34 @@ public class WebUiServerTester extends ZkTestCase {
       }
     }
 
+    // Set host states
+    frequency = 1;
+    for (Ring ring : rgAlpha.getRings()) {
+      for (Host host : ring.getHosts()) {
+        ++frequency;
+        switch (frequency % HostState.values().length) {
+          case 0:
+            host.setState(HostState.SERVING);
+            break;
+          case 1:
+            host.setState(HostState.UPDATING);
+            break;
+          case 2:
+            host.setState(HostState.IDLE);
+            break;
+          case 3:
+            host.setState(HostState.OFFLINE);
+            break;
+          default:
+            throw new RuntimeException("Unknown host state ID.");
+        }
+      }
+    }
+
+    // Set versions
+    RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
+    rgBeta.updateComplete();
+
     final Iface mockClient = new Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {
         {

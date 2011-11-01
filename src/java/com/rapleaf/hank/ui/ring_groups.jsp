@@ -53,6 +53,14 @@
       <th>State</th>
       <th></th>
       <th></th>
+      <th>Current Version</th>
+      <th>Hosts</th>
+      <th>Serving</th>
+      <th>Updating</th>
+      <th>Idle</th>
+      <th>Offline</th>
+      <th>Partitions served</th>
+      <th>Unique partitions served</th>
     </tr>
     <%
       for (RingGroup ringGroup : ringGroups(coord)) {
@@ -86,6 +94,71 @@
         <td></td>
         <td></td>
         <% } %>
+
+
+        <td class='centered'><%= ringGroup.getCurrentVersion() %></td>
+
+        <%
+        int hostsTotal = RingGroups.getNumHosts(ringGroup);
+        int hostsServing = RingGroups.getHostsInState(ringGroup, HostState.SERVING).size();
+        int hostsUpdating = RingGroups.getHostsInState(ringGroup, HostState.UPDATING).size();
+        int hostsIdle = RingGroups.getHostsInState(ringGroup, HostState.IDLE).size();
+        int hostsOffline = RingGroups.getHostsInState(ringGroup, HostState.OFFLINE).size();
+        %>
+
+        <td class='host-total'><%= hostsTotal %></td>
+        <% if (hostsServing != 0) { %>
+          <td class='host-serving'><%= hostsServing %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+        <% if (hostsUpdating != 0) { %>
+          <td class='host-updating'><%= hostsUpdating %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+        <% if (hostsIdle != 0) { %>
+          <td class='host-idle'><%= hostsIdle %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+        <% if (hostsOffline != 0) { %>
+          <td class='host-offline'><%= hostsOffline %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+
+        <%
+        ServingStatusAggregator servingStatusAggregator = null;
+        ServingStatus servingStatus = null;
+        ServingStatus uniquePartitionsServingStatus = null;
+        if (ringGroup.getCurrentVersion() != null) {
+          DomainGroupVersion currentDomainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion());
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, currentDomainGroupVersion);
+          servingStatus = servingStatusAggregator.computeServingStatus();
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(currentDomainGroupVersion);
+        }
+        %>
+        <% if (servingStatusAggregator != null) { %>
+          <% if (servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
+            <td class='centered'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
+          </td>
+          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
+            <td class='centered'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
+          </td>
+        <% } else { %>
+          <td class='centered'>-</td>
+          <td class='centered'>-</td>
+        <% } %>
+
 
       </tr>
       <%
