@@ -227,7 +227,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
       // Query a random partition server that has this partition
       PartitionServerAddress partitionServerAddress =
-          partitionServerAddresses.get(random.nextInt() % partitionServerAddresses.size());
+          partitionServerAddresses.get(random.nextInt(partitionServerAddresses.size()));
 
       // Add this key to the bulk request object corresponding to the chosen partition server
       if (!partitionServerTobulkRequest.containsKey(partitionServerAddress)) {
