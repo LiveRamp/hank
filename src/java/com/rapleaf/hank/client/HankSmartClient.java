@@ -83,18 +83,21 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // Preprocess the config to create skeleton domain -> part -> [hosts] map
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     if (domainGroup == null) {
-      LOG.error("Could not get domain group of ring group " + ringGroup);
-      return;
+      String errMsg = "Could not get domain group of ring group " + ringGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
     }
     Integer currentVersion = ringGroup.getCurrentVersion();
     if (currentVersion == null) {
-      LOG.error("Could not get current version of ring group " + ringGroup);
-      return;
+      String errMsg = "Could not get current version of ring group " + ringGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
     }
     DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(currentVersion);
     if (domainGroupVersion == null) {
-      LOG.error("Could not get version " + currentVersion + " of domain group " + domainGroup);
-      return;
+      String errMsg = "Could not get version " + currentVersion + " of domain group " + domainGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
     }
 
     // Build domainToPartitionToPartitionServerAdresses with empty address lists
