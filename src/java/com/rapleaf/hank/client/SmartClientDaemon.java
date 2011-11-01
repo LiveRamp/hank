@@ -43,6 +43,7 @@ public class SmartClientDaemon {
   private final String ringGroupName;
   private Thread serverThread;
   private TServer server;
+  private boolean serverFailed;
   private static final int WAITING_FOR_SERVER_MAX_TENTATIVES = 30;
   private static final int WAITING_FOR_SERVER_TIMEOUT_MS = 1000;
 
@@ -94,30 +95,37 @@ public class SmartClientDaemon {
         try {
           serve();
         } catch (Exception e) {
-          LOG.fatal("Unexpected error in server main loop!", e);
+          serverFailed = true;
+          LOG.fatal("Unexpected error in smart client server", e);
         }
       }
     };
-    serverThread = new Thread(r, "Client Thrift Server thread");
+    serverThread = new Thread(r, "Smart client server thread");
+    serverFailed = false;
     serverThread.start();
     try {
       int tentative = 0;
       // Wait for thrift server to come online
       while (tentative < WAITING_FOR_SERVER_MAX_TENTATIVES &&
-          (server == null || !server.isServing())) {
+          (server == null || !server.isServing()) &&
+          !serverFailed) {
         LOG.debug("Waiting for smart client server to come online...");
         Thread.sleep(WAITING_FOR_SERVER_TIMEOUT_MS);
         ++tentative;
       }
+      // Check if Thrift server failed due to an exception
+      if (serverFailed) {
+        throw new RuntimeException("Smart client server failed to start");
+      }
       // Check if Thrift server failed to come online
       if (server == null || !server.isServing()) {
         throw new RuntimeException(
-            String.format("Waited SmartClient server to come online for %d seconds, but it did not.",
+            String.format("Waited for smart client server to come online for %d seconds but it did not.",
                 (WAITING_FOR_SERVER_MAX_TENTATIVES * WAITING_FOR_SERVER_TIMEOUT_MS) / 1000));
       }
       LOG.debug("Smart client server is online.");
     } catch (InterruptedException e) {
-      throw new RuntimeException("Interrupted waiting for server thread to start", e);
+      throw new RuntimeException("Interrupted waiting for smart client server thread to start", e);
     }
   }
 
