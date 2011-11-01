@@ -165,7 +165,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
     if (partitionToConnectionSet == null) {
-      String errMsg = String.format("Could not get domain->partition map for domain %s (id: %d)!", domainName, domain.getId());
+      String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName, domain.getId());
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
