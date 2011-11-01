@@ -48,6 +48,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
+  private final Random random = new Random();
+
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
    * with the requested ring group. Note that a given HankSmartClient can only
@@ -220,9 +222,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         return HankBulkResponse.xception(HankException.internal_error(errMsg));
       }
 
-      // For now, we query the first partition server that has this partition
-      // TODO: improve this by also querying other hosts that have that same partition
-      PartitionServerAddress partitionServerAddress = partitionServerAddresses.get(0);
+      // Query a random partition server that has this partition
+      PartitionServerAddress partitionServerAddress =
+          partitionServerAddresses.get(random.nextInt() % partitionServerAddresses.size());
 
       // Add this key to the bulk request object corresponding to the chosen partition server
       if (!partitionServerTobulkRequest.containsKey(partitionServerAddress)) {
