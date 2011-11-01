@@ -65,6 +65,8 @@ public class ServingStatusAggregator {
     }
   }
 
+  // Compute, for each domain, the number of _host domain partitions_ (non unique partitions)
+  // that are served and up to date
   public ServingStatus computeServingStatus() {
     ServingStatus result = new ServingStatus();
     for (Map.Entry<Domain, Map<Integer, ServingStatus>> entry1 :
@@ -77,12 +79,24 @@ public class ServingStatusAggregator {
     return result;
   }
 
+  // Compute, for each domain, the number of _domain partitions_ (unique partitions)
+  // that are served and up to date
   public ServingStatus computeUniquePartitionsServingStatus(DomainGroupVersion domainGroupVersion) {
     ServingStatus result = new ServingStatus();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       Map<Integer, ServingStatus> partitionToServingStatus = domainToPartitionToPartitionServingStatus.get(domain);
-      result.aggregate(domain.getNumParts(), partitionToServingStatus == null ? 0 : partitionToServingStatus.size());
+      int partitionsServedAndUpToDate = 0;
+      if (partitionToServingStatus != null) {
+        for (ServingStatus servingStatus : partitionToServingStatus.values()) {
+          // A unique partition is served and up to date if all host corresponding domain partitions are
+          // served and up to date
+          if (servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) {
+            partitionsServedAndUpToDate += 1;
+          }
+        }
+      }
+      result.aggregate(domain.getNumParts(), partitionToServingStatus == null ? 0 : partitionsServedAndUpToDate);
     }
     return result;
   }
