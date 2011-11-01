@@ -40,13 +40,14 @@ public class ServingStatusAggregator {
     Map<Integer, ServingStatus> partitionToPartitionServingStatus =
         domainToPartitionToPartitionServingStatus.get(domain);
     if (partitionToPartitionServingStatus == null) {
-      partitionToPartitionServingStatus =
-          domainToPartitionToPartitionServingStatus.put(domain, new HashMap<Integer, ServingStatus>());
+      partitionToPartitionServingStatus = new HashMap<Integer, ServingStatus>();
+      domainToPartitionToPartitionServingStatus.put(domain, partitionToPartitionServingStatus);
     }
     ServingStatus partitionServingStatus =
         partitionToPartitionServingStatus.get(partitionNumber);
     if (partitionServingStatus == null) {
-      partitionServingStatus = partitionToPartitionServingStatus.put(partitionNumber, new ServingStatus());
+      partitionServingStatus = new ServingStatus();
+      partitionToPartitionServingStatus.put(partitionNumber, partitionServingStatus);
     }
     return partitionServingStatus;
   }
