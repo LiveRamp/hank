@@ -43,7 +43,7 @@ public class SmartClientDaemon {
   private final String ringGroupName;
   private Thread serverThread;
   private TServer server;
-  private boolean serverFailed;
+  private Throwable serverReasonFailed;
   private static final int WAITING_FOR_SERVER_MAX_TENTATIVES = 30;
   private static final int WAITING_FOR_SERVER_TIMEOUT_MS = 1000;
 
@@ -94,28 +94,28 @@ public class SmartClientDaemon {
       public void run() {
         try {
           serve();
-        } catch (Exception e) {
-          serverFailed = true;
-          LOG.fatal("Unexpected error in smart client server", e);
+        } catch (Throwable t) {
+          serverReasonFailed = t;
+          LOG.fatal("Unexpected error in smart client server", t);
         }
       }
     };
     serverThread = new Thread(r, "Smart client server thread");
-    serverFailed = false;
+    serverReasonFailed = null;
     serverThread.start();
     try {
       int tentative = 0;
       // Wait for thrift server to come online
       while (tentative < WAITING_FOR_SERVER_MAX_TENTATIVES &&
           (server == null || !server.isServing()) &&
-          !serverFailed) {
+          serverReasonFailed == null) {
         LOG.debug("Waiting for smart client server to come online...");
         Thread.sleep(WAITING_FOR_SERVER_TIMEOUT_MS);
         ++tentative;
       }
       // Check if Thrift server failed due to an exception
-      if (serverFailed) {
-        throw new RuntimeException("Smart client server failed to start");
+      if (serverReasonFailed != null) {
+        throw new RuntimeException("Smart client server failed to start", serverReasonFailed);
       }
       // Check if Thrift server failed to come online
       if (server == null || !server.isServing()) {
