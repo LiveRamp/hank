@@ -140,28 +140,30 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       int hostsOffline = Rings.getHostsInState(ring, HostState.OFFLINE).size();
       %>
 
-      <td class='host-total'><%= hostsTotal %></td>
-      <% if (hostsServing != 0) { %>
-        <td class='host-serving'><%= hostsServing %></td>
-      <% } else { %>
-        <td></td>
-      <% } %>
-      <% if (hostsUpdating != 0) { %>
-        <td class='host-updating'><%= hostsUpdating %></td>
-      <% } else { %>
-        <td></td>
-      <% } %>
-      <% if (hostsIdle != 0) { %>
-        <td class='host-idle'><%= hostsIdle %></td>
-      <% } else { %>
-        <td></td>
-      <% } %>
-      <% if (hostsOffline != 0) { %>
-        <td class='host-offline'><%= hostsOffline %></td>
-      <% } else { %>
-        <td></td>
-      <% } %>
-
+        <td class='host-total'><%= hostsTotal %></td>
+        <% if (hostsServing != 0 && hostsServing == hostsTotal) { %>
+          <td class='host-serving complete'>
+        <% } else if (hostsServing != 0) { %>
+          <td class='host-serving'>
+        <% } else { %>
+          <td>
+        <% } %>
+        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "" %></td>
+        <% if (hostsUpdating != 0) { %>
+          <td class='host-updating'><%= hostsUpdating %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+        <% if (hostsIdle != 0) { %>
+          <td class='host-idle'><%= hostsIdle %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
+        <% if (hostsOffline != 0) { %>
+          <td class='host-offline'><%= hostsOffline %></td>
+        <% } else { %>
+          <td></td>
+        <% } %>
 
       <td>
         <form action="/ring_group/delete_ring" method="post">

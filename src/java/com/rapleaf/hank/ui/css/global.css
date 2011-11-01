@@ -137,7 +137,12 @@ table.table-blue td {
 
 .error {
   color: #ffffff;
-  background-color: #ff0000;
+  background-color: #cc0404;
+}
+
+.complete {
+  color: #000000;
+  background-color: #40bd40;
 }
 
 /* Progress bars */
@@ -164,8 +169,6 @@ table.table-blue td {
 }
 .host-serving {
   text-align: center;
-  color: #000000;
-  background-color: #00f000;
 }
 .host-updating {
   text-align: center;
@@ -179,6 +182,4 @@ table.table-blue td {
 }
 .host-offline {
   text-align: center;
-  color: #ffffff;
-  background-color: #ff0000;
 }

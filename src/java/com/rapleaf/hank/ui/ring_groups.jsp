@@ -107,11 +107,14 @@
         %>
 
         <td class='host-total'><%= hostsTotal %></td>
-        <% if (hostsServing != 0) { %>
-          <td class='host-serving'><%= hostsServing %></td>
+        <% if (hostsServing != 0 && hostsServing == hostsTotal) { %>
+          <td class='host-serving complete'>
+        <% } else if (hostsServing != 0) { %>
+          <td class='host-serving'>
         <% } else { %>
-          <td></td>
+          <td>
         <% } %>
+        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "" %></td>
         <% if (hostsUpdating != 0) { %>
           <td class='host-updating'><%= hostsUpdating %></td>
         <% } else { %>
@@ -140,23 +143,25 @@
         }
         %>
         <% if (servingStatusAggregator != null) { %>
-          <% if (servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
-            <td class='centered'>
+          <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
           <% } else { %>
             <td class='centered error'>
           <% } %>
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
-          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
-            <td class='centered'>
+          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
           <% } else { %>
             <td class='centered error'>
           <% } %>
           <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
           </td>
         <% } else { %>
-          <td class='centered'>-</td>
-          <td class='centered'>-</td>
+          <td></td>
+          <td></td>
         <% } %>
 
 

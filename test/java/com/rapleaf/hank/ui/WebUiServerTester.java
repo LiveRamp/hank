@@ -23,6 +23,7 @@ public class WebUiServerTester extends ZkTestCase {
     // Assign
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
     RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
+    RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     DomainGroupVersion dgv = DomainGroups.getLatestVersion(coordinator.getDomainGroup("Group_1"));
     partitionAssigner.assign(dgv, rgAlpha.getRing(1));
     partitionAssigner.assign(dgv, rgAlpha.getRing(2));
@@ -64,9 +65,13 @@ public class WebUiServerTester extends ZkTestCase {
         }
       }
     }
+    for (Ring ring: rgBeta.getRings()) {
+      for (Host host : ring.getHosts()) {
+        host.setState(HostState.SERVING);
+      }
+    }
 
     // Set versions
-    RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     rgBeta.updateComplete();
 
     final Iface mockClient = new Iface() {
