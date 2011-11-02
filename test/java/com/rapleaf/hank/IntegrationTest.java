@@ -317,7 +317,16 @@ public class IntegrationTest extends ZkTestCase {
     // launch the Ring Group Conductor
     startRingGroupConductor();
 
-    // launch a smart client server
+    // Wait for update to finish
+    for (int i = 0; i < 30 && RingGroups.isUpdating(rg1); ++i) {
+      LOG.debug("Waiting for update to finish");
+      Thread.sleep(1000);
+    }
+    if (RingGroups.isUpdating(rg1)) {
+      throw new RuntimeException("Update was not finished after the time we waited.");
+    }
+
+    // Launch a smart client server
     startSmartClientServer();
 
     // open a dumb client (through the smart client)
@@ -434,6 +443,59 @@ public class IntegrationTest extends ZkTestCase {
     // take down hosts of one ring "unexpectedly"
     stopDaemons(new PartitionServerAddress("localhost", 50000));
     stopDaemons(new PartitionServerAddress("localhost", 50001));
+    Thread.sleep(1000);
+
+    // keep making requests
+    assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
+    assertEquals(HankResponse.value(bb(2, 2)), dumbClient.get("domain0", bb(2)));
+    assertEquals(HankResponse.value(bb(3, 3)), dumbClient.get("domain0", bb(3)));
+    assertEquals(HankResponse.value(bb(4, 4)), dumbClient.get("domain0", bb(4)));
+
+    assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
+
+    assertEquals(HankResponse.value(bb(6, 6)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.value(bb(2, 2)), dumbClient.get("domain1", bb(3)));
+    assertEquals(HankResponse.value(bb(3, 3)), dumbClient.get("domain1", bb(2)));
+    assertEquals(HankResponse.value(bb(4, 4)), dumbClient.get("domain1", bb(1)));
+    assertEquals(HankResponse.value(bb(5, 5)), dumbClient.get("domain1", bb(5)));
+
+    assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
+
+    // take down other ring "unexpectedly"
+    stopDaemons(new PartitionServerAddress("localhost", 50002));
+    stopDaemons(new PartitionServerAddress("localhost", 50003));
+    Thread.sleep(1000);
+
+    // keep making requests
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(1)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(2)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(3)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(4)));
+
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(99)));
+
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(3)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(2)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(1)));
+    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(5)));
+
+    // restart one ring
+    startDaemons(new PartitionServerAddress("localhost", 50000));
+    startDaemons(new PartitionServerAddress("localhost", 50001));
+
+    // tell them to start serving
+    Rings.commandAll(rg1r1, HostCommand.SERVE_DATA);
+
+    // Wait until the ring is online
+    for (int i = 0; i < 30; ++i) {
+      if (r1h1.getState().equals(HostState.SERVING)
+          && r1h2.getState().equals(HostState.SERVING)) {
+        break;
+      }
+      LOG.debug("Waiting for ring r1 to come back online");
+      Thread.sleep(1000);
+    }
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
@@ -455,15 +517,13 @@ public class IntegrationTest extends ZkTestCase {
     stopRingGroupConductor();
     stopSmartClient();
 
-    stopDaemons(new PartitionServerAddress("localhost", 50002));
-    stopDaemons(new PartitionServerAddress("localhost", 50003));
+    stopDaemons(new PartitionServerAddress("localhost", 50000));
+    stopDaemons(new PartitionServerAddress("localhost", 50001));
   }
 
   private void startSmartClientServer() throws Exception {
     LOG.debug("starting smart client server...");
     smartClientRunnable = new SmartClientRunnable();
-    //    smartClientThread = new Thread(smartClientRunnable, "smart client server thread");
-    //    smartClientThread.start();
     smartClientRunnable.run();
   }
 
