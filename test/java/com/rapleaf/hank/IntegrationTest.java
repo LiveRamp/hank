@@ -318,13 +318,7 @@ public class IntegrationTest extends ZkTestCase {
     startRingGroupConductor();
 
     // Wait for update to finish
-    for (int i = 0; i < 30 && RingGroups.isUpdating(rg1); ++i) {
-      LOG.debug("Waiting for update to finish");
-      Thread.sleep(1000);
-    }
-    if (RingGroups.isUpdating(rg1)) {
-      throw new RuntimeException("Update was not finished after the time we waited.");
-    }
+    waitForRingGroupToFinishUpdating(rg1, DomainGroups.getLatestVersion(domainGroup).getVersionNumber());
 
     // Launch a smart client server
     startSmartClientServer();
@@ -407,21 +401,7 @@ public class IntegrationTest extends ZkTestCase {
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
     // wait until the rings have been updated to the new version
-    final RingGroup ringGroup = coordinator.getRingGroup("rg1");
-    for (int i = 0; i < 30; i++) {
-      if (RingGroups.isUpdating(ringGroup)) {
-        LOG.info("Ring group is still updating. Sleeping...");
-      } else {
-        if (ringGroup.getCurrentVersion() == newVersion.getVersionNumber()) {
-          break;
-        } else {
-          LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
-        }
-      }
-      Thread.sleep(1000);
-    }
-
-    assertFalse("ring group failed to finish updating after 30secs", RingGroups.isUpdating(ringGroup));
+    waitForRingGroupToFinishUpdating(coordinator.getRingGroup("rg1"), newVersion.getVersionNumber());
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
@@ -518,6 +498,22 @@ public class IntegrationTest extends ZkTestCase {
 
     stopDaemons(new PartitionServerAddress("localhost", 50000));
     stopDaemons(new PartitionServerAddress("localhost", 50001));
+  }
+
+  private void waitForRingGroupToFinishUpdating(RingGroup rg, int versionNumber) throws IOException, InterruptedException {
+    for (int i = 0; i < 30; i++) {
+      if (RingGroups.isUpdating(rg)) {
+        LOG.info("Ring group is still updating. Sleeping...");
+      } else {
+        if (rg.getCurrentVersion() == versionNumber) {
+          break;
+        } else {
+          LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
+        }
+      }
+      Thread.sleep(1000);
+    }
+    assertFalse("Ring group failed to finish updating after 30secs", RingGroups.isUpdating(rg));
   }
 
   private void startSmartClientServer() throws Exception {
