@@ -55,11 +55,19 @@ public class TestHankSmartClient extends BaseTestCase {
     }
   }
 
-  private class MockPartitionServerHandler implements PartitionServer.Iface {
+  private static class MockPartitionServerHandler implements PartitionServer.Iface {
     @SuppressWarnings("unused")
     private final int domainId;
     private final HankResponse response;
     private final HankBulkResponse bulkResponse;
+    private Mode mode = Mode.NORMAL;
+
+    private static enum Mode {
+      NORMAL,
+      HANGING,
+      FAILING,
+      THROWING_ERROR
+    }
 
     public MockPartitionServerHandler(int domainId, ByteBuffer result) {
       this.domainId = domainId;
@@ -71,12 +79,31 @@ public class TestHankSmartClient extends BaseTestCase {
 
     @Override
     public HankResponse get(int domainId, ByteBuffer key) throws TException {
+      applyMode();
       return response;
     }
 
     @Override
     public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
+      applyMode();
       return bulkResponse;
+    }
+
+    public void setMode(Mode mode) {
+      this.mode = mode;
+    }
+
+    private void applyMode() {
+      switch (mode) {
+        case HANGING:
+          // Simulating hanging
+          while (true) {
+          }
+        case FAILING:
+          throw new RuntimeException("In failing mode.");
+        case THROWING_ERROR:
+          throw new Error("Throwing error mode");
+      }
     }
   }
 
@@ -88,6 +115,7 @@ public class TestHankSmartClient extends BaseTestCase {
   public void testIt() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;
+
     // launch server 1
     final PartitionServer.Iface iface1 = new MockPartitionServerHandler(0, VALUE_1);
     TNonblockingServerTransport transport1 = createPartitionServerTransport(server1Port);
@@ -211,8 +239,39 @@ public class TestHankSmartClient extends BaseTestCase {
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
 
+
       // TODO: Test not querying deletable partitions
 
+
+      // Simulate servers that fail to perform gets
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.FAILING);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.FAILING);
+
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_1));
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_2));
+
+      /*
+      // Simulate servers that throws an error
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
+
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_1));
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_2));
+
+      // Simulate servers that hangs
+
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
+
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_1));
+      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
+          c.get("existent_domain", KEY_2));
+      */
     } finally {
       server1.stop();
       server2.stop();
