@@ -407,7 +407,6 @@ public class IntegrationTest extends ZkTestCase {
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
     // wait until the rings have been updated to the new version
-    coordinator = config.createCoordinator();
     final RingGroup ringGroup = coordinator.getRingGroup("rg1");
     for (int i = 0; i < 30; i++) {
       if (RingGroups.isUpdating(ringGroup)) {
