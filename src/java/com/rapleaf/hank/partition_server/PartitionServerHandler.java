@@ -57,6 +57,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private final DomainAccessor[] domainAccessors;
+  private static final long GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
+  private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
@@ -279,7 +281,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
     @Override
     public Thread newThread(Runnable runnable) {
-      return new GetThread(runnable, "GET Thread " + threadId++);
+      return new GetThread(runnable, "GET BULK Thread " + threadId++);
     }
   }
 
@@ -338,9 +340,17 @@ class PartitionServerHandler implements IfaceWithShutdown {
     return domainAccessors[domainId];
   }
 
-  public void shutDown() throws InterruptedException {
+  public void shutDown() {
     // Shutdown GET tasks
     getBulkTaskExecutor.shutdown();
+    try {
+      while (!getBulkTaskExecutor.awaitTermination(GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE,
+          GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT)) {
+        LOG.debug("Waiting for termination of GET BULK task executor during shutdown.");
+      }
+    } catch (InterruptedException e) {
+      LOG.debug("Interrupted while waiting for termination of GET BULK task executor during shutdown.");
+    }
     // Shutdown domain accessors
     for (DomainAccessor domainAccessor : domainAccessors) {
       if (domainAccessor != null) {

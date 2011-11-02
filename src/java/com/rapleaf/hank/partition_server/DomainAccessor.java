@@ -102,9 +102,13 @@ class DomainAccessor {
     return name;
   }
 
-  public void shutDown() throws InterruptedException {
+  public void shutDown() {
     updateCounters = false;
     updateCountersThread.interrupt();
-    updateCountersThread.join();
+    try {
+      updateCountersThread.join();
+    } catch (InterruptedException e) {
+      LOG.info("Interrupted while waiting for update counters thread to terminate during shutdown.");
+    }
   }
 }
