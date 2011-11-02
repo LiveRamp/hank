@@ -32,6 +32,7 @@ import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
@@ -84,54 +85,21 @@ public class TestHankSmartClient extends BaseTestCase {
   private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[]{2});
   private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[]{2});
 
-  private static int server1Port = 12345;
-  private static int server2Port = 0;
-
   public void testIt() throws Exception {
+    int server1Port = 12345;
+    int server2Port = 12346;
     // launch server 1
     final PartitionServer.Iface iface1 = new MockPartitionServerHandler(0, VALUE_1);
-
-    TNonblockingServerSocket trans1 = null;
-    while (true) {
-      try {
-        trans1 = new TNonblockingServerSocket(server1Port);
-        LOG.debug("succeeded in binding server 1 to port " + server1Port);
-        break;
-      } catch (TTransportException e) {
-        LOG.debug("failed to bind to port " + server1Port);
-        server1Port++;
-      }
-    }
-
-    Args args = new Args(trans1);
-    args.processor(new PartitionServer.Processor(iface1));
-    args.protocolFactory(new TCompactProtocol.Factory());
-    TServer server1 = new THsHaServer(args);
-    Thread thread1 = new Thread(new ServerRunnable(server1),
-        "mock partition server #1");
+    TNonblockingServerTransport transport1 = createPartitionServerTransport(server1Port);
+    TServer server1 = createPartitionServer(transport1, iface1);
+    Thread thread1 = new Thread(new ServerRunnable(server1), "mock partition server thread 1");
     thread1.start();
 
     // launch server 2;
     final PartitionServer.Iface iface2 = new MockPartitionServerHandler(0, VALUE_2);
-
-    server2Port = server1Port + 1;
-    TNonblockingServerSocket trans2 = null;
-    while (true) {
-      try {
-        trans2 = new TNonblockingServerSocket(server2Port);
-        LOG.debug("succeeded in binding server 2 to port " + server2Port);
-        break;
-      } catch (TTransportException e) {
-        LOG.debug("failed to bind to port " + server2Port);
-        server2Port++;
-      }
-    }
-    args = new Args(trans2);
-    args.processor(new PartitionServer.Processor(iface2));
-    args.protocolFactory(new TCompactProtocol.Factory());
-    final TServer server2 = new THsHaServer(args);
-    Thread thread2 = new Thread(new ServerRunnable(server2),
-        "mock partition server #2");
+    TNonblockingServerTransport transport2 = createPartitionServerTransport(server2Port);
+    TServer server2 = createPartitionServer(transport2, iface2);
+    Thread thread2 = new Thread(new ServerRunnable(server2), "mock partition server thread 2");
     thread2.start();
 
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
@@ -250,9 +218,38 @@ public class TestHankSmartClient extends BaseTestCase {
       server2.stop();
       thread1.join();
       thread2.join();
-      trans1.close();
-      trans2.close();
+      transport1.close();
+      transport2.close();
     }
+  }
+
+  private TNonblockingServerTransport createPartitionServerTransport(int port) {
+    TNonblockingServerSocket transport = null;
+    int tries = 0;
+    int maxTries = 1000;
+    while (tries < maxTries) {
+      try {
+        transport = new TNonblockingServerSocket(port);
+        LOG.debug("succeeded in binding server to port " + port);
+        break;
+      } catch (TTransportException e) {
+        LOG.debug("failed to bind to port " + port);
+        port++;
+      }
+      ++tries;
+    }
+    if (tries == maxTries) {
+      throw new RuntimeException("Could not not create partition server transport");
+    }
+    return transport;
+  }
+
+  private TServer createPartitionServer(TNonblockingServerTransport transport,
+                                        PartitionServer.Iface iface) {
+    Args args = new Args(transport);
+    args.processor(new PartitionServer.Processor(iface));
+    args.protocolFactory(new TCompactProtocol.Factory());
+    return new THsHaServer(args);
   }
 
   private Host getHost(final Domain domain, PartitionServerAddress address, final int partNum)
