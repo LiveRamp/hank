@@ -174,7 +174,7 @@ public class IntegrationTest extends ZkTestCase {
 
   public void testItAll() throws Throwable {
     Logger.getLogger("com.rapleaf.hank.coordinator.zk").setLevel(Level.INFO);
-    Logger.getLogger("com.rapleaf.hank.partition_server").setLevel(Level.INFO);
+    // Logger.getLogger("com.rapleaf.hank.partition_server").setLevel(Level.INFO);
     Logger.getLogger("com.rapleaf.hank.storage").setLevel(Level.TRACE);
     create(domainsRoot);
     create(domainGroupsRoot);
@@ -402,6 +402,13 @@ public class IntegrationTest extends ZkTestCase {
 
     // wait until the rings have been updated to the new version
     waitForRingGroupToFinishUpdating(coordinator.getRingGroup("rg1"), newVersion.getVersionNumber());
+
+    /*
+    while (!HankResponse.value(bb(6, 6)).equals(dumbClient.get("domain1", bb(4)))) {
+      LOG.info("#### Waiting for ring to be updated by querying for a specific value");
+    }
+    LOG.info("#### Exited, specific value was correct #### !!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    */
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
