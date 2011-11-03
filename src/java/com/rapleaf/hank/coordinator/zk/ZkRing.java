@@ -57,7 +57,7 @@ public class ZkRing extends AbstractRing {
     zk.create(ringPath, null);
     zk.create(ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), (Integer.toString(initVersion)).getBytes());
-    zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.DOWN.toString().getBytes());
+    zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.CLOSED.toString().getBytes());
     zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
     return new ZkRing(zk, ringPath, group, coordinator);
   }

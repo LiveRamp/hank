@@ -58,7 +58,7 @@ public class TestZkRing extends ZkTestCase {
     assertNull("version number", ring.getVersionNumber());
     assertEquals("updating to version", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
-    assertEquals("initial state", RingState.DOWN, ring.getState());
+    assertEquals("initial state", RingState.CLOSED, ring.getState());
     ring.close();
   }
 
@@ -72,7 +72,7 @@ public class TestZkRing extends ZkTestCase {
     assertNull("version number", ring.getVersionNumber());
     assertEquals("updating to version", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
-    assertEquals("initial state", RingState.DOWN, ring.getState());
+    assertEquals("initial state", RingState.CLOSED, ring.getState());
     ring.close();
   }
 
@@ -133,11 +133,11 @@ public class TestZkRing extends ZkTestCase {
 
   public void testGetRingState() throws Exception {
     Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null, 1);
-    assertEquals(RingState.DOWN, ring.getState());
-    ring.setState(RingState.UP);
-    assertEquals(RingState.UP, ring.getState());
+    assertEquals(RingState.CLOSED, ring.getState());
+    ring.setState(RingState.OPEN);
+    assertEquals(RingState.OPEN, ring.getState());
     ring = new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-1"), null, coordinator);
-    assertEquals(RingState.UP, ring.getState());
+    assertEquals(RingState.OPEN, ring.getState());
   }
 
   public void testSetUpdatingToVersion() throws Exception {
@@ -156,7 +156,7 @@ public class TestZkRing extends ZkTestCase {
       mockListener.wait(1000);
     }
     assertNull(mockListener.calledWith);
-    ring.setState(RingState.DOWN);
+    ring.setState(RingState.CLOSED);
     synchronized (mockListener) {
       mockListener.wait(1000);
     }

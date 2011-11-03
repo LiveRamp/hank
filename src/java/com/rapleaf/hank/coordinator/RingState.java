@@ -20,18 +20,18 @@ package com.rapleaf.hank.coordinator;
  */
 public enum RingState {
   /**
-   * The ring is up, ready to serve data.
+   * The ring is open, ready to serve data or be taken down
    */
-  UP,
+  OPEN,
   /**
-   * The ring is going down - there may be one or more hosts still serving, but
+   * The ring is closing - there may be one or more hosts still serving, but
    * no new clients should make requests.
    */
-  GOING_DOWN,
+  CLOSING,
   /**
-   * The ring is down - there are no partition servers still serving data.
+   * The ring is closed - there are no partition servers still serving data.
    */
-  DOWN,
+  CLOSED,
   /**
    * The ring has at least one host updating.
    */
@@ -43,5 +43,5 @@ public enum RingState {
   /**
    * The partition servers are starting up, but they're not completely started yet.
    */
-  COMING_UP;
+  OPENING;
 }
