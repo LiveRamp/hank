@@ -50,7 +50,6 @@
     <tr>
       <th>Ring Group</th>
       <th>Domain Group</th>
-      <th>State</th>
       <th></th>
       <th></th>
       <th>Version</th>
@@ -69,7 +68,6 @@
       <tr>
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>
         <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
-        <td><%= RingGroups.isUpdating(ringGroup) ? "UPDATING" : "UP" %></td>
 
         <%
         UpdateProgress progress = null;
