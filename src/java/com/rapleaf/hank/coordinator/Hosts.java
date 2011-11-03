@@ -136,7 +136,8 @@ public final class Hosts {
           // Check if partition is served and up to date
           boolean servedAndUpToDate =
               host.getState() == HostState.SERVING &&
-              partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber());
+                  partition.getCurrentDomainGroupVersion() != null &&
+                  partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber());
           // Aggregate counts
           result.add(hostDomain.getDomain(), partition.getPartitionNumber(), servedAndUpToDate);
         }
