@@ -19,19 +19,33 @@ class NodeCreationBarrier implements Watcher {
     new NodeCreationBarrier(zk, nodePath).block();
   }
 
+  // Will block until specified node is created or connection is lost or timeout is exceeded
+  public static void block(ZooKeeper zk, String nodePath, int timeoutMS) throws InterruptedException, KeeperException {
+    new NodeCreationBarrier(zk, nodePath).block(timeoutMS);
+  }
+
   public NodeCreationBarrier(ZooKeeper zk, String nodePath) throws InterruptedException, KeeperException {
     this.nodePath = nodePath;
     this.zk = zk;
   }
 
   // Will block until specified node is created or connection is lost
-  public synchronized void block() throws InterruptedException, KeeperException {
+  public void block() throws InterruptedException, KeeperException {
+    block(0);
+  }
+
+  // Will block until specified node is created or connection is lost or timeout is exceeded
+  public synchronized void block(int timeoutMS) throws InterruptedException, KeeperException {
     // Wait only if it doesn't exist
     if (waiting && zk.exists(nodePath, this) == null) {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Wait for creation of node " + nodePath);
       }
-      this.wait();
+      if (timeoutMS != 0) {
+        this.wait(timeoutMS);
+      } else {
+        this.wait();
+      }
     }
   }
 
