@@ -50,7 +50,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, ZkPath.append(path, "parts"), elementLoader,
         new DotComplete());
 
-    defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT));
+    defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT), true);
   }
 
   @Override

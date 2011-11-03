@@ -80,8 +80,8 @@ public class ZkRing extends AbstractRing {
     });
     this.stateChangeWatcher = new StateChangeWatcher();
 
-    currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT));
-    updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT));
+    currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), true);
+    updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), true);
   }
 
   private final class StateChangeWatcher extends HankWatcher {

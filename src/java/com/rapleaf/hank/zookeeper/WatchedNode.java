@@ -11,6 +11,9 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.eclipse.jetty.util.log.Log;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public abstract class WatchedNode<T> {
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
   private T value;
@@ -41,27 +44,53 @@ public abstract class WatchedNode<T> {
     }
   };
 
-  protected WatchedNode(ZooKeeperPlus zk, String nodePath)
-      throws KeeperException, InterruptedException {
-    this(zk, nodePath, false, null);
-  }
-
-  public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean create, T initValue)
+  /**
+   * Start watching a node, optionnaly waiting for it to be created
+   *
+   * @param zk
+   * @param nodePath
+   * @param waitForCreation
+   * @throws KeeperException
+   * @throws InterruptedException
+   */
+  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
-    if (create) {
-      if (zk.exists(nodePath, false) == null) {
-        if (Log.isDebugEnabled()) {
-          LOG.debug(String.format("Creating non-existent node %s with value %s", nodePath, initValue));
-        }
-        try {
-          zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        } catch (KeeperException e) {
-          // The node was probably created just now, after we tested its existence. Rethrow if it still does not exist
-          if (zk.exists(nodePath, false) == null) {
-            throw e;
-          }
+    if (waitForCreation) {
+      WaitingWatcher waitingWatcher = new WaitingWatcher();
+      // Wait only if it doesn't exist
+      if (zk.exists(nodePath, waitingWatcher) == null) {
+        waitingWatcher.waitForNodeCreation();
+      }
+    }
+    update();
+  }
+
+  /**
+   * Start watching a node and create the underlying node with an initial value
+   *
+   * @param zk
+   * @param nodePath
+   * @param initValue
+   * @throws KeeperException
+   * @throws InterruptedException
+   */
+  public WatchedNode(ZooKeeperPlus zk, String nodePath, T initValue)
+      throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.nodePath = nodePath;
+    // Create
+    if (zk.exists(nodePath, false) == null) {
+      if (Log.isDebugEnabled()) {
+        LOG.debug(String.format("Creating non-existent node %s with value %s", nodePath, initValue));
+      }
+      try {
+        zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+      } catch (KeeperException e) {
+        // The node was probably created just now, after we tested its existence. Rethrow if it still does not exist
+        if (zk.exists(nodePath, false) == null) {
+          throw e;
         }
       }
     }
@@ -89,4 +118,32 @@ public abstract class WatchedNode<T> {
   }
 
   protected abstract byte[] encode(T v);
+
+  private class WaitingWatcher implements Watcher {
+
+    private final Lock lock;
+
+    public WaitingWatcher() {
+      this.lock = new ReentrantLock();
+      lock.lock();
+    }
+
+    public void waitForNodeCreation() {
+      lock.lock();
+      lock.unlock();
+    }
+
+    @Override
+    public void process(WatchedEvent watchedEvent) {
+      // If we lose synchronization, unlock
+      if (watchedEvent.getState() != KeeperState.SyncConnected) {
+        lock.unlock();
+      } else {
+        // If the node has been created, unlock
+        if (watchedEvent.getType() == EventType.NodeCreated) {
+          lock.unlock();
+        }
+      }
+    }
+  }
 }

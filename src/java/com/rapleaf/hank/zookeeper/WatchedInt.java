@@ -18,12 +18,12 @@ package com.rapleaf.hank.zookeeper;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedInt extends WatchedNode<Integer> {
-  public WatchedInt(ZooKeeperPlus zk, String nodePath, boolean create, Integer initValue) throws KeeperException, InterruptedException {
-    super(zk, nodePath, create, initValue);
+  public WatchedInt(ZooKeeperPlus zk, String nodePath, Integer initValue) throws KeeperException, InterruptedException {
+    super(zk, nodePath, initValue);
   }
 
-  public WatchedInt(ZooKeeperPlus zk, String nodePath) throws KeeperException, InterruptedException {
-    super(zk, nodePath);
+  public WatchedInt(ZooKeeperPlus zk, String nodePath, boolean waitForCreation) throws KeeperException, InterruptedException {
+    super(zk, nodePath, waitForCreation);
   }
 
   @Override

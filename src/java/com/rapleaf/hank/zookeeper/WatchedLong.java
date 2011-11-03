@@ -3,9 +3,15 @@ package com.rapleaf.hank.zookeeper;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedLong extends WatchedNode<Long> {
+
+  public WatchedLong(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
+      throws KeeperException, InterruptedException {
+    super(zk, nodePath, waitForCreation);
+  }
+
   public WatchedLong(ZooKeeperPlus zk, String nodePath)
       throws KeeperException, InterruptedException {
-    super(zk, nodePath);
+    this(zk, nodePath, false);
   }
 
   @Override

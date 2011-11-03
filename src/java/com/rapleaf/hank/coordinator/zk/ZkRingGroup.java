@@ -90,8 +90,8 @@ public class ZkRingGroup extends AbstractRingGroup {
     updatingToVersionPath = ZkPath.append(ringGroupPath, UPDATING_TO_VERSION_PATH_SEGMENT);
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
 
-    currentVersion = new WatchedInt(zk, currentVerPath, true, null);
-    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true, null);
+    currentVersion = new WatchedInt(zk, currentVerPath, true);
+    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true);
   }
 
   private final class StateChangeListener implements Watcher {
