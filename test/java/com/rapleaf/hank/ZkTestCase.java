@@ -289,6 +289,12 @@ public class ZkTestCase extends BaseTestCase {
         put(d1, 1);
       }
     });
+    DomainGroupVersion g1v2 = g1.createNewVersion(new HashMap<Domain, Integer>() {
+      {
+        put(d0, 1);
+        put(d1, 1);
+      }
+    });
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
     DomainGroupVersion g2v1 = g2.createNewVersion(new HashMap<Domain, Integer>() {
