@@ -39,15 +39,12 @@ import java.util.concurrent.locks.ReentrantLock;
 final class PartitionServerConnection implements HostStateChangeListener {
   private static final Logger LOG = Logger.getLogger(PartitionServerConnection.class);
 
-  private final Lock lock = new ReentrantLock();
-
+  private final int timeoutMS;
   public TTransport transport;
   public Client client;
-
   private final Host host;
-
   private final Object stateChangeMutex = new Object();
-
+  private final Lock lock = new ReentrantLock();
   private PartitionServerConnectionState state = PartitionServerConnectionState.DISCONNECTED;
 
   private static enum PartitionServerConnectionState {
@@ -57,8 +54,10 @@ final class PartitionServerConnection implements HostStateChangeListener {
     STANDBY
   }
 
-  public PartitionServerConnection(Host host) throws TException, IOException {
+  // A timeout of 0 means no timeout
+  public PartitionServerConnection(Host host, int timeoutMS) throws TException, IOException {
     this.host = host;
+    this.timeoutMS = timeoutMS;
     host.setStateChangeListener(this);
     onHostStateChange(host);
   }
@@ -167,8 +166,12 @@ final class PartitionServerConnection implements HostStateChangeListener {
   }
 
   private void connect() throws IOException {
-    LOG.trace("Trying to connect to " + host.getAddress());
-    transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber()));
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Trying to connect to " + host.getAddress());
+    }
+    transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
+        host.getAddress().getPortNumber(),
+        timeoutMS));
     try {
       transport.open();
     } catch (TTransportException e) {
@@ -178,7 +181,9 @@ final class PartitionServerConnection implements HostStateChangeListener {
     }
     TProtocol proto = new TCompactProtocol(transport);
     client = new PartitionServer.Client(proto);
-    LOG.trace("Connection to " + host.getAddress() + " opened.");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Connection to " + host.getAddress() + " opened.");
+    }
     state = PartitionServerConnectionState.CONNECTED;
   }
 

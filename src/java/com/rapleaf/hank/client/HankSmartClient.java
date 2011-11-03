@@ -43,6 +43,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
+  private final int queryTimeoutMS;
 
   private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
   private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
@@ -53,7 +54,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
    * with the requested ring group. Note that a given HankSmartClient can only
-   * contact one ring group.
+   * contact one ring group. Queries will not timeout.
    *
    * @param coordinator
    * @param ringGroupName
@@ -61,7 +62,29 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * @throws IOException
    * @throws TException
    */
-  public HankSmartClient(Coordinator coordinator, String ringGroupName, int numConnectionsPerHost) throws IOException, TException {
+  public HankSmartClient(Coordinator coordinator,
+                         String ringGroupName,
+                         int numConnectionsPerHost) throws IOException, TException {
+    this(coordinator, ringGroupName, numConnectionsPerHost, 0);
+  }
+
+  /**
+   * Create a new HankSmartClient that uses the supplied coordinator and works
+   * with the requested ring group. Note that a given HankSmartClient can only
+   * contact one ring group. Queries will timeout after the given period of time.
+   * A timeout of 0 means no timeout.
+   *
+   * @param coordinator
+   * @param ringGroupName
+   * @param numConnectionsPerHost
+   * @param queryTimeoutMS
+   * @throws IOException
+   * @throws TException
+   */
+  public HankSmartClient(Coordinator coordinator,
+                         String ringGroupName,
+                         int numConnectionsPerHost,
+                         int queryTimeoutMS) throws IOException, TException {
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -70,6 +93,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     this.numConnectionsPerHost = numConnectionsPerHost;
+    this.queryTimeoutMS = queryTimeoutMS;
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
     for (Ring ring : ringGroup.getRings()) {
@@ -130,10 +154,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         }
 
         // Establish connection to hosts
-        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host);
+        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host + " with a query timeout of " + queryTimeoutMS + "ms");
         List<PartitionServerConnection> hostConnections = new ArrayList<PartitionServerConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new PartitionServerConnection(host));
+          hostConnections.add(new PartitionServerConnection(host, queryTimeoutMS));
         }
         partitionServerAddressToConnectionSet.put(host.getAddress(), new PartitionServerConnectionSet(hostConnections));
       }
@@ -182,7 +206,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
-    LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
+    }
     return connectionSet.get(domain.getId(), key);
   }
 
@@ -245,7 +271,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       allResponses.add(new HankResponse());
     }
 
-    LOG.trace("Looking in domain " + domainName + " for " + keys.size() + " keys");
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Looking in domain " + domainName + " for " + keys.size() + " keys");
+    }
 
     // Create threads to execute requests
     List<Thread> requestThreads = new ArrayList<Thread>(partitionServerTobulkRequest.keySet().size());
