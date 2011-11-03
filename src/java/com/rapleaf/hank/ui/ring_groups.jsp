@@ -60,8 +60,8 @@
       <th>Updating</th>
       <th>Idle</th>
       <th>Offline</th>
-      <th>Partitions served</th>
-      <th>Unique partitions served</th>
+      <th>Updated & Served</th>
+      <th>(uniques)</th>
     </tr>
     <%
       for (RingGroup ringGroup : ringGroups(coord)) {
@@ -88,7 +88,7 @@
           </div>
         </td>
         <td>
-          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% updated
+          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions updated
           (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
         </td>
         <% } else { %>
@@ -137,11 +137,18 @@
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
         ServingStatus uniquePartitionsServingStatus = null;
-        if (ringGroup.getCurrentVersion() != null) {
-          DomainGroupVersion currentDomainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion());
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, currentDomainGroupVersion);
+        if (ringGroup.getCurrentVersion() != null || ringGroup.getUpdatingToVersion() != null) {
+          Integer domainGroupVersionNumber = null;
+          // Use updating to version if there is one, current version otherwise
+          if (ringGroup.getUpdatingToVersion() != null) {
+            domainGroupVersionNumber = ringGroup.getUpdatingToVersion();
+          } else if (ringGroup.getCurrentVersion() != null) {
+            domainGroupVersionNumber = ringGroup.getCurrentVersion();
+          }
+          DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(domainGroupVersionNumber);
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, domainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(currentDomainGroupVersion);
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(domainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>

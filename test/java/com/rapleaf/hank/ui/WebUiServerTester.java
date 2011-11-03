@@ -46,7 +46,7 @@ public class WebUiServerTester extends ZkTestCase {
         for (HostDomain hd : host.getAssignedDomains()) {
           for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setUpdatingToDomainGroupVersion(null);
-            partition.setCurrentDomainGroupVersion(0);
+            partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
           }
         }
       }
@@ -57,7 +57,6 @@ public class WebUiServerTester extends ZkTestCase {
     rgBeta.updateComplete();
     // Assign
     for (Ring ring : rgBeta.getRings()) {
-      Thread.sleep(2000);
       partitionAssigner.assign(dgv, ring);
     }
     rgBeta.setUpdatingToVersion(1);
@@ -69,7 +68,25 @@ public class WebUiServerTester extends ZkTestCase {
         ring.updateComplete();
         ring.setUpdatingToVersion(dgv.getVersionNumber());
         for (Host host : ring.getHosts()) {
-          host.setState(HostState.UPDATING);
+          // Set first host to done updating
+          if (host.getAddress().equals(ring.getHosts().iterator().next().getAddress())) {
+            host.setState(HostState.SERVING);
+            for (HostDomain hd : host.getAssignedDomains()) {
+              for (HostDomainPartition partition : hd.getPartitions()) {
+                partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+                partition.setUpdatingToDomainGroupVersion(null);
+              }
+            }
+          } else {
+            // Set other hosts to still updating
+            host.setState(HostState.UPDATING);
+            for (HostDomain hd : host.getAssignedDomains()) {
+              for (HostDomainPartition partition : hd.getPartitions()) {
+                partition.setCurrentDomainGroupVersion(0);
+                partition.setUpdatingToDomainGroupVersion(dgv.getVersionNumber());
+              }
+            }
+          }
         }
       } else {
         ring.setUpdatingToVersion(dgv.getVersionNumber());
@@ -77,6 +94,12 @@ public class WebUiServerTester extends ZkTestCase {
         ring.setState(RingState.UP);
         for (Host host : ring.getHosts()) {
           host.setState(HostState.SERVING);
+          for (HostDomain hd : host.getAssignedDomains()) {
+            for (HostDomainPartition partition : hd.getPartitions()) {
+              partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+              partition.setUpdatingToDomainGroupVersion(null);
+            }
+          }
         }
       }
     }
