@@ -53,8 +53,8 @@
       <th>State</th>
       <th></th>
       <th></th>
-      <th>Current Version</th>
-      <th>Updating to Version</th>
+      <th>Version</th>
+      <th>Updating to version</th>
       <th>Hosts</th>
       <th>Serving</th>
       <th>Updating</th>
@@ -97,8 +97,8 @@
         <% } %>
 
 
-        <td class='centered'><%= ringGroup.getCurrentVersion() %></td>
-        <td class='centered'><%= ringGroup.getUpdatingToVersion() %></td>
+        <td class='centered'><%= ringGroup.getCurrentVersion() != null ? ringGroup.getCurrentVersion() : "-" %></td>
+        <td class='centered'><%= ringGroup.getUpdatingToVersion() != null ? ringGroup.getUpdatingToVersion() : "-" %></td>
 
         <%
         int hostsTotal = RingGroups.getNumHosts(ringGroup);
@@ -114,23 +114,23 @@
         <% } else if (hostsServing != 0) { %>
           <td class='host-serving'>
         <% } else { %>
-          <td>
+          <td class='centered'>
         <% } %>
-        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "" %></td>
+        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "-" %></td>
         <% if (hostsUpdating != 0) { %>
           <td class='host-updating'><%= hostsUpdating %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
         <% if (hostsIdle != 0) { %>
           <td class='host-idle'><%= hostsIdle %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
         <% if (hostsOffline != 0) { %>
           <td class='host-offline'><%= hostsOffline %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
 
         <%

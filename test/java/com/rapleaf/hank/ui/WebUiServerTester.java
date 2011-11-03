@@ -24,55 +24,63 @@ public class WebUiServerTester extends ZkTestCase {
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
     RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
     RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
+    RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");
+
     DomainGroupVersion dgv = DomainGroups.getLatestVersion(coordinator.getDomainGroup("Group_1"));
     partitionAssigner.assign(dgv, rgAlpha.getRing(1));
     partitionAssigner.assign(dgv, rgAlpha.getRing(2));
     partitionAssigner.assign(dgv, rgAlpha.getRing(3));
-    // Set updated partitions
-    int frequency = 1;
-    for (Host host : rgAlpha.getRing(1).getHosts()) {
-      ++frequency;
-      for (HostDomain hostDomain : host.getAssignedDomains()) {
-        for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          if (partition.getPartitionNumber() % frequency == 0) {
-            partition.setCurrentDomainGroupVersion(partition.getUpdatingToDomainGroupVersion());
+
+    // Ring ALPHA
+    rgAlpha.setUpdatingToVersion(0);
+    rgAlpha.updateComplete();
+    for (Ring ring : rgAlpha.getRings()) {
+      ring.setState(RingState.UP);
+      ring.setUpdatingToVersion(0);
+      ring.updateComplete();
+      for (Host host : ring.getHosts()) {
+        host.setState(HostState.SERVING);
+        for (HostDomain hd : host.getAssignedDomains()) {
+          for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setUpdatingToDomainGroupVersion(null);
+            partition.setCurrentDomainGroupVersion(0);
           }
         }
       }
     }
 
-    // Set host states
-    frequency = 1;
-    for (Ring ring : rgAlpha.getRings()) {
-      for (Host host : ring.getHosts()) {
-        ++frequency;
-        switch (frequency % HostState.values().length) {
-          case 0:
-            host.setState(HostState.SERVING);
-            break;
-          case 1:
-            host.setState(HostState.UPDATING);
-            break;
-          case 2:
-            host.setState(HostState.IDLE);
-            break;
-          case 3:
-            host.setState(HostState.OFFLINE);
-            break;
-          default:
-            throw new RuntimeException("Unknown host state ID.");
+    // Ring BETA
+    rgBeta.setUpdatingToVersion(0);
+    rgBeta.updateComplete();
+    rgBeta.setUpdatingToVersion(1);
+    for (Ring ring : rgBeta.getRings()) {
+      // Set first ring to updating
+      if (ring.getRingNumber() == rgBeta.getRings().iterator().next().getRingNumber()) {
+        ring.setState(RingState.UPDATING);
+        ring.setUpdatingToVersion(0);
+        ring.updateComplete();
+        ring.setUpdatingToVersion(1);
+        for (Host host : ring.getHosts()) {
+          host.setState(HostState.UPDATING);
+        }
+      } else {
+        ring.setUpdatingToVersion(1);
+        ring.updateComplete();
+        ring.setState(RingState.UP);
+        for (Host host : ring.getHosts()) {
+          host.setState(HostState.SERVING);
         }
       }
     }
-    for (Ring ring: rgBeta.getRings()) {
+
+    // Ring GAMMA
+    rgGamma.updateComplete();
+    for (Ring ring : rgGamma.getRings()) {
+      ring.setState(RingState.UP);
       for (Host host : ring.getHosts()) {
-        host.setState(HostState.SERVING);
+        host.setState(HostState.IDLE);
       }
     }
-
-    // Set versions
-    rgBeta.updateComplete();
 
     final Iface mockClient = new Iface() {
       private final Map<String, ByteBuffer> values = new HashMap<String, ByteBuffer>() {

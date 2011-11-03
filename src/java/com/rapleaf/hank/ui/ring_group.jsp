@@ -90,8 +90,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>State</th>
       <th></th>
       <th></th>
-      <th>Current version</th>
-      <th>Next version</th>
+      <th>Version</th>
+      <th>Updating to version</th>
       <th>Hosts</th>
       <th>Serving</th>
       <th>Updating</th>
@@ -129,8 +129,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <td></td>
       <% } %>
 
-      <td class='centered'><%= ring.getVersionNumber() %></td>
-      <td class='centered'><%= ring.getUpdatingToVersionNumber() %></td>
+      <td class='centered'><%= ring.getVersionNumber() != null ? ring.getVersionNumber() : "-" %></td>
+      <td class='centered'><%= ring.getUpdatingToVersionNumber() != null ? ring.getUpdatingToVersionNumber() : "-" %></td>
 
       <%
       int hostsTotal = ring.getHosts().size();
@@ -146,23 +146,23 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <% } else if (hostsServing != 0) { %>
           <td class='host-serving'>
         <% } else { %>
-          <td>
+          <td class='centered'>
         <% } %>
-        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "" %></td>
+        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "-" %></td>
         <% if (hostsUpdating != 0) { %>
           <td class='host-updating'><%= hostsUpdating %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
         <% if (hostsIdle != 0) { %>
           <td class='host-idle'><%= hostsIdle %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
         <% if (hostsOffline != 0) { %>
           <td class='host-offline'><%= hostsOffline %></td>
         <% } else { %>
-          <td></td>
+          <td class='centered'>-</td>
         <% } %>
 
       <td>
