@@ -20,23 +20,26 @@ public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();
 
+    DomainGroup dg1 = coordinator.getDomainGroup("Group_1");
+    DomainGroup dg2 = coordinator.getDomainGroup("Group_2");
+
     // Assign
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
     RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
     RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");
 
-    DomainGroupVersion dgv = DomainGroups.getLatestVersion(coordinator.getDomainGroup("Group_1"));
-    partitionAssigner.assign(dgv, rgAlpha.getRing(1));
-    partitionAssigner.assign(dgv, rgAlpha.getRing(2));
-    partitionAssigner.assign(dgv, rgAlpha.getRing(3));
+    DomainGroupVersion dgv = DomainGroups.getLatestVersion(dg1);
+    for (Ring ring : rgAlpha.getRings()) {
+      partitionAssigner.assign(dgv, ring);
+    }
 
     // Ring ALPHA
-    rgAlpha.setUpdatingToVersion(0);
+    rgAlpha.setUpdatingToVersion(dgv.getVersionNumber());
     rgAlpha.updateComplete();
     for (Ring ring : rgAlpha.getRings()) {
       ring.setState(RingState.UP);
-      ring.setUpdatingToVersion(0);
+      ring.setUpdatingToVersion(dgv.getVersionNumber());
       ring.updateComplete();
       for (Host host : ring.getHosts()) {
         host.setState(HostState.SERVING);
@@ -52,6 +55,11 @@ public class WebUiServerTester extends ZkTestCase {
     // Ring BETA
     rgBeta.setUpdatingToVersion(0);
     rgBeta.updateComplete();
+    // Assign
+    for (Ring ring : rgBeta.getRings()) {
+      Thread.sleep(2000);
+      partitionAssigner.assign(dgv, ring);
+    }
     rgBeta.setUpdatingToVersion(1);
     for (Ring ring : rgBeta.getRings()) {
       // Set first ring to updating
@@ -59,12 +67,12 @@ public class WebUiServerTester extends ZkTestCase {
         ring.setState(RingState.UPDATING);
         ring.setUpdatingToVersion(0);
         ring.updateComplete();
-        ring.setUpdatingToVersion(1);
+        ring.setUpdatingToVersion(dgv.getVersionNumber());
         for (Host host : ring.getHosts()) {
           host.setState(HostState.UPDATING);
         }
       } else {
-        ring.setUpdatingToVersion(1);
+        ring.setUpdatingToVersion(dgv.getVersionNumber());
         ring.updateComplete();
         ring.setState(RingState.UP);
         for (Host host : ring.getHosts()) {
