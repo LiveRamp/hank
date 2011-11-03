@@ -59,7 +59,7 @@ public class ZkHostDomain extends AbstractHostDomain {
               return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath));
             }
           }
-        });
+        }, new DotComplete());
   }
 
   @Override

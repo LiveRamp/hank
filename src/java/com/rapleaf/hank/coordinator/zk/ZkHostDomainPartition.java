@@ -48,16 +48,8 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       zk.create(ZkPath.append(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
       zk.createInt(ZkPath.append(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
       zk.create(ZkPath.append(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
-      try {
-        zk.create(ZkPath.append(hdpPath, COUNTERS_PATH_SEGMENT), null);
-      } catch (KeeperException.NodeExistsException e) {
-        // ignore
-      }
-      try {
-        zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
-      } catch (KeeperException.NodeExistsException e) {
-        // ignore
-      }
+      zk.create(ZkPath.append(hdpPath, COUNTERS_PATH_SEGMENT), null);
+      zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
 
       return new ZkHostDomainPartition(zk, hdpPath);
     } catch (Exception e) {
