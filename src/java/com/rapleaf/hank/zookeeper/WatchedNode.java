@@ -1,10 +1,7 @@
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.*;
 import org.apache.zookeeper.Watcher.Event.EventType;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -12,7 +9,9 @@ import org.apache.zookeeper.data.Stat;
 import org.eclipse.jetty.util.log.Log;
 
 public abstract class WatchedNode<T> {
+
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
+
   private T value;
   private final String nodePath;
   private final ZooKeeperPlus zk;
@@ -57,8 +56,7 @@ public abstract class WatchedNode<T> {
     this.zk = zk;
     this.nodePath = nodePath;
     if (waitForCreation) {
-      CreationWaitingWatcher creationWaitingWatcher = new CreationWaitingWatcher();
-      creationWaitingWatcher.waitForNodeCreation();
+      NodeCreationBarrier.block(zk, nodePath);
     }
     update();
   }
@@ -115,33 +113,4 @@ public abstract class WatchedNode<T> {
 
   protected abstract byte[] encode(T v);
 
-  private class CreationWaitingWatcher implements Watcher {
-
-    private boolean waiting = true;
-
-    public synchronized void waitForNodeCreation() throws InterruptedException, KeeperException {
-      // Wait only if it doesn't exist
-      if (waiting && zk.exists(nodePath, this) == null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Wait for creation of node " + nodePath);
-        }
-        this.wait();
-      }
-    }
-
-    @Override
-    public synchronized void process(WatchedEvent watchedEvent) {
-      // If we lose synchronization, stop waiting
-      if (watchedEvent.getState() != KeeperState.SyncConnected) {
-        waiting = false;
-      } else {
-        // If the node has been created, stop waiting
-        if (watchedEvent.getType() == EventType.NodeCreated) {
-          waiting = false;
-        }
-      }
-      // Notify threads to check waiting flag
-      notifyAll();
-    }
-  }
 }
