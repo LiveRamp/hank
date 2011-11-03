@@ -53,6 +53,8 @@ public class TestZkRingGroup extends ZkTestCase {
 
   public void testLoad() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
+    create(ZkPath.append(ring_group, ZkRingGroup.CURRENT_VERSION_PATH_SEGMENT), Integer.toString(0));
+    create(ZkPath.append(ring_group, ZkRingGroup.UPDATING_TO_VERSION_PATH_SEGMENT), Integer.toString(1));
     createRing(1);
     createRing(2);
     createRing(3);
@@ -66,6 +68,9 @@ public class TestZkRingGroup extends ZkTestCase {
 
     assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartitionServerAddress("localhost", 2)).getRingNumber());
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
+
+    assertEquals("current version", Integer.valueOf(0), rg.getCurrentVersion());
+    assertEquals("current version", Integer.valueOf(1), rg.getUpdatingToVersion());
   }
 
   public void testVersionStuff() throws Exception {

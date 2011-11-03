@@ -34,8 +34,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup {
-  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
-  private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
+  protected static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
+  protected static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
