@@ -11,9 +11,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.eclipse.jetty.util.log.Log;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public abstract class WatchedNode<T> {
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
   private T value;
@@ -58,11 +55,8 @@ public abstract class WatchedNode<T> {
     this.zk = zk;
     this.nodePath = nodePath;
     if (waitForCreation) {
-      WaitingWatcher waitingWatcher = new WaitingWatcher();
-      // Wait only if it doesn't exist
-      if (zk.exists(nodePath, waitingWatcher) == null) {
-        waitingWatcher.waitForNodeCreation();
-      }
+      CreationWaitingWatcher creationWaitingWatcher = new CreationWaitingWatcher();
+      creationWaitingWatcher.waitForNodeCreation();
     }
     update();
   }
@@ -119,31 +113,33 @@ public abstract class WatchedNode<T> {
 
   protected abstract byte[] encode(T v);
 
-  private class WaitingWatcher implements Watcher {
+  private class CreationWaitingWatcher implements Watcher {
 
-    private final Lock lock;
+    private boolean waiting = true;
 
-    public WaitingWatcher() {
-      this.lock = new ReentrantLock();
-      lock.lock();
-    }
-
-    public void waitForNodeCreation() {
-      lock.lock();
-      lock.unlock();
+    public synchronized void waitForNodeCreation() throws InterruptedException, KeeperException {
+      // Wait only if it doesn't exist
+      if (waiting && zk.exists(nodePath, this) == null) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Wait for creation of node " + nodePath);
+        }
+        this.wait();
+      }
     }
 
     @Override
-    public void process(WatchedEvent watchedEvent) {
-      // If we lose synchronization, unlock
+    public synchronized void process(WatchedEvent watchedEvent) {
+      // If we lose synchronization, stop waiting
       if (watchedEvent.getState() != KeeperState.SyncConnected) {
-        lock.unlock();
+        waiting = false;
       } else {
-        // If the node has been created, unlock
+        // If the node has been created, stop waiting
         if (watchedEvent.getType() == EventType.NodeCreated) {
-          lock.unlock();
+          waiting = false;
         }
       }
+      // Notify threads to check waiting flag
+      notifyAll();
     }
   }
 }

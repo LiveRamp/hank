@@ -1,10 +1,9 @@
 package com.rapleaf.hank.zookeeper;
 
+import com.rapleaf.hank.ZkTestCase;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
-
-import com.rapleaf.hank.ZkTestCase;
 
 public class TestWatchedInt extends ZkTestCase {
   public void testIt() throws Exception {
@@ -33,7 +32,7 @@ public class TestWatchedInt extends ZkTestCase {
 
   public void testCreate() throws Exception {
     try {
-      new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), true);
+      new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), false);
       fail("should have thrown a KeeperException!");
     } catch (KeeperException.NoNodeException e) {
       // expected.
@@ -44,5 +43,43 @@ public class TestWatchedInt extends ZkTestCase {
 
     wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 10);
     assertEquals(Integer.valueOf(7), wi.get());
+  }
+
+  public void testWaitForCreation() throws InterruptedException, KeeperException {
+    final ZooKeeperPlus zk = getZk();
+    final String nodePath = ZkPath.append(getRoot(), "watchedNode");
+    WatchedInt wi;
+
+    // Try not waiting
+    try {
+      wi = new WatchedInt(zk, nodePath, false);
+      fail("Should fail with a NoNodeException");
+    } catch (KeeperException.NoNodeException e) {
+      // Correct behavior
+    }
+
+    Thread t = new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          // Wait before creating it
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        try {
+          zk.create(nodePath, "42".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        } catch (KeeperException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
+    // Try waiting
+    t.start();
+    wi = new WatchedInt(zk, nodePath, true);
+    assertEquals(Integer.valueOf(42), wi.get());
   }
 }
