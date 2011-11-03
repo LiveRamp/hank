@@ -92,7 +92,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
       try {
         Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
       } catch (InterruptedException e) {
-        LOG.debug("Interrupted in run loop. Exiting.", e);
+        LOG.info("Interrupted in run loop. Exiting.", e);
         break;
       }
     }
@@ -223,7 +223,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
+        }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
@@ -236,7 +238,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
         // Next command is set by the updater thread
         break;
       default:
-        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
+        }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
@@ -249,7 +253,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
+        }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }

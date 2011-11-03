@@ -49,7 +49,9 @@ public class HdfsFileOps implements IFileOps {
     }
     List<String> results = new ArrayList<String>(l.length);
     for (FileStatus fileStatus : l) {
-      LOG.trace(fileStatus.getPath());
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(fileStatus.getPath());
+      }
       results.add(fileStatus.getPath().toUri().getPath());
     }
     return results;
@@ -59,11 +61,15 @@ public class HdfsFileOps implements IFileOps {
   public boolean attemptDeleteRemote(String path) throws IOException {
     Path p = new Path(path);
     if (fs.exists(p)) {
-      LOG.debug("Deleting " + path);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Deleting " + path);
+      }
       fs.delete(p, false);
       return true;
     }
-    LOG.debug("Tried to delete " + path + " but it did not exist!");
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Tried to delete " + path + " but it did not exist!");
+    }
     return false;
   }
 }

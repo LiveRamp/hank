@@ -180,8 +180,10 @@ class PartitionServerHandler implements IfaceWithShutdown {
           LOG.error(msg);
           throw new IOException(msg);
         }
-        LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
-            partition.getPartitionNumber(), domain.getName()));
+        if (LOG.isDebugEnabled()) {
+          LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
+              partition.getPartitionNumber(), domain.getName()));
+        }
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
       }
       // configure and store the DomainAccessors

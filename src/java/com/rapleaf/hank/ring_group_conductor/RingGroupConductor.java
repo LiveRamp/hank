@@ -164,9 +164,11 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       if (domainVersion == null
           || !DomainVersions.isClosed(domainVersion)
           || domainVersion.isDefunct()) {
-        LOG.debug("Version " + dgvdv.getVersion()
-            + " of domain " + domain.getName()
-            + " is null, closed or defunct. Hence domain group version " + domainGroupVersion + " is not deployable.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Version " + dgvdv.getVersion()
+              + " of domain " + domain.getName()
+              + " is null, closed or defunct. Hence domain group version " + domainGroupVersion + " is not deployable.");
+        }
         return false;
       }
     }
@@ -200,7 +202,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
     synchronized (lock) {
-      LOG.debug("Got an updated ring group version!");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Got an updated ring group version!");
+      }
       ringGroup = newRingGroup;
     }
   }
@@ -208,7 +212,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   @Override
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
     synchronized (lock) {
-      LOG.debug("Got an updated domain group version: " + newDomainGroup + "!");
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Got an updated domain group version: " + newDomainGroup + "!");
+      }
       domainGroup = newDomainGroup;
     }
   }

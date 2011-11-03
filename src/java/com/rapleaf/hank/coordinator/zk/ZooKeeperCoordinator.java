@@ -95,13 +95,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
     @Override
     public void setWatch() throws KeeperException, InterruptedException {
-      LOG.debug("Registering watch on " + domainGroupsRoot);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Registering watch on " + domainGroupsRoot);
+      }
       zk.getChildren(domainGroupsRoot, this);
     }
 
     @Override
     public void realProcess(WatchedEvent event) {
-      LOG.debug(getClass().getSimpleName() + " received notification! " + event);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(getClass().getSimpleName() + " received notification! " + event);
+      }
       switch (event.getType()) {
         case NodeChildrenChanged:
           // reload domain groups
@@ -112,7 +116,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
           }
           break;
         default:
-          LOG.debug("Skipped message with event type: " + event.getType());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Skipped message with event type: " + event.getType());
+          }
       }
     }
   }
@@ -246,8 +252,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         if (isComplete) {
           domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath, this));
         } else {
-          LOG.debug("Not opening domain group " + dgPath
-              + " because it was incomplete.");
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Not opening domain group " + dgPath
+                + " because it was incomplete.");
+          }
         }
       }
     }
@@ -321,7 +329,9 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         zk.setData(domainIdCounterPath, Integer.toString(lastVersionNumber).getBytes(), stat.getVersion());
         return lastVersionNumber;
       } catch (KeeperException.BadVersionException e) {
-        LOG.debug("Tried to set the domain id counter to " + lastVersionNumber + " but was preempted by another writer. Retrying.");
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Tried to set the domain id counter to " + lastVersionNumber + " but was preempted by another writer. Retrying.");
+        }
       }
     }
   }

@@ -56,7 +56,9 @@ public class ZkHost extends AbstractHost {
                               String root,
                               PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
     String hostPath = ZkPath.append(root, partitionServerAddress.toString());
-    LOG.trace("creating host " + hostPath);
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Creating host " + hostPath);
+    }
     zk.create(hostPath, null);
     zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
@@ -126,7 +128,9 @@ public class ZkHost extends AbstractHost {
 
     @Override
     public void realProcess(WatchedEvent event) {
-      LOG.trace(event);
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(event);
+      }
       switch (event.getType()) {
         case NodeCreated:
         case NodeDeleted:

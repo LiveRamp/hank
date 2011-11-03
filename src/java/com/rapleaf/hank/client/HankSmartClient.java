@@ -355,9 +355,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       try {
         response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
       } catch (TException e) {
+        LOG.error("Failed to getBulk()", e);
         // Fill responses with error
         for (int responseIndex : bulkRequest.getKeyIndices()) {
-          LOG.error("Failed to getBulk()", e);
           allResponses.get(responseIndex).set_xception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
         }
         return;

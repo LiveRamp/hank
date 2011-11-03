@@ -33,9 +33,11 @@ public abstract class WatchedNode<T> {
         try {
           update();
         } catch (KeeperException e) {
-          LOG.error("Exception while trying to update our cached value for " + nodePath + "!", e);
+          LOG.error("Exception while trying to update our cached value for " + nodePath, e);
         } catch (InterruptedException e) {
-          LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+          }
         }
       }
     }

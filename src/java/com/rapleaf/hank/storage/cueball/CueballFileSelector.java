@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.storage.IFileSelector;
+import org.apache.log4j.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
-import com.rapleaf.hank.storage.IFileSelector;
-import org.apache.log4j.Logger;
 
 public class CueballFileSelector implements IFileSelector {
   private static final Logger LOG = Logger.getLogger(CueballFileSelector.class);
@@ -33,7 +33,9 @@ public class CueballFileSelector implements IFileSelector {
         return true;
       }
     } else {
-      LOG.trace(String.format("%s is not relevant for update %s -> %s (to cueball)", fileName, fromVersion, toVersion));
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(String.format("%s is not relevant for update %s -> %s (to cueball)", fileName, fromVersion, toVersion));
+      }
     }
     return false;
   }

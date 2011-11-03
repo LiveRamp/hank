@@ -39,7 +39,9 @@ public final class Fetcher implements IFetcher {
                     Set<Integer> excludeVersions,
                     String localDirectory) throws IOException {
     List<String> remoteFiles = fileOps.listFiles();
-    LOG.debug("Remote files: " + remoteFiles);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Remote files: " + remoteFiles);
+    }
     if (remoteFiles != null) {
       List<String> relevantFiles = new ArrayList<String>(remoteFiles.size());
       for (String fileName : remoteFiles) {
@@ -47,10 +49,14 @@ public final class Fetcher implements IFetcher {
           relevantFiles.add(fileName);
         }
       }
-      LOG.debug("Relevant files: " + relevantFiles);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Relevant files: " + relevantFiles);
+      }
       List<String> filesToCopy = fileSelector.selectFilesToCopy(relevantFiles, fromVersion, toVersion, excludeVersions);
       for (String fileName : filesToCopy) {
-        LOG.debug("Copying " + fileName + " to " + localDirectory);
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Copying " + fileName + " to " + localDirectory);
+        }
         fileOps.copyToLocal(fileName, localDirectory);
       }
     }

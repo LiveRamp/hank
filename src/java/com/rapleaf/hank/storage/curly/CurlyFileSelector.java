@@ -15,12 +15,11 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.util.List;
-import java.util.Set;
-
+import com.rapleaf.hank.storage.cueball.CueballFileSelector;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.storage.cueball.CueballFileSelector;
+import java.util.List;
+import java.util.Set;
 
 public class CurlyFileSelector extends CueballFileSelector {
   private static final Logger LOG = Logger.getLogger(CurlyFileSelector.class);
@@ -36,7 +35,9 @@ public class CurlyFileSelector extends CueballFileSelector {
         return true;
       }
     } else {
-      LOG.trace(String.format("%s is not relevant for update %s -> %s (to curly)", fileName, fromVersion, toVersion));
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(String.format("%s is not relevant for update %s -> %s (to curly)", fileName, fromVersion, toVersion));
+      }
     }
 
     return super.isRelevantFile(fileName, fromVersion, toVersion, excludeVersions);

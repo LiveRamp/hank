@@ -143,13 +143,15 @@ class UpdateManager implements IUpdateManager {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
           if (!partition.isDeletable() && partition.getUpdatingToDomainGroupVersion() != null) {
             // Skip deletable partitions and partitions not updating
-            LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
-                ringGroup.getName(),
-                ring.getRingNumber(),
-                domain.getName(),
-                partition.getPartitionNumber(),
-                partition.getCurrentDomainGroupVersion(),
-                partition.getUpdatingToDomainGroupVersion()));
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
+                  ringGroup.getName(),
+                  ring.getRingNumber(),
+                  domain.getName(),
+                  partition.getPartitionNumber(),
+                  partition.getCurrentDomainGroupVersion(),
+                  partition.getUpdatingToDomainGroupVersion()));
+            }
             executor.execute(new PartitionUpdateTask(engine,
                 partition.getPartitionNumber(),
                 exceptionQueue,
