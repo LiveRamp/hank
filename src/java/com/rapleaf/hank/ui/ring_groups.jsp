@@ -54,6 +54,7 @@
       <th></th>
       <th></th>
       <th>Current Version</th>
+      <th>Updating to Version</th>
       <th>Hosts</th>
       <th>Serving</th>
       <th>Updating</th>
@@ -97,6 +98,7 @@
 
 
         <td class='centered'><%= ringGroup.getCurrentVersion() %></td>
+        <td class='centered'><%= ringGroup.getUpdatingToVersion() %></td>
 
         <%
         int hostsTotal = RingGroups.getNumHosts(ringGroup);
