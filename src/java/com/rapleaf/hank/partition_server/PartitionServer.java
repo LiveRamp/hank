@@ -328,9 +328,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
       public void run() {
         try {
           startThriftServer();
-        } catch (Exception e) {
+        } catch (Throwable t) {
           // Data server is probably going down unexpectedly, stop the partition server
-          LOG.fatal("Data server thread encountered a fatal exception and is stopping.", e);
+          LOG.fatal("Data server thread encountered a fatal throwable and is stopping.", t);
           // Stop waiting for data server
           waitForDataServer = false;
           // Stop partition server main thread
