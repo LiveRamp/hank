@@ -61,7 +61,7 @@ public class SmartClientDaemon {
    */
   private void serve() throws IOException, TException {
     // set up the service handler
-    HankSmartClient handler = new HankSmartClient(coordinator, ringGroupName, 1);
+    HankSmartClient handler = new HankSmartClient(coordinator, ringGroupName, 1, 0);
 
     // launch the thrift server
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getPortNumber());

@@ -201,7 +201,7 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread.sleep(1000);
 
     try {
-      HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup", 1);
+      HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup", 1, 0);
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), c.get("nonexistent_domain", null));
