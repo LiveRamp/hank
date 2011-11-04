@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implements PartitionServerConfigurator {
+
   private static final String PARTITION_SERVER_SECTION_KEY = "partition_server";
   private static final String LOCAL_DATA_DIRS_KEY = "local_data_dirs";
   private static final String SERVICE_PORT_KEY = "service_port";
@@ -39,94 +40,62 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   }
 
   @Override
-  public Set<String> getLocalDataDirectories() {
-    return new HashSet<String>((Collection<? extends String>) getPartservSection().get(LOCAL_DATA_DIRS_KEY));
-  }
+  protected void validate() throws InvalidConfigurationException {
+    super.validate();
 
-  protected Map<String, Object> getPartservSection() {
-    return (Map<String, Object>) config.get(PARTITION_SERVER_SECTION_KEY);
+    getRequiredSection(PARTITION_SERVER_SECTION_KEY);
+    getRequiredStringList(PARTITION_SERVER_SECTION_KEY, LOCAL_DATA_DIRS_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, SERVICE_PORT_KEY);
+    getRequiredString(PARTITION_SERVER_SECTION_KEY, RING_GROUP_NAME_KEY);
+
+    getRequiredSection(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY,
+        PARTITION_SERVER_DAEMON_SECTION_KEY,
+        NUM_CONCURRENT_CONNECTIONS_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY,
+        PARTITION_SERVER_DAEMON_SECTION_KEY,
+        NUM_CONCURRENT_GET_BULK_TASKS);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, GET_BULK_TASK_SIZE);
+    getRequiredSection(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
   }
 
   @Override
-  public String getRingGroupName() {
-    return (String) getPartservSection().get(RING_GROUP_NAME_KEY);
+  public Set<String> getLocalDataDirectories() {
+    return new HashSet<String>(getStringList(PARTITION_SERVER_SECTION_KEY, LOCAL_DATA_DIRS_KEY));
   }
 
   @Override
   public int getServicePort() {
-    return ((Integer) getPartservSection().get(SERVICE_PORT_KEY)).intValue();
+    return getInteger(PARTITION_SERVER_SECTION_KEY, SERVICE_PORT_KEY);
   }
 
   @Override
-  protected void validate() throws InvalidConfigurationException {
-    super.validate();
-
-    // general partition server section
-    if (!config.containsKey(PARTITION_SERVER_SECTION_KEY)) {
-      throw new InvalidConfigurationException("Configuration must contain a " + PARTITION_SERVER_SECTION_KEY + " section!");
-    }
-    Map<String, Object> partitionServerSection = (Map<String, Object>) config.get(PARTITION_SERVER_SECTION_KEY);
-    if (partitionServerSection == null) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must not be null!");
-    }
-    if (!partitionServerSection.containsKey(LOCAL_DATA_DIRS_KEY) || !(partitionServerSection.get(LOCAL_DATA_DIRS_KEY) instanceof List)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + LOCAL_DATA_DIRS_KEY + " key of type List!");
-    }
-    if (!partitionServerSection.containsKey(SERVICE_PORT_KEY) || !(partitionServerSection.get(SERVICE_PORT_KEY) instanceof Integer)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + SERVICE_PORT_KEY + " key of type int!");
-    }
-    if (!partitionServerSection.containsKey(RING_GROUP_NAME_KEY)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + RING_GROUP_NAME_KEY + " key!");
-    }
-
-    // partition server daemon section
-    if (!partitionServerSection.containsKey(PARTITION_SERVER_DAEMON_SECTION_KEY)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + PARTITION_SERVER_DAEMON_SECTION_KEY + " key!");
-    }
-    Map<String, Object> partitionServerDaemonSection = (Map<String, Object>) partitionServerSection.get(PARTITION_SERVER_DAEMON_SECTION_KEY);
-    if (partitionServerDaemonSection == null) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must not be null!");
-    }
-    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_CONNECTIONS_KEY) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_CONNECTIONS_KEY) instanceof Integer)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_CONNECTIONS_KEY + " key of type int!");
-    }
-    if (!partitionServerDaemonSection.containsKey(NUM_CONCURRENT_GET_BULK_TASKS) || !(partitionServerDaemonSection.get(NUM_CONCURRENT_GET_BULK_TASKS) instanceof Integer)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_GET_BULK_TASKS + " key of type int!");
-    }
-    if (!partitionServerDaemonSection.containsKey(GET_BULK_TASK_SIZE) || !(partitionServerDaemonSection.get(GET_BULK_TASK_SIZE) instanceof Integer)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_DAEMON_SECTION_KEY + " section must contain a " + GET_BULK_TASK_SIZE + " key of type int!");
-    }
-
-    // update daemon section
-    if (!partitionServerSection.containsKey(UPDATE_DAEMON_SECTION_KEY)) {
-      throw new InvalidConfigurationException(PARTITION_SERVER_SECTION_KEY + " section must contain a " + UPDATE_DAEMON_SECTION_KEY + " key!");
-    }
-    Map<String, Object> updateDaemonSection = (Map<String, Object>) partitionServerSection.get(UPDATE_DAEMON_SECTION_KEY);
-    if (updateDaemonSection == null) {
-      throw new InvalidConfigurationException(UPDATE_DAEMON_SECTION_KEY + " section must not be null!");
-    }
-    if (!updateDaemonSection.containsKey(NUM_CONCURRENT_UPDATES_KEY) || !(updateDaemonSection.get(NUM_CONCURRENT_UPDATES_KEY) instanceof Integer)) {
-      throw new InvalidConfigurationException(UPDATE_DAEMON_SECTION_KEY + " section must contain a " + NUM_CONCURRENT_UPDATES_KEY + " section of type int!");
-    }
-  }
-
-  @Override
-  public int getNumConcurrentUpdates() {
-    return ((Integer) ((Map<String, Object>) getPartservSection().get(UPDATE_DAEMON_SECTION_KEY)).get(NUM_CONCURRENT_UPDATES_KEY)).intValue();
+  public String getRingGroupName() {
+    return getString(PARTITION_SERVER_SECTION_KEY, RING_GROUP_NAME_KEY);
   }
 
   @Override
   public int getNumConcurrentConnections() {
-    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(NUM_CONCURRENT_CONNECTIONS_KEY)).intValue();
+    return getInteger(PARTITION_SERVER_SECTION_KEY,
+        PARTITION_SERVER_DAEMON_SECTION_KEY,
+        NUM_CONCURRENT_CONNECTIONS_KEY);
   }
 
   @Override
   public int getNumConcurrentGetBulkTasks() {
-    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(NUM_CONCURRENT_GET_BULK_TASKS)).intValue();
+    return getInteger(PARTITION_SERVER_SECTION_KEY,
+        PARTITION_SERVER_DAEMON_SECTION_KEY,
+        NUM_CONCURRENT_GET_BULK_TASKS);
   }
 
   @Override
   public int getGetBulkTaskSize() {
-    return ((Integer) ((Map<String, Object>) getPartservSection().get(PARTITION_SERVER_DAEMON_SECTION_KEY)).get(GET_BULK_TASK_SIZE)).intValue();
+    return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, GET_BULK_TASK_SIZE);
+  }
+
+  @Override
+  public int getNumConcurrentUpdates() {
+    return getInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
   }
 }

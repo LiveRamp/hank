@@ -19,10 +19,10 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 
 import java.io.IOException;
-import java.util.Map;
 
 
 public class YamlRingGroupConductorConfigurator extends BaseYamlConfigurator implements RingGroupConductorConfigurator {
+
   private static final String RING_GROUP_CONDUCTOR_SECTION_KEY = "ring_group_conductor";
   private static final String SLEEP_INTERVAL_KEY = "sleep_interval";
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";
@@ -33,35 +33,19 @@ public class YamlRingGroupConductorConfigurator extends BaseYamlConfigurator imp
 
   @Override
   public String getRingGroupName() {
-    return (String) ((Map<String, Object>) config.get(RING_GROUP_CONDUCTOR_SECTION_KEY)).get(RING_GROUP_NAME_KEY);
+    return getString(RING_GROUP_CONDUCTOR_SECTION_KEY, RING_GROUP_NAME_KEY);
   }
 
   @Override
   public long getSleepInterval() {
-    return ((Integer) ((Map<String, Object>) config.get(RING_GROUP_CONDUCTOR_SECTION_KEY)).get(SLEEP_INTERVAL_KEY)).longValue();
+    return getInteger(RING_GROUP_CONDUCTOR_SECTION_KEY, SLEEP_INTERVAL_KEY).longValue();
   }
 
   @Override
   protected void validate() throws InvalidConfigurationException {
     super.validate();
-    if (!config.containsKey(RING_GROUP_CONDUCTOR_SECTION_KEY)) {
-      throw new InvalidConfigurationException("config must contain a '"
-          + RING_GROUP_CONDUCTOR_SECTION_KEY + "' section!");
-    }
-    Map<String, Object> ringGroupConductorSection = (Map<String, Object>) config.get(RING_GROUP_CONDUCTOR_SECTION_KEY);
-    if (ringGroupConductorSection == null) {
-      throw new InvalidConfigurationException("'" + RING_GROUP_CONDUCTOR_SECTION_KEY
-          + "' section must not be empty!");
-    }
-    if (!ringGroupConductorSection.containsKey(RING_GROUP_NAME_KEY) || (!(ringGroupConductorSection.get(RING_GROUP_NAME_KEY) instanceof String))) {
-      throw new InvalidConfigurationException("'" + RING_GROUP_CONDUCTOR_SECTION_KEY
-          + "' section must contain a '" + RING_GROUP_NAME_KEY
-          + "' key of type string!");
-    }
-    if (!ringGroupConductorSection.containsKey(SLEEP_INTERVAL_KEY) || (!(ringGroupConductorSection.get(SLEEP_INTERVAL_KEY) instanceof Integer))) {
-      throw new InvalidConfigurationException("'" + RING_GROUP_CONDUCTOR_SECTION_KEY
-          + "' section must contain a '" + SLEEP_INTERVAL_KEY
-          + "' key of type long!");
-    }
+    getRequiredSection(RING_GROUP_CONDUCTOR_SECTION_KEY);
+    getRequiredString(RING_GROUP_CONDUCTOR_SECTION_KEY, RING_GROUP_NAME_KEY);
+    getRequiredInteger(RING_GROUP_CONDUCTOR_SECTION_KEY, SLEEP_INTERVAL_KEY);
   }
 }

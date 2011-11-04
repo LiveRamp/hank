@@ -15,12 +15,13 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import java.io.FileNotFoundException;
-
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 
+import java.io.FileNotFoundException;
+
 public class YamlClientConfigurator extends BaseYamlConfigurator implements ClientConfigurator {
+
   public YamlClientConfigurator() {
     super();
   }

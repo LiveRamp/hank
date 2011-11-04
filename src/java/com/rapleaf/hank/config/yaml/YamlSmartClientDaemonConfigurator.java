@@ -15,11 +15,10 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import java.io.IOException;
-import java.util.Map;
-
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
+
+import java.io.IOException;
 
 public class YamlSmartClientDaemonConfigurator extends BaseYamlConfigurator implements SmartClientDaemonConfigurator {
 
@@ -34,38 +33,25 @@ public class YamlSmartClientDaemonConfigurator extends BaseYamlConfigurator impl
 
   @Override
   public int getNumThreads() {
-    return ((Integer)((Map<String, Object>) config.get(SMART_CLIENT_SECTION_KEY)).get(NUM_WORKER_THREADS)).intValue();
+    return getInteger(SMART_CLIENT_SECTION_KEY, NUM_WORKER_THREADS);
   }
 
   @Override
   public int getPortNumber() {
-    return ((Integer)((Map<String, Object>) config.get(SMART_CLIENT_SECTION_KEY)).get(SERVICE_PORT_KEY)).intValue();
+    return getInteger(SMART_CLIENT_SECTION_KEY, SERVICE_PORT_KEY);
   }
 
   @Override
   public String getRingGroupName() {
-    return (String) ((Map<String, Object>) config.get(SMART_CLIENT_SECTION_KEY)).get(RING_GROUP_NAME_KEY);
+    return getString(SMART_CLIENT_SECTION_KEY, RING_GROUP_NAME_KEY);
   }
 
   @Override
   protected void validate() throws InvalidConfigurationException {
     super.validate();
-    if (!config.containsKey(SMART_CLIENT_SECTION_KEY)) {
-      throw new InvalidConfigurationException("Configuration must contain a 'smart_client' section!");
-    }
-    Map<String, Object> smartClientSection = (Map<String, Object>) config.get(SMART_CLIENT_SECTION_KEY);
-    if (smartClientSection == null) {
-      throw new InvalidConfigurationException("'smart_client' section may not be empty!");
-    }
-    if (!smartClientSection.containsKey(NUM_WORKER_THREADS) || !(smartClientSection.get(NUM_WORKER_THREADS) instanceof Integer)) {
-      throw new InvalidConfigurationException("'smart_client' section must contain a 'num_worker_threads' key of type int!");
-    }
-    if (!smartClientSection.containsKey(SERVICE_PORT_KEY) || !(smartClientSection.get(SERVICE_PORT_KEY) instanceof Integer)) {
-      throw new InvalidConfigurationException("'smart_client' section must contain a 'service_port' key of type int!");
-    }
-    if (!smartClientSection.containsKey(RING_GROUP_NAME_KEY)) {
-      throw new InvalidConfigurationException("'smart_client' section must contain a 'ring_group_name' key!");
-    }
+    getRequiredSection(SMART_CLIENT_SECTION_KEY);
+    getRequiredInteger(SMART_CLIENT_SECTION_KEY, NUM_WORKER_THREADS);
+    getRequiredInteger(SMART_CLIENT_SECTION_KEY, SERVICE_PORT_KEY);
+    getRequiredString(SMART_CLIENT_SECTION_KEY, RING_GROUP_NAME_KEY);
   }
-
 }
