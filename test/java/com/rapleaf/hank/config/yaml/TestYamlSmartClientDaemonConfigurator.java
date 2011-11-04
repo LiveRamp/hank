@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import java.io.FileWriter;
-import java.io.PrintWriter;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+
+import java.io.FileWriter;
+import java.io.PrintWriter;
 
 public class TestYamlSmartClientDaemonConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
@@ -74,7 +74,7 @@ public class TestYamlSmartClientDaemonConfigurator extends BaseTestCase {
       new YamlSmartClientDaemonConfigurator(configPath);
       fail("should have thrown an exception");
     } catch (InvalidConfigurationException e) {}
-    
+
     pw = new PrintWriter(new FileWriter(configPath));
     pw.println("smart_client:");
     pw.println("  service_port: 1");

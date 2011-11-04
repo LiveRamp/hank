@@ -101,7 +101,7 @@ public abstract class BaseYamlConfigurator implements Configurator {
 
   protected Object getRequiredOption(String... optionPath) throws InvalidConfigurationException {
     Map<String, Object> currentSection = config;
-    String path = "";
+    String path = "_root";
     int i = 0;
     for (; i < optionPath.length - 1; ++i) {
       if (currentSection.get(optionPath[i]) == null) {

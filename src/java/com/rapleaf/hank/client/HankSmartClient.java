@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.client;
 
+import com.rapleaf.hank.config.HankSmartClientConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
@@ -57,15 +58,16 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * contact one ring group. Queries will not timeout.
    *
    * @param coordinator
-   * @param ringGroupName
-   * @param numConnectionsPerHost
+   * @param configurator
    * @throws IOException
    * @throws TException
    */
   public HankSmartClient(Coordinator coordinator,
-                         String ringGroupName,
-                         int numConnectionsPerHost) throws IOException, TException {
-    this(coordinator, ringGroupName, numConnectionsPerHost, 0);
+                         HankSmartClientConfigurator configurator) throws IOException, TException {
+    this(coordinator,
+        configurator.getRingGroupName(),
+        configurator.getNumConnectionsPerHost(),
+        configurator.getQueryTimeoutMS());
   }
 
   /**
