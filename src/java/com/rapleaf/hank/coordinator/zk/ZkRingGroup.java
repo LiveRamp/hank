@@ -216,22 +216,21 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public void setUpdatingToVersion(Integer versionNumber) throws IOException {
+  public void setCurrentVersion(Integer version) throws IOException {
     try {
-      updatingToVersion.set(versionNumber);
+      currentVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public void updateComplete() throws IOException {
+  public void setUpdatingToVersion(Integer version) throws IOException {
     try {
-      currentVersion.set(getUpdatingToVersion());
+      updatingToVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
-    setUpdatingToVersion(null);
   }
 
   @Override

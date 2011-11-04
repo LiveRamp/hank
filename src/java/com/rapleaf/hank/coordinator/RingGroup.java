@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface RingGroup {
+
   public String getName();
 
   /**
@@ -68,13 +69,15 @@ public interface RingGroup {
 
   public Integer getCurrentVersion() throws IOException;
 
-  public void setUpdatingToVersion(Integer versionNumber) throws IOException;
-
-  public void updateComplete() throws IOException;
-
-  public void setListener(RingGroupChangeListener listener) throws IOException;
+  public void setCurrentVersion(Integer version) throws IOException;
 
   public Integer getUpdatingToVersion() throws IOException;
 
-  Ring addRing(int ringNum) throws IOException;
+  public void setUpdatingToVersion(Integer version) throws IOException;
+
+  public void setListener(RingGroupChangeListener listener) throws IOException;
+
+  public Ring addRing(int ringNum) throws IOException;
+
+  public void markUpdateComplete() throws IOException;
 }

@@ -80,7 +80,7 @@ public class TestZkRingGroup extends ZkTestCase {
     dumpZk();
     assertNull(rg.getCurrentVersion());
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getUpdatingToVersion());
-    rg.updateComplete();
+    rg.markUpdateComplete();
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersion());
     assertNull(rg.getUpdatingToVersion());
   }
@@ -89,7 +89,7 @@ public class TestZkRingGroup extends ZkTestCase {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
-    rg.updateComplete();
+    rg.markUpdateComplete();
 
     MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
     rg.setListener(listener);
@@ -102,7 +102,7 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersion());
 
     listener.calledWith = null;
-    rg.updateComplete();
+    rg.markUpdateComplete();
     synchronized (listener) {
       listener.wait(1000);
     }

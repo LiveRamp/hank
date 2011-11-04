@@ -20,6 +20,11 @@ import java.io.IOException;
 
 public abstract class AbstractRingGroup implements RingGroup {
 
+  public void markUpdateComplete() throws IOException {
+    setCurrentVersion(getUpdatingToVersion());
+    setUpdatingToVersion(null);
+  }
+
   @Override
   public String toString() {
     try {

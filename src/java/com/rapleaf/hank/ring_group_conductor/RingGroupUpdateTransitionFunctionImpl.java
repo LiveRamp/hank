@@ -178,7 +178,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     // complete its update.
     if (!anyUpdatesPending) {
       LOG.info("There are no more updates pending. The update is complete!");
-      ringGroup.updateComplete();
+      ringGroup.markUpdateComplete();
     }
   }
 }
