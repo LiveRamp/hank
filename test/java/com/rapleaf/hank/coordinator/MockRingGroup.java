@@ -22,13 +22,25 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final DomainGroup dcg;
   private final String name;
   private final Set<Ring> ringConfigs;
-  public int currentVersion;
-  public int updateToVersion;
+  public Integer currentVersion;
+  public Integer updatingToVersion;
 
   public MockRingGroup(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;
+  }
+
+  public MockRingGroup(DomainGroup dcg,
+                       String name,
+                       Set<Ring> ringConfigs,
+                       Integer currentVersion,
+                       Integer updatingToVersion) {
+    this.dcg = dcg;
+    this.name = name;
+    this.ringConfigs = ringConfigs;
+    this.currentVersion = currentVersion;
+    this.updatingToVersion = updatingToVersion;
   }
 
   @Override
@@ -77,12 +89,12 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public Integer getUpdatingToVersion() {
-    return updateToVersion;
+    return updatingToVersion;
   }
 
   @Override
   public void setUpdatingToVersion(Integer version) {
-    updateToVersion = version;
+    updatingToVersion = version;
   }
 
   @Override

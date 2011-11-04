@@ -25,7 +25,18 @@ public class MockRing extends AbstractRing {
   public Integer currentVersion;
   public Integer updatingToVersion;
 
-  public MockRing(Set<PartitionServerAddress> hosts, RingGroup ringGroup, int number, RingState state) {
+  public MockRing(Set<PartitionServerAddress> hosts,
+                  RingGroup ringGroup,
+                  int number,
+                  RingState state) {
+    this(hosts, ringGroup, number, state, null, null);
+  }
+  public MockRing(Set<PartitionServerAddress> hosts,
+                  RingGroup ringGroup,
+                  int number,
+                  RingState state,
+                  Integer currentVersion,
+                  Integer updatingToVersion) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {
@@ -34,6 +45,8 @@ public class MockRing extends AbstractRing {
       }
     }
     this.state = state;
+    this.currentVersion = currentVersion;
+    this.updatingToVersion = updatingToVersion;
   }
 
   public Set<Host> getHosts() {

@@ -92,15 +92,10 @@ public class TestRingGroupConductor extends TestCase {
     };
 
     final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup",
-        Collections.EMPTY_SET) {
+        Collections.EMPTY_SET, 1, null) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
-      }
-
-      @Override
-      public Integer getCurrentVersion() {
-        return 1;
       }
 
       @Override
@@ -136,14 +131,11 @@ public class TestRingGroupConductor extends TestCase {
 
     assertNull(mockTransFunc.calledWithRingGroup);
 
-    assertEquals(2, mockRingGroup.updateToVersion);
+    assertEquals(Integer.valueOf(2), mockRingGroup.updatingToVersion);
 
-    assertEquals(Integer.valueOf(2), mockRing
-
-        .updatingToVersion);
+    assertEquals(Integer.valueOf(2), mockRing.updatingToVersion);
 
     assertEquals(2, mockHostDomainPartition.updatingToVersion);
-
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
