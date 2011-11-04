@@ -44,8 +44,12 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public Integer getVersionNumber() {
+    public Integer getCurrentVersionNumber() {
       return null;
+    }
+
+    @Override
+    public void setCurrentVersion(Integer version) throws IOException {
     }
 
     @Override
@@ -57,11 +61,7 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
-    }
-
-    @Override
-    public void updateComplete() throws IOException {
+    public void setUpdatingToVersion(Integer version) throws IOException {
     }
 
     @Override

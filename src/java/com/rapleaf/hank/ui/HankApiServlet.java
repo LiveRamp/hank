@@ -189,7 +189,7 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getRingData(Ring ring) throws IOException {
     Map<String, Object> ringData = new HashMap<String, Object>();
     ringData.put("ring_number", ring.getRingNumber());
-    ringData.put("version_number", ring.getVersionNumber());
+    ringData.put("version_number", ring.getCurrentVersionNumber());
     ringData.put("updating_to_version", ring.getUpdatingToVersionNumber());
     ringData.put("is_update_pending", Rings.isUpdatePending(ring));
     ringData.put("status", ring.getState().name());

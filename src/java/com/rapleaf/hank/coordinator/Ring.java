@@ -45,9 +45,11 @@ public interface Ring extends Comparable<Ring> {
    *
    * @return
    */
-  public Integer getVersionNumber();
+  public Integer getCurrentVersionNumber();
 
-  public DomainGroupVersion getVersion() throws IOException;
+  public DomainGroupVersion getCurrentVersion() throws IOException;
+
+  public void setCurrentVersion(Integer version) throws IOException;
 
   /**
    * Get the next domain group version number for this Ring. If no update is
@@ -60,20 +62,20 @@ public interface Ring extends Comparable<Ring> {
   public DomainGroupVersion getUpdatingToVersion() throws IOException;
 
   /**
+   * Set the updating-to version number.
+   *
+   * @param version
+   * @throws IOException
+   */
+  public void setUpdatingToVersion(Integer version) throws IOException;
+
+  /**
    * Report that a planned update has succeeded, setting current version to
    * updating version and removing the updating version.
    *
    * @throws IOException
    */
-  public void updateComplete() throws IOException;
-
-  /**
-   * Set the updating-to version number.
-   *
-   * @param latestVersionNumber
-   * @throws IOException
-   */
-  public void setUpdatingToVersion(int latestVersionNumber) throws IOException;
+  public void markUpdateComplete() throws IOException;
 
   /**
    * Listener will be notified when the ring's state changes.

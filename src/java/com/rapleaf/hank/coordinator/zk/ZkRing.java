@@ -128,8 +128,17 @@ public class ZkRing extends AbstractRing {
   }
 
   @Override
-  public Integer getVersionNumber() {
+  public Integer getCurrentVersionNumber() {
     return currentVersionNumber.get();
+  }
+
+  @Override
+  public void setCurrentVersion(Integer version) throws IOException {
+    try {
+      currentVersionNumber.set(version);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -138,10 +147,9 @@ public class ZkRing extends AbstractRing {
   }
 
   @Override
-  public void updateComplete() throws IOException {
+  public void setUpdatingToVersion(Integer version) throws IOException {
     try {
-      currentVersionNumber.set(getUpdatingToVersionNumber());
-      updatingToVersionNumber.set(null);
+      updatingToVersionNumber.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -165,15 +173,6 @@ public class ZkRing extends AbstractRing {
   public void setState(RingState newState) throws IOException {
     try {
       zk.setString(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), newState.toString());
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
-    try {
-      updatingToVersionNumber.set(latestVersionNumber);
     } catch (Exception e) {
       throw new IOException(e);
     }

@@ -22,6 +22,7 @@ import java.util.Set;
 public class MockRing extends AbstractRing {
   private RingState state;
   private final Set<Host> hosts;
+  public Integer currentVersion;
   public Integer updatingToVersion;
 
   public MockRing(Set<PartitionServerAddress> hosts, RingGroup ringGroup, int number, RingState state) {
@@ -35,40 +36,34 @@ public class MockRing extends AbstractRing {
     this.state = state;
   }
 
-  @Override
   public Set<Host> getHosts() {
     return hosts;
   }
 
-  @Override
   public RingState getState() {
     return state;
   }
 
-  @Override
-  public Integer getVersionNumber() {
-    return 0;
+  public Integer getCurrentVersionNumber() {
+    return currentVersion;
   }
 
-  @Override
+  public void setCurrentVersion(Integer version) throws IOException {
+    currentVersion = version;
+  }
+
   public Integer getUpdatingToVersionNumber() {
-    return 0;
+    return updatingToVersion;
   }
 
-  @Override
-  public void updateComplete() {
+  public void setUpdatingToVersion(Integer version) throws IOException {
+    updatingToVersion = version;
   }
 
-  public Integer getOldestVersionOnHosts() {
-    return 0;
-  }
-
-  @Override
   public Host addHost(PartitionServerAddress address) throws IOException {
     return null;
   }
 
-  @Override
   public Host getHostByAddress(PartitionServerAddress address) {
     for (Host host : hosts) {
       if (host.getAddress().equals(address)) {
@@ -78,27 +73,18 @@ public class MockRing extends AbstractRing {
     return null;
   }
 
-  @Override
   public void setState(RingState newState) throws IOException {
     state = newState;
   }
 
-  @Override
-  public void setUpdatingToVersion(int latestVersionNumber) throws IOException {
-    updatingToVersion = latestVersionNumber;
-  }
-
-  @Override
   public void setStateChangeListener(RingStateChangeListener listener)
       throws IOException {
   }
 
-  @Override
   public boolean removeHost(PartitionServerAddress address) {
     return false;
   }
 
-  @Override
   public void delete() throws IOException {
   }
 

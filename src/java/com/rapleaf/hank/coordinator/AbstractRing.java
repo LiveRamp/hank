@@ -37,12 +37,20 @@ public abstract class AbstractRing implements Ring {
     return ringNumber;
   }
 
-  public DomainGroupVersion getVersion() throws IOException {
-    return getRingGroup().getDomainGroup().getVersionByNumber(getVersionNumber());
+  @Override
+  public DomainGroupVersion getCurrentVersion() throws IOException {
+    return getRingGroup().getDomainGroup().getVersionByNumber(getCurrentVersionNumber());
   }
 
+  @Override
   public DomainGroupVersion getUpdatingToVersion() throws IOException {
     return getRingGroup().getDomainGroup().getVersionByNumber(getUpdatingToVersionNumber());
+  }
+
+  @Override
+  public void markUpdateComplete() throws IOException {
+    setCurrentVersion(getUpdatingToVersionNumber());
+    setUpdatingToVersion(null);
   }
 
   @Override
@@ -53,6 +61,6 @@ public abstract class AbstractRing implements Ring {
   @Override
   public String toString() {
     return String.format("AbstractRing [ringGroup=%s, ring=%d, version=%d, updatingToVersion=%d]",
-        (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber(), this.getVersionNumber(), this.getUpdatingToVersionNumber());
+        (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber(), this.getCurrentVersionNumber(), this.getUpdatingToVersionNumber());
   }
 }

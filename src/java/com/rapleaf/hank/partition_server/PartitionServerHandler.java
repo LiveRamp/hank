@@ -94,7 +94,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     // or the current one.
     Integer versionNumber = ring.getUpdatingToVersionNumber();
     if (versionNumber == null) {
-      versionNumber = ring.getVersionNumber();
+      versionNumber = ring.getCurrentVersionNumber();
     }
     if (versionNumber == null) {
       throw new IOException(String.format("Could not get current version number of Ring %s", ring));

@@ -125,7 +125,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             // sweet, we're done updating, so we can start all our daemons now
             LOG.info("Ring " + ring.getRingNumber()
                 + " is fully UPDATED. Commanding hosts to serve.");
-            ring.updateComplete();
+            ring.markUpdateComplete();
             Rings.commandAll(ring, HostCommand.SERVE_DATA);
             ring.setState(RingState.OPENING);
             break;

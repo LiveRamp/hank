@@ -39,7 +39,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     @Override
-    public Integer getVersionNumber() {
+    public Integer getCurrentVersionNumber() {
       if (version != null) {
         return version.getVersionNumber();
       } else {
@@ -57,12 +57,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     @Override
-    public void updateComplete() {
+    public void markUpdateComplete() {
       this.updateCompleteCalled = true;
     }
 
     @Override
-    public DomainGroupVersion getVersion() {
+    public DomainGroupVersion getCurrentVersion() {
       return version;
     }
 
