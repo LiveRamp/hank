@@ -74,7 +74,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     host = ring.getHostByAddress(hostAddress);
     if (host == null) {
       throw new RuntimeException("Could not get host for host address: " + hostAddress
-      + " in ring group " + ringGroup.getName() + " ring " + ring.getRingNumber());
+          + " in ring group " + ringGroup.getName() + " ring " + ring.getRingNumber());
     }
     if (Hosts.isOnline(host)) {
       throw new RuntimeException("Could not start a partition server for host " + host
@@ -325,7 +325,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
   /**
    * Start serving the data. Returns when the server is up.
    */
-  private void serveData() {
+  private void serveData() throws IOException {
     waitForDataServer = true;
     if (dataServer != null) {
       LOG.info("Data server is already running. Cannot serve data.");
@@ -358,11 +358,13 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
         LOG.debug("Data server isn't online yet. Waiting...");
         Thread.sleep(1000);
       }
-      if (dataServer != null && dataServer.isServing()) {
-        LOG.info("Data server online and serving.");
-      }
     } catch (InterruptedException e) {
-      throw new RuntimeException("Interrupted waiting for data server thread to start", e);
+      throw new IOException("Interrupted while waiting for data server thread to start", e);
+    }
+    if (dataServer == null || !dataServer.isServing()) {
+      throw new IOException("Failed to start data server");
+    } else {
+      LOG.info("Data server online and serving.");
     }
   }
 
