@@ -19,7 +19,6 @@ import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -140,11 +139,11 @@ public class PartitionServerConnectionSet {
     }
   }
 
-  public HankResponse get(int domainId, ByteBuffer key) throws TException {
+  public HankResponse get(int domainId, ByteBuffer key) {
     return new GetAction(domainId, key).run();
   }
 
-  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
+  public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
     return new GetBulkAction(domainId, keys).run();
   }
 }

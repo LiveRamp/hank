@@ -184,7 +184,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   @Override
-  public HankResponse get(String domainName, ByteBuffer key) throws TException {
+  public HankResponse get(String domainName, ByteBuffer key) {
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
       return NO_SUCH_DOMAIN;
@@ -213,7 +213,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   }
 
   @Override
-  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) throws TException {
+  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
 
     // Get Domain
     Domain domain = coordinator.getDomain(domainName);
@@ -352,16 +352,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     public void run() {
       HankBulkResponse response;
       // Execute request
-      try {
-        response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
-      } catch (TException e) {
-        LOG.error("Failed to getBulk()", e);
-        // Fill responses with error
-        for (int responseIndex : bulkRequest.getKeyIndices()) {
-          allResponses.get(responseIndex).set_xception(HankException.internal_error(Arrays.toString(e.getStackTrace())));
-        }
-        return;
-      }
+      response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
       // Request succeeded
       if (response.is_set_xception()) {
         // Fill responses with error
