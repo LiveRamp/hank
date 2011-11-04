@@ -169,6 +169,11 @@ table.table-blue td {
 }
 .host-serving {
   text-align: center;
+  color: #000000;
+  background-color: #69db69;
+}
+.host-serving-incomplete {
+  text-align: center;
 }
 .host-updating {
   text-align: center;
@@ -182,4 +187,6 @@ table.table-blue td {
 }
 .host-offline {
   text-align: center;
+  color: #ffffff;
+  background-color: #cc0404;
 }

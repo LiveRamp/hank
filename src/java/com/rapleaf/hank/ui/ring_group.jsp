@@ -142,9 +142,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <td class='host-total'><%= hostsTotal %></td>
         <% if (hostsServing != 0 && hostsServing == hostsTotal) { %>
-          <td class='host-serving complete'>
-        <% } else if (hostsServing != 0) { %>
           <td class='host-serving'>
+        <% } else if (hostsServing != 0) { %>
+          <td class='host-serving-incomplete'>
         <% } else { %>
           <td class='centered'>
         <% } %>
