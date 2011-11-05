@@ -61,4 +61,8 @@ public interface PartitionServerConfigurator extends Configurator {
   public int getNumConcurrentGetBulkTasks();
 
   public int getGetBulkTaskSize();
+
+  public int getGetTimerAggregatorWindow();
+
+  public int getGetBulkTimerAggregatorWindow();
 }

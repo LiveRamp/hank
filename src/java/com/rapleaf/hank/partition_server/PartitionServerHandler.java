@@ -52,8 +52,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
   private final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
-  private final HankTimerAggregator getTimerAggregator = new HankTimerAggregator("GET", 1000);
-  private final HankTimerAggregator getBulkTimerAggregator = new HankTimerAggregator("GET BULK", 1);
+  private final HankTimerAggregator getTimerAggregator;
+  private final HankTimerAggregator getBulkTimerAggregator;
 
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private final DomainAccessor[] domainAccessors;
@@ -77,6 +77,10 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
     // Prestart core threads
     getBulkTaskExecutor.prestartAllCoreThreads();
+
+    // Set up timer aggregators
+    getTimerAggregator = new HankTimerAggregator("GET", configurator.getGetTimerAggregatorWindow());
+    getBulkTimerAggregator = new HankTimerAggregator("GET BULK", configurator.getGetBulkTimerAggregatorWindow());
 
     // Find the ring
     Ring ring = coordinator.getRingGroup(configurator.getRingGroupName()).getRingForHost(address);

@@ -22,8 +22,6 @@ import java.util.Arrays;
 
 public class HankTimerAggregator {
 
-  private static final boolean ACTIVATED = true;
-
   private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
 
   private final String name;
@@ -38,10 +36,16 @@ public class HankTimerAggregator {
   double[] deciles = new double[9];
   private long totalUnderlyingCount;
 
+  /**
+   *
+   * @param name
+   * @param statsComputationWindow Number of timers to aggregate before computing and
+   * logging statistics. 0 means no timer aggregation.
+   */
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
-    this.isActive = ACTIVATED;
+    this.isActive = statsComputationWindow != 0;
     clear();
   }
 
