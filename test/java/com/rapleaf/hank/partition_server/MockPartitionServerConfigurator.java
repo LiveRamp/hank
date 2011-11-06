@@ -76,11 +76,6 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public int getGetBulkTimerAggregatorWindow() {
-    return 1;
-  }
-
-  @Override
   public int getNumConcurrentUpdates() {
     return 1;
   }

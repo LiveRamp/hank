@@ -12,7 +12,6 @@ partition_server:
     num_concurrent_get_bulk_tasks: 256
     get_bulk_task_size: 64
     get_timer_aggregator_window: 1000
-    get_bulk_timer_aggregator_window: 1000
   update_daemon:
     num_concurrent_updates: 1
 coordinator:

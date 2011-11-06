@@ -34,7 +34,6 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   private static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
   private static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
   private static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
-  private static final String GET_BULK_TIMER_AGGREGATOR_WINDOW_KEY = "get_bulk_timer_aggregator_window";
 
   public YamlPartitionServerConfigurator(String path) throws IOException,
       InvalidConfigurationException {
@@ -59,8 +58,6 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
         GET_BULK_TASK_SIZE);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
-    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
-        GET_BULK_TIMER_AGGREGATOR_WINDOW_KEY);
 
     getRequiredSection(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
@@ -104,12 +101,6 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   public int getGetTimerAggregatorWindow() {
     return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
-  }
-
-  @Override
-  public int getGetBulkTimerAggregatorWindow() {
-    return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
-        GET_BULK_TIMER_AGGREGATOR_WINDOW_KEY);
   }
 
   @Override

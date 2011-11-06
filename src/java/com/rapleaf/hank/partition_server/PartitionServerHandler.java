@@ -53,7 +53,6 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
   private final HankTimerAggregator getTimerAggregator;
-  private final HankTimerAggregator getBulkTimerAggregator;
 
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private final DomainAccessor[] domainAccessors;
@@ -80,7 +79,6 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
     // Set up timer aggregators
     getTimerAggregator = new HankTimerAggregator("GET", configurator.getGetTimerAggregatorWindow());
-    getBulkTimerAggregator = new HankTimerAggregator("GET BULK", configurator.getGetBulkTimerAggregatorWindow());
 
     // Find the ring
     Ring ring = coordinator.getRingGroup(configurator.getRingGroupName()).getRingForHost(address);
@@ -196,18 +194,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public HankResponse get(int domainId, ByteBuffer key) {
-    HankTimer timer = getTimerAggregator.getTimer();
-    try {
-      // TODO: re-use result
-      ReaderResult result = new ReaderResult();
-      return _get(this, domainId, key, result);
-    } finally {
-      getTimerAggregator.add(timer);
-    }
+    // TODO: re-use result
+    ReaderResult result = new ReaderResult();
+    return _get(this, domainId, key, result);
   }
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
-    HankTimer timer = getBulkTimerAggregator.getTimer();
     try {
       DomainAccessor domainAccessor = getDomainAccessor(domainId);
       if (domainAccessor == null) {
@@ -241,30 +233,33 @@ class PartitionServerHandler implements IfaceWithShutdown {
       LOG.fatal(errMsg, t);
       return HankBulkResponse.xception(
           HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
-    } finally {
-      getBulkTimerAggregator.add(timer, keys.size());
     }
   }
 
   private HankResponse _get(PartitionServerHandler partitionServerHandler, int domainId, ByteBuffer key, ReaderResult result) {
-    DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
-    if (domainAccessor == null) {
-      return NO_SUCH_DOMAIN;
-    }
+    HankTimer timer = getTimerAggregator.getTimer();
     try {
-      return domainAccessor.get(key, result);
-    } catch (IOException e) {
-      String errMsg = String.format(
-          "Exception during GET. Domain: %s (domain #%d) Key: %s",
-          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
-      LOG.error(errMsg, e);
-      return HankResponse.xception(
-          HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
-    } catch (Throwable t) {
-      String errMsg = "Throwable during GET";
-      LOG.fatal(errMsg, t);
-      return HankResponse.xception(
-          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
+      DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
+      if (domainAccessor == null) {
+        return NO_SUCH_DOMAIN;
+      }
+      try {
+        return domainAccessor.get(key, result);
+      } catch (IOException e) {
+        String errMsg = String.format(
+            "Exception during GET. Domain: %s (domain #%d) Key: %s",
+            domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
+        LOG.error(errMsg, e);
+        return HankResponse.xception(
+            HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
+      } catch (Throwable t) {
+        String errMsg = "Throwable during GET";
+        LOG.fatal(errMsg, t);
+        return HankResponse.xception(
+            HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
+      }
+    } finally {
+      getTimerAggregator.add(timer);
     }
   }
 
