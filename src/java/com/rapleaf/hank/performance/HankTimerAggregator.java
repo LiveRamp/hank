@@ -31,6 +31,9 @@ public class HankTimerAggregator {
   private final boolean isActive;
 
   private long totalDuration;
+  private long statsComputationWindowStart;
+  private long statsComputationWindowEnd;
+  private long statsComputationWindowDuration;
   private Long minDuration;
   private Long maxDuration;
   double[] deciles = new double[9];
@@ -57,6 +60,10 @@ public class HankTimerAggregator {
     return new HankTimer();
   }
 
+  public void add(HankTimer timer) {
+    add(timer, 1);
+  }
+
   // Aggregate the given timer only if the aggregator is active
   // Will not add synchronization overhead if not active.
   // underlyingCount is used when the timed event represent a number of underlying events
@@ -64,14 +71,19 @@ public class HankTimerAggregator {
     if (!isActive) {
       return;
     }
-    add(timer.getDuration(), underlyingCount);
+    _add(timer.getStartTime(), timer.getDuration(), underlyingCount);
   }
 
-  public void add(HankTimer timer) {
-    add(timer, 1);
-  }
-
-  private synchronized void add(long durationNanos, int underlyingCount) {
+  private synchronized void _add(long startTimeNanos, long durationNanos, int underlyingCount) {
+    ++count;
+    // Determine computation window start and end
+    if (startTimeNanos < statsComputationWindowStart) {
+      statsComputationWindowStart = startTimeNanos;
+    }
+    if ((startTimeNanos + durationNanos) > statsComputationWindowEnd) {
+      statsComputationWindowEnd = startTimeNanos + durationNanos;
+    }
+    // Compute statistics
     totalDuration += durationNanos;
     if (durationNanos < minDuration) {
       minDuration = durationNanos;
@@ -79,10 +91,12 @@ public class HankTimerAggregator {
     if (durationNanos > maxDuration) {
       maxDuration = durationNanos;
     }
-    durations[count++] = durationNanos;
+    durations[count - 1] = durationNanos;
     totalUnderlyingCount += underlyingCount;
     // Dump stats if needed
-    if (count >= statsComputationWindow) {
+    if (count == statsComputationWindow) {
+      // Determine computation window duration
+      statsComputationWindowDuration = Math.abs(statsComputationWindowEnd - statsComputationWindowStart);
       logStats();
       clear();
     }
@@ -92,6 +106,8 @@ public class HankTimerAggregator {
     durations = new long[statsComputationWindow];
     count = 0;
     totalDuration = 0;
+    statsComputationWindowStart = Long.MAX_VALUE;
+    statsComputationWindowEnd = Long.MIN_VALUE;
     minDuration = Long.MAX_VALUE;
     maxDuration = Long.MIN_VALUE;
     totalUnderlyingCount = 0;
@@ -112,6 +128,9 @@ public class HankTimerAggregator {
     logStr.append(count);
     logStr.append(", underlying count: ");
     logStr.append(totalUnderlyingCount);
+    logStr.append(", window duration: ");
+    logStr.append(statsComputationWindowDuration / 1000000d);
+    logStr.append("ms");
     logStr.append(", min duration: ");
     logStr.append(minDuration / 1000000d);
     logStr.append("ms");
@@ -132,10 +151,10 @@ public class HankTimerAggregator {
       logStr.append("ms");
     }
     logStr.append(", QPS: ");
-    logStr.append(count / (totalDuration / 1000000000d));
+    logStr.append(count / (statsComputationWindowDuration / 1000000000d));
     if (totalUnderlyingCount != count) {
       logStr.append(", Underlying QPS: ");
-      logStr.append(totalUnderlyingCount / (totalDuration / 1000000000d));
+      logStr.append(totalUnderlyingCount / (statsComputationWindowDuration / 1000000000d));
     }
     LOG.info(logStr.toString());
   }
