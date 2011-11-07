@@ -61,12 +61,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
     updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
     deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
-    // TODO: temporary migration fix
-    try {
-      zk.create(ZkPath.append(path, STATISTICS_PATH_SEGMENT), null);
-    } catch (Exception e) {
-      // swallow
-    }
     statistics = new WatchedMap<String>(zk, ZkPath.append(path, STATISTICS_PATH_SEGMENT),
         new WatchedMap.ElementLoader<String>() {
       @Override
