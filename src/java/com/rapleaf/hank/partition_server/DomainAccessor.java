@@ -35,27 +35,25 @@ class DomainAccessor {
   private final Partitioner partitioner;
   private final String name;
   private final PartitionAccessor[] partitionAccessors;
-  private final int updateCountersThreadSleepTimeMS;
-  private final Thread updateCountersThread;
-  private boolean updateCounters;
+  private final int updateStatisticsThreadSleepTimeMS;
+  private final Thread updateStatisticsThread;
 
-  private static final int UPDATE_COUNTERS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
+  private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
 
   public DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
                         Partitioner partitioner) throws IOException {
-    this(name, partitionAccessors, partitioner, UPDATE_COUNTERS_THREAD_SLEEP_TIME_MS_DEFAULT);
+    this(name, partitionAccessors, partitioner, UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
   }
 
   DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
-                 Partitioner partitioner, int updateCountersThreadSleepTimeMS) throws IOException {
+                 Partitioner partitioner, int updateStatisticsThreadSleepTimeMS) throws IOException {
     this.name = name;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
-    this.updateCountersThreadSleepTimeMS = updateCountersThreadSleepTimeMS;
+    this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
 
-    updateCountersThread = new Thread(new UpdateCounters(), "Update Counts");
-    updateCounters = true;
-    updateCountersThread.start();
+    updateStatisticsThread = new Thread(new UpdateStatisticsThread(), "Update Counts");
+    updateStatisticsThread.start();
   }
 
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
@@ -72,27 +70,31 @@ class DomainAccessor {
    * This thread periodically updates the counters on the HostDomainPartition
    * with the values in the cached counters
    */
-  private class UpdateCounters implements Runnable {
+  private class UpdateStatisticsThread implements Runnable {
     public void run() {
-      while (updateCounters) {
+      while (true) {
         for (PartitionAccessor partitionAccessor : partitionAccessors) {
           if (partitionAccessor != null) {
             try {
-              partitionAccessor.updateGlobalCounters();
+              partitionAccessor.updateRuntimeStatistics();
             } catch (IOException e) {
-              LOG.error("Failed to update counter", e);
+              LOG.error("Failed to update statistics", e);
             }
           }
         }
-        // in case we were interrupted while updating counters, avoid doing an
-        // unnecessary sleep
-        if (!updateCounters) {
-          break;
-        }
+        // Interrupt the thread to stop it
         try {
-          Thread.sleep(updateCountersThreadSleepTimeMS);
+          Thread.sleep(updateStatisticsThreadSleepTimeMS);
         } catch (InterruptedException e) {
-          // Swallow InterruptedException
+          // Delete all runtime statistics
+          for (PartitionAccessor partitionAccessor : partitionAccessors) {
+            try {
+              partitionAccessor.deleteRuntimeStatistics();
+            } catch (IOException e1) {
+              // Swallow
+            }
+          }
+          break;
         }
       }
     }
@@ -103,12 +105,11 @@ class DomainAccessor {
   }
 
   public void shutDown() {
-    updateCounters = false;
-    updateCountersThread.interrupt();
+    updateStatisticsThread.interrupt();
     try {
-      updateCountersThread.join();
+      updateStatisticsThread.join();
     } catch (InterruptedException e) {
-      LOG.info("Interrupted while waiting for update counters thread to terminate during shutdown.");
+      LOG.info("Interrupted while waiting for update statistics thread to terminate during shutdown.");
     }
   }
 }

@@ -99,68 +99,7 @@ public class TestUpdateManager extends BaseTestCase {
       return new MSE(updater);
     }
 
-    private final HostDomainPartition HOST_DOMAIN_PARTITION = new AbstractHostDomainPartition() {
-      private Integer updatingToVersion = 1;
-      private Integer currentVersion = 0;
-      private boolean deletable = false;
-
-      @Override
-      public void setUpdatingToDomainGroupVersion(Integer version)
-          throws IOException {
-        updatingToVersion = version;
-      }
-
-      @Override
-      public void setCurrentDomainGroupVersion(int version) throws IOException {
-        currentVersion = version;
-      }
-
-      @Override
-      public Integer getUpdatingToDomainGroupVersion() throws IOException {
-        return updatingToVersion;
-      }
-
-      @Override
-      public int getPartitionNumber() {
-        return 0;
-      }
-
-      @Override
-      public Integer getCurrentDomainGroupVersion() throws IOException {
-        return currentVersion;
-      }
-
-      @Override
-      public boolean isDeletable() throws IOException {
-        return deletable;
-      }
-
-      @Override
-      public void setDeletable(boolean deletable) throws IOException {
-        this.deletable = deletable;
-      }
-
-      public void removeCount(String countID) throws IOException {
-      }
-
-      @Override
-      public void setCount(String countID, long count) throws IOException {
-      }
-
-      @Override
-      public Long getCount(String countID) throws IOException {
-        return null;
-      }
-
-      @Override
-      public Set<String> getCountKeys() throws IOException {
-        return null;
-      }
-
-      @Override
-      public void delete() throws IOException {
-      }
-    };
+    private final HostDomainPartition HOST_DOMAIN_PARTITION = new MockHostDomainPartition(0, 0, 1);
     private final MockHostDomainPartition PARTITION_FOR_DELETION = new MockHostDomainPartition(1, 0, 0) {
       @Override
       public Integer getUpdatingToDomainGroupVersion() throws IOException {

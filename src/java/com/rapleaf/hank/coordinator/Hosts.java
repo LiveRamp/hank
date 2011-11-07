@@ -17,8 +17,6 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 public final class Hosts {
 
@@ -35,44 +33,6 @@ public final class Hosts {
    */
   public static boolean isOnline(Host host) throws IOException {
     return host.getState() != HostState.OFFLINE;
-  }
-
-  /**
-   * Get the aggregate count of a counter across all HostDomainPartitions
-   *
-   * @param host
-   * @param countID
-   * @return
-   * @throws IOException
-   */
-  public static Long getAggregateCount(Host host, String countID) throws IOException {
-    long aggregateCount = 0;
-    boolean notNull = false;
-    for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Long currentCount = HostDomains.getAggregateCount(hostDomain, countID);
-      if (currentCount != null) {
-        notNull = true;
-        aggregateCount += currentCount;
-      }
-    }
-    if (notNull) {
-      return aggregateCount;
-    }
-    return null;
-  }
-
-  /**
-   * Gets a set of aggregate counter keys across all HostDomainPartitions
-   *
-   * @return
-   * @throws IOException
-   */
-  public static Set<String> getAggregateCountKeys(Host host) throws IOException {
-    Set<String> aggregateCountKeys = new HashSet<String>();
-    for (HostDomain hostDomain : host.getAssignedDomains()) {
-      aggregateCountKeys.addAll(HostDomains.getAggregateCountKeys(hostDomain));
-    }
-    return aggregateCountKeys;
   }
 
   public static UpdateProgress computeUpdateProgress(Host host, DomainGroupVersion domainGroupVersion) throws IOException {

@@ -135,7 +135,7 @@ public class TestRingGroupConductor extends TestCase {
 
     assertEquals(Integer.valueOf(2), mockRing.updatingToVersion);
 
-    assertEquals(2, mockHostDomainPartition.updatingToVersion);
+    assertEquals(2, mockHostDomainPartition.getUpdatingToDomainGroupVersion().intValue());
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {

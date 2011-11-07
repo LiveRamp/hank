@@ -24,19 +24,5 @@ public class TestDomainAccessor extends BaseTestCase {
 
     drs.get(key, new ReaderResult());
     drs.get(nullKey, new ReaderResult());
-
-    assertEquals(2l, partitionAccessors[0].getRequestsCount());
-    assertEquals(1l, partitionAccessors[0].getHitsCount());
-
-    assertEquals(0, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_REQUESTED_COUNTER_NAME).intValue());
-    assertEquals(0, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_FOUND_COUNTER_NAME).intValue());
-
-    Thread.sleep(3000);
-
-    assertEquals(0l, partitionAccessors[0].getRequestsCount());
-    assertEquals(0l, partitionAccessors[0].getHitsCount());
-
-    assertEquals(2, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_REQUESTED_COUNTER_NAME).intValue());
-    assertEquals(1, partitionAccessors[0].getHostDomainPartition().getCount(PartitionAccessor.KEYS_FOUND_COUNTER_NAME).intValue());
   }
 }

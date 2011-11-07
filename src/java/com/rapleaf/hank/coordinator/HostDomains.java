@@ -16,35 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
 public final class HostDomains {
 
   private HostDomains() {}
-
-  public static Long getAggregateCount(HostDomain hostDomain, String countID) throws IOException {
-    long aggregateCount = 0;
-    boolean notNull = false;
-    for (HostDomainPartition hdp : hostDomain.getPartitions()) {
-      Long currentCount = hdp.getCount(countID);
-      if (currentCount != null) {
-        notNull = true;
-        aggregateCount += currentCount;
-      }
-    }
-    if (notNull) {
-      return aggregateCount;
-    }
-    return null;
-  }
-
-  public static Set<String> getAggregateCountKeys(HostDomain hostDomain) throws IOException {
-    Set<String> aggregateCountKeys = new HashSet<String>();
-    for (HostDomainPartition hdp : hostDomain.getPartitions()) {
-      aggregateCountKeys.addAll(hdp.getCountKeys());
-    }
-    return aggregateCountKeys;
-  }
 }

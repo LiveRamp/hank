@@ -23,6 +23,7 @@ import junit.framework.TestCase;
 import java.util.*;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
+
   private class MockRingLocal extends MockRing {
     public boolean updateCompleteCalled;
     private final DomainGroupVersion version;

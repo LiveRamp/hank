@@ -18,9 +18,6 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class TestZkHostDomainPartition extends ZkTestCase {
   public void testIt() throws Exception {
     ZkHostDomainPartition hdpc = ZkHostDomainPartition.create(getZk(),
@@ -44,26 +41,11 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), ZkPath.append(getRoot(), Integer.toString(1234)));
     assertEquals(true, hdpc2.isDeletable());
 
-    Set<String> currentCountKeys = new HashSet<String>();
-    hdpc.setCount("TotalHits", 45);
-    currentCountKeys.add("TotalHits");
-    assertEquals(new Long(45), hdpc.getCount("TotalHits"));
-
-    hdpc.setCount("TotalHits", 50);
-    assertEquals(new Long(50), hdpc.getCount("TotalHits"));
-
-    hdpc.setCount("RandomCount", 1);
-    currentCountKeys.add("RandomCount");
-    assertTrue(hdpc.getCountKeys().equals(currentCountKeys));
-
-    hdpc.removeCount("RandomCount");
-    currentCountKeys.remove("RandomCount");
-    assertTrue(hdpc.getCountKeys().containsAll(currentCountKeys)
-        && hdpc.getCountKeys().size() == currentCountKeys.size());
-
-    assertNull(hdpc.getCount("RandomCount"));
-
-    assertNull(hdpc.getCount("NewCount"));
+    hdpc.setEphemeralStatistic("a", "A");
+    hdpc.setEphemeralStatistic("b", "B");
+    assertEquals("A", hdpc.getStatistic("a"));
+    assertEquals("B", hdpc.getStatistic("b"));
+    assertNull(hdpc.getStatistic("c"));
 
     hdpc.delete();
     assertNull(getZk().exists(hdpc.getPath(), false));

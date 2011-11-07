@@ -18,15 +18,13 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
-  private int currentDomainGroupVersion;
-  private final int updatingToDomainGroupVersion;
-  public int updatingToVersion;
-  private Map<String, Long> counters = new HashMap<String, Long>();
+  private Integer currentDomainGroupVersion;
+  private Integer updatingToDomainGroupVersion;
+  private Map<String, String> statistics = new HashMap<String, String>();
   private boolean deletable;
   private boolean isDeleted;
 
@@ -59,7 +57,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public void setUpdatingToDomainGroupVersion(Integer version) {
-    updatingToVersion = version;
+    updatingToDomainGroupVersion = version;
   }
 
   @Override
@@ -72,30 +70,6 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
     this.deletable = deletable;
   }
 
-  public void removeCount(String countID) throws IOException {
-    if (counters.containsKey(countID)) {
-      counters.remove(countID);
-    }
-  }
-
-  @Override
-  public void setCount(String countID, long count) throws IOException {
-    counters.put(countID, count);
-  }
-
-  @Override
-  public Long getCount(String countID) throws IOException {
-    if (counters.containsKey(countID)) {
-      return counters.get(countID);
-    }
-    return null;
-  }
-
-  @Override
-  public Set<String> getCountKeys() throws IOException {
-    return counters.keySet();
-  }
-
   @Override
   public void delete() throws IOException {
     isDeleted = true;
@@ -103,5 +77,20 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   public boolean isDeleted() {
     return isDeleted;
+  }
+
+  @Override
+  public void setEphemeralStatistic(String key, String value) throws IOException {
+    statistics.put(key, value);
+  }
+
+  @Override
+  public String getStatistic(String key) throws IOException {
+    return statistics.get(key);
+  }
+
+  @Override
+  public void deleteStatistic(String key) throws IOException {
+    statistics.remove(key);
   }
 }

@@ -178,21 +178,4 @@ public class TestZkHost extends ZkTestCase {
   private static final Domain d10 = new MockDomain("d10");
   private static final Domain d11 = new MockDomain("d11");
   private static final Domain d12 = new MockDomain("d12");
-
-  public void testCounters() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS);
-    c.addDomain(d10).addPartition(9, 8).setCount("Unicorns", 17);
-    c.addDomain(d11).addPartition(3, 2).setCount("Unicorns", 13);
-    c.addDomain(d12).addPartition(1, 1).setCount("Centaurs", 5);
-    Set<String> aggregateCountKeys = new HashSet<String>() {
-      {
-        add("Unicorns");
-        add("Centaurs");
-      }
-    };
-    assertEquals(5, Hosts.getAggregateCount(c, "Centaurs").intValue());
-    assertEquals(30, Hosts.getAggregateCount(c, "Unicorns").intValue());
-    assertNull(Hosts.getAggregateCount(c, "Gargoyles"));
-    assertNotNull(Hosts.getAggregateCountKeys(c).equals(aggregateCountKeys));
-  }
 }

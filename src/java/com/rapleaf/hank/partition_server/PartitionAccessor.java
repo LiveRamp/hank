@@ -2,6 +2,7 @@ package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
@@ -18,13 +19,13 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PartitionAccessor {
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
   private static final Logger LOG = Logger.getLogger(PartitionAccessor.class);
-  protected static final String KEYS_REQUESTED_COUNTER_NAME = "Keys requested in last minute";
-  protected static final String KEYS_FOUND_COUNTER_NAME = "Keys found in last minute";
+  protected static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
 
   private final HostDomainPartition partition;
   private final Reader reader;
-  private final AtomicLong requests;
-  private final AtomicLong hits;
+  private final HankTimer windowTimer = new HankTimer();
+  private final AtomicLong numRequestsInWindow = new AtomicLong(0);
+  private final AtomicLong numHitsInWindow = new AtomicLong(0);
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
     if (reader == null) {
@@ -32,14 +33,9 @@ public class PartitionAccessor {
     }
     this.partition = partition;
     this.reader = reader;
-    requests = new AtomicLong(0);
-    hits = new AtomicLong(0);
-    try {
-      partition.setCount("Requests in last minute", 0);
-      partition.setCount("Hits in last minute", 0);
-    } catch (IOException e) {
-      LOG.error("Couldn't set counter", e);
-    }
+    windowTimer.restart();
+    numRequestsInWindow.set(0);
+    numHitsInWindow.set(0);
   }
 
   public HostDomainPartition getHostDomainPartition() {
@@ -49,11 +45,11 @@ public class PartitionAccessor {
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     // Increment requests counter
     LOG.trace("Partition GET");
-    requests.incrementAndGet();
+    numRequestsInWindow.incrementAndGet();
     reader.get(key, result);
     if (result.isFound()) {
       // Increment hits counter
-      hits.incrementAndGet();
+      numHitsInWindow.incrementAndGet();
       // TODO: do not copy for single requests or when new size is similar
       return HankResponse.value(result.getBufferDeepCopy());
     } else {
@@ -61,23 +57,21 @@ public class PartitionAccessor {
     }
   }
 
-  public long getRequestsCount() {
-    return requests.get();
+  public void updateRuntimeStatistics() throws IOException {
+    // Copy duration and counts
+    long windowDurationNanos = windowTimer.getDuration();
+    windowTimer.restart();
+    // Update atomic counters so that we don't miss any request
+    long numRequests = numRequestsInWindow.get();
+    numRequestsInWindow.addAndGet(-numRequests);
+    long numHits = numHitsInWindow.get();
+    numHitsInWindow.addAndGet(-numHits);
+    // Update statistics
+    partition.setEphemeralStatistic(RUNTIME_STATISTICS_KEY,
+        PartitionAccessorRuntimeStatistics.toString(windowDurationNanos, numRequests, numHits));
   }
 
-  public long getHitsCount() {
-    return hits.get();
-  }
-
-  public void updateGlobalCounters() throws IOException {
-    updateGlobalCounter(requests, KEYS_REQUESTED_COUNTER_NAME);
-    updateGlobalCounter(hits, KEYS_FOUND_COUNTER_NAME);
-  }
-
-  private void updateGlobalCounter(AtomicLong counter, String counterName)
-      throws IOException {
-    long count = counter.get();
-    partition.setCount(counterName, count);
-    counter.addAndGet(-count);
+  public void deleteRuntimeStatistics() throws IOException {
+    partition.deleteStatistic(RUNTIME_STATISTICS_KEY);
   }
 }
