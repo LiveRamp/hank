@@ -30,7 +30,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <h2>All Domain Groups</h2>
 
-  <table class='table-blue'>
+  <table class='table-blue-compact'>
     <tr>
       <th>Domain Group</th>
       <th>Current Version</th>
