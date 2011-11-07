@@ -187,7 +187,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         </div>
       </td>
       <td>
-        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% updated
+        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions updated
         (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
       </td>
       <% } else { %>
