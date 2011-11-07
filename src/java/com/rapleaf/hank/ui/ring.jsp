@@ -105,7 +105,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
      <th>Hit Rate</th>
   </tr>
    <%
-     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
        Domain domain = dgvdv.getDomain();
        RuntimeStatisticsAggregator runtimeStatisticsForDomain =
        Rings.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);

@@ -112,7 +112,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          <th>Hit Rate</th>
        </tr>
        <%
-         for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+         for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
            Domain domain = dgvdv.getDomain();
            RuntimeStatisticsAggregator runtimeStatisticsForDomain =
              RingGroups.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);

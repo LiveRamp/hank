@@ -119,7 +119,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
      <th>Hit Rate</th>
   </tr>
    <%
-     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
        Domain domain = dgvdv.getDomain();
        RuntimeStatisticsAggregator runtimeStatisticsForDomain =
        Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
