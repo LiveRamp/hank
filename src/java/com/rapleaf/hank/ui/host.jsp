@@ -1,8 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
+
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.partition_server.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
+<%@page import="java.text.DecimalFormat" %>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -42,9 +45,58 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <!-- State and Commands -->
 
+
+<%
+  Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics =
+    Hosts.computeRuntimeStatistics(host);
+
+  RuntimeStatisticsAggregator runtimeStatisticsForHost =
+    Hosts.computeRuntimeStatisticsForHost(runtimeStatistics);
+
+  DomainGroupVersion currentDomainGroupVersion = ring.getCurrentVersion();
+%>
+
 <div>
   <h2>State</h2>
   <span class='<%= UiUtils.hostStateToClass(host.getState()) %>'><%= host.getState() %></span>
+
+  <div>
+    Throughput: <%= runtimeStatisticsForHost.getThroughput() %> qps
+  </div>
+  <div>
+    Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>%
+  </div>
+
+  <!-- Domain specific Runtime Statistics -->
+
+  <%
+    if (currentDomainGroupVersion != null) {
+  %>
+  <table class='table-blue-compact'>
+  <tr>
+     <th>Domain</th>
+     <th>Throughput</th>
+     <th>Hit Rate</th>
+  </tr>
+   <%
+     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+       Domain domain = dgvdv.getDomain();
+       RuntimeStatisticsAggregator runtimeStatisticsForDomain =
+       Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
+   %>
+    <tr>
+      <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+      <td class='centered'><%= runtimeStatisticsForDomain.getThroughput() %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+    </tr>
+  <%
+    }
+  %>
+  <%
+  }
+  %>
+  </table>
+
   <form method="post" action="/host/discard_current_command">
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
     <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
@@ -212,36 +264,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <% } %>
   </table>
 </div>
-
-<h2>Counters</h2>
-<ul>
-<%
-for (String countID : Hosts.getAggregateCountKeys(host)) {
-  %>
-  <li> <%= countID %>: <%= Hosts.getAggregateCount(host, countID)%>
-  <ul>
-    <% for (HostDomain currentDomain : host.getAssignedDomains()) { %>
-      <li>
-        <ul>
-          <% Long domainCount = HostDomains.getAggregateCount(currentDomain, countID); %>
-          <% if (domainCount != null) { %>
-            <li> domain <%=currentDomain.getDomain().getName()%>:  <%=domainCount%>
-              <ul>
-                <% for (HostDomainPartition hdp : currentDomain.getPartitions()) { %>
-                  <% Long partCount = hdp.getCount(countID); %>
-                  <% if (partCount != null) { %>
-                    <li>partition <%= hdp.getPartitionNumber() %>: <%= partCount%></li>
-                  <% } %>
-                <% } %>
-              </ul>
-          <% } %>
-        </ul>
-      </li>
-    <% } %>
-  </ul>
-<% } %>
-</li>
-</ul>
 
 <jsp:include page="_footer.jsp"/>
 

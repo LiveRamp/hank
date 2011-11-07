@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 
-
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.partition_server.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.text.DecimalFormat" %>
@@ -43,6 +43,16 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <span class='currentItem'>Ring <%=ring.getRingNumber()%></span>
   </h1>
 
+  <%
+    Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics =
+      Rings.computeRuntimeStatistics(ring);
+
+    RuntimeStatisticsAggregator runtimeStatisticsForRing =
+      Rings.computeRuntimeStatisticsForRing(runtimeStatistics);
+
+    DomainGroupVersion currentDomainGroupVersion = ring.getCurrentVersion();
+  %>
+
   <h2>State</h2>
 
   <div>
@@ -50,7 +60,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <%
       if (Rings.isUpdatePending(ring)) {
     %>
-    Currently updating from <%=ring.getVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
+    Currently updating from <%=ring.getCurrentVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
     <%
       } else {
     %>
@@ -59,6 +69,42 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       }
     %>
   </div>
+  <div>
+    Throughput: <%= runtimeStatisticsForRing.getThroughput() %> qps
+  </div>
+  <div>
+    Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>%
+  </div>
+
+  <!-- Domain specific Runtime Statistics -->
+
+  <%
+    if (currentDomainGroupVersion != null) {
+  %>
+  <table class='table-blue-compact'>
+  <tr>
+     <th>Domain</th>
+     <th>Throughput</th>
+     <th>Hit Rate</th>
+  </tr>
+   <%
+     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+       Domain domain = dgvdv.getDomain();
+       RuntimeStatisticsAggregator runtimeStatisticsForDomain =
+       Rings.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
+   %>
+    <tr>
+      <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+      <td class='centered'><%= runtimeStatisticsForDomain.getThroughput() %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+    </tr>
+  <%
+    }
+  %>
+  <%
+  }
+  %>
+  </table>
 
   <h2>Add New Host</h2>
 
@@ -107,6 +153,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th></th>
       <th>Current Command</th>
       <th>Command Queue</th>
+      <th>Throughput</th>
+      <th>Hit Rate</th>
       <th>Actions</th>
     </tr>
     <%
@@ -144,6 +192,18 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <% } %>
       <td class='centered'><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
+
+      <!-- Runtime Statistics -->
+      <%
+        RuntimeStatisticsAggregator runtimeStatisticsForHost =
+          Rings.computeRuntimeStatisticsForHost(runtimeStatistics, host);
+      %>
+
+      <td class='centered'> <%= runtimeStatisticsForHost.getThroughput() %> qps </td>
+      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>% </td>
+
+      <!-- Actions -->
+
       <td>
         <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">
           <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>

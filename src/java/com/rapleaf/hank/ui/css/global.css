@@ -106,25 +106,32 @@ h2 {
 
 /* table-blue */
 table.table-blue {
+  width: 100%;
+}
+
+table.table-blue,
+table.table-blue-compact {
   margin: 10px 0px;
   border: 1px solid #404040;
   border-spacing: 0px;
   border-collapse: collapse;
-  width: 100%;
 }
 
-table.table-blue tr {
+table.table-blue tr,
+ table.table-blue-compact tr {
   border: 1px solid #404040;
 }
 
-table.table-blue th {
+table.table-blue th,
+ table.table-blue-compact th {
   font-weight: normal;
   padding: 4px;
   color: white;
   background-color: #404040;
 }
 
-table.table-blue td {
+table.table-blue td,
+ table.table-blue-compact td {
   font-size: .8em;
   margin: 0px;
   padding: 4px;

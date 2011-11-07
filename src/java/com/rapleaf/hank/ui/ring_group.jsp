@@ -2,6 +2,7 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.partition_server.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.util.Bytes"%>
@@ -42,6 +43,19 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   Ring Group <span class='currentItem'><%=ringGroup.getName()%></span>
   </h1>
 
+  <%
+    Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics =
+      RingGroups.computeRuntimeStatistics(ringGroup);
+
+    RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
+      RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
+
+    DomainGroupVersion currentDomainGroupVersion = null;
+    if (ringGroup.getCurrentVersion() != null) {
+      currentDomainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion());
+    }
+  %>
+
   <div class='box-section'>
     <h2>State</h2>
     <div class='box-section-content'>
@@ -61,6 +75,43 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <div>
         Ring Group Conductor is <%=ringGroup.isRingGroupConductorOnline() ? "online" : "offline"%>
       </div>
+      <div>
+        Throughput: <%= runtimeStatisticsForRingGroup.getThroughput() %> qps
+      </div>
+      <div>
+        Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>%
+      </div>
+
+      <!-- Domain specific Runtime Statistics -->
+
+       <%
+         if (currentDomainGroupVersion != null) {
+       %>
+      <table class='table-blue-compact'>
+       <tr>
+         <th>Domain</th>
+         <th>Throughput</th>
+         <th>Hit Rate</th>
+       </tr>
+       <%
+         for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+           Domain domain = dgvdv.getDomain();
+           RuntimeStatisticsAggregator runtimeStatisticsForDomain =
+             RingGroups.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
+       %>
+         <tr>
+           <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+           <td class='centered'><%= runtimeStatisticsForDomain.getThroughput() %> qps</td>
+           <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+         </tr>
+       <%
+         }
+       %>
+       <%
+       }
+       %>
+      </table>
+
     </div>
   </div>
 
@@ -97,8 +148,11 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Updating</th>
       <th>Idle</th>
       <th>Offline</th>
+      <th>Throughput</th>
+      <th>Hit Rate</th>
       <th></th>
     </tr>
+
     <%
       for (Ring ring : sortedRcs(ringGroup.getRings())) {
     %>
@@ -129,7 +183,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <td></td>
       <% } %>
 
-      <td class='centered'><%= ring.getVersionNumber() != null ? ring.getVersionNumber() : "-" %></td>
+      <td class='centered'><%= ring.getCurrentVersionNumber() != null ? ring.getCurrentVersionNumber() : "-" %></td>
       <td class='centered'><%= ring.getUpdatingToVersionNumber() != null ? ring.getUpdatingToVersionNumber() : "-" %></td>
 
       <%
@@ -165,6 +219,17 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <td class='centered'>-</td>
         <% } %>
 
+      <!-- Runtime Statistics -->
+      <%
+        RuntimeStatisticsAggregator runtimeStatisticsForRing =
+          RingGroups.computeRuntimeStatisticsForRing(runtimeStatistics, ring);
+      %>
+
+      <td class='centered'> <%= runtimeStatisticsForRing.getThroughput() %> qps </td>
+      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
+
+      <!-- Actions -->
+
       <td>
         <form action="/ring_group/delete_ring" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
@@ -193,7 +258,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <br/>
         <select name="d">
           <%
-            for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion()).getDomainVersions()) {
+            for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
           %>
           <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgvdv.getDomain().getName()) ? " selected" : "" %>>
             <%= dgvdv.getDomain().getName() %>

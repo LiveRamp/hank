@@ -16,7 +16,13 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.partition_server.PartitionAccessor;
+import com.rapleaf.hank.partition_server.PartitionAccessorRuntimeStatistics;
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Hosts {
 
@@ -104,5 +110,45 @@ public final class Hosts {
       }
     }
     return result;
+  }
+
+  public static Map<Domain, RuntimeStatisticsAggregator> computeRuntimeStatistics(Host host) throws IOException {
+    Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      Domain domain = hostDomain.getDomain();
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        // Ignore deletable partitions
+        if (!partition.isDeletable()) {
+          String partitionRuntimeStatistics = partition.getStatistic(PartitionAccessor.RUNTIME_STATISTICS_KEY);
+          if (partitionRuntimeStatistics != null) {
+            if (!result.containsKey(domain)) {
+              result.put(domain, new RuntimeStatisticsAggregator());
+            }
+            result.get(domain).add(
+                new PartitionAccessorRuntimeStatistics(partitionRuntimeStatistics).getRuntimeStatistics());
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  public static RuntimeStatisticsAggregator
+  computeRuntimeStatisticsForHost(Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics) {
+    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+    for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatistics.entrySet()) {
+      result.add(entry.getValue());
+    }
+    return result;
+  }
+
+  public static RuntimeStatisticsAggregator
+  computeRuntimeStatisticsForDomain(Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics,
+                                    Domain domain) {
+    if (runtimeStatistics.containsKey(domain)) {
+      return runtimeStatistics.get(domain);
+    } else {
+      return new RuntimeStatisticsAggregator();
+    }
   }
 }

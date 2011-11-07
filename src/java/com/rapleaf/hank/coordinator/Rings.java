@@ -16,8 +16,12 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class Rings {
@@ -193,5 +197,48 @@ public class Rings {
       servingStatusAggregator.aggregate(Hosts.computeServingStatusAggregator(host, domainGroupVersion));
     }
     return servingStatusAggregator;
+  }
+
+  public static Map<Host, Map<Domain, RuntimeStatisticsAggregator>>
+  computeRuntimeStatistics(Ring ring) throws IOException {
+    Map<Host, Map<Domain, RuntimeStatisticsAggregator>> result =
+        new HashMap<Host, Map<Domain, RuntimeStatisticsAggregator>>();
+    for (Host host : ring.getHosts()) {
+     result.put(host, Hosts.computeRuntimeStatistics(host));
+    }
+    return result;
+  }
+
+  public static RuntimeStatisticsAggregator
+  computeRuntimeStatisticsForRing(Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics) {
+    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+    for (Map.Entry<Host, Map<Domain, RuntimeStatisticsAggregator>> entry1 : runtimeStatistics.entrySet()) {
+      for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry2 : entry1.getValue().entrySet()) {
+        result.add(entry2.getValue());
+      }
+    }
+    return result;
+  }
+
+  public static RuntimeStatisticsAggregator
+  computeRuntimeStatisticsForHost(Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics,
+                                  Host host) {
+    if (runtimeStatistics.containsKey(host)) {
+      return Hosts.computeRuntimeStatisticsForHost(runtimeStatistics.get(host));
+    } else {
+      return new RuntimeStatisticsAggregator();
+    }
+  }
+
+  public static RuntimeStatisticsAggregator
+  computeRuntimeStatisticsForDomain(Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics,
+                                    Domain domain) {
+    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+    for (Map.Entry<Host, Map<Domain, RuntimeStatisticsAggregator>> entry1 : runtimeStatistics.entrySet()) {
+      if (entry1.getValue().containsKey(domain)) {
+        result.add(entry1.getValue().get(domain));
+      }
+    }
+    return result;
   }
 }

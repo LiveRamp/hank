@@ -7,6 +7,8 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
+import com.rapleaf.hank.partition_server.PartitionAccessor;
+import com.rapleaf.hank.partition_server.PartitionAccessorRuntimeStatistics;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -47,6 +49,8 @@ public class WebUiServerTester extends ZkTestCase {
           for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setUpdatingToDomainGroupVersion(null);
             partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+            partition.setEphemeralStatistic(PartitionAccessor.RUNTIME_STATISTICS_KEY,
+                new PartitionAccessorRuntimeStatistics(1000000000, 142, 100).toString());
           }
         }
       }

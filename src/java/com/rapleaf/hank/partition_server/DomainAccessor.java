@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.generated.HankException;
@@ -38,7 +39,7 @@ class DomainAccessor {
   private final int updateStatisticsThreadSleepTimeMS;
   private final Thread updateStatisticsThread;
 
-  private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
+  private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
 
   public DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
                         Partitioner partitioner) throws IOException {

@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.partition_server;
 
-class PartitionAccessorRuntimeStatistics {
+public class PartitionAccessorRuntimeStatistics {
 
   private final long windowDurationNanos;
   private final long numRequestsInWindow;
@@ -39,5 +39,22 @@ class PartitionAccessorRuntimeStatistics {
 
   public static String toString(long windowDurationNanos, long numRequestsInWindow, long numHitsInWindow) {
     return windowDurationNanos + " " + numRequestsInWindow + " " + numHitsInWindow;
+  }
+
+  public RuntimeStatistics getRuntimeStatistics() {
+    double throughput = 0;
+    double hitRate = 0;
+    if (windowDurationNanos != 0) {
+      throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
+    }
+    if (numRequestsInWindow != 0) {
+      hitRate = (double) numHitsInWindow / (double) numRequestsInWindow;
+    }
+    return new RuntimeStatistics(throughput, hitRate);
+  }
+
+  @Override
+  public String toString() {
+    return PartitionAccessorRuntimeStatistics.toString(windowDurationNanos, numRequestsInWindow, numHitsInWindow);
   }
 }

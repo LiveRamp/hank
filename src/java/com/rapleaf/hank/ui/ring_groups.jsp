@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.coordinator.*"%>
+<%@page import="com.rapleaf.hank.partition_server.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.text.DecimalFormat" %>
 
@@ -61,6 +62,8 @@
       <th>Offline</th>
       <th>Updated & Served</th>
       <th>(uniques)</th>
+      <th>Throughput</th>
+      <th>Hit rate</th>
     </tr>
     <%
       for (RingGroup ringGroup : ringGroups(coord)) {
@@ -94,6 +97,7 @@
         <td></td>
         <% } %>
 
+        <!-- Hosts State -->
 
         <td class='centered'><%= ringGroup.getCurrentVersion() != null ? ringGroup.getCurrentVersion() : "-" %></td>
         <td class='centered'><%= ringGroup.getUpdatingToVersion() != null ? ringGroup.getUpdatingToVersion() : "-" %></td>
@@ -130,6 +134,8 @@
         <% } else { %>
           <td class='centered'>-</td>
         <% } %>
+
+        <!-- Serving Status -->
 
         <%
         ServingStatusAggregator servingStatusAggregator = null;
@@ -171,6 +177,17 @@
           <td></td>
         <% } %>
 
+
+        <!-- Statistics -->
+        <%
+        Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics =
+          RingGroups.computeRuntimeStatistics(ringGroup);
+        RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
+          RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
+        %>
+
+        <td class='centered'> <%= runtimeStatisticsForRingGroup.getThroughput() %> qps </td>
+        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
 
       </tr>
       <%
