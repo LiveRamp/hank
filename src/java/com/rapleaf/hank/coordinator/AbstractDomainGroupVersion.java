@@ -16,6 +16,9 @@
 
 package com.rapleaf.hank.coordinator;
 
+import java.util.SortedSet;
+import java.util.TreeSet;
+
 public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
 
   @Override
@@ -30,6 +33,11 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
       }
     }
     return null;
+  }
+
+  @Override
+  public SortedSet<DomainGroupVersionDomainVersion> getDomainVersionsSorted() {
+    return new TreeSet<DomainGroupVersionDomainVersion>(getDomainVersions());
   }
 
   @Override

@@ -15,8 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Encapsulates a domain group config version, which is a numbered set of
@@ -24,11 +24,14 @@ import java.util.Set;
  * a whole to a RingGroup.
  */
 public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
+
   public int getVersionNumber();
 
   public DomainGroup getDomainGroup();
 
   public Set<DomainGroupVersionDomainVersion> getDomainVersions();
+
+  public SortedSet<DomainGroupVersionDomainVersion> getDomainVersionsSorted();
 
   /**
    * Get the DomainGroupVersionDomainVersion from this DomainGroupVersion that
