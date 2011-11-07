@@ -34,7 +34,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedInt updatingToDomainGroupVersion;
   private final WatchedBoolean deletable;
-  private final WatchedMap<String> statistics;
+  private final WatchedMap<WatchedString> statistics;
 
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
@@ -61,12 +61,12 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
     updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
     deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
-    statistics = new WatchedMap<String>(zk, ZkPath.append(path, STATISTICS_PATH_SEGMENT),
-        new WatchedMap.ElementLoader<String>() {
+    statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(path, STATISTICS_PATH_SEGMENT),
+        new WatchedMap.ElementLoader<WatchedString>() {
       @Override
-      public String load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+      public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (!ZkPath.isHidden(relPath)) {
-          return zk.getString(ZkPath.append(basePath, relPath));
+          return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
         } else {
           return null;
         }
@@ -148,12 +148,16 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public String getStatistic(String key) throws IOException {
-    return statistics.get(key);
+    WatchedString statistic = statistics.get(key);
+    if (statistic != null) {
+      return statistic.get();
+    } else {
+      return null;
+    }
   }
 
   @Override
   public void deleteStatistic(String key) throws IOException {
-    statistics.remove(key);
     String path = ZkPath.append(this.path, STATISTICS_PATH_SEGMENT, key);
     try {
       zk.deleteIfExists(path);
