@@ -17,6 +17,8 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class AbstractRing implements Ring {
   private final int ringNumber;
@@ -35,6 +37,11 @@ public abstract class AbstractRing implements Ring {
   @Override
   public final int getRingNumber() {
     return ringNumber;
+  }
+
+  @Override
+  public SortedSet<Host> getHostsSorted() {
+    return new TreeSet<Host>(getHosts());
   }
 
   @Override

@@ -8,15 +8,6 @@
 <%@page import="java.net.*"%>
 <%@page import="java.text.DecimalFormat" %>
 
-<%!public List<Host> sortedHosts(Collection<Host> hosts) {
-  if (hosts == null) {
-    return null;
-  }
-  List<Host> sortedList = new ArrayList<Host>(hosts);
-  Collections.sort(sortedList);
-  return sortedList;
-}%>
-
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
@@ -171,7 +162,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Actions</th>
     </tr>
     <%
-      Collection<Host> hosts = sortedHosts(ring.getHosts());
+      Collection<Host> hosts = ring.getHostsSorted();
       if (hosts != null) {
         for(Host host : hosts) {
     %>

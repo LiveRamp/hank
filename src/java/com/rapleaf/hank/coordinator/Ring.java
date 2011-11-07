@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.SortedSet;
 
 public interface Ring extends Comparable<Ring> {
 
@@ -30,6 +31,8 @@ public interface Ring extends Comparable<Ring> {
    * @return
    */
   public Set<Host> getHosts();
+
+  public SortedSet<Host> getHostsSorted();
 
   public Host getHostByAddress(PartitionServerAddress address);
 
