@@ -21,32 +21,23 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <h1>Hank</h1>
 
-  <div class='box-section'>
-    <h2>System Summary</h2>
+  <h2>System Summary</h2>
 
-    <div class='box-section-content'>
-      <%= coord.getDomains().size() %> <a href='domains.jsp'>domains</a>,
-      <%= coord.getDomainGroups().size() %> <a href='domain_groups.jsp'>domain groups</a>,
-      and <%= coord.getRingGroups().size() %> <a href='ring_groups.jsp'>ring groups</a>.
-    </div>
+  <%= coord.getDomains().size() %> <a href='domains.jsp'>domains</a>,
+  <%= coord.getDomainGroups().size() %> <a href='domain_groups.jsp'>domain groups</a>,
+  and <%= coord.getRingGroups().size() %> <a href='ring_groups.jsp'>ring groups</a>.
 
+  <h2>Coordinator</h2>
+  <div style="font-family: courier new">
+    <%= coord %>
   </div>
 
-  <div class='box-section'>
-    <h2>Coordinator</h2>
-    <div class='box-section-content' style="font-family: courier new">
-      <%= coord %>
-    </div>
+  <h2>Version Information</h2>
+  <div>
+    Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
   </div>
-
-  <div class='box-section'>
-    <h2>Version Information</h2>
-    <div class='box-section-content'>
-      Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
-    </div>
-    <div>
-      Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
-    </div>
+  <div>
+    Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
   </div>
 
 <jsp:include page="_footer.jsp"/>

@@ -54,27 +54,44 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   %>
 
   <h2>State</h2>
+    <table class='table-blue-compact'>
+      <tr>
+      <td>State:</td>
+      <td>
+      <%=ring.getState()%>
+      </td>
+      </tr>
 
-  <div>
-    Ring state: <%=ring.getState()%> <br/>
-    <%
-      if (Rings.isUpdatePending(ring)) {
-    %>
-    Currently updating from <%=ring.getCurrentVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
-    <%
-      } else {
-    %>
-    Currently up to date.
-    <%
-      }
-    %>
-  </div>
-  <div>
-    Throughput: <%= runtimeStatisticsForRing.getThroughput() %> qps
-  </div>
-  <div>
-    Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>%
-  </div>
+      <tr>
+      <td>Update Status:</td>
+      <td>
+      <% if (Rings.isUpdatePending(ring)) { %>
+      Updating from <%=ring.getCurrentVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
+      <% } else { %>
+      Not updating
+      <% } %>
+      </td>
+      </tr>
+
+      <tr>
+      <td>Throughput:</td>
+      <td>
+      <%= runtimeStatisticsForRing.getThroughput() %> qps
+      </td>
+      </tr>
+
+      <tr>
+      <td>Hit Rate:</td>
+      <td>
+      <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>%
+      </td>
+      </tr>
+
+      <tr>
+      <td>Partition assignment:</td>
+      <td><a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">manage</a></td>
+      </tr>
+    </table>
 
   <!-- Domain specific Runtime Statistics -->
 
@@ -138,10 +155,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     </select>
     <input type=submit value="Command"/>
   </form>
-
-  <h2>Utilities</h2>
-
-  <a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Partition Assignment</a>
 
   <h2>Hosts</h2>
 

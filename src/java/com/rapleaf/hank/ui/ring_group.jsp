@@ -56,31 +56,49 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     }
   %>
 
-  <div class='box-section'>
     <h2>State</h2>
-    <div class='box-section-content'>
-      <div>
-        <%
-          if(RingGroups.isUpdating(ringGroup)) {
-        %>
-        An update from version <%=ringGroup.getCurrentVersion()%> to <%=ringGroup.getUpdatingToVersion()%> is in progress.
-        <%
-          } else {
-        %>
-        No updates in progress.
-        <%
-          }
-        %>
-      </div>
-      <div>
-        Ring Group Conductor is <%=ringGroup.isRingGroupConductorOnline() ? "online" : "offline"%>
-      </div>
-      <div>
-        Throughput: <%= runtimeStatisticsForRingGroup.getThroughput() %> qps
-      </div>
-      <div>
-        Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>%
-      </div>
+      <table class='table-blue-compact'>
+        <tr>
+        <td>Domain Group:</td>
+        <td>
+        <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
+        </td>
+        </tr>
+
+        <tr>
+        <td>Update status:</td>
+        <td>
+        <% if(RingGroups.isUpdating(ringGroup)) { %>
+        Updating from <%=ringGroup.getCurrentVersion()%> to <%=ringGroup.getUpdatingToVersion()%>
+        <% } else { %>
+        Not updating
+        <% } %>
+        </td>
+        </tr>
+
+        <tr>
+        <td>Ring Group Conductor:</td>
+        <td>
+        <%= ringGroup.isRingGroupConductorOnline() ?
+          "<div class='complete centered'>ONLINE</div>" : "<div class='error centered'>OFFLINE</div>" %>
+        </td>
+        </tr>
+
+        <tr>
+        <td>Throughput:</td>
+        <td>
+        <%= runtimeStatisticsForRingGroup.getThroughput() %> qps
+        </td>
+        </tr>
+
+        <tr>
+        <td>Hit Rate:</td>
+        <td>
+        <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>%
+        </td>
+        </tr>
+
+      </table>
 
       <!-- Domain specific Runtime Statistics -->
 
@@ -112,28 +130,14 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
        %>
       </table>
 
-    </div>
-  </div>
-
-  <div class='box-section'>
-    <h2>Configuration</h2>
-    <div class='box-section-content'>
-      <b>Domain Group:</b> <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
-    </div>
-  </div>
-
-
-<h2>Actions</h2>
-  <form action="/ring_group/delete_ring_group" method=post>
+    <h2>Actions</h2>
+    <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
     <input type=submit value="delete"
-      onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
-  </form>
+    onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
+    </form>
 
-
-  <div class='box-section'>
   <h2>Rings</h2>
-  <div class='box-section-content'>
   <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
   <table class='table-blue'>
     <tr>
@@ -242,15 +246,11 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       }
     %>
   </table>
-  </div>
-  </div>
 
-  <div class='box-section'>
     <h2>Query</h2>
     <% if (ringGroup.getCurrentVersion() == null) { %>
       Query disabled because no domain group version is currently deployed.
     <% } else { %>
-    <div class='box-section-content'>
       <form action="/ring_group.jsp" method=post>
         <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
 
@@ -363,8 +363,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <% }}} %>
       </form>
-    </div>
-  </div>
 
 <jsp:include page="_footer.jsp"/>
 

@@ -39,7 +39,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <%
   int total = 0;
-  Integer versionNumber = ring.getVersionNumber();
+  Integer versionNumber = ring.getCurrentVersionNumber();
   if (versionNumber != null) {
     DomainGroupVersion currentVersion = ring.getRingGroup().getDomainGroup().getVersionByNumber(versionNumber);
     if (currentVersion != null && currentVersion.getDomainVersions() != null) {

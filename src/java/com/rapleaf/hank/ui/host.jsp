@@ -58,14 +58,54 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <div>
   <h2>State</h2>
-  <span class='<%= UiUtils.hostStateToClass(host.getState()) %>'><%= host.getState() %></span>
+    <table class='table-blue-compact'>
+      <tr>
+      <td>State:</td>
+      <td>
+      <div class='centered <%= UiUtils.hostStateToClass(host.getState()) %>'><%= host.getState() %></div>
+      </td>
+      </tr>
 
-  <div>
-    Throughput: <%= runtimeStatisticsForHost.getThroughput() %> qps
-  </div>
-  <div>
-    Hit Rate: <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>%
-  </div>
+      <tr>
+      <td>Throughput:</td>
+      <td>
+      <%= runtimeStatisticsForHost.getThroughput() %> qps
+      </td>
+      </tr>
+
+      <tr>
+      <td>Hit Rate:</td>
+      <td>
+      <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>%
+      </td>
+      </tr>
+
+      <tr>
+      <td>Current Command:</td>
+      <td>
+
+      <form method="post" action="/host/discard_current_command">
+      <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+      <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+      <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+      <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
+      </form>
+      </td>
+      </tr>
+
+      <tr>
+      <td>Command Queue:</td>
+      <td>
+      <%= host.getCommandQueue() %>
+      <form method=post action="/host/clear_command_queue" style='display: inline'>
+      <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
+      <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
+      <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
+      <input type=submit value="Clear"/>
+      </form>
+      </td>
+      </tr>
+    </table>
 
   <!-- Domain specific Runtime Statistics -->
 
@@ -96,23 +136,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   }
   %>
   </table>
-
-  <form method="post" action="/host/discard_current_command">
-    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-    Current command: <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
-  </form>
-  Queued commands: <%= host.getCommandQueue() %>
-
-  <h2>Clear Command Queue</h2>
-
-  <form method=post action="/host/clear_command_queue">
-    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-    <input type=submit value="Clear command queue"/>
-  </form>
 
   <h2>Enqueue Command</h2>
 

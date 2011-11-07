@@ -91,19 +91,6 @@ h2 {
   width: 100%;
 }
 
-
-/* Page sections and other classes */
-
-/* box-section */
-.box-section {
-  margin: 10px 0px;
-}
-
-.box-section-content {
-  margin: 0px;
-  padding: 5px;
-}
-
 /* table-blue */
 table.table-blue {
   width: 100%;
