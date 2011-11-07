@@ -43,14 +43,10 @@ public class PartitionAccessorRuntimeStatistics {
 
   public RuntimeStatistics getRuntimeStatistics() {
     double throughput = 0;
-    double hitRate = 0;
     if (windowDurationNanos != 0) {
       throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
     }
-    if (numRequestsInWindow != 0) {
-      hitRate = (double) numHitsInWindow / (double) numRequestsInWindow;
-    }
-    return new RuntimeStatistics(throughput, hitRate);
+    return new RuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
   }
 
   @Override

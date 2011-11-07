@@ -18,26 +18,26 @@ package com.rapleaf.hank.partition_server;
 
 public class RuntimeStatisticsAggregator {
 
-  private long numAggregated;
   private double throughputTotal;
-  private double hitRateTotal;
+  private long numRequestsTotal;
+  private long numHitsTotal;
 
   public RuntimeStatisticsAggregator() {
-    numAggregated = 0;
     throughputTotal = 0;
-    hitRateTotal = 0;
+    numRequestsTotal = 0;
+    numHitsTotal = 0;
   }
 
   public void add(RuntimeStatistics runtimeStatistics) {
-    ++numAggregated;
     throughputTotal += runtimeStatistics.throughput;
-    hitRateTotal += runtimeStatistics.hitRate;
+    numRequestsTotal += runtimeStatistics.numRequests;
+    numHitsTotal += runtimeStatistics.numHits;
   }
 
   public void add(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
-    numAggregated += runtimeStatisticsAggregator.numAggregated;
     throughputTotal += runtimeStatisticsAggregator.throughputTotal;
-    hitRateTotal += runtimeStatisticsAggregator.hitRateTotal;
+    numRequestsTotal += runtimeStatisticsAggregator.numRequestsTotal;
+    numHitsTotal += runtimeStatisticsAggregator.numHitsTotal;
   }
 
   public double getThroughput() {
@@ -45,10 +45,10 @@ public class RuntimeStatisticsAggregator {
   }
 
   public double getHitRate() {
-    if (numAggregated == 0) {
+    if (numRequestsTotal == 0) {
       return 0;
     } else {
-      return hitRateTotal / numAggregated;
+      return (double) numHitsTotal / (double) numRequestsTotal;
     }
   }
 }
