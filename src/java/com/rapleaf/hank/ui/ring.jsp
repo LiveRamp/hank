@@ -76,7 +76,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <tr>
       <td>Throughput:</td>
       <td>
-      <%= runtimeStatisticsForRing.getThroughput() %> qps
+      <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps
       </td>
       </tr>
 
@@ -212,7 +212,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           Rings.computeRuntimeStatisticsForHost(runtimeStatistics, host);
       %>
 
-      <td class='centered'> <%= runtimeStatisticsForHost.getThroughput() %> qps </td>
+      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps </td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>% </td>
 
       <!-- Actions -->

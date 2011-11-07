@@ -186,7 +186,7 @@
           RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
         %>
 
-        <td class='centered'> <%= runtimeStatisticsForRingGroup.getThroughput() %> qps </td>
+        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps </td>
         <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
 
       </tr>

@@ -69,7 +69,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <tr>
       <td>Throughput:</td>
       <td>
-      <%= runtimeStatisticsForHost.getThroughput() %> qps
+      <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps
       </td>
       </tr>
 
@@ -126,7 +126,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
    %>
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-      <td class='centered'><%= runtimeStatisticsForDomain.getThroughput() %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     </tr>
   <%
