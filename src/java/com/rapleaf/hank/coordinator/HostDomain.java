@@ -17,14 +17,18 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Info about a given host's view of a domain.
  */
 public interface HostDomain extends Comparable<HostDomain> {
+
   public Domain getDomain();
 
   public Set<HostDomainPartition> getPartitions() throws IOException;
+
+  public SortedSet<HostDomainPartition> getPartitionsSorted() throws IOException;
 
   public HostDomainPartition getPartitionByNumber(int partNum) throws IOException;
 

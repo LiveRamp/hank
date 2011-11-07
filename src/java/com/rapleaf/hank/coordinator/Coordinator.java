@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * The Coordinator is the top-level interface for wrapping up all the
@@ -59,6 +60,8 @@ public interface Coordinator {
    */
   public Set<Domain> getDomains();
 
+  public SortedSet<Domain> getDomainsSorted();
+
   /**
    * @param domainName
    * @return configuration information on the specified domain
@@ -93,6 +96,8 @@ public interface Coordinator {
    */
   public Set<DomainGroup> getDomainGroups();
 
+  public SortedSet<DomainGroup> getDomainGroupsSorted();
+
   /**
    * @param domain
    * @return
@@ -125,8 +130,10 @@ public interface Coordinator {
    */
   public Set<RingGroup> getRingGroups();
 
+  public SortedSet<RingGroup> getRingGroupsSorted();
+
   /**
-   * @param domainGroupName
+   * @param domainGroup
    * @return
    */
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup);

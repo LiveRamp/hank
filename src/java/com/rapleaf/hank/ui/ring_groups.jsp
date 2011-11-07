@@ -7,11 +7,6 @@
 <%@page import="java.util.*"%>
 <%@page import="java.text.DecimalFormat" %>
 
-<%!public List<RingGroup> ringGroups(Coordinator coord) {
-  List<RingGroup> rgcs = new ArrayList<RingGroup>(coord.getRingGroups());
-  Collections.sort(rgcs, new RingGroupConfigComparator());
-  return rgcs;
-}%>
 <%
   Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 %>
@@ -66,7 +61,7 @@
       <th>Hit rate</th>
     </tr>
     <%
-      for (RingGroup ringGroup : ringGroups(coord)) {
+      for (RingGroup ringGroup : coord.getRingGroupsSorted()) {
     %>
       <tr>
         <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>

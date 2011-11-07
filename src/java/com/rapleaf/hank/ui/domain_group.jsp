@@ -72,7 +72,7 @@ tr.not_included td {
     </tr>
   <%
     DomainGroupVersion latestDomainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
-    for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
+    for (Domain domain : coord.getDomainsSorted()) {
   %>
     <%
       DomainVersion latestVersion = Domains.getLatestVersionNotOpenNotDefunct(domain);
@@ -131,7 +131,7 @@ tr.not_included td {
     v<%= dgcv.getVersionNumber() %>:
     <ul>
       <%
-        for (DomainGroupVersionDomainVersion dcv : new TreeSet<DomainGroupVersionDomainVersion>(dgcv.getDomainVersions())) {
+        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersionsSorted()) {
       %>
       <li>
         <%=dcv.getDomain().getName()%>

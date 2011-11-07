@@ -17,12 +17,25 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class AbstractRingGroup implements RingGroup {
 
+  @Override
+  public SortedSet<Ring> getRingsSorted() {
+    return new TreeSet<Ring>(getRings());
+  }
+
+  @Override
   public void markUpdateComplete() throws IOException {
     setCurrentVersion(getUpdatingToVersion());
     setUpdatingToVersion(null);
+  }
+
+  @Override
+  public int compareTo(RingGroup other) {
+    return getName().compareTo(other.getName());
   }
 
   @Override

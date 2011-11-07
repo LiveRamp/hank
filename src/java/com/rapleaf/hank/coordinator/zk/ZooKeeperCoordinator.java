@@ -38,6 +38,7 @@ import java.util.*;
  * removal of domains, domain groups, ring groups, or hosts.
  */
 public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+
   private static final String KEY_DOMAIN_ID_COUNTER = ".domain_id_counter";
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
 
@@ -275,14 +276,29 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return new HashSet<Domain>(domainsByName.values());
   }
 
+  @Override
+  public SortedSet<Domain> getDomainsSorted() {
+    return new TreeSet<Domain>(getDomains());
+  }
+
   public Set<DomainGroup> getDomainGroups() {
     synchronized (domainGroups) {
       return new HashSet<DomainGroup>(domainGroups.values());
     }
   }
 
+  @Override
+  public SortedSet<DomainGroup> getDomainGroupsSorted() {
+    return new TreeSet<DomainGroup>(getDomainGroups());
+  }
+
   public Set<RingGroup> getRingGroups() {
     return new HashSet<RingGroup>(ringGroups.values());
+  }
+
+  @Override
+  public SortedSet<RingGroup> getRingGroupsSorted() {
+    return new TreeSet<RingGroup>(getRingGroups());
   }
 
   @Override

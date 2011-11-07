@@ -18,12 +18,14 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * Encapsulates the configuration and listening/modification of individual
  * PartitionServer hosts within the cluster.
  */
 public interface Host extends Comparable<Host> {
+
   public PartitionServerAddress getAddress();
 
   /**
@@ -116,6 +118,8 @@ public interface Host extends Comparable<Host> {
    * @throws IOException
    */
   public Set<HostDomain> getAssignedDomains() throws IOException;
+
+  public SortedSet<HostDomain> getAssignedDomainsSorted() throws IOException;
 
   /**
    * Add a new domain to this host.

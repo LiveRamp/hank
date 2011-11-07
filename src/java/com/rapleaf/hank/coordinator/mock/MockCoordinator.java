@@ -15,16 +15,12 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
+import com.rapleaf.hank.coordinator.*;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.RingGroup;
+import java.util.SortedSet;
 
 public class MockCoordinator implements Coordinator {
 
@@ -68,11 +64,26 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
+  public SortedSet<Domain> getDomainsSorted() {
+    return null;
+  }
+
   public Set<DomainGroup> getDomainGroups() {
     return null;
   }
 
+  @Override
+  public SortedSet<DomainGroup> getDomainGroupsSorted() {
+    return null;
+  }
+
   public Set<RingGroup> getRingGroups() {
+    return null;
+  }
+
+  @Override
+  public SortedSet<RingGroup> getRingGroupsSorted() {
     return null;
   }
 

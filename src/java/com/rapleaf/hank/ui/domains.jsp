@@ -38,7 +38,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Storage Engine</th>
     </tr>
     <%
-      for (Domain domain : new TreeSet<Domain>(coord.getDomains())) {
+      for (Domain domain : coord.getDomainsSorted()) {
     %>
       <tr>
         <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>

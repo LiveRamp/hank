@@ -17,11 +17,18 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class AbstractHostDomain implements HostDomain {
   @Override
   public int compareTo(HostDomain hostDomain) {
     return getDomain().compareTo(hostDomain.getDomain());
+  }
+
+  @Override
+  public SortedSet<HostDomainPartition> getPartitionsSorted() throws IOException {
+    return new TreeSet<HostDomainPartition>(getPartitions());
   }
 
   @Override

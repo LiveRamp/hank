@@ -36,7 +36,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
       <th>Current Version</th>
     </tr>
     <%
-      for (DomainGroup domainGroup : new TreeSet<DomainGroup>(coord.getDomainGroups())) {
+      for (DomainGroup domainGroup : coord.getDomainGroupsSorted()) {
     %>
       <tr>
         <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>

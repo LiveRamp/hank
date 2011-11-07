@@ -204,9 +204,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     </table>
   </div>
   <%
-    List<HostDomain> hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
-    Collections.sort(hostDomains);
-    for (HostDomain hdc : hostDomains) {
+    for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
       if (domain == null) {
@@ -251,11 +249,9 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <table class="table-blue">
     <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th><th>toggle deletable</th></tr>
   <%
-    hostDomains = new ArrayList<HostDomain>(host.getAssignedDomains());
-    Collections.sort(hostDomains);
-    for (HostDomain hdc : hostDomains) {
+    for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
-      for (HostDomainPartition hdpc : new TreeSet<HostDomainPartition>(hdc.getPartitions())) {
+      for (HostDomainPartition hdpc : hdc.getPartitionsSorted()) {
     %>
     <tr>
       <td>

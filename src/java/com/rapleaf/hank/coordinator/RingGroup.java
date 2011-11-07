@@ -17,8 +17,9 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.SortedSet;
 
-public interface RingGroup {
+public interface RingGroup extends Comparable<RingGroup>{
 
   public String getName();
 
@@ -29,14 +30,15 @@ public interface RingGroup {
    */
   public Set<Ring> getRings();
 
+  public SortedSet<Ring> getRingsSorted();
+
   /**
    * Get a RingConfig by the ring number.
    *
    * @param ringNumber
    * @return
    */
-  public Ring getRing(int ringNumber)
-      throws IOException;
+  public Ring getRing(int ringNumber) throws IOException;
 
   /**
    * Get the DomainGroupConfig for this Ring Group.
