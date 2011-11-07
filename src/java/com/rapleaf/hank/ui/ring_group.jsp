@@ -13,13 +13,6 @@
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="java.text.DecimalFormat" %>
 
-<%!
-public List<Ring> sortedRcs(Collection<Ring> rcs) {
-  List<Ring> sortedList = new ArrayList<Ring>(rcs);
-  Collections.sort(sortedList);
-  return sortedList;
-}
-%>
 <%
 
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -158,7 +151,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     </tr>
 
     <%
-      for (Ring ring : sortedRcs(ringGroup.getRings())) {
+      for (Ring ring : ringGroup.getRingsSorted()) {
     %>
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
