@@ -251,7 +251,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <br/>
         <select name="d">
           <%
-            for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersions()) {
+            for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
           %>
           <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgvdv.getDomain().getName()) ? " selected" : "" %>>
             <%= dgvdv.getDomain().getName() %>
