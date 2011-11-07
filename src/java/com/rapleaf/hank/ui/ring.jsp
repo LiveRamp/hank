@@ -112,7 +112,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
    %>
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-      <td class='centered'><%= runtimeStatisticsForDomain.getThroughput() %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     </tr>
   <%

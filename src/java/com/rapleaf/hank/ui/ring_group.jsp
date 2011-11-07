@@ -229,7 +229,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           RingGroups.computeRuntimeStatisticsForRing(runtimeStatistics, ring);
       %>
 
-      <td class='centered'> <%= runtimeStatisticsForRing.getThroughput() %> qps </td>
+      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps </td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
 
       <!-- Actions -->
