@@ -20,6 +20,7 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
+import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,6 +29,8 @@ import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
 public class CueballReader implements Reader {
+
+  private static final Logger LOG = Logger.getLogger(CueballReader.class);
 
   private final Hasher hasher;
   private final int valueSize;
@@ -71,6 +74,9 @@ public class CueballReader implements Reader {
   @Override
   public void get(ByteBuffer key, ReaderResult result) throws IOException {
     // We will read the compressed buffer and decompress it in the same buffer.
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Requiring read buffer of size " + maxCompressedBufferSize + " + " + maxUncompressedBufferSize);
+    }
     result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
     // Note: keyHash buffer might be larger than keyHashSize

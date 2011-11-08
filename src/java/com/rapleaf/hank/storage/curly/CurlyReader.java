@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.EncodingHelper;
+import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,6 +27,9 @@ import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
 public class CurlyReader implements Reader {
+
+  private static final Logger LOG = Logger.getLogger(CurlyReader.class);
+
   private final Reader keyfile;
   private final int readBufferSize;
   private final FileChannel recordFile;
@@ -85,6 +89,9 @@ public class CurlyReader implements Reader {
         // from requiring a buffer resize.
         int newSize = recordSize + EncodingHelper.MAX_VARINT_SIZE;
         // resize the buffer
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Requiring read buffer of size " + newSize);
+        }
         result.requiresBufferSize(newSize);
         result.getBuffer().position(0);
         result.getBuffer().limit(recordSize);
