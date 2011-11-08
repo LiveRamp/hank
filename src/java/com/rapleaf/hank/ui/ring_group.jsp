@@ -68,9 +68,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <tr>
         <td>Ring Group Conductor:</td>
-        <td>
         <%= ringGroup.isRingGroupConductorOnline() ?
-          "<div class='complete centered'>ONLINE</div>" : "<div class='error centered'>OFFLINE</div>" %>
+          "<td class='complete centered'>ONLINE" : "<td class='error centered'>OFFLINE" %>
         </td>
         </tr>
 
