@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.storage.ReaderResult;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
-import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.storage.ReaderResult;
 
 public class TestCueballReader extends AbstractCueballTest {
   public void testRead() throws Exception {

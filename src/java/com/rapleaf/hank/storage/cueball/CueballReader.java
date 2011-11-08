@@ -40,6 +40,7 @@ public class CueballReader implements Reader {
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
+  private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
@@ -69,11 +70,11 @@ public class CueballReader implements Reader {
 
   @Override
   public void get(ByteBuffer key, ReaderResult result) throws IOException {
+    // We will read the compressed buffer and decompress it in the same buffer.
     result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
-    // TODO: want to reuse this.
-    byte[] keyHash = new byte[keyHashSize];
-    hasher.hash(key, keyHash);
+    // Note: keyHash buffer might be larger than keyHashSize
+    byte[] keyHash = computeKeyHash(key);
 
     int hashPrefix = prefixer.getHashPrefix(keyHash, 0);
     long baseOffset = hashIndex[hashPrefix];
@@ -134,5 +135,32 @@ public class CueballReader implements Reader {
     }
     // looked everywhere, didn't find it!
     return -1;
+  }
+
+  private static class KeyHashBufferThreadLocal extends ThreadLocal<byte[]> {
+
+    private static int KEY_HASH_BUFFER_INITIAL_SIZE = 8;
+
+    @Override
+    protected byte[] initialValue() {
+      return new byte[KEY_HASH_BUFFER_INITIAL_SIZE];
+    }
+
+    protected byte[] getAndRequireBufferSize(int size) {
+      byte[] buffer = this.get();
+      if (buffer.length < size) {
+        buffer = new byte[size];
+        this.set(buffer);
+      }
+      return buffer;
+    }
+  }
+
+  // Note: result buffer might be larger than keyHashSize
+  private byte[] computeKeyHash(ByteBuffer key) {
+    // Reuse a thread local buffer, but first make sure it is at least of the required size
+    byte[] keyHash = keyHashBufferThreadLocal.getAndRequireBufferSize(keyHashSize);
+    hasher.hash(key, keyHashSize, keyHash);
+    return keyHash;
   }
 }

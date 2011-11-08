@@ -165,7 +165,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
-    hasher.hash(key, keyHashBuffer.array());
+    hasher.hash(key, keyHashSize, keyHashBuffer.array());
     return keyHashBuffer;
   }
 

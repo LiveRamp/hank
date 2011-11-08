@@ -1,19 +1,13 @@
 package com.rapleaf.hank.storage.cueball;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
 import com.rapleaf.hank.util.Bytes;
+
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class TestDomainGenerator {
 
@@ -51,7 +45,7 @@ public class TestDomainGenerator {
       r.nextBytes(key);
       final int partitionNumber = p.partition(ByteBuffer.wrap(key), numPartitions);
       byte[] hash = new byte[hashLength];
-      h.hash(ByteBuffer.wrap(key), hash);
+      h.hash(ByteBuffer.wrap(key), hashLength, hash);
       partitionedKeys.get(partitionNumber).add(hash);
     }
 

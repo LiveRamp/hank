@@ -64,14 +64,21 @@ public final class Murmur64Hasher implements Hasher {
     }
 
     switch (remainder) {
-    case 7: h ^= (long)(data[end+6] & 0xff) << 48;
-    case 6: h ^= (long)(data[end+5] & 0xff) << 40;
-    case 5: h ^= (long)(data[end+4] & 0xff) << 32;
-    case 4: h ^= (long)(data[end+3] & 0xff) << 24;
-    case 3: h ^= (long)(data[end+2] & 0xff) << 16;
-    case 2: h ^= (long)(data[end+1] & 0xff) << 8;
-    case 1: h ^= (long)(data[end] & 0xff);
-    h *= m;
+      case 7:
+        h ^= (long) (data[end + 6] & 0xff) << 48;
+      case 6:
+        h ^= (long) (data[end + 5] & 0xff) << 40;
+      case 5:
+        h ^= (long) (data[end + 4] & 0xff) << 32;
+      case 4:
+        h ^= (long) (data[end + 3] & 0xff) << 24;
+      case 3:
+        h ^= (long) (data[end + 2] & 0xff) << 16;
+      case 2:
+        h ^= (long) (data[end + 1] & 0xff) << 8;
+      case 1:
+        h ^= (long) (data[end] & 0xff);
+        h *= m;
     }
 
     h ^= h >>> r;
@@ -82,41 +89,41 @@ public final class Murmur64Hasher implements Hasher {
   }
 
   @Override
-  public void hash(ByteBuffer val, byte[] hashBytes) {
+  public void hash(ByteBuffer val, int hashSize, byte[] hashBytes) {
     int seed = INITIAL_SEED;
     long hashValue = 0;
-    for (int i = 0; i < hashBytes.length - 8; i+=8) {
+    for (int i = 0; i < hashSize - 8; i += 8) {
       hashValue = murmurHash64(val.array(), val.arrayOffset() + val.position(), val.arrayOffset() + val.limit(), seed);
       seed = (int) hashValue;
-      hashBytes[i]   = (byte)((hashValue >> 56) & 0xff);
-      hashBytes[i+1] = (byte)((hashValue >> 48) & 0xff);
-      hashBytes[i+2] = (byte)((hashValue >> 40) & 0xff);
-      hashBytes[i+3] = (byte)((hashValue >> 32) & 0xff);
-      hashBytes[i+4] = (byte)((hashValue >> 24) & 0xff);
-      hashBytes[i+5] = (byte)((hashValue >> 16) & 0xff);
-      hashBytes[i+6] = (byte)((hashValue >>  8) & 0xff);
-      hashBytes[i+7] = (byte)((hashValue      ) & 0xff);
+      hashBytes[i] = (byte) ((hashValue >> 56) & 0xff);
+      hashBytes[i + 1] = (byte) ((hashValue >> 48) & 0xff);
+      hashBytes[i + 2] = (byte) ((hashValue >> 40) & 0xff);
+      hashBytes[i + 3] = (byte) ((hashValue >> 32) & 0xff);
+      hashBytes[i + 4] = (byte) ((hashValue >> 24) & 0xff);
+      hashBytes[i + 5] = (byte) ((hashValue >> 16) & 0xff);
+      hashBytes[i + 6] = (byte) ((hashValue >> 8) & 0xff);
+      hashBytes[i + 7] = (byte) ((hashValue) & 0xff);
     }
 
-    int shortHashBytes = hashBytes.length % 8;
+    int shortHashBytes = hashSize % 8;
     if (shortHashBytes > 0) {
       hashValue = murmurHash64(val.array(), val.arrayOffset() + val.position(), val.arrayOffset() + val.limit(), seed);
-      int off = hashBytes.length - 1;
+      int off = hashSize - 1;
       switch (shortHashBytes) {
-      case 7:
-        hashBytes[off--] = (byte)((hashValue >>  8) & 0xff);
-      case 6:
-        hashBytes[off--] = (byte)((hashValue >> 16) & 0xff);
-      case 5:
-        hashBytes[off--] = (byte)((hashValue >> 24) & 0xff);
-      case 4:
-        hashBytes[off--] = (byte)((hashValue >> 32) & 0xff);
-      case 3:
-        hashBytes[off--] = (byte)((hashValue >> 40) & 0xff);
-      case 2:
-        hashBytes[off--] = (byte)((hashValue >> 48) & 0xff);
-      case 1:
-        hashBytes[off--] = (byte)((hashValue >> 56) & 0xff);
+        case 7:
+          hashBytes[off--] = (byte) ((hashValue >> 8) & 0xff);
+        case 6:
+          hashBytes[off--] = (byte) ((hashValue >> 16) & 0xff);
+        case 5:
+          hashBytes[off--] = (byte) ((hashValue >> 24) & 0xff);
+        case 4:
+          hashBytes[off--] = (byte) ((hashValue >> 32) & 0xff);
+        case 3:
+          hashBytes[off--] = (byte) ((hashValue >> 40) & 0xff);
+        case 2:
+          hashBytes[off--] = (byte) ((hashValue >> 48) & 0xff);
+        case 1:
+          hashBytes[off--] = (byte) ((hashValue >> 56) & 0xff);
       }
     }
   }

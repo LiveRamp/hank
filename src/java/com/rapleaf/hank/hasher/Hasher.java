@@ -21,5 +21,5 @@ import java.nio.ByteBuffer;
  * Interface for general-purpose hashing functions.
  */
 public interface Hasher {
-  public void hash(ByteBuffer val, byte[] hashBytes);
+  public void hash(ByteBuffer val, int hashSize, byte[] hashBytes);
 }

@@ -15,10 +15,10 @@
  */
 package com.rapleaf.hank.test;
 
+import com.rapleaf.hank.hasher.Hasher;
+
 import java.nio.ByteBuffer;
 import java.util.Map;
-
-import com.rapleaf.hank.hasher.Hasher;
 
 
 public class MapHasher implements Hasher {
@@ -29,11 +29,14 @@ public class MapHasher implements Hasher {
   }
 
   @Override
-  public void hash(ByteBuffer val, byte[] hashBytes) {
+  public void hash(ByteBuffer val, int hashSize, byte[] hashBytes) {
     byte[] hsh = staticHashes.get(val);
     if (hsh == null) {
       throw new RuntimeException("No hash set for key!");
     }
-    System.arraycopy(hsh, 0, hashBytes, 0, hashBytes.length);
+    if (hsh.length != hashSize) {
+      throw new RuntimeException("Incompatible hash size: " + hsh.length + " and " + hashSize);
+    }
+    System.arraycopy(hsh, 0, hashBytes, 0, hashSize);
   }
 }

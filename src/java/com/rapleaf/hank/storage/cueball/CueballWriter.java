@@ -15,16 +15,16 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Note that the current implementation does not support writing partitions with
@@ -57,11 +57,11 @@ public class CueballWriter implements Writer {
   private long maxCompressedBlockSize;
 
   public CueballWriter(OutputStream outputStream,
-      int keyHashSize,
-      Hasher hasher,
-      int valueSize,
-      CompressionCodec compressionCodec,
-      int hashIndexBits) {
+                       int keyHashSize,
+                       Hasher hasher,
+                       int valueSize,
+                       CompressionCodec compressionCodec,
+                       int hashIndexBits) {
     this.stream = outputStream;
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
@@ -89,7 +89,7 @@ public class CueballWriter implements Writer {
           + value.remaining() + ", but configured value size is: " + valueSize);
     }
     // Hash key
-    hasher.hash(key, keyHashBytes);
+    hasher.hash(key, keyHashSize, keyHashBytes);
     // Compare with previous key hash
     int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that key is different from previous one
