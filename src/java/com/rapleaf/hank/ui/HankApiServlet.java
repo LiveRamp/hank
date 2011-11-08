@@ -169,8 +169,8 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getRingGroupData(RingGroup ringGroup) throws IOException {
     Map<String, Object> ringGroupData = new HashMap<String, Object>();
     ringGroupData.put("name", ringGroup.getName());
-    ringGroupData.put("current_version", ringGroup.getCurrentVersion());
-    ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersion());
+    ringGroupData.put("current_version", ringGroup.getCurrentVersionNumber());
+    ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersionNumber());
     ringGroupData.put("is_updating", RingGroups.isUpdating(ringGroup));
     ringGroupData.put("is_ring_group_conductor_online", ringGroup.isRingGroupConductorOnline());
     ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
@@ -229,10 +229,10 @@ public class HankApiServlet extends HttpServlet {
 
         for (RingGroup ringGroup : ringGroups) {
           Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-          Integer currentDomainGroupVersion = ringGroup.getCurrentVersion();
+          Integer currentDomainGroupVersion = ringGroup.getCurrentVersionNumber();
           addDomainVersionToRingGroupMap("current_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, currentDomainGroupVersion);
 
-          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersion();
+          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersionNumber();
           addDomainVersionToRingGroupMap("updating_to_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, updatedToDomainGroupVersion);
           responseData.put(ringGroup.getName(), ringGroupMap);
         }
@@ -253,8 +253,8 @@ public class HankApiServlet extends HttpServlet {
       Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
       for (RingGroup ringGroup : ringGroups) {
         Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-        ringGroupMap.put("current_version", ringGroup.getCurrentVersion());
-        ringGroupMap.put("update_to_version", ringGroup.getUpdatingToVersion());
+        ringGroupMap.put("current_version", ringGroup.getCurrentVersionNumber());
+        ringGroupMap.put("update_to_version", ringGroup.getUpdatingToVersionNumber());
         responseData.put(ringGroup.getName(), ringGroupMap);
       }
     }

@@ -69,11 +69,15 @@ public interface RingGroup extends Comparable<RingGroup>{
 
   public boolean isRingGroupConductorOnline() throws IOException;
 
-  public Integer getCurrentVersion() throws IOException;
+  public DomainGroupVersion getCurrentVersion() throws IOException;
+
+  public Integer getCurrentVersionNumber() throws IOException;
 
   public void setCurrentVersion(Integer version) throws IOException;
 
-  public Integer getUpdatingToVersion() throws IOException;
+  public DomainGroupVersion getUpdatingToVersion() throws IOException;
+
+  public Integer getUpdatingToVersionNumber() throws IOException;
 
   public void setUpdatingToVersion(Integer version) throws IOException;
 

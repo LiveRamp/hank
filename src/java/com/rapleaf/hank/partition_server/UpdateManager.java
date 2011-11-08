@@ -99,8 +99,7 @@ class UpdateManager implements IUpdateManager {
   public void update() throws IOException {
 
     // Load domain group and version
-    DomainGroup domainGroup = ringGroup.getDomainGroup();
-    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(ringGroup.getUpdatingToVersion());
+    DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
 
     // Garbage collect useless host domains and partitions and their corresponding data
     garbageCollectHostDomainsAndPartitionsData(host, domainGroupVersion);

@@ -83,17 +83,48 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td><a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">manage</a></td>
       </tr>
 
-      <tr>
-      <td>Assigned & Served</td>
-      <td>
-      </td>
-      </tr>
+        <!-- Serving Status -->
 
-      <tr>
-      <td>Assigned & Server (uniques)</td>
-      <td>
-      </td>
-      </tr>
+        <%
+        ServingStatusAggregator servingStatusAggregator = null;
+        ServingStatus servingStatus = null;
+        ServingStatus uniquePartitionsServingStatus = null;
+        DomainGroupVersion mostRecentDomainGroupVersion = Rings.getMostRecentVersion(ring);
+        if (mostRecentDomainGroupVersion != null) {
+          servingStatusAggregator = Rings.computeServingStatusAggregator(ring, mostRecentDomainGroupVersion);
+          servingStatus = servingStatusAggregator.computeServingStatus();
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
+        }
+        %>
+        <tr>
+        <td>Updated & Served</td>
+        <% if (servingStatusAggregator != null) { %>
+          <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
+          </td>
+        </tr>
+
+        <tr>
+        <td>Updated & Served (uniques)</td>
+          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
+          </td>
+        <% } else { %>
+          <td></td>
+          <td></td>
+        <% } %>
+        </tr>
+
     </table>
 
   <!-- Domain specific Runtime Statistics -->
@@ -171,6 +202,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Command Queue</th>
       <th>Throughput</th>
       <th>Hit Rate</th>
+      <th>Updated & Served</th>
       <th>Actions</th>
     </tr>
     <%
@@ -186,7 +218,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <%
       UpdateProgress progress = null;
       if (Rings.isUpdatePending(ring)) {
-        DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ring.getUpdatingToVersionNumber());
+        DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
         if (domainGroupVersion != null) {
           progress = Hosts.computeUpdateProgress(host, domainGroupVersion);
         }
@@ -217,6 +249,30 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps </td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>% </td>
+
+        <!-- Serving Status -->
+
+        <%
+        ServingStatusAggregator hostServingStatusAggregator = null;
+        ServingStatus hostServingStatus = null;
+        DomainGroupVersion ringMostRecentDomainGroupVersion = Rings.getMostRecentVersion(ring);
+        if (ringMostRecentDomainGroupVersion != null) {
+          hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, ringMostRecentDomainGroupVersion);
+          hostServingStatus = hostServingStatusAggregator.computeServingStatus();
+        }
+        %>
+        <% if (hostServingStatusAggregator != null) { %>
+          <% if (hostServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && hostServingStatus.getNumPartitionsServedAndUpToDate() == hostServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= hostServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= hostServingStatus.getNumPartitions() %>
+          </td>
+        <% } else { %>
+          <td></td>
+        <% } %>
 
       <!-- Actions -->
 

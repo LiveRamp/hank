@@ -65,6 +65,16 @@ public final class RingGroups {
     return result;
   }
 
+  public static DomainGroupVersion getMostRecentVersion(RingGroup ringGroup) throws IOException {
+    // Use updating to version if there is one, current version otherwise
+    if (ringGroup.getUpdatingToVersion() != null) {
+      return ringGroup.getUpdatingToVersion();
+    } else if (ringGroup.getCurrentVersion() != null) {
+      return ringGroup.getCurrentVersion();
+    }
+    return null;
+  }
+
   public static ServingStatusAggregator
   computeServingStatusAggregator(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();

@@ -50,7 +50,7 @@ public class TestUpdateManager extends BaseTestCase {
     private RingGroup getMockRingGroup(DomainGroup domainGroup, final Ring ring) {
       return new MRG(domainGroup, "myRingGroup", null) {
         @Override
-        public Integer getUpdatingToVersion() {
+        public Integer getUpdatingToVersionNumber() {
           try {
             return DomainGroups.getLatestVersion(getDomainGroup()).getVersionNumber();
           } catch (IOException e) {

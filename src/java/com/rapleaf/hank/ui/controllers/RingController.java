@@ -54,7 +54,7 @@ public class RingController extends Controller {
     DomainGroupVersion version;
     if (versionStr == null) {
       // Assign current version (rebalance)
-      version = rg.getDomainGroup().getVersionByNumber(rg.getCurrentVersion());
+      version = rg.getCurrentVersion();
     } else {
       // Assign specified version
       int versionNumber = Integer.parseInt(versionStr);

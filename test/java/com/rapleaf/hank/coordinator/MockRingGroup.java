@@ -79,7 +79,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public Integer getCurrentVersion() {
+  public Integer getCurrentVersionNumber() {
     return currentVersion;
   }
 
@@ -89,7 +89,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public Integer getUpdatingToVersion() {
+  public Integer getUpdatingToVersionNumber() {
     return updatingToVersion;
   }
 

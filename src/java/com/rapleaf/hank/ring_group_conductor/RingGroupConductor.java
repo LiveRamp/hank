@@ -124,7 +124,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     } else {
       // Check if there is a new version available for this ring group
       final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
-      if (domainGroupVersion != null && ringGroup.getCurrentVersion() < domainGroupVersion.getVersionNumber()) {
+      if (domainGroupVersion != null && ringGroup.getCurrentVersionNumber() < domainGroupVersion.getVersionNumber()) {
         // There is a more recent version available
         LOG.info("There is a new domain group version available for ring group " + ringGroupName
             + ": " + domainGroupVersion);

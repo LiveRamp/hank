@@ -43,10 +43,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
       RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
 
-    DomainGroupVersion currentDomainGroupVersion = null;
-    if (ringGroup.getCurrentVersion() != null) {
-      currentDomainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getCurrentVersion());
-    }
+    DomainGroupVersion currentDomainGroupVersion = ringGroup.getCurrentVersion();
   %>
 
     <h2>State</h2>
@@ -62,7 +59,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <td>Update status:</td>
         <td>
         <% if(RingGroups.isUpdating(ringGroup)) { %>
-        Updating from <%=ringGroup.getCurrentVersion()%> to <%=ringGroup.getUpdatingToVersion()%>
+        Updating from <%=ringGroup.getCurrentVersionNumber()%> to <%=ringGroup.getUpdatingToVersionNumber()%>
         <% } else { %>
         Not updating
         <% } %>
@@ -91,29 +88,21 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </td>
         </tr>
 
-
         <!-- Serving Status -->
 
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
         ServingStatus uniquePartitionsServingStatus = null;
-        if (ringGroup.getCurrentVersion() != null || ringGroup.getUpdatingToVersion() != null) {
-          Integer domainGroupVersionNumber = null;
-          // Use updating to version if there is one, current version otherwise
-          if (ringGroup.getUpdatingToVersion() != null) {
-            domainGroupVersionNumber = ringGroup.getUpdatingToVersion();
-          } else if (ringGroup.getCurrentVersion() != null) {
-            domainGroupVersionNumber = ringGroup.getCurrentVersion();
-          }
-          DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(domainGroupVersionNumber);
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, domainGroupVersion);
+        DomainGroupVersion mostRecentDomainGroupVersion = RingGroups.getMostRecentVersion(ringGroup);
+        if (mostRecentDomainGroupVersion != null) {
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, mostRecentDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(domainGroupVersion);
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
         }
         %>
         <tr>
-        <td>Assigned & Served</td>
+        <td>Updated & Served</td>
         <% if (servingStatusAggregator != null) { %>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
@@ -126,7 +115,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </tr>
 
         <tr>
-        <td>Assigned & Served (uniques)</td>
+        <td>Updated & Served (uniques)</td>
           <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -197,6 +186,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Offline</th>
       <th>Throughput</th>
       <th>Hit Rate</th>
+      <th>Updated & Served</th>
+      <th>(uniques)</th>
       <th></th>
     </tr>
 
@@ -209,7 +200,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <%
       UpdateProgress progress = null;
       if (RingGroups.isUpdating(ringGroup)) {
-        DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getUpdatingToVersion());
+        DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
         if (domainGroupVersion != null) {
           progress = Rings.computeUpdateProgress(ring, domainGroupVersion);
         }
@@ -274,6 +265,41 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps </td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
+
+        <!-- Serving Status -->
+
+        <%
+        ServingStatusAggregator ringServingStatusAggregator = null;
+        ServingStatus ringServingStatus = null;
+        ServingStatus ringUniquePartitionsServingStatus = null;
+        DomainGroupVersion ringMostRecentDomainGroupVersion = Rings.getMostRecentVersion(ring);
+        if (ringMostRecentDomainGroupVersion != null) {
+          ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, ringMostRecentDomainGroupVersion);
+          ringServingStatus = ringServingStatusAggregator.computeServingStatus();
+          ringUniquePartitionsServingStatus = ringServingStatusAggregator.computeUniquePartitionsServingStatus(ringMostRecentDomainGroupVersion);
+        }
+        %>
+        <% if (ringServingStatusAggregator != null) { %>
+          <% if (ringServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && ringServingStatus.getNumPartitionsServedAndUpToDate() == ringServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= ringServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringServingStatus.getNumPartitions() %>
+          </td>
+          <% if (ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == ringUniquePartitionsServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringUniquePartitionsServingStatus.getNumPartitions() %>
+          </td>
+        <% } else { %>
+          <td></td>
+          <td></td>
+        <% } %>
 
       <!-- Actions -->
 

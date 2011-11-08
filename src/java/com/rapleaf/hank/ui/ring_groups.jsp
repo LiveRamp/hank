@@ -55,10 +55,10 @@
       <th>Updating</th>
       <th>Idle</th>
       <th>Offline</th>
-      <th>Updated & Served</th>
-      <th>(uniques)</th>
       <th>Throughput</th>
       <th>Hit rate</th>
+      <th>Updated & Served</th>
+      <th>(uniques)</th>
     </tr>
     <%
       for (RingGroup ringGroup : coord.getRingGroupsSorted()) {
@@ -70,7 +70,7 @@
         <%
         UpdateProgress progress = null;
         if (RingGroups.isUpdating(ringGroup)) {
-          DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(ringGroup.getUpdatingToVersion());
+          DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
           if (domainGroupVersion != null) {
             progress = RingGroups.computeUpdateProgress(ringGroup, domainGroupVersion);
           }
@@ -94,8 +94,8 @@
 
         <!-- Hosts State -->
 
-        <td class='centered'><%= ringGroup.getCurrentVersion() != null ? ringGroup.getCurrentVersion() : "-" %></td>
-        <td class='centered'><%= ringGroup.getUpdatingToVersion() != null ? ringGroup.getUpdatingToVersion() : "-" %></td>
+        <td class='centered'><%= ringGroup.getCurrentVersionNumber() != null ? ringGroup.getCurrentVersionNumber() : "-" %></td>
+        <td class='centered'><%= ringGroup.getUpdatingToVersionNumber() != null ? ringGroup.getUpdatingToVersionNumber() : "-" %></td>
 
         <%
         int hostsTotal = RingGroups.getNumHosts(ringGroup);
@@ -130,24 +130,29 @@
           <td class='centered'>-</td>
         <% } %>
 
+        <!-- Statistics -->
+
+        <%
+        Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics =
+          RingGroups.computeRuntimeStatistics(ringGroup);
+        RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
+          RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
+        %>
+
+        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps </td>
+        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
+
         <!-- Serving Status -->
 
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
         ServingStatus uniquePartitionsServingStatus = null;
-        if (ringGroup.getCurrentVersion() != null || ringGroup.getUpdatingToVersion() != null) {
-          Integer domainGroupVersionNumber = null;
-          // Use updating to version if there is one, current version otherwise
-          if (ringGroup.getUpdatingToVersion() != null) {
-            domainGroupVersionNumber = ringGroup.getUpdatingToVersion();
-          } else if (ringGroup.getCurrentVersion() != null) {
-            domainGroupVersionNumber = ringGroup.getCurrentVersion();
-          }
-          DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(domainGroupVersionNumber);
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, domainGroupVersion);
+        DomainGroupVersion mostRecentDomainGroupVersion = RingGroups.getMostRecentVersion(ringGroup);
+        if (mostRecentDomainGroupVersion != null) {
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, mostRecentDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(domainGroupVersion);
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>
@@ -171,18 +176,6 @@
           <td></td>
           <td></td>
         <% } %>
-
-
-        <!-- Statistics -->
-        <%
-        Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics =
-          RingGroups.computeRuntimeStatistics(ringGroup);
-        RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
-          RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
-        %>
-
-        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps </td>
-        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
 
       </tr>
       <%

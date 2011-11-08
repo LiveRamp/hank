@@ -69,8 +69,8 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartitionServerAddress("localhost", 2)).getRingNumber());
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
 
-    assertEquals("current version", Integer.valueOf(0), rg.getCurrentVersion());
-    assertEquals("current version", Integer.valueOf(1), rg.getUpdatingToVersion());
+    assertEquals("current version", Integer.valueOf(0), rg.getCurrentVersionNumber());
+    assertEquals("current version", Integer.valueOf(1), rg.getUpdatingToVersionNumber());
   }
 
   public void testVersionStuff() throws Exception {
@@ -79,9 +79,9 @@ public class TestZkRingGroup extends ZkTestCase {
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
     dumpZk();
     assertNull(rg.getCurrentVersion());
-    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getUpdatingToVersion());
+    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getUpdatingToVersionNumber());
     rg.markUpdateComplete();
-    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersion());
+    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersionNumber());
     assertNull(rg.getUpdatingToVersion());
   }
 
@@ -99,7 +99,7 @@ public class TestZkRingGroup extends ZkTestCase {
       listener.wait(1000);
     }
     assertNotNull(listener.calledWith);
-    assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersion());
+    assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersionNumber());
 
     listener.calledWith = null;
     rg.markUpdateComplete();
@@ -107,7 +107,7 @@ public class TestZkRingGroup extends ZkTestCase {
       listener.wait(1000);
     }
     assertNotNull(listener.calledWith);
-    assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersion());
+    assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersionNumber());
 
     listener.calledWith = null;
     Ring newRing = rg.addRing(1);

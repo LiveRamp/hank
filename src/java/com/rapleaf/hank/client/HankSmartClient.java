@@ -113,7 +113,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       LOG.error(errMsg);
       throw new IOException(errMsg);
     }
-    Integer currentVersion = ringGroup.getCurrentVersion();
+    Integer currentVersion = ringGroup.getCurrentVersionNumber();
     if (currentVersion == null) {
       String errMsg = "Could not get current version of ring group " + ringGroup;
       LOG.error(errMsg);

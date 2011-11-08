@@ -190,6 +190,16 @@ public class Rings {
     return result;
   }
 
+  public static DomainGroupVersion getMostRecentVersion(Ring ring) throws IOException {
+    // Use updating to version if there is one, current version otherwise
+    if (ring.getUpdatingToVersion() != null) {
+      return ring.getUpdatingToVersion();
+    } else if (ring.getCurrentVersion() != null) {
+      return ring.getCurrentVersion();
+    }
+    return null;
+  }
+
   public static ServingStatusAggregator
   computeServingStatusAggregator(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
     ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();

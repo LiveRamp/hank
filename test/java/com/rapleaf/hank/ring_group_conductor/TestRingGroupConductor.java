@@ -157,13 +157,13 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
-      public Integer getCurrentVersion() {
+      public Integer getCurrentVersionNumber() {
         return 1;
       }
 
       @Override
-      public Integer getUpdatingToVersion() {
-        return 1;
+      public Integer getUpdatingToVersionNumber() {
+        return 2;
       }
     };
 

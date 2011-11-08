@@ -23,13 +23,31 @@ import java.util.TreeSet;
 public abstract class AbstractRingGroup implements RingGroup {
 
   @Override
+  public DomainGroupVersion getCurrentVersion() throws IOException {
+    if (getCurrentVersionNumber() != null) {
+      return getDomainGroup().getVersionByNumber(getCurrentVersionNumber());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public DomainGroupVersion getUpdatingToVersion() throws IOException {
+    if (getUpdatingToVersionNumber() != null) {
+      return getDomainGroup().getVersionByNumber(getUpdatingToVersionNumber());
+    } else {
+      return null;
+    }
+  }
+
+  @Override
   public SortedSet<Ring> getRingsSorted() {
     return new TreeSet<Ring>(getRings());
   }
 
   @Override
   public void markUpdateComplete() throws IOException {
-    setCurrentVersion(getUpdatingToVersion());
+    setCurrentVersion(getUpdatingToVersionNumber());
     setUpdatingToVersion(null);
   }
 

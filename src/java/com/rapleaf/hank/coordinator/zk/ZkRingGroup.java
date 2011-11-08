@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup {
+
   protected static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
   protected static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
@@ -207,7 +208,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public Integer getCurrentVersion() throws IOException {
+  public Integer getCurrentVersionNumber() throws IOException {
     try {
       return currentVersion.get();
     } catch (Exception e) {
@@ -243,7 +244,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public Integer getUpdatingToVersion() throws IOException {
+  public Integer getUpdatingToVersionNumber() throws IOException {
     try {
       return updatingToVersion.get();
     } catch (Exception e) {
@@ -255,7 +256,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   public Ring addRing(int ringNum) throws IOException {
     try {
       ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this,
-          RingGroups.isUpdating(this) ? getUpdatingToVersion() : getCurrentVersion());
+          RingGroups.isUpdating(this) ? getUpdatingToVersionNumber() : getCurrentVersionNumber());
       ringsByNumber.put("ring-" + Integer.toString(rc.getRingNumber()), rc);
       return rc;
     } catch (Exception e) {
