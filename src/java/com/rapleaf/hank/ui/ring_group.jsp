@@ -91,6 +91,56 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </td>
         </tr>
 
+
+        <!-- Serving Status -->
+
+        <%
+        ServingStatusAggregator servingStatusAggregator = null;
+        ServingStatus servingStatus = null;
+        ServingStatus uniquePartitionsServingStatus = null;
+        if (ringGroup.getCurrentVersion() != null || ringGroup.getUpdatingToVersion() != null) {
+          Integer domainGroupVersionNumber = null;
+          // Use updating to version if there is one, current version otherwise
+          if (ringGroup.getUpdatingToVersion() != null) {
+            domainGroupVersionNumber = ringGroup.getUpdatingToVersion();
+          } else if (ringGroup.getCurrentVersion() != null) {
+            domainGroupVersionNumber = ringGroup.getCurrentVersion();
+          }
+          DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(domainGroupVersionNumber);
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, domainGroupVersion);
+          servingStatus = servingStatusAggregator.computeServingStatus();
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(domainGroupVersion);
+        }
+        %>
+        <tr>
+        <td>Assigned & Served</td>
+        <% if (servingStatusAggregator != null) { %>
+          <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
+          </td>
+        </tr>
+
+        <tr>
+        <td>Assigned & Served (uniques)</td>
+          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
+                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
+            <td class='centered complete'>
+          <% } else { %>
+            <td class='centered error'>
+          <% } %>
+          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
+          </td>
+        <% } else { %>
+          <td></td>
+          <td></td>
+        <% } %>
+        </tr>
+
       </table>
 
       <!-- Domain specific Runtime Statistics -->

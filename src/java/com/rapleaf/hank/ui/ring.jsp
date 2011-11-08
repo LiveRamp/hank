@@ -82,6 +82,18 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td>Partition assignment:</td>
       <td><a href="/ring_partitions.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">manage</a></td>
       </tr>
+
+      <tr>
+      <td>Assigned & Served</td>
+      <td>
+      </td>
+      </tr>
+
+      <tr>
+      <td>Assigned & Server (uniques)</td>
+      <td>
+      </td>
+      </tr>
     </table>
 
   <!-- Domain specific Runtime Statistics -->
