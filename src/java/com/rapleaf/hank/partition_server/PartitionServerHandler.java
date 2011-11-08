@@ -54,10 +54,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private final HankTimerAggregator getTimerAggregator;
 
-  private final ThreadPoolExecutor getBulkTaskExecutor;
+  private static final ReaderResultThreadLocal readerResultThreadLocal = new ReaderResultThreadLocal();
   private final DomainAccessor[] domainAccessors;
+  private final ThreadPoolExecutor getBulkTaskExecutor;
   private static final long GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
+
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
@@ -194,8 +196,8 @@ class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public HankResponse get(int domainId, ByteBuffer key) {
-    // TODO: re-use result
-    ReaderResult result = new ReaderResult();
+    ReaderResult result = readerResultThreadLocal.get();
+    result.clear();
     return _get(this, domainId, key, result);
   }
 
@@ -263,16 +265,18 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  private static class GetThread extends Thread {
+  private static class ReaderResultThreadLocal extends ThreadLocal<ReaderResult> {
 
-    private ReaderResult result = new ReaderResult();
+    @Override
+    protected ReaderResult initialValue() {
+      return new ReaderResult();
+    }
+  }
+
+  private static class GetThread extends Thread {
 
     public GetThread(Runnable runnable, String name) {
       super(runnable, name);
-    }
-
-    public ReaderResult getResult() {
-      return result;
     }
   }
 
@@ -302,12 +306,12 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
     @Override
     public void run() {
-      ReaderResult result = ((GetThread) Thread.currentThread()).getResult();
-      result.clear();
+      ReaderResult result = readerResultThreadLocal.get();
       responses = new HankResponse[getBulkTaskSize];
       // Perform GET requests for keys starting at firstKeyIndex up to GET_BULK_TASK_SIZE keys or until the last key
       for (int keyOffset = 0; keyOffset < getBulkTaskSize
           && (firstKeyIndex + keyOffset) < keys.size(); keyOffset++) {
+        result.clear();
         responses[keyOffset] =
             _get(PartitionServerHandler.this, domainId, keys.get(firstKeyIndex + keyOffset), result);
       }
