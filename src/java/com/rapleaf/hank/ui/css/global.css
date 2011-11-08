@@ -110,6 +110,7 @@ table.table-blue tr,
 
 table.table-blue th,
  table.table-blue-compact th {
+  font-size: .9em;
   font-weight: normal;
   padding: 4px;
   color: white;
