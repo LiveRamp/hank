@@ -28,6 +28,10 @@ public class ReaderResult {
   public ReaderResult() {
   }
 
+  public ReaderResult(int initialBufferSize) {
+    requiresBufferSize(initialBufferSize);
+  }
+
   public void clear() {
     isFound = false;
     if (buffer != null) {
@@ -47,12 +51,6 @@ public class ReaderResult {
     isFound = true;
   }
 
-  /**
-   * TODO: should we grow to something slightly higher than requested? Like 10%
-   * more? This would help us converge on a "big enough" buffer faster.
-   *
-   * @param size
-   */
   public void requiresBufferSize(int size) {
     if (buffer == null || buffer.capacity() < size) {
       buffer = ByteBuffer.wrap(new byte[size]);
@@ -73,9 +71,5 @@ public class ReaderResult {
     }
     sb.append("]");
     return sb.toString();
-  }
-
-  public ByteBuffer getBufferDeepCopy() {
-    return Bytes.byteBufferDeepCopy(buffer);
   }
 }

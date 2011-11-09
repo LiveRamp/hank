@@ -59,6 +59,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private static final long GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
+  private static final double USED_SIZE_THRESHOLD_FOR_VALUE_BUFFER_DEEP_COPY = 0.75;
 
 
   // The coordinator is supplied and not created from the configurator to allow caching
@@ -307,14 +308,37 @@ class PartitionServerHandler implements IfaceWithShutdown {
     @Override
     public void run() {
       ReaderResult result = readerResultThreadLocal.get();
+      result.clear();
       responses = new HankResponse[getBulkTaskSize];
       // Perform GET requests for keys starting at firstKeyIndex up to GET_BULK_TASK_SIZE keys or until the last key
       for (int keyOffset = 0; keyOffset < getBulkTaskSize
           && (firstKeyIndex + keyOffset) < keys.size(); keyOffset++) {
-        result.clear();
-        responses[keyOffset] =
+        HankResponse response =
             _get(PartitionServerHandler.this, domainId, keys.get(firstKeyIndex + keyOffset), result);
+        // If a value was found, we have the choice to keep the buffer that was used to read the value, or do a deep
+        // copy into the response. This decision is based on a size difference threshold.
+        // This allows us to do bulk requests that are large even when the read buffer ends up being much larger
+        // than the stored value (since in that case we will just do a deep copy of the value
+        // in an appropriately-sized buffer).
+        if (response.is_set_value()) {
+          ByteBuffer valueBuffer = response.buffer_for_value();
+          // If buffer used space is less than a threshold times its capacity, do a deep copy.
+          if (((double) valueBuffer.limit())
+              < (USED_SIZE_THRESHOLD_FOR_VALUE_BUFFER_DEEP_COPY * valueBuffer.capacity())) {
+            // Deep copy the value. Hence we can reuse the result buffer.
+            response.set_value(Bytes.byteBufferDeepCopy(valueBuffer));
+            result.clear();
+          } else {
+            // Keep the ReaderResult's buffer in the response. Hence we need to create a new result buffer.
+            // Initialize it with the same capacity we had.
+            result = new ReaderResult(valueBuffer.capacity());
+          }
+        }
+        // Store response
+        responses[keyOffset] = response;
       }
+      // Update the thread local result buffer to point to the latest one used (which is valid for reuse)
+      readerResultThreadLocal.set(result);
     }
 
     public HankResponse[] getResponses() {

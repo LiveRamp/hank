@@ -66,8 +66,7 @@ public class PartitionAccessor {
     if (result.isFound()) {
       // Increment hits counter
       numHitsInWindow.incrementAndGet();
-      // TODO: do not copy for single requests or when new size is similar
-      return HankResponse.value(result.getBufferDeepCopy());
+      return HankResponse.value(result.getBuffer());
     } else {
       return NOT_FOUND;
     }
