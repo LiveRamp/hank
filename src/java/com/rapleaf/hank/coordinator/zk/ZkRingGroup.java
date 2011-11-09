@@ -255,8 +255,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this,
-          RingGroups.isUpdating(this) ? getUpdatingToVersionNumber() : getCurrentVersionNumber());
+      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this);
       ringsByNumber.put("ring-" + Integer.toString(rc.getRingNumber()), rc);
       return rc;
     } catch (Exception e) {

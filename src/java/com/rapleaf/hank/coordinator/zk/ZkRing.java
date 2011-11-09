@@ -52,11 +52,15 @@ public class ZkRing extends AbstractRing {
 
   private final Coordinator coordinator;
 
-  public static ZkRing create(ZooKeeperPlus zk, Coordinator coordinator, String ringGroup, int ringNum, RingGroup group, int initVersion) throws KeeperException, InterruptedException {
+  public static ZkRing create(ZooKeeperPlus zk,
+                              Coordinator coordinator,
+                              String ringGroup,
+                              int ringNum,
+                              RingGroup group) throws KeeperException, InterruptedException {
     String ringPath = ZkPath.append(ringGroup, "ring-" + ringNum);
     zk.create(ringPath, null);
     zk.create(ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), (Integer.toString(initVersion)).getBytes());
+    zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.CLOSED.toString().getBytes());
     zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
     return new ZkRing(zk, ringPath, group, coordinator);

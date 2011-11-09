@@ -140,7 +140,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    Ring rc = ZkRing.create(getZk(), coordinator, ring_group, ringNum, null, 1);
+    Ring rc = ZkRing.create(getZk(), coordinator, ring_group, ringNum, null);
     rc.addHost(new PartitionServerAddress("localhost", ringNum));
   }
 }

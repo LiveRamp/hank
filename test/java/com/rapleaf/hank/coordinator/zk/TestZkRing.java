@@ -52,37 +52,40 @@ public class TestZkRing extends ZkTestCase {
   private final String ring_root = ZkPath.append(getRoot(), "ring-group-one/ring-1");
 
   public void testCreate() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
 
     assertEquals("ring number", 1, ring.getRingNumber());
     assertNull("version number", ring.getCurrentVersionNumber());
-    assertEquals("updating to version", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
+    assertNull("updating to version", ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
     assertEquals("initial state", RingState.CLOSED, ring.getState());
     ring.close();
   }
 
   public void testLoad() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
     ring.close();
 
     ring = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null, coordinator);
 
     assertEquals("ring number", 1, ring.getRingNumber());
     assertNull("version number", ring.getCurrentVersionNumber());
-    assertEquals("updating to version", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
+    assertNull("updating to version", ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
     assertEquals("initial state", RingState.CLOSED, ring.getState());
     ring.close();
   }
 
   public void testUpdatingSemantics() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
 
+    assertNull("updating_to_version number", ring.getUpdatingToVersionNumber());
+
+    ring.setUpdatingToVersion(1);
+
+    assertEquals("updating_to_version number", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
     assertTrue("should be updating", Rings.isUpdatePending(ring));
     assertNull("current version", ring.getCurrentVersionNumber());
-    assertEquals("updating_to_version number", Integer.valueOf(1),
-        ring.getUpdatingToVersionNumber());
 
     ring.markUpdateComplete();
 
@@ -100,7 +103,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testHosts() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, 1);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
     assertEquals(0, ring.getHosts().size());
 
     Host host = ring.addHost(LOCALHOST);
@@ -132,7 +135,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testGetRingState() throws Exception {
-    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null, 1);
+    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null);
     assertEquals(RingState.CLOSED, ring.getState());
     ring.setState(RingState.OPEN);
     assertEquals(RingState.OPEN, ring.getState());
@@ -141,7 +144,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testSetUpdatingToVersion() throws Exception {
-    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null, 1);
+    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null);
     ring.markUpdateComplete();
     assertNull(ring.getUpdatingToVersionNumber());
     ring.setUpdatingToVersion(7);
@@ -149,7 +152,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testRingStateListener() throws Exception {
-    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null, 1);
+    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null);
     MockListener mockListener = new MockListener();
     ring.setStateChangeListener(mockListener);
     synchronized (mockListener) {
@@ -164,7 +167,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, 10);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null);
     Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1));
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
@@ -185,7 +188,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, 10);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null);
     ring.delete();
     try {
       new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-group-one/ring-1"), null, coordinator);
