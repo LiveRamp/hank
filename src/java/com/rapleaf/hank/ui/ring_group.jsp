@@ -198,8 +198,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <td class='centered'><%=ring.getState()%></td>
       <%
       UpdateProgress progress = null;
-      if (RingGroups.isUpdating(ringGroup)) {
-        DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
+      if (Rings.isUpdatePending(ring)) {
+        DomainGroupVersion domainGroupVersion = ring.getUpdatingToVersion();
         if (domainGroupVersion != null) {
           progress = Rings.computeUpdateProgress(ring, domainGroupVersion);
         }
