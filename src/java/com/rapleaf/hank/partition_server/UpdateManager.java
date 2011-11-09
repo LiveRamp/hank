@@ -101,6 +101,11 @@ class UpdateManager implements IUpdateManager {
     // Load domain group and version
     DomainGroupVersion domainGroupVersion = ring.getUpdatingToVersion();
 
+    // If updating to version is not set, there is nothing to do
+    if (domainGroupVersion == null) {
+      return;
+    }
+
     // Garbage collect useless host domains and partitions and their corresponding data
     garbageCollectHostDomainsAndPartitionsData(host, domainGroupVersion);
 
