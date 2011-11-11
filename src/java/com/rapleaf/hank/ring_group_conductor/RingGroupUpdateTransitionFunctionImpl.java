@@ -96,7 +96,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             } else {
               // No host is updating. Check that we are indeed up to date
               DomainGroupVersion updatingToVersion = ring.getUpdatingToVersion();
-              if (updatingToVersion != null && Rings.isUpToDate(ring, updatingToVersion)) {
+              if (Rings.isUpToDate(ring, updatingToVersion)) {
                 // Set the ring state to updated
                 LOG.info("Ring " + ring.getRingNumber() + " is UPDATED.");
                 ring.setState(RingState.UPDATED);
@@ -109,7 +109,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 // Ring state is still UPDATING
                 for (Host host : ring.getHosts()) {
                   if (!Hosts.isUpToDate(host, updatingToVersion)) {
-                    LOG.info("Host " + host + "  needs to UPDATE again since it is not up to date.");
+                    LOG.info("Host " + host + " needs to UPDATE again since it is not up to date.");
                     if (!host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
                       host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
                     }
@@ -124,7 +124,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
             // sweet, we're done updating, so we can start all our daemons now
             LOG.info("Ring " + ring.getRingNumber()
-                + " is fully UPDATED. Commanding hosts to serve.");
+                + " is fully UPDATED to version " + ring.getUpdatingToVersionNumber() + ". Commanding hosts to serve.");
             ring.markUpdateComplete();
             Rings.commandAll(ring, HostCommand.SERVE_DATA);
             ring.setState(RingState.OPENING);
