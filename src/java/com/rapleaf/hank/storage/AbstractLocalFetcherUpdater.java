@@ -30,6 +30,10 @@ public abstract class AbstractLocalFetcherUpdater implements Updater {
   private final IFetcher fetcher;
   private final String localRoot;
   private String localWorkspaceRoot;
+  private File localWorkspaceRootFile;
+
+  protected final static String WORKSPACE_DIRECTORY_PREFIX = "_tmp_"
+      + AbstractLocalFetcherUpdater.class.getSimpleName() + "_";
 
   public AbstractLocalFetcherUpdater(IFetcher fetcher, String localRoot) {
     this.fetcher = fetcher;
@@ -45,14 +49,24 @@ public abstract class AbstractLocalFetcherUpdater implements Updater {
   }
 
   public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
+    // Delete previous workspace directories
+    for (File file : new File(localRoot).listFiles()) {
+      if (file.isDirectory() && file.getName().startsWith(WORKSPACE_DIRECTORY_PREFIX)) {
+        FileUtils.deleteDirectory(file);
+        if (file.exists()) {
+          throw new IOException("Failed to delete workspace directory leftover from a previous update: "
+              + file.getPath());
+        }
+      }
+    }
     // Set up workspace directory
     localWorkspaceRoot = localRoot
-        + "/_tmp_" + this.getClass().getSimpleName() + "_" + UUID.randomUUID().toString();
-    if (!new File(localWorkspaceRoot).mkdirs()) {
+        + "/" + WORKSPACE_DIRECTORY_PREFIX + UUID.randomUUID().toString();
+    localWorkspaceRootFile = new File(localWorkspaceRoot);
+    if (!localWorkspaceRootFile.mkdirs()) {
       throw new IOException("Failed to create local workspace root " + localWorkspaceRoot);
     }
     // Run update
-    cleanWorkspaceRoot();
     try {
       // Fetch
       fetcher.fetch(getLatestLocalVersionNumber(), toVersion, excludeVersions, localWorkspaceRoot);
@@ -91,24 +105,9 @@ public abstract class AbstractLocalFetcherUpdater implements Updater {
     }
   }
 
-  private void cleanWorkspaceRoot() throws IOException {
-    if (localWorkspaceRoot != null) {
-      File[] files = new File(localWorkspaceRoot).listFiles();
-      if (files != null) {
-        for (File file : files) {
-          if (!file.delete()) {
-            // Could not completely clean the workspace root, fail
-            throw new IOException("Could not delete file " + file.getPath()
-                + " while cleaning workspace directory " + localWorkspaceRoot);
-          }
-        }
-      }
-    }
-  }
-
   private void deleteWorkspaceRoot() throws IOException {
-    if (localWorkspaceRoot != null) {
-      FileUtils.deleteDirectory(new File(localWorkspaceRoot));
+    if (localWorkspaceRootFile != null) {
+      FileUtils.deleteDirectory(localWorkspaceRootFile);
     }
   }
 }
