@@ -48,20 +48,32 @@ public abstract class AbstractRing implements Ring {
   public DomainGroupVersion getCurrentVersion() throws IOException {
     Integer currentVersionNumber = getCurrentVersionNumber();
     if (currentVersionNumber != null) {
-      return getRingGroup().getDomainGroup().getVersionByNumber(currentVersionNumber);
-    } else {
-      return null;
+      RingGroup ringGroup = getRingGroup();
+      if (ringGroup != null) {
+        DomainGroup domainGroup = ringGroup.getDomainGroup();
+        if (domainGroup != null) {
+          return domainGroup.getVersionByNumber(currentVersionNumber);
+        }
+      }
     }
+    return null;
   }
 
   @Override
   public DomainGroupVersion getUpdatingToVersion() throws IOException {
     Integer updatingToVersionNumber = getUpdatingToVersionNumber();
     if (updatingToVersionNumber != null) {
-      return getRingGroup().getDomainGroup().getVersionByNumber(updatingToVersionNumber);
-    } else {
-      return null;
+      RingGroup ringGroup = getRingGroup();
+      System.out.println("rg: " + ringGroup);
+      if (ringGroup != null) {
+        DomainGroup domainGroup = ringGroup.getDomainGroup();
+      System.out.println("dg: " + domainGroup);
+        if (domainGroup != null) {
+          return domainGroup.getVersionByNumber(updatingToVersionNumber);
+        }
+      }
     }
+    return null;
   }
 
   @Override
