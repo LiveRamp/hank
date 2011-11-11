@@ -41,14 +41,27 @@ public class TestUpdateManager extends BaseTestCase {
 
   private static class Fixtures {
 
-    private class MRG extends MockRingGroup {
-      private MRG(DomainGroup dcg, String name, Set<Ring> rings) {
-        super(dcg, name, rings);
+    public class MockRingGroupLocal extends MockRingGroup {
+
+      private Ring ringSingleton = null;
+
+      private MockRingGroupLocal(DomainGroup dcg, String name) {
+        super(dcg, name, Collections.<Ring>emptySet());
+      }
+
+      @Override
+      public Ring getRingForHost(PartitionServerAddress hostAddress) {
+        return ringSingleton;
+      }
+
+      public void setRing(Ring ring) {
+        this.ringSingleton = ring;
       }
     }
 
-    private RingGroup getMockRingGroup(DomainGroup domainGroup, final Ring ring) {
-      return new MRG(domainGroup, "myRingGroup", null) {
+    private MockRingGroupLocal getMockRingGroup(DomainGroup domainGroup) {
+      return new MockRingGroupLocal(domainGroup, "myRingGroup") {
+
         @Override
         public Integer getUpdatingToVersionNumber() {
           try {
@@ -57,16 +70,11 @@ public class TestUpdateManager extends BaseTestCase {
             throw new RuntimeException(e);
           }
         }
-
-        @Override
-        public Ring getRingForHost(PartitionServerAddress hostAddress) {
-          return ring;
-        }
       };
     }
 
-    private Ring getMockRing(final Host host) {
-      return new MockRing(null, null, 0, null) {
+    private Ring getMockRing(final Host host, final RingGroup ringGroup) {
+      return new MockRing(null, ringGroup, 0, null, null, 0) {
         @Override
         public Host getHostByAddress(PartitionServerAddress address) {
           return host;
@@ -228,9 +236,10 @@ public class TestUpdateManager extends BaseTestCase {
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
     HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
     Host mockHost = fixtures.getMockHost(mockHostDomain);
-    Ring mockRing = fixtures.getMockRing(mockHost);
     DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
+    Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Ring mockRing = fixtures.getMockRing(mockHost, mockRingGroup);
+    mockRingGroup.setRing(mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
@@ -268,8 +277,6 @@ public class TestUpdateManager extends BaseTestCase {
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
     MockHostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
     Host mockHost = fixtures.getMockHost(mockHostDomain);
-    Ring mockRing = fixtures.getMockRing(mockHost);
-
     // Empty domain group version
     DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
@@ -281,8 +288,9 @@ public class TestUpdateManager extends BaseTestCase {
         return versions;
       }
     };
-
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
+    Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Ring mockRing = fixtures.getMockRing(mockHost, mockRingGroup);
+    mockRingGroup.setRing(mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
@@ -311,9 +319,10 @@ public class TestUpdateManager extends BaseTestCase {
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
     HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
     Host mockHost = fixtures.getMockHost(mockHostDomain);
-    Ring mockRing = fixtures.getMockRing(mockHost);
     DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
+    Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Ring mockRing = fixtures.getMockRing(mockHost, mockRingGroup);
+    mockRingGroup.setRing(mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
@@ -335,9 +344,10 @@ public class TestUpdateManager extends BaseTestCase {
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
     HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
     Host mockHost = fixtures.getMockHost(mockHostDomain);
-    Ring mockRing = fixtures.getMockRing(mockHost);
     DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
-    RingGroup mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup, mockRing);
+    Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
+    Ring mockRing = fixtures.getMockRing(mockHost, mockRingGroup);
+    mockRingGroup.setRing(mockRing);
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,

@@ -103,6 +103,7 @@ class UpdateManager implements IUpdateManager {
 
     // If updating to version is not set, there is nothing to do
     if (domainGroupVersion == null) {
+      LOG.info("Failed to determine domain group version to update to for ring: " + ring);
       return;
     }
 
