@@ -513,7 +513,7 @@ public class IntegrationTest extends ZkTestCase {
       if (RingGroups.isUpdating(rg)) {
         LOG.info("Ring group is still updating. Sleeping...");
       } else {
-        if (rg.getCurrentVersionNumber() == versionNumber) {
+        if (rg.getCurrentVersionNumber() != null && rg.getCurrentVersionNumber() == versionNumber) {
           break;
         } else {
           LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
