@@ -82,7 +82,8 @@ public final class Hosts {
           // Ignore deletable partitions
           if (!partition.isDeletable()) {
             // If the partition is not currently at the given domain group version, the host is not up-to-date
-            if (partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
+            if (partition.getCurrentDomainGroupVersion() == null ||
+                partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
               return false;
             }
           }
