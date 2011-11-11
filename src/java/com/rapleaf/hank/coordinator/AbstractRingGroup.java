@@ -60,13 +60,13 @@ public abstract class AbstractRingGroup implements RingGroup {
   public String toString() {
     try {
       return "AbstractRingGroup [name=" + getName()
-          + ", domain group=" + getDomainGroup()
-          + ", current version=" + getCurrentVersion()
-          + ", updating to version=" + getUpdatingToVersion()
+          + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
+          + ", current version=" + getCurrentVersionNumber()
+          + ", updating to version=" + getUpdatingToVersionNumber()
           + "]";
     } catch (IOException e) {
       return "AbstractRingGroup [name=" + getName()
-          + ", domain group=" + getDomainGroup()
+          + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
           + ", current version=?"
           + ", updating to version=?"
           + "]";
