@@ -79,7 +79,8 @@ public class TestZkRingGroup extends ZkTestCase {
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
     dumpZk();
     assertNull(rg.getCurrentVersion());
-    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getUpdatingToVersionNumber());
+    assertNull(rg.getUpdatingToVersionNumber());
+    rg.setUpdatingToVersion(Integer.valueOf(version.getVersionNumber()));
     rg.markUpdateComplete();
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersionNumber());
     assertNull(rg.getUpdatingToVersion());
