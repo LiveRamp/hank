@@ -100,9 +100,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
         }
         %>
+        <% if (servingStatusAggregator != null) { %>
         <tr>
         <td>Updated & Served</td>
-        <% if (servingStatusAggregator != null) { %>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -126,8 +126,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <% } else { %>
           <td></td>
           <td></td>
-        <% } %>
         </tr>
+        <% } %>
 
       </table>
 

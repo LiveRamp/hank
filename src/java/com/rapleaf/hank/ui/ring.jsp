@@ -96,9 +96,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
         }
         %>
+        <% if (servingStatusAggregator != null) { %>
         <tr>
         <td>Updated & Served</td>
-        <% if (servingStatusAggregator != null) { %>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -122,8 +122,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <% } else { %>
           <td></td>
           <td></td>
-        <% } %>
         </tr>
+        <% } %>
 
     </table>
 
