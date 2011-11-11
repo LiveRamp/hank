@@ -26,14 +26,18 @@ public class ZkCli extends ZooKeeperConnection {
   }
 
   public static void main(String[] args) throws InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[] {"connect_string", "[null|rmr]", "argument"}, ZkCli.class);
+    CommandLineChecker.check(args, new String[] {"connect_string", "[set|null|rmr]", "arguments..."}, ZkCli.class);
     String connectString = args[0];
     String command = args[1];
     String argument = args[2];
 
     ZkCli zkCli = new ZkCli(connectString);
 
-    if (command.equals("rmr")) {
+    if (command.equals("set")) {
+      String value = args[3];
+      System.out.println("Removing node value to: " + value + ", node: " + argument);
+      zkCli.zk.setString(argument, value);
+    } else if (command.equals("rmr")) {
       System.out.println("Removing recursively node: " + argument);
       zkCli.zk.deleteNodeRecursively(argument);
     } else if (command.equals("null")) {
