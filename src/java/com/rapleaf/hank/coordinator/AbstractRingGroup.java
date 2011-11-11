@@ -24,20 +24,26 @@ public abstract class AbstractRingGroup implements RingGroup {
 
   @Override
   public DomainGroupVersion getCurrentVersion() throws IOException {
-    if (getCurrentVersionNumber() != null) {
-      return getDomainGroup().getVersionByNumber(getCurrentVersionNumber());
-    } else {
-      return null;
+    Integer version = getCurrentVersionNumber();
+    if (version != null) {
+      DomainGroup domainGroup = getDomainGroup();
+      if (domainGroup != null) {
+        return domainGroup.getVersionByNumber(version);
+      }
     }
+    return null;
   }
 
   @Override
   public DomainGroupVersion getUpdatingToVersion() throws IOException {
-    if (getUpdatingToVersionNumber() != null) {
-      return getDomainGroup().getVersionByNumber(getUpdatingToVersionNumber());
-    } else {
-      return null;
+    Integer version = getUpdatingToVersionNumber();
+    if (version != null) {
+      DomainGroup domainGroup = getDomainGroup();
+      if (domainGroup != null) {
+        return domainGroup.getVersionByNumber(version);
+      }
     }
+    return null;
   }
 
   @Override
