@@ -119,9 +119,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           <% } %>
           <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
           </td>
-        <% } else { %>
-          <td></td>
-          <td></td>
         </tr>
         <% } %>
 

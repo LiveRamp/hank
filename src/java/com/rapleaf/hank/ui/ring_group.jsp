@@ -123,9 +123,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <% } %>
           <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
           </td>
-        <% } else { %>
-          <td></td>
-          <td></td>
         </tr>
         <% } %>
 
