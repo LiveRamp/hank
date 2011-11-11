@@ -17,6 +17,7 @@
 package com.rapleaf.hank.storage;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public abstract class AbstractLocalFetcherUpdater implements Updater {
+
+  private static final Logger LOG = Logger.getLogger(AbstractLocalFetcherUpdater.class);
 
   private final IFetcher fetcher;
   private final String localRoot;
@@ -94,6 +97,8 @@ public abstract class AbstractLocalFetcherUpdater implements Updater {
         if (file.renameTo(renamedFile)) {
           renamedFiles.put(file, renamedFile);
         } else {
+          LOG.error("Reverting entire commit because failed to commit " + file.getPath()
+              + " to " + renamedFile.getPath());
           // Failed to commit one file, reverting what we have commited so far
           for (Map.Entry<File, File> entry : renamedFiles.entrySet()) {
             if (!entry.getValue().renameTo(entry.getKey())) {
