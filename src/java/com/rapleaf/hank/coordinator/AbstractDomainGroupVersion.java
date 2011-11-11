@@ -47,7 +47,18 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
 
   @Override
   public String toString() {
-    return "AbstractDomainGroupVersion [domainVersions=" + getDomainVersions() + ", domainGroup="
-        + (getDomainGroup() != null ? getDomainGroup().getName() : "null") + ", versionNumber=" + getVersionNumber() + "]";
+    StringBuilder domainVersionsString = new StringBuilder();
+    domainVersionsString.append('[');
+    if (getDomainVersions() != null) {
+      for (DomainGroupVersionDomainVersion dgvdv : getDomainVersions()) {
+        domainVersionsString.append(dgvdv.getDomain() != null ? dgvdv.getDomain().getName() : "null");
+        domainVersionsString.append('@');
+        domainVersionsString.append(dgvdv.getVersion());
+        domainVersionsString.append(", ");
+      }
+    }
+    domainVersionsString.append(']');
+    return "AbstractDomainGroupVersion [versionNumber=" + getVersionNumber() + ", domainVersions=" + domainVersionsString.toString() + ", domainGroup="
+        + (getDomainGroup() != null ? getDomainGroup().getName() : "null") + "]";
   }
 }
