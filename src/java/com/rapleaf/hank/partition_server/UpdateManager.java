@@ -68,16 +68,17 @@ class UpdateManager implements IUpdateManager {
     @Override
     public void run() {
       try {
-        LOG.info(String.format("Partition update of %s partition %d to version %d starting (%s)",
+        LOG.info(String.format("Starting partition update of domain %s partition %d to version %d (storage engine: %s)",
             domainName, partitionNumber, toDomainVersion, engine.toString()));
         engine.getUpdater(configurator, partitionNumber).update(toDomainVersion, excludeVersions);
         partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
         partition.setUpdatingToDomainGroupVersion(null);
-        LOG.info(String.format("Partition update of %s partition %d completed (%s).",
-            domainName, partitionNumber, engine.toString()));
+        LOG.info(String.format("Completed partition update of domain %s partition %d to version %d (storage engine: %s).",
+            domainName, partitionNumber, toDomainVersion, engine.toString()));
       } catch (Throwable e) {
         LOG.fatal(
-            String.format("Failed to complete partition update of %s partition %d.", domainName, partitionNumber), e);
+            String.format("Failed to complete partition update of domain %s partition %d to version %d.",
+                domainName, partitionNumber, toDomainVersion), e);
         exceptionQueue.add(e);
       }
     }
@@ -149,7 +150,7 @@ class UpdateManager implements IUpdateManager {
           if (!partition.isDeletable() && partition.getUpdatingToDomainGroupVersion() != null) {
             // Skip deletable partitions and partitions not updating
             if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("Configuring update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
+              LOG.debug(String.format("Configuring partition update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
                   ringGroup.getName(),
                   ring.getRingNumber(),
                   domain.getName(),
@@ -235,13 +236,13 @@ class UpdateManager implements IUpdateManager {
       StorageEngine storageEngine = domain.getStorageEngine();
       if (domainGroupVersion.getDomainVersion(domain) == null) {
         // Host domain is deletable since it is not included in the version we are updating to
-        LOG.info("Host domain " + hostDomain + " is not in domain group version " + domainGroupVersion + ". Deleting.");
+        LOG.info("Deleting host domain " + hostDomain + " as it is not in domain group version " + domainGroupVersion);
         deleteHostDomainAndData(hostDomain);
       } else {
         // Detect deletable partitions
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
           if (partition.isDeletable()) {
-            LOG.info(String.format("Ring %d Host %s Partition %d is selected for deletion. Deleting",
+            LOG.info(String.format("Deleting ring %d host %s partition %d as it is selected for deletion.",
                 ring.getRingNumber(),
                 host.getAddress(),
                 partition.getPartitionNumber()));
