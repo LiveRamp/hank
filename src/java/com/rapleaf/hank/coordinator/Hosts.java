@@ -73,6 +73,9 @@ public final class Hosts {
    * @throws IOException
    */
   public static boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
+      return false;
+    }
     // Check that each domain of the given domain group version is up to date on this host
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
