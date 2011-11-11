@@ -19,10 +19,7 @@ package com.rapleaf.hank.coordinator;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Rings {
 
@@ -218,7 +215,7 @@ public class Rings {
     Map<Host, Map<Domain, RuntimeStatisticsAggregator>> result =
         new HashMap<Host, Map<Domain, RuntimeStatisticsAggregator>>();
     for (Host host : ring.getHosts()) {
-     result.put(host, Hosts.computeRuntimeStatistics(host));
+      result.put(host, Hosts.computeRuntimeStatistics(host));
     }
     return result;
   }
@@ -244,13 +241,18 @@ public class Rings {
     }
   }
 
-  public static RuntimeStatisticsAggregator
-  computeRuntimeStatisticsForDomain(Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics,
-                                    Domain domain) {
-    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+  public static SortedMap<Domain, RuntimeStatisticsAggregator>
+  computeRuntimeStatisticsForDomains(
+      Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics) {
+    SortedMap<Domain, RuntimeStatisticsAggregator> result = new TreeMap<Domain, RuntimeStatisticsAggregator>();
     for (Map.Entry<Host, Map<Domain, RuntimeStatisticsAggregator>> entry1 : runtimeStatistics.entrySet()) {
-      if (entry1.getValue().containsKey(domain)) {
-        result.add(entry1.getValue().get(domain));
+      for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry2 : entry1.getValue().entrySet()) {
+        RuntimeStatisticsAggregator aggregator = result.get(entry2.getKey());
+        if (aggregator == null) {
+          aggregator = new RuntimeStatisticsAggregator();
+          result.put(entry2.getKey(), aggregator);
+        }
+        aggregator.add(entry2.getValue());
       }
     }
     return result;

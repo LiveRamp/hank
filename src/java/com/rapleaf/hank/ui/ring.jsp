@@ -136,10 +136,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
      <th>Hit Rate</th>
   </tr>
    <%
-     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
-       Domain domain = dgvdv.getDomain();
-       RuntimeStatisticsAggregator runtimeStatisticsForDomain =
-       Rings.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
+     SortedMap<Domain, RuntimeStatisticsAggregator> runtimeStatisticsForDomains = Rings.computeRuntimeStatisticsForDomains(runtimeStatistics);
+     for (SortedMap.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatisticsForDomains.entrySet()) {
+       Domain domain = entry.getKey();
+       RuntimeStatisticsAggregator runtimeStatisticsForDomain = entry.getValue();
    %>
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
