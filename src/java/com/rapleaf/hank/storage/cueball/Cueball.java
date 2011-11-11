@@ -102,6 +102,7 @@ public class Cueball implements StorageEngine {
       pw.println("hash_index_bits: 15");
       pw.println("remote_domain_root: #fill this in!");
       pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
+      pw.println("value_size: #fill this in!");
 
       return sw.toString();
     }
