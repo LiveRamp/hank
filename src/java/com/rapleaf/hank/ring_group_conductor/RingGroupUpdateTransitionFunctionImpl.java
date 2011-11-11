@@ -96,7 +96,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             } else {
               // No host is updating. Check that we are indeed up to date
               DomainGroupVersion updatingToVersion = ring.getUpdatingToVersion();
-              if (Rings.isUpToDate(ring, updatingToVersion)) {
+              if (updatingToVersion != null && Rings.isUpToDate(ring, updatingToVersion)) {
                 // Set the ring state to updated
                 LOG.info("Ring " + ring.getRingNumber() + " is UPDATED.");
                 ring.setState(RingState.UPDATED);
