@@ -22,9 +22,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
@@ -128,48 +126,10 @@ class UpdateManager implements IUpdateManager {
         UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT,
         new LinkedBlockingQueue<Runnable>(),
         factory);
+
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    // Loop over new domain versions and set partitions to updating state
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
-      StorageEngine engine = domain.getStorageEngine();
-      HostDomain hostDomain = host.getHostDomain(domain);
-      // Compute excluded versions
-      Set<Integer> excludeVersions = new HashSet<Integer>();
-      for (DomainVersion dv : domain.getVersions()) {
-        if (dv.isDefunct()) {
-          excludeVersions.add(dv.getVersionNumber());
-        }
-      }
-      // Set partitions state
-      if (hostDomain == null) {
-        LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
-      } else {
-        for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          if (!partition.isDeletable() && partition.getUpdatingToDomainGroupVersion() != null) {
-            // Skip deletable partitions and partitions not updating
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("Configuring partition update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
-                  ringGroup.getName(),
-                  ring.getRingNumber(),
-                  domain.getName(),
-                  partition.getPartitionNumber(),
-                  partition.getCurrentDomainGroupVersion(),
-                  partition.getUpdatingToDomainGroupVersion()));
-            }
-            executor.execute(new PartitionUpdateTask(engine,
-                partition.getPartitionNumber(),
-                exceptionQueue,
-                dgvdv.getVersion(),
-                partition,
-                domain.getName(),
-                partition.getUpdatingToDomainGroupVersion(),
-                excludeVersions));
-          }
-        }
-      }
-    }
+    executePartitionUpdateTasks(domainGroupVersion, executor, exceptionQueue);
 
     // Execute all tasks and wait for them to finish
     IOException failedUpdateException = null;
@@ -226,6 +186,61 @@ class UpdateManager implements IUpdateManager {
 
     {
       throw failedTasksException;
+    }
+  }
+
+  private void executePartitionUpdateTasks(DomainGroupVersion domainGroupVersion,
+                                           ExecutorService executor,
+                                           Queue<Throwable> exceptionQueue) throws IOException {
+    ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
+
+    // Loop over new domain versions and set partitions to updating state
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      StorageEngine engine = domain.getStorageEngine();
+      HostDomain hostDomain = host.getHostDomain(domain);
+      // Compute excluded versions
+      Set<Integer> excludeVersions = new HashSet<Integer>();
+      for (DomainVersion dv : domain.getVersions()) {
+        if (dv.isDefunct()) {
+          excludeVersions.add(dv.getVersionNumber());
+        }
+      }
+      // Set partitions state
+      if (hostDomain == null) {
+        LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
+      } else {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (!partition.isDeletable() && partition.getUpdatingToDomainGroupVersion() != null) {
+            // Skip deletable partitions and partitions not updating
+            if (LOG.isDebugEnabled()) {
+              LOG.debug(String.format("Configuring partition update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
+                  ringGroup.getName(),
+                  ring.getRingNumber(),
+                  domain.getName(),
+                  partition.getPartitionNumber(),
+                  partition.getCurrentDomainGroupVersion(),
+                  partition.getUpdatingToDomainGroupVersion()));
+            }
+            partitionUpdateTasks.add(new PartitionUpdateTask(engine,
+                partition.getPartitionNumber(),
+                exceptionQueue,
+                dgvdv.getVersion(),
+                partition,
+                domain.getName(),
+                partition.getUpdatingToDomainGroupVersion(),
+                excludeVersions));
+          }
+        }
+      }
+    }
+
+    // Randomize task ordering so that it updates all domains more or less concurrently
+    Collections.shuffle(partitionUpdateTasks);
+
+    // Execute tasks
+    for (PartitionUpdateTask updateTask : partitionUpdateTasks) {
+      executor.execute(updateTask);
     }
   }
 
