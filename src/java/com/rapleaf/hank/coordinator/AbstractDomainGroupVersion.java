@@ -50,7 +50,7 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
     StringBuilder domainVersionsString = new StringBuilder();
     domainVersionsString.append('[');
     if (getDomainVersions() != null) {
-      for (DomainGroupVersionDomainVersion dgvdv : getDomainVersions()) {
+      for (DomainGroupVersionDomainVersion dgvdv : getDomainVersionsSorted()) {
         domainVersionsString.append(dgvdv.getDomain() != null ? dgvdv.getDomain().getName() : "null");
         domainVersionsString.append('@');
         domainVersionsString.append(dgvdv.getVersion());
