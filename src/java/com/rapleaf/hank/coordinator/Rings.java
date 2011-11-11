@@ -153,6 +153,9 @@ public class Rings {
    * @throws IOException
    */
   public static boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
+      return false;
+    }
     // Check that each domain of the given domain group version is assigned to this ring
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
