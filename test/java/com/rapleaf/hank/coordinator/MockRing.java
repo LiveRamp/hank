@@ -31,6 +31,7 @@ public class MockRing extends AbstractRing {
                   RingState state) {
     this(hosts, ringGroup, number, state, null, null);
   }
+
   public MockRing(Set<PartitionServerAddress> hosts,
                   RingGroup ringGroup,
                   int number,
@@ -49,34 +50,42 @@ public class MockRing extends AbstractRing {
     this.updatingToVersion = updatingToVersion;
   }
 
+  @Override
   public Set<Host> getHosts() {
     return hosts;
   }
 
+  @Override
   public RingState getState() {
     return state;
   }
 
+  @Override
   public Integer getCurrentVersionNumber() {
     return currentVersion;
   }
 
+  @Override
   public void setCurrentVersion(Integer version) throws IOException {
     currentVersion = version;
   }
 
+  @Override
   public Integer getUpdatingToVersionNumber() {
     return updatingToVersion;
   }
 
+  @Override
   public void setUpdatingToVersion(Integer version) throws IOException {
     updatingToVersion = version;
   }
 
+  @Override
   public Host addHost(PartitionServerAddress address) throws IOException {
     return null;
   }
 
+  @Override
   public Host getHostByAddress(PartitionServerAddress address) {
     for (Host host : hosts) {
       if (host.getAddress().equals(address)) {
@@ -86,18 +95,22 @@ public class MockRing extends AbstractRing {
     return null;
   }
 
+  @Override
   public void setState(RingState newState) throws IOException {
     state = newState;
   }
 
+  @Override
   public void setStateChangeListener(RingStateChangeListener listener)
       throws IOException {
   }
 
+  @Override
   public boolean removeHost(PartitionServerAddress address) {
     return false;
   }
 
+  @Override
   public void delete() throws IOException {
   }
 
