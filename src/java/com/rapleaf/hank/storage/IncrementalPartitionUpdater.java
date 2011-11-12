@@ -71,13 +71,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       return;
     }
     try {
-      // Fetch needed versions
+      // Fetch and cache needed versions
       cacheVersionsNeededToUpdate(currentVersion, cachedVersions, versionsNeededToUpdate);
-      // Fetch needed versions in the cache, except current version
+
       // Run update based on needed versions in a workspace
       // Move current to cache?
       // Commit workspace
-      // Clean cache
+
     } finally {
       cleanCachedVersions();
     }

@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,6 +30,8 @@ import java.util.Set;
 import java.util.SortedSet;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
+
+  private static final Logger LOG = Logger.getLogger(CueballPartitionUpdater.class);
 
   private final PartitionRemoteFileOps partitionRemoteFileOps;
 
@@ -108,6 +111,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
     // Fetch version files
     String fileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
+    LOG.info("Fetching: " + fileToFetch + " to: " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
   }
 }

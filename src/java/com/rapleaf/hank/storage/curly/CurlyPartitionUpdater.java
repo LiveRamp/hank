@@ -23,6 +23,7 @@ import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +32,8 @@ import java.util.Set;
 import java.util.SortedSet;
 
 public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
+
+  private static final Logger LOG = Logger.getLogger(CurlyPartitionUpdater.class);
 
   private final PartitionRemoteFileOps partitionRemoteFileOps;
 
@@ -130,6 +133,8 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     // Fetch version files
     String cueballFileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
     String curlyFileToFetch = Curly.getName(version.getVersionNumber(), isBase);
+    LOG.info("Fetching: " + cueballFileToFetch + " to: " + fetchRoot);
+    LOG.info("Fetching: " + curlyFileToFetch + " to: " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
   }
