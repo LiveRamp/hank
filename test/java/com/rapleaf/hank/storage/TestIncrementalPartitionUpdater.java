@@ -34,12 +34,6 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     };
   }
 
-  private static class MockDomainVersionLocal extends MockDomainVersion {
-    public MockDomainVersionLocal(int versionNumber, Long closedAt) {
-      super(versionNumber, closedAt);
-    }
-  }
-
   public void testGetVersionsNeededToUpdate() throws IOException {
     final DomainVersion v0 = new MockDomainVersion(0, 1l);
     final DomainVersion v1 = new MockDomainVersion(1, 1l);
