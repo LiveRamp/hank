@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
 
   private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
   private final String localPartitionRoot = localTmpDir + "/partition_root";
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -39,47 +41,12 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     new File(localPartitionRoot).mkdir();
   }
 
-  private IncrementalPartitionUpdater getMockUpdater(final Domain domain,
-                                                     final Integer currentVersion,
-                                                     final Integer... cachedVersions) throws IOException {
-
-    return new IncrementalPartitionUpdater(domain, null, localPartitionRoot) {
-
-      @Override
-      protected Set<DomainVersion> detectCachedVersions() throws IOException {
-        Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
-        for (Integer versionNumber : cachedVersions) {
-          cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));
-        }
-        return cachedVersionsSet;
-      }
-
-      @Override
-      protected void cleanCachedVersions() throws IOException {
-      }
-
-      @Override
-      protected Integer detectCurrentVersionNumber() throws IOException {
-        return currentVersion;
-      }
-
-      @Override
-      protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-        if (domainVersion.getVersionNumber() == 0) {
-          return null;
-        } else {
-          return domain.getVersionByNumber(domainVersion.getVersionNumber() - 1);
-        }
-      }
-    };
-  }
-
   public void testGetVersionsNeededToUpdate() throws IOException {
-    final DomainVersion v0 = new MockDomainVersion(0, 1l);
-    final DomainVersion v1 = new MockDomainVersion(1, 1l);
-    final DomainVersion v2 = new MockDomainVersion(2, 1l);
+    final DomainVersion v0 = new MockDomainVersion(0, 0l);
+    final DomainVersion v1 = new MockDomainVersion(1, 0l);
+    final DomainVersion v2 = new MockDomainVersion(2, 0l);
     final DomainVersion v3 = new MockDomainVersion(3, null);
-    final DomainVersion v4 = new MockDomainVersion(4, 1l);
+    final DomainVersion v4 = new MockDomainVersion(4, 0l);
 
     Domain domain = new MockDomain("domain") {
       @Override
@@ -101,7 +68,8 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
       }
     };
 
-    IncrementalPartitionUpdater updater = getMockUpdater(domain, null);
+    IncrementalPartitionUpdater updater =
+        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null);
 
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
@@ -159,6 +127,186 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     assertEquals(versions,
         updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>singleton(v1), v2));
     versions.clear();
+  }
 
+  public void testCacheVersionsNeededToUpdate() throws IOException {
+    final DomainVersion v0 = new MockDomainVersion(0, 0l);
+    final DomainVersion v1 = new MockDomainVersion(1, 0l);
+
+    Domain domain = new MockDomain("domain") {
+      @Override
+      public DomainVersion getVersionByNumber(int domainVersion) {
+        switch (domainVersion) {
+          case 0:
+            return v0;
+          case 1:
+            return v1;
+          default:
+            throw new RuntimeException("Unknown version: " + domainVersion);
+        }
+      }
+    };
+    IncrementalPartitionUpdater updater =
+        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null) {
+          @Override
+          protected void fetchVersion(DomainVersion version, String fetchRoot) {
+            try {
+              if (!new File(fetchRoot + "/" + version.getVersionNumber() + ".data").createNewFile()) {
+                throw new IOException("Failed to fetch version " + version);
+              }
+            } catch (IOException e) {
+              throw new RuntimeException(e.getMessage(), e);
+            }
+          }
+
+          @Override
+          protected void cleanCachedVersions() throws IOException {
+            FileUtils.deleteDirectory(new File(localPartitionRootCache));
+          }
+        };
+
+    Set<DomainVersion> versions = new HashSet<DomainVersion>();
+
+    // Update from null with v0
+    updater.cacheVersionsNeededToUpdate(null,
+        Collections.<DomainVersion>emptySet(),
+        Collections.<DomainVersion>singleton(v0));
+    assertTrue(cachedFileExists(updater, "0.data"));
+
+    // Clean cache
+    updater.cleanCachedVersions();
+    // Check that cache was cleaned
+    assertFalse(new File(updater.localPartitionRootCache).exists());
+
+    // Update from null with v0, v1
+    versions.add(v0);
+    versions.add(v1);
+    updater.cacheVersionsNeededToUpdate(null,
+        Collections.<DomainVersion>emptySet(),
+        versions);
+    assertTrue(cachedFileExists(updater, "0.data"));
+    assertTrue(cachedFileExists(updater, "1.data"));
+    versions.clear();
+
+    // Clean cache
+    updater.cleanCachedVersions();
+    // Check that cache was cleaned
+    assertFalse(new File(updater.localPartitionRootCache).exists());
+
+    // Update from v0 with v0, v1
+    versions.add(v0);
+    versions.add(v1);
+    updater.cacheVersionsNeededToUpdate(v0,
+        Collections.<DomainVersion>emptySet(),
+        versions);
+    assertFalse(cachedFileExists(updater, "0.data"));
+    assertTrue(cachedFileExists(updater, "1.data"));
+    versions.clear();
+
+    // Clean cache
+    updater.cleanCachedVersions();
+    // Check that cache was cleaned
+    assertFalse(new File(updater.localPartitionRootCache).exists());
+
+    // Update from null with v0, v1 with v0 cached
+    versions.add(v0);
+    versions.add(v1);
+    updater.cacheVersionsNeededToUpdate(null,
+        Collections.<DomainVersion>singleton(v0),
+        versions);
+    assertFalse(cachedFileExists(updater, "0.data"));
+    assertTrue(cachedFileExists(updater, "1.data"));
+    versions.clear();
+
+    // Clean cache
+    updater.cleanCachedVersions();
+    // Check that cache was cleaned
+    assertFalse(new File(updater.localPartitionRootCache).exists());
+  }
+
+  public void testFailingFetcher() throws IOException {
+    final DomainVersion v0 = new MockDomainVersion(0, 0l);
+    final DomainVersion v1 = new MockDomainVersion(1, 0l);
+
+    Domain domain = new MockDomain("domain") {
+      @Override
+      public DomainVersion getVersionByNumber(int domainVersion) {
+        switch (domainVersion) {
+          case 0:
+            return v0;
+          case 1:
+            return v1;
+          default:
+            throw new RuntimeException("Unknown version: " + domainVersion);
+        }
+      }
+    };
+
+    IncrementalPartitionUpdater updater =
+        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null) {
+          @Override
+          protected void fetchVersion(DomainVersion version, String fetchRoot) {
+            // Fail to fetch version 1
+            if (version.getVersionNumber() == 1) {
+              throw new Error("Failed to fetch version " + version);
+            }
+            try {
+              if (!new File(fetchRoot + "/" + version.getVersionNumber() + ".data").createNewFile()) {
+                throw new IOException("Failed to fetch version " + version);
+              }
+            } catch (IOException e) {
+              throw new RuntimeException(e.getMessage(), e);
+            }
+          }
+
+          @Override
+          protected void cleanCachedVersions() throws IOException {
+            FileUtils.deleteDirectory(new File(localPartitionRootCache));
+          }
+        };
+
+    Set<DomainVersion> versions = new HashSet<DomainVersion>();
+
+    // Update from null with v0
+    updater.cacheVersionsNeededToUpdate(null,
+        Collections.<DomainVersion>emptySet(),
+        Collections.<DomainVersion>singleton(v0));
+    assertTrue(cachedFileExists(updater, "0.data"));
+
+    // Clean cache
+    updater.cleanCachedVersions();
+    // Check that cache was cleaned
+    assertFalse(new File(updater.localPartitionRootCache).exists());
+
+    // Update from null with v0, v1 should fail to fetch v1
+    versions.add(v0);
+    versions.add(v1);
+    try {
+      updater.cacheVersionsNeededToUpdate(null,
+          Collections.<DomainVersion>emptySet(),
+          versions);
+      fail("Should fail");
+    } catch (Error e) {
+      // Good
+    }
+    // Check that no file was committed to cache
+    assertFalse(cachedFileExists(updater, "0.data"));
+    assertFalse(cachedFileExists(updater, "1.data"));
+    versions.clear();
+
+    // Do not clean cache
+    // Check that cache was empty
+    assertEquals(0, new File(updater.localPartitionRootCache).list().length);
+
+    // Check that there is no remaining fetch root after a fetch failure
+    for (File file : new File(updater.localPartitionRoot).listFiles()) {
+      if (file.getName().startsWith(IncrementalPartitionUpdater.FETCH_ROOT_PREFIX)) {
+        fail("Should not contain any remaining fetch root: " + file.getPath());
+      }
+    }
+  }
+
+  private boolean cachedFileExists(IncrementalPartitionUpdater updater, String fileName) {
+    return new File(updater.localPartitionRootCache + "/" + fileName).exists();
   }
 }

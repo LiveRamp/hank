@@ -23,6 +23,7 @@ import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,39 +33,13 @@ import java.util.SortedSet;
 
 public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
+  private final PartitionRemoteFileOps partitionRemoteFileOps;
+
   public CurlyPartitionUpdater(Domain domain,
                                PartitionRemoteFileOps partitionRemoteFileOps,
                                String localPartitionRoot) throws IOException {
-    super(domain, partitionRemoteFileOps, localPartitionRoot);
-  }
-
-  @Override
-  protected Set<DomainVersion> detectCachedVersions() throws IOException {
-    // Record in a set all cached Cueball bases
-    SortedSet<CueballFilePath> cachedCueballBases = Cueball.getBases(localPartitionRootCache);
-    HashSet<Integer> cachedCueballBasesVersions = new HashSet<Integer>();
-    for (CueballFilePath cueballCachedVersion : cachedCueballBases) {
-      cachedCueballBasesVersions.add(cueballCachedVersion.getVersion());
-    }
-    // Compute cached Curly bases
-    SortedSet<CurlyFilePath> cachedCurlyBases = Curly.getBases(localPartitionRootCache);
-    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
-    for (CurlyFilePath cachedCurlyBase : cachedCurlyBases) {
-      // Check that the corresponding Cueball version is also cached
-      if (cachedCueballBasesVersions.contains(cachedCurlyBase.getVersion())) {
-        DomainVersion version = domain.getVersionByNumber(cachedCurlyBase.getVersion());
-        if (version != null) {
-          cachedVersions.add(version);
-        }
-      }
-    }
-    return cachedVersions;
-  }
-
-  @Override
-  protected void cleanCachedVersions() throws IOException {
-    // Delete all cached versions
-    FileUtils.deleteDirectory(new File(localPartitionRootCache));
+    super(domain, localPartitionRoot);
+    this.partitionRemoteFileOps = partitionRemoteFileOps;
   }
 
   @Override
@@ -107,5 +82,39 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     } else {
       throw new IOException("Failed to determine parent version of domain version: " + domainVersion);
     }
+  }
+
+  @Override
+  protected Set<DomainVersion> detectCachedVersions() throws IOException {
+    // Record in a set all cached Cueball bases
+    SortedSet<CueballFilePath> cachedCueballBases = Cueball.getBases(localPartitionRootCache);
+    HashSet<Integer> cachedCueballBasesVersions = new HashSet<Integer>();
+    for (CueballFilePath cueballCachedVersion : cachedCueballBases) {
+      cachedCueballBasesVersions.add(cueballCachedVersion.getVersion());
+    }
+    // Compute cached Curly bases
+    SortedSet<CurlyFilePath> cachedCurlyBases = Curly.getBases(localPartitionRootCache);
+    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
+    for (CurlyFilePath cachedCurlyBase : cachedCurlyBases) {
+      // Check that the corresponding Cueball version is also cached
+      if (cachedCueballBasesVersions.contains(cachedCurlyBase.getVersion())) {
+        DomainVersion version = domain.getVersionByNumber(cachedCurlyBase.getVersion());
+        if (version != null) {
+          cachedVersions.add(version);
+        }
+      }
+    }
+    return cachedVersions;
+  }
+
+  @Override
+  protected void cleanCachedVersions() throws IOException {
+    // Delete all cached versions
+    FileUtils.deleteDirectory(new File(localPartitionRootCache));
+  }
+
+  @Override
+  protected void fetchVersion(DomainVersion version, String fetchRoot) {
+    throw new NotImplementedException();
   }
 }

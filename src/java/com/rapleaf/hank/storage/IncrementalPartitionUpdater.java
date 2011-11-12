@@ -19,32 +19,44 @@ package com.rapleaf.hank.storage;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersions;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
+  public static final String FETCH_ROOT_PREFIX = "_fetch_";
   public static final String CACHE_ROOT_NAME = "cache";
 
   protected final Domain domain;
-  protected final PartitionRemoteFileOps partitionRemoteFileOps;
   protected final String localPartitionRoot;
   protected final String localPartitionRootCache;
 
   public IncrementalPartitionUpdater(Domain domain,
-                                     PartitionRemoteFileOps partitionRemoteFileOps,
                                      String localPartitionRoot) throws IOException {
     this.domain = domain;
-    this.partitionRemoteFileOps = partitionRemoteFileOps;
     this.localPartitionRoot = localPartitionRoot;
     this.localPartitionRootCache = localPartitionRoot + "/" + CACHE_ROOT_NAME;
-    ensureCacheExists();
   }
+
+  /**
+   * @return The current valid version number or null if there is none
+   * @throws IOException
+   */
+  protected abstract Integer detectCurrentVersionNumber() throws IOException;
+
+  protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
+
+  protected abstract Set<DomainVersion> detectCachedVersions() throws IOException;
+
+  protected abstract void cleanCachedVersions() throws IOException;
+
+  protected abstract void fetchVersion(DomainVersion version, String fetchRoot);
 
   @Override
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
@@ -59,15 +71,76 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       return;
     }
     try {
-    // Fetch needed versions in the cache, except current version
-    // Run update based on needed versions in a workspace
-    // Move current to cache?
-    // Commit workspace
-    // Clean cache
+      // Fetch needed versions
+      cacheVersionsNeededToUpdate(currentVersion, cachedVersions, versionsNeededToUpdate);
+      // Fetch needed versions in the cache, except current version
+      // Run update based on needed versions in a workspace
+      // Move current to cache?
+      // Commit workspace
+      // Clean cache
     } finally {
       cleanCachedVersions();
     }
-    throw new NotImplementedException();
+  }
+
+  private File createFetchRoot() throws IOException {
+    String fetchRoot = localPartitionRoot + "/" + FETCH_ROOT_PREFIX + UUID.randomUUID().toString();
+    File fetchRootFile = new File(fetchRoot);
+    if (!fetchRootFile.mkdir()) {
+      throw new IOException("Failed to create fetch root: " + fetchRoot);
+    }
+    return fetchRootFile;
+  }
+
+  private void deleteFetchRoots() throws IOException {
+    for (File file : new File(localPartitionRoot).listFiles()) {
+      if (file.isDirectory() && file.getName().startsWith(FETCH_ROOT_PREFIX)) {
+        FileUtils.deleteDirectory(file);
+      }
+    }
+  }
+
+  // Fetch required versions and commit them to cache upon successful fetch
+  protected void cacheVersionsNeededToUpdate(DomainVersion currentVersion,
+                                             Set<DomainVersion> cachedVersions,
+                                             Set<DomainVersion> versionsNeededToUpdate) throws IOException {
+    try {
+      ensureCacheExists();
+      // Clean all previous fetch roots
+      deleteFetchRoots();
+      // Create new fetch root
+      File fetchRoot = createFetchRoot();
+      // Fetch versions
+      for (DomainVersion version : versionsNeededToUpdate) {
+        // Do not fetch current version
+        if (currentVersion != null && currentVersion.equals(version)) {
+          continue;
+        }
+        // Do not fetch cached versions
+        if (cachedVersions.contains(version)) {
+          continue;
+        }
+        fetchVersion(version, fetchRoot.getPath());
+      }
+      // Commit fetched versions to cache
+      for (File file : fetchRoot.listFiles()) {
+        File targetFile = new File(localPartitionRootCache + "/" + file.getName());
+        // If target file already exists, delete it
+        if (targetFile.exists()) {
+          if (!targetFile.delete()) {
+            throw new IOException("Failed to overwrite file in cache: " + targetFile.getPath());
+          }
+        }
+        // Move file to final destination in cache
+        if (!file.renameTo(targetFile)) {
+          throw new IOException("Failed to rename fetched file: " + file.getPath()
+              + " to cached file: " + targetFile.getPath());
+        }
+      }
+    } finally {
+      // Always delete fetch roots
+      deleteFetchRoots();
+    }
   }
 
   private void ensureCacheExists() throws IOException {
@@ -106,7 +179,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         }
         // If backtrack to current version, use it and stop backtracking
         if (currentVersion != null && parentVersion.equals(currentVersion)) {
-            // If we only need the current version, we don't need any version
+          // If we only need the current version, we don't need any version
           if (versionsNeeded.isEmpty()) {
             return Collections.emptySet();
           } else {
@@ -136,16 +209,4 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       return null;
     }
   }
-
-  protected abstract Set<DomainVersion> detectCachedVersions() throws IOException;
-
-  protected abstract void cleanCachedVersions() throws IOException;
-
-  /**
-   * @return The current valid version number or null if there is none
-   * @throws IOException
-   */
-  protected abstract Integer detectCurrentVersionNumber() throws IOException;
-
-  protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
 }

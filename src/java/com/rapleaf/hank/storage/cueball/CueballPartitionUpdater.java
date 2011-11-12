@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,29 +31,13 @@ import java.util.SortedSet;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
+  private final PartitionRemoteFileOps partitionRemoteFileOps;
+
   public CueballPartitionUpdater(Domain domain,
                                  PartitionRemoteFileOps partitionRemoteFileOps,
                                  String localPartitionRoot) throws IOException {
-    super(domain, partitionRemoteFileOps, localPartitionRoot);
-  }
-
-  @Override
-  protected void cleanCachedVersions() throws IOException {
-    // Delete all cached versions
-    FileUtils.deleteDirectory(new File(localPartitionRootCache));
-  }
-
-  @Override
-  protected Set<DomainVersion> detectCachedVersions() throws IOException {
-    SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
-    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
-    for (CueballFilePath base : cachedBases) {
-      DomainVersion version = domain.getVersionByNumber(base.getVersion());
-      if (version != null) {
-        cachedVersions.add(version);
-      }
-    }
-    return cachedVersions;
+    super(domain, localPartitionRoot);
+    this.partitionRemoteFileOps = partitionRemoteFileOps;
   }
 
   @Override
@@ -88,5 +73,29 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     } else {
       throw new IOException("Failed to determine parent version of domain version: " + domainVersion);
     }
+  }
+
+  @Override
+  protected Set<DomainVersion> detectCachedVersions() throws IOException {
+    SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
+    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
+    for (CueballFilePath base : cachedBases) {
+      DomainVersion version = domain.getVersionByNumber(base.getVersion());
+      if (version != null) {
+        cachedVersions.add(version);
+      }
+    }
+    return cachedVersions;
+  }
+
+  @Override
+  protected void cleanCachedVersions() throws IOException {
+    // Delete all cached versions
+    FileUtils.deleteDirectory(new File(localPartitionRootCache));
+  }
+
+  @Override
+  protected void fetchVersion(DomainVersion version, String fetchRoot) {
+    throw new NotImplementedException();
   }
 }
