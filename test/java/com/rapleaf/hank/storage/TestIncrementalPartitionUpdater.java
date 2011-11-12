@@ -80,14 +80,25 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     versions.clear();
 
     // Updating from v0 to v1
-    assertEquals(Collections.<DomainVersion>singleton(v1),
+    versions.add(v0);
+    versions.add(v1);
+    assertEquals(versions,
         updater.getVersionsNeededToUpdate(v0, v1));
+    versions.clear();
 
     // Updating from null to v1, v0 is defunct
     v0.setDefunct(true);
     assertEquals(Collections.<DomainVersion>singleton(v1),
         updater.getVersionsNeededToUpdate(null, v1));
     v0.setDefunct(false);
+
+    // Updating from v1 to v2, v1 is defunct
+    v1.setDefunct(true);
+    versions.add(v0);
+    versions.add(v2);
+    assertEquals(versions,
+        updater.getVersionsNeededToUpdate(v1, v2));
+    v1.setDefunct(false);
 
     // Updating from null to v4, v3 is not closed
     try {

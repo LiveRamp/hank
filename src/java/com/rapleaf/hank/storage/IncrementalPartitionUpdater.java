@@ -43,12 +43,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
    * the specified current version is available.
    */
   protected Set<DomainVersion> getVersionsNeededToUpdate(DomainVersion currentVersion,
-                                                       DomainVersion updatingToVersion) throws IOException {
+                                                         DomainVersion updatingToVersion) throws IOException {
     Set<DomainVersion> domainVersions = new HashSet<DomainVersion>();
-    // Backtrack versions until we find a base (no parent) or the current version
+    // Backtrack versions until we find a base (no parent)
+    // or the current version (when the current version is not defunct)
     DomainVersion parentVersion = updatingToVersion;
     while (!(parentVersion == null ||
-        (currentVersion != null && parentVersion.equals(currentVersion)))) {
+        (currentVersion != null && !currentVersion.isDefunct() && parentVersion.equals(currentVersion)))) {
       // If a version along the path is still open, abort
       if (!DomainVersions.isClosed(parentVersion)) {
         throw new IOException("Detected a domain version that is still open"
@@ -61,7 +62,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       if (!parentVersion.isDefunct()) {
         domainVersions.add(parentVersion);
       }
+      // Move to parent version
       parentVersion = getDomainVersionParent(parentVersion);
+    }
+    // If current version is a parent of the version we are updating to, add it to the set of versions needed
+    if (parentVersion != null && currentVersion != null
+        && !currentVersion.isDefunct() && parentVersion.equals(currentVersion)) {
+      domainVersions.add(currentVersion);
     }
     return domainVersions;
   }
