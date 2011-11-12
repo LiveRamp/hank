@@ -1,7 +1,6 @@
 package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.storage.HdfsFileOps;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -35,6 +34,14 @@ public class TestHdfsFileOps extends BaseTestCase {
 
     assertFalse(fs.exists(new Path(ROOT, "file3.txt")));
     assertFalse(hdfsFileOps.attemptDeleteRemote(ROOT + "/file3.txt"));
+  }
+
+  public void testExists() throws Exception {
+    HdfsFileOps hdfsFileOps = new HdfsFileOps(ROOT);
+    assertTrue(hdfsFileOps.exists(ROOT + "/file1.txt"));
+    assertTrue(hdfsFileOps.exists(ROOT + "/file2.txt"));
+    assertTrue(hdfsFileOps.attemptDeleteRemote(ROOT + "/file1.txt"));
+    assertFalse(hdfsFileOps.exists(ROOT + "/file1.txt"));
   }
 
   @Override

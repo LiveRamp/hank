@@ -16,9 +16,6 @@
 package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.storage.Fetcher;
-import com.rapleaf.hank.storage.IFileOps;
-import com.rapleaf.hank.storage.IFileSelector;
 
 import java.io.IOException;
 import java.util.*;
@@ -40,6 +37,11 @@ public class TestFetcher extends BaseTestCase {
 
     @Override
     public boolean attemptDeleteRemote(String path) {
+      return false;
+    }
+
+    @Override
+    public boolean exists(String path) throws IOException {
       return false;
     }
   }
