@@ -22,7 +22,9 @@ import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -57,6 +59,12 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
       }
     }
     return cachedVersions;
+  }
+
+  @Override
+  protected void cleanCachedVersions() throws IOException {
+    // Delete all cached versions
+    FileUtils.deleteDirectory(new File(localPartitionRootCache));
   }
 
   @Override

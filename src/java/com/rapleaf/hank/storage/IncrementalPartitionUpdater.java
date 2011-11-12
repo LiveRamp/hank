@@ -58,11 +58,15 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     if (versionsNeededToUpdate.isEmpty()) {
       return;
     }
+    try {
     // Fetch needed versions in the cache, except current version
     // Run update based on needed versions in a workspace
     // Move current to cache?
     // Commit workspace
     // Clean cache
+    } finally {
+      cleanCachedVersions();
+    }
     throw new NotImplementedException();
   }
 
@@ -124,8 +128,6 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     return versionsNeeded;
   }
 
-  protected abstract Set<DomainVersion> getCachedVersions() throws IOException;
-
   private DomainVersion detectCurrentVersion() throws IOException {
     Integer currentVersionNumber = detectCurrentVersionNumber();
     if (currentVersionNumber != null) {
@@ -134,6 +136,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       return null;
     }
   }
+
+  protected abstract Set<DomainVersion> getCachedVersions() throws IOException;
+
+  protected abstract void cleanCachedVersions() throws IOException;
 
   /**
    * @return The current valid version number or null if there is none

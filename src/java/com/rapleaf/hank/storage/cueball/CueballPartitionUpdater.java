@@ -20,7 +20,9 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -32,6 +34,12 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                  PartitionRemoteFileOps partitionRemoteFileOps,
                                  String localPartitionRoot) throws IOException {
     super(domain, partitionRemoteFileOps, localPartitionRoot);
+  }
+
+  @Override
+  protected void cleanCachedVersions() throws IOException {
+    // Delete all cached versions
+    FileUtils.deleteDirectory(new File(localPartitionRootCache));
   }
 
   @Override

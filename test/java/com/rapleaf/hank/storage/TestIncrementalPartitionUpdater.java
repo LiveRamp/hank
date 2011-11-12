@@ -55,6 +55,10 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
       }
 
       @Override
+      protected void cleanCachedVersions() throws IOException {
+      }
+
+      @Override
       protected Integer detectCurrentVersionNumber() throws IOException {
         return currentVersion;
       }
