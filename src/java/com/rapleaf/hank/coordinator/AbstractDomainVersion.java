@@ -23,8 +23,8 @@ public abstract class AbstractDomainVersion implements DomainVersion {
     }
     return "AbstractDomainVersion ["
         + "version=" + getVersionNumber()
-        + "closed=" + isClosed
-        + "defunct=" + isDefunct
+        + ", closed=" + isClosed
+        + ", defunct=" + isDefunct
         + "]";
   }
 }
