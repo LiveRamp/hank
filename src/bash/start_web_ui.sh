@@ -6,7 +6,7 @@ CONFDIR=`dirname "$0"`/../conf
 . "$BINDIR"/env.sh
 
 if [ -f "$CONFDIR"/web_ui_extra.sh ]; then
-  echo "Loading extra partition server config from " "$CONFDIR"/web_ui_extra.sh
+  echo "Loading extra web ui config from " "$CONFDIR"/web_ui_extra.sh
   . "$CONFDIR"/web_ui_extra.sh
 fi
 
