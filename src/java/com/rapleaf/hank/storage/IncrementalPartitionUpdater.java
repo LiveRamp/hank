@@ -49,13 +49,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   @Override
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
     ensureCacheExists();
-    DomainVersion currentDomainVersion = detectCurrentVersion();
+    DomainVersion currentVersion = detectCurrentVersion();
+    Set<DomainVersion> cachedVersions = getCachedVersions();
     Set<DomainVersion> versionsNeededToUpdate =
-        getVersionsNeededToUpdate(currentDomainVersion, updatingToDomainVersion);
+        getVersionsNeededToUpdate(currentVersion, cachedVersions, updatingToDomainVersion);
 
-    // If we don't need any version to update, or only the current version, we are done
-    if (versionsNeededToUpdate.isEmpty() ||
-        versionsNeededToUpdate.equals(Collections.<DomainVersion>singleton(currentDomainVersion))) {
+    // If we don't need any version to update we are done
+    if (versionsNeededToUpdate.isEmpty()) {
       return;
     }
     // Fetch needed versions in the cache, except current version
@@ -78,37 +78,50 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   /**
    * Return the set of versions needed to update to the specific version given that
-   * the specified current version is available.
+   * the specified current version and cached versions are available.
    */
   protected Set<DomainVersion> getVersionsNeededToUpdate(DomainVersion currentVersion,
+                                                         Set<DomainVersion> cachedVersions,
                                                          DomainVersion updatingToVersion) throws IOException {
-    Set<DomainVersion> domainVersions = new HashSet<DomainVersion>();
-    // Backtrack versions until we find a base (no parent)
-    // or the current version (when the current version is not defunct)
+    Set<DomainVersion> versionsNeeded = new HashSet<DomainVersion>();
+    // Backtrack versions (ignoring defunct versions) until we find:
+    // - a base (no parent)
+    // - or the current version
+    // - or a version that is cached
     DomainVersion parentVersion = updatingToVersion;
-    while (!(parentVersion == null ||
-        (currentVersion != null && !currentVersion.isDefunct() && parentVersion.equals(currentVersion)))) {
-      // If a version along the path is still open, abort
-      if (!DomainVersions.isClosed(parentVersion)) {
-        throw new IOException("Detected a domain version that is still open"
-            + " along the path from current version to version to update to:"
-            + " open version: " + parentVersion
-            + " current version: " + currentVersion
-            + " updating to version: " + updatingToVersion);
-      }
-      // Only use non defunct versions
+    while (parentVersion != null) {
+      // Ignore completely defunct versions
       if (!parentVersion.isDefunct()) {
-        domainVersions.add(parentVersion);
+        // If a version along the path is still open, abort
+        if (!DomainVersions.isClosed(parentVersion)) {
+          throw new IOException("Detected a domain version that is still open"
+              + " along the path from current version to version to update to:"
+              + " open version: " + parentVersion
+              + " current version: " + currentVersion
+              + " updating to version: " + updatingToVersion);
+        }
+        // If backtrack to current version, use it and stop backtracking
+        if (currentVersion != null && parentVersion.equals(currentVersion)) {
+            // If we only need the current version, we don't need any version
+          if (versionsNeeded.isEmpty()) {
+            return Collections.emptySet();
+          } else {
+            versionsNeeded.add(parentVersion);
+            break;
+          }
+        }
+        // If backtrack to cached version, use it and stop backtracking
+        if (cachedVersions.contains(parentVersion)) {
+          versionsNeeded.add(parentVersion);
+          break;
+        }
+        // Add backtracked version to versions needed
+        versionsNeeded.add(parentVersion);
       }
       // Move to parent version
       parentVersion = getParentDomainVersion(parentVersion);
     }
-    // If current version is a parent of the version we are updating to, add it to the set of versions needed
-    if (parentVersion != null && currentVersion != null
-        && !currentVersion.isDefunct() && parentVersion.equals(currentVersion)) {
-      domainVersions.add(currentVersion);
-    }
-    return domainVersions;
+    return versionsNeeded;
   }
 
   protected abstract Set<DomainVersion> getCachedVersions() throws IOException;
@@ -123,7 +136,6 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   /**
-   *
    * @return The current valid version number or null if there is none
    * @throws IOException
    */

@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,14 +30,28 @@ import java.util.Set;
 
 public class TestIncrementalPartitionUpdater extends BaseTestCase {
 
-  private IncrementalPartitionUpdater getMockUpdater(final Domain domain,
-                                                     final Integer currentVersion) throws IOException {
+  private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
+  private final String localPartitionRoot = localTmpDir + "/partition_root";
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    new File(remotePartitionRoot).mkdir();
+    new File(localPartitionRoot).mkdir();
+  }
 
-    return new IncrementalPartitionUpdater(domain, null, null) {
+  private IncrementalPartitionUpdater getMockUpdater(final Domain domain,
+                                                     final Integer currentVersion,
+                                                     final Integer... cachedVersions) throws IOException {
+
+    return new IncrementalPartitionUpdater(domain, null, localPartitionRoot) {
 
       @Override
       protected Set<DomainVersion> getCachedVersions() throws IOException {
-        return new HashSet<DomainVersion>();
+        Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
+        for (Integer versionNumber : cachedVersions) {
+          cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));
+        }
+        return cachedVersionsSet;
       }
 
       @Override
@@ -88,29 +103,33 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
 
     // No need to update to null
     assertEquals(Collections.<DomainVersion>emptySet(),
-        updater.getVersionsNeededToUpdate(null, null));
+        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), null));
+
+    // No need to update from v0 to v0
+    assertEquals(Collections.<DomainVersion>emptySet(),
+        updater.getVersionsNeededToUpdate(v0, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v0
     assertEquals(Collections.<DomainVersion>singleton(v0),
-        updater.getVersionsNeededToUpdate(null, v0));
+        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v1
     versions.add(v0);
     versions.add(v1);
-    assertEquals(versions, updater.getVersionsNeededToUpdate(null, v1));
+    assertEquals(versions, updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v1));
     versions.clear();
 
     // Updating from v0 to v1
     versions.add(v0);
     versions.add(v1);
     assertEquals(versions,
-        updater.getVersionsNeededToUpdate(v0, v1));
+        updater.getVersionsNeededToUpdate(v0, Collections.<DomainVersion>emptySet(), v1));
     versions.clear();
 
     // Updating from null to v1, v0 is defunct
     v0.setDefunct(true);
     assertEquals(Collections.<DomainVersion>singleton(v1),
-        updater.getVersionsNeededToUpdate(null, v1));
+        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v1));
     v0.setDefunct(false);
 
     // Updating from v1 to v2, v1 is defunct
@@ -118,15 +137,24 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     versions.add(v0);
     versions.add(v2);
     assertEquals(versions,
-        updater.getVersionsNeededToUpdate(v1, v2));
+        updater.getVersionsNeededToUpdate(v1, Collections.<DomainVersion>emptySet(), v2));
     v1.setDefunct(false);
+    versions.clear();
 
     // Updating from null to v4, v3 is not closed
     try {
-      updater.getVersionsNeededToUpdate(null, v4);
+      updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v4);
       fail("Should fail since v3 is not closed");
     } catch (IOException e) {
       // Good
     }
+
+    // Updating from null to v2, v1 is cached
+    versions.add(v1);
+    versions.add(v2);
+    assertEquals(versions,
+        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>singleton(v1), v2));
+    versions.clear();
+
   }
 }
