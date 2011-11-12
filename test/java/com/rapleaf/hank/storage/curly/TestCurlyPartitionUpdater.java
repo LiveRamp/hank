@@ -43,11 +43,19 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
       }
     }
   };
-  private final CurlyPartitionUpdater updater;
+  private CurlyPartitionUpdater updater;
 
-  public TestCurlyPartitionUpdater() throws IOException {
+  private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
+  private final String localPartitionRoot = localTmpDir + "/partition_root";
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     this.updater = new CurlyPartitionUpdater(domain,
-        new LocalPartitionRemoteFileOps(localTmpDir, 1));
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 1),
+        localPartitionRoot);
+    new File(remotePartitionRoot).mkdirs();
+    new File(localPartitionRoot).mkdirs();
   }
 
   public void testGetDomainVersionParent() throws IOException {
@@ -62,36 +70,81 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
 
     // Fail when only cueball file was found
     try {
-      makeLocalFile("1/00001.base.cueball");
+      makeRemoteFile("1/00001.base.cueball");
       updater.getParentDomainVersion(v0);
       fail("Should fail");
     } catch (IOException e) {
       // Good
-      deleteLocalFile("1/00001.base.cueball");
+      deleteRemoteFile("1/00001.base.cueball");
     }
 
     // Parent is null when base found
-    makeLocalFile("1/00001.base.cueball");
-    makeLocalFile("1/00001.base.curly");
+    makeRemoteFile("1/00001.base.cueball");
+    makeRemoteFile("1/00001.base.curly");
     assertNull(updater.getParentDomainVersion(v1));
-    deleteLocalFile("1/00001.base.cueball");
-    deleteLocalFile("1/00001.base.curly");
+    deleteRemoteFile("1/00001.base.cueball");
+    deleteRemoteFile("1/00001.base.curly");
 
     // Parent is previous version number when delta found
-    makeLocalFile("1/00001.delta.cueball");
-    makeLocalFile("1/00001.delta.curly");
+    makeRemoteFile("1/00001.delta.cueball");
+    makeRemoteFile("1/00001.delta.curly");
     assertEquals(v0, updater.getParentDomainVersion(v1));
-    deleteLocalFile("1/00001.delta.cueball");
-    deleteLocalFile("1/00001.delta.curly");
+    deleteRemoteFile("1/00001.delta.cueball");
+    deleteRemoteFile("1/00001.delta.curly");
+  }
+
+  public void testDetectCurrentVersionNumber() throws IOException {
+    // Null when there is no version
+    assertEquals(null, updater.detectCurrentVersionNumber());
+
+    // Nothing when there is only cueball files
+    makeLocalFile("00001.base.cueball");
+    assertEquals(null, updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.base.cueball");
+
+    // Nothing when there is only a delta
+    makeLocalFile("00001.delta.cueball");
+    makeLocalFile("00001.delta.curly");
+    assertEquals(null, updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.delta.cueball");
+    deleteLocalFile("00001.delta.curly");
+
+    // Correct number when there is a base
+    makeLocalFile("00001.base.cueball");
+    makeLocalFile("00001.base.curly");
+    assertEquals(Integer.valueOf(1), updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.base.cueball");
+    deleteLocalFile("00001.base.curly");
+
+    // Most recent base
+    makeLocalFile("00001.base.cueball");
+    makeLocalFile("00001.base.curly");
+    makeLocalFile("00002.base.cueball");
+    makeLocalFile("00002.base.curly");
+    assertEquals(Integer.valueOf(2), updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.base.cueball");
+    deleteLocalFile("00001.base.curly");
+    deleteLocalFile("00002.base.cueball");
+    deleteLocalFile("00002.base.curly");
+  }
+
+  private void makeRemoteFile(String name) throws IOException {
+    File file = new File(remotePartitionRoot + "/" + name);
+    file.mkdirs();
+    file.createNewFile();
+  }
+
+  private void deleteRemoteFile(String name) throws IOException {
+    new File(remotePartitionRoot + "/" + name).delete();
   }
 
   private void makeLocalFile(String name) throws IOException {
-    File file = new File(localTmpDir + "/" + name);
+    File file = new File(localPartitionRoot + "/" + name);
     file.mkdirs();
     file.createNewFile();
   }
 
   private void deleteLocalFile(String name) throws IOException {
-    new File(localTmpDir + "/" + name).delete();
+    new File(localPartitionRoot + "/" + name).delete();
   }
 }

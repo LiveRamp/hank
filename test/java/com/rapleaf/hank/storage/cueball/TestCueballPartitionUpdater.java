@@ -43,11 +43,19 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
       }
     }
   };
-  private final CueballPartitionUpdater updater;
+  private CueballPartitionUpdater updater;
 
-  public TestCueballPartitionUpdater() throws IOException {
+  private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
+  private final String localPartitionRoot = localTmpDir + "/partition_root";
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
     this.updater = new CueballPartitionUpdater(domain,
-        new LocalPartitionRemoteFileOps(localTmpDir, 1));
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 1),
+        localPartitionRoot);
+    new File(remotePartitionRoot).mkdirs();
+    new File(localPartitionRoot).mkdirs();
   }
 
   public void testGetDomainVersionParent() throws IOException {
@@ -61,23 +69,55 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     }
 
     // Parent is null when base found
-    makeLocalFile("1/00001.base.cueball");
+    makeRemoteFile("1/00001.base.cueball");
     assertNull(updater.getParentDomainVersion(v1));
-    deleteLocalFile("1/00001.base.cueball");
+    deleteRemoteFile("1/00001.base.cueball");
 
     // Parent is previous version number when delta found
-    makeLocalFile("1/00001.delta.cueball");
+    makeRemoteFile("1/00001.delta.cueball");
     assertEquals(v0, updater.getParentDomainVersion(v1));
-    deleteLocalFile("1/00001.delta.cueball");
+    deleteRemoteFile("1/00001.delta.cueball");
+  }
+
+  public void testDetectCurrentVersionNumber() throws IOException {
+    // Null when there is no version
+    assertEquals(null, updater.detectCurrentVersionNumber());
+
+    // Nothing when there is only a delta
+    makeLocalFile("00001.delta.cueball");
+    assertEquals(null, updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.delta.cueball");
+
+    // Correct number when there is a base
+    makeLocalFile("00001.base.cueball");
+    assertEquals(Integer.valueOf(1), updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.base.cueball");
+
+    // Most recent base
+    makeLocalFile("00001.base.cueball");
+    makeLocalFile("00002.base.cueball");
+    assertEquals(Integer.valueOf(2), updater.detectCurrentVersionNumber());
+    deleteLocalFile("00001.base.cueball");
+    deleteLocalFile("00002.base.cueball");
+  }
+
+  private void makeRemoteFile(String name) throws IOException {
+    File file = new File(remotePartitionRoot + "/" + name);
+    file.mkdirs();
+    file.createNewFile();
+  }
+
+  private void deleteRemoteFile(String name) throws IOException {
+    new File(remotePartitionRoot + "/" + name).delete();
   }
 
   private void makeLocalFile(String name) throws IOException {
-    File file = new File(localTmpDir + "/" + name);
+    File file = new File(localPartitionRoot + "/" + name);
     file.mkdirs();
     file.createNewFile();
   }
 
   private void deleteLocalFile(String name) throws IOException {
-    new File(localTmpDir + "/" + name).delete();
+    new File(localPartitionRoot + "/" + name).delete();
   }
 }

@@ -32,7 +32,7 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
   private IncrementalPartitionUpdater getMockUpdater(final Domain domain,
                                                      final Integer currentVersion) {
 
-    return new IncrementalPartitionUpdater(domain, null) {
+    return new IncrementalPartitionUpdater(domain, null, null) {
 
       @Override
       protected Integer detectCurrentVersionNumber() throws IOException {

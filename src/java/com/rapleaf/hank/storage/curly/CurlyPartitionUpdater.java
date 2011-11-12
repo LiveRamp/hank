@@ -21,19 +21,32 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
-import org.apache.commons.lang.NotImplementedException;
+import com.rapleaf.hank.storage.cueball.CueballFilePath;
 
 import java.io.IOException;
+import java.util.SortedSet;
 
 public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
-  public CurlyPartitionUpdater(Domain domain, PartitionRemoteFileOps partitionRemoteFileOps) {
-    super(domain, partitionRemoteFileOps);
+  public CurlyPartitionUpdater(Domain domain,
+                               PartitionRemoteFileOps partitionRemoteFileOps,
+                               String localPartitionRoot) {
+    super(domain, partitionRemoteFileOps, localPartitionRoot);
   }
 
   @Override
   protected Integer detectCurrentVersionNumber() throws IOException {
-    throw new NotImplementedException();
+    SortedSet<CueballFilePath> localCueballBases = Cueball.getBases(localPartitionRoot);
+    SortedSet<CurlyFilePath> localCurlyBases = Curly.getBases(localPartitionRoot);
+    if (localCueballBases.size() > 0 && localCurlyBases.size() > 0) {
+      if (localCueballBases.last().getVersion() == localCurlyBases.last().getVersion()) {
+        return localCurlyBases.last().getVersion();
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
   }
 
   // TODO: determining the parent domain version should be based on DomainVersion metadata instead

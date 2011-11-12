@@ -29,10 +29,14 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   protected final Domain domain;
   protected final PartitionRemoteFileOps partitionRemoteFileOps;
+  protected final String localPartitionRoot;
 
-  public IncrementalPartitionUpdater(Domain domain, PartitionRemoteFileOps partitionRemoteFileOps) {
+  public IncrementalPartitionUpdater(Domain domain,
+                                     PartitionRemoteFileOps partitionRemoteFileOps,
+                                     String localPartitionRoot) {
     this.domain = domain;
     this.partitionRemoteFileOps = partitionRemoteFileOps;
+    this.localPartitionRoot = localPartitionRoot;
   }
 
   @Override
