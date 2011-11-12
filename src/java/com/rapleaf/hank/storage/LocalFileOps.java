@@ -79,4 +79,10 @@ public class LocalFileOps implements IFileOps {
     }
     return false;
   }
+
+  @Override
+  public boolean exists(String path) throws IOException {
+    return new File(path).exists();
+  }
+
 }

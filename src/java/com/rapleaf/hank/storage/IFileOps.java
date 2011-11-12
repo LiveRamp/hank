@@ -42,4 +42,6 @@ public interface IFileOps {
   public String copyToLocal(String remoteFileName, String localDirectory) throws IOException;
 
   public boolean attemptDeleteRemote(String path) throws IOException;
+  
+  public boolean exists(String path) throws IOException;
 }

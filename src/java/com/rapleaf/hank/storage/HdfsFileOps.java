@@ -72,4 +72,9 @@ public class HdfsFileOps implements IFileOps {
     }
     return false;
   }
+
+  @Override
+  public boolean exists(String path) throws IOException {
+    return fs.exists(new Path(path));
+  }
 }
