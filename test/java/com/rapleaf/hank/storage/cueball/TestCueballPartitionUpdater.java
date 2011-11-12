@@ -58,7 +58,7 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     new File(remotePartitionRoot).mkdir();
     new File(localPartitionRoot).mkdir();
     this.updater = new CueballPartitionUpdater(domain,
-        new LocalPartitionRemoteFileOps(remotePartitionRoot, 1),
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         localPartitionRoot);
   }
 
@@ -73,14 +73,14 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     }
 
     // Parent is null when base found
-    makeRemoteFile("1/00001.base.cueball");
+    makeRemoteFile("0/00001.base.cueball");
     assertNull(updater.getParentDomainVersion(v1));
-    deleteRemoteFile("1/00001.base.cueball");
+    deleteRemoteFile("0/00001.base.cueball");
 
     // Parent is previous version number when delta found
-    makeRemoteFile("1/00001.delta.cueball");
+    makeRemoteFile("0/00001.delta.cueball");
     assertEquals(v0, updater.getParentDomainVersion(v1));
-    deleteRemoteFile("1/00001.delta.cueball");
+    deleteRemoteFile("0/00001.delta.cueball");
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
@@ -132,6 +132,32 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     deleteLocalCacheFile("00001.base.cueball");
   }
 
+  public void testFetchVersion() throws IOException {
+    String fetchRootName = "_fetch";
+    String fetchRoot = localPartitionRoot + "/" + fetchRootName;
+    new File(fetchRoot).mkdir();
+
+    // Fail when there is no valid file
+    try {
+      updater.fetchVersion(v0, fetchRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
+
+    // Fetch delta
+    makeRemoteFile("0/00000.delta.cueball");
+    updater.fetchVersion(v0, fetchRoot);
+    deleteRemoteFile("0/00000.delta.cueball");
+    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.cueball"));
+
+    // Fetch base
+    makeRemoteFile("0/00000.base.cueball");
+    updater.fetchVersion(v0, fetchRoot);
+    deleteRemoteFile("0/00000.base.cueball");
+    assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
+  }
+
   private void makeRemoteFile(String name) throws IOException {
     File file = new File(remotePartitionRoot + "/" + name);
     file.mkdirs();
@@ -158,5 +184,9 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
 
   private void deleteLocalCacheFile(String name) throws IOException {
     deleteLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
+  }
+
+  private boolean existsLocalFile(String name) {
+    return new File(localPartitionRoot + "/" + name).exists();
   }
 }

@@ -52,11 +52,11 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
 
-  protected abstract Set<DomainVersion> detectCachedVersions() throws IOException;
+  protected abstract Set<DomainVersion> detectCachedVersionsCore() throws IOException;
 
   protected abstract void cleanCachedVersions() throws IOException;
 
-  protected abstract void fetchVersion(DomainVersion version, String fetchRoot);
+  protected abstract void fetchVersion(DomainVersion version, String fetchRoot) throws IOException;
 
   @Override
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
@@ -98,6 +98,11 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         FileUtils.deleteDirectory(file);
       }
     }
+  }
+
+  public Set<DomainVersion> detectCachedVersions() throws IOException {
+    ensureCacheExists();
+    return detectCachedVersionsCore();
   }
 
   // Fetch required versions and commit them to cache upon successful fetch

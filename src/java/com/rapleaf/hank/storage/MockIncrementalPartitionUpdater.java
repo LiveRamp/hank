@@ -41,7 +41,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
   }
 
   @Override
-  protected Set<DomainVersion> detectCachedVersions() throws IOException {
+  protected Set<DomainVersion> detectCachedVersionsCore() throws IOException {
     Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
     for (Integer versionNumber : cachedVersions) {
       cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));

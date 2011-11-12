@@ -58,7 +58,7 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     new File(remotePartitionRoot).mkdir();
     new File(localPartitionRoot).mkdir();
     this.updater = new CurlyPartitionUpdater(domain,
-        new LocalPartitionRemoteFileOps(remotePartitionRoot, 1),
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         localPartitionRoot);
   }
 
@@ -74,7 +74,7 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
 
     // Fail when only cueball file was found
     try {
-      makeRemoteFile("1/00001.base.cueball");
+      makeRemoteFile("0/00001.base.cueball");
       updater.getParentDomainVersion(v0);
       fail("Should fail");
     } catch (IOException e) {
@@ -83,18 +83,18 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     }
 
     // Parent is null when base found
-    makeRemoteFile("1/00001.base.cueball");
-    makeRemoteFile("1/00001.base.curly");
+    makeRemoteFile("0/00001.base.cueball");
+    makeRemoteFile("0/00001.base.curly");
     assertNull(updater.getParentDomainVersion(v1));
-    deleteRemoteFile("1/00001.base.cueball");
-    deleteRemoteFile("1/00001.base.curly");
+    deleteRemoteFile("0/00001.base.cueball");
+    deleteRemoteFile("0/00001.base.curly");
 
     // Parent is previous version number when delta found
-    makeRemoteFile("1/00001.delta.cueball");
-    makeRemoteFile("1/00001.delta.curly");
+    makeRemoteFile("0/00001.delta.cueball");
+    makeRemoteFile("0/00001.delta.curly");
     assertEquals(v0, updater.getParentDomainVersion(v1));
-    deleteRemoteFile("1/00001.delta.cueball");
-    deleteRemoteFile("1/00001.delta.curly");
+    deleteRemoteFile("0/00001.delta.cueball");
+    deleteRemoteFile("0/00001.delta.curly");
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
@@ -172,6 +172,49 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     deleteLocalCacheFile("00001.base.curly");
   }
 
+  public void testFetchVersion() throws IOException {
+    String fetchRootName = "_fetch";
+    String fetchRoot = localPartitionRoot + "/" + fetchRootName;
+    new File(fetchRoot).mkdir();
+
+    // Fail when there is no valid file
+    try {
+      updater.fetchVersion(v0, fetchRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
+
+    // Fail when there is only cueball
+    try {
+      makeRemoteFile("0/00000.delta.cueball");
+      updater.fetchVersion(v0, fetchRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+      deleteRemoteFile("0/00000.delta.cueball");
+    }
+
+    // Fetch delta
+    makeRemoteFile("0/00000.delta.cueball");
+    makeRemoteFile("0/00000.delta.curly");
+    updater.fetchVersion(v0, fetchRoot);
+    deleteRemoteFile("0/00000.delta.cueball");
+    deleteRemoteFile("0/00000.delta.curly");
+    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.cueball"));
+    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.curly"));
+
+    // Fetch base
+    makeRemoteFile("0/00000.base.cueball");
+    makeRemoteFile("0/00000.base.curly");
+    updater.fetchVersion(v0, fetchRoot);
+    deleteRemoteFile("0/00000.base.cueball");
+    deleteRemoteFile("0/00000.base.curly");
+    assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
+    assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
+  }
+
+
   private void makeRemoteFile(String name) throws IOException {
     File file = new File(remotePartitionRoot + "/" + name);
     file.mkdirs();
@@ -198,5 +241,9 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
 
   private void deleteLocalCacheFile(String name) throws IOException {
     deleteLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
+  }
+
+  private boolean existsLocalFile(String name) {
+    return new File(localPartitionRoot + "/" + name).exists();
   }
 }

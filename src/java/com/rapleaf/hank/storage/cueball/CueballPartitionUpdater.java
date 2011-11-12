@@ -21,7 +21,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,7 +75,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected Set<DomainVersion> detectCachedVersions() throws IOException {
+  protected Set<DomainVersion> detectCachedVersionsCore() throws IOException {
     SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
     Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
     for (CueballFilePath base : cachedBases) {
@@ -95,7 +94,20 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected void fetchVersion(DomainVersion version, String fetchRoot) {
-    throw new NotImplementedException();
+  protected void fetchVersion(DomainVersion version, String fetchRoot) throws IOException {
+    // Determine if version is a base or delta
+    // TODO: use version's metadata to determine if it's a base or a delta
+    Boolean isBase = null;
+    if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), true))) {
+      isBase = true;
+    } else if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), false))) {
+      isBase = false;
+    }
+    if (isBase == null) {
+      throw new IOException("Failed to determine if version was a base or a delta: " + version);
+    }
+    // Fetch version files
+    String fileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
+    partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
   }
 }

@@ -20,6 +20,7 @@ import java.io.IOException;
 
 public interface PartitionRemoteFileOps {
 
-  public boolean exists(String path) throws IOException;
+  public boolean exists(String relativePath) throws IOException;
 
+  void copyToLocalRoot(String relativePath, String localRoot) throws IOException;
 }

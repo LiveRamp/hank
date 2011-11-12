@@ -25,14 +25,23 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   private final int partitionNumber;
 
   public LocalPartitionRemoteFileOps(String remoteDomainRoot,
-                                    int partitionNumber) throws IOException {
+                                     int partitionNumber) throws IOException {
     this.remoteDomainRoot = remoteDomainRoot;
     this.partitionNumber = partitionNumber;
   }
 
   @Override
-  public boolean exists(String relativeFilePath) throws IOException {
-    return new File(getAbsolutePath(relativeFilePath)).exists();
+  public boolean exists(String relativePath) throws IOException {
+    return new File(getAbsolutePath(relativePath)).exists();
+  }
+
+  @Override
+  public void copyToLocalRoot(String relativePath, String localRoot) throws IOException {
+    File source = new File(getAbsolutePath(relativePath));
+    File destination = new File(localRoot + "/" + source.getName());
+    if (!source.renameTo(destination)) {
+      throw new IOException("Failed to copy " + source.getParent() + " to " + destination);
+    }
   }
 
   private String getAbsolutePath(String relativeFilePath) {
