@@ -21,10 +21,14 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TestCurlyPartitionUpdater extends BaseTestCase {
 
@@ -51,11 +55,11 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
   @Override
   public void setUp() throws Exception {
     super.setUp();
+    new File(remotePartitionRoot).mkdir();
+    new File(localPartitionRoot).mkdir();
     this.updater = new CurlyPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 1),
         localPartitionRoot);
-    new File(remotePartitionRoot).mkdirs();
-    new File(localPartitionRoot).mkdirs();
   }
 
   public void testGetDomainVersionParent() throws IOException {
@@ -128,6 +132,46 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     deleteLocalFile("00002.base.curly");
   }
 
+  public void testGetCachedVersions() throws IOException {
+    Set<DomainVersion> versions = new HashSet<DomainVersion>();
+
+    // Empty cache
+    assertEquals(versions, updater.getCachedVersions());
+
+    // Do not consider cueball files only
+    makeLocalCacheFile("00001.base.cueball");
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.getCachedVersions());
+    deleteLocalCacheFile("00001.base.cueball");
+
+    // Do not consider deltas
+    makeLocalCacheFile("00001.delta.cueball");
+    makeLocalCacheFile("00001.delta.curly");
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.getCachedVersions());
+    deleteLocalCacheFile("00001.delta.cueball");
+    deleteLocalCacheFile("00001.delta.curly");
+
+    // Use bases
+    makeLocalCacheFile("00000.base.cueball");
+    makeLocalCacheFile("00000.base.curly");
+    assertEquals(Collections.<DomainVersion>singleton(v0), updater.getCachedVersions());
+    deleteLocalCacheFile("00000.base.cueball");
+    deleteLocalCacheFile("00000.base.curly");
+
+    // Use multiple bases
+    makeLocalCacheFile("00000.base.cueball");
+    makeLocalCacheFile("00000.base.curly");
+    makeLocalCacheFile("00001.base.cueball");
+    makeLocalCacheFile("00001.base.curly");
+    versions.add(v0);
+    versions.add(v1);
+    assertEquals(versions, updater.getCachedVersions());
+    versions.clear();
+    deleteLocalCacheFile("00000.base.cueball");
+    deleteLocalCacheFile("00000.base.curly");
+    deleteLocalCacheFile("00001.base.cueball");
+    deleteLocalCacheFile("00001.base.curly");
+  }
+
   private void makeRemoteFile(String name) throws IOException {
     File file = new File(remotePartitionRoot + "/" + name);
     file.mkdirs();
@@ -146,5 +190,13 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
 
   private void deleteLocalFile(String name) throws IOException {
     new File(localPartitionRoot + "/" + name).delete();
+  }
+
+  private void makeLocalCacheFile(String name) throws IOException {
+    makeLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
+  }
+
+  private void deleteLocalCacheFile(String name) throws IOException {
+    deleteLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
   }
 }

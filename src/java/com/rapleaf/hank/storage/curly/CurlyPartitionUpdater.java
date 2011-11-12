@@ -24,14 +24,39 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedSet;
 
 public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
   public CurlyPartitionUpdater(Domain domain,
                                PartitionRemoteFileOps partitionRemoteFileOps,
-                               String localPartitionRoot) {
+                               String localPartitionRoot) throws IOException {
     super(domain, partitionRemoteFileOps, localPartitionRoot);
+  }
+
+  @Override
+  protected Set<DomainVersion> getCachedVersions() throws IOException {
+    // Record in a set all cached Cueball bases
+    SortedSet<CueballFilePath> cachedCueballBases = Cueball.getBases(localPartitionRootCache);
+    HashSet<Integer> cachedCueballBasesVersions = new HashSet<Integer>();
+    for (CueballFilePath cueballCachedVersion : cachedCueballBases) {
+      cachedCueballBasesVersions.add(cueballCachedVersion.getVersion());
+    }
+    // Compute cached Curly bases
+    SortedSet<CurlyFilePath> cachedCurlyBases = Curly.getBases(localPartitionRootCache);
+    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
+    for (CurlyFilePath cachedCurlyBase : cachedCurlyBases) {
+      // Check that the corresponding Cueball version is also cached
+      if (cachedCueballBasesVersions.contains(cachedCurlyBase.getVersion())) {
+        DomainVersion version = domain.getVersionByNumber(cachedCurlyBase.getVersion());
+        if (version != null) {
+          cachedVersions.add(version);
+        }
+      }
+    }
+    return cachedVersions;
   }
 
   @Override
@@ -57,7 +82,7 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
       // Base files exists, there is no parent
       return null;
     } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-               && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false))) {
+        && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false))) {
       // Delta files exists, the parent is just the previous version based on version number
       int versionNumber = domainVersion.getVersionNumber();
       if (versionNumber <= 0) {

@@ -30,9 +30,14 @@ import java.util.Set;
 public class TestIncrementalPartitionUpdater extends BaseTestCase {
 
   private IncrementalPartitionUpdater getMockUpdater(final Domain domain,
-                                                     final Integer currentVersion) {
+                                                     final Integer currentVersion) throws IOException {
 
     return new IncrementalPartitionUpdater(domain, null, null) {
+
+      @Override
+      protected Set<DomainVersion> getCachedVersions() throws IOException {
+        return new HashSet<DomainVersion>();
+      }
 
       @Override
       protected Integer detectCurrentVersionNumber() throws IOException {

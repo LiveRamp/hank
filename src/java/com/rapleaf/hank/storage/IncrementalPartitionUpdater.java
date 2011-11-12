@@ -21,27 +21,59 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import org.apache.commons.lang.NotImplementedException;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
+  public static final String CACHE_ROOT_NAME = "cache";
+
   protected final Domain domain;
   protected final PartitionRemoteFileOps partitionRemoteFileOps;
   protected final String localPartitionRoot;
+  protected final String localPartitionRootCache;
 
   public IncrementalPartitionUpdater(Domain domain,
                                      PartitionRemoteFileOps partitionRemoteFileOps,
-                                     String localPartitionRoot) {
+                                     String localPartitionRoot) throws IOException {
     this.domain = domain;
     this.partitionRemoteFileOps = partitionRemoteFileOps;
     this.localPartitionRoot = localPartitionRoot;
+    this.localPartitionRootCache = localPartitionRoot + "/" + CACHE_ROOT_NAME;
+    ensureCacheExists();
   }
 
   @Override
-  public void updateTo(DomainVersion domainVersion) throws IOException {
+  public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
+    ensureCacheExists();
+    DomainVersion currentDomainVersion = detectCurrentVersion();
+    Set<DomainVersion> versionsNeededToUpdate =
+        getVersionsNeededToUpdate(currentDomainVersion, updatingToDomainVersion);
+
+    // If we don't need any version to update, or only the current version, we are done
+    if (versionsNeededToUpdate.isEmpty() ||
+        versionsNeededToUpdate.equals(Collections.<DomainVersion>singleton(currentDomainVersion))) {
+      return;
+    }
+    // Fetch needed versions in the cache, except current version
+    // Run update based on needed versions in a workspace
+    // Move current to cache?
+    // Commit workspace
+    // Clean cache
     throw new NotImplementedException();
+  }
+
+  private void ensureCacheExists() throws IOException {
+    // Create cache directory if it doesn't exist
+    File cacheRootFile = new File(localPartitionRootCache);
+    if (!cacheRootFile.exists()) {
+      if (!cacheRootFile.mkdir()) {
+        throw new IOException("Failed to create cache root directory: " + cacheRootFile.getPath());
+      }
+    }
   }
 
   /**
@@ -78,6 +110,8 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     }
     return domainVersions;
   }
+
+  protected abstract Set<DomainVersion> getCachedVersions() throws IOException;
 
   private DomainVersion detectCurrentVersion() throws IOException {
     Integer currentVersionNumber = detectCurrentVersionNumber();

@@ -22,14 +22,29 @@ import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.SortedSet;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
   public CueballPartitionUpdater(Domain domain,
                                  PartitionRemoteFileOps partitionRemoteFileOps,
-                                 String localPartitionRoot) {
+                                 String localPartitionRoot) throws IOException {
     super(domain, partitionRemoteFileOps, localPartitionRoot);
+  }
+
+  @Override
+  protected Set<DomainVersion> getCachedVersions() throws IOException {
+    SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
+    Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
+    for (CueballFilePath base : cachedBases) {
+      DomainVersion version = domain.getVersionByNumber(base.getVersion());
+      if (version != null) {
+        cachedVersions.add(version);
+      }
+    }
+    return cachedVersions;
   }
 
   @Override
