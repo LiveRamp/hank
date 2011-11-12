@@ -50,7 +50,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
     ensureCacheExists();
     DomainVersion currentVersion = detectCurrentVersion();
-    Set<DomainVersion> cachedVersions = getCachedVersions();
+    Set<DomainVersion> cachedVersions = detectCachedVersions();
     Set<DomainVersion> versionsNeededToUpdate =
         getVersionsNeededToUpdate(currentVersion, cachedVersions, updatingToDomainVersion);
 
@@ -137,7 +137,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     }
   }
 
-  protected abstract Set<DomainVersion> getCachedVersions() throws IOException;
+  protected abstract Set<DomainVersion> detectCachedVersions() throws IOException;
 
   protected abstract void cleanCachedVersions() throws IOException;
 

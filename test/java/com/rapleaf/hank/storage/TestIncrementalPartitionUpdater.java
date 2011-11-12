@@ -46,7 +46,7 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     return new IncrementalPartitionUpdater(domain, null, localPartitionRoot) {
 
       @Override
-      protected Set<DomainVersion> getCachedVersions() throws IOException {
+      protected Set<DomainVersion> detectCachedVersions() throws IOException {
         Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
         for (Integer versionNumber : cachedVersions) {
           cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));

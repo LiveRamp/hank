@@ -39,7 +39,7 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected Set<DomainVersion> getCachedVersions() throws IOException {
+  protected Set<DomainVersion> detectCachedVersions() throws IOException {
     // Record in a set all cached Cueball bases
     SortedSet<CueballFilePath> cachedCueballBases = Cueball.getBases(localPartitionRootCache);
     HashSet<Integer> cachedCueballBasesVersions = new HashSet<Integer>();

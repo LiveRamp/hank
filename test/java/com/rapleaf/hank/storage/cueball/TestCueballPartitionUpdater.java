@@ -109,16 +109,16 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
     // Empty cache
-    assertEquals(versions, updater.getCachedVersions());
+    assertEquals(versions, updater.detectCachedVersions());
 
     // Do not consider deltas
     makeLocalCacheFile("00001.delta.cueball");
-    assertEquals(Collections.<DomainVersion>emptySet(), updater.getCachedVersions());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedVersions());
     deleteLocalCacheFile("00001.delta.cueball");
 
     // Use bases
     makeLocalCacheFile("00000.base.cueball");
-    assertEquals(Collections.<DomainVersion>singleton(v0), updater.getCachedVersions());
+    assertEquals(Collections.<DomainVersion>singleton(v0), updater.detectCachedVersions());
     deleteLocalCacheFile("00000.base.cueball");
 
     // Use multiple bases
@@ -126,7 +126,7 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     makeLocalCacheFile("00001.base.cueball");
     versions.add(v0);
     versions.add(v1);
-    assertEquals(versions, updater.getCachedVersions());
+    assertEquals(versions, updater.detectCachedVersions());
     versions.clear();
     deleteLocalCacheFile("00000.base.cueball");
     deleteLocalCacheFile("00001.base.cueball");

@@ -43,7 +43,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected Set<DomainVersion> getCachedVersions() throws IOException {
+  protected Set<DomainVersion> detectCachedVersions() throws IOException {
     SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
     Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
     for (CueballFilePath base : cachedBases) {
