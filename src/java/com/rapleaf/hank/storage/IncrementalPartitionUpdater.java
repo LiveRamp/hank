@@ -28,9 +28,11 @@ import java.util.Set;
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   protected final Domain domain;
+  protected final PartitionRemoteFileOps partitionRemoteFileOps;
 
-  public IncrementalPartitionUpdater(Domain domain) {
+  public IncrementalPartitionUpdater(Domain domain, PartitionRemoteFileOps partitionRemoteFileOps) {
     this.domain = domain;
+    this.partitionRemoteFileOps = partitionRemoteFileOps;
   }
 
   @Override
@@ -63,7 +65,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         domainVersions.add(parentVersion);
       }
       // Move to parent version
-      parentVersion = getDomainVersionParent(parentVersion);
+      parentVersion = getParentDomainVersion(parentVersion);
     }
     // If current version is a parent of the version we are updating to, add it to the set of versions needed
     if (parentVersion != null && currentVersion != null
@@ -89,5 +91,5 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
    */
   protected abstract Integer detectCurrentVersionNumber() throws IOException;
 
-  protected abstract DomainVersion getDomainVersionParent(DomainVersion domainVersion) throws IOException;
+  protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
 }

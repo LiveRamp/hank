@@ -19,14 +19,15 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.io.IOException;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
-  public CueballPartitionUpdater(Domain domain) {
-    super(domain);
+  public CueballPartitionUpdater(Domain domain, PartitionRemoteFileOps partitionRemoteFileOps) {
+    super(domain, partitionRemoteFileOps);
   }
 
   @Override
@@ -34,15 +35,28 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     throw new NotImplementedException();
   }
 
+  // TODO: determining the parent domain version should be based on DomainVersion metadata instead
   @Override
-  protected DomainVersion getDomainVersionParent(DomainVersion domainVersion) throws IOException {
-    // TODO: Implement version parent
-    // For now, just return the previous version based on version number
-    int versionNumber = domainVersion.getVersionNumber();
-    if (versionNumber <= 0) {
+  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
+    if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
+      // Base file exists, there is no parent
       return null;
+    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))) {
+      // Delta file exists, the parent is just the previous version based on version number
+      int versionNumber = domainVersion.getVersionNumber();
+      if (versionNumber <= 0) {
+        return null;
+      } else {
+        DomainVersion result = domain.getVersionByNumber(versionNumber - 1);
+        if (result == null) {
+          throw new IOException("Failed to find version numbered " + (versionNumber - 1)
+              + " of domain " + domain
+              + " which was determined be the parent of domain version " + domainVersion);
+        }
+        return result;
+      }
     } else {
-      return domain.getVersionByNumber(versionNumber - 1);
+      throw new IOException("Failed to determine parent version of domain version: " + domainVersion);
     }
   }
 }

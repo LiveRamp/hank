@@ -252,7 +252,7 @@ public class Curly implements StorageEngine {
     return result;
   }
 
-  private String getName(int versionNumber, boolean base) {
+  protected static String getName(int versionNumber, boolean base) {
     String s = padVersionNumber(versionNumber) + ".";
     if (base) {
       s += "base";

@@ -214,7 +214,7 @@ public class Cueball implements StorageEngine {
     return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;
   }
 
-  private String getName(int versionNumber, boolean base) {
+  public static String getName(int versionNumber, boolean base) {
     String s = padVersionNumber(versionNumber) + ".";
     if (base) {
       s += "base";
