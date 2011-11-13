@@ -23,10 +23,12 @@ public class PartitionFileLocalPath implements Comparable<PartitionFileLocalPath
 
   private final String path;
   private final int version;
+  private final String name;
 
   public PartitionFileLocalPath(String path, int version) {
     this.path = path;
     this.version = version;
+    this.name = new File(path).getName();
   }
 
   public String getPath() {
@@ -46,6 +48,10 @@ public class PartitionFileLocalPath implements Comparable<PartitionFileLocalPath
     if (!new File(file.getPath()).delete()) {
       throw new IOException("Failed to delete file " + file);
     }
+  }
+
+  public String getName() {
+    return name;
   }
 
   @Override
