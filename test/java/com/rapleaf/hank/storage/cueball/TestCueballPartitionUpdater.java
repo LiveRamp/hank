@@ -17,6 +17,8 @@
 package com.rapleaf.hank.storage.cueball;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -57,8 +59,20 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     super.setUp();
     new File(remotePartitionRoot).mkdir();
     new File(localPartitionRoot).mkdir();
+
+    int keyHashSize = 12;
+    int valueSize = 5;
+    MockCueballMerger merger = new MockCueballMerger();
+    CompressionCodec compressionCodec = new NoCompressionCodec();
+    int hashIndexBits = 1;
+
     this.updater = new CueballPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
+        keyHashSize,
+        valueSize,
+        merger,
+        compressionCodec,
+        hashIndexBits,
         localPartitionRoot);
   }
 

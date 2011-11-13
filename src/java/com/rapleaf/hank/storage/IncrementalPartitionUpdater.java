@@ -31,6 +31,7 @@ import java.util.UUID;
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   public static final String FETCH_ROOT_PREFIX = "_fetch_";
+  public static final String UPDATE_WORK_ROOT_PREFIX = "_update_work_";
   public static final String CACHE_ROOT_NAME = "cache";
 
   protected final Domain domain;
@@ -58,6 +59,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   protected abstract void fetchVersion(DomainVersion version, String fetchRoot) throws IOException;
 
+  protected abstract void runUpdateCore(DomainVersion currentVersion,
+                                        Set<DomainVersion> versionsNeededToUpdate,
+                                        File updateWorkRoot);
+
   @Override
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
     ensureCacheExists();
@@ -73,30 +78,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     try {
       // Fetch and cache needed versions
       cacheVersionsNeededToUpdate(currentVersion, cachedVersions, versionsNeededToUpdate);
-
       // Run update based on needed versions in a workspace
-      // Move current to cache?
-      // Commit workspace
-
+      runUpdate(currentVersion, versionsNeededToUpdate);
     } finally {
       cleanCachedVersions();
-    }
-  }
-
-  private File createFetchRoot() throws IOException {
-    String fetchRoot = localPartitionRoot + "/" + FETCH_ROOT_PREFIX + UUID.randomUUID().toString();
-    File fetchRootFile = new File(fetchRoot);
-    if (!fetchRootFile.mkdir()) {
-      throw new IOException("Failed to create fetch root: " + fetchRoot);
-    }
-    return fetchRootFile;
-  }
-
-  private void deleteFetchRoots() throws IOException {
-    for (File file : new File(localPartitionRoot).listFiles()) {
-      if (file.isDirectory() && file.getName().startsWith(FETCH_ROOT_PREFIX)) {
-        FileUtils.deleteDirectory(file);
-      }
     }
   }
 
@@ -128,23 +113,42 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         fetchVersion(version, fetchRoot.getPath());
       }
       // Commit fetched versions to cache
-      for (File file : fetchRoot.listFiles()) {
-        File targetFile = new File(localPartitionRootCache + "/" + file.getName());
-        // If target file already exists, delete it
-        if (targetFile.exists()) {
-          if (!targetFile.delete()) {
-            throw new IOException("Failed to overwrite file in cache: " + targetFile.getPath());
-          }
-        }
-        // Move file to final destination in cache
-        if (!file.renameTo(targetFile)) {
-          throw new IOException("Failed to rename fetched file: " + file.getPath()
-              + " to cached file: " + targetFile.getPath());
-        }
-      }
+      commitFilesFromTmpRootToPersistentRoot(fetchRoot, localPartitionRootCache);
     } finally {
       // Always delete fetch roots
       deleteFetchRoots();
+    }
+  }
+
+  private void runUpdate(DomainVersion currentVersion,
+                         Set<DomainVersion> versionsNeededToUpdate) throws IOException {
+    File updateWorkRoot = createUpdateWorkRoot();
+    try {
+      // Clean all previous update work roots
+      deleteUpdateWorkRoots();
+      // Execute update
+      runUpdateCore(currentVersion, versionsNeededToUpdate, updateWorkRoot);
+      // Commit result files to top level
+      commitFilesFromTmpRootToPersistentRoot(updateWorkRoot, localPartitionRoot);
+    } finally {
+      deleteUpdateWorkRoots();
+    }
+  }
+
+  private void commitFilesFromTmpRootToPersistentRoot(File tmpRoot, String persistentRoot) throws IOException {
+    for (File file : tmpRoot.listFiles()) {
+      File targetFile = new File(persistentRoot + "/" + file.getName());
+      // If target file already exists, delete it
+      if (targetFile.exists()) {
+        if (!targetFile.delete()) {
+          throw new IOException("Failed to overwrite file in persistent root: " + targetFile.getPath());
+        }
+      }
+      // Move file to persistent destination
+      if (!file.renameTo(targetFile)) {
+        throw new IOException("Failed to rename temporary file: " + file.getPath()
+            + " to persistent file: " + targetFile.getPath());
+      }
     }
   }
 
@@ -212,6 +216,39 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       return domain.getVersionByNumber(currentVersionNumber);
     } else {
       return null;
+    }
+  }
+
+  private File createUpdateWorkRoot() throws IOException {
+    return createTmpWorkRoot(UPDATE_WORK_ROOT_PREFIX);
+  }
+
+  private void deleteUpdateWorkRoots() throws IOException {
+    deleteTmpWorkRoots(UPDATE_WORK_ROOT_PREFIX);
+  }
+
+  private File createFetchRoot() throws IOException {
+    return createTmpWorkRoot(FETCH_ROOT_PREFIX);
+  }
+
+  private void deleteFetchRoots() throws IOException {
+    deleteTmpWorkRoots(FETCH_ROOT_PREFIX);
+  }
+
+  private File createTmpWorkRoot(String prefix) throws IOException {
+    String tmpRoot = localPartitionRoot + "/" + prefix + UUID.randomUUID().toString();
+    File tmpRootFile = new File(tmpRoot);
+    if (!tmpRootFile.mkdir()) {
+      throw new IOException("Failed to create temporary work root: " + tmpRoot);
+    }
+    return tmpRootFile;
+  }
+
+  private void deleteTmpWorkRoots(String prefix) throws IOException {
+    for (File file : new File(localPartitionRoot).listFiles()) {
+      if (file.isDirectory() && file.getName().startsWith(prefix)) {
+        FileUtils.deleteDirectory(file);
+      }
     }
   }
 }

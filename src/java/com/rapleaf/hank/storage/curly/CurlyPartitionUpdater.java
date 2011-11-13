@@ -23,6 +23,7 @@ import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -137,5 +138,10 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     LOG.info("Fetching: " + curlyFileToFetch + " to: " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
+  }
+
+  @Override
+  protected void runUpdateCore(DomainVersion currentVersion, Set<DomainVersion> versionsNeededToUpdate, File updateWorkRoot) {
+    throw new NotImplementedException();
   }
 }

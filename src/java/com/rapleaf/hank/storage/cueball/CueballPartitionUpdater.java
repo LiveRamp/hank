@@ -16,11 +16,13 @@
 
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -34,12 +36,27 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   private static final Logger LOG = Logger.getLogger(CueballPartitionUpdater.class);
 
   private final PartitionRemoteFileOps partitionRemoteFileOps;
+  private final int keyHashSize;
+  private final int valueSize;
+  private final ICueballMerger merger;
+  private final CompressionCodec compressionCodec;
+  private final int hashIndexBits;
 
   public CueballPartitionUpdater(Domain domain,
                                  PartitionRemoteFileOps partitionRemoteFileOps,
+                                 int keyHashSize,
+                                 int valueSize,
+                                 ICueballMerger merger,
+                                 CompressionCodec compressionCodec,
+                                 int hashIndexBits,
                                  String localPartitionRoot) throws IOException {
     super(domain, localPartitionRoot);
     this.partitionRemoteFileOps = partitionRemoteFileOps;
+    this.keyHashSize = keyHashSize;
+    this.valueSize = valueSize;
+    this.merger = merger;
+    this.compressionCodec = compressionCodec;
+    this.hashIndexBits = hashIndexBits;
   }
 
   @Override
@@ -113,5 +130,10 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     String fileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
     LOG.info("Fetching: " + fileToFetch + " to: " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
+  }
+
+  @Override
+  protected void runUpdateCore(DomainVersion currentVersion, Set<DomainVersion> versionsNeededToUpdate, File updateWorkRoot) {
+    throw new NotImplementedException();
   }
 }
