@@ -53,7 +53,7 @@ class DomainAccessor {
     this.partitioner = partitioner;
     this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
 
-    updateStatisticsThread = new Thread(new UpdateStatisticsThread(), "Update Counts");
+    updateStatisticsThread = new Thread(new UpdateStatisticsThread(), "Update Statistics");
     updateStatisticsThread.start();
   }
 
