@@ -133,10 +133,11 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   private void runUpdate(DomainVersion currentVersion,
                          DomainVersion updatingToVersion,
                          IncrementalUpdatePlan updatePlan) throws IOException {
+    // Clean all previous update work roots
+    deleteUpdateWorkRoots();
+    // Create new update work root
     File updateWorkRoot = createUpdateWorkRoot();
     try {
-      // Clean all previous update work roots
-      deleteUpdateWorkRoots();
       // Execute update
       runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath());
       // Move current version to cache

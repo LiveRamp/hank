@@ -567,6 +567,7 @@ public class IntegrationTest extends ZkTestCase {
   private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {
     // Create new version
     domain.openNewVersion().close();
+    assertEquals(versionNumber, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     // partition keys and values
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer, ByteBuffer>>();
     Partitioner p = domain.getPartitioner();

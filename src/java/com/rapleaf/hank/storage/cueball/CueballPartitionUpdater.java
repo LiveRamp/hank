@@ -73,8 +73,9 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
       // Base file exists, there is no parent
       return null;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))) {
-      // Delta file exists, the parent is just the previous version based on version number
+    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
+        || isEmptyVersion(domainVersion)) {
+      // Delta file exists, or the version is empty, the parent is just the previous version based on version number
       int versionNumber = domainVersion.getVersionNumber();
       if (versionNumber <= 0) {
         return null;
@@ -88,8 +89,18 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         return result;
       }
     } else {
-      throw new IOException("Failed to determine parent version of domain version: " + domainVersion);
+      throw new IOException("Failed to determine parent version of domain version " + domainVersion);
     }
+  }
+
+  private boolean isEmptyVersion(DomainVersion domainVersion) throws IOException {
+    return isEmptyVersion(domainVersion, partitionRemoteFileOps);
+  }
+
+  private static boolean isEmptyVersion(DomainVersion domainVersion,
+                                        PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+    return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
+        && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false));
   }
 
   @Override
@@ -120,22 +131,25 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected void fetchVersion(DomainVersion version, String fetchRoot) throws IOException {
+  protected void fetchVersion(DomainVersion domainVersion, String fetchRoot) throws IOException {
     // Determine if version is a base or delta
     // TODO: use version's metadata to determine if it's a base or a delta
     Boolean isBase = null;
-    if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), true))) {
+    if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
       isBase = true;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), false))) {
+    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))) {
       isBase = false;
     }
     if (isBase == null) {
-      throw new IOException("Failed to determine if version was a base or a delta: " + version);
+      // If unable to determine if it's a base or delta, do not fetch anything
+      return;
     }
     // Fetch version files
-    String fileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
-    LOG.info("Fetching " + fileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
-    partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
+    String fileToFetch = Cueball.getName(domainVersion.getVersionNumber(), isBase);
+    if (partitionRemoteFileOps.exists(fileToFetch)) {
+      LOG.info("Fetching " + fileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
+    }
   }
 
   @Override
@@ -143,7 +157,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) throws IOException {
-    runUpdateCore(currentVersion,
+    runUpdateCore(partitionRemoteFileOps,
+        currentVersion,
         updatingToVersion,
         updatePlan,
         updateWorkRoot,
@@ -157,7 +172,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         null);
   }
 
-  public static void runUpdateCore(DomainVersion currentVersion,
+  public static void runUpdateCore(PartitionRemoteFileOps partitionRemoteFileOps,
+                                   DomainVersion currentVersion,
                                    DomainVersion updatingToVersion,
                                    IncrementalUpdatePlan updatePlan,
                                    String updateWorkRoot,
@@ -179,8 +195,11 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         localPartitionRoot, localPartitionRootCache, true);
     List<CueballFilePath> deltas = new ArrayList<CueballFilePath>();
     for (DomainVersion delta : updatePlan.getDeltasOrdered()) {
-      deltas.add(getCueballFilePathForVersion(delta, currentVersion,
-          localPartitionRoot, localPartitionRootCache, false));
+      // Only add to the delta list if the version is not empty
+      if (!isEmptyVersion(delta, partitionRemoteFileOps)) {
+        deltas.add(getCueballFilePathForVersion(delta, currentVersion,
+            localPartitionRoot, localPartitionRootCache, false));
+      }
     }
 
     // Check that all required files are available

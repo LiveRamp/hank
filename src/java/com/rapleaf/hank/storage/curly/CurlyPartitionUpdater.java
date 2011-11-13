@@ -104,9 +104,10 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
         && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))) {
       // Base files exists, there is no parent
       return null;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-        && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false))) {
-      // Delta files exists, the parent is just the previous version based on version number
+    } else if ((partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
+        && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false)))
+        || isEmptyVersion(domainVersion)) {
+      // Delta files exists, or the version is empty, the parent is just the previous version based on version number
       int versionNumber = domainVersion.getVersionNumber();
       if (versionNumber <= 0) {
         return null;
@@ -120,8 +121,15 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
         return result;
       }
     } else {
-      throw new IOException("Failed to determine parent version of domain version: " + domainVersion);
+      throw new IOException("Failed to determine parent version of domain version " + domainVersion);
     }
+  }
+
+  private boolean isEmptyVersion(DomainVersion domainVersion) throws IOException {
+    return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
+        && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
+        && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))
+        && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false));
   }
 
   @Override
@@ -176,15 +184,20 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
       isBase = false;
     }
     if (isBase == null) {
-      throw new IOException("Failed to determine if version was a base or a delta: " + version);
+      // If unable to determine if it's a base or delta, do not fetch anything
+      return;
     }
     // Fetch version files
     String cueballFileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
     String curlyFileToFetch = Curly.getName(version.getVersionNumber(), isBase);
-    LOG.info("Fetching " + cueballFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
-    LOG.info("Fetching " + curlyFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
-    partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
-    partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
+    if (partitionRemoteFileOps.exists(cueballFileToFetch)) {
+      LOG.info("Fetching " + cueballFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
+    }
+    if (partitionRemoteFileOps.exists(curlyFileToFetch)) {
+      LOG.info("Fetching " + curlyFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
+    }
   }
 
   @Override
@@ -202,7 +215,10 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     CurlyFilePath curlyBase = getCurlyFilePathForVersion(updatePlan.getBase(), currentVersion, true);
     List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
     for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
-      curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
+      // Only add to the delta list if the version is not empty
+      if (!isEmptyVersion(curlyDeltaVersion)) {
+        curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
+      }
     }
 
     // Check that all required files are available
@@ -226,7 +242,8 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltas);
 
     // Run Cueball update
-    CueballPartitionUpdater.runUpdateCore(currentVersion,
+    CueballPartitionUpdater.runUpdateCore(partitionRemoteFileOps,
+        currentVersion,
         updatingToVersion,
         updatePlan,
         updateWorkRoot,
