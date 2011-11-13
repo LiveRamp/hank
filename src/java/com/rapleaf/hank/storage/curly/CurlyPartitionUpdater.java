@@ -19,6 +19,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
@@ -88,20 +89,30 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected Set<DomainVersion> detectCachedVersionsCore() throws IOException {
-    // Record in a set all cached Cueball bases
-    SortedSet<CueballFilePath> cachedCueballBases = Cueball.getBases(localPartitionRootCache);
-    HashSet<Integer> cachedCueballBasesVersions = new HashSet<Integer>();
-    for (CueballFilePath cueballCachedVersion : cachedCueballBases) {
-      cachedCueballBasesVersions.add(cueballCachedVersion.getVersion());
+  protected Set<DomainVersion> detectCachedBasesCore() throws IOException {
+    return detectCachedVersions(Cueball.getBases(localPartitionRootCache),
+        Curly.getBases(localPartitionRootCache));
+  }
+
+  @Override
+  protected Set<DomainVersion> detectCachedDeltasCore() throws IOException {
+    return detectCachedVersions(Cueball.getDeltas(localPartitionRootCache),
+        Curly.getDeltas(localPartitionRootCache));
+  }
+
+  private Set<DomainVersion> detectCachedVersions(SortedSet<CueballFilePath> cueballCachedFiles,
+                                                  SortedSet<CurlyFilePath> curlyCachedFiles) throws IOException {
+    // Record in a set all cached Cueball versions
+    HashSet<Integer> cachedCueballVersions = new HashSet<Integer>();
+    for (CueballFilePath cueballCachedFile : cueballCachedFiles) {
+      cachedCueballVersions.add(cueballCachedFile.getVersion());
     }
-    // Compute cached Curly bases
-    SortedSet<CurlyFilePath> cachedCurlyBases = Curly.getBases(localPartitionRootCache);
+    // Compute cached Curly versions
     Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
-    for (CurlyFilePath cachedCurlyBase : cachedCurlyBases) {
+    for (CurlyFilePath curlyCachedFile : curlyCachedFiles) {
       // Check that the corresponding Cueball version is also cached
-      if (cachedCueballBasesVersions.contains(cachedCurlyBase.getVersion())) {
-        DomainVersion version = domain.getVersionByNumber(cachedCurlyBase.getVersion());
+      if (cachedCueballVersions.contains(curlyCachedFile.getVersion())) {
+        DomainVersion version = domain.getVersionByNumber(curlyCachedFile.getVersion());
         if (version != null) {
           cachedVersions.add(version);
         }
@@ -141,7 +152,9 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected void runUpdateCore(DomainVersion currentVersion, Set<DomainVersion> versionsNeededToUpdate, File updateWorkRoot) {
+  protected void runUpdateCore(DomainVersion currentVersion,
+                               IncrementalUpdatePlan updatePlan,
+                               File updateWorkRoot) {
     throw new NotImplementedException();
   }
 }

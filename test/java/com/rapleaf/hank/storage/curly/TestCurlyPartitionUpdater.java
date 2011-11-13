@@ -136,24 +136,28 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
     // Empty cache
-    assertEquals(versions, updater.detectCachedVersions());
+    assertEquals(versions, updater.detectCachedBases());
+    assertEquals(versions, updater.detectCachedDeltas());
 
     // Do not consider cueball files only
     makeLocalCacheFile("00001.base.cueball");
-    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedVersions());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedDeltas());
     deleteLocalCacheFile("00001.base.cueball");
 
-    // Do not consider deltas
+    // Delta only
     makeLocalCacheFile("00001.delta.cueball");
     makeLocalCacheFile("00001.delta.curly");
-    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedVersions());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>singleton(v1), updater.detectCachedDeltas());
     deleteLocalCacheFile("00001.delta.cueball");
     deleteLocalCacheFile("00001.delta.curly");
 
     // Use bases
     makeLocalCacheFile("00000.base.cueball");
     makeLocalCacheFile("00000.base.curly");
-    assertEquals(Collections.<DomainVersion>singleton(v0), updater.detectCachedVersions());
+    assertEquals(Collections.<DomainVersion>singleton(v0), updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedDeltas());
     deleteLocalCacheFile("00000.base.cueball");
     deleteLocalCacheFile("00000.base.curly");
 
@@ -164,7 +168,8 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     makeLocalCacheFile("00001.base.curly");
     versions.add(v0);
     versions.add(v1);
-    assertEquals(versions, updater.detectCachedVersions());
+    assertEquals(versions, updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedDeltas());
     versions.clear();
     deleteLocalCacheFile("00000.base.cueball");
     deleteLocalCacheFile("00000.base.curly");

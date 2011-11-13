@@ -23,10 +23,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
@@ -53,47 +50,56 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
 
-  protected abstract Set<DomainVersion> detectCachedVersionsCore() throws IOException;
+  protected abstract Set<DomainVersion> detectCachedBasesCore() throws IOException;
+
+  protected abstract Set<DomainVersion> detectCachedDeltasCore() throws IOException;
 
   protected abstract void cleanCachedVersions() throws IOException;
 
   protected abstract void fetchVersion(DomainVersion version, String fetchRoot) throws IOException;
 
   protected abstract void runUpdateCore(DomainVersion currentVersion,
-                                        Set<DomainVersion> versionsNeededToUpdate,
+                                        IncrementalUpdatePlan updatePlan,
                                         File updateWorkRoot);
 
   @Override
   public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
     ensureCacheExists();
     DomainVersion currentVersion = detectCurrentVersion();
-    Set<DomainVersion> cachedVersions = detectCachedVersions();
-    Set<DomainVersion> versionsNeededToUpdate =
-        getVersionsNeededToUpdate(currentVersion, cachedVersions, updatingToDomainVersion);
+    Set<DomainVersion> cachedBases = detectCachedBases();
+    Set<DomainVersion> cachedDeltas = detectCachedDeltas();
+    IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToDomainVersion);
 
-    // If we don't need any version to update we are done
-    if (versionsNeededToUpdate.isEmpty()) {
+    // The plan is empty, we are done
+    if (updatePlan == null) {
       return;
     }
+
     try {
-      // Fetch and cache needed versions
-      cacheVersionsNeededToUpdate(currentVersion, cachedVersions, versionsNeededToUpdate);
-      // Run update based on needed versions in a workspace
-      runUpdate(currentVersion, versionsNeededToUpdate);
+      // Fetch and cache versions needed to update
+      cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
+      // Run update in a workspace
+      runUpdate(currentVersion, updatePlan);
     } finally {
       cleanCachedVersions();
     }
   }
 
-  public Set<DomainVersion> detectCachedVersions() throws IOException {
+  public Set<DomainVersion> detectCachedBases() throws IOException {
     ensureCacheExists();
-    return detectCachedVersionsCore();
+    return detectCachedBasesCore();
+  }
+
+  public Set<DomainVersion> detectCachedDeltas() throws IOException {
+    ensureCacheExists();
+    return detectCachedDeltasCore();
   }
 
   // Fetch required versions and commit them to cache upon successful fetch
   protected void cacheVersionsNeededToUpdate(DomainVersion currentVersion,
-                                             Set<DomainVersion> cachedVersions,
-                                             Set<DomainVersion> versionsNeededToUpdate) throws IOException {
+                                             Set<DomainVersion> cachedBases,
+                                             Set<DomainVersion> cachedDeltas,
+                                             IncrementalUpdatePlan updatePlan) throws IOException {
     try {
       ensureCacheExists();
       // Clean all previous fetch roots
@@ -101,13 +107,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       // Create new fetch root
       File fetchRoot = createFetchRoot();
       // Fetch versions
-      for (DomainVersion version : versionsNeededToUpdate) {
+      for (DomainVersion version : updatePlan.getAllVersions()) {
         // Do not fetch current version
         if (currentVersion != null && currentVersion.equals(version)) {
           continue;
         }
         // Do not fetch cached versions
-        if (cachedVersions.contains(version)) {
+        if (cachedBases.contains(version) || cachedDeltas.contains(version)) {
           continue;
         }
         fetchVersion(version, fetchRoot.getPath());
@@ -121,13 +127,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   private void runUpdate(DomainVersion currentVersion,
-                         Set<DomainVersion> versionsNeededToUpdate) throws IOException {
+                         IncrementalUpdatePlan updatePlan) throws IOException {
     File updateWorkRoot = createUpdateWorkRoot();
     try {
       // Clean all previous update work roots
       deleteUpdateWorkRoots();
       // Execute update
-      runUpdateCore(currentVersion, versionsNeededToUpdate, updateWorkRoot);
+      runUpdateCore(currentVersion, updatePlan, updateWorkRoot);
       // Commit result files to top level
       commitFilesFromTmpRootToPersistentRoot(updateWorkRoot, localPartitionRoot);
     } finally {
@@ -163,17 +169,17 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   /**
-   * Return the set of versions needed to update to the specific version given that
+   * Return the list of versions needed to update to the specific version given that
    * the specified current version and cached versions are available.
    */
-  protected Set<DomainVersion> getVersionsNeededToUpdate(DomainVersion currentVersion,
-                                                         Set<DomainVersion> cachedVersions,
-                                                         DomainVersion updatingToVersion) throws IOException {
-    Set<DomainVersion> versionsNeeded = new HashSet<DomainVersion>();
+  protected IncrementalUpdatePlan computeUpdatePlan(DomainVersion currentVersion,
+                                                    Set<DomainVersion> cachedBases,
+                                                    DomainVersion updatingToVersion) throws IOException {
+    LinkedList<DomainVersion> updatePlanVersions = new LinkedList<DomainVersion>();
     // Backtrack versions (ignoring defunct versions) until we find:
     // - a base (no parent)
-    // - or the current version
-    // - or a version that is cached
+    // - or the current version (which is by definition a base or a rebased delta)
+    // - or a version that is a base and that is cached
     DomainVersion parentVersion = updatingToVersion;
     while (parentVersion != null) {
       // Ignore completely defunct versions
@@ -188,26 +194,34 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         }
         // If backtrack to current version, use it and stop backtracking
         if (currentVersion != null && parentVersion.equals(currentVersion)) {
-          // If we only need the current version, we don't need any version
-          if (versionsNeeded.isEmpty()) {
-            return Collections.emptySet();
+          // If we only need the current version, we don't need any plan
+          if (updatePlanVersions.isEmpty()) {
+            return null;
           } else {
-            versionsNeeded.add(parentVersion);
+            updatePlanVersions.add(parentVersion);
             break;
           }
         }
-        // If backtrack to cached version, use it and stop backtracking
-        if (cachedVersions.contains(parentVersion)) {
-          versionsNeeded.add(parentVersion);
+        // If backtrack to cached base version, use it and stop backtracking
+        if (cachedBases.contains(parentVersion)) {
+          updatePlanVersions.add(parentVersion);
           break;
         }
         // Add backtracked version to versions needed
-        versionsNeeded.add(parentVersion);
+        updatePlanVersions.add(parentVersion);
       }
       // Move to parent version
       parentVersion = getParentDomainVersion(parentVersion);
     }
-    return versionsNeeded;
+    if (updatePlanVersions.isEmpty()) {
+      return null;
+    }
+    // The base is the last version that was added (a base, the current version or a cached base)
+    DomainVersion base = updatePlanVersions.removeLast();
+    // Reverse list of deltas as we have added versions going backwards
+    Collections.reverse(updatePlanVersions);
+    List<DomainVersion> deltasOrdered = updatePlanVersions;
+    return new IncrementalUpdatePlan(base, deltasOrdered);
   }
 
   private DomainVersion detectCurrentVersion() throws IOException {

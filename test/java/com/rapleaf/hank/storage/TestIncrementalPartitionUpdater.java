@@ -26,8 +26,6 @@ import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestIncrementalPartitionUpdater extends BaseTestCase {
 
@@ -71,62 +69,47 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     IncrementalPartitionUpdater updater =
         new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null);
 
-    Set<DomainVersion> versions = new HashSet<DomainVersion>();
-
     // No need to update to null
-    assertEquals(Collections.<DomainVersion>emptySet(),
-        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), null));
+    assertNull(updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), null));
 
     // No need to update from v0 to v0
-    assertEquals(Collections.<DomainVersion>emptySet(),
-        updater.getVersionsNeededToUpdate(v0, Collections.<DomainVersion>emptySet(), v0));
+    assertNull(updater.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v0
-    assertEquals(Collections.<DomainVersion>singleton(v0),
-        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v0));
+    assertEquals(new IncrementalUpdatePlan(v0, Collections.<DomainVersion>emptyList()),
+        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v1
-    versions.add(v0);
-    versions.add(v1);
-    assertEquals(versions, updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v1));
-    versions.clear();
+    assertEquals(new IncrementalUpdatePlan(v0, v1),
+        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1));
 
     // Updating from v0 to v1
-    versions.add(v0);
-    versions.add(v1);
-    assertEquals(versions,
-        updater.getVersionsNeededToUpdate(v0, Collections.<DomainVersion>emptySet(), v1));
-    versions.clear();
+    assertEquals(new IncrementalUpdatePlan(v0, v1),
+        updater.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v1));
 
     // Updating from null to v1, v0 is defunct
     v0.setDefunct(true);
-    assertEquals(Collections.<DomainVersion>singleton(v1),
-        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v1));
+    assertEquals(new IncrementalUpdatePlan(v1),
+        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1));
     v0.setDefunct(false);
 
     // Updating from v1 to v2, v1 is defunct
     v1.setDefunct(true);
-    versions.add(v0);
-    versions.add(v2);
-    assertEquals(versions,
-        updater.getVersionsNeededToUpdate(v1, Collections.<DomainVersion>emptySet(), v2));
+    assertEquals(new IncrementalUpdatePlan(v0, v2),
+        updater.computeUpdatePlan(v1, Collections.<DomainVersion>emptySet(), v2));
     v1.setDefunct(false);
-    versions.clear();
 
     // Updating from null to v4, v3 is not closed
     try {
-      updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>emptySet(), v4);
+      updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v4);
       fail("Should fail since v3 is not closed");
     } catch (IOException e) {
       // Good
     }
 
     // Updating from null to v2, v1 is cached
-    versions.add(v1);
-    versions.add(v2);
-    assertEquals(versions,
-        updater.getVersionsNeededToUpdate(null, Collections.<DomainVersion>singleton(v1), v2));
-    versions.clear();
+    assertEquals(new IncrementalUpdatePlan(v1, v2),
+        updater.computeUpdatePlan(null, Collections.<DomainVersion>singleton(v1), v2));
   }
 
   public void testCacheVersionsNeededToUpdate() throws IOException {
@@ -165,12 +148,11 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
           }
         };
 
-    Set<DomainVersion> versions = new HashSet<DomainVersion>();
-
     // Update from null with v0
     updater.cacheVersionsNeededToUpdate(null,
         Collections.<DomainVersion>emptySet(),
-        Collections.<DomainVersion>singleton(v0));
+        Collections.<DomainVersion>emptySet(),
+        new IncrementalUpdatePlan(v0));
     assertTrue(cachedFileExists(updater, "0.data"));
 
     // Clean cache
@@ -179,14 +161,12 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     assertFalse(new File(updater.localPartitionRootCache).exists());
 
     // Update from null with v0, v1
-    versions.add(v0);
-    versions.add(v1);
     updater.cacheVersionsNeededToUpdate(null,
         Collections.<DomainVersion>emptySet(),
-        versions);
+        Collections.<DomainVersion>emptySet(),
+        new IncrementalUpdatePlan(v0, v1));
     assertTrue(cachedFileExists(updater, "0.data"));
     assertTrue(cachedFileExists(updater, "1.data"));
-    versions.clear();
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -194,14 +174,12 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     assertFalse(new File(updater.localPartitionRootCache).exists());
 
     // Update from v0 with v0, v1
-    versions.add(v0);
-    versions.add(v1);
     updater.cacheVersionsNeededToUpdate(v0,
         Collections.<DomainVersion>emptySet(),
-        versions);
+        Collections.<DomainVersion>emptySet(),
+        new IncrementalUpdatePlan(v0, v1));
     assertFalse(cachedFileExists(updater, "0.data"));
     assertTrue(cachedFileExists(updater, "1.data"));
-    versions.clear();
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -209,14 +187,12 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     assertFalse(new File(updater.localPartitionRootCache).exists());
 
     // Update from null with v0, v1 with v0 cached
-    versions.add(v0);
-    versions.add(v1);
     updater.cacheVersionsNeededToUpdate(null,
         Collections.<DomainVersion>singleton(v0),
-        versions);
+        Collections.<DomainVersion>emptySet(),
+        new IncrementalUpdatePlan(v0, v1));
     assertFalse(cachedFileExists(updater, "0.data"));
     assertTrue(cachedFileExists(updater, "1.data"));
-    versions.clear();
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -265,12 +241,11 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
           }
         };
 
-    Set<DomainVersion> versions = new HashSet<DomainVersion>();
-
     // Update from null with v0
     updater.cacheVersionsNeededToUpdate(null,
         Collections.<DomainVersion>emptySet(),
-        Collections.<DomainVersion>singleton(v0));
+        Collections.<DomainVersion>emptySet(),
+        new IncrementalUpdatePlan(v0));
     assertTrue(cachedFileExists(updater, "0.data"));
 
     // Clean cache
@@ -279,12 +254,11 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     assertFalse(new File(updater.localPartitionRootCache).exists());
 
     // Update from null with v0, v1 should fail to fetch v1
-    versions.add(v0);
-    versions.add(v1);
     try {
       updater.cacheVersionsNeededToUpdate(null,
           Collections.<DomainVersion>emptySet(),
-          versions);
+          Collections.<DomainVersion>emptySet(),
+          new IncrementalUpdatePlan(v0, v1));
       fail("Should fail");
     } catch (Error e) {
       // Good
@@ -292,7 +266,6 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
     // Check that no file was committed to cache
     assertFalse(cachedFileExists(updater, "0.data"));
     assertFalse(cachedFileExists(updater, "1.data"));
-    versions.clear();
 
     // Do not clean cache
     // Check that cache was empty

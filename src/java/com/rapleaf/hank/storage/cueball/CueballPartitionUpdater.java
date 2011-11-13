@@ -20,6 +20,7 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.NotImplementedException;
@@ -95,11 +96,19 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected Set<DomainVersion> detectCachedVersionsCore() throws IOException {
-    SortedSet<CueballFilePath> cachedBases = Cueball.getBases(localPartitionRootCache);
+  protected Set<DomainVersion> detectCachedBasesCore() throws IOException {
+    return detectCachedVersions(Cueball.getBases(localPartitionRootCache));
+  }
+
+  @Override
+  protected Set<DomainVersion> detectCachedDeltasCore() throws IOException {
+    return detectCachedVersions(Cueball.getDeltas(localPartitionRootCache));
+  }
+
+  private Set<DomainVersion> detectCachedVersions(SortedSet<CueballFilePath> cachedFiles) throws IOException {
     Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
-    for (CueballFilePath base : cachedBases) {
-      DomainVersion version = domain.getVersionByNumber(base.getVersion());
+    for (CueballFilePath file : cachedFiles) {
+      DomainVersion version = domain.getVersionByNumber(file.getVersion());
       if (version != null) {
         cachedVersions.add(version);
       }
@@ -133,7 +142,9 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected void runUpdateCore(DomainVersion currentVersion, Set<DomainVersion> versionsNeededToUpdate, File updateWorkRoot) {
+  protected void runUpdateCore(DomainVersion currentVersion,
+                               IncrementalUpdatePlan updatePlan,
+                               File updateWorkRoot) {
     throw new NotImplementedException();
   }
 }

@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -29,23 +30,49 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
   private final Domain domain;
   private final Integer currentVersion;
-  private final Integer[] cachedVersions;
+  private final Integer cachedBase;
+  private final Integer cachedDelta;
+
+  public MockIncrementalPartitionUpdater(final String localPartitionRoot,
+                                         final Domain domain,
+                                         final Integer currentVersion) throws IOException {
+    this(localPartitionRoot,
+        domain,
+        currentVersion,
+        null,
+        null);
+  }
 
   public MockIncrementalPartitionUpdater(final String localPartitionRoot,
                                          final Domain domain,
                                          final Integer currentVersion,
-                                         final Integer... cachedVersions) throws IOException {
+                                         final Integer cachedBase,
+                                         final Integer cachedDelta) throws IOException {
     super(domain, localPartitionRoot);
     this.domain = domain;
     this.currentVersion = currentVersion;
-    this.cachedVersions = cachedVersions;
+    this.cachedBase = cachedBase;
+    this.cachedDelta = cachedDelta;
   }
 
   @Override
-  protected Set<DomainVersion> detectCachedVersionsCore() throws IOException {
+  protected Set<DomainVersion> detectCachedBasesCore() throws IOException {
     Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
-    for (Integer versionNumber : cachedVersions) {
-      cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));
+    for (Integer versionNumber : Collections.singleton(cachedBase)) {
+      if (versionNumber != null) {
+        cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));
+      }
+    }
+    return cachedVersionsSet;
+  }
+
+  @Override
+  protected Set<DomainVersion> detectCachedDeltasCore() throws IOException {
+    Set<DomainVersion> cachedVersionsSet = new HashSet<DomainVersion>();
+    for (Integer versionNumber : Collections.singleton(cachedDelta)) {
+      if (versionNumber != null) {
+        cachedVersionsSet.add(new MockDomainVersion(versionNumber, 0l));
+      }
     }
     return cachedVersionsSet;
   }
@@ -74,7 +101,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
   @Override
   protected void runUpdateCore(DomainVersion currentVersion,
-                               Set<DomainVersion> versionsNeededToUpdate,
+                               IncrementalUpdatePlan updatePlan,
                                File updateWorkRoot) {
   }
 }

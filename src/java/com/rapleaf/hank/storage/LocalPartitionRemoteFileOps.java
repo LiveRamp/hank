@@ -16,18 +16,18 @@
 
 package com.rapleaf.hank.storage;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 
 public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
-  private final String remoteDomainRoot;
-  private final int partitionNumber;
+  private final String partitionRoot;
 
   public LocalPartitionRemoteFileOps(String remoteDomainRoot,
                                      int partitionNumber) throws IOException {
-    this.remoteDomainRoot = remoteDomainRoot;
-    this.partitionNumber = partitionNumber;
+    this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
   }
 
   @Override
@@ -44,7 +44,13 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
     }
   }
 
+  @Override
+  public boolean attemptDelete() throws IOException {
+    FileUtils.deleteDirectory(new File(partitionRoot));
+    return true;
+  }
+
   private String getAbsolutePath(String relativeFilePath) {
-    return remoteDomainRoot + "/" + partitionNumber + "/" + relativeFilePath;
+    return partitionRoot + "/" + relativeFilePath;
   }
 }

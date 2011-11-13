@@ -24,14 +24,12 @@ import java.io.IOException;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
-  private final String remoteDomainRoot;
-  private final int partitionNumber;
+  private final String partitionRoot;
   private final FileSystem fs;
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber) throws IOException {
-    this.remoteDomainRoot = remoteDomainRoot;
-    this.partitionNumber = partitionNumber;
+    this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
     this.fs = FileSystem.get(new Configuration());
   }
 
@@ -47,7 +45,13 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     fs.copyToLocalFile(source, destination);
   }
 
+  @Override
+  public boolean attemptDelete() throws IOException {
+    fs.delete(new Path(partitionRoot), true);
+    return true;
+  }
+
   private String getAbsolutePath(String relativeFilePath) {
-    return remoteDomainRoot + "/" + relativeFilePath;
+    return partitionRoot + "/" + relativeFilePath;
   }
 }

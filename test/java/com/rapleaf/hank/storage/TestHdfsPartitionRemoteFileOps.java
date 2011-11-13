@@ -16,11 +16,49 @@
 
 package com.rapleaf.hank.storage;
 
-import org.apache.commons.lang.NotImplementedException;
+import com.rapleaf.hank.BaseTestCase;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
-public class TestHdfsPartitionRemoteFileOps {
+import java.io.File;
 
-  public void testMain() {
-    throw new NotImplementedException();
+public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
+
+  private final String ROOT = localTmpDir + "/hdfs/";
+  private FileSystem fs;
+  private HdfsPartitionRemoteFileOps hdfsFileOps;
+
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+
+    fs = FileSystem.get(new Configuration());
+    System.out.println(fs.toString());
+    fs.delete(new Path(ROOT), true);
+    fs.mkdirs(new Path(ROOT));
+    fs.create(new Path(ROOT, "file1.txt")).close();
+    fs.create(new Path(ROOT, "file2.txt")).close();
+    hdfsFileOps = new HdfsPartitionRemoteFileOps(ROOT, 0);
+  }
+
+  public void testCopyToLocal() throws Exception {
+    assertFalse(new File(localTmpDir + "/file1.txt").exists());
+    hdfsFileOps.copyToLocalRoot("file1.txt", localTmpDir);
+    assertTrue(new File(localTmpDir + "/file1.txt").exists());
+  }
+
+  public void testAttemptDelete() throws Exception {
+    assertTrue(fs.exists(new Path(ROOT, "file1.txt")));
+    assertTrue(hdfsFileOps.attemptDelete());
+    assertFalse(fs.exists(new Path(ROOT, "file1.txt")));
+  }
+
+  public void testExists() throws Exception {
+    assertTrue(hdfsFileOps.exists("file1.txt"));
+    assertTrue(hdfsFileOps.exists("file2.txt"));
+    assertTrue(hdfsFileOps.attemptDelete());
+    assertFalse(hdfsFileOps.exists("file1.txt"));
+    assertFalse(hdfsFileOps.exists("file2.txt"));
   }
 }

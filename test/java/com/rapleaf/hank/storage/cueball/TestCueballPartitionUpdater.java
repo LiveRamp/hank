@@ -25,6 +25,7 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -123,16 +124,19 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
     // Empty cache
-    assertEquals(versions, updater.detectCachedVersions());
+    assertEquals(versions, updater.detectCachedBases());
+    assertEquals(versions, updater.detectCachedDeltas());
 
-    // Do not consider deltas
+    // Deltas only
     makeLocalCacheFile("00001.delta.cueball");
-    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedVersions());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>singleton(v1), updater.detectCachedDeltas());
     deleteLocalCacheFile("00001.delta.cueball");
 
-    // Use bases
+    // Bases only
     makeLocalCacheFile("00000.base.cueball");
-    assertEquals(Collections.<DomainVersion>singleton(v0), updater.detectCachedVersions());
+    assertEquals(Collections.<DomainVersion>singleton(v0), updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedDeltas());
     deleteLocalCacheFile("00000.base.cueball");
 
     // Use multiple bases
@@ -140,7 +144,8 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     makeLocalCacheFile("00001.base.cueball");
     versions.add(v0);
     versions.add(v1);
-    assertEquals(versions, updater.detectCachedVersions());
+    assertEquals(versions, updater.detectCachedBases());
+    assertEquals(Collections.<DomainVersion>emptySet(), updater.detectCachedDeltas());
     versions.clear();
     deleteLocalCacheFile("00000.base.cueball");
     deleteLocalCacheFile("00001.base.cueball");
@@ -170,6 +175,10 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     updater.fetchVersion(v0, fetchRoot);
     deleteRemoteFile("0/00000.base.cueball");
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
+  }
+
+  public void testUpdate() {
+    throw new NotImplementedException();
   }
 
   private void makeRemoteFile(String name) throws IOException {
