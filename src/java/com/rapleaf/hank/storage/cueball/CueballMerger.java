@@ -26,7 +26,7 @@ import java.util.List;
 
 public final class CueballMerger implements ICueballMerger {
 
-  public void merge(final CueballFilePath latestBase,
+  public void merge(final CueballFilePath base,
                     final List<CueballFilePath> deltas,
                     final String newBasePath,
                     final int keyHashSize,
@@ -39,9 +39,9 @@ public final class CueballMerger implements ICueballMerger {
     StreamBuffer[] sbs = new StreamBuffer[deltas.size() + 1];
 
     // open the current base
-    StreamBuffer base = new StreamBuffer(latestBase.getPath(), 0,
+    StreamBuffer baseBuffer = new StreamBuffer(base.getPath(), 0,
         keyHashSize, valueSize, hashIndexBits, compressionCodec);
-    sbs[0] = base;
+    sbs[0] = baseBuffer;
 
     // open all the deltas
     int i = 1;

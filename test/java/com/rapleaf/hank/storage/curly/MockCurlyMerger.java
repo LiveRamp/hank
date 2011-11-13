@@ -19,9 +19,15 @@ package com.rapleaf.hank.storage.curly;
 import java.io.IOException;
 import java.util.List;
 
-public interface ICurlyMerger {
+public class MockCurlyMerger implements ICurlyMerger {
 
-  public long[] merge(final CurlyFilePath latestBase,
-                      final List<CurlyFilePath> deltas)
-      throws IOException;
+  public CurlyFilePath latestBase;
+  public List<CurlyFilePath> deltas;
+
+  @Override
+  public long[] merge(CurlyFilePath latestBase, List<CurlyFilePath> deltas) throws IOException {
+    this.latestBase = latestBase;
+    this.deltas = deltas;
+    return null;
+  }
 }

@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.storage;
 
-import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -27,7 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
-public class TestIncrementalPartitionUpdater extends BaseTestCase {
+public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
   private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
   private final String localPartitionRoot = localTmpDir + "/partition_root";
@@ -143,6 +142,13 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
           }
 
           @Override
+          protected void runUpdateCore(DomainVersion currentVersion,
+                                       DomainVersion updatingToVersion,
+                                       IncrementalUpdatePlan updatePlan,
+                                       String updateWorkRoot) throws IOException {
+          }
+
+          @Override
           protected void cleanCachedVersions() throws IOException {
             FileUtils.deleteDirectory(new File(localPartitionRootCache));
           }
@@ -233,6 +239,13 @@ public class TestIncrementalPartitionUpdater extends BaseTestCase {
             } catch (IOException e) {
               throw new RuntimeException(e.getMessage(), e);
             }
+          }
+
+          @Override
+          protected void runUpdateCore(DomainVersion currentVersion,
+                                       DomainVersion updatingToVersion,
+                                       IncrementalUpdatePlan updatePlan,
+                                       String updateWorkRoot) throws IOException {
           }
 
           @Override

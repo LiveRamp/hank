@@ -16,24 +16,26 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.IncrementalPartitionUpdaterTestCase;
+import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import com.rapleaf.hank.storage.cueball.MockCueballMerger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-public class TestCurlyPartitionUpdater extends BaseTestCase {
+public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
   private final DomainVersion v0 = new MockDomainVersion(0, 0l);
   private final DomainVersion v1 = new MockDomainVersion(1, 0l);
+  private final DomainVersion v2 = new MockDomainVersion(2, 0l);
   private final Domain domain = new MockDomain("domain") {
     @Override
     public DomainVersion getVersionByNumber(int versionNumber) {
@@ -42,6 +44,8 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
           return v0;
         case 1:
           return v1;
+        case 2:
+          return v2;
         default:
           throw new RuntimeException("Unknown version: " + versionNumber);
       }
@@ -49,17 +53,29 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
   };
   private CurlyPartitionUpdater updater;
 
-  private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
-  private final String localPartitionRoot = localTmpDir + "/partition_root";
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    new File(remotePartitionRoot).mkdir();
-    new File(localPartitionRoot).mkdir();
+
+    int keyHashSize = 12;
+    int offsetSize = 5;
+    int hashIndexBits = 1;
+    MockCueballMerger cueballMerger = new MockCueballMerger();
+    MockCurlyMerger curlyMerger = new MockCurlyMerger();
+    CompressionCodec compressionCodec = new NoCompressionCodec();
     this.updater = new CurlyPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
+        curlyMerger,
+        cueballMerger,
+        keyHashSize,
+        offsetSize,
+        hashIndexBits,
+        compressionCodec,
         localPartitionRoot);
+
+    if (!new File(updateWorkRoot).mkdir()) {
+      throw new IOException("Failed to create update work root");
+    }
   }
 
   public void testGetDomainVersionParent() throws IOException {
@@ -219,39 +235,37 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 
-  public void testUpdate() {
-    //updater.runUpdateCore();
-  }
-
-  private void makeRemoteFile(String name) throws IOException {
-    File file = new File(remotePartitionRoot + "/" + name);
-    file.mkdirs();
-    file.createNewFile();
-  }
-
-  private void deleteRemoteFile(String name) throws IOException {
-    new File(remotePartitionRoot + "/" + name).delete();
-  }
-
-  private void makeLocalFile(String name) throws IOException {
-    File file = new File(localPartitionRoot + "/" + name);
-    file.mkdirs();
-    file.createNewFile();
-  }
-
-  private void deleteLocalFile(String name) throws IOException {
-    new File(localPartitionRoot + "/" + name).delete();
-  }
-
-  private void makeLocalCacheFile(String name) throws IOException {
-    makeLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
-  }
-
-  private void deleteLocalCacheFile(String name) throws IOException {
-    deleteLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
-  }
-
-  private boolean existsLocalFile(String name) {
-    return new File(localPartitionRoot + "/" + name).exists();
+  public void testUpdate() throws IOException {
+    // Updating from v0 to v2
+    List<DomainVersion> deltas = new ArrayList<DomainVersion>();
+    deltas.add(v1);
+    deltas.add(v2);
+    // Fail when missing files
+    try {
+      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
+    // Success merging with deltas
+    assertFalse(existsUpdateWorkFile("00002.base.cueball"));
+    assertFalse(existsUpdateWorkFile("00002.base.curly"));
+    makeLocalFile("00000.base.cueball");
+    makeLocalFile("00000.base.curly");
+    makeLocalCacheFile("00001.delta.cueball");
+    makeLocalCacheFile("00001.delta.curly");
+    makeLocalCacheFile("00002.delta.cueball");
+    makeLocalCacheFile("00002.delta.curly");
+    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+    // Deltas still exist
+    assertTrue(existsCacheFile("00001.delta.cueball"));
+    assertTrue(existsCacheFile("00002.delta.cueball"));
+    // New base created
+    assertTrue(existsUpdateWorkFile("00002.base.cueball"));
+    assertTrue(existsUpdateWorkFile("00002.base.curly"));
+    // Old Cueball base still exists
+    assertTrue(existsLocalFile("00000.base.cueball"));
+    // Old Curly base has disappeared
+    assertFalse(existsLocalFile("00000.base.curly"));
   }
 }

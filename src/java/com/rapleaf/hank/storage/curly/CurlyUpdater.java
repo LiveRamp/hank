@@ -109,7 +109,7 @@ public class CurlyUpdater extends AbstractLocalFetcherUpdater {
           + " to " + newCurlyBasePath.getPath());
     }
 
-    SortedSet<CurlyFilePath> relevantCurlyDeltas = curlyDeltas.tailSet(currentLatestCurlyBase);
+    List<CurlyFilePath> relevantCurlyDeltas = new ArrayList<CurlyFilePath>(curlyDeltas.tailSet(currentLatestCurlyBase));
 
     // merge the curly files
     long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, relevantCurlyDeltas);

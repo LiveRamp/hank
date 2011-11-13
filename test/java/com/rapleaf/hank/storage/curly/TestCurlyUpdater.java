@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.NoCompressionCodec;
@@ -27,22 +28,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Set;
-import java.util.SortedSet;
 
 public class TestCurlyUpdater extends TestCase {
-
-  public static class MockCurlyMerger implements ICurlyMerger {
-    public CurlyFilePath latestBase;
-    public SortedSet<CurlyFilePath> deltas;
-
-    @Override
-    public long[] merge(CurlyFilePath latestBase, SortedSet<CurlyFilePath> deltas)
-        throws IOException {
-      this.latestBase = latestBase;
-      this.deltas = deltas;
-      return null;
-    }
-  }
 
   private static final String LOCAL_ROOT = "/tmp/TestCurlyUpdater_local";
 

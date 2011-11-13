@@ -36,25 +36,25 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   private final PartitionRemoteFileOps partitionRemoteFileOps;
   private final int keyHashSize;
   private final int valueSize;
-  private final ICueballMerger merger;
+  private final ICueballMerger cueballMerger;
   private final CompressionCodec compressionCodec;
   private final int hashIndexBits;
 
   public CueballPartitionUpdater(Domain domain,
                                  PartitionRemoteFileOps partitionRemoteFileOps,
+                                 ICueballMerger cueballMerger,
                                  int keyHashSize,
                                  int valueSize,
-                                 ICueballMerger merger,
-                                 CompressionCodec compressionCodec,
                                  int hashIndexBits,
+                                 CompressionCodec compressionCodec,
                                  String localPartitionRoot) throws IOException {
     super(domain, localPartitionRoot);
     this.partitionRemoteFileOps = partitionRemoteFileOps;
+    this.cueballMerger = cueballMerger;
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
-    this.merger = merger;
-    this.compressionCodec = compressionCodec;
     this.hashIndexBits = hashIndexBits;
+    this.compressionCodec = compressionCodec;
   }
 
   @Override
@@ -143,15 +143,44 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) throws IOException {
+    runUpdateCore(currentVersion,
+        updatingToVersion,
+        updatePlan,
+        updateWorkRoot,
+        localPartitionRoot,
+        localPartitionRootCache,
+        cueballMerger,
+        keyHashSize,
+        valueSize,
+        hashIndexBits,
+        compressionCodec,
+        null);
+  }
 
+  public static void runUpdateCore(DomainVersion currentVersion,
+                                   DomainVersion updatingToVersion,
+                                   IncrementalUpdatePlan updatePlan,
+                                   String updateWorkRoot,
+                                   String localPartitionRoot,
+                                   String localPartitionRootCache,
+                                   ICueballMerger cueballMerger,
+                                   int keyHashSize,
+                                   int valueSize,
+                                   int hashIndexBits,
+                                   CompressionCodec compressionCodec,
+                                   ValueTransformer valueTransformer) throws IOException {
+
+    // Determine new base path
     String newBasePath = updateWorkRoot + "/"
         + Cueball.getName(updatingToVersion.getVersionNumber(), true);
 
     // Determine files from versions
-    CueballFilePath base = getFilePathForVersion(updatePlan.getBase(), currentVersion, true);
+    CueballFilePath base = getCueballFilePathForVersion(updatePlan.getBase(), currentVersion,
+        localPartitionRoot, localPartitionRootCache, true);
     List<CueballFilePath> deltas = new ArrayList<CueballFilePath>();
     for (DomainVersion delta : updatePlan.getDeltasOrdered()) {
-      deltas.add(getFilePathForVersion(delta, currentVersion, false));
+      deltas.add(getCueballFilePathForVersion(delta, currentVersion,
+          localPartitionRoot, localPartitionRootCache, false));
     }
 
     // Check that all required files are available
@@ -167,20 +196,22 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         throw new IOException("Failed to rename Cueball base: " + base.getPath() + " to: " + newBasePath);
       }
     } else {
-      merger.merge(base,
+      cueballMerger.merge(base,
           deltas,
           newBasePath,
           keyHashSize,
           valueSize,
-          null,
+          valueTransformer,
           hashIndexBits,
           compressionCodec);
     }
   }
 
-  private CueballFilePath getFilePathForVersion(DomainVersion version,
-                                                DomainVersion currentVersion,
-                                                boolean isBase) {
+  public static CueballFilePath getCueballFilePathForVersion(DomainVersion version,
+                                                             DomainVersion currentVersion,
+                                                             String localPartitionRoot,
+                                                             String localPartitionRootCache,
+                                                             boolean isBase) {
     if (currentVersion != null && currentVersion.equals(version)) {
       // If version is current version, data is in root
       return new CueballFilePath(localPartitionRoot + "/" + Cueball.getName(version.getVersionNumber(), isBase));
@@ -190,7 +221,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
-  private void checkRequiredFileExists(String path) throws IOException {
+  public static void checkRequiredFileExists(String path) throws IOException {
     if (!new File(path).exists()) {
       throw new IOException("Could not find required file for merging: " + path);
     }

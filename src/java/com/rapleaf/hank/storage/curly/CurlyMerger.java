@@ -19,18 +19,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
-import java.util.SortedSet;
+import java.util.List;
 
 public class CurlyMerger implements ICurlyMerger {
+
   private static final long TRANSFER_SIZE = 32 * 1024;
 
-  public long[] merge(final CurlyFilePath latestBase,
-                      final SortedSet<CurlyFilePath> deltas)
-      throws IOException {
+  public long[] merge(final CurlyFilePath base,
+                      final List<CurlyFilePath> deltas) throws IOException {
     long[] offsetAdjustments = new long[deltas.size() + 1];
     offsetAdjustments[0] = 0;
 
-    FileChannel baseChannel = new RandomAccessFile(latestBase.getPath(), "rw").getChannel();
+    FileChannel baseChannel = new RandomAccessFile(base.getPath(), "rw").getChannel();
     long baseLength = baseChannel.size();
     long totalOffset = baseLength;
     baseChannel.position(baseLength);
