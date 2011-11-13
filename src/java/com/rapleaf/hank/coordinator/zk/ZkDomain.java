@@ -131,7 +131,7 @@ public class ZkDomain extends AbstractDomain {
     }
     try {
       StorageEngineFactory factory = (StorageEngineFactory) Class.forName(storageEngineFactoryName).newInstance();
-      return storageEngine = factory.getStorageEngine(storageEngineOptions, getName());
+      return storageEngine = factory.getStorageEngine(storageEngineOptions, this);
     } catch (Exception e) {
       throw new RuntimeException("Could not instantiate storage engine from factory "
           + storageEngineFactoryName, e);

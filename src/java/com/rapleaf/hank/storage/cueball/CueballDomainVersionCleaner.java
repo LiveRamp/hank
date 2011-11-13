@@ -1,29 +1,25 @@
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
+
 import java.io.IOException;
 
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.IFileOps;
-
 public class CueballDomainVersionCleaner implements DomainVersionCleaner {
-  protected final IFileOps fs;
-  protected final String domainVersionsRoot;
 
-  public CueballDomainVersionCleaner(String domainVersionsRoot, IFileOps fs) {
-    this.domainVersionsRoot = domainVersionsRoot;
-    this.fs = fs;
+  protected final String remoteDomainRoot;
+  protected final PartitionRemoteFileOpsFactory fileOpsFactory;
+
+  public CueballDomainVersionCleaner(String remoteDomainRoot,
+                                     PartitionRemoteFileOpsFactory fileOpsFactory) {
+    this.remoteDomainRoot = remoteDomainRoot;
+    this.fileOpsFactory = fileOpsFactory;
   }
 
   @Override
-  public void cleanVersion(int versionNumber, int numParts) throws IOException {
-    for (int i = 0; i < numParts; i++) {
-      String basePath = domainVersionsRoot + "/" + i + "/" + Cueball.padVersionNumber(versionNumber) + ".base.cueball";
-      String deltaPath = domainVersionsRoot + "/" + i + "/" + Cueball.padVersionNumber(versionNumber) + ".delta.cueball";
-      if (!fs.attemptDeleteRemote(basePath)) {
-        if (!fs.attemptDeleteRemote(deltaPath)){
-          // TODO: log a note that no file was found.
-        }
-      }
-    }
+  public void cleanVersion(int versionNumber) throws IOException {
+    PartitionRemoteFileOps fileOps = fileOpsFactory.getFileOps(remoteDomainRoot, versionNumber);
+    fileOps.attemptDelete();
   }
 }

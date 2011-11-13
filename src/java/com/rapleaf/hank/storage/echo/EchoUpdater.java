@@ -1,13 +1,14 @@
 package com.rapleaf.hank.storage.echo;
 
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.PartitionUpdater;
+
 import java.io.IOException;
-import java.util.Set;
 
-import com.rapleaf.hank.storage.Updater;
+public class EchoUpdater implements PartitionUpdater {
 
-public class EchoUpdater implements Updater {
   @Override
-  public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-    // intentionally left blank!
+  public void updateTo(DomainVersion updatingToVersion) throws IOException {
+    // No-op
   }
 }

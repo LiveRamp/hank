@@ -19,12 +19,14 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
+import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -43,6 +45,7 @@ public class Curly implements StorageEngine {
   static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.curly";
 
   public static class Factory implements StorageEngineFactory {
+
     public static final String REMOTE_DOMAIN_ROOT_KEY = "remote_domain_root";
     public static final String RECORD_FILE_READ_BUFFER_BYTES_KEY = "record_file_read_buffer_bytes";
     public static final String HASH_INDEX_BITS_KEY = "hash_index_bits";
@@ -55,7 +58,7 @@ public class Curly implements StorageEngine {
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY, RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY, FILE_OPS_FACTORY_KEY, HASHER_KEY));
 
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException {
+    public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
         if (options == null || options.get(requiredKey) == null) {
           throw new RuntimeException("Required key '" + requiredKey
@@ -64,11 +67,11 @@ public class Curly implements StorageEngine {
       }
 
       Hasher hasher;
-      IFileOpsFactory fileOpsFactory;
+      PartitionRemoteFileOpsFactory fileOpsFactory;
       Class<? extends CompressionCodec> compressionCodecClass;
       try {
         hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
-        fileOpsFactory = (IFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
+        fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
 
         String compressionCodecClassName = (String) options.get(COMPRESSION_CODEC);
         if (compressionCodecClassName == null) {
@@ -81,7 +84,15 @@ public class Curly implements StorageEngine {
       }
       final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
           : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
-      return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY), hasher, maxAllowedPartSize, (Integer) options.get(HASH_INDEX_BITS_KEY), (Integer) options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY), (String) options.get(REMOTE_DOMAIN_ROOT_KEY), fileOpsFactory, compressionCodecClass, domainName);
+      return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
+          hasher,
+          maxAllowedPartSize,
+          (Integer) options.get(HASH_INDEX_BITS_KEY),
+          (Integer) options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
+          (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
+          fileOpsFactory,
+          compressionCodecClass,
+          domain);
     }
 
     @Override
@@ -103,9 +114,9 @@ public class Curly implements StorageEngine {
       pw.println("# If you're running over NFS or something like that, leave this alone.");
       pw.println("# If you are using Hadoop, switch to the HdfsFileOpsFactory.");
       pw.println(FILE_OPS_FACTORY_KEY + ": "
-          + LocalFileOps.Factory.class.getName());
+          + LocalPartitionRemoteFileOps.Factory.class.getName());
       pw.println("#" + FILE_OPS_FACTORY_KEY + ": "
-          + HdfsFileOps.Factory.class.getName());
+          + HdfsPartitionRemoteFileOps.Factory.class.getName());
       pw.println();
       pw.println("# This allows partitions up to 1TB in size. If you don't need");
       pw.println("# them that big, try reducing this value to 4294967296 (4GB)");
@@ -140,7 +151,7 @@ public class Curly implements StorageEngine {
     }
   }
 
-  private final String domainName;
+  private final Domain domain;
 
   private final int offsetSize;
   private final int recordFileReadBufferBytes;
@@ -148,7 +159,7 @@ public class Curly implements StorageEngine {
   private final Cueball cueballStorageEngine;
   private final String remoteDomainRoot;
   private final int keyHashSize;
-  private final IFileOpsFactory fileOpsFactory;
+  private final PartitionRemoteFileOpsFactory fileOpsFactory;
   private final int hashIndexBits;
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
@@ -158,19 +169,26 @@ public class Curly implements StorageEngine {
                int hashIndexBits,
                int recordFileReadBufferBytes,
                String remoteDomainRoot,
-               IFileOpsFactory fileOpsFactory,
+               PartitionRemoteFileOpsFactory fileOpsFactory,
                Class<? extends CompressionCodec> compressionCodecClass,
-               String domainName) {
+               Domain domain) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
-    this.domainName = domainName;
+    this.domain = domain;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
-    this.cueballStorageEngine = new Cueball(keyHashSize, hasher, offsetSize, hashIndexBits, remoteDomainRoot, fileOpsFactory, compressionCodecClass, domainName);
+    this.cueballStorageEngine = new Cueball(keyHashSize,
+        hasher,
+        offsetSize,
+        hashIndexBits,
+        remoteDomainRoot,
+        fileOpsFactory,
+        compressionCodecClass,
+        domain);
   }
 
   @Override
@@ -190,12 +208,19 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     new File(localDir).mkdirs();
     String remotePartRoot = remoteDomainRoot + "/" + partNum;
-    return new CurlyUpdater(localDir, remotePartRoot, keyHashSize, offsetSize,
-        fileOpsFactory.getFileOps(remotePartRoot), getCompressionCodec(), hashIndexBits);
+    return new CurlyPartitionUpdater(domain,
+        fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
+        new CurlyMerger(),
+        new CueballMerger(),
+        keyHashSize,
+        offsetSize,
+        hashIndexBits,
+        getCompressionCodec(),
+        localDir);
   }
 
   private CompressionCodec getCompressionCodec() throws IOException {
@@ -221,7 +246,7 @@ public class Curly implements StorageEngine {
   private String getLocalDir(PartitionServerConfigurator configurator, int partNum) {
     ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
     Collections.sort(l);
-    return l.get(partNum % l.size()) + "/" + domainName + "/" + partNum;
+    return l.get(partNum % l.size()) + "/" + domain.getName() + "/" + partNum;
   }
 
   public static int parseVersionNumber(String name) {
@@ -266,7 +291,7 @@ public class Curly implements StorageEngine {
   public String toString() {
     return "Curly [compressionCodecClass=" + compressionCodecClass
         + ", cueballStorageEngine=" + cueballStorageEngine + ", domainName="
-        + domainName + ", fileOpsFactory=" + fileOpsFactory
+        + domain.getName() + ", fileOpsFactory=" + fileOpsFactory
         + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
         + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
         + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
@@ -275,6 +300,6 @@ public class Curly implements StorageEngine {
 
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
-    return new CurlyDomainVersionCleaner(remoteDomainRoot, fileOpsFactory.getFileOps(remoteDomainRoot));
+    return new CurlyDomainVersionCleaner(remoteDomainRoot, fileOpsFactory);
   }
 }

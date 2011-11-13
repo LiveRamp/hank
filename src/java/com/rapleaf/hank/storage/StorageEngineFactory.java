@@ -15,11 +15,16 @@
  */
 package com.rapleaf.hank.storage;
 
+import com.rapleaf.hank.coordinator.Domain;
+
 import java.io.IOException;
 import java.util.Map;
 
 public interface StorageEngineFactory {
+
   public String getPrettyName();
+
   public String getDefaultOptions();
-  public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException;
+
+  public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException;
 }

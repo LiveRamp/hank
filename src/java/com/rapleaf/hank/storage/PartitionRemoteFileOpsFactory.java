@@ -16,8 +16,12 @@
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
-import java.util.Set;
 
-public interface Updater {
-  void update(int toVersion, Set<Integer> excludeVersions) throws IOException;
+/**
+ * Factory for getting PartitionRemoteFileOps instances.
+ */
+public interface PartitionRemoteFileOpsFactory {
+
+  public PartitionRemoteFileOps getFileOps(String remoteDomainRoot,
+                                           int partitionNumber) throws IOException;
 }

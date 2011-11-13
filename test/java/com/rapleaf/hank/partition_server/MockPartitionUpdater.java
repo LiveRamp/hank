@@ -13,14 +13,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.partition_server;
+
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.PartitionUpdater;
 
 import java.io.IOException;
-import java.util.Set;
 
-public interface IFetcher {
-  public void fetch(int fromVersion,
-                    int toVersion,
-                    Set<Integer> excludeVersions,
-                    String localDirectory) throws IOException;
+public class MockPartitionUpdater implements PartitionUpdater {
+
+  private boolean updated = false;
+  public Integer updatedToVersion = null;
+
+  public void setUpdated(boolean updated) {
+    this.updated = updated;
+  }
+
+  public boolean isUpdated() {
+    return updated;
+  }
+
+  @Override
+  public void updateTo(DomainVersion updatingToVersion) throws IOException {
+    updatedToVersion = updatingToVersion.getVersionNumber();
+    setUpdated(true);
+  }
 }

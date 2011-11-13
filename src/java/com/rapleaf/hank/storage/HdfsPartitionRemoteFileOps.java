@@ -24,6 +24,13 @@ import java.io.IOException;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
+  public static class Factory implements PartitionRemoteFileOpsFactory {
+    @Override
+    public PartitionRemoteFileOps getFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+    }
+  }
+
   private final String partitionRoot;
   private final FileSystem fs;
 

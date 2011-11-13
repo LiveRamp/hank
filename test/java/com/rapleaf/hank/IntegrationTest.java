@@ -35,7 +35,7 @@ import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.LocalFileOps;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
@@ -55,7 +55,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
+
   private final class SmartClientRunnable implements Runnable {
+
     private final String configPath;
     private com.rapleaf.hank.client.SmartClientDaemon server;
     private final SmartClientDaemonConfigurator configurator;
@@ -204,7 +206,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("hash_index_bits: 1");
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_0_DATAFILES);
-    pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
+    pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
     pw.close();
     coordinator.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
@@ -216,7 +218,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("hash_index_bits: 1");
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_1_DATAFILES);
-    pw.println("file_ops_factory: " + LocalFileOps.Factory.class.getName());
+    pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
     pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());

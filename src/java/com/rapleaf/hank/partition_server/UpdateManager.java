@@ -22,7 +22,9 @@ import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Queue;
 import java.util.concurrent.*;
 
 /**
@@ -39,20 +41,18 @@ class UpdateManager implements IUpdateManager {
     private final StorageEngine engine;
     private final int partitionNumber;
     private final Queue<Throwable> exceptionQueue;
-    private final int toDomainVersion;
+    private final DomainVersion toDomainVersion;
     private final HostDomainPartition partition;
     private final String domainName;
     private final int toDomainGroupVersion;
-    private final Set<Integer> excludeVersions;
 
     public PartitionUpdateTask(StorageEngine engine,
                                int partitionNumber,
                                Queue<Throwable> exceptionQueue,
-                               int toDomainVersion,
+                               DomainVersion toDomainVersion,
                                HostDomainPartition partition,
                                String domainName,
-                               int toDomainGroupVersion,
-                               Set<Integer> excludeVersions) {
+                               int toDomainGroupVersion) {
       this.engine = engine;
       this.partitionNumber = partitionNumber;
       this.exceptionQueue = exceptionQueue;
@@ -60,7 +60,6 @@ class UpdateManager implements IUpdateManager {
       this.partition = partition;
       this.domainName = domainName;
       this.toDomainGroupVersion = toDomainGroupVersion;
-      this.excludeVersions = excludeVersions;
     }
 
     @Override
@@ -68,7 +67,7 @@ class UpdateManager implements IUpdateManager {
       try {
         LOG.info(String.format("Starting partition update of domain %s partition %d to version %d (storage engine: %s)",
             domainName, partitionNumber, toDomainVersion, engine.toString()));
-        engine.getUpdater(configurator, partitionNumber).update(toDomainVersion, excludeVersions);
+        engine.getUpdater(configurator, partitionNumber).updateTo(toDomainVersion);
         partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
         partition.setUpdatingToDomainGroupVersion(null);
         LOG.info(String.format("Completed partition update of domain %s partition %d to version %d (storage engine: %s).",
@@ -197,15 +196,9 @@ class UpdateManager implements IUpdateManager {
     // Loop over new domain versions and set partitions to updating state
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
+      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
       StorageEngine engine = domain.getStorageEngine();
       HostDomain hostDomain = host.getHostDomain(domain);
-      // Compute excluded versions
-      Set<Integer> excludeVersions = new HashSet<Integer>();
-      for (DomainVersion dv : domain.getVersions()) {
-        if (dv.isDefunct()) {
-          excludeVersions.add(dv.getVersionNumber());
-        }
-      }
       // Set partitions state
       if (hostDomain == null) {
         LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
@@ -225,11 +218,10 @@ class UpdateManager implements IUpdateManager {
             partitionUpdateTasks.add(new PartitionUpdateTask(engine,
                 partition.getPartitionNumber(),
                 exceptionQueue,
-                dgvdv.getVersion(),
+                domainVersion,
                 partition,
                 domain.getName(),
-                partition.getUpdatingToDomainGroupVersion(),
-                excludeVersions));
+                partition.getUpdatingToDomainGroupVersion()));
           }
         }
       }

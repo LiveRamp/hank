@@ -1,27 +1,25 @@
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
+
 import java.io.IOException;
 
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.IFileOps;
-import com.rapleaf.hank.storage.cueball.CueballDomainVersionCleaner;
+public class CurlyDomainVersionCleaner implements DomainVersionCleaner {
 
-public class CurlyDomainVersionCleaner extends CueballDomainVersionCleaner implements DomainVersionCleaner {
-  public CurlyDomainVersionCleaner(String domainVersionsRoot, IFileOps fs) {
-    super(domainVersionsRoot, fs);
+  protected final String remoteDomainRoot;
+  protected final PartitionRemoteFileOpsFactory fileOpsFactory;
+
+  public CurlyDomainVersionCleaner(String remoteDomainRoot,
+                                   PartitionRemoteFileOpsFactory fileOpsFactory) {
+    this.remoteDomainRoot = remoteDomainRoot;
+    this.fileOpsFactory = fileOpsFactory;
   }
 
   @Override
-  public void cleanVersion(int versionNumber, int numParts) throws IOException {
-    super.cleanVersion(versionNumber, numParts);
-    for (int i = 0; i < numParts; i++) {
-      String basePath = domainVersionsRoot + "/" + i + "/" + Curly.padVersionNumber(versionNumber) + ".base.curly";
-      String deltaPath = domainVersionsRoot + "/" + i + "/" + Curly.padVersionNumber(versionNumber) + ".delta.curly";
-      if (!fs.attemptDeleteRemote(basePath)) {
-        if (!fs.attemptDeleteRemote(deltaPath)){
-          // TODO: log a note that no file was found.
-        }
-      }
-    }
+  public void cleanVersion(int versionNumber) throws IOException {
+    PartitionRemoteFileOps fileOps = fileOpsFactory.getFileOps(remoteDomainRoot, versionNumber);
+    fileOps.attemptDelete();
   }
 }
