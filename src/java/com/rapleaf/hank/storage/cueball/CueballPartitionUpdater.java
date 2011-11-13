@@ -207,6 +207,16 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
+  public CueballFilePath getCueballFilePathForVersion(DomainVersion version,
+                                                      DomainVersion currentVersion,
+                                                      boolean isBase) {
+    return getCueballFilePathForVersion(version,
+        currentVersion,
+        localPartitionRoot,
+        localPartitionRootCache,
+        isBase);
+  }
+
   public static CueballFilePath getCueballFilePathForVersion(DomainVersion version,
                                                              DomainVersion currentVersion,
                                                              String localPartitionRoot,

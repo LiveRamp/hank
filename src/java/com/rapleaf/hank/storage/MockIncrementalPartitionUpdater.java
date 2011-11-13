@@ -20,7 +20,6 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -103,6 +102,6 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               File updateWorkRoot) {
+                               String updateWorkRoot) {
   }
 }

@@ -123,7 +123,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         fetchVersion(version, fetchRoot.getAbsolutePath());
       }
       // Commit fetched versions to cache
-      commitFilesFromTmpRootToPersistentRoot(fetchRoot, localPartitionRootCache);
+      commitFiles(fetchRoot, localPartitionRootCache);
     } finally {
       // Always delete fetch roots
       deleteFetchRoots();
@@ -140,28 +140,33 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       // Execute update
       runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath());
       // Move current version to cache
-      // TODO
+      commitFiles(new File(localPartitionRoot), localPartitionRootCache);
       // Commit result files to top level
-      commitFilesFromTmpRootToPersistentRoot(updateWorkRoot, localPartitionRoot);
+      commitFiles(updateWorkRoot, localPartitionRoot);
     } finally {
       deleteUpdateWorkRoots();
     }
   }
 
-  private void commitFilesFromTmpRootToPersistentRoot(File tmpRoot, String persistentRoot) throws IOException {
-    for (File file : tmpRoot.listFiles()) {
-      File targetFile = new File(persistentRoot + "/" + file.getName());
+  // Move all files in sourceRoot to destinationRoot. Directories are ignored.
+  private void commitFiles(File sourceRoot, String destinationRoot) throws IOException {
+    for (File file : sourceRoot.listFiles()) {
+      // Skip non files
+      if (!file.isFile()) {
+        continue;
+      }
+      File targetFile = new File(destinationRoot + "/" + file.getName());
       // If target file already exists, delete it
       if (targetFile.exists()) {
         if (!targetFile.delete()) {
-          throw new IOException("Failed to overwrite file in persistent root: " + targetFile.getAbsolutePath());
+          throw new IOException("Failed to overwrite file in destination root: " + targetFile.getAbsolutePath());
         }
       }
-      // Move file to persistent destination
+      // Move file to destination
       if (!file.renameTo(targetFile)) {
         LOG.info("Committing " + file.getAbsolutePath() + " to " + targetFile.getAbsolutePath());
-        throw new IOException("Failed to rename temporary file: " + file.getAbsolutePath()
-            + " to persistent file: " + targetFile.getAbsolutePath());
+        throw new IOException("Failed to rename source file: " + file.getAbsolutePath()
+            + " to destination file: " + targetFile.getAbsolutePath());
       }
     }
   }

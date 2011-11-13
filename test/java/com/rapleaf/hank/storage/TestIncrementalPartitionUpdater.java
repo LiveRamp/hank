@@ -142,13 +142,6 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
           }
 
           @Override
-          protected void runUpdateCore(DomainVersion currentVersion,
-                                       DomainVersion updatingToVersion,
-                                       IncrementalUpdatePlan updatePlan,
-                                       String updateWorkRoot) throws IOException {
-          }
-
-          @Override
           protected void cleanCachedVersions() throws IOException {
             FileUtils.deleteDirectory(new File(localPartitionRootCache));
           }
@@ -239,13 +232,6 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
             } catch (IOException e) {
               throw new RuntimeException(e.getMessage(), e);
             }
-          }
-
-          @Override
-          protected void runUpdateCore(DomainVersion currentVersion,
-                                       DomainVersion updatingToVersion,
-                                       IncrementalUpdatePlan updatePlan,
-                                       String updateWorkRoot) throws IOException {
           }
 
           @Override
