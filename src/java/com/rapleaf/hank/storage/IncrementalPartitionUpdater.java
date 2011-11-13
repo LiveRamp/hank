@@ -20,12 +20,15 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import org.apache.commons.io.FileUtils;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
+
+  private static final Logger LOG = Logger.getLogger(IncrementalPartitionUpdater.class);
 
   public static final String FETCH_ROOT_PREFIX = "_fetch_";
   public static final String UPDATE_WORK_ROOT_PREFIX = "_update_work_";
@@ -59,16 +62,17 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   protected abstract void fetchVersion(DomainVersion version, String fetchRoot) throws IOException;
 
   protected abstract void runUpdateCore(DomainVersion currentVersion,
+                                        DomainVersion updatingToVersion,
                                         IncrementalUpdatePlan updatePlan,
-                                        File updateWorkRoot);
+                                        String updateWorkRoot) throws IOException;
 
   @Override
-  public void updateTo(DomainVersion updatingToDomainVersion) throws IOException {
+  public void updateTo(DomainVersion updatingToVersion) throws IOException {
     ensureCacheExists();
     DomainVersion currentVersion = detectCurrentVersion();
     Set<DomainVersion> cachedBases = detectCachedBases();
     Set<DomainVersion> cachedDeltas = detectCachedDeltas();
-    IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToDomainVersion);
+    IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
 
     // The plan is empty, we are done
     if (updatePlan == null) {
@@ -79,7 +83,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       // Fetch and cache versions needed to update
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
       // Run update in a workspace
-      runUpdate(currentVersion, updatePlan);
+      runUpdate(currentVersion, updatingToVersion, updatePlan);
     } finally {
       cleanCachedVersions();
     }
@@ -116,7 +120,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         if (cachedBases.contains(version) || cachedDeltas.contains(version)) {
           continue;
         }
-        fetchVersion(version, fetchRoot.getPath());
+        fetchVersion(version, fetchRoot.getAbsolutePath());
       }
       // Commit fetched versions to cache
       commitFilesFromTmpRootToPersistentRoot(fetchRoot, localPartitionRootCache);
@@ -127,13 +131,16 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   private void runUpdate(DomainVersion currentVersion,
+                         DomainVersion updatingToVersion,
                          IncrementalUpdatePlan updatePlan) throws IOException {
     File updateWorkRoot = createUpdateWorkRoot();
     try {
       // Clean all previous update work roots
       deleteUpdateWorkRoots();
       // Execute update
-      runUpdateCore(currentVersion, updatePlan, updateWorkRoot);
+      runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath());
+      // Move current version to cache
+      // TODO
       // Commit result files to top level
       commitFilesFromTmpRootToPersistentRoot(updateWorkRoot, localPartitionRoot);
     } finally {
@@ -147,13 +154,14 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       // If target file already exists, delete it
       if (targetFile.exists()) {
         if (!targetFile.delete()) {
-          throw new IOException("Failed to overwrite file in persistent root: " + targetFile.getPath());
+          throw new IOException("Failed to overwrite file in persistent root: " + targetFile.getAbsolutePath());
         }
       }
       // Move file to persistent destination
       if (!file.renameTo(targetFile)) {
-        throw new IOException("Failed to rename temporary file: " + file.getPath()
-            + " to persistent file: " + targetFile.getPath());
+        LOG.info("Committing " + file.getAbsolutePath() + " to " + targetFile.getAbsolutePath());
+        throw new IOException("Failed to rename temporary file: " + file.getAbsolutePath()
+            + " to persistent file: " + targetFile.getAbsolutePath());
       }
     }
   }
@@ -163,7 +171,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     File cacheRootFile = new File(localPartitionRootCache);
     if (!cacheRootFile.exists()) {
       if (!cacheRootFile.mkdir()) {
-        throw new IOException("Failed to create cache root directory: " + cacheRootFile.getPath());
+        throw new IOException("Failed to create cache root directory: " + cacheRootFile.getAbsolutePath());
       }
     }
   }

@@ -219,6 +219,9 @@ public class TestCurlyPartitionUpdater extends BaseTestCase {
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 
+  public void testUpdate() {
+    //updater.runUpdateCore();
+  }
 
   private void makeRemoteFile(String name) throws IOException {
     File file = new File(remotePartitionRoot + "/" + name);

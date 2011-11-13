@@ -101,6 +101,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
   @Override
   protected void runUpdateCore(DomainVersion currentVersion,
+                               DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                File updateWorkRoot) {
   }

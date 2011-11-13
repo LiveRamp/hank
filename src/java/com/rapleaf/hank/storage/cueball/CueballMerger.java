@@ -21,12 +21,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.SortedSet;
+import java.util.List;
 
 
 public final class CueballMerger implements ICueballMerger {
+
   public void merge(final CueballFilePath latestBase,
-                    final SortedSet<CueballFilePath> deltas,
+                    final List<CueballFilePath> deltas,
                     final String newBasePath,
                     final int keyHashSize,
                     final int valueSize,

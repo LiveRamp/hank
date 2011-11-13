@@ -145,16 +145,17 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     // Fetch version files
     String cueballFileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
     String curlyFileToFetch = Curly.getName(version.getVersionNumber(), isBase);
-    LOG.info("Fetching: " + cueballFileToFetch + " to: " + fetchRoot);
-    LOG.info("Fetching: " + curlyFileToFetch + " to: " + fetchRoot);
+    LOG.info("Fetching " + cueballFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+    LOG.info("Fetching " + curlyFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
   }
 
   @Override
   protected void runUpdateCore(DomainVersion currentVersion,
+                               DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               File updateWorkRoot) {
+                               String updateWorkRoot) {
     throw new NotImplementedException();
   }
 }

@@ -22,6 +22,8 @@ import com.rapleaf.hank.util.EncodingHelper;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 
 import static com.rapleaf.hank.storage.cueball.CueballUpdater.deleteCueballFiles;
@@ -124,7 +126,7 @@ public class CurlyUpdater extends AbstractLocalFetcherUpdater {
       cueballDeltas.remove(cueballDeltas.first());
     }
     CueballFilePath latestCueballBase = cueballBases.last();
-    SortedSet<CueballFilePath> relevantCueballDeltas = cueballDeltas.tailSet(latestCueballBase);
+    List<CueballFilePath> relevantCueballDeltas = new ArrayList<CueballFilePath>(cueballDeltas.tailSet(latestCueballBase));
 
     // Determine new cueball base path
     String newCueballBasePath = getLocalWorkspaceRoot() + "/" + Cueball.padVersionNumber(toVersion) + ".base.cueball";

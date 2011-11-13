@@ -18,11 +18,12 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.compress.CompressionCodec;
 
 import java.io.IOException;
-import java.util.SortedSet;
+import java.util.List;
 
 public interface ICueballMerger {
+
   public void merge(final CueballFilePath latestBase,
-                    final SortedSet<CueballFilePath> deltas,
+                    final List<CueballFilePath> deltas,
                     final String newBasePath,
                     final int keyHashSize,
                     final int valueSize,

@@ -23,14 +23,11 @@ import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
@@ -137,14 +134,65 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
     // Fetch version files
     String fileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
-    LOG.info("Fetching: " + fileToFetch + " to: " + fetchRoot);
+    LOG.info("Fetching " + fileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
     partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
   }
 
   @Override
   protected void runUpdateCore(DomainVersion currentVersion,
+                               DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               File updateWorkRoot) {
-    throw new NotImplementedException();
+                               String updateWorkRoot) throws IOException {
+
+    String newBasePath = updateWorkRoot + "/"
+        + Cueball.getName(updatingToVersion.getVersionNumber(), true);
+
+    // Determine files from versions
+    CueballFilePath base = getFilePathForVersion(updatePlan.getBase(), currentVersion, true);
+    List<CueballFilePath> deltas = new ArrayList<CueballFilePath>();
+    for (DomainVersion delta : updatePlan.getDeltasOrdered()) {
+      deltas.add(getFilePathForVersion(delta, currentVersion, false));
+    }
+
+    // Check that all required files are available
+    checkRequiredFileExists(base.getPath());
+    for (CueballFilePath delta : deltas) {
+      checkRequiredFileExists(delta.getPath());
+    }
+
+    // If there are no deltas, simply move the required base to the target version.
+    // Otherwise, perform merging.
+    if (deltas.size() == 0) {
+      if (!new File(base.getPath()).renameTo(new File(newBasePath))) {
+        throw new IOException("Failed to rename Cueball base: " + base.getPath() + " to: " + newBasePath);
+      }
+    } else {
+      merger.merge(base,
+          deltas,
+          newBasePath,
+          keyHashSize,
+          valueSize,
+          null,
+          hashIndexBits,
+          compressionCodec);
+    }
+  }
+
+  private CueballFilePath getFilePathForVersion(DomainVersion version,
+                                                DomainVersion currentVersion,
+                                                boolean isBase) {
+    if (currentVersion != null && currentVersion.equals(version)) {
+      // If version is current version, data is in root
+      return new CueballFilePath(localPartitionRoot + "/" + Cueball.getName(version.getVersionNumber(), isBase));
+    } else {
+      // Otherwise, version must be in cache
+      return new CueballFilePath(localPartitionRootCache + "/" + Cueball.getName(version.getVersionNumber(), isBase));
+    }
+  }
+
+  private void checkRequiredFileExists(String path) throws IOException {
+    if (!new File(path).exists()) {
+      throw new IOException("Could not find required file for merging: " + path);
+    }
   }
 }

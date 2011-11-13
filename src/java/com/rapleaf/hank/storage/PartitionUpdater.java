@@ -22,5 +22,5 @@ import java.io.IOException;
 
 public interface PartitionUpdater {
 
-  void updateTo(DomainVersion domainVersion) throws IOException;
+  void updateTo(DomainVersion updatingToVersion) throws IOException;
 }

@@ -20,6 +20,8 @@ import com.rapleaf.hank.storage.*;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedSet;
 
 public class CueballUpdater extends AbstractLocalFetcherUpdater {
@@ -77,7 +79,7 @@ public class CueballUpdater extends AbstractLocalFetcherUpdater {
       deltas.remove(deltas.first());
     }
     CueballFilePath latestBase = bases.last();
-    SortedSet<CueballFilePath> relevantDeltas = deltas.tailSet(latestBase);
+    List<CueballFilePath> relevantDeltas = new ArrayList<CueballFilePath>(deltas.tailSet(latestBase));
 
     String newBasePath = getLocalWorkspaceRoot() + "/"
         + Cueball.padVersionNumber(toVersion)

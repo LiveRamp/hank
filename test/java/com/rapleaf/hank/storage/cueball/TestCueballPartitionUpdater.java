@@ -24,8 +24,8 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +37,7 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
 
   private final DomainVersion v0 = new MockDomainVersion(0, 0l);
   private final DomainVersion v1 = new MockDomainVersion(1, 0l);
+  private final DomainVersion v2 = new MockDomainVersion(2, 0l);
   private final Domain domain = new MockDomain("domain") {
     @Override
     public DomainVersion getVersionByNumber(int versionNumber) {
@@ -45,6 +46,8 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
           return v0;
         case 1:
           return v1;
+        case 2:
+          return v2;
         default:
           throw new RuntimeException("Unknown version: " + versionNumber);
       }
@@ -54,6 +57,7 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
 
   private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
   private final String localPartitionRoot = localTmpDir + "/partition_root";
+  private String updateWorkRoot = localPartitionRoot + "/" + IncrementalPartitionUpdater.UPDATE_WORK_ROOT_PREFIX;
 
   @Override
   public void setUp() throws Exception {
@@ -75,6 +79,10 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
         compressionCodec,
         hashIndexBits,
         localPartitionRoot);
+
+    if (!new File(updateWorkRoot).mkdir()) {
+      throw new IOException("Failed to create update work root");
+    }
   }
 
   public void testGetDomainVersionParent() throws IOException {
@@ -177,8 +185,44 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
   }
 
-  public void testUpdate() {
-    throw new NotImplementedException();
+  public void testUpdateNoDelta() throws IOException {
+    // Updating from null to v0
+    // Fail when missing files
+    try {
+      updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
+    // Success moving the required base
+    assertFalse(existsUpdateWorkFile("00000.base.cueball"));
+    makeLocalCacheFile("00000.base.cueball");
+    assertTrue(existsCacheFile("00000.base.cueball"));
+    updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot);
+    assertFalse(existsCacheFile("00000.base.cueball"));
+    assertTrue(existsUpdateWorkFile("00000.base.cueball"));
+  }
+
+  public void testUpdate() throws IOException {
+    // Updating from v0 to v2
+    // Fail when missing files
+    try {
+      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0), updateWorkRoot);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
+    // Success merging with deltas
+    assertFalse(existsUpdateWorkFile("00002.base.cueball"));
+    makeLocalFile("00000.base.cueball");
+    makeLocalCacheFile("00001.delta.cueball");
+    makeLocalCacheFile("00002.delta.cueball");
+    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0), updateWorkRoot);
+    // Deltas still exist
+    assertTrue(existsCacheFile("00001.delta.cueball"));
+    assertTrue(existsCacheFile("00002.delta.cueball"));
+    // New base created
+    assertTrue(existsUpdateWorkFile("00002.base.cueball"));
   }
 
   private void makeRemoteFile(String name) throws IOException {
@@ -211,5 +255,13 @@ public class TestCueballPartitionUpdater extends BaseTestCase {
 
   private boolean existsLocalFile(String name) {
     return new File(localPartitionRoot + "/" + name).exists();
+  }
+
+  private boolean existsCacheFile(String name) {
+    return existsLocalFile(IncrementalPartitionUpdater.CACHE_ROOT_NAME + "/" + name);
+  }
+
+  private boolean existsUpdateWorkFile(String name) {
+    return existsLocalFile(IncrementalPartitionUpdater.UPDATE_WORK_ROOT_PREFIX + "/" + name);
   }
 }
