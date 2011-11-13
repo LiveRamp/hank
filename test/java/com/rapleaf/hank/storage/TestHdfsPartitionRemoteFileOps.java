@@ -37,8 +37,8 @@ public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
     System.out.println(fs.toString());
     fs.delete(new Path(ROOT), true);
     fs.mkdirs(new Path(ROOT));
-    fs.create(new Path(ROOT, "file1.txt")).close();
-    fs.create(new Path(ROOT, "file2.txt")).close();
+    fs.create(new Path(ROOT, "0/file1.txt")).close();
+    fs.create(new Path(ROOT, "0/file2.txt")).close();
     hdfsFileOps = new HdfsPartitionRemoteFileOps(ROOT, 0);
   }
 
@@ -49,9 +49,9 @@ public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
   }
 
   public void testAttemptDelete() throws Exception {
-    assertTrue(fs.exists(new Path(ROOT, "file1.txt")));
+    assertTrue(fs.exists(new Path(ROOT, "0/file1.txt")));
     assertTrue(hdfsFileOps.attemptDelete());
-    assertFalse(fs.exists(new Path(ROOT, "file1.txt")));
+    assertFalse(fs.exists(new Path(ROOT, "0/file1.txt")));
   }
 
   public void testExists() throws Exception {
