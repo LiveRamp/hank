@@ -53,4 +53,9 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   private String getAbsolutePath(String relativeFilePath) {
     return partitionRoot + "/" + relativeFilePath;
   }
+
+  @Override
+  public String toString() {
+    return "LocalPartitionRemoteFileOps[" + partitionRoot + "]";
+  }
 }

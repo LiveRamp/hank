@@ -54,4 +54,9 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   private String getAbsolutePath(String relativeFilePath) {
     return partitionRoot + "/" + relativeFilePath;
   }
+
+  @Override
+  public String toString() {
+    return "HdfsPartitionRemoteFileOps[" + partitionRoot + "]";
+  }
 }
