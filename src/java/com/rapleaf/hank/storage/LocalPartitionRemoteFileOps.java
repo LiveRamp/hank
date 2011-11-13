@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.storage;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -44,9 +46,7 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public void copyToLocalRoot(String relativePath, String localRoot) throws IOException {
     File source = new File(getAbsolutePath(relativePath));
     File destination = new File(localRoot + "/" + source.getName());
-    if (!source.renameTo(destination)) {
-      throw new IOException("Failed to copy " + source.getParent() + " to " + destination);
-    }
+    FileUtils.copyFile(source, destination);
   }
 
   @Override
