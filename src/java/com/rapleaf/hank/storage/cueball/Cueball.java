@@ -255,6 +255,6 @@ public class Cueball implements StorageEngine {
 
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
-    return new CueballDomainVersionCleaner(remoteDomainRoot, fileOpsFactory);
+    return new CueballDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
   }
 }

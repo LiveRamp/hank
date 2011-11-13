@@ -16,8 +16,6 @@
 
 package com.rapleaf.hank.storage;
 
-import org.apache.commons.io.FileUtils;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -52,9 +50,12 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public boolean attemptDelete() throws IOException {
-    FileUtils.deleteDirectory(new File(partitionRoot));
-    return true;
+  public boolean attemptDelete(String relativePath) throws IOException {
+    if (exists(relativePath)) {
+      return new File(getAbsolutePath(relativePath)).delete();
+    } else {
+      return false;
+    }
   }
 
   private String getAbsolutePath(String relativeFilePath) {

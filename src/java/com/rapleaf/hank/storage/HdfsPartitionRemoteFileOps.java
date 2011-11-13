@@ -53,13 +53,15 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public boolean attemptDelete() throws IOException {
-    fs.delete(new Path(partitionRoot), true);
+  public boolean attemptDelete(String relativePath) throws IOException {
+    if (exists(relativePath)) {
+      fs.delete(new Path(getAbsolutePath(relativePath)), true);
+    }
     return true;
   }
 
-  private String getAbsolutePath(String relativeFilePath) {
-    return partitionRoot + "/" + relativeFilePath;
+  private String getAbsolutePath(String relativePath) {
+    return partitionRoot + "/" + relativePath;
   }
 
   @Override

@@ -50,15 +50,17 @@ public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
 
   public void testAttemptDelete() throws Exception {
     assertTrue(fs.exists(new Path(ROOT, "0/file1.txt")));
-    assertTrue(hdfsFileOps.attemptDelete());
+    assertTrue(hdfsFileOps.attemptDelete("file1.txt"));
     assertFalse(fs.exists(new Path(ROOT, "0/file1.txt")));
   }
 
   public void testExists() throws Exception {
     assertTrue(hdfsFileOps.exists("file1.txt"));
     assertTrue(hdfsFileOps.exists("file2.txt"));
-    assertTrue(hdfsFileOps.attemptDelete());
+    assertTrue(hdfsFileOps.attemptDelete("file1.txt"));
     assertFalse(hdfsFileOps.exists("file1.txt"));
+    assertTrue(hdfsFileOps.exists("file2.txt"));
+    assertTrue(hdfsFileOps.attemptDelete("file2.txt"));
     assertFalse(hdfsFileOps.exists("file2.txt"));
   }
 }

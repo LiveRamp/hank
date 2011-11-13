@@ -31,6 +31,7 @@ import java.util.concurrent.*;
  * Manages the domain update process.
  */
 class UpdateManager implements IUpdateManager {
+
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
   private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final long UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE = 1;
@@ -66,16 +67,16 @@ class UpdateManager implements IUpdateManager {
     public void run() {
       try {
         LOG.info(String.format("Starting partition update of domain %s partition %d to version %d (storage engine: %s)",
-            domainName, partitionNumber, toDomainVersion, engine.toString()));
+            domainName, partitionNumber, toDomainVersion.getVersionNumber(), engine.toString()));
         engine.getUpdater(configurator, partitionNumber).updateTo(toDomainVersion);
         partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
         partition.setUpdatingToDomainGroupVersion(null);
         LOG.info(String.format("Completed partition update of domain %s partition %d to version %d (storage engine: %s).",
-            domainName, partitionNumber, toDomainVersion, engine.toString()));
+            domainName, partitionNumber, toDomainVersion.getVersionNumber(), engine.toString()));
       } catch (Throwable e) {
         LOG.fatal(
             String.format("Failed to complete partition update of domain %s partition %d to version %d.",
-                domainName, partitionNumber, toDomainVersion), e);
+                domainName, partitionNumber, toDomainVersion.getVersionNumber()), e);
         exceptionQueue.add(e);
       }
     }
@@ -197,6 +198,9 @@ class UpdateManager implements IUpdateManager {
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+      if (domainVersion == null) {
+        throw new IOException("Aborting. Failed to load version " + dgvdv.getVersion() + " of domain " + domain);
+      }
       StorageEngine engine = domain.getStorageEngine();
       HostDomain hostDomain = host.getHostDomain(domain);
       // Set partitions state

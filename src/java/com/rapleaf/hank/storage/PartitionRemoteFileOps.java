@@ -24,5 +24,5 @@ public interface PartitionRemoteFileOps {
 
   void copyToLocalRoot(String relativePath, String localRoot) throws IOException;
 
-  public boolean attemptDelete() throws IOException;
+  public boolean attemptDelete(String relativePath) throws IOException;
 }

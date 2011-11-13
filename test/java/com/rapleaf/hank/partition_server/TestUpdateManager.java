@@ -171,7 +171,7 @@ public class TestUpdateManager extends BaseTestCase {
 
                 @Override
                 public int getVersionNumber() {
-                  return 45;
+                  return 0;
                 }
 
                 @Override
