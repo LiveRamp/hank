@@ -38,6 +38,11 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
                                     int partitionNumber) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
     this.fs = FileSystem.get(new Configuration());
+    if (!new Path(partitionRoot).isAbsolute()) {
+      throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
+          + " with a non absolute remote partition root: "
+          + partitionRoot);
+    }
   }
 
   @Override

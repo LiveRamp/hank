@@ -22,6 +22,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import java.io.File;
+import java.io.IOException;
 
 public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
 
@@ -40,6 +41,15 @@ public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
     fs.create(new Path(ROOT, "0/file1.txt")).close();
     fs.create(new Path(ROOT, "0/file2.txt")).close();
     hdfsFileOps = new HdfsPartitionRemoteFileOps(ROOT, 0);
+  }
+
+  public void testCheckAbsolutePath() {
+    try {
+      new HdfsPartitionRemoteFileOps("relative_path/", 0);
+      fail("Should fail");
+    } catch (IOException e) {
+      // Good
+    }
   }
 
   public void testCopyToLocal() throws Exception {
