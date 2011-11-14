@@ -10,14 +10,13 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-  <title>Management Home (Hank)</title>
+  <title>Hank: Home</title>
 
   <jsp:include page='_head.jsp' />
 </head>
 <body>
 
   <jsp:include page='_top_nav.jsp' />
-
 
   <h1>Hank</h1>
 
@@ -37,7 +36,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
   </div>
   <div>
-    Please report bugs on <a href="https://github.com/bryanduxbury/hank/issues">GitHub issues page</a>.
+    Please report bugs on <a href="https://github.com/rapleaf/hank/issues">GitHub issues page</a>.
   </div>
 
 <jsp:include page="_footer.jsp"/>
