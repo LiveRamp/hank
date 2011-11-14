@@ -88,7 +88,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
       <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
       <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-      <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %>(<input type="submit" value="discard"/>); <% } %>
+      <%= host.getCurrentCommand() %> <% if (host.getCurrentCommand() != null) { %><input type="submit" value="discard"/><% } %>
       </form>
       </td>
       </tr>
