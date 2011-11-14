@@ -28,9 +28,6 @@ import java.util.Collections;
 
 public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
-  private final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
-  private final String localPartitionRoot = localTmpDir + "/partition_root";
-
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -152,7 +149,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         Collections.<DomainVersion>emptySet(),
         Collections.<DomainVersion>emptySet(),
         new IncrementalUpdatePlan(v0));
-    assertTrue(cachedFileExists(updater, "0.data"));
+    assertTrue(existsCacheFile("0.data"));
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -164,8 +161,8 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         Collections.<DomainVersion>emptySet(),
         Collections.<DomainVersion>emptySet(),
         new IncrementalUpdatePlan(v0, v1));
-    assertTrue(cachedFileExists(updater, "0.data"));
-    assertTrue(cachedFileExists(updater, "1.data"));
+    assertTrue(existsCacheFile("0.data"));
+    assertTrue(existsCacheFile("1.data"));
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -177,8 +174,8 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         Collections.<DomainVersion>emptySet(),
         Collections.<DomainVersion>emptySet(),
         new IncrementalUpdatePlan(v0, v1));
-    assertFalse(cachedFileExists(updater, "0.data"));
-    assertTrue(cachedFileExists(updater, "1.data"));
+    assertFalse(existsCacheFile("0.data"));
+    assertTrue(existsCacheFile("1.data"));
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -190,8 +187,8 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         Collections.<DomainVersion>singleton(v0),
         Collections.<DomainVersion>emptySet(),
         new IncrementalUpdatePlan(v0, v1));
-    assertFalse(cachedFileExists(updater, "0.data"));
-    assertTrue(cachedFileExists(updater, "1.data"));
+    assertFalse(existsCacheFile("0.data"));
+    assertTrue(existsCacheFile("1.data"));
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -245,7 +242,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         Collections.<DomainVersion>emptySet(),
         Collections.<DomainVersion>emptySet(),
         new IncrementalUpdatePlan(v0));
-    assertTrue(cachedFileExists(updater, "0.data"));
+    assertTrue(existsCacheFile("0.data"));
 
     // Clean cache
     updater.cleanCachedVersions();
@@ -263,8 +260,8 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
       // Good
     }
     // Check that no file was committed to cache
-    assertFalse(cachedFileExists(updater, "0.data"));
-    assertFalse(cachedFileExists(updater, "1.data"));
+    assertFalse(existsCacheFile("0.data"));
+    assertFalse(existsCacheFile("1.data"));
 
     // Do not clean cache
     // Check that cache was empty
@@ -276,9 +273,5 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         fail("Should not contain any remaining fetch root: " + file.getPath());
       }
     }
-  }
-
-  private boolean cachedFileExists(IncrementalPartitionUpdater updater, String fileName) {
-    return new File(updater.localPartitionRootCache + "/" + fileName).exists();
   }
 }
