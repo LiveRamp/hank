@@ -69,6 +69,6 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   @Override
   public String toString() {
-    return "LocalPartitionRemoteFileOps[" + partitionRoot + "]";
+    return "local://" + partitionRoot;
   }
 }

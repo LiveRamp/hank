@@ -191,11 +191,11 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     String cueballFileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
     String curlyFileToFetch = Curly.getName(version.getVersionNumber(), isBase);
     if (partitionRemoteFileOps.exists(cueballFileToFetch)) {
-      LOG.info("Fetching " + cueballFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + cueballFileToFetch + " to " + fetchRoot);
       partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
     }
     if (partitionRemoteFileOps.exists(curlyFileToFetch)) {
-      LOG.info("Fetching " + curlyFileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + curlyFileToFetch + " to " + fetchRoot);
       partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
     }
   }

@@ -147,7 +147,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     // Fetch version files
     String fileToFetch = Cueball.getName(domainVersion.getVersionNumber(), isBase);
     if (partitionRemoteFileOps.exists(fileToFetch)) {
-      LOG.info("Fetching " + fileToFetch + " from " + partitionRemoteFileOps + " to " + fetchRoot);
+      LOG.info("Fetching from " + partitionRemoteFileOps + " file " + fileToFetch + " to " + fetchRoot);
       partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
     }
   }
