@@ -126,7 +126,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
       if (domainGroupVersion != null &&
           (ringGroup.getCurrentVersionNumber() == null ||
-            ringGroup.getCurrentVersionNumber() < domainGroupVersion.getVersionNumber())) {
+              ringGroup.getCurrentVersionNumber() < domainGroupVersion.getVersionNumber())) {
         // There is a more recent version available
         LOG.info("There is a new domain group version available for ring group " + ringGroupName
             + ": " + domainGroupVersion);
@@ -185,11 +185,15 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
           HostDomain hostDomain = host.getHostDomain(domain);
           if (hostDomain != null) {
             for (HostDomainPartition partition : hostDomain.getPartitions()) {
-              // Partitions that we want to update
-              partition.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
-              // If partition is deletable, we want to keep it and we switch to non deletable
-              if (partition.isDeletable()) {
-                partition.setDeletable(false);
+              // Skip partitions that are up-to-date
+              if (partition.getCurrentDomainGroupVersion() == null ||
+                  !partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber())) {
+                // Partitions that we want to update
+                partition.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
+                // If partition is deletable, we want to keep it and we switch to non deletable
+                if (partition.isDeletable()) {
+                  partition.setDeletable(false);
+                }
               }
             }
           }
