@@ -23,6 +23,10 @@ public class IncrementalUpdatePlan {
     this.deltasOrdered = deltasOrdered;
   }
 
+  public IncrementalUpdatePlan(DomainVersion base, DomainVersion... deltas) {
+    this(base, Arrays.asList(deltas));
+  }
+
   public DomainVersion getBase() {
     return base;
   }

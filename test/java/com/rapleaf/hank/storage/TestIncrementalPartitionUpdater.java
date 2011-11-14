@@ -35,7 +35,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     new File(localPartitionRoot).mkdir();
   }
 
-  public void testGetVersionsNeededToUpdate() throws IOException {
+  public void testGetUpdatePlan() throws IOException {
     final DomainVersion v0 = new MockDomainVersion(0, 0l);
     final DomainVersion v1 = new MockDomainVersion(1, 0l);
     final DomainVersion v2 = new MockDomainVersion(2, 0l);
@@ -106,6 +106,59 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     // Updating from null to v2, v1 is cached
     assertEquals(new IncrementalUpdatePlan(v1, v2),
         updater.computeUpdatePlan(null, Collections.<DomainVersion>singleton(v1), v2));
+  }
+
+  public void testGetUpdatePlanNonRelatedVersions() throws IOException {
+
+    final DomainVersion v0 = new MockDomainVersion(0, 0l);
+    final DomainVersion v1 = new MockDomainVersion(1, 0l);
+    final DomainVersion v2 = new MockDomainVersion(2, 0l);
+    final DomainVersion v3 = new MockDomainVersion(3, 0l);
+
+    Domain domain = new MockDomain("domain") {
+      @Override
+      public DomainVersion getVersionByNumber(int domainVersion) {
+        switch (domainVersion) {
+          case 0:
+            return v0;
+          case 1:
+            return v1;
+          case 2:
+            return v2;
+          case 3:
+            return v3;
+          default:
+            throw new RuntimeException("Unknown version: " + domainVersion);
+        }
+      }
+    };
+
+    IncrementalPartitionUpdater updater =
+        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null) {
+          @Override
+          protected DomainVersion getParentDomainVersion(DomainVersion version) {
+            switch (version.getVersionNumber()) {
+              case 0:
+                return null;
+              case 1:
+                return null;
+              case 2:
+                return v1;
+              case 3:
+                return v2;
+              default:
+                throw new RuntimeException("Unknown version: " + version.getVersionNumber());
+            }
+          }
+        };
+
+    // Update to a version non directly related to the current version from v0 to v3, v1 being a base
+    assertEquals(new IncrementalUpdatePlan(v1, v2, v3),
+        updater.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v3));
+
+    // Update to an older version: from v3 to v2, v1 being a base
+    assertEquals(new IncrementalUpdatePlan(v1, v2),
+        updater.computeUpdatePlan(v3, Collections.<DomainVersion>emptySet(), v2));
   }
 
   public void testCacheVersionsNeededToUpdate() throws IOException {

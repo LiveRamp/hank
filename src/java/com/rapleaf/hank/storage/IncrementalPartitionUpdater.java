@@ -184,7 +184,12 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   /**
    * Return the list of versions needed to update to the specific version given that
-   * the specified current version and cached versions are available.
+   * the specified current version and cached bases are available.
+   * @param currentVersion
+   * @param cachedBases
+   * @param updatingToVersion
+   * @return
+   * @throws java.io.IOException
    */
   protected IncrementalUpdatePlan computeUpdatePlan(DomainVersion currentVersion,
                                                     Set<DomainVersion> cachedBases,
@@ -234,8 +239,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     DomainVersion base = updatePlanVersions.removeLast();
     // Reverse list of deltas as we have added versions going backwards
     Collections.reverse(updatePlanVersions);
-    List<DomainVersion> deltasOrdered = updatePlanVersions;
-    return new IncrementalUpdatePlan(base, deltasOrdered);
+    return new IncrementalUpdatePlan(base, updatePlanVersions);
   }
 
   private DomainVersion detectCurrentVersion() throws IOException {
