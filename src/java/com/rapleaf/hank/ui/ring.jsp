@@ -157,7 +157,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   <h2>Add New Host</h2>
 
   <form action="/ring/add_host" method=post>
-    Add a new host: <br/>
     <input type=hidden name="rgName" value="<%=ringGroup.getName()%>"/>
     <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
     <table>
