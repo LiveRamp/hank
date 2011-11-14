@@ -37,7 +37,7 @@ public class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
 
   protected void makeRemoteFile(String name) throws IOException {
     File file = new File(remotePartitionRoot + "/" + name);
-    file.mkdirs();
+    file.getParentFile().mkdirs();
     file.createNewFile();
   }
 
@@ -47,8 +47,13 @@ public class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
 
   protected void makeLocalFile(String name) throws IOException {
     File file = new File(localPartitionRoot + "/" + name);
-    file.mkdirs();
+    file.getParentFile().mkdirs();
     file.createNewFile();
+  }
+
+  protected void makeLocalDir(String name) throws IOException {
+    File file = new File(localPartitionRoot + "/" + name);
+    file.mkdirs();
   }
 
   protected void deleteLocalFile(String name) throws IOException {

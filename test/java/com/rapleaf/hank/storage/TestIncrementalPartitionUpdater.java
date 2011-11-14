@@ -327,4 +327,46 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
       }
     }
   }
+
+  public void testCommitFiles() throws IOException {
+
+    IncrementalPartitionUpdater updater =
+        new MockIncrementalPartitionUpdater(localPartitionRoot, null, null);
+
+    String sourceDirRelPath = "source_dir";
+    String destinationDirRelPath = "destination_dir";
+
+    File sourceDir = new File(localPartitionRoot + "/" + sourceDirRelPath);
+    File destinationDir = new File(localPartitionRoot + "/" + destinationDirRelPath);
+
+    sourceDir.mkdir();
+    destinationDir.mkdir();
+
+    assertEquals(0, sourceDir.listFiles().length);
+    assertEquals(0, destinationDir.listFiles().length);
+
+    makeLocalFile(sourceDirRelPath + "/a");
+    makeLocalFile(sourceDirRelPath + "/b");
+    makeLocalFile(sourceDirRelPath + "/c");
+    // Sub directory and the files it contains should be ignored
+    makeLocalDir(sourceDirRelPath + "/dir");
+    makeLocalFile(sourceDirRelPath + "/dir/x");
+
+    assertEquals(4, sourceDir.listFiles().length);
+    assertTrue(existsLocalFile(sourceDirRelPath + "/a"));
+    assertTrue(existsLocalFile(sourceDirRelPath + "/b"));
+    assertTrue(existsLocalFile(sourceDirRelPath + "/c"));
+    assertTrue(existsLocalFile(sourceDirRelPath + "/dir"));
+    assertTrue(existsLocalFile(sourceDirRelPath + "/dir/x"));
+
+    updater.commitFiles(sourceDir, destinationDir.getAbsolutePath());
+
+    // 1 directory remaining
+    assertEquals(1, sourceDir.listFiles().length);
+    // 3 files have been moved
+    assertEquals(3, destinationDir.listFiles().length);
+    assertTrue(existsLocalFile(destinationDirRelPath + "/a"));
+    assertTrue(existsLocalFile(destinationDirRelPath + "/b"));
+    assertTrue(existsLocalFile(destinationDirRelPath + "/c"));
+  }
 }

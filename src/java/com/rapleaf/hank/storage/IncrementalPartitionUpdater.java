@@ -73,12 +73,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     Set<DomainVersion> cachedBases = detectCachedBases();
     Set<DomainVersion> cachedDeltas = detectCachedDeltas();
     IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
-
     // The plan is empty, we are done
     if (updatePlan == null) {
       return;
     }
-
     try {
       // Fetch and cache versions needed to update
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
@@ -142,7 +140,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath());
       // Move current version to cache
       commitFiles(new File(localPartitionRoot), localPartitionRootCache);
-      // Commit result files to top level
+      // Commit update result files to top level
       commitFiles(updateWorkRoot, localPartitionRoot);
     } finally {
       deleteUpdateWorkRoots();
@@ -150,7 +148,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   // Move all files in sourceRoot to destinationRoot. Directories are ignored.
-  private void commitFiles(File sourceRoot, String destinationRoot) throws IOException {
+  protected void commitFiles(File sourceRoot, String destinationRoot) throws IOException {
     for (File file : sourceRoot.listFiles()) {
       // Skip non files
       if (!file.isFile()) {
