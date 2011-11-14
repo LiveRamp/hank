@@ -13,12 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage.curly;
 
 import java.io.IOException;
-import java.util.SortedSet;
+import java.util.List;
 
 public interface ICurlyMerger {
-  public long[] merge(final CurlyFilePath latestBase, final SortedSet<CurlyFilePath> deltas)
+
+  public long[] merge(final CurlyFilePath latestBase,
+                      final List<CurlyFilePath> deltas)
       throws IOException;
 }

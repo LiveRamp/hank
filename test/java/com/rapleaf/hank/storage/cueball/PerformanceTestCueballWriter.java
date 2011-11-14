@@ -1,17 +1,17 @@
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.File;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.LocalFileOps;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.FsUtils;
+
+import java.io.File;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class PerformanceTestCueballWriter {
   private static final int VALUE_SIZE = 16;
@@ -24,7 +24,9 @@ public class PerformanceTestCueballWriter {
     FsUtils.rmrf(tmpDir);
     new File(tmpDir).mkdirs();
 
-    Cueball cueball = new Cueball(5, new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root", new LocalFileOps.Factory(), NoCompressionCodec.class, "domain0");
+    Cueball cueball = new Cueball(5,
+        new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root",
+        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null);
     OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
 //      @Override
 //      public OutputStream getOutputStream(int partNum, String name)
@@ -49,7 +51,7 @@ public class PerformanceTestCueballWriter {
     }
     writer.close();
     long end = System.currentTimeMillis();
-    long elapsedMs = end-start;
+    long elapsedMs = end - start;
 
     System.out.println("Test took " + elapsedMs + "ms.");
     double elapsedSecs = elapsedMs / 1000.0;
@@ -66,7 +68,7 @@ public class PerformanceTestCueballWriter {
 
   private static ByteBuffer value(int i, int j) {
     byte[] v = new byte[j];
-    Arrays.fill(v, (byte)i);
+    Arrays.fill(v, (byte) i);
     return ByteBuffer.wrap(v);
   }
 }

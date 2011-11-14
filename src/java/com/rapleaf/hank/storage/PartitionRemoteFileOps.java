@@ -13,14 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
-import java.util.Set;
 
-public interface IFetcher {
-  public void fetch(int fromVersion,
-                    int toVersion,
-                    Set<Integer> excludeVersions,
-                    String localDirectory) throws IOException;
+public interface PartitionRemoteFileOps {
+
+  public boolean exists(String relativePath) throws IOException;
+
+  void copyToLocalRoot(String relativePath, String localRoot) throws IOException;
+
+  public boolean attemptDelete(String relativePath) throws IOException;
 }

@@ -13,18 +13,14 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage;
 
-/**
- * Factory for getting IFileOps instances.
- */
-public interface IFileOpsFactory {
-  /**
-   * Get an IFileOps instance that is targeted at the specified remote and local
-   * directories.
-   *
-   * @param remoteRoot
-   * @return
-   */
-  public IFileOps getFileOps(String remoteRoot);
+import com.rapleaf.hank.coordinator.DomainVersion;
+
+import java.io.IOException;
+
+public interface PartitionUpdater {
+
+  void updateTo(DomainVersion updatingToVersion) throws IOException;
 }

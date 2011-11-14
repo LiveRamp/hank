@@ -15,25 +15,20 @@
  */
 package com.rapleaf.hank.storage.constant;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.storage.Updater;
-import com.rapleaf.hank.storage.Writer;
-
 public class ConstantStorageEngine implements StorageEngine {
+
   public static class Factory implements StorageEngineFactory {
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException {
+    public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       return new ConstantStorageEngine(options);
     }
 
@@ -57,7 +52,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
     throw new UnsupportedOperationException();
   }
 

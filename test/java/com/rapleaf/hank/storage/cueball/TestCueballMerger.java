@@ -20,7 +20,6 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.TreeSet;
 
 public class TestCueballMerger extends AbstractCueballTest {
   private final String LOCAL_ROOT = localTmpDir;
@@ -169,7 +168,7 @@ public class TestCueballMerger extends AbstractCueballTest {
     s.close();
 
     new CueballMerger().merge(BASE,
-        new TreeSet<CueballFilePath>(Arrays.asList(DELTA_1, DELTA_2)),
+        Arrays.asList(DELTA_1, DELTA_2),
         NEW_BASE_PATH,
         1,
         1,

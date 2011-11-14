@@ -15,15 +15,14 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.rapleaf.hank.storage.LocalFileOps;
-import org.apache.log4j.Logger;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.TestCueballFactory;
+import org.apache.log4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestCurlyFactory extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestCueballFactory.class);
@@ -33,7 +32,7 @@ public class TestCurlyFactory extends BaseTestCase {
 
     Map<String, Object> badOptions = new HashMap<String, Object>();
     try {
-      factory.getStorageEngine(badOptions, "domain0");
+      factory.getStorageEngine(badOptions, null);
       fail();
     } catch (Exception e) {
       LOG.error("", e);
@@ -42,14 +41,14 @@ public class TestCurlyFactory extends BaseTestCase {
 
   public void testGoodConfig() throws Exception {
     Curly.Factory factory = new Curly.Factory();
-    Map<String,Object> options = new HashMap<String, Object>();
+    Map<String, Object> options = new HashMap<String, Object>();
     options.put(Curly.Factory.HASHER_KEY, Murmur64Hasher.class.getName());
-    options.put(Curly.Factory.FILE_OPS_FACTORY_KEY, LocalFileOps.Factory.class.getName());
+    options.put(Curly.Factory.FILE_OPS_FACTORY_KEY, LocalPartitionRemoteFileOps.Factory.class.getName());
     options.put(Curly.Factory.HASH_INDEX_BITS_KEY, 5);
     options.put(Curly.Factory.KEY_HASH_SIZE_KEY, 7);
     options.put(Curly.Factory.RECORD_FILE_READ_BUFFER_BYTES_KEY, 32000);
     options.put(Curly.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Curly.Factory.MAX_ALLOWED_PART_SIZE_KEY, 15000);
-    factory.getStorageEngine(options, "domain0");
+    factory.getStorageEngine(options, null);
   }
 }

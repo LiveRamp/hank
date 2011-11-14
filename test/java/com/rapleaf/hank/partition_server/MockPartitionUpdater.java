@@ -15,22 +15,15 @@
  */
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.PartitionUpdater;
+
 import java.io.IOException;
-import java.util.Set;
 
-import com.rapleaf.hank.storage.Updater;
+public class MockPartitionUpdater implements PartitionUpdater {
 
-public class MockUpdater implements Updater {
   private boolean updated = false;
   public Integer updatedToVersion = null;
-  public Set<Integer> excludeVersions;
-
-  @Override
-  public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-    updatedToVersion = toVersion;
-    this.excludeVersions = excludeVersions;
-    setUpdated(true);
-  }
 
   public void setUpdated(boolean updated) {
     this.updated = updated;
@@ -38,5 +31,11 @@ public class MockUpdater implements Updater {
 
   public boolean isUpdated() {
     return updated;
+  }
+
+  @Override
+  public void updateTo(DomainVersion updatingToVersion) throws IOException {
+    updatedToVersion = updatingToVersion.getVersionNumber();
+    setUpdated(true);
   }
 }

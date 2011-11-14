@@ -15,14 +15,13 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.rapleaf.hank.storage.LocalFileOps;
-import org.apache.log4j.Logger;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import org.apache.log4j.Logger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestCueballFactory extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestCueballFactory.class);
@@ -32,7 +31,7 @@ public class TestCueballFactory extends BaseTestCase {
 
     Map<String, Object> badOptions = new HashMap<String, Object>();
     try {
-      factory.getStorageEngine(badOptions, "domain0");
+      factory.getStorageEngine(badOptions, null);
       fail();
     } catch (Exception e) {
       LOG.error("", e);
@@ -41,13 +40,13 @@ public class TestCueballFactory extends BaseTestCase {
 
   public void testGoodConfig() throws Exception {
     Cueball.Factory factory = new Cueball.Factory();
-    Map<String,Object> options = new HashMap<String, Object>();
+    Map<String, Object> options = new HashMap<String, Object>();
     options.put(Cueball.Factory.HASHER_KEY, Murmur64Hasher.class.getName());
-    options.put(Cueball.Factory.FILE_OPS_FACTORY_KEY, LocalFileOps.Factory.class.getName());
+    options.put(Cueball.Factory.FILE_OPS_FACTORY_KEY, LocalPartitionRemoteFileOps.Factory.class.getName());
     options.put(Cueball.Factory.HASH_INDEX_BITS_KEY, 5);
     options.put(Cueball.Factory.KEY_HASH_SIZE_KEY, 7);
     options.put(Cueball.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Cueball.Factory.VALUE_SIZE_KEY, 15);
-    factory.getStorageEngine(options, "domain0");
+    factory.getStorageEngine(options, null);
   }
 }

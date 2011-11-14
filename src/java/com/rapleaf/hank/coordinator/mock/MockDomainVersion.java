@@ -24,6 +24,7 @@ import java.util.Set;
 public class MockDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;
   private final Long closedAt;
+  private boolean isDefunct = false;
 
   public MockDomainVersion(int versionNumber, Long closedAt) {
     this.versionNumber = versionNumber;
@@ -53,10 +54,11 @@ public class MockDomainVersion extends AbstractDomainVersion {
 
   @Override
   public boolean isDefunct() throws IOException {
-    return false;
+    return isDefunct;
   }
 
   @Override
   public void setDefunct(boolean isDefunct) throws IOException {
+    this.isDefunct = isDefunct;
   }
 }

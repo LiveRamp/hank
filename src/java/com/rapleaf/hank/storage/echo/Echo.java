@@ -1,21 +1,16 @@
 package com.rapleaf.hank.storage.echo;
 
+import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.*;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.rapleaf.hank.config.Configurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.storage.Updater;
-import com.rapleaf.hank.storage.Writer;
-
 public class Echo implements StorageEngine {
+
   public static class Factory implements StorageEngineFactory {
     @Override
     public String getDefaultOptions() {
@@ -28,7 +23,7 @@ public class Echo implements StorageEngine {
     }
 
     @Override
-    public StorageEngine getStorageEngine(Map<String, Object> options, String domainName) throws IOException {
+    public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       return new Echo();
     }
   }
@@ -44,7 +39,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return new EchoUpdater();
   }
 
@@ -63,7 +58,7 @@ public class Echo implements StorageEngine {
   public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
     return new DomainVersionCleaner() {
       @Override
-      public void cleanVersion(int versionNumber, int numParts) throws IOException {
+      public void cleanVersion(int versionNumber) throws IOException {
       }
     };
   }

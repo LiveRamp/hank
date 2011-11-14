@@ -1,23 +1,44 @@
+/**
+ *  Copyright 2011 Rapleaf
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.rapleaf.hank.storage.cueball;
-import java.io.File;
-import java.nio.ByteBuffer;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.DomainVersionCleaner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.LocalFileOps;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 
+import java.io.File;
+import java.nio.ByteBuffer;
 
 public class TestCueballDomainVersionCleaner extends BaseTestCase {
+
   private String localDiskRoot = localTmpDir + "/local_disk_root";
   private ByteBuffer key = ByteBuffer.wrap(new byte[]{1});
-  private ByteBuffer value = ByteBuffer.wrap(new byte[]{2});;
+  private ByteBuffer value = ByteBuffer.wrap(new byte[]{2});
 
   public void testIt() throws Exception {
-    final Cueball storageEngine = new Cueball(1, new Murmur64Hasher(), 1, 1, localDiskRoot, new LocalFileOps.Factory(), NoCompressionCodec.class, "testDomain");
+    final Cueball storageEngine = new Cueball(1,
+        new Murmur64Hasher(), 1, 1, localDiskRoot,
+        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
+        new MockDomain("domain", 0, 1, null, null, null, null));
     Writer writer = storageEngine.getWriter(new LocalDiskOutputStreamFactory(localDiskRoot), 0, 1, true);
     writer.write(key, value);
     writer.close();
@@ -29,7 +50,7 @@ public class TestCueballDomainVersionCleaner extends BaseTestCase {
     assertTrue(new File(localDiskRoot + "/0/00002.delta.cueball").exists());
 
     final DomainVersionCleaner cleaner = storageEngine.getDomainVersionCleaner(null);
-    cleaner.cleanVersion(1, 1);
+    cleaner.cleanVersion(1);
 
     assertFalse(new File(localDiskRoot + "/0/00001.base.cueball").exists());
     assertTrue(new File(localDiskRoot + "/0/00002.delta.cueball").exists());

@@ -30,7 +30,7 @@ public interface StorageEngine {
 
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
 
-  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException;
+  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException;
 
   public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum) throws IOException;
 

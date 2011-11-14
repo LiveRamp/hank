@@ -16,30 +16,12 @@
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
-import java.util.List;
 
 /**
- * IFileOps is a micro-abstraction of a remote filesystem used by Fetcher to
- * provide a variety of retrieval strategies.
+ * Factory for getting PartitionRemoteFileOps instances.
  */
-public interface IFileOps {
-  /**
-   * Get the list of files in the remote location.
-   *
-   * @return
-   * @throws IOException
-   */
-  public List<String> listFiles() throws IOException;
+public interface PartitionRemoteFileOpsFactory {
 
-  /**
-   * Copy the specified file from remote to local.
-   *
-   * @param remoteFileName
-   * @param localDirectory
-   * @return
-   * @throws IOException
-   */
-  public String copyToLocal(String remoteFileName, String localDirectory) throws IOException;
-
-  public boolean attemptDeleteRemote(String path) throws IOException;
+  public PartitionRemoteFileOps getFileOps(String remoteDomainRoot,
+                                           int partitionNumber) throws IOException;
 }

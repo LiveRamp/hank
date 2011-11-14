@@ -21,7 +21,6 @@ import junit.framework.TestCase;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.TreeSet;
 
 public class TestCurlyMerger extends TestCase {
   private static final String LOCAL_PARTITION_ROOT = "/tmp/TestCurlyMerger/local";
@@ -54,7 +53,7 @@ public class TestCurlyMerger extends TestCase {
     s.flush();
     s.close();
 
-    long[] offsetAdjustments = new CurlyMerger().merge(BASE, new TreeSet<CurlyFilePath>(Arrays.asList(DELTA1, DELTA2)));
+    long[] offsetAdjustments = new CurlyMerger().merge(BASE, Arrays.asList(DELTA1, DELTA2));
 
     assertEquals(3, offsetAdjustments.length);
     assertEquals(0, offsetAdjustments[0]);

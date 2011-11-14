@@ -22,11 +22,12 @@ import com.rapleaf.hank.compress.CompressionCodec;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.SortedSet;
+import java.util.List;
 
 public class MockCueballMerger implements ICueballMerger {
+
   public CueballFilePath latestBase;
-  public SortedSet<CueballFilePath> deltas;
+  public List<CueballFilePath> deltas;
   public String newBasePath;
   public int keyHashSize;
   public int valueSize;
@@ -34,7 +35,7 @@ public class MockCueballMerger implements ICueballMerger {
   public ValueTransformer valueTransformer;
 
   @Override
-  public void merge(CueballFilePath latestBase, SortedSet<CueballFilePath> deltas,
+  public void merge(CueballFilePath latestBase, List<CueballFilePath> deltas,
                     String newBasePath, int keyHashSize, int valueSize,
                     ValueTransformer transformer, int hashIndexBits, CompressionCodec compressionCodec)
       throws IOException {
@@ -45,6 +46,8 @@ public class MockCueballMerger implements ICueballMerger {
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;
     this.valueTransformer = transformer;
-    new File(newBasePath).createNewFile();
+    if (!new File(newBasePath).createNewFile()) {
+      throw new IOException("Failed to create file " + newBasePath);
+    }
   }
 }

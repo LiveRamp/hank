@@ -1,27 +1,36 @@
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.storage.DomainVersionCleaner;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
+import com.rapleaf.hank.storage.cueball.Cueball;
+
 import java.io.IOException;
 
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.IFileOps;
-import com.rapleaf.hank.storage.cueball.CueballDomainVersionCleaner;
+public class CurlyDomainVersionCleaner implements DomainVersionCleaner {
 
-public class CurlyDomainVersionCleaner extends CueballDomainVersionCleaner implements DomainVersionCleaner {
-  public CurlyDomainVersionCleaner(String domainVersionsRoot, IFileOps fs) {
-    super(domainVersionsRoot, fs);
+  protected final Domain domain;
+  protected final String remoteDomainRoot;
+  protected final PartitionRemoteFileOpsFactory fileOpsFactory;
+
+  public CurlyDomainVersionCleaner(Domain domain,
+                                   String remoteDomainRoot,
+                                   PartitionRemoteFileOpsFactory fileOpsFactory) {
+    this.domain = domain;
+    this.remoteDomainRoot = remoteDomainRoot;
+    this.fileOpsFactory = fileOpsFactory;
   }
 
   @Override
-  public void cleanVersion(int versionNumber, int numParts) throws IOException {
-    super.cleanVersion(versionNumber, numParts);
-    for (int i = 0; i < numParts; i++) {
-      String basePath = domainVersionsRoot + "/" + i + "/" + Curly.padVersionNumber(versionNumber) + ".base.curly";
-      String deltaPath = domainVersionsRoot + "/" + i + "/" + Curly.padVersionNumber(versionNumber) + ".delta.curly";
-      if (!fs.attemptDeleteRemote(basePath)) {
-        if (!fs.attemptDeleteRemote(deltaPath)){
-          // TODO: log a note that no file was found.
-        }
-      }
+  public void cleanVersion(int versionNumber) throws IOException {
+    for (int partition = 0; partition < domain.getNumParts(); ++partition) {
+      PartitionRemoteFileOps fileOps = fileOpsFactory.getFileOps(remoteDomainRoot, partition);
+      fileOps.attemptDelete(Cueball.getName(versionNumber, true));
+      fileOps.attemptDelete(Cueball.getName(versionNumber, false));
+
+      fileOps.attemptDelete(Curly.getName(versionNumber, true));
+      fileOps.attemptDelete(Curly.getName(versionNumber, false));
     }
   }
 }

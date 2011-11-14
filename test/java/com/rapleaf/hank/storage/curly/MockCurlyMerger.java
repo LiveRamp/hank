@@ -13,11 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage;
+
+package com.rapleaf.hank.storage.curly;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
-public interface Updater {
-  void update(int toVersion, Set<Integer> excludeVersions) throws IOException;
+public class MockCurlyMerger implements ICurlyMerger {
+
+  public CurlyFilePath latestBase;
+  public List<CurlyFilePath> deltas;
+
+  @Override
+  public long[] merge(CurlyFilePath latestBase, List<CurlyFilePath> deltas) throws IOException {
+    this.latestBase = latestBase;
+    this.deltas = deltas;
+    return null;
+  }
 }

@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.BaseTestCase;
@@ -22,8 +23,8 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.Deleter;
+import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Updater;
 import com.rapleaf.hank.storage.mock.MockDeleter;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
@@ -85,14 +86,14 @@ public class TestUpdateManager extends BaseTestCase {
     private final MockDeleter MOCK_DELETER = new MockDeleter(1);
 
     protected final class MSE extends MockStorageEngine {
-      private final Updater updater;
+      private final PartitionUpdater updater;
 
-      private MSE(Updater updater) {
+      private MSE(PartitionUpdater updater) {
         this.updater = updater;
       }
 
       @Override
-      public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+      public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
         return updater;
       }
 
@@ -103,7 +104,7 @@ public class TestUpdateManager extends BaseTestCase {
       }
     }
 
-    protected StorageEngine getMockStorageEngine(Updater updater) {
+    protected StorageEngine getMockStorageEngine(PartitionUpdater updater) {
       return new MSE(updater);
     }
 
@@ -170,7 +171,7 @@ public class TestUpdateManager extends BaseTestCase {
 
                 @Override
                 public int getVersionNumber() {
-                  return 45;
+                  return 0;
                 }
 
                 @Override
@@ -230,7 +231,7 @@ public class TestUpdateManager extends BaseTestCase {
   }
 
   public void testUpdate() throws Exception {
-    final MockUpdater mockUpdater = new MockUpdater();
+    final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
@@ -247,8 +248,6 @@ public class TestUpdateManager extends BaseTestCase {
     ud.update();
     assertTrue("update() was called on the storage engine",
         mockUpdater.isUpdated());
-    assertEquals("excludeVersions passed in as expected",
-        Collections.singleton(45), mockUpdater.excludeVersions);
     assertEquals("update() called with proper args", Integer.valueOf(0),
         mockUpdater.updatedToVersion);
     assertEquals("current version", Integer.valueOf(1),
@@ -271,7 +270,7 @@ public class TestUpdateManager extends BaseTestCase {
   }
 
   public void testGarbageCollectDomain() throws Exception {
-    final MockUpdater mockUpdater = new MockUpdater();
+    final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
@@ -307,10 +306,10 @@ public class TestUpdateManager extends BaseTestCase {
   }
 
   public void testFailedUpdateTask() throws Exception {
-    final MockUpdater failingUpdater = new MockUpdater() {
+    final MockPartitionUpdater failingUpdater = new MockPartitionUpdater() {
       @Override
-      public void update(int toVersion, Set<Integer> excludeVersions) throws IOException {
-        super.update(toVersion, excludeVersions);
+      public void updateTo(DomainVersion updatingToVersion) throws IOException {
+        super.updateTo(updatingToVersion);
         throw new IOException("Failed to update.");
       }
     };
@@ -338,7 +337,7 @@ public class TestUpdateManager extends BaseTestCase {
   }
 
   public void testInterruptedUpdateTask() throws Exception {
-    final MockUpdater mockUpdater = new MockUpdater();
+    final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);

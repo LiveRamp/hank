@@ -15,39 +15,32 @@
  */
 package com.rapleaf.hank.storage.mock;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.commons.lang.NotImplementedException;
-
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
-import com.rapleaf.hank.storage.Deleter;
-import com.rapleaf.hank.storage.DomainVersionCleaner;
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.Updater;
-import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.*;
+import org.apache.commons.lang.NotImplementedException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class MockStorageEngine implements StorageEngine {
   public boolean getReaderCalled;
 
   @Override
   public Reader getReader(PartitionServerConfigurator configurator, int partNum)
-  throws IOException {
+      throws IOException {
     getReaderCalled = true;
     return null;
   }
 
   @Override
-  public Updater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
     return null;
   }
 
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
-      int versionNumber, boolean base) throws IOException {
+                          int versionNumber, boolean base) throws IOException {
     return null;
   }
 
