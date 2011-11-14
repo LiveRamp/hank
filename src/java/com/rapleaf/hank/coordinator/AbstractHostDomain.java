@@ -44,6 +44,7 @@ public abstract class AbstractHostDomain implements HostDomain {
 
   @Override
   public String toString() {
-    return String.format("AbstractHostDomain [domain=%s]", getDomain());
+    return String.format("AbstractHostDomain [domainName=%s]",
+        getDomain() != null ? getDomain().getName() : "?");
   }
 }
