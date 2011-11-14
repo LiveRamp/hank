@@ -30,7 +30,7 @@
   <form action="/ring_group/create" method=post>
     <select name="dgName">
       <%
-        for (DomainGroup dgc : coord.getDomainGroups()) {
+        for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
       %>
       <option><%=dgc.getName()%></option>
       <%
