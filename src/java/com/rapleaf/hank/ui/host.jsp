@@ -56,8 +56,8 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     <table class='table-blue-compact'>
       <tr>
       <td>State:</td>
-      <td>
-      <div class='centered <%= UiUtils.hostStateToClass(host.getState()) %>'><%= host.getState() %></div>
+      <td class='centered <%= UiUtils.hostStateToClass(host.getState()) %>'>
+      <%= host.getState() %>
       </td>
       </tr>
 
