@@ -184,3 +184,17 @@ table.table-blue td,
   color: #ffffff;
   background-color: #cc0404;
 }
+
+/* Partitions */
+.partition_unassigned {
+  background-color: #d0d0d0;
+}
+.partition_undeployed {
+  background-color: #cc0404;
+}
+.partition_updated {
+  background-color: #69db69;
+}
+.partition_updating {
+  background-color: #8cdbf3;
+}

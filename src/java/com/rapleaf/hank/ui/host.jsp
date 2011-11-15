@@ -24,11 +24,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <jsp:include page="_head.jsp" />
 
   <style type="text/css">
-    td.unassigned {background-color: #ddd}
-    td.undeployed {background-color: #f00}
-    td.updating {background-color: #00f}
-    td.updated {background-color: #0f0}
-
     div.part_assignment_visualization {float:left; padding: 3px}
   </style>
 </head>
@@ -185,19 +180,19 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         <td colspan=2 align=center style="border-bottom: 1px solid #ddd">Legend</td>
       </tr>
       <tr>
-        <td class="unassigned" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td class="partition_unassigned" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
         <td>Not assigned</td>
       </tr>
       <tr>
-        <td class="undeployed" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td class="partition_undeployed" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
         <td>Assigned, no version deployed</td>
       </tr>
       <tr>
-        <td class="updating" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td class="partition_updating" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
         <td>Assigned, some version deployed, update pending</td>
       </tr>
       <tr>
-        <td class="updated" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td class="partition_updated" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
         <td>Assigned, latest version deployed</td>
       </tr>
     </table>
@@ -216,15 +211,15 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <table cellspacing=1 cellpadding=0>
       <%
       for (int i = 0; i < domain.getNumParts(); i++) {
-        String className = "unassigned";
+        String className = "partition_unassigned";
         HostDomainPartition hdp = hdc.getPartitionByNumber(i);
         if (hdp != null) {
           if (hdp.getCurrentDomainGroupVersion() == null) {
-            className = "undeployed";
+            className = "partition_undeployed";
           } else if (hdp.getUpdatingToDomainGroupVersion() != null) {
-            className = "updating";
+            className = "partition_updating";
           } else {
-            className = "updated";
+            className = "partition_updated";
           }
         }
       %>
