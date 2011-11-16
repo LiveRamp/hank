@@ -46,9 +46,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final int numConnectionsPerHost;
   private final int queryTimeoutMS;
 
-  private final Map<PartitionServerAddress, PartitionServerConnectionSet> partitionServerAddressToConnectionSet = new HashMap<PartitionServerAddress, PartitionServerConnectionSet>();
-  private final Map<Integer, Map<Integer, PartitionServerConnectionSet>> domainToPartitionToConnectionSet = new HashMap<Integer, Map<Integer, PartitionServerConnectionSet>>();
-  private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+  private static final int NUM_TRIES = 5;
+
+  private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
+      = new HashMap<PartitionServerAddress, HostConnectionPool>();
+  private final Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
+      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
+  private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
+      = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
   private final Random random = new Random();
 
@@ -157,31 +162,31 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
         // Establish connection to hosts
         LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host + " with a query timeout of " + queryTimeoutMS + "ms");
-        List<PartitionServerConnection> hostConnections = new ArrayList<PartitionServerConnection>(numConnectionsPerHost);
+        List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new PartitionServerConnection(host, queryTimeoutMS));
+          hostConnections.add(new HostConnection(host, queryTimeoutMS));
         }
-        partitionServerAddressToConnectionSet.put(host.getAddress(), new PartitionServerConnectionSet(hostConnections));
+        partitionServerAddressToConnectionPool.put(host.getAddress(), HostConnectionPool.createFromList(hostConnections));
       }
     }
 
-    // Build domainToPartitionToConnectionSet
+    // Build domainToPartitionToConnectionPool
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
-      Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = new HashMap<Integer, PartitionServerConnectionSet>();
+      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
-        List<PartitionServerConnection> connections = new ArrayList<PartitionServerConnection>();
+        List<HostConnection> connections = new ArrayList<HostConnection>();
         for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
-          connections.addAll(partitionServerAddressToConnectionSet.get(address).getConnections());
+          connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
         }
-        partitionToConnectionSet.put(partitionToAddressesEntry.getKey(), new PartitionServerConnectionSet(connections));
+        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
       }
-      domainToPartitionToConnectionSet.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionSet);
+      domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
     }
   }
 
   private void clearCache() {
-    partitionServerAddressToConnectionSet.clear();
-    domainToPartitionToConnectionSet.clear();
+    partitionServerAddressToConnectionPool.clear();
+    domainToPartitionToConnectionPool.clear();
     domainToPartitionToPartitionServerAddresses.clear();
   }
 
@@ -194,15 +199,15 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
 
-    Map<Integer, PartitionServerConnectionSet> partitionToConnectionSet = domainToPartitionToConnectionSet.get(domain.getId());
-    if (partitionToConnectionSet == null) {
+    Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    if (partitionToConnectionPool == null) {
       String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName, domain.getId());
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
 
-    PartitionServerConnectionSet connectionSet = partitionToConnectionSet.get(partition);
-    if (connectionSet == null) {
+    HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
+    if (hostConnectionPool == null) {
       // this is a problem, since the cache must not have been loaded correctly
       String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d", domainName, domain.getId(), partition);
       LOG.error(errMsg);
@@ -211,7 +216,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
-    return connectionSet.get(domain.getId(), key);
+    return hostConnectionPool.get(domain.getId(), key, NUM_TRIES);
   }
 
   @Override
@@ -278,13 +283,14 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     // Create threads to execute requests
+    // TODO: use asynchronous getBulk?
     List<Thread> requestThreads = new ArrayList<Thread>(partitionServerTobulkRequest.keySet().size());
     for (Map.Entry<PartitionServerAddress, BulkRequest> entry : partitionServerTobulkRequest.entrySet()) {
       PartitionServerAddress partitionServerAddress = entry.getKey();
       BulkRequest bulkRequest = entry.getValue();
       // Find connection set
-      PartitionServerConnectionSet connectionSet = partitionServerAddressToConnectionSet.get(partitionServerAddress);
-      Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionSet, allResponses));
+      HostConnectionPool connectionPool = partitionServerAddressToConnectionPool.get(partitionServerAddress);
+      Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionPool, allResponses));
       thread.start();
       requestThreads.add(thread);
     }
@@ -338,23 +344,23 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private static class GetBulkRunnable implements Runnable {
     private final int domainId;
     private final BulkRequest bulkRequest;
-    private final PartitionServerConnectionSet connectionSet;
+    private final HostConnectionPool connectionPool;
     private final List<HankResponse> allResponses;
 
     public GetBulkRunnable(int domainId,
                            BulkRequest bulkRequest,
-                           PartitionServerConnectionSet connectionSet,
+                           HostConnectionPool connectionPool,
                            List<HankResponse> allResponses) {
       this.domainId = domainId;
       this.bulkRequest = bulkRequest;
-      this.connectionSet = connectionSet;
+      this.connectionPool = connectionPool;
       this.allResponses = allResponses;
     }
 
     public void run() {
       HankBulkResponse response;
       // Execute request
-      response = connectionSet.getBulk(domainId, bulkRequest.getKeys());
+      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), NUM_TRIES);
       // Request succeeded
       if (response.is_set_xception()) {
         // Fill responses with error

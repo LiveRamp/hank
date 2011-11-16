@@ -90,7 +90,9 @@ class DomainAccessor {
           // Delete all runtime statistics
           for (PartitionAccessor partitionAccessor : partitionAccessors) {
             try {
-              partitionAccessor.deleteRuntimeStatistics();
+              if (partitionAccessor != null) {
+                partitionAccessor.deleteRuntimeStatistics();
+              }
             } catch (IOException e1) {
               // Swallow
             }

@@ -37,7 +37,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class HostConnection implements HostStateChangeListener {
 
-  private static final Logger LOG = Logger.getLogger(PartitionServerConnection.class);
+  private static final Logger LOG = Logger.getLogger(HostConnection.class);
 
   private final int timeoutMS;
   public TTransport transport;
@@ -66,36 +66,6 @@ public class HostConnection implements HostStateChangeListener {
     return host;
   }
 
-  @Override
-  public void onHostStateChange(Host host) {
-    synchronized (stateChangeMutex) {
-      try {
-        switch (host.getState()) {
-          case SERVING:
-            lock();
-            try {
-              disconnect();
-              connect();
-            } finally {
-              unlock();
-            }
-            break;
-
-          default:
-            lock();
-            try {
-              disconnect();
-              state = HostConnectionState.STANDBY;
-            } finally {
-              unlock();
-            }
-        }
-      } catch (IOException e) {
-        LOG.error("Exception while trying to get host state!", e);
-      }
-    }
-  }
-
   public boolean isAvailable() {
     return state != HostConnectionState.STANDBY;
   }
@@ -104,53 +74,61 @@ public class HostConnection implements HostStateChangeListener {
     return state == HostConnectionState.DISCONNECTED;
   }
 
+  void lock() {
+    lock.lock();
+  }
+
+  void unlock() {
+    lock.unlock();
+  }
+
+  boolean tryLock() {
+    return lock.tryLock();
+  }
+
   public HankResponse get(int domainId, ByteBuffer key) throws IOException {
-    if (!isAvailable()) {
-      throw new IOException("Connection is not available.");
+    // Lock the connection only if needed
+    if (!lock.isHeldByCurrentThread()) {
+      lock();
     }
-    lock();
+    if (!isAvailable()) {
+      throw new IOException("Connection to host is not available (host is not serving).");
+    }
     try {
       // Connect if necessary
       if (isDisconnected()) {
         connect();
       }
+      // Perform query
       return client.get(domainId, key);
-    } catch (TException e1) {
-      // Reconnect and retry
-      LOG.trace("Failed to execute get(), reconnecting and retrying...");
+    } catch (TException e) {
+      // Disconnect and give up
       disconnect();
-      connect();
-      try {
-        return client.get(domainId, key);
-      } catch (TException e2) {
-        throw new IOException("Failed to execute get() again, giving up.", e2);
-      }
+      throw new IOException("Failed to execute get()", e);
     } finally {
       unlock();
     }
   }
 
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws IOException {
-    if (!isAvailable()) {
-      throw new IOException("Connection is not available.");
+    // Lock the connection only if needed
+    if (!lock.isHeldByCurrentThread()) {
+      lock();
     }
-    lock();
+    if (!isAvailable()) {
+      throw new IOException("Connection to host is not available (host is not serving).");
+    }
     try {
       // Connect if necessary
       if (isDisconnected()) {
         connect();
       }
+      // Perform query
       return client.getBulk(domainId, keys);
-    } catch (TException e1) {
-      // Reconnect and retry
-      LOG.trace("Failed to execute getBulk(), reconnecting and retrying...");
+    } catch (TException e) {
+      // Disconnect and give up
       disconnect();
-      connect();
-      try {
-        return client.getBulk(domainId, keys);
-      } catch (TException e2) {
-        throw new IOException("Failed to execute getBulk() again, giving up.", e2);
-      }
+      throw new IOException("Failed to execute getBulk()", e);
     } finally {
       unlock();
     }
@@ -187,15 +165,33 @@ public class HostConnection implements HostStateChangeListener {
     state = HostConnectionState.CONNECTED;
   }
 
-  void lock() {
-    lock.lock();
-  }
+  @Override
+  public void onHostStateChange(Host host) {
+    synchronized (stateChangeMutex) {
+      try {
+        switch (host.getState()) {
+          case SERVING:
+            lock();
+            try {
+              disconnect();
+              connect();
+            } finally {
+              unlock();
+            }
+            break;
 
-  void unlock() {
-    lock.unlock();
-  }
-
-  boolean tryLock() {
-    return lock.tryLock();
+          default:
+            lock();
+            try {
+              disconnect();
+              state = HostConnectionState.STANDBY;
+            } finally {
+              unlock();
+            }
+        }
+      } catch (IOException e) {
+        LOG.error("Exception while trying to get host state!", e);
+      }
+    }
   }
 }
