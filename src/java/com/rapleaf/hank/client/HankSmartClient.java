@@ -44,7 +44,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
-  private final int queryNumMaxTries;
+  private final int queryMaxNumTries;
   private final int connectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
@@ -95,7 +95,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   public HankSmartClient(Coordinator coordinator,
                          String ringGroupName,
                          int numConnectionsPerHost,
-                         int queryNumMaxTries,
+                         int queryMaxNumTries,
                          int connectionTimeoutMs,
                          int queryTimeoutMs,
                          int bulkQueryTimeoutMs) throws IOException, TException {
@@ -107,7 +107,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     this.numConnectionsPerHost = numConnectionsPerHost;
-    this.queryNumMaxTries = queryNumMaxTries;
+    this.queryMaxNumTries = queryMaxNumTries;
     this.connectionTimeoutMs = connectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
@@ -230,7 +230,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
-    return hostConnectionPool.get(domain.getId(), key, queryNumMaxTries);
+    return hostConnectionPool.get(domain.getId(), key, queryMaxNumTries);
   }
 
   @Override
@@ -374,7 +374,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     public void run() {
       HankBulkResponse response;
       // Execute request
-      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), queryNumMaxTries);
+      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), queryMaxNumTries);
       // Request succeeded
       if (response.is_set_xception()) {
         // Fill responses with error
