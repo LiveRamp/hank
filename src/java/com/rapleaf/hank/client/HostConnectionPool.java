@@ -59,6 +59,8 @@ public class HostConnectionPool {
       for (HostConnection hostConnection : entry.getValue()) {
         connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
       }
+      // Shuffle list of connections for that host, so that different pools try connections in different orders
+      Collections.shuffle(connections);
       hostToConnections.add(connections);
       ++hostIndex;
     }
