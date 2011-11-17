@@ -79,25 +79,6 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
   }
 
   public void testGetDomainVersionParent() throws IOException {
-
-    // Fail when no base or delta was found
-    try {
-      updater.getParentDomainVersion(v0);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-    }
-
-    // Fail when only cueball file was found
-    try {
-      makeRemoteFile("0/00001.base.cueball");
-      updater.getParentDomainVersion(v0);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-      deleteRemoteFile("1/00001.base.cueball");
-    }
-
     // Parent is null when base found
     makeRemoteFile("0/00001.base.cueball");
     makeRemoteFile("0/00001.base.curly");
@@ -198,24 +179,6 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
     String fetchRoot = localPartitionRoot + "/" + fetchRootName;
     new File(fetchRoot).mkdir();
 
-    // Fail when there is no valid file
-    try {
-      updater.fetchVersion(v0, fetchRoot);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-    }
-
-    // Fail when there is only cueball
-    try {
-      makeRemoteFile("0/00000.delta.cueball");
-      updater.fetchVersion(v0, fetchRoot);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-      deleteRemoteFile("0/00000.delta.cueball");
-    }
-
     // Fetch delta
     makeRemoteFile("0/00000.delta.cueball");
     makeRemoteFile("0/00000.delta.curly");
@@ -256,6 +219,13 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
     makeLocalCacheFile("00001.delta.curly");
     makeLocalCacheFile("00002.delta.cueball");
     makeLocalCacheFile("00002.delta.curly");
+
+    // Make sure file exists on remote partition so that the versions are not considered empty
+    makeRemoteFile("0/00001.delta.cueball");
+    makeRemoteFile("0/00001.delta.curly");
+    makeRemoteFile("0/00002.delta.cueball");
+    makeRemoteFile("0/00002.delta.curly");
+
     updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
     // Deltas still exist
     assertTrue(existsCacheFile("00001.delta.cueball"));
