@@ -39,7 +39,10 @@ public class HostConnection implements HostStateChangeListener {
 
   private static final Logger LOG = Logger.getLogger(HostConnection.class);
 
-  private final int timeoutMS;
+  private final int connectionTimeoutMs;
+  private final int queryTimeoutMs;
+  private final int bulkQueryTimeoutMs;
+  private TSocket socket;
   public TTransport transport;
   public PartitionServer.Client client;
   private final Host host;
@@ -55,9 +58,14 @@ public class HostConnection implements HostStateChangeListener {
   }
 
   // A timeout of 0 means no timeout
-  public HostConnection(Host host, int timeoutMS) throws TException, IOException {
+  public HostConnection(Host host,
+                        int connectionTimeoutMs,
+                        int queryTimeoutMs,
+                        int bulkQueryTimeoutMs) throws TException, IOException {
     this.host = host;
-    this.timeoutMS = timeoutMS;
+    this.connectionTimeoutMs = connectionTimeoutMs;
+    this.queryTimeoutMs = queryTimeoutMs;
+    this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     host.setStateChangeListener(this);
     onHostStateChange(host);
   }
@@ -99,6 +107,7 @@ public class HostConnection implements HostStateChangeListener {
       if (isDisconnected()) {
         connect();
       }
+      // Query timeout is by default always set to regular mode
       // Perform query
       return client.get(domainId, key);
     } catch (TException e) {
@@ -123,8 +132,15 @@ public class HostConnection implements HostStateChangeListener {
       if (isDisconnected()) {
         connect();
       }
-      // Perform query
-      return client.getBulk(domainId, keys);
+      try {
+        // Set socket timeout to bulk mode
+        setSocketTimeout(bulkQueryTimeoutMs);
+        // Perform query
+        return client.getBulk(domainId, keys);
+      } finally {
+        // Set socket timeout back to regular mode
+        setSocketTimeout(queryTimeoutMs);
+      }
     } catch (TException e) {
       // Disconnect and give up
       disconnect();
@@ -138,6 +154,7 @@ public class HostConnection implements HostStateChangeListener {
     if (transport != null) {
       transport.close();
     }
+    socket = null;
     transport = null;
     client = null;
     state = HostConnectionState.DISCONNECTED;
@@ -147,11 +164,15 @@ public class HostConnection implements HostStateChangeListener {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Trying to connect to " + host.getAddress());
     }
-    transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
+    // Use connection timeout to connect
+    socket = new TSocket(host.getAddress().getHostName(),
         host.getAddress().getPortNumber(),
-        timeoutMS));
+        connectionTimeoutMs);
+    transport = new TFramedTransport(socket);
     try {
       transport.open();
+      // Set socket timeout to regular mode
+      setSocketTimeout(queryTimeoutMs);
     } catch (TTransportException e) {
       LOG.error("Failed to establish connection to host.", e);
       disconnect();
@@ -163,6 +184,12 @@ public class HostConnection implements HostStateChangeListener {
       LOG.trace("Connection to " + host.getAddress() + " opened.");
     }
     state = HostConnectionState.CONNECTED;
+  }
+
+  private void setSocketTimeout(int timeout) {
+    if (socket != null) {
+      socket.setTimeout(timeout);
+    }
   }
 
   @Override

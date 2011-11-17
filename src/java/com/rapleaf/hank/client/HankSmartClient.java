@@ -44,9 +44,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
-  private final int queryTimeoutMS;
-
-  private static final int NUM_TRIES = 5;
+  private final int queryNumMaxTries;
+  private final int connectionTimeoutMs;
+  private final int queryTimeoutMs;
+  private final int bulkQueryTimeoutMs;
 
   private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
@@ -72,7 +73,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     this(coordinator,
         configurator.getRingGroupName(),
         configurator.getNumConnectionsPerHost(),
-        configurator.getQueryTimeoutMS());
+        configurator.getQueryNumMaxTries(),
+        configurator.getConnectionTimeoutMs(),
+        configurator.getQueryTimeoutMs(),
+        configurator.getBulkQueryTimeoutMs());
   }
 
   /**
@@ -84,14 +88,17 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
    * @param coordinator
    * @param ringGroupName
    * @param numConnectionsPerHost
-   * @param queryTimeoutMS
+   * @param queryTimeoutMs
    * @throws IOException
    * @throws TException
    */
   public HankSmartClient(Coordinator coordinator,
                          String ringGroupName,
                          int numConnectionsPerHost,
-                         int queryTimeoutMS) throws IOException, TException {
+                         int queryNumMaxTries,
+                         int connectionTimeoutMs,
+                         int queryTimeoutMs,
+                         int bulkQueryTimeoutMs) throws IOException, TException {
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -100,7 +107,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     this.numConnectionsPerHost = numConnectionsPerHost;
-    this.queryTimeoutMS = queryTimeoutMS;
+    this.queryNumMaxTries = queryNumMaxTries;
+    this.connectionTimeoutMs = connectionTimeoutMs;
+    this.queryTimeoutMs = queryTimeoutMs;
+    this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
     for (Ring ring : ringGroup.getRings()) {
@@ -161,12 +171,16 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         }
 
         // Establish connection to hosts
-        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host + " with a query timeout of " + queryTimeoutMS + "ms");
+        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
+            + " with connection timeout = " + connectionTimeoutMs + "ms"
+            + ", query timeout = " + queryTimeoutMs + "ms"
+            + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
         List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new HostConnection(host, queryTimeoutMS));
+          hostConnections.add(new HostConnection(host, connectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs));
         }
-        partitionServerAddressToConnectionPool.put(host.getAddress(), HostConnectionPool.createFromList(hostConnections));
+        partitionServerAddressToConnectionPool.put(host.getAddress(),
+            HostConnectionPool.createFromList(hostConnections));
       }
     }
 
@@ -216,7 +230,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
-    return hostConnectionPool.get(domain.getId(), key, NUM_TRIES);
+    return hostConnectionPool.get(domain.getId(), key, queryNumMaxTries);
   }
 
   @Override
@@ -341,7 +355,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
   }
 
-  private static class GetBulkRunnable implements Runnable {
+  private class GetBulkRunnable implements Runnable {
     private final int domainId;
     private final BulkRequest bulkRequest;
     private final HostConnectionPool connectionPool;
@@ -360,7 +374,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     public void run() {
       HankBulkResponse response;
       // Execute request
-      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), NUM_TRIES);
+      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), queryNumMaxTries);
       // Request succeeded
       if (response.is_set_xception()) {
         // Fill responses with error

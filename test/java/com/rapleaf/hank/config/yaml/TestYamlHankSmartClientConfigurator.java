@@ -33,13 +33,19 @@ public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
     pw.println("hank_smart_client:");
     pw.println("  ring_group_name: rg1");
     pw.println("  num_connections_per_host: 10");
+    pw.println("  query_num_max_tries: 5");
+    pw.println("  connection_timeout_ms: 100");
     pw.println("  query_timeout_ms: 42");
+    pw.println("  bulk_query_timeout_ms: 142");
     pw.close();
 
     YamlHankSmartClientConfigurator conf = new YamlHankSmartClientConfigurator(configPath);
 
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(10, conf.getNumConnectionsPerHost());
-    assertEquals(42, conf.getQueryTimeoutMS());
+    assertEquals(5, conf.getQueryNumMaxTries());
+    assertEquals(100, conf.getConnectionTimeoutMs());
+    assertEquals(42, conf.getQueryTimeoutMs());
+    assertEquals(142, conf.getBulkQueryTimeoutMs());
   }
 }

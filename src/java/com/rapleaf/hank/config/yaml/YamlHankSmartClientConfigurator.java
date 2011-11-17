@@ -26,7 +26,10 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
   private static final String HANK_SMART_CLIENT_SECTION_KEY = "hank_smart_client";
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";
   private static final String NUM_CONNECTIONS_PER_HOST_KEY = "num_connections_per_host";
+  private static final String QUERY_NUM_MAX_TRIES_KEY = "query_num_max_tries";
+  private static final String CONNECTION_TIMEOUT_MS_KEY = "connection_timeout_ms";
   private static final String QUERY_TIMEOUT_MS_KEY = "query_timeout_ms";
+  private static final String BULK_QUERY_TIMEOUT_MS_KEY = "bulk_query_timeout_ms";
 
   public YamlHankSmartClientConfigurator(String configurationPath) throws FileNotFoundException, InvalidConfigurationException {
     super(configurationPath);
@@ -38,7 +41,10 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
     getRequiredSection(HANK_SMART_CLIENT_SECTION_KEY);
     getRequiredString(HANK_SMART_CLIENT_SECTION_KEY, RING_GROUP_NAME_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, NUM_CONNECTIONS_PER_HOST_KEY);
+    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_NUM_MAX_TRIES_KEY);
+    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, CONNECTION_TIMEOUT_MS_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_TIMEOUT_MS_KEY);
+    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, BULK_QUERY_TIMEOUT_MS_KEY);
   }
 
   @Override
@@ -52,7 +58,22 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
   }
 
   @Override
-  public int getQueryTimeoutMS() {
+  public int getQueryNumMaxTries() {
+    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_NUM_MAX_TRIES_KEY);
+  }
+
+  @Override
+  public int getConnectionTimeoutMs() {
+    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, CONNECTION_TIMEOUT_MS_KEY);
+  }
+
+  @Override
+  public int getQueryTimeoutMs() {
     return getInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_TIMEOUT_MS_KEY);
+  }
+
+  @Override
+  public int getBulkQueryTimeoutMs() {
+    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, BULK_QUERY_TIMEOUT_MS_KEY);
   }
 }
