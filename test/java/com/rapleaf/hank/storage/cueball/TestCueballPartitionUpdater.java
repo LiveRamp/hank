@@ -77,13 +77,8 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
   }
 
   public void testGetDomainVersionParent() throws IOException {
-    // Fail when no base or delta was found
-    try {
-      updater.getParentDomainVersion(v0);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-    }
+    // Previous number when no base or delta was found
+    assertEquals(null, updater.getParentDomainVersion(v0));
 
     // Parent is null when base found
     makeRemoteFile("0/00001.base.cueball");
@@ -154,14 +149,6 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     String fetchRoot = localPartitionRoot + "/" + fetchRootName;
     new File(fetchRoot).mkdir();
 
-    // Fail when there is no valid file
-    try {
-      updater.fetchVersion(v0, fetchRoot);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-    }
-
     // Fetch delta
     makeRemoteFile("0/00000.delta.cueball");
     updater.fetchVersion(v0, fetchRoot);
@@ -210,6 +197,11 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     makeLocalFile("00000.base.cueball");
     makeLocalCacheFile("00001.delta.cueball");
     makeLocalCacheFile("00002.delta.cueball");
+
+    // Make sure file exists on remote partition so that the versions are not considered empty
+    makeRemoteFile("0/00001.delta.cueball");
+    makeRemoteFile("0/00002.delta.cueball");
+
     updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
     // Deltas still exist
     assertTrue(existsCacheFile("00001.delta.cueball"));
