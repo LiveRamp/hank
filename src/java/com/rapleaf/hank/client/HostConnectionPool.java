@@ -60,7 +60,7 @@ public class HostConnectionPool {
         connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
       }
       // Shuffle list of connections for that host, so that different pools try connections in different orders
-      Collections.shuffle(connections);
+      Collections.shuffle(connections, random);
       hostToConnections.add(connections);
       ++hostIndex;
     }
