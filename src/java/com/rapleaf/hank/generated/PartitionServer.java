@@ -685,14 +685,13 @@ public class PartitionServer {
 
     }
 
-    private static final class get_argsTupleSchemeFactory implements SchemeFactory {
-      private static final get_argsTupleScheme scheme = new get_argsTupleScheme();
+    private static class get_argsTupleSchemeFactory implements SchemeFactory {
       public get_argsTupleScheme getScheme() {
-        return scheme;
+        return new get_argsTupleScheme();
       }
     }
 
-    private static final class get_argsTupleScheme extends TupleScheme<get_args> {
+    private static class get_argsTupleScheme extends TupleScheme<get_args> {
 
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, get_args struct) throws org.apache.thrift.TException {
@@ -1057,14 +1056,13 @@ public class PartitionServer {
 
     }
 
-    private static final class get_resultTupleSchemeFactory implements SchemeFactory {
-      private static final get_resultTupleScheme scheme = new get_resultTupleScheme();
+    private static class get_resultTupleSchemeFactory implements SchemeFactory {
       public get_resultTupleScheme getScheme() {
-        return scheme;
+        return new get_resultTupleScheme();
       }
     }
 
-    private static final class get_resultTupleScheme extends TupleScheme<get_result> {
+    private static class get_resultTupleScheme extends TupleScheme<get_result> {
 
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, get_result struct) throws org.apache.thrift.TException {
@@ -1552,14 +1550,13 @@ public class PartitionServer {
 
     }
 
-    private static final class getBulk_argsTupleSchemeFactory implements SchemeFactory {
-      private static final getBulk_argsTupleScheme scheme = new getBulk_argsTupleScheme();
+    private static class getBulk_argsTupleSchemeFactory implements SchemeFactory {
       public getBulk_argsTupleScheme getScheme() {
-        return scheme;
+        return new getBulk_argsTupleScheme();
       }
     }
 
-    private static final class getBulk_argsTupleScheme extends TupleScheme<getBulk_args> {
+    private static class getBulk_argsTupleScheme extends TupleScheme<getBulk_args> {
 
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, getBulk_args struct) throws org.apache.thrift.TException {
@@ -1939,14 +1936,13 @@ public class PartitionServer {
 
     }
 
-    private static final class getBulk_resultTupleSchemeFactory implements SchemeFactory {
-      private static final getBulk_resultTupleScheme scheme = new getBulk_resultTupleScheme();
+    private static class getBulk_resultTupleSchemeFactory implements SchemeFactory {
       public getBulk_resultTupleScheme getScheme() {
-        return scheme;
+        return new getBulk_resultTupleScheme();
       }
     }
 
-    private static final class getBulk_resultTupleScheme extends TupleScheme<getBulk_result> {
+    private static class getBulk_resultTupleScheme extends TupleScheme<getBulk_result> {
 
       @Override
       public void write(org.apache.thrift.protocol.TProtocol prot, getBulk_result struct) throws org.apache.thrift.TException {

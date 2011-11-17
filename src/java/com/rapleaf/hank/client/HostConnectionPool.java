@@ -171,9 +171,7 @@ public class HostConnectionPool {
           } else {
             // If we have exhausted tries, return an exception response
             LOG.error("Failed to perform query. Giving up.", e);
-            return HankResponse.xception(
-                HankException.internal_error(
-                    "Query failed " + numMaxTries + " consecutive times. Giving up. Reason: " + e.getMessage()));
+            return HankResponse.xception(HankException.failed_retries(numMaxTries));
           }
         }
       }
@@ -207,9 +205,7 @@ public class HostConnectionPool {
           } else {
             // If we have exhausted tries, return an exception response
             LOG.error("Failed to perform query. Giving up.", e);
-            return HankBulkResponse.xception(
-                HankException.internal_error(
-                    "Query failed " + numMaxTries + " consecutive times. Giving up. Reason: " + e.getMessage()));
+            return HankBulkResponse.xception(HankException.failed_retries(numMaxTries));
           }
         }
       }

@@ -33,7 +33,8 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   private static final org.apache.thrift.protocol.TField WRONG_HOST_FIELD_DESC = new org.apache.thrift.protocol.TField("wrong_host", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField NO_SUCH_DOMAIN_FIELD_DESC = new org.apache.thrift.protocol.TField("no_such_domain", org.apache.thrift.protocol.TType.BOOL, (short)2);
   private static final org.apache.thrift.protocol.TField NO_CONNECTION_AVAILABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("no_connection_available", org.apache.thrift.protocol.TType.BOOL, (short)3);
-  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField FAILED_RETRIES_FIELD_DESC = new org.apache.thrift.protocol.TField("failed_retries", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.STRING, (short)5);
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -50,9 +51,13 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
      */
     NO_CONNECTION_AVAILABLE((short)3, "no_connection_available"),
     /**
+     * Failed to perform query after a specified number of retries
+     */
+    FAILED_RETRIES((short)4, "failed_retries"),
+    /**
      * There was some internal error in the server. This is pretty bad.
      */
-    INTERNAL_ERROR((short)4, "internal_error");
+    INTERNAL_ERROR((short)5, "internal_error");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -73,7 +78,9 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           return NO_SUCH_DOMAIN;
         case 3: // NO_CONNECTION_AVAILABLE
           return NO_CONNECTION_AVAILABLE;
-        case 4: // INTERNAL_ERROR
+        case 4: // FAILED_RETRIES
+          return FAILED_RETRIES;
+        case 5: // INTERNAL_ERROR
           return INTERNAL_ERROR;
         default:
           return null;
@@ -123,6 +130,8 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.NO_CONNECTION_AVAILABLE, new org.apache.thrift.meta_data.FieldMetaData("no_connection_available", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.FAILED_RETRIES, new org.apache.thrift.meta_data.FieldMetaData("failed_retries", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.INTERNAL_ERROR, new org.apache.thrift.meta_data.FieldMetaData("internal_error", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -162,6 +171,12 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
     return x;
   }
 
+  public static HankException failed_retries(int value) {
+    HankException x = new HankException();
+    x.set_failed_retries(value);
+    return x;
+  }
+
   public static HankException internal_error(String value) {
     HankException x = new HankException();
     x.set_internal_error(value);
@@ -187,6 +202,11 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           break;
         }
         throw new ClassCastException("Was expecting value of type Boolean for field 'no_connection_available', but got " + value.getClass().getSimpleName());
+      case FAILED_RETRIES:
+        if (value instanceof Integer) {
+          break;
+        }
+        throw new ClassCastException("Was expecting value of type Integer for field 'failed_retries', but got " + value.getClass().getSimpleName());
       case INTERNAL_ERROR:
         if (value instanceof String) {
           break;
@@ -229,6 +249,15 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
           }
+        case FAILED_RETRIES:
+          if (field.type == FAILED_RETRIES_FIELD_DESC.type) {
+            Integer failed_retries;
+            failed_retries = iprot.readI32();
+            return failed_retries;
+          } else {
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            return null;
+          }
         case INTERNAL_ERROR:
           if (field.type == INTERNAL_ERROR_FIELD_DESC.type) {
             String internal_error;
@@ -261,6 +290,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         Boolean no_connection_available = (Boolean)value_;
         oprot.writeBool(no_connection_available);
         return;
+      case FAILED_RETRIES:
+        Integer failed_retries = (Integer)value_;
+        oprot.writeI32(failed_retries);
+        return;
       case INTERNAL_ERROR:
         String internal_error = (String)value_;
         oprot.writeString(internal_error);
@@ -287,6 +320,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           Boolean no_connection_available;
           no_connection_available = iprot.readBool();
           return no_connection_available;
+        case FAILED_RETRIES:
+          Integer failed_retries;
+          failed_retries = iprot.readI32();
+          return failed_retries;
         case INTERNAL_ERROR:
           String internal_error;
           internal_error = iprot.readString();
@@ -314,6 +351,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         Boolean no_connection_available = (Boolean)value_;
         oprot.writeBool(no_connection_available);
         return;
+      case FAILED_RETRIES:
+        Integer failed_retries = (Integer)value_;
+        oprot.writeI32(failed_retries);
+        return;
       case INTERNAL_ERROR:
         String internal_error = (String)value_;
         oprot.writeString(internal_error);
@@ -332,6 +373,8 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         return NO_SUCH_DOMAIN_FIELD_DESC;
       case NO_CONNECTION_AVAILABLE:
         return NO_CONNECTION_AVAILABLE_FIELD_DESC;
+      case FAILED_RETRIES:
+        return FAILED_RETRIES_FIELD_DESC;
       case INTERNAL_ERROR:
         return INTERNAL_ERROR_FIELD_DESC;
       default:
@@ -412,6 +455,25 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   }
 
   /**
+   * Failed to perform query after a specified number of retries
+   */
+  public int get_failed_retries() {
+    if (getSetField() == _Fields.FAILED_RETRIES) {
+      return (Integer)getFieldValue();
+    } else {
+      throw new RuntimeException("Cannot get field 'failed_retries' because union is currently set to " + getFieldDesc(getSetField()).name);
+    }
+  }
+
+  /**
+   * Failed to perform query after a specified number of retries
+   */
+  public void set_failed_retries(int value) {
+    setField_ = _Fields.FAILED_RETRIES;
+    value_ = value;
+  }
+
+  /**
    * There was some internal error in the server. This is pretty bad.
    */
   public String get_internal_error() {
@@ -443,6 +505,11 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
 
   public boolean is_set_no_connection_available() {
     return setField_ == _Fields.NO_CONNECTION_AVAILABLE;
+  }
+
+
+  public boolean is_set_failed_retries() {
+    return setField_ == _Fields.FAILED_RETRIES;
   }
 
 

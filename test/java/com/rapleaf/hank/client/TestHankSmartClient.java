@@ -247,10 +247,8 @@ public class TestHankSmartClient extends BaseTestCase {
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.FAILING);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.FAILING);
 
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_1));
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_2));
+      assertTrue(c.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
+      assertTrue(c.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
 
       /*
       // Simulate servers that throws an error

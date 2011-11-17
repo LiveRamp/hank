@@ -10,8 +10,11 @@ union HankException {
   /** There were no available connections for a given partition */
   3: bool no_connection_available;
 
+  /** Failed to perform query after a specified number of retries */
+  4: i32 failed_retries;
+
   /** There was some internal error in the server. This is pretty bad. */
-  4: string internal_error;
+  5: string internal_error;
 }
 
 union HankResponse {
