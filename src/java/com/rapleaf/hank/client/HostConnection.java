@@ -109,7 +109,12 @@ public class HostConnection implements HostStateChangeListener {
   }
 
   boolean tryLock() {
-    return lock.tryLock();
+    try {
+      // Note: tryLock() does not respect fairness, using tryLock(0, unit) instead
+      return lock.tryLock(0, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      return false;
+    }
   }
 
   public HankResponse get(int domainId, ByteBuffer key) throws IOException {
