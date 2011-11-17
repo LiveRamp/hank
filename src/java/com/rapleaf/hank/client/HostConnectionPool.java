@@ -116,7 +116,8 @@ public class HostConnectionPool {
         }
         // If successful in locking a non locked connection, return it
         if (connectionAndHostIndex.hostConnection.tryLock()) {
-          // Note: here the returned connection is already locked. It must be unlocked by the caller
+          // Note: here the returned connection is already locked.
+          // Unlocking it is not the responsibily of this method.
           return connectionAndHostIndex;
         }
       }
@@ -134,7 +135,8 @@ public class HostConnectionPool {
       // If a host has one unavaible connection, it is itself unavailable.
       // Move on to the next host. Otherwise, return it.
       if (connectionAndHostIndex.hostConnection.isAvailable()) {
-        // Note: here the returned connection is not locked. It must be locked and unlocked by the caller
+        // Note: here the returned connection is not locked.
+        // Locking/unlocking it is not the responsibily of this method.
         return connectionAndHostIndex;
       }
     }

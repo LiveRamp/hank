@@ -27,7 +27,8 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";
   private static final String NUM_CONNECTIONS_PER_HOST_KEY = "num_connections_per_host";
   private static final String QUERY_NUM_MAX_TRIES_KEY = "query_num_max_tries";
-  private static final String CONNECTION_TIMEOUT_MS_KEY = "connection_timeout_ms";
+  private static final String TRY_LOCK_CONNECTION_TIMEOUT_MS_KEY = "try_lock_connection_timeout_ms";
+  private static final String ESTABLISH_CONNECTION_TIMEOUT_MS_KEY = "establish_connection_timeout_ms";
   private static final String QUERY_TIMEOUT_MS_KEY = "query_timeout_ms";
   private static final String BULK_QUERY_TIMEOUT_MS_KEY = "bulk_query_timeout_ms";
 
@@ -42,7 +43,8 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
     getRequiredString(HANK_SMART_CLIENT_SECTION_KEY, RING_GROUP_NAME_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, NUM_CONNECTIONS_PER_HOST_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_NUM_MAX_TRIES_KEY);
-    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, CONNECTION_TIMEOUT_MS_KEY);
+    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, TRY_LOCK_CONNECTION_TIMEOUT_MS_KEY);
+    getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, ESTABLISH_CONNECTION_TIMEOUT_MS_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, QUERY_TIMEOUT_MS_KEY);
     getRequiredInteger(HANK_SMART_CLIENT_SECTION_KEY, BULK_QUERY_TIMEOUT_MS_KEY);
   }
@@ -63,8 +65,13 @@ public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implem
   }
 
   @Override
-  public int getConnectionTimeoutMs() {
-    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, CONNECTION_TIMEOUT_MS_KEY);
+  public int getTryLockConnectionTimeoutMs() {
+    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, TRY_LOCK_CONNECTION_TIMEOUT_MS_KEY);
+  }
+
+  @Override
+  public int getEstablishConnectionTimeoutMs() {
+    return getInteger(HANK_SMART_CLIENT_SECTION_KEY, ESTABLISH_CONNECTION_TIMEOUT_MS_KEY);
   }
 
   @Override

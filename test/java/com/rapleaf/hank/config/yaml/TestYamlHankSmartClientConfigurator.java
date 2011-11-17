@@ -34,7 +34,8 @@ public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
     pw.println("  ring_group_name: rg1");
     pw.println("  num_connections_per_host: 10");
     pw.println("  query_num_max_tries: 5");
-    pw.println("  connection_timeout_ms: 100");
+    pw.println("  try_lock_connection_timeout_ms: 50");
+    pw.println("  establish_connection_timeout_ms: 100");
     pw.println("  query_timeout_ms: 42");
     pw.println("  bulk_query_timeout_ms: 142");
     pw.close();
@@ -44,7 +45,8 @@ public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(10, conf.getNumConnectionsPerHost());
     assertEquals(5, conf.getQueryNumMaxTries());
-    assertEquals(100, conf.getConnectionTimeoutMs());
+    assertEquals(50, conf.getTryLockConnectionTimeoutMs());
+    assertEquals(100, conf.getEstablishConnectionTimeoutMs());
     assertEquals(42, conf.getQueryTimeoutMs());
     assertEquals(142, conf.getBulkQueryTimeoutMs());
   }

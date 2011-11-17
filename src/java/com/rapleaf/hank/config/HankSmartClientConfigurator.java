@@ -24,7 +24,9 @@ public interface HankSmartClientConfigurator extends Configurator {
 
   public int getQueryNumMaxTries();
 
-  public int getConnectionTimeoutMs();
+  public int getTryLockConnectionTimeoutMs();
+
+  public int getEstablishConnectionTimeoutMs();
 
   public int getQueryTimeoutMs();
 

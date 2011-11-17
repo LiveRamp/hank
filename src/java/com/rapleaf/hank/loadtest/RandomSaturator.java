@@ -90,7 +90,7 @@ public class RandomSaturator {
     lock.writeLock().lock();
 
     final HankSmartClient client = new HankSmartClient(configurator.createCoordinator(),
-        ringGroupName, numThreads * 3, 5, 0, 0, 0);
+        ringGroupName, numThreads * 3, 5, 0, 0, 0, 0);
 
     // instantiate all the threads
     List<LoadThread> threads = new ArrayList();

@@ -45,7 +45,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
   private final int queryMaxNumTries;
-  private final int connectionTimeoutMs;
+  private final int tryLockConnectionTimeoutMs;
+  private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
@@ -74,7 +75,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
         configurator.getRingGroupName(),
         configurator.getNumConnectionsPerHost(),
         configurator.getQueryNumMaxTries(),
-        configurator.getConnectionTimeoutMs(),
+        configurator.getTryLockConnectionTimeoutMs(),
+        configurator.getEstablishConnectionTimeoutMs(),
         configurator.getQueryTimeoutMs(),
         configurator.getBulkQueryTimeoutMs());
   }
@@ -96,7 +98,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
                          String ringGroupName,
                          int numConnectionsPerHost,
                          int queryMaxNumTries,
-                         int connectionTimeoutMs,
+                         int tryLockConnectionTimeoutMs,
+                         int establishConnectionTimeoutMs,
                          int queryTimeoutMs,
                          int bulkQueryTimeoutMs) throws IOException, TException {
     this.coordinator = coordinator;
@@ -108,7 +111,8 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
     this.numConnectionsPerHost = numConnectionsPerHost;
     this.queryMaxNumTries = queryMaxNumTries;
-    this.connectionTimeoutMs = connectionTimeoutMs;
+    this.tryLockConnectionTimeoutMs = tryLockConnectionTimeoutMs;
+    this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     loadCache(numConnectionsPerHost);
@@ -172,12 +176,13 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
 
         // Establish connection to hosts
         LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
-            + " with connection timeout = " + connectionTimeoutMs + "ms"
+            + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
+            + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
             + ", query timeout = " + queryTimeoutMs + "ms"
             + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
         List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new HostConnection(host, connectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs));
+          hostConnections.add(new HostConnection(host, tryLockConnectionTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
             HostConnectionPool.createFromList(hostConnections));

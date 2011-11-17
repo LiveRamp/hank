@@ -33,13 +33,15 @@ import org.apache.thrift.transport.TTransportException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class HostConnection implements HostStateChangeListener {
 
   private static final Logger LOG = Logger.getLogger(HostConnection.class);
 
-  private final int connectionTimeoutMs;
+  private final int tryLockTimeoutMs;
+  private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
   private TSocket socket;
@@ -59,11 +61,13 @@ public class HostConnection implements HostStateChangeListener {
 
   // A timeout of 0 means no timeout
   public HostConnection(Host host,
-                        int connectionTimeoutMs,
+                        int tryLockTimeoutMs,
+                        int establishConnectionTimeoutMs,
                         int queryTimeoutMs,
                         int bulkQueryTimeoutMs) throws TException, IOException {
     this.host = host;
-    this.connectionTimeoutMs = connectionTimeoutMs;
+    this.tryLockTimeoutMs = tryLockTimeoutMs;
+    this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     host.setStateChangeListener(this);
@@ -82,12 +86,26 @@ public class HostConnection implements HostStateChangeListener {
     return state == HostConnectionState.DISCONNECTED;
   }
 
-  void lock() {
+  private void lock() {
     lock.lock();
   }
 
-  void unlock() {
+  private void unlock() {
     lock.unlock();
+  }
+
+  private boolean tryLockWithTimeout() {
+    // If configured timeout is 0, wait indefinitely
+    if (tryLockTimeoutMs == 0) {
+      lock();
+      return true;
+    }
+    // Otherwise, perform a lock with timeout. If interrupted, simply report that we failed to lock.
+    try {
+      return lock.tryLock(tryLockTimeoutMs, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      return false;
+    }
   }
 
   boolean tryLock() {
@@ -97,15 +115,19 @@ public class HostConnection implements HostStateChangeListener {
   public HankResponse get(int domainId, ByteBuffer key) throws IOException {
     // Lock the connection only if needed
     if (!lock.isHeldByCurrentThread()) {
-      lock();
-    }
-    if (!isAvailable()) {
-      throw new IOException("Connection to host is not available (host is not serving).");
+      // Try to lock within a given timeframe
+      if (!tryLockWithTimeout()) {
+        throw new IOException("Exceeded timeout while trying to lock the host connection.");
+      }
     }
     try {
       // Connect if necessary
       if (isDisconnected()) {
         connect();
+      }
+      // Check availability
+      if (!isAvailable()) {
+        throw new IOException("Connection to host is not available (host is not serving).");
       }
       // Query timeout is by default always set to regular mode
       // Perform query
@@ -122,10 +144,10 @@ public class HostConnection implements HostStateChangeListener {
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws IOException {
     // Lock the connection only if needed
     if (!lock.isHeldByCurrentThread()) {
-      lock();
-    }
-    if (!isAvailable()) {
-      throw new IOException("Connection to host is not available (host is not serving).");
+      // Try to lock within a given timeframe
+      if (!tryLockWithTimeout()) {
+        throw new IOException("Exceeded timeout while trying to lock the host connection.");
+      }
     }
     try {
       // Connect if necessary
@@ -133,6 +155,10 @@ public class HostConnection implements HostStateChangeListener {
         connect();
       }
       try {
+        // Check availability
+        if (!isAvailable()) {
+          throw new IOException("Connection to host is not available (host is not serving).");
+        }
         // Set socket timeout to bulk mode
         setSocketTimeout(bulkQueryTimeoutMs);
         // Perform query
@@ -167,7 +193,7 @@ public class HostConnection implements HostStateChangeListener {
     // Use connection timeout to connect
     socket = new TSocket(host.getAddress().getHostName(),
         host.getAddress().getPortNumber(),
-        connectionTimeoutMs);
+        establishConnectionTimeoutMs);
     transport = new TFramedTransport(socket);
     try {
       transport.open();
