@@ -74,15 +74,15 @@ public class HostConnection implements HostStateChangeListener {
     onHostStateChange(host);
   }
 
-  public Host getHost() {
+  Host getHost() {
     return host;
   }
 
-  public boolean isAvailable() {
+  boolean isAvailable() {
     return state != HostConnectionState.STANDBY;
   }
 
-  public boolean isDisconnected() {
+  private boolean isDisconnected() {
     return state == HostConnectionState.DISCONNECTED;
   }
 
@@ -94,6 +94,15 @@ public class HostConnection implements HostStateChangeListener {
     lock.unlock();
   }
 
+  boolean tryLock() {
+    try {
+      // Note: tryLock() does not respect fairness, using tryLock(0, unit) instead
+      return lock.tryLock(0, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      return false;
+    }
+  }
+
   private boolean tryLockWithTimeout() {
     // If configured timeout is 0, wait indefinitely
     if (tryLockTimeoutMs == 0) {
@@ -103,15 +112,6 @@ public class HostConnection implements HostStateChangeListener {
     // Otherwise, perform a lock with timeout. If interrupted, simply report that we failed to lock.
     try {
       return lock.tryLock(tryLockTimeoutMs, TimeUnit.MILLISECONDS);
-    } catch (InterruptedException e) {
-      return false;
-    }
-  }
-
-  boolean tryLock() {
-    try {
-      // Note: tryLock() does not respect fairness, using tryLock(0, unit) instead
-      return lock.tryLock(0, TimeUnit.MILLISECONDS);
     } catch (InterruptedException e) {
       return false;
     }
