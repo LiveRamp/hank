@@ -22,10 +22,12 @@ import java.util.Map;
 import java.util.SortedSet;
 
 public final class DomainGroups {
-  private DomainGroups() {}
+  private DomainGroups() {
+  }
 
   /**
    * Convenience method to get the most recent version of the domain group.
+   *
    * @return
    * @throws IOException
    */
@@ -58,6 +60,11 @@ public final class DomainGroups {
 
     // find the latest domain group version
     DomainGroupVersion dgv = DomainGroups.getLatestVersion(domainGroup);
+
+    if (dgv == null) {
+      throw new IllegalArgumentException(
+          "Supplied domain group must have at least one version, but it did not: " + domainGroup);
+    }
 
     // create map of new domains and versions
     for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
