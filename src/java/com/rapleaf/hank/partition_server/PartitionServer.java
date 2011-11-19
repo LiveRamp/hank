@@ -66,6 +66,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     this.coordinator = configurator.createCoordinator();
     hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
     ringGroup = coordinator.getRingGroup(configurator.getRingGroupName());
+    if (ringGroup == null) {
+      throw new RuntimeException("Could not get ring group: " + configurator.getRingGroupName());
+    }
     ring = ringGroup.getRingForHost(hostAddress);
     if (ring == null) {
       throw new RuntimeException("Could not get ring for host address: " + hostAddress
