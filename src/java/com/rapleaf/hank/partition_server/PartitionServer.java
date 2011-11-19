@@ -207,6 +207,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
   }
 
   private void processCommand(HostCommand command, HostState state) throws IOException {
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Processing command: " + command);
+    }
     switch (command) {
       case EXECUTE_UPDATE:
         processExecuteUpdate(state);
