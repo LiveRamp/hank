@@ -45,8 +45,8 @@ public class HostConnection implements HostStateChangeListener {
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
   private TSocket socket;
-  public TTransport transport;
-  public PartitionServer.Client client;
+  private TTransport transport;
+  private PartitionServer.Client client;
   private final Host host;
   private final Object stateChangeMutex = new Object();
   private final ReentrantLock lock = new ReentrantLock();
