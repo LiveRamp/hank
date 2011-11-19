@@ -49,7 +49,7 @@ public class HostConnection implements HostStateChangeListener {
   private PartitionServer.Client client;
   private final Host host;
   private final Object stateChangeMutex = new Object();
-  protected final ReentrantLock lock = new ReentrantLock();
+  protected final ReentrantLock lock = new ReentrantLock(true); // Use a fair ReentrantLock
   private HostConnectionState state = HostConnectionState.DISCONNECTED;
 
   private static enum HostConnectionState {
