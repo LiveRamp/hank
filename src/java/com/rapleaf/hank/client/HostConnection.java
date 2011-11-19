@@ -94,7 +94,7 @@ public class HostConnection implements HostStateChangeListener {
     lock.unlock();
   }
 
-  boolean tryLock() {
+  boolean tryLockRespectingFairness() {
     try {
       // Note: tryLock() does not respect fairness, using tryLock(0, unit) instead
       return lock.tryLock(0, TimeUnit.MILLISECONDS);

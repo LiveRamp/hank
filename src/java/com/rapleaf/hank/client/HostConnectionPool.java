@@ -115,7 +115,7 @@ public class HostConnectionPool {
           break;
         }
         // If successful in locking a non locked connection, return it
-        if (connectionAndHostIndex.hostConnection.tryLock()) {
+        if (connectionAndHostIndex.hostConnection.tryLockRespectingFairness()) {
           // Note: here the returned connection is already locked.
           // Unlocking it is not the responsibily of this method.
           return connectionAndHostIndex;
