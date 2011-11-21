@@ -51,7 +51,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final WatchedInt currentVersion;
   private final WatchedInt updatingToVersion;
-  private WatchedString ringGroupConductorMode;
+  private final WatchedString ringGroupConductorMode;
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
@@ -92,7 +92,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
     currentVersion = new WatchedInt(zk, currentVerPath, true);
     updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true);
-    ringGroupConductorMode = null;
+    ringGroupConductorMode = new WatchedString(zk, ringGroupConductorOnlinePath, false);
   }
 
   private final class StateChangeListener implements Watcher {
@@ -185,7 +185,6 @@ public class ZkRingGroup extends AbstractRingGroup {
     try {
       if (zk.exists(ringGroupConductorOnlinePath, false) == null) {
         zk.create(ringGroupConductorOnlinePath, Bytes.stringToBytes(mode.toString()), CreateMode.EPHEMERAL);
-        ringGroupConductorMode = new WatchedString(zk, ringGroupConductorOnlinePath, true);
         return true;
       }
       return false;
@@ -199,7 +198,6 @@ public class ZkRingGroup extends AbstractRingGroup {
     try {
       if (zk.exists(ringGroupConductorOnlinePath, false) != null) {
         zk.delete(ringGroupConductorOnlinePath, -1);
-        ringGroupConductorMode = null;
         return;
       }
       throw new IllegalStateException(
@@ -211,21 +209,18 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   @Override
   public RingGroupConductorMode getRingGroupConductorMode() throws IOException {
-    if (ringGroupConductorMode == null) {
-      throw new IOException("Failed to determine Ring Group Conductor mode as none seemed online.");
+    String mode = ringGroupConductorMode.get();
+    if (mode != null) {
+      return RingGroupConductorMode.valueOf(mode);
     } else {
-      return RingGroupConductorMode.valueOf(ringGroupConductorMode.get());
+      return null;
     }
   }
 
   @Override
   public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException {
     try {
-      if (ringGroupConductorMode == null) {
-        throw new IOException("Failed to set Ring Group Conductor status as none seemed online.");
-      } else {
-        ringGroupConductorMode.set(mode.toString());
-      }
+      ringGroupConductorMode.set(mode.toString());
     } catch (KeeperException e) {
       throw new IOException(e);
     } catch (InterruptedException e) {
@@ -243,7 +238,8 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public void setCurrentVersion(Integer version) throws IOException {
+  public void setCurrentVersion(Integer
+                                    version) throws IOException {
     try {
       currentVersion.set(version);
     } catch (Exception e) {
