@@ -175,10 +175,10 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <% if (ringGroup.isRingGroupConductorOnline()) { %>
       <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
     <input type=hidden name="mode" value="INACTIVE"/>
-    <input type=submit value="Activate Ring Group Conductor"/>
+    <input type=submit value="Deactivate Ring Group Conductor"/>
       <% } else { %>
     <input type=hidden name="mode" value="ACTIVE"/>
-    <input type=submit value="Deactivate Ring Group Conductor"/>
+    <input type=submit value="Activate Ring Group Conductor"/>
       <% } %>
     <% } %>
     </form>
