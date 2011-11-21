@@ -72,8 +72,10 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <% if (ringGroup.isRingGroupConductorOnline()) { %>
           <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
             <td class='complete centered'>ACTIVE</td>
-          <% } else { %>
+          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
             <td class='inactive centered'>INACTIVE</td>
+          <% } else { %>
+            <td>unknown</td>
           <% } %>
         <% } else { %>
           <td class='error centered'>OFFLINE</td>
