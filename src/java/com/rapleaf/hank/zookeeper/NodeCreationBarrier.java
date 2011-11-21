@@ -6,7 +6,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooKeeper;
 
-class NodeCreationBarrier implements Watcher {
+public class NodeCreationBarrier implements Watcher {
 
   private static final Logger LOG = Logger.getLogger(NodeCreationBarrier.class);
 
