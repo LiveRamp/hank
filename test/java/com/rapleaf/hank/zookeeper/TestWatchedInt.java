@@ -31,14 +31,11 @@ public class TestWatchedInt extends ZkTestCase {
   }
 
   public void testCreate() throws Exception {
-    try {
-      new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), false);
-      fail("should have thrown a KeeperException!");
-    } catch (KeeperException.NoNodeException e) {
-      // expected.
-    }
+    WatchedInt wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), false);
 
-    WatchedInt wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 7);
+    assertNull(wi.get());
+
+    wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 7);
     assertEquals(Integer.valueOf(7), wi.get());
 
     wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 10);
@@ -50,13 +47,9 @@ public class TestWatchedInt extends ZkTestCase {
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
     WatchedInt wi;
 
-    // Try not waiting
-    try {
-      wi = new WatchedInt(zk, nodePath, false);
-      fail("Should fail with a NoNodeException");
-    } catch (KeeperException.NoNodeException e) {
-      // Correct behavior
-    }
+    wi = new WatchedInt(zk, nodePath, false);
+    
+    assertNull(wi.get());
 
     Thread t = new Thread(new Runnable() {
       @Override

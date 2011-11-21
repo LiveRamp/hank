@@ -1,8 +1,10 @@
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.*;
-import org.apache.zookeeper.Watcher.Event.EventType;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
@@ -19,23 +21,27 @@ public abstract class WatchedNode<T> {
   private final Watcher watcher = new Watcher() {
     @Override
     public void process(WatchedEvent event) {
-      if (event.getState() != KeeperState.SyncConnected) {
-        return;
-      }
-      if (event.getType() == EventType.NodeDeleted) {
-        // we were deleted, so we should stop watching for changes.
-        return;
-      }
       // this lock is important so that when changes start happening, we
       // won't run into any concurrency issues
       synchronized (WatchedNode.this) {
-        try {
-          update();
-        } catch (KeeperException e) {
-          LOG.error("Exception while trying to update our cached value for " + nodePath, e);
-        } catch (InterruptedException e) {
-          if (LOG.isTraceEnabled()) {
-            LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+
+        if (event.getState() != KeeperState.SyncConnected) {
+          value = null;
+        } else {
+          try {
+            if (event.getType().equals(Event.EventType.NodeCreated)) {
+              watchForData();
+            } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
+              watchForCreation();
+            } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
+              watchForData();
+            }
+          } catch (KeeperException e) {
+            LOG.error("Exception while trying to update our cached value for " + nodePath, e);
+          } catch (InterruptedException e) {
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+            }
           }
         }
       }
@@ -58,7 +64,7 @@ public abstract class WatchedNode<T> {
     if (waitForCreation) {
       NodeCreationBarrier.block(zk, nodePath);
     }
-    update();
+    initWatch();
   }
 
   /**
@@ -88,14 +94,27 @@ public abstract class WatchedNode<T> {
         }
       }
     }
-    update();
+    initWatch();
   }
 
-  private void update() throws KeeperException, InterruptedException {
+  private void watchForCreation() throws InterruptedException, KeeperException {
+    value = null;
+    zk.exists(nodePath, watcher);
+  }
+
+  private void watchForData() throws InterruptedException, KeeperException {
     if (LOG.isTraceEnabled()) {
       LOG.trace(String.format("Getting value for %s", nodePath));
     }
     value = decode(zk.getData(nodePath, watcher, new Stat()));
+  }
+
+  private void initWatch() throws KeeperException, InterruptedException {
+    if (zk.exists(nodePath, watcher) != null) {
+      value = decode(zk.getData(nodePath, false, new Stat()));
+    } else {
+      value = null;
+    }
   }
 
   protected abstract T decode(byte[] data);
