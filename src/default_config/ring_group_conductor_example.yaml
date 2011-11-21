@@ -3,6 +3,7 @@ ring_group_conductor:
   ring_group_name: myRingGroup
   # low values affect CPU usage. you probably don't need to touch this.
   sleep_interval: 1000
+  initial_mode: INACTIVE
 coordinator:
   factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
   options:
