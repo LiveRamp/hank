@@ -100,6 +100,6 @@ public class RingGroupController extends Controller {
     String encodedRingGroupName = req.getParameter("g");
     RingGroup ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
     ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
-    resp.sendRedirect("/ring_groups.jsp");
+    resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 }
