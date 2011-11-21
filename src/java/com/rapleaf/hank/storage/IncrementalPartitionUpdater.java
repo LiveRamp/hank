@@ -91,12 +91,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   }
 
   public Set<DomainVersion> detectCachedBases() throws IOException {
-    ensureCacheExists();
     return detectCachedBasesCore();
   }
 
   public Set<DomainVersion> detectCachedDeltas() throws IOException {
-    ensureCacheExists();
     return detectCachedDeltasCore();
   }
 
@@ -173,7 +171,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
     }
   }
 
-  private void ensureCacheExists() throws IOException {
+  public void ensureCacheExists() throws IOException {
     // Create cache directory if it doesn't exist
     File cacheRootFile = new File(localPartitionRootCache);
     if (!cacheRootFile.exists()) {

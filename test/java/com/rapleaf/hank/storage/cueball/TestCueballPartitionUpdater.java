@@ -116,6 +116,8 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
   public void testGetCachedVersions() throws IOException {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
+    updater.ensureCacheExists();
+
     // Empty cache
     assertEquals(versions, updater.detectCachedBases());
     assertEquals(versions, updater.detectCachedDeltas());

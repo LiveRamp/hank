@@ -132,6 +132,8 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
   public void testGetCachedVersions() throws IOException {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
+    updater.ensureCacheExists();
+
     // Empty cache
     assertEquals(versions, updater.detectCachedBases());
     assertEquals(versions, updater.detectCachedDeltas());
