@@ -15,11 +15,13 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+
 import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
 
-public interface RingGroup extends Comparable<RingGroup>{
+public interface RingGroup extends Comparable<RingGroup> {
 
   public String getName();
 
@@ -63,9 +65,13 @@ public interface RingGroup extends Comparable<RingGroup>{
    *         status. false otherwise.
    * @throws IOException
    */
-  public boolean claimRingGroupConductor() throws IOException;
+  public boolean claimRingGroupConductor(RingGroupConductorMode mode) throws IOException;
 
   public void releaseRingGroupConductor() throws IOException;
+
+  public RingGroupConductorMode getRingGroupConductorMode() throws IOException;
+
+  public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException;
 
   public boolean isRingGroupConductorOnline() throws IOException;
 

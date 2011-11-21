@@ -139,6 +139,11 @@ table.table-blue td,
   background-color: #69db69;
 }
 
+.inactive {
+  color: #ffffff;
+  background-color: #606060;
+}
+
 /* Progress bars */
 .progress-bar {
   padding: 0;

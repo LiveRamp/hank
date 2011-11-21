@@ -3,6 +3,7 @@
 
 <%@page import="com.rapleaf.hank.coordinator.*"%>
 <%@page import="com.rapleaf.hank.partition_server.*"%>
+<%@page import="com.rapleaf.hank.ring_group_conductor.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.util.Bytes"%>
@@ -68,9 +69,15 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <tr>
         <td>Ring Group Conductor:</td>
-        <%= ringGroup.isRingGroupConductorOnline() ?
-          "<td class='complete centered'>ONLINE" : "<td class='error centered'>OFFLINE" %>
-        </td>
+        <% if (ringGroup.isRingGroupConductorOnline()) { %>
+          <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
+            <td class='complete centered'>ACTIVE</td>
+          <% } else { %>
+            <td class='inactive centered'>INACTIVE</td>
+          <% } %>
+        <% } else { %>
+          <td class='error centered'>OFFLINE</td>
+        <% } %>
         </tr>
 
         <tr>
@@ -159,6 +166,22 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       </table>
 
     <h2>Actions</h2>
+
+    <!-- Set Ring Group Conductor Mode form -->
+    <form action="/ring_group/set_ring_group_conductor_mode" method=post>
+    <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+    <% if (ringGroup.isRingGroupConductorOnline()) { %>
+      <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
+    <input type=hidden name="mode" value="INACTIVE"/>
+    <input type=submit value="Activate Ring Group Conductor"/>
+      <% } else { %>
+    <input type=hidden name="mode" value="ACTIVE"/>
+    <input type=submit value="Deactivate Ring Group Conductor"/>
+      <% } %>
+    <% } %>
+    </form>
+
+    <!-- Delete Ring Group form -->
     <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
     <input type=submit value="delete"

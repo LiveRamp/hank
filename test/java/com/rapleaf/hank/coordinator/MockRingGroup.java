@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+
 import java.io.IOException;
 import java.util.Set;
 
@@ -70,12 +72,21 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public boolean claimRingGroupConductor() {
+  public boolean claimRingGroupConductor(RingGroupConductorMode mode) {
     return false;
   }
 
   @Override
   public void releaseRingGroupConductor() {
+  }
+
+  @Override
+  public RingGroupConductorMode getRingGroupConductorMode() throws IOException {
+    return RingGroupConductorMode.ACTIVE;
+  }
+
+  @Override
+  public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException {
   }
 
   @Override

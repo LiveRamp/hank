@@ -16,11 +16,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -52,6 +51,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final WatchedInt currentVersion;
   private final WatchedInt updatingToVersion;
+  private WatchedString ringGroupConductorMode;
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
@@ -92,6 +92,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
     currentVersion = new WatchedInt(zk, currentVerPath, true);
     updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true);
+    ringGroupConductorMode = null;
   }
 
   private final class StateChangeListener implements Watcher {
@@ -107,7 +108,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     public void process(WatchedEvent event) {
       switch (event.getType()) {
         case NodeChildrenChanged:
-          // ring group was added OR currentversion was set for the first time
+          // ring group was added OR current version was set for the first time
           LOG.debug("NodeChildrenChanged fired");
           fireListener();
           break;
@@ -180,10 +181,11 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public boolean claimRingGroupConductor() throws IOException {
+  public boolean claimRingGroupConductor(RingGroupConductorMode mode) throws IOException {
     try {
       if (zk.exists(ringGroupConductorOnlinePath, false) == null) {
-        zk.create(ringGroupConductorOnlinePath, null, CreateMode.EPHEMERAL);
+        zk.create(ringGroupConductorOnlinePath, Bytes.stringToBytes(mode.toString()), CreateMode.EPHEMERAL);
+        ringGroupConductorMode = new WatchedString(zk, ringGroupConductorOnlinePath, true);
         return true;
       }
       return false;
@@ -197,11 +199,36 @@ public class ZkRingGroup extends AbstractRingGroup {
     try {
       if (zk.exists(ringGroupConductorOnlinePath, false) != null) {
         zk.delete(ringGroupConductorOnlinePath, -1);
+        ringGroupConductorMode = null;
         return;
       }
       throw new IllegalStateException(
           "Can't release the ring group conductor lock when it's not currently set!");
     } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public RingGroupConductorMode getRingGroupConductorMode() throws IOException {
+    if (ringGroupConductorMode == null) {
+      throw new IOException("Failed to determine Ring Group Conductor mode as none seemed online.");
+    } else {
+      return RingGroupConductorMode.valueOf(ringGroupConductorMode.get());
+    }
+  }
+
+  @Override
+  public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException {
+    try {
+      if (ringGroupConductorMode == null) {
+        throw new IOException("Failed to set Ring Group Conductor status as none seemed online.");
+      } else {
+        ringGroupConductorMode.set(mode.toString());
+      }
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    } catch (InterruptedException e) {
       throw new IOException(e);
     }
   }

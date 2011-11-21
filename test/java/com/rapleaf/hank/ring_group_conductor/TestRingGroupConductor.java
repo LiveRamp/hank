@@ -111,6 +111,11 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
+      public RingGroupConductorMode getInitialMode() {
+        return RingGroupConductorMode.ACTIVE;
+      }
+
+      @Override
       public String getRingGroupName() {
         return "myRingGroup";
       }
@@ -171,6 +176,11 @@ public class TestRingGroupConductor extends TestCase {
       @Override
       public long getSleepInterval() {
         return 100;
+      }
+
+      @Override
+      public RingGroupConductorMode getInitialMode() {
+        return RingGroupConductorMode.ACTIVE;
       }
 
       @Override

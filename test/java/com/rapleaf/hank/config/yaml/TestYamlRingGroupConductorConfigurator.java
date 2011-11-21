@@ -16,6 +16,7 @@
 package com.rapleaf.hank.config.yaml;
 
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import junit.framework.TestCase;
 
 import java.io.File;
@@ -23,6 +24,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 public class TestYamlRingGroupConductorConfigurator extends TestCase {
+
   private static final String PATH = "/tmp/yaml_ring_group_conductor_configurator.yml";
 
   @Override
@@ -34,6 +36,7 @@ public class TestYamlRingGroupConductorConfigurator extends TestCase {
     pw.println("ring_group_conductor:");
     pw.println("  ring_group_name: myRingGroup");
     pw.println("  sleep_interval: 1000");
+    pw.println("  initial_mode: INACTIVE");
     pw.println("coordinator:");
     pw.println("  factory: " + MockCoordinator.Factory.class.getName());
     pw.println("  options:");
@@ -46,6 +49,7 @@ public class TestYamlRingGroupConductorConfigurator extends TestCase {
     assertEquals(1000, c.getSleepInterval());
     assertEquals("myRingGroup", c.getRingGroupName());
     assertTrue(c.createCoordinator() instanceof MockCoordinator);
-    assertTrue(((MockCoordinator)c.createCoordinator()).getInitOptions().containsKey("blah"));
+    assertTrue(((MockCoordinator) c.createCoordinator()).getInitOptions().containsKey("blah"));
+    assertEquals(RingGroupConductorMode.ACTIVE, c.getInitialMode());
   }
 }

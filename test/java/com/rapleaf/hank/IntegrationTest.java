@@ -94,6 +94,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("ring_group_conductor:");
       pw.println("  sleep_interval: 1000");
       pw.println("  ring_group_name: rg1");
+      pw.println("  initial_mode: ACTIVE");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlRingGroupConductorConfigurator(configPath);

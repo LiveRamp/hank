@@ -27,6 +27,7 @@ import org.apache.log4j.PropertyConfigurator;
 import java.io.IOException;
 
 public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
+
   private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
   private final RingGroupConductorConfigurator configurator;
@@ -66,7 +67,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       ringGroup = coordinator.getRingGroup(ringGroupName);
 
       // attempt to claim the ring group conductor title
-      if (ringGroup.claimRingGroupConductor()) {
+      if (ringGroup.claimRingGroupConductor(configurator.getInitialMode())) {
         claimedRingGroupConductor = true;
 
         // we are now *the* ring group conductor for this ring group.
@@ -91,7 +92,10 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
               snapshotDomainGroup = domainGroup;
             }
 
-            processUpdates(snapshotRingGroup, snapshotDomainGroup);
+            // Only process updates if ring group conductor is configured to be active
+            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) {
+              processUpdates(snapshotRingGroup, snapshotDomainGroup);
+            }
             Thread.sleep(configurator.getSleepInterval());
           }
         } catch (InterruptedException e) {
@@ -146,7 +150,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
           startUpdate(ringGroup, domainGroupVersion);
         }
       } else {
-        LOG.info("No updates in process and no updates pending.");
+        // No updates in process and no updates pending
       }
     }
   }

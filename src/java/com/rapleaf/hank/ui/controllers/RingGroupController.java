@@ -1,14 +1,14 @@
 package com.rapleaf.hank.ui.controllers;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.ui.URLEnc;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class RingGroupController extends Controller {
 
@@ -40,6 +40,12 @@ public class RingGroupController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doDeleteRingGroup(req, resp);
+      }
+    });
+    actions.put("set_ring_group_conductor_mode", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doSetRingGroupConductorMode(req, resp);
       }
     });
   }
@@ -87,6 +93,13 @@ public class RingGroupController extends Controller {
   protected void doDeleteRingGroup(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String encodedRingGroupName = req.getParameter("g");
     coordinator.deleteRingGroup(URLEnc.decode(encodedRingGroupName));
+    resp.sendRedirect("/ring_groups.jsp");
+  }
+
+  protected void doSetRingGroupConductorMode(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String encodedRingGroupName = req.getParameter("g");
+    RingGroup ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
+    ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
     resp.sendRedirect("/ring_groups.jsp");
   }
 }
