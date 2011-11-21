@@ -24,7 +24,10 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
@@ -69,15 +72,15 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   @Override
   public void updateTo(DomainVersion updatingToVersion) throws IOException {
     ensureCacheExists();
-    DomainVersion currentVersion = detectCurrentVersion();
-    Set<DomainVersion> cachedBases = detectCachedBases();
-    Set<DomainVersion> cachedDeltas = detectCachedDeltas();
-    IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
-    // The plan is empty, we are done
-    if (updatePlan == null) {
-      return;
-    }
     try {
+      DomainVersion currentVersion = detectCurrentVersion();
+      Set<DomainVersion> cachedBases = detectCachedBases();
+      Set<DomainVersion> cachedDeltas = detectCachedDeltas();
+      IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
+      // The plan is empty, we are done
+      if (updatePlan == null) {
+        return;
+      }
       // Fetch and cache versions needed to update
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
       // Run update in a workspace
@@ -183,6 +186,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   /**
    * Return the list of versions needed to update to the specific version given that
    * the specified current version and cached bases are available.
+   *
    * @param currentVersion
    * @param cachedBases
    * @param updatingToVersion
