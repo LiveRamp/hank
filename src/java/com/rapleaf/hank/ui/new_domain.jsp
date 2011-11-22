@@ -41,18 +41,31 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
       var newOpts = getDefaultOptionsText(storageEngineFactoryName.value);
       storageEngineOptions.value = newOpts;
     }
+
+    function validateDomainName() {
+      var domainName = document.getElementById('domainName');
+      if (domainName.value.match(/^ *$/)) {
+        alert("Domain names must contain some non-space characters. (Leading and trailing spaces are OK.)");
+        return false;
+      }
+      if (domainName.value.match(/^\./)) {
+        alert("Domain names may not start with a '.'!");
+        return false;
+      }
+      return true;
+    }
   </script>
 </head>
 <body onload="resetStorageEngineOptions();">
 
 <jsp:include page="_top_nav.jsp"/>
 
-  <form action="/domain/create" method=post>
+  <form action="/domain/create" method=post onsubmit="return validateDomainName();">
   <h1>Create New Domain</h1>
   <table>
     <tr>
       <td>Domain Name</td>
-      <td><input type=text name="name" size=50 /></td>
+      <td><input type=text id="domainName" name="name" size=50 /></td>
     </tr>
     <tr>
       <td>Num Partitions</td>
