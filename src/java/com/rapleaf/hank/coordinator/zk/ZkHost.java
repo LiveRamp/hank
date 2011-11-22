@@ -108,8 +108,10 @@ public class ZkHost extends AbstractHost {
         case NodeCreated:
         case NodeDeleted:
         case NodeDataChanged:
-          for (HostCurrentCommandChangeListener listener : currentCommandListeners) {
-            listener.onCurrentCommandChange(ZkHost.this);
+          synchronized (currentCommandListeners) {
+            for (HostCurrentCommandChangeListener listener : currentCommandListeners) {
+              listener.onCurrentCommandChange(ZkHost.this);
+            }
           }
         case NodeChildrenChanged:
       }
@@ -159,8 +161,10 @@ public class ZkHost extends AbstractHost {
         case NodeCreated:
         case NodeDeleted:
         case NodeDataChanged:
-          for (HostStateChangeListener listener : stateListeners) {
-            listener.onHostStateChange(ZkHost.this);
+          synchronized (stateListeners) {
+            for (HostStateChangeListener listener : stateListeners) {
+              listener.onHostStateChange(ZkHost.this);
+            }
           }
       }
     }
