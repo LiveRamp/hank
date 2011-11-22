@@ -61,6 +61,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   };
 
   public void testLoad() throws Exception {
+    final long beforeMillis = System.currentTimeMillis();
     version(1, 1, 1);
     Coordinator coord = new MockCoordinator() {
       @Override
@@ -72,6 +73,7 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     assertEquals(1, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertTrue(dgcv.getCreatedAt() > beforeMillis);
 
     version(2, 1, 2);
     dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(2), mockDomainGroup);

@@ -15,25 +15,37 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooDefs.Ids;
-import org.apache.zookeeper.ZooKeeper;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.ZooKeeper;
+import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.data.Stat;
+
+import com.rapleaf.hank.coordinator.AbstractDomainGroupVersion;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private final DomainGroup domainGroup;
   private final int versionNumber;
   private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
+  private final long createdAt;
 
   public ZkDomainGroupVersion(ZooKeeperPlus zk,
                               Coordinator coordinator,
@@ -51,6 +63,9 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     if (!isComplete(versionPath, zk)) {
       throw new IllegalStateException(versionPath + " is not yet complete!");
     }
+
+    final Stat stat = zk.exists(versionPath, false);
+    createdAt = stat.getCtime();
 
     List<String> relativePaths = zk.getChildrenNotHidden(versionPath, false);
     domainVersions = new HashSet<DomainGroupVersionDomainVersion>();
@@ -93,5 +108,10 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
     // touch it again to notify watchers
     zk.setData(actualPath, new byte[1], -1);
     return new ZkDomainGroupVersion(zk, coordinator, actualPath, domainGroup);
+  }
+
+  @Override
+  public long getCreatedAt() {
+    return createdAt;
   }
 }

@@ -29,6 +29,12 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
 
   public DomainGroup getDomainGroup();
 
+  /**
+   * milliseconds since epoch of when this domain group version was created
+   * @return
+   */
+  public long getCreatedAt();
+
   public Set<DomainGroupVersionDomainVersion> getDomainVersions();
 
   public SortedSet<DomainGroupVersionDomainVersion> getDomainVersionsSorted();
