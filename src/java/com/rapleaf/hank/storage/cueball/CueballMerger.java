@@ -36,17 +36,17 @@ public final class CueballMerger implements ICueballMerger {
                     CompressionCodec compressionCodec) throws IOException {
     // Perform merging
 
-    StreamBuffer[] sbs = new StreamBuffer[deltas.size() + 1];
+    CueballStreamBuffer[] sbs = new CueballStreamBuffer[deltas.size() + 1];
 
     // open the current base
-    StreamBuffer baseBuffer = new StreamBuffer(base.getPath(), 0,
+    CueballStreamBuffer baseBuffer = new CueballStreamBuffer(base.getPath(), 0,
         keyHashSize, valueSize, hashIndexBits, compressionCodec);
     sbs[0] = baseBuffer;
 
     // open all the deltas
     int i = 1;
     for (CueballFilePath delta : deltas) {
-      StreamBuffer db = new StreamBuffer(delta.getPath(), i,
+      CueballStreamBuffer db = new CueballStreamBuffer(delta.getPath(), i,
           keyHashSize, valueSize, hashIndexBits, compressionCodec);
       sbs[i++] = db;
     }
@@ -60,7 +60,7 @@ public final class CueballMerger implements ICueballMerger {
     CueballWriter writer = new CueballWriter(newBaseStream, keyHashSize, null, valueSize, compressionCodec, hashIndexBits);
 
     while (true) {
-      StreamBuffer least = null;
+      CueballStreamBuffer least = null;
       for (i = 0; i < sbs.length; i++) {
         boolean remaining = sbs[i].anyRemaining();
         if (remaining) {
@@ -91,7 +91,7 @@ public final class CueballMerger implements ICueballMerger {
       least.consume();
     }
 
-    for (StreamBuffer sb : sbs) {
+    for (CueballStreamBuffer sb : sbs) {
       sb.close();
     }
 

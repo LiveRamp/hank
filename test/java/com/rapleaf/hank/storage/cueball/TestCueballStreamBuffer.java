@@ -1,12 +1,12 @@
 package com.rapleaf.hank.storage.cueball;
 
-import java.io.FileOutputStream;
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 
-public class TestStreamBuffer extends BaseTestCase {
+import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
+
+public class TestCueballStreamBuffer extends BaseTestCase {
   private static final byte[] CONTIG_DATA = new byte[]{
           0x00,1,
           0x40,2,
@@ -52,7 +52,7 @@ public class TestStreamBuffer extends BaseTestCase {
     stream.flush();
     stream.close();
 
-    final StreamBuffer sb = new StreamBuffer(CONTIG_PATH, 0, 1, 1, 2, new NoCompressionCodec());
+    final CueballStreamBuffer sb = new CueballStreamBuffer(CONTIG_PATH, 0, 1, 1, 2, new NoCompressionCodec());
     assertTrue(sb.anyRemaining());
     assertEquals(0, sb.getCurrentOffset());
     assertEquals(ByteBuffer.wrap(CONTIG_DATA, 0, 2), ByteBuffer.wrap(sb.getBuffer(), 0, 2));
@@ -82,7 +82,7 @@ public class TestStreamBuffer extends BaseTestCase {
     stream.flush();
     stream.close();
 
-    final StreamBuffer sb = new StreamBuffer(DISCONTIG_INTERNAL_HOLE_PATH, 0, 1, 1, 2, new NoCompressionCodec());
+    final CueballStreamBuffer sb = new CueballStreamBuffer(DISCONTIG_INTERNAL_HOLE_PATH, 0, 1, 1, 2, new NoCompressionCodec());
     assertTrue(sb.anyRemaining());
     assertEquals(0, sb.getCurrentOffset());
     assertEquals(ByteBuffer.wrap(DISCONTIG_DATA_INTERNAL_HOLE, 0, 2), ByteBuffer.wrap(sb.getBuffer(), 0, 2));
@@ -107,7 +107,7 @@ public class TestStreamBuffer extends BaseTestCase {
     stream.flush();
     stream.close();
 
-    final StreamBuffer sb = new StreamBuffer(DISCONTIG_END_PATH, 0, 1, 1, 2, new NoCompressionCodec());
+    final CueballStreamBuffer sb = new CueballStreamBuffer(DISCONTIG_END_PATH, 0, 1, 1, 2, new NoCompressionCodec());
     assertTrue(sb.anyRemaining());
     assertEquals(0, sb.getCurrentOffset());
     assertEquals(ByteBuffer.wrap(DISCONTIG_DATA_END, 0, 2), ByteBuffer.wrap(sb.getBuffer(), 0, 2));

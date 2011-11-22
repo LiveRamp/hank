@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 /**
- * 
+ *
  */
 package com.rapleaf.hank.storage.cueball;
 
@@ -26,7 +26,7 @@ import java.nio.channels.FileChannel;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.util.Bytes;
 
-public final class StreamBuffer {
+public final class CueballStreamBuffer {
   private final int relativeIndex;
   private final int keyHashSize;
   private int currentOffset = 0;
@@ -44,12 +44,12 @@ public final class StreamBuffer {
   private final CompressionCodec compressionCodec;
   private final long dataLength;
 
-  public StreamBuffer(String filePath,
-      int relativeIndex,
-      int keyHashSize,
-      int valueSize,
-      int hashIndexBits,
-      CompressionCodec compressionCodec)
+  public CueballStreamBuffer(String filePath,
+                             int relativeIndex,
+                             int keyHashSize,
+                             int valueSize,
+                             int hashIndexBits,
+                             CompressionCodec compressionCodec)
   throws IOException {
     this.relativeIndex = relativeIndex;
     this.compressionCodec = compressionCodec;
@@ -91,7 +91,7 @@ public final class StreamBuffer {
     }
 
     // there's at least one block left.
-    
+
     long upperOffset;
     if (currentHashIndexIdx == hashIndex.length - 1) {
       // actually, there's *exactly* one block left. we need to compare the
@@ -126,13 +126,13 @@ public final class StreamBuffer {
     // decompress the compressed block into the uncompressed buffer
     final int decompressedSize = compressionCodec.decompress(compressedBuffer, 0, compressedBytesRead, uncompressedBuffer, 0);
 
-    // adjust the pointers 
+    // adjust the pointers
     currentOffset = 0;
     currentLimit = decompressedSize;
     return true;
   }
 
-  public int compareTo(StreamBuffer other) {
+  public int compareTo(CueballStreamBuffer other) {
     return Bytes.compareBytesUnsigned(uncompressedBuffer,
         currentOffset,
         other.uncompressedBuffer,
