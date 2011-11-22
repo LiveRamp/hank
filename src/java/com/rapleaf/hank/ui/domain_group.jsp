@@ -5,6 +5,7 @@
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
+<%@page import="java.text.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -121,27 +122,34 @@ tr.not_included td {
 
 <h2>Existing Versions</h2>
 
-<ul>
+<table>
   <%
     SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
     dgvRev.addAll(domainGroup.getVersions());
     for (DomainGroupVersion dgcv : dgvRev) {
   %>
-  <li>
-    v<%= dgcv.getVersionNumber() %>:
-    <ul>
-      <%
-        for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersionsSorted()) {
-      %>
-      <li>
-        <%=dcv.getDomain().getName()%>
-        @ v<%= dcv.getVersion() %>
-      </li>
-      <% } %>
-    </ul>
-  </li>
+  <tr>
+    <td>v<%= dgcv.getVersionNumber() %></td>
+    <td>created <%= new SimpleDateFormat("d MMM yyyy HH:mm:ss").format(new Date(dgcv.getCreatedAt())) %></td>
+  </tr>
+  <tr>
+    <td colspan=2 style="padding-left: 10px">
+      <table>
+        <%
+          for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersionsSorted()) {
+        %>
+        <tr>
+          <td>
+            <%=dcv.getDomain().getName()%>
+            @ v<%= dcv.getVersion() %>
+          </td>
+        </tr>
+        <% } %>
+      </table>
+    </td>
+  </tr>
   <% } %>
-</ul>
+</table>
 
 <jsp:include page="_footer.jsp"/>
 
