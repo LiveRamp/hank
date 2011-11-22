@@ -127,7 +127,7 @@
   <%
     for (DomainVersion version : revSorted) {
   %>
-  <tr>
+  <tr class="<%= version.isDefunct() ? "defunct-version" : "" %>">
     <td><%= version.getVersionNumber() %></td>
     <td>
       <% if (DomainVersions.isClosed(version)) { %>

@@ -203,3 +203,6 @@ table.table-blue td,
 .partition_updating {
   background-color: #8cdbf3;
 }
+.defunct-version {
+  color: #bbbbbb;
+}
