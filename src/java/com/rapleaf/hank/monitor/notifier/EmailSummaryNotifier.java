@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.monitor.notifier;
 
+import org.apache.log4j.Logger;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -25,6 +27,8 @@ import java.util.List;
 import java.util.Set;
 
 public class EmailSummaryNotifier implements Notifier {
+
+  private static final Logger LOG = Logger.getLogger(EmailSummaryNotifier.class);
 
   private static final int EMAIL_SUMMARY_FREQUENCY = 60 * 1000; // 1 minute in ms
   private final Set<String> emailTargets;
@@ -88,6 +92,8 @@ public class EmailSummaryNotifier implements Notifier {
     File temporaryEmailBody = File.createTempFile("_tmp_" + getClass().getSimpleName(), null);
     BufferedWriter writer = new BufferedWriter(new FileWriter(temporaryEmailBody, false));
     writer.write(body);
+
+    LOG.info("Sending Monitor email to " + emailTargets.size() + " targets: " + emailTargets + " Email body: " + body);
 
     for (String emailTarget : emailTargets) {
       Runtime.getRuntime().exec("cat " + temporaryEmailBody.getAbsolutePath()
