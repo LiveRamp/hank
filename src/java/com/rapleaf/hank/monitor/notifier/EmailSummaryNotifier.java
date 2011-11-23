@@ -72,6 +72,7 @@ public class EmailSummaryNotifier implements Notifier {
         summary.append(notification.toString());
         summary.append('\n');
       }
+      notifications.clear();
     }
     for (String emailTarget : emailTargets) {
       sendEmail(emailTarget, summary.toString());
