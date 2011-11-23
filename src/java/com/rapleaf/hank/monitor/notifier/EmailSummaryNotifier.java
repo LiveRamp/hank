@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 public class EmailSummaryNotifier implements Notifier {
 
@@ -86,16 +85,8 @@ public class EmailSummaryNotifier implements Notifier {
   }
 
   private void sendEmails(Set<String> emailTargets, String body) throws IOException {
-    File temporaryEmailBody = new File("/tmp/_hank_" + this.getClass().getSimpleName()
-        + "_" + UUID.randomUUID().toString());
-    if (!temporaryEmailBody.mkdirs()) {
-      throw new IOException("Could not create directories for " + temporaryEmailBody.getAbsolutePath());
-    }
-    if (!temporaryEmailBody.createNewFile()) {
-      throw new IOException("Could not create " + temporaryEmailBody.getAbsolutePath());
-    }
-
-    BufferedWriter writer = new BufferedWriter(new FileWriter(temporaryEmailBody));
+    File temporaryEmailBody = File.createTempFile("_tmp_" + getClass().getSimpleName(), null);
+    BufferedWriter writer = new BufferedWriter(new FileWriter(temporaryEmailBody, false));
     writer.write(body);
 
     for (String emailTarget : emailTargets) {
