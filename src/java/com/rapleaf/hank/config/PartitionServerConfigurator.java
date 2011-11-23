@@ -56,7 +56,7 @@ public interface PartitionServerConfigurator extends Configurator {
    *
    * @return
    */
-  public int getNumConcurrentConnections();
+  public int getNumConcurrentQueries();
 
   public int getNumConcurrentGetBulkTasks();
 

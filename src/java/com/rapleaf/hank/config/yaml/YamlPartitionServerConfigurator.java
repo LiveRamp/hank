@@ -15,25 +15,26 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 
-import java.io.IOException;
-import java.util.*;
-
 public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implements PartitionServerConfigurator {
 
-  private static final String PARTITION_SERVER_SECTION_KEY = "partition_server";
-  private static final String LOCAL_DATA_DIRS_KEY = "local_data_dirs";
-  private static final String SERVICE_PORT_KEY = "service_port";
-  private static final String RING_GROUP_NAME_KEY = "ring_group_name";
-  private static final String PARTITION_SERVER_DAEMON_SECTION_KEY = "partition_server_daemon";
-  private static final String NUM_CONCURRENT_CONNECTIONS_KEY = "num_worker_threads";
-  private static final String UPDATE_DAEMON_SECTION_KEY = "update_daemon";
-  private static final String NUM_CONCURRENT_UPDATES_KEY = "num_concurrent_updates";
-  private static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
-  private static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
-  private static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
+  public static final String PARTITION_SERVER_SECTION_KEY = "partition_server";
+  public static final String LOCAL_DATA_DIRS_KEY = "local_data_dirs";
+  public static final String SERVICE_PORT_KEY = "service_port";
+  public static final String RING_GROUP_NAME_KEY = "ring_group_name";
+  public static final String PARTITION_SERVER_DAEMON_SECTION_KEY = "partition_server_daemon";
+  public static final String NUM_CONCURRENT_QUERIES_KEY = "num_concurrent_queries";
+  public static final String UPDATE_DAEMON_SECTION_KEY = "update_daemon";
+  public static final String NUM_CONCURRENT_UPDATES_KEY = "num_concurrent_updates";
+  public static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
+  public static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
+  public static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
 
   public YamlPartitionServerConfigurator(String path) throws IOException,
       InvalidConfigurationException {
@@ -51,7 +52,7 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
 
     getRequiredSection(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
-        NUM_CONCURRENT_CONNECTIONS_KEY);
+        NUM_CONCURRENT_QUERIES_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         NUM_CONCURRENT_GET_BULK_TASKS);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
@@ -79,10 +80,10 @@ public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implem
   }
 
   @Override
-  public int getNumConcurrentConnections() {
+  public int getNumConcurrentQueries() {
     return getInteger(PARTITION_SERVER_SECTION_KEY,
         PARTITION_SERVER_DAEMON_SECTION_KEY,
-        NUM_CONCURRENT_CONNECTIONS_KEY);
+        NUM_CONCURRENT_QUERIES_KEY);
   }
 
   @Override

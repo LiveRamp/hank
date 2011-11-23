@@ -318,7 +318,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
     Args options = new Args(serverSocket);
     options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
-    options.workerThreads(configurator.getNumConcurrentConnections());
+    options.workerThreads(configurator.getNumConcurrentQueries());
     options.protocolFactory(new TCompactProtocol.Factory());
     dataServer = new THsHaServer(options);
     LOG.debug("Launching Thrift server...");

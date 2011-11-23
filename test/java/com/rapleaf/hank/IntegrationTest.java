@@ -15,6 +15,29 @@
  */
 package com.rapleaf.hank;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
@@ -24,7 +47,21 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroups;
+import com.rapleaf.hank.coordinator.Domains;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroups;
+import com.rapleaf.hank.coordinator.Rings;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
@@ -41,18 +78,6 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
 
@@ -65,10 +90,10 @@ public class IntegrationTest extends ZkTestCase {
     public SmartClientRunnable() throws Exception {
       this.configPath = localTmpDir + "/smart_client_config.yml";
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("smart_client:");
-      pw.println("  service_port: 50004");
-      pw.println("  num_worker_threads: 1");
-      pw.println("  ring_group_name: rg1");
+      pw.println(YamlSmartClientDaemonConfigurator.SMART_CLIENT_SECTION_KEY + ":");
+      pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY +": 50004");
+      pw.println("  " + YamlSmartClientDaemonConfigurator.NUM_WORKER_THREADS + ": 1");
+      pw.println("  " + YamlSmartClientDaemonConfigurator.RING_GROUP_NAME_KEY + ": rg1");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlSmartClientDaemonConfigurator(configPath);
@@ -91,10 +116,10 @@ public class IntegrationTest extends ZkTestCase {
     public RingGroupConductorRunnable() throws Exception {
       String configPath = localTmpDir + "/ring_group_conductor_config.yml";
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("ring_group_conductor:");
-      pw.println("  sleep_interval: 1000");
-      pw.println("  ring_group_name: rg1");
-      pw.println("  initial_mode: ACTIVE");
+      pw.println(YamlRingGroupConductorConfigurator.RING_GROUP_CONDUCTOR_SECTION_KEY + ":");
+      pw.println("  " + YamlRingGroupConductorConfigurator.SLEEP_INTERVAL_KEY + ": 1000");
+      pw.println("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": rg1");
+      pw.println("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": ACTIVE");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlRingGroupConductorConfigurator(configPath);
@@ -127,18 +152,18 @@ public class IntegrationTest extends ZkTestCase {
       this.configPath = localTmpDir + "/" + hostDotPort + ".partition_server.yml";
 
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
-      pw.println("partition_server:");
-      pw.println("  service_port: " + addy.getPortNumber());
-      pw.println("  ring_group_name: rg1");
-      pw.println("  local_data_dirs:");
+      pw.println(YamlPartitionServerConfigurator.PARTITION_SERVER_SECTION_KEY + ":");
+      pw.println("  " + YamlPartitionServerConfigurator.SERVICE_PORT_KEY + ": " + addy.getPortNumber());
+      pw.println("  " + YamlPartitionServerConfigurator.RING_GROUP_NAME_KEY + ": rg1");
+      pw.println("  " + YamlPartitionServerConfigurator.LOCAL_DATA_DIRS_KEY + ":");
       pw.println("    - " + localTmpDir + "/" + hostDotPort);
-      pw.println("  partition_server_daemon:");
-      pw.println("    num_worker_threads: 1");
-      pw.println("    num_concurrent_get_bulk_tasks: 1");
-      pw.println("    get_bulk_task_size: 2");
-      pw.println("    get_timer_aggregator_window: 1000");
-      pw.println("  update_daemon:");
-      pw.println("    num_concurrent_updates: 1");
+      pw.println("  " + YamlPartitionServerConfigurator.PARTITION_SERVER_DAEMON_SECTION_KEY + ":");
+      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_QUERIES_KEY + ": 1");
+      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_GET_BULK_TASKS + ": 1");
+      pw.println("    " + YamlPartitionServerConfigurator.GET_BULK_TASK_SIZE + ": 2");
+      pw.println("    " + YamlPartitionServerConfigurator.GET_TIMER_AGGREGATOR_WINDOW_KEY + ": 1000");
+      pw.println("  " + YamlPartitionServerConfigurator.UPDATE_DAEMON_SECTION_KEY + ":");
+      pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_UPDATES_KEY + ": 1");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlPartitionServerConfigurator(configPath);

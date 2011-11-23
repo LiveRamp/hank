@@ -33,7 +33,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("  service_port: 1");
     pw.println("  ring_group_name: rg1");
     pw.println("  partition_server_daemon:");
-    pw.println("    num_worker_threads: 5");
+    pw.println("    num_concurrent_queries: 5");
     pw.println("    num_concurrent_get_bulk_tasks: 1");
     pw.println("    get_bulk_task_size: 2");
     pw.println("    get_timer_aggregator_window: 1000");
@@ -50,6 +50,6 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(1, conf.getServicePort());
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(5, conf.getNumConcurrentUpdates());
-    assertEquals(5, conf.getNumConcurrentConnections());
+    assertEquals(5, conf.getNumConcurrentQueries());
   }
 }

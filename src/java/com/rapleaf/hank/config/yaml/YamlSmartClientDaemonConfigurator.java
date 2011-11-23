@@ -15,17 +15,17 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import java.io.IOException;
+
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 
-import java.io.IOException;
-
 public class YamlSmartClientDaemonConfigurator extends BaseYamlConfigurator implements SmartClientDaemonConfigurator {
 
-  private static final String SMART_CLIENT_SECTION_KEY = "smart_client";
-  private static final String NUM_WORKER_THREADS = "num_worker_threads";
-  private static final String SERVICE_PORT_KEY = "service_port";
-  private static final String RING_GROUP_NAME_KEY = "ring_group_name";
+  public static final String SMART_CLIENT_SECTION_KEY = "smart_client";
+  public static final String NUM_WORKER_THREADS = "num_worker_threads";
+  public static final String SERVICE_PORT_KEY = "service_port";
+  public static final String RING_GROUP_NAME_KEY = "ring_group_name";
 
   public YamlSmartClientDaemonConfigurator(String path) throws IOException, InvalidConfigurationException {
     super(path);

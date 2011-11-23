@@ -56,7 +56,7 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public int getNumConcurrentConnections() {
+  public int getNumConcurrentQueries() {
     return 1;
   }
 

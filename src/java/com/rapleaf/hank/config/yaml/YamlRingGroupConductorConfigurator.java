@@ -15,19 +15,18 @@
  */
 package com.rapleaf.hank.config.yaml;
 
+import java.io.IOException;
+
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 
-import java.io.IOException;
-
 
 public class YamlRingGroupConductorConfigurator extends BaseYamlConfigurator implements RingGroupConductorConfigurator {
-
-  private static final String RING_GROUP_CONDUCTOR_SECTION_KEY = "ring_group_conductor";
-  private static final String SLEEP_INTERVAL_KEY = "sleep_interval";
-  private static final String RING_GROUP_NAME_KEY = "ring_group_name";
-  private static final String INITIAL_MODE_KEY = "initial_mode";
+  public static final String RING_GROUP_CONDUCTOR_SECTION_KEY = "ring_group_conductor";
+  public static final String SLEEP_INTERVAL_KEY = "sleep_interval";
+  public static final String RING_GROUP_NAME_KEY = "ring_group_name";
+  public static final String INITIAL_MODE_KEY = "initial_mode";
 
   public YamlRingGroupConductorConfigurator(String configPath) throws IOException, InvalidConfigurationException {
     super(configPath);
