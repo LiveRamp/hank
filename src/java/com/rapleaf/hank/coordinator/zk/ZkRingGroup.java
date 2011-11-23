@@ -51,7 +51,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final WatchedInt currentVersion;
   private final WatchedInt updatingToVersion;
-  private final WatchedString ringGroupConductorMode;
+  private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
@@ -92,7 +92,8 @@ public class ZkRingGroup extends AbstractRingGroup {
 
     currentVersion = new WatchedInt(zk, currentVerPath, true);
     updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true);
-    ringGroupConductorMode = new WatchedString(zk, ringGroupConductorOnlinePath, false);
+    ringGroupConductorMode = new WatchedEnum<RingGroupConductorMode>(RingGroupConductorMode.class,
+        zk, ringGroupConductorOnlinePath, false);
   }
 
   private final class StateChangeListener implements Watcher {
@@ -209,18 +210,13 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   @Override
   public RingGroupConductorMode getRingGroupConductorMode() throws IOException {
-    String mode = ringGroupConductorMode.get();
-    if (mode != null) {
-      return RingGroupConductorMode.valueOf(mode);
-    } else {
-      return null;
-    }
+    return ringGroupConductorMode.get();
   }
 
   @Override
   public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException {
     try {
-      ringGroupConductorMode.set(mode.toString());
+      ringGroupConductorMode.set(mode);
     } catch (KeeperException e) {
       throw new IOException(e);
     } catch (InterruptedException e) {
