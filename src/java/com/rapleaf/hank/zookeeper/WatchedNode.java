@@ -1,3 +1,19 @@
+/**
+ *  Copyright 2011 Rapleaf
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
@@ -10,6 +26,9 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 import org.eclipse.jetty.util.log.Log;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public abstract class WatchedNode<T> {
 
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
@@ -17,6 +36,8 @@ public abstract class WatchedNode<T> {
   private T value;
   private final String nodePath;
   private final ZooKeeperPlus zk;
+  private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
+  private boolean cancelled = false;
 
   private final Watcher watcher = new Watcher() {
     @Override
@@ -25,6 +46,7 @@ public abstract class WatchedNode<T> {
       // won't run into any concurrency issues
       synchronized (WatchedNode.this) {
 
+        if (!cancelled) {
         if (event.getState() != KeeperState.SyncConnected) {
           value = null;
         } else {
@@ -44,6 +66,12 @@ public abstract class WatchedNode<T> {
             }
           }
         }
+        synchronized (listeners) {
+          for (WatchedNodeListener<T> listener : listeners) {
+            listener.onWatchedNodeChange(value);
+          }
+        }
+      }
       }
     }
   };
@@ -97,6 +125,18 @@ public abstract class WatchedNode<T> {
     initWatch();
   }
 
+  public void addListener(WatchedNodeListener<T> listener) {
+    synchronized (listeners) {
+      listeners.add(listener);
+    }
+  }
+
+  public boolean removeListener(WatchedNodeListener<T> listener) {
+    synchronized (listeners) {
+      return listeners.remove(listener);
+    }
+  }
+
   private void watchForCreation() throws InterruptedException, KeeperException {
     value = null;
     zk.exists(nodePath, watcher);
@@ -128,6 +168,10 @@ public abstract class WatchedNode<T> {
     synchronized (this) {
       value = v;
     }
+  }
+
+  public void cancelWatch() {
+    cancelled = true;
   }
 
   protected abstract byte[] encode(T v);

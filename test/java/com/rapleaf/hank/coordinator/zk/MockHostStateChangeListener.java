@@ -1,16 +1,18 @@
 /**
- * 
+ *
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
-public final class MockHostStateChangeListener implements HostStateChangeListener {
-  Host calledWith;
+public final class MockHostStateChangeListener implements WatchedNodeListener<HostState> {
+
+  HostState calledWith;
+
   @Override
-  public void onHostStateChange(Host hostConfig) {
-    calledWith = hostConfig;
+  public void onWatchedNodeChange(HostState state) {
+    calledWith = state;
     synchronized (this) {
       notifyAll();
     }

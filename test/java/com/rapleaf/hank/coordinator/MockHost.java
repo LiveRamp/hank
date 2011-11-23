@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,7 +31,7 @@ public class MockHost extends AbstractHost {
   private HostCommand lastEnqueuedCommand;
   private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
   private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
-  private final Set<HostStateChangeListener> hostStateChangeListeners = new HashSet<HostStateChangeListener>();
+  private final Set<WatchedNodeListener<HostState>> hostStateChangeListeners = new HashSet<WatchedNodeListener<HostState>>();
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
 
   public MockHost(PartitionServerAddress address) {
@@ -66,7 +68,7 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public void setStateChangeListener(HostStateChangeListener listener) {
+  public void setStateChangeListener(WatchedNodeListener<HostState> listener) {
     hostStateChangeListeners.add(listener);
   }
 
@@ -87,8 +89,8 @@ public class MockHost extends AbstractHost {
   }
 
   private void notifyHostStateChangeListeners() {
-    for (HostStateChangeListener listener : hostStateChangeListeners) {
-      listener.onHostStateChange(this);
+    for (WatchedNodeListener<HostState> listener : hostStateChangeListeners) {
+      listener.onWatchedNodeChange(state);
     }
   }
 
@@ -138,7 +140,7 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public void cancelStateChangeListener(HostStateChangeListener listener) {
+  public void cancelStateChangeListener(WatchedNodeListener<HostState> listener) {
   }
 
   @Override
