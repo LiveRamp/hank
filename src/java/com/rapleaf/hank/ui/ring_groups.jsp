@@ -17,6 +17,22 @@
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Hank: Ring Groups</title>
 
+  <script type="text/javascript">
+    function validateCreate() {
+      var ringGroupName = document.getElementById('rgName');
+      if (ringGroupName.value.match(/^ *$/)) {
+        alert("Ring group names must contain some non-space characters. (Leading and trailing spaces are OK.)");
+        return false;
+      }
+      if (ringGroupName.value.match(/^\./)) {
+        alert("Ring group names may not start with a '.'");
+        return false;
+      }
+      return true;
+    }
+  </script>
+
+
   <jsp:include page="_head.jsp" />
 </head>
 <body>
@@ -27,7 +43,7 @@
 
   <h2>Create New Ring Group</h2>
 
-  <form action="/ring_group/create" method=post>
+  <form action="/ring_group/create" method=post onsubmit="return validateCreate();">
     <select name="dgName">
       <%
         for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
@@ -37,7 +53,7 @@
         }
       %>
     </select>
-    <input type=text size=30 name="rgName"/> <input type=submit value="Create"/>
+    <input type=text size=30 id="rgName" name="rgName"/> <input type=submit value="Create"/>
   </form>
 
   <h2>All Ring Groups</h2>
