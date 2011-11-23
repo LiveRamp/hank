@@ -30,7 +30,6 @@ import java.util.Collection;
 public class Monitor {
 
   private final Coordinator coordinator;
-
   private final Notifier globalNotifier;
   private final Collection<RingGroupMonitor> ringGroupMonitors = new ArrayList<RingGroupMonitor>();
   private Thread shutdownHook;

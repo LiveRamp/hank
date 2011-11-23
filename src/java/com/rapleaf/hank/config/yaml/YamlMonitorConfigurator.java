@@ -72,12 +72,12 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
     if (notifier == null) {
       NotifierFactory notifierFactory = notifierFactories.get(ringGroup);
       if (notifierFactory == null) {
-        String notifierClassName = getString(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
+        String notifierClassName = getRequiredString(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
             ringGroup.getName(), RING_GROUP_NOTIFIER_FACTORY_CLASS_KEY);
         notifierFactory = createNotifierFactory(notifierClassName);
         notifierFactories.put(ringGroup, notifierFactory);
       }
-      Map<String, Object> configuration = getSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
+      Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
           ringGroup.getName(), RING_GROUP_NOTIFIER_CONFIGURATION_KEY);
       notifierFactory.validate(configuration);
       notifier = notifierFactory.createNotifier(configuration);
