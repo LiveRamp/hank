@@ -16,10 +16,14 @@
 
 package com.rapleaf.hank.monitor.notifier;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class EmailSummaryNotifier implements Notifier {
 
@@ -74,16 +78,33 @@ public class EmailSummaryNotifier implements Notifier {
       }
       notifications.clear();
     }
-    for (String emailTarget : emailTargets) {
-      sendEmail(emailTarget, summary.toString());
+    try {
+      sendEmails(emailTargets, summary.toString());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
-  private void sendEmail(String emailTarget, String body) {
-    try {
-      Runtime.getRuntime().exec("echo \"" + body + "\" | mail -s \"Hank Notification\" " + emailTarget);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+  private void sendEmails(Set<String> emailTargets, String body) throws IOException {
+    File temporaryEmailBody = new File("/tmp/_hank_" + this.getClass().getSimpleName()
+        + "_" + UUID.randomUUID().toString());
+    if (!temporaryEmailBody.mkdirs()) {
+      throw new IOException("Could not create directories for " + temporaryEmailBody.getAbsolutePath());
+    }
+    if (!temporaryEmailBody.createNewFile()) {
+      throw new IOException("Could not create " + temporaryEmailBody.getAbsolutePath());
+    }
+
+    BufferedWriter writer = new BufferedWriter(new FileWriter(temporaryEmailBody));
+    writer.write(body);
+
+    for (String emailTarget : emailTargets) {
+      Runtime.getRuntime().exec("cat " + temporaryEmailBody.getAbsolutePath()
+          + " | mail -s 'Hank Notification' " + emailTarget);
+    }
+
+    if (!temporaryEmailBody.delete()) {
+      throw new IOException("Could not delete " + temporaryEmailBody.getAbsolutePath());
     }
   }
 
