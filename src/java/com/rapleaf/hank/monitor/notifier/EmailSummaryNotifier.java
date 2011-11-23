@@ -43,6 +43,7 @@ public class EmailSummaryNotifier implements Notifier {
       public void run() {
         while (true) {
           synchronized (notifications) {
+            LOG.info(notifications.size() + " notifications in queue.");
             if (notifications.size() > 0) {
               notifySummary();
             }
