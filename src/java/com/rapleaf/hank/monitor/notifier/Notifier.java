@@ -13,18 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
 
-import com.rapleaf.hank.coordinator.Coordinator;
+package com.rapleaf.hank.monitor.notifier;
 
-import java.io.Serializable;
+public interface Notifier {
 
-/**
- * The base for all Configurators for all actors in the Hank ecosystem.
- */
-public interface Configurator extends Serializable {
-  /**
-   * Create a new instance of Coordinator for this Hank installation.
-   */
-  public Coordinator createCoordinator();
+  public void notify(Notification notification);
 }

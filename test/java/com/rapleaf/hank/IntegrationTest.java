@@ -39,7 +39,7 @@ import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
@@ -220,7 +220,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("    ring_groups_root: " + ringGroupsRoot);
     pw.close();
 
-    Configurator config = new YamlClientConfigurator(clientConfigYml);
+    CoordinatorConfigurator config = new YamlClientConfigurator(clientConfigYml);
 
     Coordinator coordinator = config.createCoordinator();
 

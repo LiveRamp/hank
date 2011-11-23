@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.storage.constant;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.*;
@@ -73,7 +73,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
+  public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     throw new UnsupportedOperationException();
   }
 }

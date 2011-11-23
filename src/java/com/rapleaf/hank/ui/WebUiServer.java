@@ -2,7 +2,9 @@ package com.rapleaf.hank.ui;
 
 import com.rapleaf.hank.config.ClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
+import com.rapleaf.hank.config.yaml.YamlMonitorConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.monitor.Monitor;
 import com.rapleaf.hank.ui.controllers.*;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Level;
@@ -71,12 +73,15 @@ public class WebUiServer {
   }
 
   public static void main(String[] args) throws Exception {
-    CommandLineChecker.check(args, new String[]{"configuration_file_path", "port"}, WebUiServer.class);
+    CommandLineChecker.check(args, new String[]{"web_ui_configuration_file_path", "monitor_configuration_file_path",
+        "port"}, WebUiServer.class);
     Logger.getLogger("com.rapleaf.hank").setLevel(Level.INFO);
     String clientConfigPath = args[0];
-    int port = Integer.parseInt(args[1]);
-    ClientConfigurator configurator = new YamlClientConfigurator(clientConfigPath);
-    Coordinator coordinator = configurator.createCoordinator();
+    String monitorConfigPath = args[1];
+    int port = Integer.parseInt(args[2]);
+    ClientConfigurator webUiConfigurator = new YamlClientConfigurator(clientConfigPath);
+    Coordinator coordinator = webUiConfigurator.createCoordinator();
+    new Monitor(coordinator, new YamlMonitorConfigurator(monitorConfigPath));
     new WebUiServer(coordinator, new ClientCache(coordinator), port).run();
   }
 }

@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -74,7 +74,7 @@ public class MapStorageEngineCoordinator extends MockCoordinator {
         domainOptions, new MockDomainVersion(0, null));
   }
 
-  static public Configurator getConfigurator(int numPartitions) {
+  static public CoordinatorConfigurator getConfigurator(int numPartitions) {
     if (numPartitions < 1) {
       throw new RuntimeException("Number of partitions must be > 0 instead of " + numPartitions);
     }

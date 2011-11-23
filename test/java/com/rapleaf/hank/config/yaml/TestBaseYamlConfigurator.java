@@ -27,7 +27,7 @@ import java.io.PrintWriter;
 public class TestBaseYamlConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/bad4.yml";
 
-  private static class TestImplOfBaseYamlConfigurator extends BaseYamlConfigurator {
+  private static class TestImplOfBaseYamlConfigurator extends BaseYamlCoordinatorConfigurator {
     public TestImplOfBaseYamlConfigurator(String path) throws IOException,
         InvalidConfigurationException {
       super(path);

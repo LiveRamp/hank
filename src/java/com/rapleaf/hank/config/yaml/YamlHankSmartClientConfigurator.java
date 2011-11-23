@@ -21,7 +21,7 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 
 import java.io.FileNotFoundException;
 
-public class YamlHankSmartClientConfigurator extends BaseYamlConfigurator implements HankSmartClientConfigurator {
+public class YamlHankSmartClientConfigurator extends BaseYamlCoordinatorConfigurator implements HankSmartClientConfigurator {
 
   private static final String HANK_SMART_CLIENT_SECTION_KEY = "hank_smart_client";
   private static final String RING_GROUP_NAME_KEY = "ring_group_name";

@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.config;
 
-public interface HankSmartClientConfigurator extends Configurator {
+public interface HankSmartClientConfigurator extends CoordinatorConfigurator {
 
   public String getRingGroupName();
 

@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
@@ -116,7 +116,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
     return new MockDomain(domainName, 1, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null, new MockDomainVersion(0, null));
   }
 
-  static public Configurator getConfigurator(int numPartitions) {
+  static public CoordinatorConfigurator getConfigurator(int numPartitions) {
     YamlClientConfigurator configurator = new YamlClientConfigurator();
     try {
       configurator.loadFromYaml("coordinator:\n  factory: com.rapleaf.hank.hadoop.IntStringKeyStorageEngineCoordinator$Factory\n  options:\n    num_partitions: " + numPartitions + "\n");

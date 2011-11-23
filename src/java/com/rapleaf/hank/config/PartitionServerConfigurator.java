@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * Common configurator for any daemon that runs on a Host.
  */
-public interface PartitionServerConfigurator extends Configurator {
+public interface PartitionServerConfigurator extends CoordinatorConfigurator {
   /**
    * Where are the daemons on this host allowed to write data?
    *

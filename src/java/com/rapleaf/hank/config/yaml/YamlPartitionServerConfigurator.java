@@ -13,16 +13,17 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.config.yaml;
+
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.PartitionServerConfigurator;
 
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
-
-public class YamlPartitionServerConfigurator extends BaseYamlConfigurator implements PartitionServerConfigurator {
+public class YamlPartitionServerConfigurator extends BaseYamlCoordinatorConfigurator implements PartitionServerConfigurator {
 
   public static final String PARTITION_SERVER_SECTION_KEY = "partition_server";
   public static final String LOCAL_DATA_DIRS_KEY = "local_data_dirs";

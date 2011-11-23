@@ -13,41 +13,42 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.config.yaml;
 
-import com.rapleaf.hank.config.Configurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseYamlConfigurator implements Configurator {
-  private static final String COORDINATOR_SECTION_KEY = "coordinator";
-  private static final String COORDINATOR__FACTORY_KEY = "factory";
-  private static final String COORDINATOR__OPTIONS_KEY = "options";
+public abstract class BaseYamlConfigurator implements Serializable {
 
   protected Map<String, Object> config;
   private String contentSource;
 
-  protected BaseYamlConfigurator() {}
-
-  protected BaseYamlConfigurator(String configPath) throws FileNotFoundException, InvalidConfigurationException {
-    loadFromFile(configPath);
+  public BaseYamlConfigurator() {
   }
+
+  public BaseYamlConfigurator(String configurationFilePath) throws FileNotFoundException,
+      InvalidConfigurationException {
+    loadFromFile(configurationFilePath);
+    validate();
+  }
+
+  protected abstract void validate() throws InvalidConfigurationException;
 
   public void loadFromFile(String path) throws InvalidConfigurationException, FileNotFoundException {
     try {
       contentSource = path;
       config = (Map<String, Object>) new Yaml().load(new BufferedInputStream(new FileInputStream(path)));
     } catch (Exception e) {
-      throw new RuntimeException("Invalid configuration in " + path, e);
+      throw new RuntimeException("Invalid configuration in file " + path, e);
     }
     validate();
   }
@@ -62,40 +63,9 @@ public abstract class BaseYamlConfigurator implements Configurator {
     validate();
   }
 
-  protected void validate() throws InvalidConfigurationException {
-    checkNonEmptyConfiguration();
-    getRequiredString(COORDINATOR_SECTION_KEY, COORDINATOR__FACTORY_KEY);
-    getRequiredSection(COORDINATOR_SECTION_KEY, COORDINATOR__OPTIONS_KEY);
-  }
-
-  @Override
-  public Coordinator createCoordinator() {
-    try {
-      validate();
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Configuration is invalid!", e);
-    }
-    String factoryClassName = getString(COORDINATOR_SECTION_KEY, COORDINATOR__FACTORY_KEY);
-    Class<CoordinatorFactory> factoryClass;
-    try {
-      factoryClass = (Class<CoordinatorFactory>) Class.forName(factoryClassName);
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Could not load coordinator factory class " + factoryClassName + "!", e);
-    }
-    CoordinatorFactory factory;
-    try {
-      factory = factoryClass.newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException("Could not get an instance of " + factoryClass.getName() + "!", e);
-    }
-    return factory.getCoordinator(getSection(COORDINATOR_SECTION_KEY, COORDINATOR__OPTIONS_KEY));
-  }
-
-  // Validation functions
-
   protected void checkNonEmptyConfiguration() throws InvalidConfigurationException {
     if (config == null) {
-      throw new InvalidConfigurationException("Configuration is empty!");
+      throw new InvalidConfigurationException("Configuration is empty '" + contentSource + "'");
     }
   }
 

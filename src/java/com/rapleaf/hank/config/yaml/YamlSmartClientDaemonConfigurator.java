@@ -20,7 +20,7 @@ import java.io.IOException;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.SmartClientDaemonConfigurator;
 
-public class YamlSmartClientDaemonConfigurator extends BaseYamlConfigurator implements SmartClientDaemonConfigurator {
+public class YamlSmartClientDaemonConfigurator extends BaseYamlCoordinatorConfigurator implements SmartClientDaemonConfigurator {
 
   public static final String SMART_CLIENT_SECTION_KEY = "smart_client";
   public static final String NUM_WORKER_THREADS = "num_worker_threads";

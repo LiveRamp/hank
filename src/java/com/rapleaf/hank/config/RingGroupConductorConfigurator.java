@@ -18,7 +18,7 @@ package com.rapleaf.hank.config;
 
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 
-public interface RingGroupConductorConfigurator extends Configurator {
+public interface RingGroupConductorConfigurator extends CoordinatorConfigurator {
 
   public String getRingGroupName();
 

@@ -18,7 +18,7 @@ package com.rapleaf.hank.storage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 
 /**
@@ -36,5 +36,5 @@ public interface StorageEngine {
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
-  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException;
+  public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException;
 }

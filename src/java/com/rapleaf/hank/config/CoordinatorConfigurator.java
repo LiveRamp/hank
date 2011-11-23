@@ -15,11 +15,17 @@
  */
 package com.rapleaf.hank.config;
 
+import com.rapleaf.hank.coordinator.Coordinator;
+
+import java.io.Serializable;
+
 /**
- * Configuration particular to the SmartClient Daemon.
+ * The base for all configurators that need a Coordinator for all actors in the Hank ecosystem.
  */
-public interface SmartClientDaemonConfigurator extends CoordinatorConfigurator {
-  public String getRingGroupName();
-  public int getPortNumber();
-  public int getNumThreads();
+public interface CoordinatorConfigurator extends Serializable {
+
+  /**
+   * Create a new instance of Coordinator for this Hank installation.
+   */
+  public Coordinator createCoordinator();
 }

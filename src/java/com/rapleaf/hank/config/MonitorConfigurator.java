@@ -13,13 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.config;
 
-/**
- * Configuration particular to the SmartClient Daemon.
- */
-public interface SmartClientDaemonConfigurator extends CoordinatorConfigurator {
-  public String getRingGroupName();
-  public int getPortNumber();
-  public int getNumThreads();
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.monitor.notifier.Notifier;
+
+public interface MonitorConfigurator {
+
+  public Notifier getGlobalNotifier() throws InvalidConfigurationException;
+
+  public Notifier getRingGroupNotifier(RingGroup ringGroup) throws InvalidConfigurationException;
 }

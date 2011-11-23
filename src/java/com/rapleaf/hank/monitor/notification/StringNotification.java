@@ -13,13 +13,21 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
 
-/**
- * Configuration particular to the SmartClient Daemon.
- */
-public interface SmartClientDaemonConfigurator extends CoordinatorConfigurator {
-  public String getRingGroupName();
-  public int getPortNumber();
-  public int getNumThreads();
+package com.rapleaf.hank.monitor.notification;
+
+import com.rapleaf.hank.monitor.notifier.Notification;
+
+public class StringNotification extends AbstractNotification implements Notification {
+
+  private final String notification;
+
+  public StringNotification(final String notification) {
+    this.notification = notification;
+  }
+
+  @Override
+  public String toString() {
+    return notification;
+  }
 }

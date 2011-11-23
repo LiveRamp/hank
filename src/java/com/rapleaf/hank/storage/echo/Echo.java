@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.echo;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.*;
@@ -55,7 +55,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public DomainVersionCleaner getDomainVersionCleaner(Configurator configurator) throws IOException {
+  public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     return new DomainVersionCleaner() {
       @Override
       public void cleanVersion(int versionNumber) throws IOException {

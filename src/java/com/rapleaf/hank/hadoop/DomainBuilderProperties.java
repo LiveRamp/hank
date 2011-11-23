@@ -1,7 +1,7 @@
 package com.rapleaf.hank.hadoop;
 
 import cascading.flow.FlowProcess;
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.VersionType;
@@ -21,7 +21,7 @@ public class DomainBuilderProperties {
   private static final Class<? extends DomainBuilderOutputFormat> DEFAULT_OUTPUT_FORMAT_CLASS = DomainBuilderDefaultOutputFormat.class;
 
   private final String domainName;
-  private final Configurator configurator;
+  private final CoordinatorConfigurator configurator;
   private final VersionType versionType;
   private final String outputPath;
   private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
@@ -31,7 +31,7 @@ public class DomainBuilderProperties {
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
-                                 Configurator configurator) {
+                                 CoordinatorConfigurator configurator) {
     this.domainName = domainName;
     this.versionType = versionType;
     this.configurator = configurator;
@@ -43,7 +43,7 @@ public class DomainBuilderProperties {
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
-                                 Configurator configurator,
+                                 CoordinatorConfigurator configurator,
                                  Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
     this.domainName = domainName;
     this.versionType = versionType;
@@ -56,7 +56,7 @@ public class DomainBuilderProperties {
   // With a specific output path
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
-                                 Configurator configurator,
+                                 CoordinatorConfigurator configurator,
                                  String outputPath) {
     this.domainName = domainName;
     this.versionType = versionType;
@@ -69,7 +69,7 @@ public class DomainBuilderProperties {
   // With a specific output path
   public DomainBuilderProperties(String domainName,
                                  VersionType versionType,
-                                 Configurator configurator,
+                                 CoordinatorConfigurator configurator,
                                  String outputPath,
                                  Class<? extends DomainBuilderOutputFormat> outputFormatClass) {
     this.domainName = domainName;
@@ -173,14 +173,14 @@ public class DomainBuilderProperties {
     return getConfigurator(domainName, flowProcess).createCoordinator().getDomain(domainName);
   }
 
-  public static Configurator getConfigurator(String domainName, FlowProcess flowProcess) {
+  public static CoordinatorConfigurator getConfigurator(String domainName, FlowProcess flowProcess) {
     String configurationItem = DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATOR);
     String configuratorString = getRequiredConfigurationItem(configurationItem,
         "Hank coordinator configuration", flowProcess);
-    Configurator configurator;
+    CoordinatorConfigurator configurator;
     try {
-      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (CoordinatorConfigurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -207,15 +207,15 @@ public class DomainBuilderProperties {
         "Hank domain name", conf);
   }
 
-  public static Configurator getConfigurator(JobConf conf) {
+  public static CoordinatorConfigurator getConfigurator(JobConf conf) {
     String domainName = getDomainName(conf);
     String configurationItem = DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_CONFIGURATOR);
     String configuratorString = getRequiredConfigurationItem(configurationItem,
         "Hank coordinator configuration", conf);
-    Configurator configurator;
+    CoordinatorConfigurator configurator;
     try {
-      configurator = (Configurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (CoordinatorConfigurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -274,7 +274,7 @@ public class DomainBuilderProperties {
   }
 
   // Builds a base64 encoded string of the serialized configurator
-  private static String buildConfigurationString(Configurator configurator) {
+  private static String buildConfigurationString(CoordinatorConfigurator configurator) {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     try {
       new ObjectOutputStream(baos).writeObject(configurator);

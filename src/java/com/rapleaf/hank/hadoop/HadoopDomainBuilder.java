@@ -28,7 +28,7 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.config.Configurator;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
@@ -39,7 +39,7 @@ public class HadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
-  public static void run(String domainName, VersionType versionType, Configurator configurator, String inputPath, String outputPath) throws IOException {
+  public static void run(String domainName, VersionType versionType, CoordinatorConfigurator configurator, String inputPath, String outputPath) throws IOException {
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath + " and coordinator configuration " + configurator);
     DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
     buildHankDomain(inputPath, SequenceFileInputFormat.class, DomainBuilderMapperDefault.class, properties);
