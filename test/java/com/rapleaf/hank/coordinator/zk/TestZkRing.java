@@ -180,7 +180,7 @@ public class TestZkRing extends ZkTestCase {
     synchronized (l2) {
       l2.wait(WAIT_TIME);
     }
-    assertEquals(h1, l2.calledWith);
+    assertEquals(HostState.UPDATING, l2.calledWith);
 
     h1.enqueueCommand(HostCommand.EXECUTE_UPDATE);
     l1.waitForNotification();

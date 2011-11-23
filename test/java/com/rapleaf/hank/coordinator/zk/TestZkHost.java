@@ -23,8 +23,6 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
@@ -55,8 +53,7 @@ public class TestZkHost extends ZkTestCase {
       mockListener.wait(1000);
     }
     assertNotNull("mock listener should have received a call!", mockListener.calledWith);
-    assertEquals(ADDRESS, mockListener.calledWith.getAddress());
-    assertEquals(HostState.SERVING, mockListener.calledWith.getState());
+    assertEquals(HostState.SERVING, mockListener.calledWith);
     c.close();
   }
 

@@ -17,10 +17,11 @@
 package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostStateChangeListener;
+import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -36,7 +37,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class HostConnection implements HostStateChangeListener {
+public class HostConnection implements WatchedNodeListener<HostState> {
 
   private static final Logger LOG = Logger.getLogger(HostConnection.class);
 
@@ -71,7 +72,7 @@ public class HostConnection implements HostStateChangeListener {
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     host.setStateChangeListener(this);
-    onHostStateChange(host);
+    onWatchedNodeChange(host.getState());
   }
 
   Host getHost() {
@@ -224,31 +225,30 @@ public class HostConnection implements HostStateChangeListener {
   }
 
   @Override
-  public void onHostStateChange(Host host) {
+  public void onWatchedNodeChange(HostState hostState) {
     synchronized (stateChangeMutex) {
-      try {
-        switch (host.getState()) {
-          case SERVING:
-            lock();
-            try {
-              disconnect();
-              connect();
-            } finally {
-              unlock();
-            }
-            break;
-
-          default:
-            lock();
-            try {
-              disconnect();
-              state = HostConnectionState.STANDBY;
-            } finally {
-              unlock();
-            }
+      if (hostState != null && hostState == HostState.SERVING) {
+        // Reconnect
+        lock();
+        try {
+          disconnect();
+          try {
+            connect();
+          } catch (IOException e) {
+            LOG.error("Error connection to host.", e);
+          }
+        } finally {
+          unlock();
         }
-      } catch (IOException e) {
-        LOG.error("Exception while trying to get host state!", e);
+      } else {
+        // Disconnect and standby
+        lock();
+        try {
+          disconnect();
+          state = HostConnectionState.STANDBY;
+        } finally {
+          unlock();
+        }
       }
     }
   }

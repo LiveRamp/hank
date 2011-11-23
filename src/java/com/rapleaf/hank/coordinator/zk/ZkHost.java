@@ -16,16 +16,13 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
 import java.util.*;
@@ -42,8 +39,7 @@ public class ZkHost extends AbstractHost {
   private final String hostPath;
   private final PartitionServerAddress address;
 
-  private final Set<HostStateChangeListener> stateListeners = new HashSet<HostStateChangeListener>();
-  private final StateChangeWatcher stateChangeWatcher;
+  private final WatchedEnum<HostState> hostState;
 
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
@@ -77,8 +73,8 @@ public class ZkHost extends AbstractHost {
       throw new IllegalArgumentException("Cannot initialize a ZkHost with a null Coordinator.");
     }
 
-    stateChangeWatcher = new StateChangeWatcher();
-    stateChangeWatcher.setWatch();
+    hostState = new WatchedEnum<HostState>(HostState.class,
+        zk, ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false);
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommandWatcher = new CurrentCommandWatcher();
     domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
@@ -150,6 +146,7 @@ public class ZkHost extends AbstractHost {
     }
   }
 
+  /*
   private class StateChangeWatcher extends HankWatcher {
     public StateChangeWatcher() throws KeeperException, InterruptedException {
       super();
@@ -176,7 +173,7 @@ public class ZkHost extends AbstractHost {
       }
     }
   }
-
+*/
   @Override
   public PartitionServerAddress getAddress() {
     return address;
@@ -204,10 +201,13 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public void setStateChangeListener(final HostStateChangeListener listener) throws IOException {
-    synchronized (stateListeners) {
-      stateListeners.add(listener);
-    }
+  public void setStateChangeListener(final WatchedNodeListener<HostState> listener) throws IOException {
+    hostState.addListener(listener);
+  }
+
+  @Override
+  public void cancelStateChangeListener(final WatchedNodeListener<HostState> listener) {
+    hostState.removeListener(listener);
   }
 
   @Override
@@ -353,15 +353,8 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  @Override
-  public void cancelStateChangeListener(HostStateChangeListener listener) {
-    synchronized (stateListeners) {
-      stateListeners.remove(listener);
-    }
-  }
-
   public void close() {
-    stateChangeWatcher.cancel();
+    hostState.cancelWatch();
     commandQueueWatcher.cancel();
     currentCommandWatcher.cancel();
   }

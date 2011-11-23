@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -51,14 +53,14 @@ public interface Host extends Comparable<Host> {
    * @param listener
    * @throws IOException
    */
-  public void setStateChangeListener(HostStateChangeListener listener) throws IOException;
+  public void setStateChangeListener(WatchedNodeListener<HostState> listener) throws IOException;
 
   /**
    * Removes the specified listener.
    *
    * @param listener
    */
-  public void cancelStateChangeListener(HostStateChangeListener listener);
+  public void cancelStateChangeListener(WatchedNodeListener<HostState> listener);
 
   /**
    * Add a command to this host's command queue. Consecutive duplicate commands

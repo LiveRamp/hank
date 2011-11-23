@@ -13,11 +13,10 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.coordinator;
 
-/**
- * Listener for being notified of changes to a given host's state.
- */
-public interface HostStateChangeListener {
-  public void onHostStateChange(Host hostConfig);
+package com.rapleaf.hank.zookeeper;
+
+public interface WatchedNodeListener<T> {
+
+  public abstract void onWatchedNodeChange(T value);
 }
