@@ -38,12 +38,21 @@ public class Monitor {
   public Monitor(Coordinator coordinator,
                  MonitorConfigurator configurator) throws IOException, InvalidConfigurationException {
     this.coordinator = coordinator;
-    for (RingGroup ringGroup : coordinator.getRingGroups()) {
-      ringGroupMonitors.add(new RingGroupMonitor(ringGroup, configurator.getRingGroupNotifier(ringGroup)));
-    }
+
     globalNotifier = configurator.getGlobalNotifier();
     globalNotifier.notify(new StringNotification("Hank monitor starting."));
     addShutdownHook();
+
+    for (RingGroup ringGroup : coordinator.getRingGroups()) {
+      Notifier notifier;
+      try {
+        notifier = configurator.getRingGroupNotifier(ringGroup);
+        ringGroupMonitors.add(new RingGroupMonitor(ringGroup, notifier));
+      } catch (InvalidConfigurationException e) {
+        globalNotifier.notify(new StringNotification("Ignoring Ring Group " + ringGroup.getName()
+            + " since the corresponding configuration was not found. It will not be monitored."));
+      }
+    }
   }
 
   public void stop() {
