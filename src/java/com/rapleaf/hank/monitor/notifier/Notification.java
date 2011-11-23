@@ -22,4 +22,5 @@ public interface Notification {
 
   public Date getDate();
 
+  public String format();
 }

@@ -56,4 +56,9 @@ public class HostStateNotification extends AbstractNotification implements Notif
   public int hashCode() {
     throw new NotImplementedException();
   }
+
+  @Override
+  protected String formatCore() {
+    return "Host " + host + " state is now " + hostState;
+  }
 }

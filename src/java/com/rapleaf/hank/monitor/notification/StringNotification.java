@@ -27,7 +27,7 @@ public class StringNotification extends AbstractNotification implements Notifica
   }
 
   @Override
-  public String toString() {
+  public String formatCore() {
     return notification;
   }
 }

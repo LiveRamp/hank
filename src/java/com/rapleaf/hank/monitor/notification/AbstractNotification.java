@@ -17,4 +17,10 @@ public abstract class AbstractNotification implements Notification {
     return date;
   }
 
+  protected abstract String formatCore();
+
+  @Override
+  public final String format() {
+    return date.toString() + " " + formatCore();
+  }
 }

@@ -73,7 +73,7 @@ public class EmailSummaryNotifier implements Notifier {
     StringBuilder summary = new StringBuilder();
     synchronized (notifications) {
       for (Notification notification : notifications) {
-        summary.append(notification.toString());
+        summary.append(notification.format());
         summary.append('\n');
       }
       notifications.clear();
