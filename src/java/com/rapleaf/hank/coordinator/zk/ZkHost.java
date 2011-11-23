@@ -89,7 +89,7 @@ public class ZkHost extends AbstractHost {
         }
         return null;
       }
-    }/*, new DotComplete()*/);
+    });
   }
 
   private class CurrentCommandWatcher extends HankWatcher {
@@ -146,34 +146,6 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  /*
-  private class StateChangeWatcher extends HankWatcher {
-    public StateChangeWatcher() throws KeeperException, InterruptedException {
-      super();
-    }
-
-    @Override
-    public void realProcess(WatchedEvent event) {
-      switch (event.getType()) {
-        case NodeCreated:
-        case NodeDeleted:
-        case NodeDataChanged:
-          synchronized (stateListeners) {
-            for (HostStateChangeListener listener : stateListeners) {
-              listener.onHostStateChange(ZkHost.this);
-            }
-          }
-      }
-    }
-
-    @Override
-    public void setWatch() throws KeeperException, InterruptedException {
-      if (zk.exists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), this) != null) {
-        zk.getData(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), this, new Stat());
-      }
-    }
-  }
-*/
   @Override
   public PartitionServerAddress getAddress() {
     return address;
