@@ -14,6 +14,21 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Hank: Domain Groups</title>
 
+  <script type="text/javascript">
+    function validateCreate() {
+      var domainGroupName = document.getElementById('name');
+      if (domainGroupName.value.match(/^ *$/)) {
+        alert("Domain group names must contain some non-space characters. (Leading and trailing spaces are OK.)");
+        return false;
+      }
+      if (domainGroupName.value.match(/^\./)) {
+        alert("Domain names may not start with a '.'!");
+        return false;
+      }
+      return true;
+    }
+  </script>
+
   <jsp:include page="_head.jsp" />
 </head>
 <body>
@@ -24,8 +39,8 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <h2>Create New Domain Group</h2>
 
-  <form action="/domain_group/create" method=post>
-  <input type=text name="name" size=50/> <input type=submit value="Create"/>
+  <form action="/domain_group/create" method=post onsubmit="return validateCreate();">
+    <input type=text id="name" name="name" size=50/> <input type=submit value="Create"/>
   </form>
 
   <h2>All Domain Groups</h2>
