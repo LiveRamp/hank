@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.*;
 
 public final class RingGroups {
+
   private RingGroups() {}
 
   public static boolean isUpdating(RingGroup ringGroup) throws IOException {

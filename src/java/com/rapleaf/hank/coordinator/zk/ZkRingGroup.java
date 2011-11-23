@@ -238,8 +238,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public void setCurrentVersion(Integer
-                                    version) throws IOException {
+  public void setCurrentVersion(Integer version) throws IOException {
     try {
       currentVersion.set(version);
     } catch (Exception e) {

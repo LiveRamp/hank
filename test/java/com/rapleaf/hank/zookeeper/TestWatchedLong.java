@@ -14,19 +14,19 @@ public class TestWatchedLong extends ZkTestCase {
     assertEquals(Long.valueOf(1), wl.get());
 
     zk.setData(nodePath, "55".getBytes(), -1);
-    Thread.sleep(1000);
+    Thread.sleep(100);
     assertEquals(Long.valueOf(55), wl.get());
 
     zk.setData(nodePath, null, -1);
-    Thread.sleep(1000);
+    Thread.sleep(100);
     assertNull(wl.get());
 
     WatchedLong wl2 = new WatchedLong(zk, nodePath);
+    Thread.sleep(100);
     assertNull(wl2.get());
     wl2.set(22L);
+    Thread.sleep(100);
     assertEquals(Long.valueOf(22), wl2.get());
-
-    Thread.sleep(1000);
     assertEquals(Long.valueOf(22), wl.get());
   }
 }

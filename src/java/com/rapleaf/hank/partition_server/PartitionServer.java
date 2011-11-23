@@ -20,6 +20,7 @@ import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.util.CommandLineChecker;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -36,7 +37,7 @@ import static com.rapleaf.hank.util.LocalHostUtils.getHostName;
 /**
  * The main class of the PartitionServer.
  */
-public class PartitionServer implements HostCommandQueueChangeListener, HostCurrentCommandChangeListener {
+public class PartitionServer implements HostCommandQueueChangeListener, WatchedNodeListener<HostCommand> {
 
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
@@ -92,6 +93,11 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
     addShutdownHook();
     // Initialize and process commands
     setStateSynchronized(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+    // Wait for state to propagate
+    while (host.getState() != HostState.IDLE) {
+      LOG.info("Waiting for Host state " + HostState.IDLE + " to propagate.");
+      Thread.sleep(100);
+    }
     processCommandOnStartup();
     while (!stopping) {
       try {
@@ -155,13 +161,12 @@ public class PartitionServer implements HostCommandQueueChangeListener, HostCurr
   }
 
   @Override
-  public synchronized void onCurrentCommandChange(Host host) {
+  public synchronized void onWatchedNodeChange(HostCommand command) {
     // Do not process anything when stopping
     if (stopping) {
       return;
     }
     try {
-      HostCommand command = host.getCurrentCommand();
       if (command != null) {
         processCommand(command, host.getState());
       }

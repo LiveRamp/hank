@@ -24,14 +24,17 @@ import java.util.List;
 import java.util.Set;
 
 public class MockHost extends AbstractHost {
+
   private final PartitionServerAddress address;
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
   private HostCommand lastEnqueuedCommand;
   private final Set<HostCommandQueueChangeListener> commandQueueChangeListeners = new HashSet<HostCommandQueueChangeListener>();
-  private final Set<HostCurrentCommandChangeListener> currentCommandChangeListeners = new HashSet<HostCurrentCommandChangeListener>();
-  private final Set<WatchedNodeListener<HostState>> hostStateChangeListeners = new HashSet<WatchedNodeListener<HostState>>();
+  private final Set<WatchedNodeListener<HostCommand>> currentCommandChangeListeners
+      = new HashSet<WatchedNodeListener<HostCommand>>();
+  private final Set<WatchedNodeListener<HostState>> hostStateChangeListeners
+      = new HashSet<WatchedNodeListener<HostState>>();
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
 
   public MockHost(PartitionServerAddress address) {
@@ -129,13 +132,13 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public void setCurrentCommandChangeListener(HostCurrentCommandChangeListener listener) throws IOException {
+  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) throws IOException {
     currentCommandChangeListeners.add(listener);
   }
 
   protected void notifyCurrentCommandChangeListeners() {
-    for (HostCurrentCommandChangeListener listener : currentCommandChangeListeners) {
-      listener.onCurrentCommandChange(MockHost.this);
+    for (WatchedNodeListener<HostCommand> listener : currentCommandChangeListeners) {
+      listener.onWatchedNodeChange(currentCommand);
     }
   }
 

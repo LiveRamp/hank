@@ -14,19 +14,19 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(1), wi.get());
 
     zk.setData(nodePath, "55".getBytes(), -1);
-    Thread.sleep(1000);
+    Thread.sleep(100);
     assertEquals(Integer.valueOf(55), wi.get());
 
     zk.setData(nodePath, null, -1);
-    Thread.sleep(1000);
+    Thread.sleep(100);
     assertNull(wi.get());
 
     WatchedInt wi2 = new WatchedInt(zk, nodePath, true);
+    Thread.sleep(100);
     assertNull(wi2.get());
     wi2.set(22);
+    Thread.sleep(100);
     assertEquals(Integer.valueOf(22), wi2.get());
-
-    Thread.sleep(1000);
     assertEquals(Integer.valueOf(22), wi.get());
   }
 
@@ -48,7 +48,7 @@ public class TestWatchedInt extends ZkTestCase {
     WatchedInt wi;
 
     wi = new WatchedInt(zk, nodePath, false);
-    
+
     assertNull(wi.get());
 
     Thread t = new Thread(new Runnable() {

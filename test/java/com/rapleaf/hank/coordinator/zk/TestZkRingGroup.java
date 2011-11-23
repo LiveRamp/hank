@@ -82,7 +82,9 @@ public class TestZkRingGroup extends ZkTestCase {
     assertNull(rg.getCurrentVersion());
     assertNull(rg.getUpdatingToVersionNumber());
     rg.setUpdatingToVersion(Integer.valueOf(version.getVersionNumber()));
+    Thread.sleep(10);
     rg.markUpdateComplete();
+    Thread.sleep(10);
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersionNumber());
     assertNull(rg.getUpdatingToVersion());
   }
@@ -97,25 +99,19 @@ public class TestZkRingGroup extends ZkTestCase {
     rg.setListener(listener);
     assertNull(listener.calledWith);
     rg.setUpdatingToVersion(2);
-    synchronized (listener) {
-      listener.wait(1000);
-    }
+    Thread.sleep(10);
     assertNotNull(listener.calledWith);
     assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersionNumber());
 
     listener.calledWith = null;
     rg.markUpdateComplete();
-    synchronized (listener) {
-      listener.wait(1000);
-    }
+    Thread.sleep(10);
     assertNotNull(listener.calledWith);
     assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersionNumber());
 
     listener.calledWith = null;
     Ring newRing = rg.addRing(1);
-    synchronized (listener) {
-      listener.wait(1000);
-    }
+    Thread.sleep(10);
     assertNotNull(listener.calledWith);
     assertEquals(1, listener.calledWith.getRings().size());
     assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRings().toArray()[0]).getRingNumber());

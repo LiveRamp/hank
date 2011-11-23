@@ -71,14 +71,13 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertFalse(otherDv.isDefunct());
 
     dv.setDefunct(true);
+    Thread.sleep(1000);
     assertTrue(dv.isDefunct());
-    Thread.sleep(1000);
-
     assertTrue(otherDv.isDefunct());
-    dv.setDefunct(false);
 
-    assertFalse(dv.isDefunct());
+    dv.setDefunct(false);
     Thread.sleep(1000);
+    assertFalse(dv.isDefunct());
     assertFalse(otherDv.isDefunct());
   }
 

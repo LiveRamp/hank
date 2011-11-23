@@ -44,6 +44,7 @@ public abstract class WatchedNode<T> {
     public void process(WatchedEvent event) {
       // this lock is important so that when changes start happening, we
       // won't run into any concurrency issues
+
       synchronized (WatchedNode.this) {
 
         if (!cancelled) {
@@ -165,9 +166,6 @@ public abstract class WatchedNode<T> {
 
   public void set(T v) throws KeeperException, InterruptedException {
     zk.setData(nodePath, encode(v), -1);
-    synchronized (this) {
-      value = v;
-    }
   }
 
   public void cancelWatch() {

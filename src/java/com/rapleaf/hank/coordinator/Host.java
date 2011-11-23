@@ -111,7 +111,7 @@ public interface Host extends Comparable<Host> {
    * @param listener
    * @throws IOException
    */
-  public void setCurrentCommandChangeListener(HostCurrentCommandChangeListener listener) throws IOException;
+  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) throws IOException;
 
   /**
    * Get the HostDomainConfigs for the domains assigned to this host.

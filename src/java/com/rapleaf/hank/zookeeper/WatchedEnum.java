@@ -52,6 +52,14 @@ public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<Strin
     return cachedValue;
   }
 
+  public void set(E value) throws InterruptedException, KeeperException {
+    if (value == null) {
+      watchedString.set(null);
+    } else {
+      watchedString.set(value.toString());
+    }
+  }
+
   public void addListener(WatchedNodeListener<E> listener) {
     synchronized (listeners) {
       listeners.add(listener);

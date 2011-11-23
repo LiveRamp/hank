@@ -39,11 +39,10 @@ public class ZkHost extends AbstractHost {
   private final PartitionServerAddress address;
 
   private final WatchedEnum<HostState> hostState;
+  private final WatchedEnum<HostCommand> currentCommand;
 
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
-  private final Set<HostCurrentCommandChangeListener> currentCommandListeners = new HashSet<HostCurrentCommandChangeListener>();
-  private final CurrentCommandWatcher currentCommandWatcher;
   private final WatchedMap<ZkHostDomain> domains;
 
   public static ZkHost create(ZooKeeperPlus zk,
@@ -75,10 +74,14 @@ public class ZkHost extends AbstractHost {
     hostState = new WatchedEnum<HostState>(HostState.class,
         zk, ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false);
     commandQueueWatcher = new CommandQueueWatcher();
-    currentCommandWatcher = new CurrentCommandWatcher();
-    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), new ElementLoader<ZkHostDomain>() {
+    currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
+        ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), true);
+    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT),
+        new ElementLoader<ZkHostDomain>() {
       @Override
-      public ZkHostDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+      public ZkHostDomain load(ZooKeeperPlus zk,
+                               String basePath,
+                               String relPath) throws KeeperException, InterruptedException {
         if (!ZkPath.isHidden(relPath)) {
           Domain domain = coordinator.getDomain(relPath);
           if (domain == null) {
@@ -89,33 +92,6 @@ public class ZkHost extends AbstractHost {
         return null;
       }
     });
-  }
-
-  private class CurrentCommandWatcher extends HankWatcher {
-    protected CurrentCommandWatcher() throws KeeperException, InterruptedException {
-      super();
-    }
-
-    @Override
-    public void realProcess(WatchedEvent event) {
-      LOG.trace(event);
-      switch (event.getType()) {
-        case NodeCreated:
-        case NodeDeleted:
-        case NodeDataChanged:
-          synchronized (currentCommandListeners) {
-            for (HostCurrentCommandChangeListener listener : currentCommandListeners) {
-              listener.onCurrentCommandChange(ZkHost.this);
-            }
-          }
-        case NodeChildrenChanged:
-      }
-    }
-
-    @Override
-    public void setWatch() throws KeeperException, InterruptedException {
-      zk.getData(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), this, null);
-    }
   }
 
   private class CommandQueueWatcher extends HankWatcher {
@@ -235,15 +211,7 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public HostCommand getCurrentCommand() throws IOException {
-    try {
-      String commandString = zk.getString(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT));
-      if (commandString == null) {
-        return null;
-      }
-      return HostCommand.valueOf(commandString);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
+    return currentCommand.get();
   }
 
   @Override
@@ -280,7 +248,7 @@ public class ZkHost extends AbstractHost {
 
       // if there are no children, the queue is empty.
       if (children.size() == 0) {
-        zk.setData(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null, -1);
+        currentCommand.set(null);
         return null;
       }
 
@@ -289,7 +257,7 @@ public class ZkHost extends AbstractHost {
       HostCommand nextCommand = HostCommand.valueOf(zk.getString(headOfQueuePath));
 
       // set the current command first (modifying the queue will call the queue listeners)
-      zk.setData(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), nextCommand.toString().getBytes(), -1);
+      currentCommand.set(nextCommand);
       // delete the head of the queue
       zk.delete(headOfQueuePath, -1);
 
@@ -307,16 +275,14 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public void setCurrentCommandChangeListener(HostCurrentCommandChangeListener listener) {
-    synchronized (currentCommandListeners) {
-      currentCommandListeners.add(listener);
-    }
+  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) {
+    currentCommand.addListener(listener);
   }
 
   public void close() {
     hostState.cancelWatch();
+    currentCommand.cancelWatch();
     commandQueueWatcher.cancel();
-    currentCommandWatcher.cancel();
   }
 
   @Override

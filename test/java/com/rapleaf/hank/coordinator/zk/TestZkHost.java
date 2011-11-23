@@ -88,6 +88,7 @@ public class TestZkHost extends ZkTestCase {
     assertNull(c.getCurrentCommand());
 
     assertEquals(HostCommand.GO_TO_IDLE, c.nextCommand());
+    Thread.sleep(10);
     assertEquals(HostCommand.GO_TO_IDLE, c.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), c.getCommandQueue());
 
