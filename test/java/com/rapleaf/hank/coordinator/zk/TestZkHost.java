@@ -63,10 +63,12 @@ public class TestZkHost extends ZkTestCase {
     assertFalse(Hosts.isOnline(host));
 
     host.setState(HostState.IDLE);
+    Thread.sleep(100);
     assertEquals(HostState.IDLE, host.getState());
     assertTrue(Hosts.isOnline(host));
 
     host.setState(HostState.OFFLINE);
+    Thread.sleep(100);
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(Hosts.isOnline(host));
     host.close();

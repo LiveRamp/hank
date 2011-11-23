@@ -21,7 +21,6 @@ import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.KeeperException.Code;
 import org.apache.zookeeper.WatchedEvent;
 
 import java.io.IOException;
@@ -153,19 +152,21 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public HostState getState() throws IOException {
+    HostState state = hostState.get();
+    if (state == null) {
+      return HostState.OFFLINE;
+    } else {
+      return state;
+    }
+  }
+
+  @Override
+  public void setState(HostState state) throws IOException {
     try {
-      if (zk.exists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false) == null) {
-        return HostState.OFFLINE;
-      }
-      try {
-        return HostState.valueOf(zk.getString(ZkPath.append(hostPath, STATUS_PATH_SEGMENT)));
-      } catch (KeeperException e) {
-        if (e.code() == Code.NONODE) {
-          // the node disappeared between our exists check and our get. must be
-          // offline now.
-          return HostState.OFFLINE;
-        }
-        throw (e);
+      if (state == HostState.OFFLINE) {
+        zk.deleteIfExists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT));
+      } else {
+        zk.setOrCreate(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), state.toString(), CreateMode.EPHEMERAL);
       }
     } catch (Exception e) {
       throw new IOException(e);
@@ -240,19 +241,6 @@ public class ZkHost extends AbstractHost {
         return null;
       }
       return HostCommand.valueOf(commandString);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setState(HostState state) throws IOException {
-    try {
-      if (state == HostState.OFFLINE) {
-        zk.deleteIfExists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT));
-      } else {
-        zk.setOrCreate(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), state.toString(), CreateMode.EPHEMERAL);
-      }
     } catch (Exception e) {
       throw new IOException(e);
     }
