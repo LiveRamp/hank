@@ -18,6 +18,6 @@ package com.rapleaf.hank.monitor.notification;
 
 public interface NotificationFormatter {
 
-  public String getWebUiLink(String relativePath, String text);
+  public String getWebUiLink(String absolutePath, String text);
 
 }

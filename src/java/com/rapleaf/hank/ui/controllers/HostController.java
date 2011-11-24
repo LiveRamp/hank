@@ -109,7 +109,7 @@ public class HostController extends Controller {
   }
 
   public static String getHostUrl(RingGroup ringGroup, Ring ring, Host host) {
-    return "/host.jsp?g=" + URLEnc.encode(ringGroup.getName())
+    return "host.jsp?g=" + URLEnc.encode(ringGroup.getName())
         + "&r=" + ring.getRingNumber()
         + "&h=" + URLEnc.encode(host.getAddress().toString());
   }

@@ -25,7 +25,7 @@ public class EmailNotificationFormatter implements NotificationFormatter {
   }
 
   @Override
-  public String getWebUiLink(String relativePath, String text) {
-    return "<a href='" + webUiUrl + "/" + relativePath + "'>" + text + "</a>";
+  public String getWebUiLink(String absolutePath, String text) {
+    return "<a href='" + webUiUrl + "/" + absolutePath + "'>" + text + "</a>";
   }
 }
