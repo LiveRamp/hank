@@ -61,7 +61,7 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
       }
       Map<String, Object> configuration = getSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_KEY);
       globalNotifierFactory.validate(configuration);
-      globalNotifier = globalNotifierFactory.createNotifier(configuration);
+      globalNotifier = globalNotifierFactory.createNotifier(configuration, "Monitor");
     }
     return globalNotifier;
   }
@@ -80,7 +80,7 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
       Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
           ringGroup.getName(), RING_GROUP_NOTIFIER_CONFIGURATION_KEY);
       notifierFactory.validate(configuration);
-      notifier = notifierFactory.createNotifier(configuration);
+      notifier = notifierFactory.createNotifier(configuration, ringGroup.getName());
       notifiers.put(ringGroup, notifier);
     }
     return notifier;

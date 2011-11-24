@@ -31,12 +31,12 @@ public class EmailSummaryNotifierFactory extends AbstractNotifierFactory impleme
   }
 
   @Override
-  public Notifier createNotifier(Map<String, Object> configuration) {
+  public Notifier createNotifier(Map<String, Object> configuration, String name) {
     HashSet<String> emailNotificationTargets = new HashSet<String>();
     String[] emailNotificationTargetsTokens = getString(configuration, EMAIL_NOTIFICATION_TARGETS_KEY).split(",");
     for (String emailNotificationTarget : emailNotificationTargetsTokens) {
       emailNotificationTargets.add(emailNotificationTarget.trim());
     }
-    return new EmailSummaryNotifier(emailNotificationTargets);
+    return new EmailSummaryNotifier(name, emailNotificationTargets);
   }
 }

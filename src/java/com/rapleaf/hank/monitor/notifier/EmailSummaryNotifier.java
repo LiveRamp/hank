@@ -27,14 +27,16 @@ import java.util.Set;
 public class EmailSummaryNotifier implements Notifier {
 
   private static final Logger LOG = Logger.getLogger(EmailSummaryNotifier.class);
-
   private static final int EMAIL_SUMMARY_FREQUENCY = 60 * 1000; // 1 minute in ms
+
+  private final String name;
   private final Set<String> emailTargets;
   private final Thread notifierThread;
 
   private final List<Notification> notifications = new ArrayList<Notification>();
 
-  public EmailSummaryNotifier(Set<String> emailTargets) {
+  public EmailSummaryNotifier(String name, Set<String> emailTargets) {
+    this.name = name;
     this.emailTargets = emailTargets;
     this.notifierThread = new Thread(new Runnable() {
       @Override
@@ -74,6 +76,7 @@ public class EmailSummaryNotifier implements Notifier {
   private void notifySummary() {
     StringBuilder summary = new StringBuilder();
     synchronized (notifications) {
+      LOG.info("Sending Monitor email to " + emailTargets + " containing " + notifications.size() + " notifications.");
       for (Notification notification : notifications) {
         summary.append(notification.format());
         summary.append('\n');
@@ -88,9 +91,8 @@ public class EmailSummaryNotifier implements Notifier {
   }
 
   private void sendEmails(Set<String> emailTargets, String body) throws IOException, InterruptedException {
-    LOG.info("Sending Monitor email to " + emailTargets.size() + " targets: " + emailTargets + " Email body: " + body);
     for (String emailTarget : emailTargets) {
-      String[] command = {"/bin/mail", "-s", "Hank-Notification", emailTarget};
+      String[] command = {"/bin/mail", "-s", "Hank: " + name, emailTarget};
       Process process = Runtime.getRuntime().exec(command);
       OutputStreamWriter writer = new OutputStreamWriter(process.getOutputStream());
       writer.write(body);
