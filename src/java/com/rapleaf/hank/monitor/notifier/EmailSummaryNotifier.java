@@ -59,6 +59,7 @@ public class EmailSummaryNotifier implements Notifier {
     notifierThread.start();
   }
 
+  @Override
   public void stop() {
     if (notifierThread != null) {
       notifierThread.interrupt();

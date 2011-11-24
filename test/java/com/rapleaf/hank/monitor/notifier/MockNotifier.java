@@ -38,6 +38,10 @@ public class MockNotifier implements Notifier {
     notifications.add(notification);
   }
 
+  @Override
+  public void stop() {
+  }
+
   public List<Notification> getNotifications() {
     return notifications;
   }

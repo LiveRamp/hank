@@ -26,11 +26,13 @@ import com.rapleaf.hank.monitor.notifier.Notifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Monitor {
 
   private final Coordinator coordinator;
   private final Notifier globalNotifier;
+  private final List<Notifier> ringGroupNotifiers = new ArrayList<Notifier>();
   private final Collection<RingGroupMonitor> ringGroupMonitors = new ArrayList<RingGroupMonitor>();
   private Thread shutdownHook;
 
@@ -46,6 +48,7 @@ public class Monitor {
       Notifier notifier;
       try {
         notifier = configurator.getRingGroupNotifier(ringGroup);
+        ringGroupNotifiers.add(notifier);
         ringGroupMonitors.add(new RingGroupMonitor(ringGroup, notifier));
       } catch (InvalidConfigurationException e) {
         globalNotifier.notify(new StringNotification("Ignoring Ring Group " + ringGroup.getName()
@@ -58,6 +61,10 @@ public class Monitor {
     for (RingGroupMonitor ringGroupMonitor : ringGroupMonitors) {
       ringGroupMonitor.stop();
     }
+    globalNotifier.stop();
+    for (Notifier notifier : ringGroupNotifiers) {
+      notifier.stop();
+    }
   }
 
   private void addShutdownHook() {
@@ -65,7 +72,10 @@ public class Monitor {
     shutdownHook = new Thread(new Runnable() {
       @Override
       public void run() {
-        globalNotifier.notify(new StringNotification("Hank monitor stopping."));
+        if (globalNotifier != null) {
+          globalNotifier.notify(new StringNotification("Hank monitor stopping."));
+        }
+        stop();
       }
     });
     Runtime.getRuntime().addShutdownHook(shutdownHook);
