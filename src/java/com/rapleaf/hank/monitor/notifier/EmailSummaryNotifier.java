@@ -18,10 +18,8 @@ package com.rapleaf.hank.monitor.notifier;
 
 import org.apache.log4j.Logger;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +41,6 @@ public class EmailSummaryNotifier implements Notifier {
       public void run() {
         while (true) {
           synchronized (notifications) {
-            LOG.info(notifications.size() + " notifications in queue.");
             if (notifications.size() > 0) {
               notifySummary();
             }
@@ -84,25 +81,21 @@ public class EmailSummaryNotifier implements Notifier {
     }
     try {
       sendEmails(emailTargets, summary.toString());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      throw new RuntimeException("Exception while sending email notification.", e);
     }
   }
 
-  private void sendEmails(Set<String> emailTargets, String body) throws IOException {
-    File temporaryEmailBody = File.createTempFile("_tmp_" + getClass().getSimpleName(), null);
-    BufferedWriter writer = new BufferedWriter(new FileWriter(temporaryEmailBody, false));
-    writer.write(body);
-
+  private void sendEmails(Set<String> emailTargets, String body) throws IOException, InterruptedException {
     LOG.info("Sending Monitor email to " + emailTargets.size() + " targets: " + emailTargets + " Email body: " + body);
-
     for (String emailTarget : emailTargets) {
-      Runtime.getRuntime().exec("cat " + temporaryEmailBody.getAbsolutePath()
-          + " | mail -s 'Hank Notification' " + emailTarget);
-    }
-
-    if (!temporaryEmailBody.delete()) {
-      throw new IOException("Could not delete " + temporaryEmailBody.getAbsolutePath());
+      String[] command = {"/bin/mail", "-s", "Hank-Notification", emailTarget};
+      Process process = Runtime.getRuntime().exec(command);
+      OutputStreamWriter writer = new OutputStreamWriter(process.getOutputStream());
+      writer.write(body);
+      writer.close();
+      process.getOutputStream().close();
+      process.waitFor();
     }
   }
 
