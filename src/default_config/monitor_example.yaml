@@ -4,9 +4,11 @@ monitor:
   global_notifier_factory: com.rapleaf.hank.monitor.notifier.EmailSummaryNotifierFactory
   global_notifier_configuration:
     email_notification_targets: email1@domain, email2@domain
+    smtp_host: smtp_server_address
 
   ring_group_notifiers:
     ring_group_name_1:
       factory: com.rapleaf.hank.monitor.notifier.EmailSummaryNotifierFactory
       configuration:
         email_notification_targets: email1@domain, email2@domain
+        smtp_host: smtp_server_address

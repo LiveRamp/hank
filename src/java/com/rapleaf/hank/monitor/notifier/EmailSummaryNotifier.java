@@ -19,10 +19,16 @@ package com.rapleaf.hank.monitor.notifier;
 import com.rapleaf.hank.monitor.notification.NotificationFormatter;
 import org.apache.log4j.Logger;
 
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 
 public class EmailSummaryNotifier implements Notifier {
@@ -32,6 +38,7 @@ public class EmailSummaryNotifier implements Notifier {
 
   private final String name;
   private final Set<String> emailTargets;
+  private final Properties emailSessionProperties = new Properties();
   private final Thread notifierThread;
   private final NotificationFormatter notificationFormatter;
 
@@ -39,9 +46,11 @@ public class EmailSummaryNotifier implements Notifier {
 
   public EmailSummaryNotifier(String name,
                               Set<String> emailTargets,
+                              String smtpHost,
                               NotificationFormatter notificationFormatter) {
     this.name = name;
     this.emailTargets = emailTargets;
+    this.emailSessionProperties.put("mail.smtp.host", smtpHost);
     this.notificationFormatter = notificationFormatter;
     this.notifierThread = new Thread(new Runnable() {
       @Override
@@ -96,14 +105,17 @@ public class EmailSummaryNotifier implements Notifier {
   }
 
   private void sendEmails(Set<String> emailTargets, String body) throws IOException, InterruptedException {
-    for (String emailTarget : emailTargets) {
-      String[] command = {"/bin/mail", "-s", "Hank: " + name, emailTarget};
-      Process process = Runtime.getRuntime().exec(command);
-      OutputStreamWriter writer = new OutputStreamWriter(process.getOutputStream());
-      writer.write(body);
-      writer.close();
-      process.getOutputStream().close();
-      process.waitFor();
+    Session session = Session.getDefaultInstance(emailSessionProperties);
+    Message message = new MimeMessage(session);
+    try {
+      message.setSubject("Hank: " + name);
+      for (String emailTarget : emailTargets) {
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailTarget));
+      }
+      message.setText(body);
+      Transport.send(message);
+    } catch (MessagingException e) {
+      throw new RuntimeException("Failed to send notification email.", e);
     }
   }
 

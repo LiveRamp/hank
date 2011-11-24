@@ -25,10 +25,12 @@ import java.util.Map;
 public class EmailSummaryNotifierFactory extends AbstractNotifierFactory implements NotifierFactory {
 
   private static final String EMAIL_NOTIFICATION_TARGETS_KEY = "email_notification_targets";
+  private static final String SMTP_HOST_KEY = "smtp_host";
 
   @Override
   public void validate(Map<String, Object> configuration) throws InvalidConfigurationException {
     getRequiredString(configuration, EMAIL_NOTIFICATION_TARGETS_KEY);
+    getRequiredString(configuration, SMTP_HOST_KEY);
   }
 
   @Override
@@ -41,6 +43,7 @@ public class EmailSummaryNotifierFactory extends AbstractNotifierFactory impleme
       emailNotificationTargets.add(emailNotificationTarget.trim());
     }
     return new EmailSummaryNotifier(name, emailNotificationTargets,
+        getString(configuration, SMTP_HOST_KEY),
         new EmailNotificationFormatter(webUiUrl));
   }
 }
