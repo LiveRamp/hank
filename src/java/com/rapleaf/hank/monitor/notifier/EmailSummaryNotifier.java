@@ -56,11 +56,7 @@ public class EmailSummaryNotifier implements Notifier {
       @Override
       public void run() {
         while (true) {
-          synchronized (notifications) {
-            if (notifications.size() > 0) {
-              notifySummary();
-            }
-          }
+          notifySummary();
           try {
             Thread.sleep(EMAIL_SUMMARY_FREQUENCY);
             // Interrup to stop the notification loop
@@ -88,21 +84,23 @@ public class EmailSummaryNotifier implements Notifier {
   }
 
   private void notifySummary() {
-    StringBuilder summary = new StringBuilder();
-    summary.append("<html><body>");
     synchronized (notifications) {
-      LOG.info("Sending Monitor email to " + emailTargets + " containing " + notifications.size() + " notifications.");
-      for (Notification notification : notifications) {
-        summary.append(notification.format(notificationFormatter));
-        summary.append("<br />");
+      if (notifications.size() > 0) {
+        StringBuilder summary = new StringBuilder();
+        summary.append("<html><body>");
+        LOG.info("Sending Monitor email to " + emailTargets + " containing " + notifications.size() + " notifications.");
+        for (Notification notification : notifications) {
+          summary.append(notification.format(notificationFormatter));
+          summary.append("<br />");
+        }
+        notifications.clear();
+        summary.append("</body></html>");
+        try {
+          sendEmails(emailTargets, summary.toString());
+        } catch (Exception e) {
+          throw new RuntimeException("Exception while sending email notification.", e);
+        }
       }
-      notifications.clear();
-    }
-    summary.append("</body></html>");
-    try {
-      sendEmails(emailTargets, summary.toString());
-    } catch (Exception e) {
-      throw new RuntimeException("Exception while sending email notification.", e);
     }
   }
 
