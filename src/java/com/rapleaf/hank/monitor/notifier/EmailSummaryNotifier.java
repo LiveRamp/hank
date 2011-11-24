@@ -110,7 +110,7 @@ public class EmailSummaryNotifier implements Notifier {
     Session session = Session.getDefaultInstance(emailSessionProperties);
     Message message = new MimeMessage(session);
     try {
-      message.setHeader("Content-Type", "text/html");
+      message.addHeader("Content-Type", "text/html");
       message.setSubject("Hank: " + name);
       for (String emailTarget : emailTargets) {
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailTarget));
