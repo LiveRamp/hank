@@ -108,12 +108,11 @@ public class EmailSummaryNotifier implements Notifier {
     Session session = Session.getDefaultInstance(emailSessionProperties);
     Message message = new MimeMessage(session);
     try {
-      message.addHeader("Content-Type", "text/html");
       message.setSubject("Hank: " + name);
       for (String emailTarget : emailTargets) {
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailTarget));
       }
-      message.setText(body);
+      message.setContent(body, "text/html");
       Transport.send(message);
     } catch (MessagingException e) {
       throw new RuntimeException("Failed to send notification email.", e);
