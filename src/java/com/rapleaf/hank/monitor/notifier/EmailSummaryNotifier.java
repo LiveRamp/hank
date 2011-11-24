@@ -89,14 +89,16 @@ public class EmailSummaryNotifier implements Notifier {
 
   private void notifySummary() {
     StringBuilder summary = new StringBuilder();
+    summary.append("<html><body>");
     synchronized (notifications) {
       LOG.info("Sending Monitor email to " + emailTargets + " containing " + notifications.size() + " notifications.");
       for (Notification notification : notifications) {
         summary.append(notification.format(notificationFormatter));
-        summary.append('\n');
+        summary.append("<br />");
       }
       notifications.clear();
     }
+    summary.append("</body></html>");
     try {
       sendEmails(emailTargets, summary.toString());
     } catch (Exception e) {
