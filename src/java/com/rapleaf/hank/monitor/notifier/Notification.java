@@ -16,11 +16,13 @@
 
 package com.rapleaf.hank.monitor.notifier;
 
+import com.rapleaf.hank.monitor.notification.NotificationFormatter;
+
 import java.util.Date;
 
 public interface Notification {
 
   public Date getDate();
 
-  public String format();
+  public String format(NotificationFormatter formatter);
 }

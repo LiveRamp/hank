@@ -35,7 +35,7 @@ public class RingGroupMonitor {
     this.notifier = notifier;
     this.ringGroup = ringGroup;
     for (Ring ring : ringGroup.getRings()) {
-      ringMonitors.add(new RingMonitor(ring, notifier));
+      ringMonitors.add(new RingMonitor(ringGroup, ring, notifier));
     }
   }
 

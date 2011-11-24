@@ -12,7 +12,9 @@ public class MockNotifierFactory implements NotifierFactory {
   }
 
   @Override
-  public Notifier createNotifier(Map<String, Object> configuration, String name) {
+  public Notifier createNotifier(Map<String, Object> configuration,
+                                 String name,
+                                 String webUiUrl) {
     return new MockNotifier(configuration);
   }
 }

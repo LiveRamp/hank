@@ -16,6 +16,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
   public void testIt() throws Exception {
     PrintWriter pw = new PrintWriter(new FileWriter(configPath));
     pw.println("monitor:");
+    pw.println("  web_ui_url: http://hank_web_ui_url");
     pw.println("  global_notifier_factory: com.rapleaf.hank.monitor.notifier.MockNotifierFactory");
     pw.println("  global_notifier_configuration:");
     pw.println("    a: a");

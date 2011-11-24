@@ -18,6 +18,8 @@ package com.rapleaf.hank.monitor;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.HostStateNotification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
@@ -26,11 +28,18 @@ import java.io.IOException;
 
 public class HostMonitor {
 
+  private final RingGroup ringGroup;
+  private final Ring ring;
   private final Host host;
   private final Notifier notifier;
   private final WatchedNodeListener<HostState> hostStateListener;
 
-  public HostMonitor(Host host, Notifier notifier) throws IOException {
+  public HostMonitor(RingGroup ringGroup,
+                     Ring ring,
+                     Host host,
+                     Notifier notifier) throws IOException {
+    this.ringGroup = ringGroup;
+    this.ring = ring;
     this.host = host;
     this.notifier = notifier;
 
@@ -49,7 +58,7 @@ public class HostMonitor {
       if (state == null) {
         state = HostState.OFFLINE;
       }
-      notifier.notify(new HostStateNotification(host, state));
+      notifier.notify(new HostStateNotification(ringGroup, ring, host, state));
     }
   }
 }

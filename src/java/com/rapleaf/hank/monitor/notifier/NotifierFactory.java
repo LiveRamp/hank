@@ -24,6 +24,8 @@ public interface NotifierFactory {
 
   public void validate(Map<String, Object> configuration) throws InvalidConfigurationException;
 
-  public Notifier createNotifier(Map<String, Object> configuration, String name);
+  public Notifier createNotifier(Map<String, Object> configuration,
+                                 String name,
+                                 String webUiUrl);
 
 }

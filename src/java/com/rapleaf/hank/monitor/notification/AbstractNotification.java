@@ -19,10 +19,10 @@ public abstract class AbstractNotification implements Notification {
     return date;
   }
 
-  protected abstract String formatCore();
+  protected abstract String formatCore(NotificationFormatter formatter);
 
   @Override
-  public final String format() {
-    return dateFormat.format(date) + " " + formatCore();
+  public final String format(NotificationFormatter formatter) {
+    return dateFormat.format(date) + " " + formatCore(formatter);
   }
 }

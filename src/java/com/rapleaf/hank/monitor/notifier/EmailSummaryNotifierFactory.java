@@ -17,6 +17,7 @@
 package com.rapleaf.hank.monitor.notifier;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.monitor.notification.EmailNotificationFormatter;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -31,12 +32,15 @@ public class EmailSummaryNotifierFactory extends AbstractNotifierFactory impleme
   }
 
   @Override
-  public Notifier createNotifier(Map<String, Object> configuration, String name) {
+  public Notifier createNotifier(Map<String, Object> configuration,
+                                 String name,
+                                 String webUiUrl) {
     HashSet<String> emailNotificationTargets = new HashSet<String>();
     String[] emailNotificationTargetsTokens = getString(configuration, EMAIL_NOTIFICATION_TARGETS_KEY).split(",");
     for (String emailNotificationTarget : emailNotificationTargetsTokens) {
       emailNotificationTargets.add(emailNotificationTarget.trim());
     }
-    return new EmailSummaryNotifier(name, emailNotificationTargets);
+    return new EmailSummaryNotifier(name, emailNotificationTargets,
+        new EmailNotificationFormatter(webUiUrl));
   }
 }

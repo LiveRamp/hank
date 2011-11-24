@@ -18,15 +18,25 @@ package com.rapleaf.hank.monitor.notification;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notifier.Notification;
+import com.rapleaf.hank.ui.controllers.HostController;
 import org.apache.commons.lang.NotImplementedException;
 
 public class HostStateNotification extends AbstractNotification implements Notification {
 
+  private final RingGroup ringGroup;
+  private final Ring ring;
   private final Host host;
   private final HostState hostState;
 
-  public HostStateNotification(final Host host, final HostState hostState) {
+  public HostStateNotification(final RingGroup ringGroup,
+                               final Ring ring,
+                               final Host host,
+                               final HostState hostState) {
+    this.ringGroup = ringGroup;
+    this.ring = ring;
     this.host = host;
     this.hostState = hostState;
   }
@@ -58,7 +68,9 @@ public class HostStateNotification extends AbstractNotification implements Notif
   }
 
   @Override
-  protected String formatCore() {
-    return "Host " + host + " state is now " + hostState;
+  protected String formatCore(NotificationFormatter formatter) {
+    return formatter.getWebUiLink(HostController.getHostUrl(ringGroup, ring, host),
+        host.getAddress().getHostName() + ":" + host.getAddress().getPortNumber())
+        + " is " + hostState;
   }
 }

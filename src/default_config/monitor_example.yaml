@@ -1,4 +1,6 @@
 monitor:
+
+  web_ui_url: http://hank_web_ui_url
   global_notifier_factory: com.rapleaf.hank.monitor.notifier.EmailSummaryNotifierFactory
   global_notifier_configuration:
     email_notification_targets: email1@domain, email2@domain

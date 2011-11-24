@@ -16,18 +16,18 @@
 
 package com.rapleaf.hank.monitor.notification;
 
-import com.rapleaf.hank.monitor.notifier.Notification;
+import com.rapleaf.hank.ui.URLEnc;
 
-public class StringNotification extends AbstractNotification implements Notification {
+public class EmailNotificationFormatter implements NotificationFormatter {
 
-  private final String notification;
+  private final String webUiUrl;
 
-  public StringNotification(final String notification) {
-    this.notification = notification;
+  public EmailNotificationFormatter(String webUiUrl) {
+    this.webUiUrl = webUiUrl;
   }
 
   @Override
-  public String formatCore(NotificationFormatter formatter) {
-    return notification;
+  public String getWebUiLink(String relativePath, String text) {
+    return "<a href='" + webUiUrl + "/" + URLEnc.encode(relativePath) + "'>" + text + "</a>";
   }
 }

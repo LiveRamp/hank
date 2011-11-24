@@ -16,18 +16,8 @@
 
 package com.rapleaf.hank.monitor.notification;
 
-import com.rapleaf.hank.monitor.notifier.Notification;
+public interface NotificationFormatter {
 
-public class StringNotification extends AbstractNotification implements Notification {
+  public String getWebUiLink(String relativePath, String text);
 
-  private final String notification;
-
-  public StringNotification(final String notification) {
-    this.notification = notification;
-  }
-
-  @Override
-  public String formatCore(NotificationFormatter formatter) {
-    return notification;
-  }
 }

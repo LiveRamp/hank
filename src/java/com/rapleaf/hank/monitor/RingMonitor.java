@@ -18,6 +18,7 @@ package com.rapleaf.hank.monitor;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 
 import java.io.IOException;
@@ -26,16 +27,20 @@ import java.util.Collection;
 
 public class RingMonitor {
 
+  private final RingGroup ringGroup;
   private final Ring ring;
   private final Notifier notifier;
 
   private final Collection<HostMonitor> hostMonitors = new ArrayList<HostMonitor>();
 
-  public RingMonitor(Ring ring, Notifier notifier) throws IOException {
+  public RingMonitor(final RingGroup ringGroup,
+                     final Ring ring,
+                     final Notifier notifier) throws IOException {
+    this.ringGroup = ringGroup;
     this.ring = ring;
     this.notifier = notifier;
     for (Host host : ring.getHosts()) {
-      hostMonitors.add(new HostMonitor(host, notifier));
+      hostMonitors.add(new HostMonitor(ringGroup, ring, host, notifier));
     }
   }
 

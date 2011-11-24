@@ -107,4 +107,8 @@ public class HostController extends Controller {
 
     redirectBack(resp, rg, r, h);
   }
+
+  public static String getHostUrl(RingGroup ringGroup, Ring ring, Host host) {
+    return "/host.jsp?g=" + ringGroup.getName() + "&r=" + ring.getRingNumber() + "&h=" + host.getAddress();
+  }
 }

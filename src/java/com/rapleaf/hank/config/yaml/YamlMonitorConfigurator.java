@@ -29,11 +29,13 @@ import java.util.Map;
 public class YamlMonitorConfigurator extends BaseYamlConfigurator implements MonitorConfigurator {
 
   private static final String MONITOR_SECTION_KEY = "monitor";
+  private static final String WEB_UI_URL_KEY = "web_ui_url";
   private static final String GLOBAL_NOTIFIER_FACTORY_CLASS_KEY = "global_notifier_factory";
-  private static final String GLOBAL_NOTIFIER_CONFIGURATION_KEY = "global_notifier_configuration";
-  private static final String RING_GROUP_NOTIFIERS_KEY = "ring_group_notifiers";
+  private static final String GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY = "global_notifier_configuration";
+
+  private static final String RING_GROUP_NOTIFIERS_SECTION_KEY = "ring_group_notifiers";
   private static final String RING_GROUP_NOTIFIER_FACTORY_CLASS_KEY = "factory";
-  private static final String RING_GROUP_NOTIFIER_CONFIGURATION_KEY = "configuration";
+  private static final String RING_GROUP_NOTIFIER_CONFIGURATION_SECTION_KEY = "configuration";
 
   private final Map<RingGroup, Notifier> notifiers = new HashMap<RingGroup, Notifier>();
   private final Map<RingGroup, NotifierFactory> notifierFactories = new HashMap<RingGroup, NotifierFactory>();
@@ -47,9 +49,10 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
   @Override
   protected void validate() throws InvalidConfigurationException {
     getRequiredSection(MONITOR_SECTION_KEY);
+    getRequiredString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY);
     getRequiredString(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_FACTORY_CLASS_KEY);
-    getRequiredSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_KEY);
-    getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY);
+    getRequiredSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY);
+    getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY);
   }
 
   @Override
@@ -59,9 +62,10 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
         globalNotifierFactory =
             createNotifierFactory(getString(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_FACTORY_CLASS_KEY));
       }
-      Map<String, Object> configuration = getSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_KEY);
+      Map<String, Object> configuration = getSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY);
       globalNotifierFactory.validate(configuration);
-      globalNotifier = globalNotifierFactory.createNotifier(configuration, "Monitor");
+      globalNotifier = globalNotifierFactory.createNotifier(configuration, "Monitor",
+          getString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY));
     }
     return globalNotifier;
   }
@@ -72,15 +76,16 @@ public class YamlMonitorConfigurator extends BaseYamlConfigurator implements Mon
     if (notifier == null) {
       NotifierFactory notifierFactory = notifierFactories.get(ringGroup);
       if (notifierFactory == null) {
-        String notifierClassName = getRequiredString(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
+        String notifierClassName = getRequiredString(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY,
             ringGroup.getName(), RING_GROUP_NOTIFIER_FACTORY_CLASS_KEY);
         notifierFactory = createNotifierFactory(notifierClassName);
         notifierFactories.put(ringGroup, notifierFactory);
       }
-      Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_KEY,
-          ringGroup.getName(), RING_GROUP_NOTIFIER_CONFIGURATION_KEY);
+      Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY,
+          ringGroup.getName(), RING_GROUP_NOTIFIER_CONFIGURATION_SECTION_KEY);
       notifierFactory.validate(configuration);
-      notifier = notifierFactory.createNotifier(configuration, ringGroup.getName());
+      notifier = notifierFactory.createNotifier(configuration, ringGroup.getName(),
+          getString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY));
       notifiers.put(ringGroup, notifier);
     }
     return notifier;

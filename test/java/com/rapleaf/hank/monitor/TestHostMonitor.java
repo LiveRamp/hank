@@ -17,10 +17,7 @@
 package com.rapleaf.hank.monitor;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHost;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.monitor.notification.HostStateNotification;
 import com.rapleaf.hank.monitor.notifier.MockNotifier;
 
@@ -28,6 +25,8 @@ import java.io.IOException;
 
 public class TestHostMonitor extends BaseTestCase {
 
+  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", null);
+  private Ring mockRing = new MockRing(null, mockRingGroup, 0, null);
   private Host mockHost;
   private MockNotifier mockNotifier;
 
@@ -39,14 +38,16 @@ public class TestHostMonitor extends BaseTestCase {
   }
 
   public void testMain() throws IOException {
-    HostMonitor monitor = new HostMonitor(mockHost, mockNotifier);
+    HostMonitor monitor = new HostMonitor(mockRingGroup, mockRing, mockHost, mockNotifier);
 
     mockHost.setState(HostState.IDLE);
     assertEquals(1, mockNotifier.getNotifications().size());
-    assertTrue(mockNotifier.getNotifications().contains(new HostStateNotification(mockHost, HostState.IDLE)));
+    assertTrue(mockNotifier.getNotifications().contains(
+        new HostStateNotification(mockRingGroup, mockRing, mockHost, HostState.IDLE)));
 
     mockHost.setState(HostState.OFFLINE);
     assertEquals(2, mockNotifier.getNotifications().size());
-    assertTrue(mockNotifier.getNotifications().contains(new HostStateNotification(mockHost, HostState.OFFLINE)));
+    assertTrue(mockNotifier.getNotifications().contains(
+        new HostStateNotification(mockRingGroup, mockRing, mockHost, HostState.OFFLINE)));
   }
 }

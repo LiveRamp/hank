@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.monitor.notifier;
 
+import com.rapleaf.hank.monitor.notification.NotificationFormatter;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -32,12 +33,16 @@ public class EmailSummaryNotifier implements Notifier {
   private final String name;
   private final Set<String> emailTargets;
   private final Thread notifierThread;
+  private final NotificationFormatter notificationFormatter;
 
   private final List<Notification> notifications = new ArrayList<Notification>();
 
-  public EmailSummaryNotifier(String name, Set<String> emailTargets) {
+  public EmailSummaryNotifier(String name,
+                              Set<String> emailTargets,
+                              NotificationFormatter notificationFormatter) {
     this.name = name;
     this.emailTargets = emailTargets;
+    this.notificationFormatter = notificationFormatter;
     this.notifierThread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -78,7 +83,7 @@ public class EmailSummaryNotifier implements Notifier {
     synchronized (notifications) {
       LOG.info("Sending Monitor email to " + emailTargets + " containing " + notifications.size() + " notifications.");
       for (Notification notification : notifications) {
-        summary.append(notification.format());
+        summary.append(notification.format(notificationFormatter));
         summary.append('\n');
       }
       notifications.clear();
