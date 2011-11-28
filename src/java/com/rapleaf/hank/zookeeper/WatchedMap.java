@@ -1,19 +1,17 @@
 package com.rapleaf.hank.zookeeper;
 
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
+import java.util.*;
+
 public class WatchedMap<T> extends AbstractMap<String, T> {
+
+  private static final Logger LOG = Logger.getLogger(WatchedMap.class);
+
   public interface CompletionAwaiter {
     public void completed(String relPath);
   }

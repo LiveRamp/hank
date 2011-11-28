@@ -23,6 +23,7 @@ import org.apache.zookeeper.KeeperException;
 import java.io.IOException;
 
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
+
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
   private static final String DELETABLE_PATH_SEGMENT = "selected_for_deletion";
@@ -63,15 +64,15 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
     statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(path, STATISTICS_PATH_SEGMENT),
         new WatchedMap.ElementLoader<WatchedString>() {
-      @Override
-      public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        if (!ZkPath.isHidden(relPath)) {
-          return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
-        } else {
-          return null;
-        }
-      }
-    });
+          @Override
+          public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            if (!ZkPath.isHidden(relPath)) {
+              return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
+            } else {
+              return null;
+            }
+          }
+        });
   }
 
   @Override
