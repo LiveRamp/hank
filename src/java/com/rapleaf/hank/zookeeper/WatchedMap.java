@@ -121,19 +121,15 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private void ensureLoaded() {
     // this lock is important so that when changes start happening, we
     // won't run into any concurrency issues
-    LOG.info("START Ensure loaded. Waiting for lock.");
     synchronized (notifyMutex) {
       // if the map is non-null, then it's already loaded and the watching
       // mechanism will take care of everything...
       if (!loaded) {
         // ...but if it's not loaded, we need to do the initial population.
-        LOG.info("      Ensure loaded. START Actually syncMap");
         syncMap();
-        LOG.info("      Ensure loaded. DONE  Actually syncMap");
         loaded = true;
       }
     }
-    LOG.info("DONE  Ensure loaded.");
   }
 
   private void syncMap() {
