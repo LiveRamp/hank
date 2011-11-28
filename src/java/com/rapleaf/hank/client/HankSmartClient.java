@@ -158,16 +158,17 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // Populate the skeleton, while also establishing connections to online hosts
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        for (HostDomain hdc : host.getAssignedDomains()) {
-          Domain domain = hdc.getDomain();
+        for (HostDomain hd : host.getAssignedDomains()) {
+          Domain domain = hd.getDomain();
           if (domain == null) {
-            throw new IOException(String.format("Could not load Domain from HostDomain %s", hdc.toString()));
+            throw new IOException(String.format("Could not load Domain from HostDomain %s", hd.toString()));
           }
+          LOG.info("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
           Map<Integer, List<PartitionServerAddress>> partToAddresses =
               domainToPartitionToPartitionServerAddresses.get(domain.getId());
           // Add this host to list of addresses only if this domain is in the domain group version
           if (partToAddresses != null) {
-            for (HostDomainPartition hdcp : hdc.getPartitions()) {
+            for (HostDomainPartition hdcp : hd.getPartitions()) {
               List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
               partList.add(host.getAddress());
             }
@@ -182,7 +183,11 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
             + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
         List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new HostConnection(host, tryLockConnectionTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs));
+          hostConnections.add(new HostConnection(host,
+              tryLockConnectionTimeoutMs,
+              establishConnectionTimeoutMs,
+              queryTimeoutMs,
+              bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
             HostConnectionPool.createFromList(hostConnections));
