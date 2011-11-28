@@ -21,8 +21,9 @@ public final class CommandLineChecker {
       StringBuilder usage = new StringBuilder();
       usage.append(clazz.getSimpleName());
       for (String arg : expectedArguments) {
-        usage.append(" ");
+        usage.append(" <");
         usage.append(arg);
+        usage.append(">");
       }
       System.err.println(usage);
       System.exit(1);
