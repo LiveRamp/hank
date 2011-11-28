@@ -48,6 +48,15 @@ public interface Host extends Comparable<Host> {
   public void setState(HostState state) throws IOException;
 
   /**
+   * The date (milliseconds since epoch) when the partition server came online,
+   * or null if the server is not currently online.
+   * 
+   * @return
+   * @throws IOException
+   */
+  public Long getUpSince() throws IOException;
+
+  /**
    * The listener will be notified when host state changes.
    *
    * @param listener

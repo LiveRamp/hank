@@ -15,14 +15,19 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostDomain;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.Hosts;
+import com.rapleaf.hank.coordinator.PartitionServerAddress;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
@@ -173,6 +178,17 @@ public class TestZkHost extends ZkTestCase {
     } catch (IOException e) {
       // yay!
     }
+  }
+
+  public void testUptime() throws Exception {
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS);
+    assertNull(c.getUpSince());
+    final long currentTimeMillis = System.currentTimeMillis();
+    c.setState(HostState.IDLE);
+    dumpZk();
+    Thread.sleep(2000);
+    assertNotNull(c.getUpSince());
+    assertTrue(c.getUpSince() >= currentTimeMillis);
   }
 
   private static final Domain d10 = new MockDomain("d10");

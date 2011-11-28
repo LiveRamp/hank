@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.zookeeper.WatchedNodeListener;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 public class MockHost extends AbstractHost {
 
@@ -154,5 +154,10 @@ public class MockHost extends AbstractHost {
 
   public HostCommand getLastEnqueuedCommand() {
     return lastEnqueuedCommand;
+  }
+
+  @Override
+  public Long getUpSince() throws IOException {
+    return 0L;
   }
 }
