@@ -1,19 +1,17 @@
 package com.rapleaf.hank.zookeeper;
 
-import java.util.AbstractMap;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
+import java.util.*;
+
 public class WatchedMap<T> extends AbstractMap<String, T> {
+
+  private static final Logger LOG = Logger.getLogger(WatchedMap.class);
+
   public interface CompletionAwaiter {
     public void completed(String relPath);
   }
@@ -123,15 +121,19 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private void ensureLoaded() {
     // this lock is important so that when changes start happening, we
     // won't run into any concurrency issues
+    LOG.info("START Ensure loaded. Waiting for lock.");
     synchronized (notifyMutex) {
       // if the map is non-null, then it's already loaded and the watching
       // mechanism will take care of everything...
       if (!loaded) {
         // ...but if it's not loaded, we need to do the initial population.
+        LOG.info("      Ensure loaded. START Actually syncMap");
         syncMap();
+        LOG.info("      Ensure loaded. DONE  Actually syncMap");
         loaded = true;
       }
     }
+    LOG.info("DONE  Ensure loaded.");
   }
 
   private void syncMap() {
