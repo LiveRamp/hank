@@ -169,6 +169,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
           // Add this host to list of addresses only if this domain is in the domain group version
           if (partToAddresses != null) {
             for (HostDomainPartition hdcp : hd.getPartitions()) {
+              LOG.info("  Loading metadata for partition " + hdcp.getPartitionNumber());
               List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
               partList.add(host.getAddress());
             }
