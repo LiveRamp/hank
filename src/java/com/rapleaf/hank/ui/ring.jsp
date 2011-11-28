@@ -54,6 +54,13 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       </tr>
 
       <tr>
+      <td>Current version:</td>
+      <td>
+      <%= ring.getCurrentVersionNumber() %>
+      </td>
+      </tr>
+
+      <tr>
       <td>Update Status:</td>
       <td>
       <% if (Rings.isUpdatePending(ring)) { %>

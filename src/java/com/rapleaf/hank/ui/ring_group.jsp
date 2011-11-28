@@ -57,6 +57,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </tr>
 
         <tr>
+        <td>Current version:</td>
+        <td>
+        <%= ringGroup.getCurrentVersionNumber() %>
+        </td>
+        </tr>
+
+        <tr>
         <td>Update status:</td>
         <td>
         <% if(RingGroups.isUpdating(ringGroup)) { %>
