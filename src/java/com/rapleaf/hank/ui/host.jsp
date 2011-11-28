@@ -6,6 +6,7 @@
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.text.DecimalFormat" %>
+<%@page import="java.text.SimpleDateFormat" %>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
@@ -72,6 +73,13 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <td>Hit Rate:</td>
       <td>
       <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>%
+      </td>
+      </tr>
+
+      <tr>
+      <td>Uptime</td>
+      <td>
+        Started <%= new SimpleDateFormat().format(new Date(host.getUpSince())) %> (online <%= System.currentTimeMillis() - host.getUpSince() %> milliseconds)
       </td>
       </tr>
 
