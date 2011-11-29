@@ -104,6 +104,6 @@ public class RingGroupController extends Controller {
   }
 
   public static String getRingGroupUrl(RingGroup ringGroup) {
-    return "/ring_group.jsp?name=" + URLEnc.encode(ringGroup.getName());
+    return "ring_group.jsp?name=" + URLEnc.encode(ringGroup.getName());
   }
 }
