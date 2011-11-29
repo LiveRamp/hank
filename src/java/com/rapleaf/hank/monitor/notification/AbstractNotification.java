@@ -3,12 +3,14 @@ package com.rapleaf.hank.monitor.notification;
 import com.rapleaf.hank.monitor.notifier.Notification;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public abstract class AbstractNotification implements Notification {
 
   private final Date date;
-  private static final DateFormat dateFormat = DateFormat.getInstance();
+  private static final String DATE_FORMAT = "yy/MM/dd HH:mm:ss";
+  private static final DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 
   public AbstractNotification() {
     date = new Date();
