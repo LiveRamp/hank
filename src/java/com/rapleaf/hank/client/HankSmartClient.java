@@ -218,6 +218,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
   public HankResponse get(String domainName, ByteBuffer key) {
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
       return NO_SUCH_DOMAIN;
     }
 
@@ -249,6 +250,7 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     // Get Domain
     Domain domain = coordinator.getDomain(domainName);
     if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
       return NO_SUCH_DOMAIN_BULK;
     }
 
