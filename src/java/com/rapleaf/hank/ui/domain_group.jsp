@@ -96,11 +96,26 @@ tr.not_included td {
                <%= included ? "checked='checked'" : "" %> />
         </td>
         <td>
-        <input id="<%= domain.getId() %>_version"
-               type="text"
-               name="<%=domain.getName() %>_version"
-               value="<%= latestVersion.getVersionNumber() %>"
-               <%= included ? "" : "disabled='disabled'" %> />
+          <select size=3 id="<%= domain.getId() %>_version"
+             name="<%=domain.getName() %>_version"
+             <%= included ? "" : "disabled='disabled'" %> >
+             <% 
+              TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>()); 
+              revSortedVersions.addAll(domain.getVersions());
+              boolean first = true;
+             %>
+             <% for (DomainVersion v : revSortedVersions) { 
+                  if (v.getClosedAt() == null || v.isDefunct()) {continue;}
+             %>
+             <option
+              <% if (first) { 
+                  first = false;
+              %>
+              selected
+              <% } %>
+              value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %> (<%= new SimpleDateFormat().format(new Date(v.getClosedAt())) %>)</option>
+             <% } %>
+          </select>
         </td>
         <td>
           <%= included ? latestDgvdv.getVersion() : "-" %>
