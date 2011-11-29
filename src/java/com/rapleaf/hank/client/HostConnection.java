@@ -206,9 +206,9 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       // Set socket timeout to regular mode
       setSocketTimeout(queryTimeoutMs);
     } catch (TTransportException e) {
-      LOG.error("Failed to establish connection to host.", e);
+      LOG.error("Failed to establish connection to host " + host.getAddress(), e);
       disconnect();
-      throw new IOException("Failed to establish connection to host.", e);
+      throw new IOException("Failed to establish connection to host " + host.getAddress(), e);
     }
     TProtocol proto = new TCompactProtocol(transport);
     client = new PartitionServer.Client(proto);
@@ -235,7 +235,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
           try {
             connect();
           } catch (IOException e) {
-            LOG.error("Error connection to host.", e);
+            LOG.error("Error connecting to host " + host.getAddress(), e);
           }
         } finally {
           unlock();

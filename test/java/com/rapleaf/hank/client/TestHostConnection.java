@@ -88,59 +88,6 @@ public class TestHostConnection extends BaseTestCase {
     }
   }
 
-  private class MockPartitionServer implements Runnable {
-
-    private final IfaceWithShutdown handler;
-    private final int numWorkerThreads;
-    private TServer dataServer;
-
-    MockPartitionServer(IfaceWithShutdown handler, int numWorkerThreads) {
-      this.handler = handler;
-      this.numWorkerThreads = numWorkerThreads;
-    }
-
-    @Override
-    public void run() {
-      // launch the thrift server
-      TNonblockingServerSocket serverSocket = null;
-      try {
-        serverSocket = new TNonblockingServerSocket(partitionServerAddress.getPortNumber());
-      } catch (TTransportException e) {
-        throw new RuntimeException(e);
-      }
-      THsHaServer.Args options = new THsHaServer.Args(serverSocket);
-      options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
-      options.workerThreads(numWorkerThreads);
-      options.protocolFactory(new TCompactProtocol.Factory());
-      dataServer = new THsHaServer(options);
-      LOG.debug("Launching Thrift server...");
-      dataServer.serve();
-      LOG.debug("Thrift server exited.");
-      try {
-        handler.shutDown();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      LOG.debug("Handler shutdown.");
-    }
-
-    public void stop() {
-      dataServer.stop();
-    }
-  }
-
-  private void startMockPartitionServerThread(IfaceWithShutdown handler, int numWorkerThreads)
-      throws InterruptedException {
-    mockPartitionServer = new MockPartitionServer(handler, numWorkerThreads);
-    mockPartitionServerThread = new Thread(mockPartitionServer);
-    mockPartitionServerThread.start();
-    while (mockPartitionServer.dataServer == null ||
-        !mockPartitionServer.dataServer.isServing()) {
-      LOG.info("Waiting for data server to start serving...");
-      Thread.sleep(100);
-    }
-  }
-
   public void testQueryOnlyServingHosts() throws IOException, TException, InterruptedException {
 
     int tryLockTimeoutMs = 1000;
@@ -287,6 +234,61 @@ public class TestHostConnection extends BaseTestCase {
     } finally {
       // Kill the locking thread
       lockingThread.interrupt();
+    }
+  }
+
+  public static class MockPartitionServer implements Runnable {
+
+    private final IfaceWithShutdown handler;
+    private final int numWorkerThreads;
+    private final PartitionServerAddress partitionServerAddress;
+    protected TServer dataServer;
+
+    MockPartitionServer(IfaceWithShutdown handler, int numWorkerThreads, PartitionServerAddress partitionServerAddress) {
+      this.handler = handler;
+      this.numWorkerThreads = numWorkerThreads;
+      this.partitionServerAddress = partitionServerAddress;
+    }
+
+    @Override
+    public void run() {
+      // launch the thrift server
+      TNonblockingServerSocket serverSocket = null;
+      try {
+        serverSocket = new TNonblockingServerSocket(partitionServerAddress.getPortNumber());
+      } catch (TTransportException e) {
+        throw new RuntimeException(e);
+      }
+      THsHaServer.Args options = new THsHaServer.Args(serverSocket);
+      options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
+      options.workerThreads(numWorkerThreads);
+      options.protocolFactory(new TCompactProtocol.Factory());
+      dataServer = new THsHaServer(options);
+      LOG.debug("Launching Thrift server...");
+      dataServer.serve();
+      LOG.debug("Thrift server exited.");
+      try {
+        handler.shutDown();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      LOG.debug("Handler shutdown.");
+    }
+
+    public void stop() {
+      dataServer.stop();
+    }
+  }
+
+  private void startMockPartitionServerThread(IfaceWithShutdown handler, int numWorkerThreads)
+      throws InterruptedException {
+    mockPartitionServer = new MockPartitionServer(handler, numWorkerThreads, partitionServerAddress);
+    mockPartitionServerThread = new Thread(mockPartitionServer);
+    mockPartitionServerThread.start();
+    while (mockPartitionServer.dataServer == null ||
+        !mockPartitionServer.dataServer.isServing()) {
+      LOG.info("Waiting for data server to start serving...");
+      Thread.sleep(100);
     }
   }
 
