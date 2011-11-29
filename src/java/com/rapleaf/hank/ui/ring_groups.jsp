@@ -42,18 +42,31 @@
   <h1>Ring Groups</h1>
 
   <h2>Create New Ring Group</h2>
-
   <form action="/ring_group/create" method=post onsubmit="return validateCreate();">
-    <select name="dgName">
-      <%
-        for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
-      %>
-      <option><%=dgc.getName()%></option>
-      <%
-        }
-      %>
-    </select>
-    <input type=text size=30 id="rgName" name="rgName"/> <input type=submit value="Create"/>
+    <table>
+      <tr>
+        <td>Domain group name:</td>
+        <td>
+          <select name="dgName">
+          <%
+            for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
+          %>
+          <option><%=dgc.getName()%></option>
+          <%
+            }
+          %>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Ring group name:</td>
+        <td><input type=text size=30 id="rgName" name="rgName"/></td>
+      </tr>
+      <tr>
+        <td><input type=submit value="Create"/></td>
+        <td></td>
+      </tr>
+    </table>
   </form>
 
   <h2>All Ring Groups</h2>
