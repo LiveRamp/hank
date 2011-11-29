@@ -65,8 +65,14 @@
   <target name="compile-test" depends="dist,init-test">
     <javac debug="true" srcdir="${test.src.dir}" destdir="${build.test}" classpathref="test.classpath" />
   </target>
-  
-  <target name="test" depends="compile-test" description="Run the unit test suite">
+
+  <target name="ensure-specific-test-exists" if="testcase">
+    <fileset id="selected.test.case" dir="${test.src.dir}" includes="**/${testcase}.java" />
+    <pathconvert refid="selected.test.case" property="testcase.exists" setonempty="false" />
+    <fail unless="testcase.exists">Specified testcase was not found!</fail>
+  </target>
+
+  <target name="test" depends="compile-test,ensure-specific-test-exists" description="Run the unit test suite">
     <mkdir dir="${test.log.dir}"/>
     <junit
       printsummary="yes" showoutput="${test.output}" 
