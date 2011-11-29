@@ -16,8 +16,11 @@
 package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Set;
 
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
@@ -27,6 +30,9 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final Set<Ring> ringConfigs;
   public Integer currentVersion;
   public Integer updatingToVersion;
+  private RingGroupConductorMode ringGroupConductorMode = null;
+  private Collection<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
+      = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
 
   public MockRingGroup(DomainGroup dcg, String name, Set<Ring> ringConfigs) {
     this.dcg = dcg;
@@ -73,20 +79,32 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public boolean claimRingGroupConductor(RingGroupConductorMode mode) {
-    return false;
+    ringGroupConductorMode = mode;
+    notifyRingGroupConductorModeListeners();
+    return true;
   }
 
   @Override
   public void releaseRingGroupConductor() {
+    ringGroupConductorMode = null;
+    notifyRingGroupConductorModeListeners();
   }
 
   @Override
   public RingGroupConductorMode getRingGroupConductorMode() throws IOException {
-    return RingGroupConductorMode.ACTIVE;
+    return ringGroupConductorMode;
   }
 
   @Override
   public void setRingGroupConductorMode(RingGroupConductorMode mode) throws IOException {
+    ringGroupConductorMode = mode;
+    notifyRingGroupConductorModeListeners();
+  }
+
+  private void notifyRingGroupConductorModeListeners() {
+    for (WatchedNodeListener<RingGroupConductorMode> listener : ringGroupConductorModeListeners) {
+      listener.onWatchedNodeChange(ringGroupConductorMode);
+    }
   }
 
   @Override
@@ -119,7 +137,17 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
+  public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
+    ringGroupConductorModeListeners.add(listener);
+  }
+
+  @Override
+  public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
+    ringGroupConductorModeListeners.remove(listener);
+  }
+
+  @Override
   public boolean isRingGroupConductorOnline() throws IOException {
-    return false;
+    return ringGroupConductorMode != null;
   }
 }

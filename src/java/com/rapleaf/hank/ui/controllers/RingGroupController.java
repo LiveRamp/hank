@@ -102,4 +102,8 @@ public class RingGroupController extends Controller {
     ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
+
+  public static String getRingGroupUrl(RingGroup ringGroup) {
+    return "/ring_group.jsp?name=" + URLEnc.encode(ringGroup.getName());
+  }
 }

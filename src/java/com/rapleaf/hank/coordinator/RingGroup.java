@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
 import java.util.Set;
@@ -92,4 +93,8 @@ public interface RingGroup extends Comparable<RingGroup> {
   public Ring addRing(int ringNum) throws IOException;
 
   public void markUpdateComplete() throws IOException;
+
+  public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
+
+  public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 }

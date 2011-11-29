@@ -18,7 +18,10 @@ package com.rapleaf.hank.monitor;
 
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,6 +32,15 @@ public class RingGroupMonitor {
   private final RingGroup ringGroup;
   private final Notifier notifier;
   private Collection<RingMonitor> ringMonitors = new ArrayList<RingMonitor>();
+  private final RingGroupConductorModeMonitor ringGroupConductorStatusMonitor;
+
+  private class RingGroupConductorModeMonitor implements WatchedNodeListener<RingGroupConductorMode> {
+
+    @Override
+    public void onWatchedNodeChange(RingGroupConductorMode mode) {
+      notifier.notify(new RingGroupConductorModeNotification(ringGroup, mode));
+    }
+  }
 
   public RingGroupMonitor(RingGroup ringGroup,
                           Notifier notifier) throws IOException {
@@ -37,11 +49,14 @@ public class RingGroupMonitor {
     for (Ring ring : ringGroup.getRings()) {
       ringMonitors.add(new RingMonitor(ringGroup, ring, notifier));
     }
+    ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
+    ringGroup.addRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
   }
 
   public void stop() {
     for (RingMonitor ringMonitor : ringMonitors) {
       ringMonitor.stop();
     }
+    ringGroup.removeRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
   }
 }
