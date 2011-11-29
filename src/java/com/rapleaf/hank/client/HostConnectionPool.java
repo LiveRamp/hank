@@ -20,6 +20,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -199,7 +200,7 @@ public class HostConnectionPool {
       }
       // If we couldn't find any available connection, return corresponding error response
       if (connectionAndHostIndex == null) {
-        LOG.error("No connection is available. Giving up.");
+        LOG.error("No connection is available. Giving up. Key = " + Bytes.bytesToHexString(key));
         return NO_CONNECTION_AVAILABLE_RESPONSE;
       } else {
         // Perform query
@@ -210,10 +211,14 @@ public class HostConnectionPool {
           ++numTries;
           if (numTries < maxNumTries) {
             // Simply log the error and retry
-            LOG.error("Failed to perform query. Retrying.", e);
+            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+                + ". Retrying. Try " + numTries + "/" + maxNumTries
+                + ", Key = " + Bytes.bytesToHexString(key), e);
           } else {
             // If we have exhausted tries, return an exception response
-            LOG.error("Failed to perform query. Giving up.", e);
+            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+                + ". Giving up. Try " + numTries + "/" + maxNumTries
+                + ", Key = " + Bytes.bytesToHexString(key), e);
             return HankResponse.xception(HankException.failed_retries(maxNumTries));
           }
         }
@@ -234,7 +239,7 @@ public class HostConnectionPool {
       }
       // If we couldn't find any available connection, return corresponding error response
       if (connectionAndHostIndex == null) {
-        LOG.error("No connection is available. Giving up.");
+        LOG.error("No connection is available. Giving up. Num keys = " + keys.size());
         return NO_CONNECTION_AVAILABLE_BULK_RESPONSE;
       } else {
         // Perform query
@@ -245,10 +250,14 @@ public class HostConnectionPool {
           ++numTries;
           if (numTries < maxNumTries) {
             // Simply log the error and retry
-            LOG.error("Failed to perform query. Retrying.", e);
+            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+                + ". Retrying. Try " + numTries + "/" + maxNumTries
+                + ", Num keys = " + keys.size(), e);
           } else {
             // If we have exhausted tries, return an exception response
-            LOG.error("Failed to perform query. Giving up.", e);
+            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+                + ". Giving up. Try " + numTries + "/" + maxNumTries
+                + ", Num keys = " + keys.size(), e);
             return HankBulkResponse.xception(HankException.failed_retries(maxNumTries));
           }
         }
