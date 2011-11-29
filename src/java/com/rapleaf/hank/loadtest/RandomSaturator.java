@@ -16,6 +16,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class RandomSaturator {
+
+  private static final Logger LOG = Logger.getLogger(RandomSaturator.class);
+
   public static class LoadThread extends Thread {
     private final HankSmartClient client;
     private final String domainName;
@@ -59,6 +62,9 @@ public class RandomSaturator {
       for (int i = 0; i < numReqs; i++) {
         long start = System.currentTimeMillis();
         final HankResponse resp = client.get(domainName, keys[i]);
+        if (resp.is_set_xception()) {
+          LOG.error(resp.toString());
+        }
         long end = System.currentTimeMillis();
         times.add(end - start);
         if (resp.isSet(HankResponse._Fields.VALUE)) {
@@ -142,9 +148,6 @@ public class RandomSaturator {
     for (LoadThread t : threads) {
       System.err.println("Thread " + t + " had " + t.hits + " hits");
       totalThroughput += t.times.size() / ((t.runEnd - t.runStart) / 1000.0);
-      for (Long l : t.times) {
-        System.out.println(l);
-      }
     }
     System.err.println("Total throughput: " + totalThroughput + " req/s");
   }
