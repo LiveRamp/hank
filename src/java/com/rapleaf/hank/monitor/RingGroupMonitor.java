@@ -38,6 +38,10 @@ public class RingGroupMonitor {
 
     @Override
     public void onWatchedNodeChange(RingGroupConductorMode mode) {
+      // No mode means OFFLINE
+      if (mode == null) {
+        mode = RingGroupConductorMode.OFFLINE;
+      }
       notifier.notify(new RingGroupConductorModeNotification(ringGroup, mode));
     }
   }

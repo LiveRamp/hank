@@ -54,7 +54,7 @@ public class HostMonitor {
   private class HostStateMonitor implements WatchedNodeListener<HostState> {
     @Override
     public void onWatchedNodeChange(HostState state) {
-      // No state is OFFLINE
+      // No state means OFFLINE
       if (state == null) {
         state = HostState.OFFLINE;
       }
