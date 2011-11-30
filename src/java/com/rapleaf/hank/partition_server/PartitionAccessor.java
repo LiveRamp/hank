@@ -21,11 +21,11 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.util.AtomicLongCollection;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
@@ -40,8 +40,7 @@ public class PartitionAccessor {
   private final HostDomainPartition partition;
   private final Reader reader;
   private final HankTimer windowTimer = new HankTimer();
-  private final AtomicLong numRequestsInWindow = new AtomicLong(0);
-  private final AtomicLong numHitsInWindow = new AtomicLong(0);
+  private final AtomicLongCollection numRequestsAndHitsInWindow;
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
     if (reader == null) {
@@ -50,8 +49,8 @@ public class PartitionAccessor {
     this.partition = partition;
     this.reader = reader;
     windowTimer.restart();
-    numRequestsInWindow.set(0);
-    numHitsInWindow.set(0);
+    numRequestsAndHitsInWindow = new AtomicLongCollection(2);
+    numRequestsAndHitsInWindow.set(0, 0);
   }
 
   public HostDomainPartition getHostDomainPartition() {
@@ -61,13 +60,14 @@ public class PartitionAccessor {
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     // Increment requests counter
     LOG.trace("Partition GET");
-    numRequestsInWindow.incrementAndGet();
     reader.get(key, result);
     if (result.isFound()) {
-      // Increment hits counter
-      numHitsInWindow.incrementAndGet();
+      // Increment both num requests and num hits
+      numRequestsAndHitsInWindow.increment(1, 1);
       return HankResponse.value(result.getBuffer());
     } else {
+      // Increment only num requests
+      numRequestsAndHitsInWindow.increment(1, 0);
       return NOT_FOUND;
     }
   }
@@ -76,14 +76,10 @@ public class PartitionAccessor {
     // Copy duration and counts
     long windowDurationNanos = windowTimer.getDuration();
     windowTimer.restart();
-    // Update atomic counters so that we don't miss any request
-    long numRequests = numRequestsInWindow.get();
-    numRequestsInWindow.addAndGet(-numRequests);
-    long numHits = numHitsInWindow.get();
-    numHitsInWindow.addAndGet(-numHits);
+    // Get atomic counters
+    String countersString = numRequestsAndHitsInWindow.getAsStringAndSet(0, 0);
     // Update statistics
-    partition.setEphemeralStatistic(RUNTIME_STATISTICS_KEY,
-        PartitionAccessorRuntimeStatistics.toString(windowDurationNanos, numRequests, numHits));
+    partition.setEphemeralStatistic(RUNTIME_STATISTICS_KEY, windowDurationNanos + " " + countersString);
   }
 
   public void deleteRuntimeStatistics() throws IOException {

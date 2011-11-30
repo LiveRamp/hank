@@ -37,10 +37,6 @@ public class PartitionAccessorRuntimeStatistics {
     this.numHitsInWindow = numHitsInWindow;
   }
 
-  public static String toString(long windowDurationNanos, long numRequestsInWindow, long numHitsInWindow) {
-    return windowDurationNanos + " " + numRequestsInWindow + " " + numHitsInWindow;
-  }
-
   public RuntimeStatistics getRuntimeStatistics() {
     double throughput = 0;
     if (windowDurationNanos != 0) {
@@ -51,6 +47,6 @@ public class PartitionAccessorRuntimeStatistics {
 
   @Override
   public String toString() {
-    return PartitionAccessorRuntimeStatistics.toString(windowDurationNanos, numRequestsInWindow, numHitsInWindow);
+    return windowDurationNanos + " " + numRequestsInWindow + " " + numHitsInWindow;
   }
 }
