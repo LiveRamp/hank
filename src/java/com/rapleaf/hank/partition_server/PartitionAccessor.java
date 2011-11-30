@@ -29,8 +29,8 @@ import java.nio.ByteBuffer;
 
 /**
  * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
- * associated with the HostDomainPartition 3. AtomicLong: Requests in last
- * minute counter 4. AtomicLong: Hits in last minute counter
+ * associated with the HostDomainPartition 3. AtomicLongCollection: counters
+ * for number of requests and hits in a given time window
  */
 public class PartitionAccessor {
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
