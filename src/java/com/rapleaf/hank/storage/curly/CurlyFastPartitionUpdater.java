@@ -110,5 +110,4 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         compressionCodec,
         new OffsetTransformer(offsetSize, offsetAdjustments));
   }
-
 }
