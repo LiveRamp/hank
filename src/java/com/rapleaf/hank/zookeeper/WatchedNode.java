@@ -48,9 +48,8 @@ public abstract class WatchedNode<T> {
       synchronized (WatchedNode.this) {
 
         if (!cancelled) {
-          if (event.getState() != KeeperState.SyncConnected) {
-            value = null;
-          } else {
+          if (event.getState() == KeeperState.SyncConnected) {
+            // If connected update data and notify listeners
             try {
               if (event.getType().equals(Event.EventType.NodeCreated)) {
                 watchForData();
@@ -66,10 +65,15 @@ public abstract class WatchedNode<T> {
                 LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
               }
             }
-          }
-          synchronized (listeners) {
-            for (WatchedNodeListener<T> listener : listeners) {
-              listener.onWatchedNodeChange(value);
+            synchronized (listeners) {
+              for (WatchedNodeListener<T> listener : listeners) {
+                listener.onWatchedNodeChange(value);
+              }
+            }
+          } else {
+            // Not sync connected, do nothing
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Not sync connected anymore for watched node " + nodePath);
             }
           }
         }
