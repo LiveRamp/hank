@@ -212,7 +212,7 @@ public class Curly implements StorageEngine {
     String localDir = getLocalDir(configurator, partNum);
     new File(localDir).mkdirs();
     String remotePartRoot = remoteDomainRoot + "/" + partNum;
-    return new CurlyPartitionUpdater(domain,
+    return new CurlyFastPartitionUpdater(domain,
         fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
         new CurlyMerger(),
         new CueballMerger(),

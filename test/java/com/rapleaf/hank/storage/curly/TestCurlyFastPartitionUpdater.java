@@ -31,7 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
+public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
   private final DomainVersion v0 = new MockDomainVersion(0, 0l);
   private final DomainVersion v1 = new MockDomainVersion(1, 0l);
@@ -51,7 +51,7 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
       }
     }
   };
-  private CurlyPartitionUpdater updater;
+  private CurlyFastPartitionUpdater updater;
 
   @Override
   public void setUp() throws Exception {
@@ -63,7 +63,7 @@ public class TestCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCa
     MockCueballMerger cueballMerger = new MockCueballMerger();
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
     CompressionCodec compressionCodec = new NoCompressionCodec();
-    this.updater = new CurlyPartitionUpdater(domain,
+    this.updater = new CurlyFastPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         curlyMerger,
         cueballMerger,

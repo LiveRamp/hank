@@ -22,40 +22,38 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.cueball.*;
+import com.rapleaf.hank.storage.cueball.Cueball;
+import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import com.rapleaf.hank.storage.cueball.ValueTransformer;
 import com.rapleaf.hank.util.EncodingHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
 
-public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
+public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
-  private static final Logger LOG = Logger.getLogger(CurlyPartitionUpdater.class);
+  private static final Logger LOG = Logger.getLogger(CurlyFastPartitionUpdater.class);
 
-  private final PartitionRemoteFileOps partitionRemoteFileOps;
-  private final ICurlyMerger curlyMerger;
-  private final ICueballMerger cueballMerger;
-  private final int keyHashSize;
-  private final int offsetSize;
-  private final int hashIndexBits;
-  private final CompressionCodec compressionCodec;
+  protected final PartitionRemoteFileOps partitionRemoteFileOps;
+  protected final int keyHashSize;
+  protected final int offsetSize;
+  protected final int hashIndexBits;
+  protected final CompressionCodec compressionCodec;
 
-  public CurlyPartitionUpdater(Domain domain,
-                               PartitionRemoteFileOps partitionRemoteFileOps,
-                               ICurlyMerger curlyMerger,
-                               ICueballMerger cueballMerger,
-                               int keyHashSize,
-                               int offsetSize,
-                               int hashIndexBits,
-                               CompressionCodec compressionCodec,
-                               String localPartitionRoot) throws IOException {
+  public AbstractCurlyPartitionUpdater(Domain domain,
+                                       PartitionRemoteFileOps partitionRemoteFileOps,
+                                       int keyHashSize,
+                                       int offsetSize,
+                                       int hashIndexBits,
+                                       CompressionCodec compressionCodec,
+                                       String localPartitionRoot) throws IOException {
     super(domain, localPartitionRoot);
     this.partitionRemoteFileOps = partitionRemoteFileOps;
-    this.curlyMerger = curlyMerger;
-    this.cueballMerger = cueballMerger;
     this.keyHashSize = keyHashSize;
     this.offsetSize = offsetSize;
     this.hashIndexBits = hashIndexBits;
@@ -125,7 +123,7 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
-  private boolean isEmptyVersion(DomainVersion domainVersion) throws IOException {
+  protected boolean isEmptyVersion(DomainVersion domainVersion) throws IOException {
     return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
         && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
         && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))
@@ -201,61 +199,10 @@ public class CurlyPartitionUpdater extends IncrementalPartitionUpdater {
   }
 
   @Override
-  protected void runUpdateCore(DomainVersion currentVersion,
-                               DomainVersion updatingToVersion,
-                               IncrementalUpdatePlan updatePlan,
-                               String updateWorkRoot) throws IOException {
-    // Run Curly update
-
-    // Determine new base path
-    CurlyFilePath newCurlyBasePath =
-        new CurlyFilePath(updateWorkRoot + "/" + Curly.getName(updatingToVersion.getVersionNumber(), true));
-
-    // Determine files from versions
-    CurlyFilePath curlyBase = getCurlyFilePathForVersion(updatePlan.getBase(), currentVersion, true);
-    List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
-    for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
-      // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(curlyDeltaVersion)) {
-        curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
-      }
-    }
-
-    // Check that all required files are available
-    CueballPartitionUpdater.checkRequiredFileExists(curlyBase.getPath());
-    for (CurlyFilePath curlyDelta : curlyDeltas) {
-      CueballPartitionUpdater.checkRequiredFileExists(curlyDelta.getPath());
-    }
-
-    // Move the Curly base to the final destination, overwriting it
-    File newCurlyBaseFile = new File(newCurlyBasePath.getPath());
-    if (newCurlyBaseFile.exists()) {
-      if (!newCurlyBaseFile.delete()) {
-        throw new IOException("Failed to overwrite Curly base " + newCurlyBaseFile.getAbsolutePath());
-      }
-    }
-    if (!new File(curlyBase.getPath()).renameTo(newCurlyBaseFile)) {
-      throw new IOException("Failed to move Curly base " + curlyBase.getPath() + " to " + newCurlyBasePath);
-    }
-
-    // Merge the Curly files
-    long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltas);
-
-    // Run Cueball update
-    CueballPartitionUpdater.runUpdateCore(partitionRemoteFileOps,
-        currentVersion,
-        updatingToVersion,
-        updatePlan,
-        updateWorkRoot,
-        localPartitionRoot,
-        localPartitionRootCache,
-        cueballMerger,
-        keyHashSize,
-        offsetSize,
-        hashIndexBits,
-        compressionCodec,
-        new OffsetTransformer(offsetSize, offsetAdjustments));
-  }
+  protected abstract void runUpdateCore(DomainVersion currentVersion,
+                                        DomainVersion updatingToVersion,
+                                        IncrementalUpdatePlan updatePlan,
+                                        String updateWorkRoot) throws IOException;
 
   public CurlyFilePath getCurlyFilePathForVersion(DomainVersion version,
                                                   DomainVersion currentVersion,
