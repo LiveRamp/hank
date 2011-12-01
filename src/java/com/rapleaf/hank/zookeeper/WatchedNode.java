@@ -48,31 +48,31 @@ public abstract class WatchedNode<T> {
       synchronized (WatchedNode.this) {
 
         if (!cancelled) {
-        if (event.getState() != KeeperState.SyncConnected) {
-          value = null;
-        } else {
-          try {
-            if (event.getType().equals(Event.EventType.NodeCreated)) {
-              watchForData();
-            } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
-              watchForCreation();
-            } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
-              watchForData();
+          if (event.getState() != KeeperState.SyncConnected) {
+            value = null;
+          } else {
+            try {
+              if (event.getType().equals(Event.EventType.NodeCreated)) {
+                watchForData();
+              } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
+                watchForCreation();
+              } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
+                watchForData();
+              }
+            } catch (KeeperException e) {
+              LOG.error("Exception while trying to update our cached value for " + nodePath, e);
+            } catch (InterruptedException e) {
+              if (LOG.isTraceEnabled()) {
+                LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+              }
             }
-          } catch (KeeperException e) {
-            LOG.error("Exception while trying to update our cached value for " + nodePath, e);
-          } catch (InterruptedException e) {
-            if (LOG.isTraceEnabled()) {
-              LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+          }
+          synchronized (listeners) {
+            for (WatchedNodeListener<T> listener : listeners) {
+              listener.onWatchedNodeChange(value);
             }
           }
         }
-        synchronized (listeners) {
-          for (WatchedNodeListener<T> listener : listeners) {
-            listener.onWatchedNodeChange(value);
-          }
-        }
-      }
       }
     }
   };
