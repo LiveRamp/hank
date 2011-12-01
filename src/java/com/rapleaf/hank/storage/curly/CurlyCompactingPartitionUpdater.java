@@ -19,7 +19,6 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
@@ -36,7 +35,6 @@ import java.util.List;
 public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
   private final ICurlyCompactingMerger merger;
-  private final Hasher hasher;
 
   public CurlyCompactingPartitionUpdater(Domain domain,
                                          PartitionRemoteFileOps partitionRemoteFileOps,
@@ -45,11 +43,9 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
                                          int hashIndexBits,
                                          CompressionCodec compressionCodec,
                                          String localPartitionRoot,
-                                         ICurlyCompactingMerger merger,
-                                         Hasher hasher) throws IOException {
+                                         ICurlyCompactingMerger merger) throws IOException {
     super(domain, partitionRemoteFileOps, keyHashSize, offsetSize, hashIndexBits, compressionCodec, localPartitionRoot);
     this.merger = merger;
-    this.hasher = hasher;
   }
 
   @Override
@@ -108,8 +104,9 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
     OutputStream newCurlyBaseOutputStream = new FileOutputStream(newCurlyBasePath.getPath());
     OutputStream newCueballBaseOutputStream = new FileOutputStream(newCueballBasePath.getPath());
 
+    // Note that we intentionally omit the hasher here, since it will *not* be used
     CueballWriter cueballWriter = new CueballWriter(newCueballBaseOutputStream, keyHashSize,
-        hasher, offsetSize, compressionCodec, hashIndexBits);
+        null, offsetSize, compressionCodec, hashIndexBits);
     CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
 
     merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, keyHashSize, offsetSize, hashIndexBits,
