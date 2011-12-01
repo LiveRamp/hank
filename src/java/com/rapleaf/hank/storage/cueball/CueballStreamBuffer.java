@@ -18,13 +18,13 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.util.Bytes;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.util.Bytes;
 
 public final class CueballStreamBuffer {
   private final int relativeIndex;
@@ -50,7 +50,7 @@ public final class CueballStreamBuffer {
                              int valueSize,
                              int hashIndexBits,
                              CompressionCodec compressionCodec)
-  throws IOException {
+      throws IOException {
     this.relativeIndex = relativeIndex;
     this.compressionCodec = compressionCodec;
     this.channel = new FileInputStream(filePath).getChannel();
@@ -132,6 +132,12 @@ public final class CueballStreamBuffer {
     return true;
   }
 
+  /**
+   * Compare the key hash at the current position of two stream buffers
+   *
+   * @param other The stream buffer to compare this to
+   * @return
+   */
   public int compareTo(CueballStreamBuffer other) {
     return Bytes.compareBytesUnsigned(uncompressedBuffer,
         currentOffset,

@@ -34,67 +34,78 @@ public final class CueballMerger implements ICueballMerger {
                     ValueTransformer transformer,
                     int hashIndexBits,
                     CompressionCodec compressionCodec) throws IOException {
-    // Perform merging
+    // Array of stream buffers for the base and all deltas in order
+    CueballStreamBuffer[] cueballStreamBuffers = new CueballStreamBuffer[deltas.size() + 1];
 
-    CueballStreamBuffer[] sbs = new CueballStreamBuffer[deltas.size() + 1];
-
-    // open the current base
-    CueballStreamBuffer baseBuffer = new CueballStreamBuffer(base.getPath(), 0,
+    // Open the current base
+    CueballStreamBuffer cueballBaseStreamBuffer = new CueballStreamBuffer(base.getPath(), 0,
         keyHashSize, valueSize, hashIndexBits, compressionCodec);
-    sbs[0] = baseBuffer;
+    cueballStreamBuffers[0] = cueballBaseStreamBuffer;
 
-    // open all the deltas
+    // Open all the deltas
     int i = 1;
     for (CueballFilePath delta : deltas) {
-      CueballStreamBuffer db = new CueballStreamBuffer(delta.getPath(), i,
-          keyHashSize, valueSize, hashIndexBits, compressionCodec);
-      sbs[i++] = db;
+      CueballStreamBuffer cueballStreamBuffer =
+          new CueballStreamBuffer(delta.getPath(), i, keyHashSize, valueSize, hashIndexBits, compressionCodec);
+      cueballStreamBuffers[i++] = cueballStreamBuffer;
     }
 
-    // output stream for the new base to be written. intentionally unbuffered -
-    // the writer below will do that on its own.
-    OutputStream newBaseStream = new FileOutputStream(newBasePath);
+    // Output stream for the new base to be written. intentionally unbuffered, the writer below will do that on its own.
+    OutputStream newCueballBaseOutputStream = new FileOutputStream(newBasePath);
 
-    // note that we intentionally omit the hasher here, since it will *not* be
-    // used
-    CueballWriter writer = new CueballWriter(newBaseStream, keyHashSize, null, valueSize, compressionCodec, hashIndexBits);
+    // Note that we intentionally omit the hasher here, since it will *not* be used
+    CueballWriter newCueballBaseWriter =
+        new CueballWriter(newCueballBaseOutputStream, keyHashSize, null, valueSize, compressionCodec, hashIndexBits);
 
     while (true) {
-      CueballStreamBuffer least = null;
-      for (i = 0; i < sbs.length; i++) {
-        boolean remaining = sbs[i].anyRemaining();
-        if (remaining) {
-          if (least == null) {
-            least = sbs[i];
+      // Find the stream buffer with the next smallest key hash
+      CueballStreamBuffer cueballStreamBufferToUse = null;
+      for (i = 0; i < cueballStreamBuffers.length; i++) {
+        if (cueballStreamBuffers[i].anyRemaining()) {
+          if (cueballStreamBufferToUse == null) {
+            cueballStreamBufferToUse = cueballStreamBuffers[i];
           } else {
-            int comparison = least.compareTo(sbs[i]);
+            int comparison = cueballStreamBufferToUse.compareTo(cueballStreamBuffers[i]);
             if (comparison == 0) {
-              least.consume();
-              least = sbs[i];
+              // If two equal key hashes are found, use the most recent value (i.e. the one from the lastest delta)
+              // and skip (consume) the older ones
+              cueballStreamBufferToUse.consume();
+              cueballStreamBufferToUse = cueballStreamBuffers[i];
             } else if (comparison == 1) {
-              least = sbs[i];
+              // Found a stream buffer with a smaller key hash
+              cueballStreamBufferToUse = cueballStreamBuffers[i];
             }
           }
         }
       }
 
-      if (least == null) {
+      if (cueballStreamBufferToUse == null) {
+        // Nothing more to write
         break;
       }
 
+      // Transform if necessary
       if (transformer != null) {
-        transformer.transform(least.getBuffer(), least.getCurrentOffset() + keyHashSize, least.getIndex());
+        transformer.transform(cueballStreamBufferToUse.getBuffer(),
+            cueballStreamBufferToUse.getCurrentOffset() + keyHashSize,
+            cueballStreamBufferToUse.getIndex());
       }
-      final ByteBuffer keyHash = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset(), keyHashSize);
-      final ByteBuffer valueBytes = ByteBuffer.wrap(least.getBuffer(), least.getCurrentOffset() + keyHashSize, valueSize);
-      writer.writeHash(keyHash, valueBytes);
-      least.consume();
+
+      // Get next key hash and value
+      final ByteBuffer keyHash = ByteBuffer.wrap(cueballStreamBufferToUse.getBuffer(),
+          cueballStreamBufferToUse.getCurrentOffset(), keyHashSize);
+      final ByteBuffer valueBytes = ByteBuffer.wrap(cueballStreamBufferToUse.getBuffer(),
+          cueballStreamBufferToUse.getCurrentOffset() + keyHashSize, valueSize);
+
+      // Write next key hash and value
+      newCueballBaseWriter.writeHash(keyHash, valueBytes);
+      cueballStreamBufferToUse.consume();
     }
 
-    for (CueballStreamBuffer sb : sbs) {
-      sb.close();
+    // Close all buffers and the base writer
+    for (CueballStreamBuffer cueballStreamBuffer : cueballStreamBuffers) {
+      cueballStreamBuffer.close();
     }
-
-    writer.close();
+    newCueballBaseWriter.close();
   }
 }
