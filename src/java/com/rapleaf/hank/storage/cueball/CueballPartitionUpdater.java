@@ -97,8 +97,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     return isEmptyVersion(domainVersion, partitionRemoteFileOps);
   }
 
-  private static boolean isEmptyVersion(DomainVersion domainVersion,
-                                        PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+  public static boolean isEmptyVersion(DomainVersion domainVersion,
+                                       PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
     return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
         && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false));
   }

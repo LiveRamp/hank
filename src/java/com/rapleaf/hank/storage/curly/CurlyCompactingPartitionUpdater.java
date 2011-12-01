@@ -19,13 +19,24 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import com.rapleaf.hank.storage.cueball.Cueball;
+import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
+import com.rapleaf.hank.storage.cueball.CueballWriter;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdater {
+
+  private final ICurlyCompactingMerger merger;
+  private final Hasher hasher;
 
   public CurlyCompactingPartitionUpdater(Domain domain,
                                          PartitionRemoteFileOps partitionRemoteFileOps,
@@ -33,8 +44,12 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
                                          int offsetSize,
                                          int hashIndexBits,
                                          CompressionCodec compressionCodec,
-                                         String localPartitionRoot) throws IOException {
+                                         String localPartitionRoot,
+                                         ICurlyCompactingMerger merger,
+                                         Hasher hasher) throws IOException {
     super(domain, partitionRemoteFileOps, keyHashSize, offsetSize, hashIndexBits, compressionCodec, localPartitionRoot);
+    this.merger = merger;
+    this.hasher = hasher;
   }
 
   @Override
@@ -42,6 +57,62 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) throws IOException {
-    throw new NotImplementedException();
+
+
+    // Prepare Curly
+
+    // Determine files from versions
+    CurlyFilePath curlyBasePath = getCurlyFilePathForVersion(updatePlan.getBase(), currentVersion, true);
+    List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
+    for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
+      // Only add to the delta list if the version is not empty
+      if (!isEmptyVersion(curlyDeltaVersion)) {
+        curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
+      }
+    }
+
+    // Check that all required files are available
+    CueballPartitionUpdater.checkRequiredFileExists(curlyBasePath.getPath());
+    for (CurlyFilePath curlyDelta : curlyDeltas) {
+      CueballPartitionUpdater.checkRequiredFileExists(curlyDelta.getPath());
+    }
+
+    // Prepare Cueball
+
+    // Determine files from versions
+    CueballFilePath cueballBasePath = CueballPartitionUpdater.getCueballFilePathForVersion(updatePlan.getBase(),
+        currentVersion, localPartitionRoot, localPartitionRootCache, true);
+    List<CueballFilePath> cueballDeltas = new ArrayList<CueballFilePath>();
+    for (DomainVersion cueballDelta : updatePlan.getDeltasOrdered()) {
+      // Only add to the delta list if the version is not empty
+      if (!CueballPartitionUpdater.isEmptyVersion(cueballDelta, partitionRemoteFileOps)) {
+        cueballDeltas.add(CueballPartitionUpdater.getCueballFilePathForVersion(cueballDelta, currentVersion,
+            localPartitionRoot, localPartitionRootCache, false));
+      }
+    }
+
+    // Check that all required files are available
+    CueballPartitionUpdater.checkRequiredFileExists(cueballBasePath.getPath());
+    for (CueballFilePath cueballDelta : cueballDeltas) {
+      CueballPartitionUpdater.checkRequiredFileExists(cueballDelta.getPath());
+    }
+
+    // Determine new Curly base path
+    CurlyFilePath newCurlyBasePath =
+        new CurlyFilePath(updateWorkRoot + "/" + Curly.getName(updatingToVersion.getVersionNumber(), true));
+
+    // Determine new Cueball base path
+    CueballFilePath newCueballBasePath =
+        new CueballFilePath(updateWorkRoot + "/" + Cueball.getName(updatingToVersion.getVersionNumber(), true));
+
+    OutputStream newCurlyBaseOutputStream = new FileOutputStream(newCurlyBasePath.getPath());
+    OutputStream newCueballBaseOutputStream = new FileOutputStream(newCueballBasePath.getPath());
+
+    CueballWriter cueballWriter = new CueballWriter(newCueballBaseOutputStream, keyHashSize,
+        hasher, offsetSize, compressionCodec, hashIndexBits);
+    CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
+
+    merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, keyHashSize, offsetSize, hashIndexBits,
+        compressionCodec, curlyWriter);
   }
 }
