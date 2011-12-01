@@ -18,20 +18,22 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.util.List;
 
-public interface ICurlyCompactingMerger {
-
-  public void merge(final CurlyFilePath latestCurlyBasePath,
-                    final List<CurlyFilePath> curlyDeltas,
-                    final CueballFilePath latestCueballBasePath,
-                    final List<CueballFilePath> cueballDeltas,
-                    final int keyHashSize,
-                    final int valueSize,
+public class CurlyCompactingMerger implements ICurlyCompactingMerger {
+  @Override
+  public void merge(CurlyFilePath latestCurlyBasePath,
+                    List<CurlyFilePath> curlyDeltas,
+                    CueballFilePath latestCueballBasePath,
+                    List<CueballFilePath> cueballDeltas,
+                    int keyHashSize,
+                    int valueSize,
                     int hashIndexBits,
                     CompressionCodec compressionCodec,
-                    final CurlyWriter newCurlyWriter)
-      throws IOException;
+                    CurlyWriter newCurlyWriter) throws IOException {
+    throw new NotImplementedException();
+  }
 }
