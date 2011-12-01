@@ -49,7 +49,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   private TTransport transport;
   private PartitionServer.Client client;
   private final Host host;
-  private final Object stateChangeMutex = new Object();
   protected final ReentrantLock lock = new ReentrantLock(true); // Use a fair ReentrantLock
   private HostConnectionState state = HostConnectionState.DISCONNECTED;
 
@@ -226,29 +225,27 @@ public class HostConnection implements WatchedNodeListener<HostState> {
 
   @Override
   public void onWatchedNodeChange(HostState hostState) {
-    synchronized (stateChangeMutex) {
-      if (hostState != null && hostState == HostState.SERVING) {
-        // Reconnect
-        lock();
+    if (hostState != null && hostState == HostState.SERVING) {
+      // Reconnect
+      lock();
+      try {
+        disconnect();
         try {
-          disconnect();
-          try {
-            connect();
-          } catch (IOException e) {
-            LOG.error("Error connecting to host " + host.getAddress(), e);
-          }
-        } finally {
-          unlock();
+          connect();
+        } catch (IOException e) {
+          LOG.error("Error connecting to host " + host.getAddress(), e);
         }
-      } else {
-        // Disconnect and standby
-        lock();
-        try {
-          disconnect();
-          state = HostConnectionState.STANDBY;
-        } finally {
-          unlock();
-        }
+      } finally {
+        unlock();
+      }
+    } else {
+      // Disconnect and standby
+      lock();
+      try {
+        disconnect();
+        state = HostConnectionState.STANDBY;
+      } finally {
+        unlock();
       }
     }
   }
