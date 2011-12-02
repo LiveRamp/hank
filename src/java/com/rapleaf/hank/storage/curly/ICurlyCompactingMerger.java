@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 
 import java.io.IOException;
@@ -26,5 +27,5 @@ public interface ICurlyCompactingMerger {
   public void merge(final CurlyFilePath curlyBasePath,
                     final List<CurlyFilePath> curlyDeltas,
                     final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    final CurlyWriter newCurlyWriter) throws IOException;
+                    final Writer recordFileWriter) throws IOException;
 }

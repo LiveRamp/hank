@@ -17,6 +17,7 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
 import com.rapleaf.hank.util.EncodingHelper;
@@ -37,7 +38,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
   public void merge(CurlyFilePath curlyBasePath,
                     List<CurlyFilePath> curlyDeltas,
                     IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    CurlyWriter curlyWriter) throws IOException {
+                    Writer recordFileWriter) throws IOException {
 
     if ((1 + curlyDeltas.size()) != keyFileStreamBufferMergeSort.getNumStreams()) {
       throw new RuntimeException("Number of Curly files (" + (1 + curlyDeltas.size())
@@ -77,11 +78,11 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       // Append key hash and value to the compacted file
       // Note: we are directly writing the key hash instead of the key. The underlying
       // key file writer should be aware of that and not attempt to hash the key again.
-      curlyWriter.write(keyHash, value);
+      recordFileWriter.write(keyHash, value);
     }
 
     // Close Curly writer
-    curlyWriter.close();
+    recordFileWriter.close();
 
     // Close Cueball merge sort
     keyFileStreamBufferMergeSort.close();
