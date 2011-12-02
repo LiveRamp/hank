@@ -50,7 +50,7 @@ public final class CueballMerger implements ICueballMerger {
         new CueballWriter(newCueballBaseOutputStream, keyHashSize, null, valueSize, compressionCodec, hashIndexBits);
 
     while (true) {
-      CueballStreamBufferMergeSort.KeyHashAndValueAndIndex keyValuePair = cueballStreamBufferMergeSort.nextKeyValuePair();
+      KeyHashAndValueAndStreamIndex keyValuePair = cueballStreamBufferMergeSort.nextKeyValuePair();
       if (keyValuePair == null) {
         break;
       }

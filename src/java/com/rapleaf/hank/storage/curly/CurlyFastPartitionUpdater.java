@@ -31,6 +31,10 @@ import java.util.List;
 
 public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
+  private final int keyHashSize;
+  private final int offsetSize;
+  private final int hashIndexBits;
+  private final CompressionCodec compressionCodec;
   private final ICurlyMerger curlyMerger;
   private final ICueballMerger cueballMerger;
 
@@ -45,11 +49,11 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
                                    String localPartitionRoot) throws IOException {
     super(domain,
         partitionRemoteFileOps,
-        keyHashSize,
-        offsetSize,
-        hashIndexBits,
-        compressionCodec,
         localPartitionRoot);
+    this.keyHashSize = keyHashSize;
+    this.offsetSize = offsetSize;
+    this.hashIndexBits = hashIndexBits;
+    this.compressionCodec = compressionCodec;
     this.curlyMerger = curlyMerger;
     this.cueballMerger = cueballMerger;
   }

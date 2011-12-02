@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
@@ -40,24 +39,12 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
   private static final Logger LOG = Logger.getLogger(CurlyFastPartitionUpdater.class);
 
   protected final PartitionRemoteFileOps partitionRemoteFileOps;
-  protected final int keyHashSize;
-  protected final int offsetSize;
-  protected final int hashIndexBits;
-  protected final CompressionCodec compressionCodec;
 
   public AbstractCurlyPartitionUpdater(Domain domain,
                                        PartitionRemoteFileOps partitionRemoteFileOps,
-                                       int keyHashSize,
-                                       int offsetSize,
-                                       int hashIndexBits,
-                                       CompressionCodec compressionCodec,
                                        String localPartitionRoot) throws IOException {
     super(domain, localPartitionRoot);
     this.partitionRemoteFileOps = partitionRemoteFileOps;
-    this.keyHashSize = keyHashSize;
-    this.offsetSize = offsetSize;
-    this.hashIndexBits = hashIndexBits;
-    this.compressionCodec = compressionCodec;
   }
 
   public static final class OffsetTransformer implements ValueTransformer {

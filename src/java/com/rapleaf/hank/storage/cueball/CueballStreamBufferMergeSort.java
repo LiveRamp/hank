@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-public class CueballStreamBufferMergeSort {
+public class CueballStreamBufferMergeSort implements IKeyFileStreamBufferMergeSort {
 
   private final CueballStreamBuffer[] cueballStreamBuffers;
   private final int keyHashSize;
@@ -56,20 +56,9 @@ public class CueballStreamBufferMergeSort {
     }
   }
 
-  public static class KeyHashAndValueAndIndex {
-    public final ByteBuffer keyHash;
-    public final ByteBuffer value;
-    public final int index;
-
-    public KeyHashAndValueAndIndex(ByteBuffer keyHash, ByteBuffer value, int index) {
-      this.keyHash = keyHash;
-      this.value = value;
-      this.index = index;
-    }
-  }
-
   // Return null when there is nothing more to use
-  public KeyHashAndValueAndIndex nextKeyValuePair() throws IOException {
+  @Override
+  public KeyHashAndValueAndStreamIndex nextKeyValuePair() throws IOException {
 
     // Find the stream buffer with the next smallest key hash
     CueballStreamBuffer cueballStreamBufferToUse = null;
@@ -117,13 +106,19 @@ public class CueballStreamBufferMergeSort {
 
     cueballStreamBufferToUse.consume();
 
-    return new KeyHashAndValueAndIndex(keyHash, valueBytes, cueballStreamBufferToUseIndex);
+    return new KeyHashAndValueAndStreamIndex(keyHash, valueBytes, cueballStreamBufferToUseIndex);
   }
 
+  @Override
   public void close() throws IOException {
     // Close all buffers
     for (CueballStreamBuffer cueballStreamBuffer : cueballStreamBuffers) {
       cueballStreamBuffer.close();
     }
+  }
+
+  @Override
+  public int getNumStreams() {
+    return cueballStreamBuffers.length;
   }
 }

@@ -16,10 +16,9 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.storage.cueball.CueballFilePath;
-import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
+import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
 import com.rapleaf.hank.util.EncodingHelper;
 
 import java.io.IOException;
@@ -28,35 +27,21 @@ import java.util.List;
 
 public class CurlyCompactingMerger implements ICurlyCompactingMerger {
 
-  private final int keyHashSize;
-  private final int valueSize;
-  private final int hashIndexBits;
-  private final CompressionCodec compressionCodec;
   private final int recordFileReadBufferBytes;
 
-  public CurlyCompactingMerger(int keyHashSize,
-                    int valueSize,
-                    int hashIndexBits,
-                    CompressionCodec compressionCodec,
-                    int recordFileReadBufferBytes) {
-    this.keyHashSize = keyHashSize;
-    this.valueSize = valueSize;
-    this.hashIndexBits = hashIndexBits;
-    this.compressionCodec = compressionCodec;
+  public CurlyCompactingMerger(int recordFileReadBufferBytes) {
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
   }
-
 
   @Override
   public void merge(CurlyFilePath curlyBasePath,
                     List<CurlyFilePath> curlyDeltas,
-                    CueballFilePath cueballBasePath,
-                    List<CueballFilePath> cueballDeltas,
+                    IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
                     CurlyWriter curlyWriter) throws IOException {
 
-    if (curlyDeltas.size() != cueballDeltas.size()) {
-      throw new RuntimeException("Number of Curly deltas (" + curlyDeltas.size()
-          + ") and number of Cueball deltas (" + cueballDeltas.size() + ") should be equal.");
+    if ((1 + curlyDeltas.size()) != keyFileStreamBufferMergeSort.getNumStreams()) {
+      throw new RuntimeException("Number of Curly files (" + (1 + curlyDeltas.size())
+          + ") and number of key file streams (" + keyFileStreamBufferMergeSort.getNumStreams() + ") should be equal.");
     }
 
     // Open all Curly record files for random reads
@@ -68,16 +53,11 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       recordFileReaders[curlyReaderIndex++] = new CurlyReader(curlyDelta, recordFileReadBufferBytes, null);
     }
 
-    // Open all Cueball files for merge sort
-    CueballStreamBufferMergeSort cueballStreamBufferMergeSort =
-        new CueballStreamBufferMergeSort(cueballBasePath, cueballDeltas, keyHashSize,
-            valueSize, hashIndexBits, compressionCodec, null);
-
     ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes);
 
     while (true) {
-      CueballStreamBufferMergeSort.KeyHashAndValueAndIndex keyHashValuePair =
-          cueballStreamBufferMergeSort.nextKeyValuePair();
+      KeyHashAndValueAndStreamIndex keyHashValuePair =
+          keyFileStreamBufferMergeSort.nextKeyValuePair();
       if (keyHashValuePair == null) {
         break;
       }
@@ -89,7 +69,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(keyHashValuePair.value);
 
       // Determine next value to write from corresponding Curly delta
-      CurlyReader recordFileReader = recordFileReaders[keyHashValuePair.index];
+      CurlyReader recordFileReader = recordFileReaders[keyHashValuePair.streamIndex];
       // Read Curly record
       recordFileReader.readRecordAtOffset(recordFileOffset, readerResult);
       ByteBuffer value = readerResult.getBuffer();
@@ -104,7 +84,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
     curlyWriter.close();
 
     // Close Cueball merge sort
-    cueballStreamBufferMergeSort.close();
+    keyFileStreamBufferMergeSort.close();
 
     // Close Curly file readers
     for (CurlyReader recordFileReader : recordFileReaders) {

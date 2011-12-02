@@ -16,16 +16,11 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.cueball.CueballFilePath;
-import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
-import com.rapleaf.hank.storage.cueball.CueballWriter;
+import com.rapleaf.hank.storage.cueball.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -35,21 +30,20 @@ import java.util.List;
 
 public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
-  private final int recordFileReadBufferBytes;
   private final ICurlyCompactingMerger merger;
+  private final ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory;
+  private final ICurlyWriterFactory curlyWriterFactory;
 
   public CurlyCompactingPartitionUpdater(Domain domain,
                                          PartitionRemoteFileOps partitionRemoteFileOps,
-                                         int keyHashSize,
-                                         int offsetSize,
-                                         int hashIndexBits,
-                                         CompressionCodec compressionCodec,
                                          String localPartitionRoot,
-                                         int recordFileReadBufferBytes,
-                                         ICurlyCompactingMerger merger) throws IOException {
-    super(domain, partitionRemoteFileOps, keyHashSize, offsetSize, hashIndexBits, compressionCodec, localPartitionRoot);
-    this.recordFileReadBufferBytes = recordFileReadBufferBytes;
+                                         ICurlyCompactingMerger merger,
+                                         ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory,
+                                         ICurlyWriterFactory curlyWriterFactory) throws IOException {
+    super(domain, partitionRemoteFileOps, localPartitionRoot);
     this.merger = merger;
+    this.cueballStreamBufferMergeSortFactory = cueballStreamBufferMergeSortFactory;
+    this.curlyWriterFactory = curlyWriterFactory;
   }
 
   @Override
@@ -108,14 +102,13 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
     OutputStream newCurlyBaseOutputStream = new FileOutputStream(newCurlyBasePath.getPath());
     OutputStream newCueballBaseOutputStream = new FileOutputStream(newCueballBasePath.getPath());
 
-    // Note: the Cueball writer used to perform the compaction must not hash the passed-in key because
+    // Note: the Curly writer used to perform the compaction must not hash the passed-in key because
     // it will directly receive key hashes. This is because the actual key is unknown when compacting.
-    // TODO: Using an identity hasher and actually copying the bytes is unnecessary and inefficient.
-    // TODO: (continued) Adding the logic of writing directly a hash could be added to Cueball.
-    CueballWriter cueballWriter = new CueballWriter(newCueballBaseOutputStream, keyHashSize,
-        new IdentityHasher(), offsetSize, compressionCodec, hashIndexBits);
-    CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
+    CurlyWriter curlyWriter = curlyWriterFactory.getCurlyWriter(newCueballBaseOutputStream, newCurlyBaseOutputStream);
 
-    merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, curlyWriter);
+    IKeyFileStreamBufferMergeSort cueballStreamBufferMergeSort =
+        cueballStreamBufferMergeSortFactory.getInstance(cueballBasePath, cueballDeltas);
+
+    merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyWriter);
   }
 }

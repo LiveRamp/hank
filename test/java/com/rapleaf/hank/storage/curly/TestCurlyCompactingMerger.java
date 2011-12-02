@@ -16,15 +16,12 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.rapleaf.hank.BaseTestCase;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.io.IOException;
-import java.util.List;
+public class TestCurlyCompactingMerger extends BaseTestCase {
 
-public interface ICurlyCompactingMerger {
-
-  public void merge(final CurlyFilePath curlyBasePath,
-                    final List<CurlyFilePath> curlyDeltas,
-                    final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    final CurlyWriter newCurlyWriter) throws IOException;
+  public void testMain() {
+    throw new NotImplementedException();
+  }
 }

@@ -14,17 +14,18 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage.curly;
+package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import java.nio.ByteBuffer;
 
-import java.io.IOException;
-import java.util.List;
+public class KeyHashAndValueAndStreamIndex {
+  public final ByteBuffer keyHash;
+  public final ByteBuffer value;
+  public final int streamIndex;
 
-public interface ICurlyCompactingMerger {
-
-  public void merge(final CurlyFilePath curlyBasePath,
-                    final List<CurlyFilePath> curlyDeltas,
-                    final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    final CurlyWriter newCurlyWriter) throws IOException;
+  public KeyHashAndValueAndStreamIndex(ByteBuffer keyHash, ByteBuffer value, int streamIndex) {
+    this.keyHash = keyHash;
+    this.value = value;
+    this.streamIndex = streamIndex;
+  }
 }
