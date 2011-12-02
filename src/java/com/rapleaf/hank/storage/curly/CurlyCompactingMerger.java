@@ -28,16 +28,30 @@ import java.util.List;
 
 public class CurlyCompactingMerger implements ICurlyCompactingMerger {
 
+  private final int keyHashSize;
+  private final int valueSize;
+  private final int hashIndexBits;
+  private final CompressionCodec compressionCodec;
+  private final int recordFileReadBufferBytes;
+
+  public CurlyCompactingMerger(int keyHashSize,
+                    int valueSize,
+                    int hashIndexBits,
+                    CompressionCodec compressionCodec,
+                    int recordFileReadBufferBytes) {
+    this.keyHashSize = keyHashSize;
+    this.valueSize = valueSize;
+    this.hashIndexBits = hashIndexBits;
+    this.compressionCodec = compressionCodec;
+    this.recordFileReadBufferBytes = recordFileReadBufferBytes;
+  }
+
+
   @Override
   public void merge(CurlyFilePath curlyBasePath,
                     List<CurlyFilePath> curlyDeltas,
                     CueballFilePath cueballBasePath,
                     List<CueballFilePath> cueballDeltas,
-                    int keyHashSize,
-                    int valueSize,
-                    int hashIndexBits,
-                    CompressionCodec compressionCodec,
-                    int recordFileReadBufferBytes,
                     CurlyWriter curlyWriter) throws IOException {
 
     if (curlyDeltas.size() != cueballDeltas.size()) {
@@ -71,12 +85,11 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       // The actual hash of the next key to write
       ByteBuffer keyHash = keyHashValuePair.keyHash;
 
-      // Read next value to write from corresponding Curly delta
-      CurlyReader recordFileReader = recordFileReaders[keyHashValuePair.index];
-
       // Decode record offset
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(keyHashValuePair.value);
 
+      // Determine next value to write from corresponding Curly delta
+      CurlyReader recordFileReader = recordFileReaders[keyHashValuePair.index];
       // Read Curly record
       recordFileReader.readRecordAtOffset(recordFileOffset, readerResult);
       ByteBuffer value = readerResult.getBuffer();

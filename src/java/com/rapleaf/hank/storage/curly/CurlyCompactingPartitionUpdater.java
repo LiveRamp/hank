@@ -116,7 +116,6 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
         new IdentityHasher(), offsetSize, compressionCodec, hashIndexBits);
     CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
 
-    merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, keyHashSize, offsetSize, hashIndexBits,
-        compressionCodec, recordFileReadBufferBytes, curlyWriter);
+    merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, curlyWriter);
   }
 }

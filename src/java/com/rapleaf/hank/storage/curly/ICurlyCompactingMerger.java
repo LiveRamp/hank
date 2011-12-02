@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 
 import java.io.IOException;
@@ -28,11 +27,5 @@ public interface ICurlyCompactingMerger {
                     final List<CurlyFilePath> curlyDeltas,
                     final CueballFilePath cueballBasePath,
                     final List<CueballFilePath> cueballDeltas,
-                    final int keyHashSize,
-                    final int valueSize,
-                    final int hashIndexBits,
-                    final CompressionCodec compressionCodec,
-                    final int recordFileReadBufferBytes,
-                    final CurlyWriter newCurlyWriter)
-      throws IOException;
+                    final CurlyWriter newCurlyWriter) throws IOException;
 }
