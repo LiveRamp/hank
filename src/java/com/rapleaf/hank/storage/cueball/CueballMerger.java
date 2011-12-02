@@ -37,8 +37,8 @@ public final class CueballMerger implements ICueballMerger {
     CueballStreamBufferMergeSort cueballStreamBufferMergeSort = new CueballStreamBufferMergeSort(base,
         deltas,
         keyHashSize,
-        hashIndexBits,
         valueSize,
+        hashIndexBits,
         compressionCodec,
         transformer);
 
