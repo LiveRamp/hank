@@ -29,8 +29,8 @@ public class MapHasher implements Hasher {
   }
 
   @Override
-  public void hash(ByteBuffer val, int hashSize, byte[] hashBytes) {
-    byte[] hsh = staticHashes.get(val);
+  public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
+    byte[] hsh = staticHashes.get(value);
     if (hsh == null) {
       throw new RuntimeException("No hash set for key!");
     }

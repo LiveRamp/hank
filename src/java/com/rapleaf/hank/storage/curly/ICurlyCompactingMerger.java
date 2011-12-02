@@ -24,9 +24,9 @@ import java.util.List;
 
 public interface ICurlyCompactingMerger {
 
-  public void merge(final CurlyFilePath latestCurlyBasePath,
+  public void merge(final CurlyFilePath curlyBasePath,
                     final List<CurlyFilePath> curlyDeltas,
-                    final CueballFilePath latestCueballBasePath,
+                    final CueballFilePath cueballBasePath,
                     final List<CueballFilePath> cueballDeltas,
                     final int keyHashSize,
                     final int valueSize,

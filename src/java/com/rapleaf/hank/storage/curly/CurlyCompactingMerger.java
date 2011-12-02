@@ -18,22 +18,36 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
 
 import java.io.IOException;
 import java.util.List;
 
 public class CurlyCompactingMerger implements ICurlyCompactingMerger {
   @Override
-  public void merge(CurlyFilePath latestCurlyBasePath,
+  public void merge(CurlyFilePath curlyBasePath,
                     List<CurlyFilePath> curlyDeltas,
-                    CueballFilePath latestCueballBasePath,
+                    CueballFilePath cueballBasePath,
                     List<CueballFilePath> cueballDeltas,
                     int keyHashSize,
                     int valueSize,
                     int hashIndexBits,
                     CompressionCodec compressionCodec,
-                    CurlyWriter newCurlyWriter) throws IOException {
-    throw new NotImplementedException();
+                    CurlyWriter curlyWriter) throws IOException {
+
+    CueballStreamBufferMergeSort cueballStreamBufferMergeSort =
+        new CueballStreamBufferMergeSort(cueballBasePath, cueballDeltas, keyHashSize,
+            valueSize, hashIndexBits, compressionCodec, null);
+
+    while (true) {
+      CueballStreamBufferMergeSort.KeyHashValuePair keyHashValuePair = cueballStreamBufferMergeSort.nextKeyValuePair();
+      if (keyHashValuePair == null) {
+        break;
+      }
+      // Note: we are directly writing the key hash instead of the key. The underlying
+      // key file writer should be aware of that and not attempt to hash the key again.
+      curlyWriter.write(keyHashValuePair.keyHash, keyHashValuePair.value);
+    }
+    curlyWriter.close();
   }
 }

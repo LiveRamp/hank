@@ -13,13 +13,15 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.hasher;
 
 import java.nio.ByteBuffer;
 
-/**
- * Interface for general-purpose hashing functions.
- */
-public interface Hasher {
-  public void hash(ByteBuffer value, int hashSize, byte[] hashBytes);
+public class IdentityHasher implements Hasher {
+
+  @Override
+  public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
+    System.arraycopy(value.array(), value.arrayOffset(), hashBytes, 0, hashSize);
+  }
 }

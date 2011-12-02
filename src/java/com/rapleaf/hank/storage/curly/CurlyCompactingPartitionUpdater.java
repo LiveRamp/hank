@@ -19,6 +19,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
@@ -104,9 +105,12 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
     OutputStream newCurlyBaseOutputStream = new FileOutputStream(newCurlyBasePath.getPath());
     OutputStream newCueballBaseOutputStream = new FileOutputStream(newCueballBasePath.getPath());
 
-    // Note that we intentionally omit the hasher here, since it will *not* be used
+    // Note: the Cueball writer used to perform the compaction must not hash the passed-in key because
+    // it will directly receive key hashes. This is because the actual key is unknown when compacting.
+    // TODO: Using an identity hasher and actually copying the bytes is unnecessary and inefficient.
+    // TODO: (continued) Adding the logic of writing directly a hash could be added to Cueball.
     CueballWriter cueballWriter = new CueballWriter(newCueballBaseOutputStream, keyHashSize,
-        null, offsetSize, compressionCodec, hashIndexBits);
+        new IdentityHasher(), offsetSize, compressionCodec, hashIndexBits);
     CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
 
     merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, keyHashSize, offsetSize, hashIndexBits,
