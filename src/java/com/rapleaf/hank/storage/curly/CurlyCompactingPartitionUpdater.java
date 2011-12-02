@@ -35,6 +35,7 @@ import java.util.List;
 
 public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
+  private final int recordFileReadBufferBytes;
   private final ICurlyCompactingMerger merger;
 
   public CurlyCompactingPartitionUpdater(Domain domain,
@@ -44,8 +45,10 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
                                          int hashIndexBits,
                                          CompressionCodec compressionCodec,
                                          String localPartitionRoot,
+                                         int recordFileReadBufferBytes,
                                          ICurlyCompactingMerger merger) throws IOException {
     super(domain, partitionRemoteFileOps, keyHashSize, offsetSize, hashIndexBits, compressionCodec, localPartitionRoot);
+    this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.merger = merger;
   }
 
@@ -114,6 +117,6 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
     CurlyWriter curlyWriter = new CurlyWriter(newCurlyBaseOutputStream, cueballWriter, offsetSize);
 
     merger.merge(curlyBasePath, curlyDeltas, cueballBasePath, cueballDeltas, keyHashSize, offsetSize, hashIndexBits,
-        compressionCodec, curlyWriter);
+        compressionCodec, recordFileReadBufferBytes, curlyWriter);
   }
 }

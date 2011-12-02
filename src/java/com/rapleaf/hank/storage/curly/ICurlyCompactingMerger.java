@@ -30,8 +30,9 @@ public interface ICurlyCompactingMerger {
                     final List<CueballFilePath> cueballDeltas,
                     final int keyHashSize,
                     final int valueSize,
-                    int hashIndexBits,
-                    CompressionCodec compressionCodec,
+                    final int hashIndexBits,
+                    final CompressionCodec compressionCodec,
+                    final int recordFileReadBufferBytes,
                     final CurlyWriter newCurlyWriter)
       throws IOException;
 }

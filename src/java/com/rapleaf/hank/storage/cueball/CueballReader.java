@@ -118,6 +118,11 @@ public class CueballReader implements Reader {
     return versionNumber;
   }
 
+  @Override
+  public void close() throws IOException {
+    channel.close();
+  }
+
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {
     for (; off < limit; off += fullRecordSize) {
       int comparison = Bytes.compareBytesUnsigned(keyfileBufferChunk, off,

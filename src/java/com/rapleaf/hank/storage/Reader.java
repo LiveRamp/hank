@@ -22,8 +22,11 @@ import java.nio.ByteBuffer;
  * Interface through which individual partitions are queried.
  */
 public interface Reader {
+
   public void get(ByteBuffer key, ReaderResult result) throws IOException;
 
   // null means no versioning
   public Integer getVersionNumber();
+
+  public void close() throws IOException;
 }

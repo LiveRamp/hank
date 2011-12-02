@@ -56,26 +56,30 @@ public class CueballStreamBufferMergeSort {
     }
   }
 
-  public static class KeyHashValuePair {
-    public ByteBuffer keyHash;
-    public ByteBuffer value;
+  public static class KeyHashAndValueAndIndex {
+    public final ByteBuffer keyHash;
+    public final ByteBuffer value;
+    public final int index;
 
-    public KeyHashValuePair(ByteBuffer keyHash, ByteBuffer value) {
+    public KeyHashAndValueAndIndex(ByteBuffer keyHash, ByteBuffer value, int index) {
       this.keyHash = keyHash;
       this.value = value;
+      this.index = index;
     }
   }
 
   // Return null when there is nothing more to use
-  public KeyHashValuePair nextKeyValuePair() throws IOException {
+  public KeyHashAndValueAndIndex nextKeyValuePair() throws IOException {
 
     // Find the stream buffer with the next smallest key hash
     CueballStreamBuffer cueballStreamBufferToUse = null;
+    int cueballStreamBufferToUseIndex = -1;
 
     for (int i = 0; i < cueballStreamBuffers.length; i++) {
       if (cueballStreamBuffers[i].anyRemaining()) {
         if (cueballStreamBufferToUse == null) {
           cueballStreamBufferToUse = cueballStreamBuffers[i];
+          cueballStreamBufferToUseIndex = i;
         } else {
           int comparison = cueballStreamBufferToUse.compareTo(cueballStreamBuffers[i]);
           if (comparison == 0) {
@@ -83,9 +87,11 @@ public class CueballStreamBufferMergeSort {
             // and skip (consume) the older ones
             cueballStreamBufferToUse.consume();
             cueballStreamBufferToUse = cueballStreamBuffers[i];
+            cueballStreamBufferToUseIndex = i;
           } else if (comparison == 1) {
             // Found a stream buffer with a smaller key hash
             cueballStreamBufferToUse = cueballStreamBuffers[i];
+            cueballStreamBufferToUseIndex = i;
           }
         }
       }
@@ -111,7 +117,7 @@ public class CueballStreamBufferMergeSort {
 
     cueballStreamBufferToUse.consume();
 
-    return new KeyHashValuePair(keyHash, valueBytes);
+    return new KeyHashAndValueAndIndex(keyHash, valueBytes, cueballStreamBufferToUseIndex);
   }
 
   public void close() throws IOException {

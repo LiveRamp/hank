@@ -27,6 +27,7 @@ import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
 public class CurlyReader implements Reader {
+
   private final Reader keyFileReader;
   private final int readBufferSize;
   private final FileChannel recordFile;
@@ -54,30 +55,25 @@ public class CurlyReader implements Reader {
     this.versionNumber = curlyFile.getVersion();
   }
 
-  // Result must have been found and contain the key file result (offset)
-  public void getFromKeyFileOffsetResult(ReaderResult result) throws IOException {
-    // the result buffer contains the offset in the record file. decode it.
-    ByteBuffer buffer = result.getBuffer();
-    long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(buffer);
 
-    // now we know where to look, let's reset the buffer so we can do our
-    // read.
-    buffer.rewind();
+  // Note: the buffer in result must be at least readBufferSize long
+  public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
     // the buffer is already at least this big, so we'll extend it back out.
-    buffer.limit(readBufferSize);
+    result.getBuffer().limit(readBufferSize);
+
     // TODO: it does seem like there's a chance that this could return too few
     // bytes to do the varint decoding.
-    recordFile.read(buffer, recordFileOffset);
-    buffer.rewind();
-    int recordSize = EncodingHelper.decodeLittleEndianVarInt(buffer);
+    recordFile.read(result.getBuffer(), recordFileOffset);
+    result.getBuffer().rewind();
+    int recordSize = EncodingHelper.decodeLittleEndianVarInt(result.getBuffer());
 
     // now we know how many bytes to read. do the second read to get the data.
 
-    int bytesInRecordSize = buffer.position();
+    int bytesInRecordSize = result.getBuffer().position();
 
     // we may already have read the entire value in during our first read. we
     // can tell this if the remainin() is >= the record size.
-    if (buffer.remaining() < recordSize) {
+    if (result.getBuffer().remaining() < recordSize) {
       // hm, looks like we didn't read the whole value the first time. bummer.
       // the good news is that we *do* know how much to read this time. the
       // new size we select is big enough to hold this value and its varint
@@ -124,11 +120,21 @@ public class CurlyReader implements Reader {
 
     // if the key is found, then we are prepared to do the second lookup.
     if (result.isFound()) {
-      getFromKeyFileOffsetResult(result);
+      // the result buffer contains the offset in the record file. decode it.
+      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(result.getBuffer());
+      // now we know where to look, let's reset the buffer so we can do our
+      // read.
+      result.getBuffer().rewind();
+      readRecordAtOffset(recordFileOffset, result);
     }
   }
 
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  @Override
+  public void close() throws IOException {
+    recordFile.close();
   }
 }

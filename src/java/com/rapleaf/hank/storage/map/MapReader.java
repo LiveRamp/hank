@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.ReaderResult;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.TreeMap;
-
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.ReaderResult;
 
 public class MapReader implements Reader {
 
@@ -56,5 +56,9 @@ public class MapReader implements Reader {
   @Override
   public Integer getVersionNumber() {
     return null;
+  }
+
+  @Override
+  public void close() throws IOException {
   }
 }

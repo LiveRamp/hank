@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.storage.mock;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class MockReader implements Reader {
 
@@ -54,6 +54,10 @@ public class MockReader implements Reader {
 
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  @Override
+  public void close() {
   }
 
   public PartitionServerConfigurator getConfigurator() {
