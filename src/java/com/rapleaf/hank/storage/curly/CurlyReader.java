@@ -20,18 +20,19 @@ import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.EncodingHelper;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
 public class CurlyReader implements Reader {
-  private final Reader keyfile;
+  private final Reader keyFileReader;
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
 
-  public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyfileReader)
+  public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader)
       throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
@@ -39,9 +40,18 @@ public class CurlyReader implements Reader {
     }
     CurlyFilePath latestBase = bases.last();
     this.recordFile = new FileInputStream(latestBase.getPath()).getChannel();
-    this.keyfile = keyfileReader;
+    this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
     this.versionNumber = latestBase.getVersion();
+
+  }
+
+  public CurlyReader(CurlyFilePath curlyFile, int recordFileReadBufferBytes, Reader keyFileReader)
+      throws FileNotFoundException {
+    this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
+    this.keyFileReader = keyFileReader;
+    this.readBufferSize = recordFileReadBufferBytes;
+    this.versionNumber = curlyFile.getVersion();
   }
 
   // Result must have been found and contain the key file result (offset)
@@ -110,7 +120,7 @@ public class CurlyReader implements Reader {
     result.requiresBufferSize(readBufferSize);
 
     // ask the keyfile for this key
-    keyfile.get(key, result);
+    keyFileReader.get(key, result);
 
     // if the key is found, then we are prepared to do the second lookup.
     if (result.isFound()) {
