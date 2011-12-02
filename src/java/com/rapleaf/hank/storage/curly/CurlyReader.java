@@ -44,6 +44,65 @@ public class CurlyReader implements Reader {
     this.versionNumber = latestBase.getVersion();
   }
 
+  // Result must have been found and contain the key file result (offset)
+  public void getFromKeyFileOffsetResult(ReaderResult result) throws IOException {
+    // the result buffer contains the offset in the record file. decode it.
+    ByteBuffer buffer = result.getBuffer();
+    long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(buffer);
+
+    // now we know where to look, let's reset the buffer so we can do our
+    // read.
+    buffer.rewind();
+    // the buffer is already at least this big, so we'll extend it back out.
+    buffer.limit(readBufferSize);
+    // TODO: it does seem like there's a chance that this could return too few
+    // bytes to do the varint decoding.
+    recordFile.read(buffer, recordFileOffset);
+    buffer.rewind();
+    int recordSize = EncodingHelper.decodeLittleEndianVarInt(buffer);
+
+    // now we know how many bytes to read. do the second read to get the data.
+
+    int bytesInRecordSize = buffer.position();
+
+    // we may already have read the entire value in during our first read. we
+    // can tell this if the remainin() is >= the record size.
+    if (buffer.remaining() < recordSize) {
+      // hm, looks like we didn't read the whole value the first time. bummer.
+      // the good news is that we *do* know how much to read this time. the
+      // new size we select is big enough to hold this value and its varint
+      // size. note that we won't actually be reading the varint part again -
+      // we only do this size adjustment to help prevent the next under-read
+      // from requiring a buffer resize.
+      int newSize = recordSize + EncodingHelper.MAX_VARINT_SIZE;
+      // resize the buffer
+      result.requiresBufferSize(newSize);
+      result.getBuffer().position(0);
+      result.getBuffer().limit(recordSize);
+
+      // read until we've either run out of bytes or gotten the entire record
+      int bytesRead = 0;
+      while (bytesRead < recordSize) {
+        // since we're using the stateless version of read(), we have to keep
+        // moving the offset pointer ourselves
+        int bytesReadTemp = recordFile.read(result.getBuffer(), recordFileOffset
+            + bytesInRecordSize + bytesRead);
+
+        if (bytesReadTemp == -1) {
+          // hm, actually, i think this is an error case!
+          break;
+        }
+
+        bytesRead += bytesReadTemp;
+      }
+      // we're done reading, so position back to beginning of buffer
+      result.getBuffer().position(0);
+    }
+    // the value should start at buffer.position() and go for recordSize
+    // bytes, so limit it appropriately.
+    result.getBuffer().limit(recordSize + result.getBuffer().position());
+  }
+
   @Override
   public void get(ByteBuffer key, ReaderResult result) throws IOException {
     // we want at least readBufferSize bytes of available space. we might resize
@@ -55,61 +114,7 @@ public class CurlyReader implements Reader {
 
     // if the key is found, then we are prepared to do the second lookup.
     if (result.isFound()) {
-      // the result buffer contains the offset in the record file. decode it.
-      ByteBuffer buffer = result.getBuffer();
-      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(buffer);
-
-      // now we know where to look, let's reset the buffer so we can do our
-      // read.
-      buffer.rewind();
-      // the buffer is already at least this big, so we'll extend it back out.
-      buffer.limit(readBufferSize);
-      // TODO: it does seem like there's a chance that this could return too few
-      // bytes to do the varint decoding.
-      recordFile.read(buffer, recordFileOffset);
-      buffer.rewind();
-      int recordSize = EncodingHelper.decodeLittleEndianVarInt(buffer);
-
-      // now we know how many bytes to read. do the second read to get the data.
-
-      int bytesInRecordSize = buffer.position();
-
-      // we may already have read the entire value in during our first read. we
-      // can tell this if the remainin() is >= the record size.
-      if (buffer.remaining() < recordSize) {
-        // hm, looks like we didn't read the whole value the first time. bummer.
-        // the good news is that we *do* know how much to read this time. the
-        // new size we select is big enough to hold this value and its varint
-        // size. note that we won't actually be reading the varint part again -
-        // we only do this size adjustment to help prevent the next under-read
-        // from requiring a buffer resize.
-        int newSize = recordSize + EncodingHelper.MAX_VARINT_SIZE;
-        // resize the buffer
-        result.requiresBufferSize(newSize);
-        result.getBuffer().position(0);
-        result.getBuffer().limit(recordSize);
-
-        // read until we've either run out of bytes or gotten the entire record
-        int bytesRead = 0;
-        while (bytesRead < recordSize) {
-          // since we're using the stateless version of read(), we have to keep
-          // moving the offset pointer ourselves
-          int bytesReadTemp = recordFile.read(result.getBuffer(), recordFileOffset
-              + bytesInRecordSize + bytesRead);
-
-          if (bytesReadTemp == -1) {
-            // hm, actually, i think this is an error case!
-            break;
-          }
-
-          bytesRead += bytesReadTemp;
-        }
-        // we're done reading, so position back to beginning of buffer
-        result.getBuffer().position(0);
-      }
-      // the value should start at buffer.position() and go for recordSize
-      // bytes, so limit it appropriately.
-      result.getBuffer().limit(recordSize + result.getBuffer().position());
+      getFromKeyFileOffsetResult(result);
     }
   }
 
