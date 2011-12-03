@@ -103,7 +103,7 @@ public class CueballWriter implements Writer {
           + "\nKey: "
           + Bytes.bytesToHexString(key)
           + "\nPrevious key: "
-          + Bytes.bytesToHexString(previousKey)
+          + (previousKey == null ? "null" : Bytes.bytesToHexString(previousKey))
           + "\nHash: "
           + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
