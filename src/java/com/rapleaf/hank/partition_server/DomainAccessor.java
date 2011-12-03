@@ -95,7 +95,7 @@ class DomainAccessor {
             }
           }
         }
-        // Sleep a given interval. Interrupt the thread to stop it
+        // Sleep a given interval. Interrupt the thread to stop it while it is sleeping
         try {
           Thread.sleep(updateStatisticsThreadSleepTimeMS);
         } catch (InterruptedException e) {
@@ -129,6 +129,7 @@ class DomainAccessor {
 
   public void shutDown() {
     updateStatisticsRunnable.cancel();
+    updateStatisticsThread.interrupt();
     try {
       updateStatisticsThread.join();
     } catch (InterruptedException e) {
