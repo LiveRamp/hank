@@ -19,7 +19,7 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
   private static final byte[] BASE_DATA = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
   private CurlyFilePath CURLY_DELTA_1_PATH = new CurlyFilePath(localTmpDir + "/00001.delta.curly");
   private static final byte[] DELTA_1_DATA = {11, 12, 13};
-  private CurlyFilePath CURLY_DELTA_2_PATH = new CurlyFilePath(localTmpDir + "/c00002.delta.curly");
+  private CurlyFilePath CURLY_DELTA_2_PATH = new CurlyFilePath(localTmpDir + "/00002.delta.curly");
   private static final byte[] DELTA_2_DATA = {14, 15, 16};
 
   int recordFileReadBufferBytes = 32 * 1024;
