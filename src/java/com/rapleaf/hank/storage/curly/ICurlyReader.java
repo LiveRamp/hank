@@ -16,17 +16,12 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.rapleaf.hank.storage.Reader;
+import com.rapleaf.hank.storage.ReaderResult;
 
 import java.io.IOException;
-import java.util.List;
 
-public interface ICurlyCompactingMerger {
+public interface ICurlyReader extends Reader {
 
-  public void merge(final CurlyFilePath curlyBasePath,
-                    final List<CurlyFilePath> curlyDeltas,
-                    final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    final ICurlyReaderFactory curlyReaderFactory,
-                    final Writer recordFileWriter) throws IOException;
+  public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException;
 }

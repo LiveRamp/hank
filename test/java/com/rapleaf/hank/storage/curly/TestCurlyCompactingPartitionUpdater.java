@@ -65,6 +65,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
       public void merge(CurlyFilePath curlyBasePath,
                         List<CurlyFilePath> curlyDeltas,
                         IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
+                        ICurlyReaderFactory curlyReaderFactory,
                         Writer recordFileWriter) throws IOException {
         assertEquals("Correct base version", 0, curlyBasePath.getVersion());
         assertEquals("Correct number of deltas used by merge", 2, curlyDeltas.size());
@@ -98,6 +99,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
         localPartitionRoot,
         merger,
         cueballStreamBufferMergeSortFactory,
+        null,
         curlyWriterFactory);
 
     if (!new File(updateWorkRoot).mkdir()) {

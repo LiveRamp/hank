@@ -32,6 +32,7 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
 
   private final ICurlyCompactingMerger merger;
   private final ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory;
+  private final ICurlyReaderFactory curlyReaderFactory;
   private final ICurlyWriterFactory curlyWriterFactory;
 
   public CurlyCompactingPartitionUpdater(Domain domain,
@@ -39,10 +40,12 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
                                          String localPartitionRoot,
                                          ICurlyCompactingMerger merger,
                                          ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory,
+                                         ICurlyReaderFactory curlyReaderFactory,
                                          ICurlyWriterFactory curlyWriterFactory) throws IOException {
     super(domain, partitionRemoteFileOps, localPartitionRoot);
     this.merger = merger;
     this.cueballStreamBufferMergeSortFactory = cueballStreamBufferMergeSortFactory;
+    this.curlyReaderFactory = curlyReaderFactory;
     this.curlyWriterFactory = curlyWriterFactory;
   }
 
@@ -109,6 +112,6 @@ public class CurlyCompactingPartitionUpdater extends AbstractCurlyPartitionUpdat
     IKeyFileStreamBufferMergeSort cueballStreamBufferMergeSort =
         cueballStreamBufferMergeSortFactory.getInstance(cueballBasePath, cueballDeltas);
 
-    merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyWriter);
+    merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyReaderFactory, curlyWriter);
   }
 }

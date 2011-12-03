@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.Reader;
@@ -26,7 +27,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
-public class CurlyReader implements Reader {
+public class CurlyReader implements Reader, ICurlyReader {
 
   private final Reader keyFileReader;
   private final int readBufferSize;
@@ -57,6 +58,7 @@ public class CurlyReader implements Reader {
 
 
   // Note: the buffer in result must be at least readBufferSize long
+  @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
     // the buffer is already at least this big, so we'll extend it back out.
     result.getBuffer().limit(readBufferSize);

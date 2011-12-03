@@ -1,9 +1,11 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
 import com.rapleaf.hank.storage.map.MapWriter;
+import com.rapleaf.hank.util.Bytes;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.io.FileOutputStream;
@@ -39,7 +41,7 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
     curlyDeltas.add(CURLY_DELTA_1_PATH);
     curlyDeltas.add(CURLY_DELTA_2_PATH);
 
-    IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort = new IKeyFileStreamBufferMergeSort() {
+    final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort = new IKeyFileStreamBufferMergeSort() {
 
       private List<KeyHashAndValueAndStreamIndex> items = new ArrayList<KeyHashAndValueAndStreamIndex>() {{
         // Merge order
@@ -67,14 +69,54 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
       }
     };
 
-    MapWriter recordFileWriter = new MapWriter();
+    final ICurlyReaderFactory curlyReaderFactory = new ICurlyReaderFactory() {
+
+      @Override
+      public ICurlyReader getInstance(final CurlyFilePath curlyFilePath) {
+
+        return new ICurlyReader() {
+          @Override
+          public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
+            switch (curlyFilePath.getVersion()) {
+              case 0:
+                result.getBuffer().put(BASE_DATA[((int) recordFileOffset)]);
+                break;
+              case 1:
+                result.getBuffer().put(DELTA_1_DATA[((int) recordFileOffset)]);
+                break;
+              case 2:
+                result.getBuffer().put(DELTA_2_DATA[((int) recordFileOffset)]);
+                break;
+              default:
+                throw new RuntimeException("Unknown version number ");
+            }
+          }
+
+          @Override
+          public void get(ByteBuffer key, ReaderResult result) throws IOException {
+            throw new NotImplementedException();
+          }
+
+          @Override
+          public Integer getVersionNumber() {
+            throw new NotImplementedException();
+          }
+
+          @Override
+          public void close() throws IOException {
+          }
+        };
+      }
+    };
+
+    final MapWriter recordFileWriter = new MapWriter();
 
     // Perform merging
-    merger.merge(curlyBasePath, curlyDeltas, keyFileStreamBufferMergeSort, recordFileWriter);
+    merger.merge(curlyBasePath, curlyDeltas, keyFileStreamBufferMergeSort, curlyReaderFactory, recordFileWriter);
 
     // Check merged data
     assertEquals(1, recordFileWriter.entries.size());
-    assertEquals(getBB(0), recordFileWriter.entries.get(getBB(0)));
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(0), recordFileWriter.entries.get(getBB(0))));
 
     throw new NotImplementedException();
   }

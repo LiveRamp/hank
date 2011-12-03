@@ -35,10 +35,11 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
   }
 
   @Override
-  public void merge(CurlyFilePath curlyBasePath,
-                    List<CurlyFilePath> curlyDeltas,
-                    IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
-                    Writer recordFileWriter) throws IOException {
+  public void merge(final CurlyFilePath curlyBasePath,
+                    final List<CurlyFilePath> curlyDeltas,
+                    final IKeyFileStreamBufferMergeSort keyFileStreamBufferMergeSort,
+                    final ICurlyReaderFactory curlyReaderFactory,
+                    final Writer recordFileWriter) throws IOException {
 
     if ((1 + curlyDeltas.size()) != keyFileStreamBufferMergeSort.getNumStreams()) {
       throw new RuntimeException("Number of Curly files (" + (1 + curlyDeltas.size())
@@ -46,12 +47,12 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
     }
 
     // Open all Curly record files for random reads
-    CurlyReader[] recordFileReaders = new CurlyReader[1 + curlyDeltas.size()];
+    ICurlyReader[] recordFileReaders = new ICurlyReader[1 + curlyDeltas.size()];
     // Note: the key file readers are intentionally null as they will *not* be used
-    recordFileReaders[0] = new CurlyReader(curlyBasePath, recordFileReadBufferBytes, null);
+    recordFileReaders[0] = curlyReaderFactory.getInstance(curlyBasePath);
     int curlyReaderIndex = 1;
     for (CurlyFilePath curlyDelta : curlyDeltas) {
-      recordFileReaders[curlyReaderIndex++] = new CurlyReader(curlyDelta, recordFileReadBufferBytes, null);
+      recordFileReaders[curlyReaderIndex++] = curlyReaderFactory.getInstance(curlyDelta);
     }
 
     ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes);
@@ -70,7 +71,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(keyHashValuePair.value);
 
       // Determine next value to write from corresponding Curly delta
-      CurlyReader recordFileReader = recordFileReaders[keyHashValuePair.streamIndex];
+      ICurlyReader recordFileReader = recordFileReaders[keyHashValuePair.streamIndex];
       // Read Curly record
       recordFileReader.readRecordAtOffset(recordFileOffset, readerResult);
       ByteBuffer value = readerResult.getBuffer();
@@ -88,7 +89,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
     keyFileStreamBufferMergeSort.close();
 
     // Close Curly file readers
-    for (CurlyReader recordFileReader : recordFileReaders) {
+    for (ICurlyReader recordFileReader : recordFileReaders) {
       recordFileReader.close();
     }
   }
