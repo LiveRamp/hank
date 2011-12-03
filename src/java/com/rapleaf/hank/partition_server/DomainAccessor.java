@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Class that manages accessing data on behalf of a particular Domain.
@@ -37,6 +38,7 @@ class DomainAccessor {
   private final String name;
   private final PartitionAccessor[] partitionAccessors;
   private final int updateStatisticsThreadSleepTimeMS;
+  private final UpdateStatisticsRunnable updateStatisticsRunnable;
   private final Thread updateStatisticsThread;
 
   private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
@@ -53,7 +55,8 @@ class DomainAccessor {
     this.partitioner = partitioner;
     this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
 
-    updateStatisticsThread = new Thread(new UpdateStatisticsThread(), "Update Statistics");
+    updateStatisticsRunnable = new UpdateStatisticsRunnable();
+    updateStatisticsThread = new Thread(updateStatisticsRunnable, "Update Statistics");
     updateStatisticsThread.start();
   }
 
@@ -71,10 +74,19 @@ class DomainAccessor {
    * This thread periodically updates the counters on the HostDomainPartition
    * with the values in the cached counters
    */
-  private class UpdateStatisticsThread implements Runnable {
+  private class UpdateStatisticsRunnable implements Runnable {
+
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
+
     public void run() {
       while (true) {
+        // Update all partition runtime statistics
         for (PartitionAccessor partitionAccessor : partitionAccessors) {
+          // Check for cancelled status
+          if (cancelled.get()) {
+            cleanup();
+            return;
+          }
           if (partitionAccessor != null) {
             try {
               partitionAccessor.updateRuntimeStatistics();
@@ -83,23 +95,31 @@ class DomainAccessor {
             }
           }
         }
-        // Interrupt the thread to stop it
+        // Sleep a given interval. Interrupt the thread to stop it
         try {
           Thread.sleep(updateStatisticsThreadSleepTimeMS);
         } catch (InterruptedException e) {
-          // Delete all runtime statistics
-          for (PartitionAccessor partitionAccessor : partitionAccessors) {
-            try {
-              if (partitionAccessor != null) {
-                partitionAccessor.deleteRuntimeStatistics();
-              }
-            } catch (IOException e1) {
-              // Swallow
-            }
-          }
-          break;
+          cleanup();
+          return;
         }
       }
+    }
+
+    private void cleanup() {
+      // Delete all runtime statistics
+      for (PartitionAccessor partitionAccessor : partitionAccessors) {
+        try {
+          if (partitionAccessor != null) {
+            partitionAccessor.deleteRuntimeStatistics();
+          }
+        } catch (IOException e1) {
+          // Swallow
+        }
+      }
+    }
+
+    public void cancel() {
+      cancelled.set(true);
     }
   }
 
@@ -108,7 +128,7 @@ class DomainAccessor {
   }
 
   public void shutDown() {
-    updateStatisticsThread.interrupt();
+    updateStatisticsRunnable.cancel();
     try {
       updateStatisticsThread.join();
     } catch (InterruptedException e) {
