@@ -58,7 +58,7 @@ public class CueballStreamBufferMergeSort implements IKeyFileStreamBufferMergeSo
 
   // Return null when there is nothing more to use
   @Override
-  public KeyHashAndValueAndStreamIndex nextKeyValuePair() throws IOException {
+  public KeyHashAndValueAndStreamIndex nextKeyHashAndValueAndStreamIndex() throws IOException {
 
     // Find the stream buffer with the next smallest key hash
     CueballStreamBuffer cueballStreamBufferToUse = null;

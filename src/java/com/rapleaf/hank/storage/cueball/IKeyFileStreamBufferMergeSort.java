@@ -20,7 +20,7 @@ import java.io.IOException;
 
 public interface IKeyFileStreamBufferMergeSort {
 
-  public KeyHashAndValueAndStreamIndex nextKeyValuePair() throws IOException;
+  public KeyHashAndValueAndStreamIndex nextKeyHashAndValueAndStreamIndex() throws IOException;
 
   public void close() throws IOException;
 

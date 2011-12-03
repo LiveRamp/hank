@@ -58,7 +58,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
 
     while (true) {
       KeyHashAndValueAndStreamIndex keyHashValuePair =
-          keyFileStreamBufferMergeSort.nextKeyValuePair();
+          keyFileStreamBufferMergeSort.nextKeyHashAndValueAndStreamIndex();
       if (keyHashValuePair == null) {
         break;
       }
