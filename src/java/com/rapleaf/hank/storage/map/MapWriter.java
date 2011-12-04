@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.Bytes;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.util.Bytes;
 
 public class MapWriter implements Writer {
   public final Map<ByteBuffer, ByteBuffer> entries;
@@ -43,7 +43,7 @@ public class MapWriter implements Writer {
   public void write(ByteBuffer key, ByteBuffer value) throws IOException {
     recordsWritten++;
     if (entries.containsKey(key)) {
-      throw new RuntimeException("Duplicate entry for key: " + key.toString());
+      throw new RuntimeException("Duplicate entry for key: " + Bytes.bytesToHexString(key));
     }
     ByteBuffer keyCopy = Bytes.byteBufferDeepCopy(key);
     ByteBuffer valueCopy = Bytes.byteBufferDeepCopy(value);
