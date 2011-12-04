@@ -15,29 +15,6 @@
  */
 package com.rapleaf.hank;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
 import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
@@ -47,21 +24,7 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroups;
-import com.rapleaf.hank.coordinator.Domains;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroups;
-import com.rapleaf.hank.coordinator.Rings;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
@@ -78,6 +41,18 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
 
@@ -91,7 +66,7 @@ public class IntegrationTest extends ZkTestCase {
       this.configPath = localTmpDir + "/smart_client_config.yml";
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
       pw.println(YamlSmartClientDaemonConfigurator.SMART_CLIENT_SECTION_KEY + ":");
-      pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY +": 50004");
+      pw.println("  " + YamlSmartClientDaemonConfigurator.SERVICE_PORT_KEY + ": 50004");
       pw.println("  " + YamlSmartClientDaemonConfigurator.NUM_WORKER_THREADS + ": 1");
       pw.println("  " + YamlSmartClientDaemonConfigurator.RING_GROUP_NAME_KEY + ": rg1");
       coordinatorConfig(pw);

@@ -56,12 +56,12 @@ public class Curly implements StorageEngine {
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
+    public static final String COMPACT_ON_UPDATE_KEY = "compact_on_update";
     private static final String COMPRESSION_CODEC = "compression_codec";
-    private static final String COMPACT_ON_UPDATE_KEY = "compact_on_update";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
-        FILE_OPS_FACTORY_KEY, HASHER_KEY, COMPACT_ON_UPDATE_KEY));
+        FILE_OPS_FACTORY_KEY, HASHER_KEY));
 
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
@@ -90,7 +90,11 @@ public class Curly implements StorageEngine {
       }
       final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
           : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
-      final boolean compactOnUpdate = Boolean.valueOf((String) options.get(COMPACT_ON_UPDATE_KEY));
+      // Compact on update is false by default
+      Boolean compactOnUpdate = (Boolean) options.get(COMPACT_ON_UPDATE_KEY);
+      if (compactOnUpdate == null) {
+        compactOnUpdate = false;
+      }
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
@@ -148,6 +152,9 @@ public class Curly implements StorageEngine {
       pw.println("# average value, but not much smaller than 32KB. You can safely");
       pw.println("# ignore it in most cases.");
       pw.println(RECORD_FILE_READ_BUFFER_BYTES_KEY + ": " + (32 * 1024));
+      pw.println();
+      pw.println("# Set to true if you want record files to be compacted during each update.");
+      pw.println(COMPACT_ON_UPDATE_KEY + ": false");
       pw.println();
       pw.println("# Optional: compression codec. If no codec is specified,");
       pw.println("# no compression will be used. Be sure to verify that compression");
@@ -220,14 +227,14 @@ public class Curly implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
-    if (!new File(localDir).mkdirs()) {
-      throw new RuntimeException("Failed to create directory " + localDir);
+    File localDir = new File(getLocalDir(configurator, partNum));
+    if (!localDir.exists() && !localDir.mkdirs()) {
+      throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
     if (compactOnUpdate) {
-      return getCompactingPartitionUpdater(localDir, partNum);
+      return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partNum);
     } else {
-      return getFastPartitionUpdater(localDir, partNum);
+      return getFastPartitionUpdater(localDir.getAbsolutePath(), partNum);
     }
   }
 
