@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TestCurlyCompactingMerger extends BaseTestCase {
 
@@ -46,7 +47,13 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
       private List<KeyHashAndValueAndStreamIndex> items = new ArrayList<KeyHashAndValueAndStreamIndex>() {{
         // Merge order
         //                                    hash | offset in record file | streamIndex
-        add(new KeyHashAndValueAndStreamIndex(getBB(0), getBB(0), 0));
+        add(new KeyHashAndValueAndStreamIndex(getBB(0), getBB(0), 0)); // 0
+        add(new KeyHashAndValueAndStreamIndex(getBB(1), getBB(0), 1)); // 11
+        add(new KeyHashAndValueAndStreamIndex(getBB(2), getBB(1), 1)); // 12
+        add(new KeyHashAndValueAndStreamIndex(getBB(3), getBB(3), 0)); // 3
+        add(new KeyHashAndValueAndStreamIndex(getBB(4), getBB(0), 2)); // 14
+        add(new KeyHashAndValueAndStreamIndex(getBB(5), getBB(2), 2)); // 16
+        add(new KeyHashAndValueAndStreamIndex(getBB(6), getBB(8), 0)); // 8
       }};
       private int index = 0;
 
@@ -77,15 +84,22 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
         return new ICurlyReader() {
           @Override
           public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
+            System.err.println("Reading record at offset " + recordFileOffset + " of " + curlyFilePath.getPath());
             switch (curlyFilePath.getVersion()) {
               case 0:
+                result.getBuffer().clear();
                 result.getBuffer().put(BASE_DATA[((int) recordFileOffset)]);
+                result.getBuffer().flip();
                 break;
               case 1:
+                result.getBuffer().clear();
                 result.getBuffer().put(DELTA_1_DATA[((int) recordFileOffset)]);
+                result.getBuffer().flip();
                 break;
               case 2:
+                result.getBuffer().clear();
                 result.getBuffer().put(DELTA_2_DATA[((int) recordFileOffset)]);
+                result.getBuffer().flip();
                 break;
               default:
                 throw new RuntimeException("Unknown version number ");
@@ -114,11 +128,22 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
     // Perform merging
     merger.merge(curlyBasePath, curlyDeltas, keyFileStreamBufferMergeSort, curlyReaderFactory, recordFileWriter);
 
-    // Check merged data
-    assertEquals(1, recordFileWriter.entries.size());
-    assertEquals(0, Bytes.compareBytesUnsigned(getBB(0), recordFileWriter.entries.get(getBB(0))));
+    // Print merged data
+    for (Map.Entry<ByteBuffer, ByteBuffer> entry : recordFileWriter.entries.entrySet()) {
+      System.err.println("Key: " + Bytes.bytesToHexString(entry.getKey())
+          + ", Value: " + Bytes.bytesToHexString(entry.getValue()));
+    }
 
-    throw new NotImplementedException();
+    // Check merged data
+    assertEquals(7, recordFileWriter.entries.size());
+
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(0), recordFileWriter.entries.get(getBB(0))));  // 0,0
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(11), recordFileWriter.entries.get(getBB(1)))); // 1,11
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(12), recordFileWriter.entries.get(getBB(2)))); // 2,12
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(3), recordFileWriter.entries.get(getBB(3)))); // 3,3
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(14), recordFileWriter.entries.get(getBB(4)))); // 4,14
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(16), recordFileWriter.entries.get(getBB(5)))); // 5,16
+    assertEquals(0, Bytes.compareBytesUnsigned(getBB(8), recordFileWriter.entries.get(getBB(6)))); // 6,8
   }
 
   private ByteBuffer getBB(int b) {
