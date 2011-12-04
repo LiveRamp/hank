@@ -29,6 +29,40 @@ public class CueballStreamBufferMergeSort implements IKeyFileStreamBufferMergeSo
   private final int valueSize;
   private final ValueTransformer transformer;
 
+  public static class Factory implements ICueballStreamBufferMergeSortFactory {
+    private final int keyHashSize;
+    private final int valueSize;
+    private final int hashIndexBits;
+    private final CompressionCodec compressionCodec;
+    private final ValueTransformer valueTransformer;
+
+    public Factory(int keyHashSize,
+                   int valueSize,
+                   int hashIndexBits,
+                   CompressionCodec compressionCodec,
+                   ValueTransformer valueTransformer) {
+      this.keyHashSize = keyHashSize;
+      this.valueSize = valueSize;
+      this.hashIndexBits = hashIndexBits;
+      this.compressionCodec = compressionCodec;
+      this.valueTransformer = valueTransformer;
+    }
+
+
+    @Override
+    public IKeyFileStreamBufferMergeSort getInstance(CueballFilePath cueballBase,
+                                                     List<CueballFilePath> cueballDeltas) throws IOException {
+      return new CueballStreamBufferMergeSort(cueballBase,
+          cueballDeltas,
+          keyHashSize,
+          valueSize,
+          hashIndexBits,
+          compressionCodec,
+          valueTransformer);
+    }
+
+  }
+
   public CueballStreamBufferMergeSort(CueballFilePath cueballBase,
                                       List<CueballFilePath> cueballDeltas,
                                       int keyHashSize,

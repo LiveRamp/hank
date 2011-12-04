@@ -16,10 +16,11 @@
 
 package com.rapleaf.hank.storage.cueball;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ICueballStreamBufferMergeSortFactory {
 
   public IKeyFileStreamBufferMergeSort getInstance(CueballFilePath cueballBase,
-                                                   List<CueballFilePath> cueballDeltas);
+                                                   List<CueballFilePath> cueballDeltas) throws IOException;
 }

@@ -21,12 +21,15 @@ import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
+import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
+import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
+import com.rapleaf.hank.storage.cueball.CueballWriter;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -54,8 +57,11 @@ public class Curly implements StorageEngine {
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
     private static final String COMPRESSION_CODEC = "compression_codec";
+    private static final String COMPACT_ON_UPDATE_KEY = "compact_on_update";
 
-    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY, RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY, FILE_OPS_FACTORY_KEY, HASHER_KEY));
+    private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
+        RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
+        FILE_OPS_FACTORY_KEY, HASHER_KEY, COMPACT_ON_UPDATE_KEY));
 
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
@@ -84,6 +90,7 @@ public class Curly implements StorageEngine {
       }
       final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
           : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
+      final boolean compactOnUpdate = Boolean.valueOf((String) options.get(COMPACT_ON_UPDATE_KEY));
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
@@ -92,6 +99,7 @@ public class Curly implements StorageEngine {
           (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
+          compactOnUpdate,
           domain);
     }
 
@@ -162,6 +170,7 @@ public class Curly implements StorageEngine {
   private final PartitionRemoteFileOpsFactory fileOpsFactory;
   private final int hashIndexBits;
   private final Class<? extends CompressionCodec> compressionCodecClass;
+  private final boolean compactOnUpdate;
 
   public Curly(int keyHashSize,
                Hasher hasher,
@@ -171,6 +180,7 @@ public class Curly implements StorageEngine {
                String remoteDomainRoot,
                PartitionRemoteFileOpsFactory fileOpsFactory,
                Class<? extends CompressionCodec> compressionCodecClass,
+               boolean compactOnUpdate,
                Domain domain) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
@@ -178,6 +188,7 @@ public class Curly implements StorageEngine {
     this.remoteDomainRoot = remoteDomainRoot;
     this.fileOpsFactory = fileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
+    this.compactOnUpdate = compactOnUpdate;
     this.domain = domain;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
@@ -213,6 +224,42 @@ public class Curly implements StorageEngine {
     if (!new File(localDir).mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir);
     }
+    if (compactOnUpdate) {
+      return getCompactingPartitionUpdater(localDir, partNum);
+    } else {
+      return getFastPartitionUpdater(localDir, partNum);
+    }
+  }
+
+  private CurlyCompactingPartitionUpdater getCompactingPartitionUpdater(String localDir,
+                                                                        int partNum) throws IOException {
+    return new CurlyCompactingPartitionUpdater(domain,
+        fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
+        localDir,
+        new CurlyCompactingMerger(recordFileReadBufferBytes),
+        new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetSize, hashIndexBits, getCompressionCodec(), null),
+        new ICurlyReaderFactory() {
+          @Override
+          public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws FileNotFoundException {
+            // Note: key file reader is null as it will *not* be used
+            return new CurlyReader(curlyFilePath, recordFileReadBufferBytes, null);
+          }
+        },
+        new ICurlyWriterFactory() {
+          @Override
+          public CurlyWriter getCurlyWriter(OutputStream keyFileOutputStream,
+                                            OutputStream recordFileOutputStream) throws IOException {
+            // Note: using an IdentityHasher here as the actual values are unknown during compaction, hence the key
+            // hashes are passed in directly to the key file writer
+            Writer keyFileWriter = new CueballWriter(keyFileOutputStream, keyHashSize,
+                new IdentityHasher(), offsetSize, getCompressionCodec(), hashIndexBits);
+            return new CurlyWriter(recordFileOutputStream, keyFileWriter, offsetSize);
+          }
+        }
+    );
+  }
+
+  private CurlyFastPartitionUpdater getFastPartitionUpdater(String localDir, int partNum) throws IOException {
     return new CurlyFastPartitionUpdater(domain,
         fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
         new CurlyMerger(),

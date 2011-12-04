@@ -16,9 +16,10 @@
 
 package com.rapleaf.hank.storage.curly;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 public interface ICurlyWriterFactory {
 
-  public CurlyWriter getCurlyWriter(OutputStream keyFileOutputStream, OutputStream recordFileOutputStream);
+  public CurlyWriter getCurlyWriter(OutputStream keyFileOutputStream, OutputStream recordFileOutputStream) throws IOException;
 }
