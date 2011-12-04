@@ -210,8 +210,9 @@ public class Curly implements StorageEngine {
   @Override
   public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     String localDir = getLocalDir(configurator, partNum);
-    new File(localDir).mkdirs();
-    String remotePartRoot = remoteDomainRoot + "/" + partNum;
+    if (!new File(localDir).mkdirs()) {
+      throw new RuntimeException("Failed to create directory " + localDir);
+    }
     return new CurlyFastPartitionUpdater(domain,
         fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
         new CurlyMerger(),
