@@ -57,6 +57,11 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
+  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException {
     throw new UnsupportedOperationException();
   }

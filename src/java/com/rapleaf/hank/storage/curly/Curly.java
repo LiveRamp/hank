@@ -238,6 +238,15 @@ public class Curly implements StorageEngine {
     }
   }
 
+  @Override
+  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+    File localDir = new File(getLocalDir(configurator, partNum));
+    if (!localDir.exists() && !localDir.mkdirs()) {
+      throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
+    }
+    return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partNum);
+  }
+
   private CurlyCompactingPartitionUpdater getCompactingPartitionUpdater(String localDir,
                                                                         int partNum) throws IOException {
     return new CurlyCompactingPartitionUpdater(domain,

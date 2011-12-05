@@ -185,6 +185,11 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
+  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
     hasher.hash(key, keyHashSize, keyHashBuffer.array());
     return keyHashBuffer;

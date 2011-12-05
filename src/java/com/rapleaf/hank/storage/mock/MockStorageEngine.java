@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class MockStorageEngine implements StorageEngine {
+
   public boolean getReaderCalled;
 
   @Override
@@ -35,6 +36,11 @@ public class MockStorageEngine implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+    return null;
+  }
+
+  @Override
+  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
     return null;
   }
 
