@@ -22,10 +22,6 @@ import com.rapleaf.hank.config.PartitionServerConfigurator;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-<<<<<<<HEAD
-    =======
-    >>>>>>>master
-
 /**
  * Defines how to read, write, delete, and update the data stored for a given
  * partition.
