@@ -16,7 +16,7 @@
 package com.rapleaf.hank.storage.constant;
 
 import com.rapleaf.hank.config.CoordinatorConfigurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.storage.*;
 
@@ -47,12 +47,12 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) {
     throw new UnsupportedOperationException();
   }
 
@@ -62,7 +62,7 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
       throws IOException {
     throw new UnsupportedOperationException();
   }

@@ -16,6 +16,7 @@
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
@@ -117,7 +118,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         K5, 4);
     MockStorageEngine storageEngine = new MockStorageEngine() {
       @Override
-      public Reader getReader(PartitionServerConfigurator configurator, int partNum)
+      public Reader getReader(DataDirectoriesConfigurator configurator, int partNum)
           throws IOException {
         return new MockReader(configurator, partNum, V1, readerVersionNumber) {
           @Override

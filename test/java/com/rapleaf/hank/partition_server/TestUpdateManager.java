@@ -17,7 +17,7 @@
 package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
@@ -93,12 +93,12 @@ public class TestUpdateManager extends BaseTestCase {
       }
 
       @Override
-      public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+      public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) {
         return updater;
       }
 
       @Override
-      public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
+      public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
           throws IOException {
         return MOCK_DELETER;
       }

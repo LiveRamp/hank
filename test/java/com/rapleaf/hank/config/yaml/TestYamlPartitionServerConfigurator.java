@@ -46,7 +46,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.close();
 
     YamlPartitionServerConfigurator conf = new YamlPartitionServerConfigurator(configPath);
-    assertEquals(Collections.singleton("/path/to/some/data"), conf.getLocalDataDirectories());
+    assertEquals(Collections.singleton("/path/to/some/data"), conf.getDataDirectories());
     assertEquals(1, conf.getServicePort());
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(5, conf.getNumConcurrentUpdates());
