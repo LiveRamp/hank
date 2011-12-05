@@ -48,7 +48,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_PATH_A));
     try {
-      new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
+      new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class,
+          DomainBuilderDefaultOutputFormat.class)
           .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
               IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A));
       fail("Should fail when output exists");
@@ -57,7 +58,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   }
 
   public void testOutput() throws IOException {
-    new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
+    new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class,
+        DomainBuilderDefaultOutputFormat.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
             IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
@@ -67,7 +69,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
   }
 
   public void testSorted() throws IOException {
-    new HadoopDomainBuilder(INPUT_PATH_B, TextInputFormat.class, TestMapper.class)
+    new HadoopDomainBuilder(INPUT_PATH_B, TextInputFormat.class, TestMapper.class,
+        DomainBuilderDefaultOutputFormat.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_B_NAME, VersionType.BASE,
             IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_B));
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));

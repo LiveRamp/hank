@@ -20,9 +20,7 @@ import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.storage.VersionType;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -32,28 +30,23 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
   private static final Logger LOG = Logger.getLogger(HadoopDomainBuilder.class);
 
   private final String inputPath;
-  private final Class inputFormatClass;
-  private final Class mapperClass;
+  private final Class<? extends InputFormat> inputFormatClass;
+  private final Class<? extends Mapper> mapperClass;
+  private final Class<? extends OutputFormat> outputFormatClass;
 
-  public HadoopDomainBuilder(final String inputPath, final Class inputFormatClass, final Class mapperClass) {
+  public HadoopDomainBuilder(final String inputPath,
+                             final Class<? extends InputFormat> inputFormatClass,
+                             final Class<? extends Mapper> mapperClass,
+                             final Class<? extends OutputFormat> outputFormatClass) {
     this.inputPath = inputPath;
     this.inputFormatClass = inputFormatClass;
     this.mapperClass = mapperClass;
-  }
-
-  public void run(String domainName,
-                  VersionType versionType,
-                  CoordinatorConfigurator configurator,
-                  String outputPath) throws IOException {
-    LOG.info("Building Hank domain " + domainName + " from input " + inputPath
-        + " and coordinator configuration " + configurator);
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
-    buildHankDomain(properties);
+    this.outputFormatClass = outputFormatClass;
   }
 
   // Use a non-default output format
   @Override
-  protected void configureJob(int versionNumber, DomainBuilderProperties properties, JobConf conf) {
+  protected void configureJob(JobConf conf) {
     // Input specification
     conf.setInputFormat(inputFormatClass);
     FileInputFormat.setInputPaths(conf, inputPath);
@@ -66,7 +59,7 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
     // Output format
-    conf.setOutputFormat(properties.getOutputFormatClass());
+    conf.setOutputFormat(outputFormatClass);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
   }
@@ -76,9 +69,19 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
       LOG.fatal("Usage: HadoopDomainBuilder <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
       System.exit(1);
     }
-    HadoopDomainBuilder builder = new HadoopDomainBuilder(args[3],
+    String domainName = args[0];
+    VersionType versionType = VersionType.fromString(args[1]);
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
+    String inputPath = args[3];
+    String outputPath = args[4];
+
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
+    HadoopDomainBuilder builder = new HadoopDomainBuilder(inputPath,
         SequenceFileInputFormat.class,
-        DomainBuilderMapperDefault.class);
-    builder.run(args[0], VersionType.fromString(args[1]), new YamlClientConfigurator(args[2]), args[4]);
+        DomainBuilderMapperDefault.class,
+        properties.getOutputFormatClass());
+    LOG.info("Building Hank domain " + domainName + " from input " + inputPath
+        + " and coordinator configuration " + configurator);
+    builder.buildHankDomain(properties);
   }
 }
