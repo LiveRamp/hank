@@ -13,20 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.config;
 
-import java.util.Set;
+package com.rapleaf.hank.config;
 
 /**
  * Common configurator for any daemon that runs on a Host.
  */
-public interface PartitionServerConfigurator extends CoordinatorConfigurator {
-  /**
-   * Where are the daemons on this host allowed to write data?
-   *
-   * @return
-   */
-  public Set<String> getLocalDataDirectories();
+public interface PartitionServerConfigurator extends CoordinatorConfigurator, DataDirectoriesConfigurator {
 
   /**
    * Which port should the Part Daemon launch it's Thrift service on? Which port

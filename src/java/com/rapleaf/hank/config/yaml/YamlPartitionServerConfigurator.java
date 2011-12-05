@@ -66,7 +66,7 @@ public class YamlPartitionServerConfigurator extends BaseYamlCoordinatorConfigur
   }
 
   @Override
-  public Set<String> getLocalDataDirectories() {
+  public Set<String> getDataDirectories() {
     return new HashSet<String>(getStringList(PARTITION_SERVER_SECTION_KEY, LOCAL_DATA_DIRS_KEY));
   }
 

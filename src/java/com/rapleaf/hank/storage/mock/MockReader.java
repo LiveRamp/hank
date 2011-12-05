@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.storage.mock;
 
-import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 
@@ -24,12 +24,12 @@ import java.nio.ByteBuffer;
 
 public class MockReader implements Reader {
 
-  private final PartitionServerConfigurator configurator;
+  private final DataDirectoriesConfigurator configurator;
   private final int partitionNumber;
   private final byte[] returnValue;
   private final Integer versionNumber;
 
-  public MockReader(PartitionServerConfigurator configurator,
+  public MockReader(DataDirectoriesConfigurator configurator,
                     int partitionNumber,
                     byte[] returnValue,
                     Integer versionNumber) {
@@ -60,7 +60,7 @@ public class MockReader implements Reader {
   public void close() {
   }
 
-  public PartitionServerConfigurator getConfigurator() {
+  public DataDirectoriesConfigurator getConfigurator() {
     return configurator;
   }
 

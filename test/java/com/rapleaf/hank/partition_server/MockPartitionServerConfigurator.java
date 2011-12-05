@@ -36,7 +36,7 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public Set<String> getLocalDataDirectories() {
+  public Set<String> getDataDirectories() {
     return Collections.singleton(localDataDir);
   }
 

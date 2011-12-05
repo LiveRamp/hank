@@ -18,7 +18,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.IdentityHasher;
@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
  * Cueball under the hood.
  */
 public class Curly implements StorageEngine {
+
   private static final Pattern BASE_OR_REGEX_PATTERN = Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
   static final String BASE_REGEX = ".*\\d{5}\\.base\\.curly";
   static final String DELTA_REGEX = ".*\\d{5}\\.delta\\.curly";
@@ -210,7 +211,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     return new CurlyReader(getLocalDir(configurator, partNum), recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator, partNum));
   }
 
@@ -226,7 +227,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     File localDir = new File(getLocalDir(configurator, partNum));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
@@ -296,7 +297,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
       throws IOException {
     String localDir = getLocalDir(configurator, partNum);
     return new CurlyDeleter(localDir);
@@ -307,8 +308,8 @@ public class Curly implements StorageEngine {
     return cueballStorageEngine.getComparableKey(key);
   }
 
-  private String getLocalDir(PartitionServerConfigurator configurator, int partNum) {
-    ArrayList<String> l = new ArrayList<String>(configurator.getLocalDataDirectories());
+  private String getLocalDir(DataDirectoriesConfigurator configurator, int partNum) {
+    ArrayList<String> l = new ArrayList<String>(configurator.getDataDirectories());
     Collections.sort(l);
     return l.get(partNum % l.size()) + "/" + domain.getName() + "/" + partNum;
   }

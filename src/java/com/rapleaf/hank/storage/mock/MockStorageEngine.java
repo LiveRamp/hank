@@ -16,7 +16,7 @@
 package com.rapleaf.hank.storage.mock;
 
 import com.rapleaf.hank.config.CoordinatorConfigurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.storage.*;
 import org.apache.commons.lang.NotImplementedException;
 
@@ -28,14 +28,14 @@ public class MockStorageEngine implements StorageEngine {
   public boolean getReaderCalled;
 
   @Override
-  public Reader getReader(PartitionServerConfigurator configurator, int partNum)
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum)
       throws IOException {
     getReaderCalled = true;
     return null;
   }
 
   @Override
-  public PartitionUpdater getUpdater(PartitionServerConfigurator configurator, int partNum) {
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) {
     return null;
   }
 
@@ -51,7 +51,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(PartitionServerConfigurator configurator, int partNum)
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
       throws IOException {
     return new MockDeleter(partNum);
   }
