@@ -22,6 +22,6 @@ public class IdentityHasher implements Hasher {
 
   @Override
   public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
-    System.arraycopy(value.array(), value.arrayOffset(), hashBytes, 0, hashSize);
+    System.arraycopy(value.array(), value.arrayOffset() + value.position(), hashBytes, 0, hashSize);
   }
 }
