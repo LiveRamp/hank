@@ -87,6 +87,9 @@ public class HostConnectionPool {
   }
 
   HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap) {
+    if (hostToConnectionsMap.size() == 0) {
+      throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
+    }
     int hostIndex = 0;
     for (Map.Entry<Host, List<HostConnection>> entry : hostToConnectionsMap.entrySet()) {
       List<HostConnectionAndHostIndex> connections = new ArrayList<HostConnectionAndHostIndex>();
