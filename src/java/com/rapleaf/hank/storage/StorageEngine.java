@@ -17,7 +17,6 @@ package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
-import com.rapleaf.hank.config.PartitionServerConfigurator;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -34,7 +33,7 @@ public interface StorageEngine {
 
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
 
-  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException;
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
 
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
 

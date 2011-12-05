@@ -240,7 +240,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     File localDir = new File(getLocalDir(configurator, partNum));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());

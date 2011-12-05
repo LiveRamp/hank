@@ -40,7 +40,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     return null;
   }
 

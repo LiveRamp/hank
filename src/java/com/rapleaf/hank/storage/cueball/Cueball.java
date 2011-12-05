@@ -185,7 +185,7 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(PartitionServerConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
     throw new UnsupportedOperationException();
   }
 

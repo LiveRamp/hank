@@ -70,7 +70,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       LOG.info("Compacting domain " + domainName.toString() + " partition " + partitionNumber.get()
           + " in " + tmpOutputPath);
       //TODO: Implement
-      // domain.getStorageEngine().getUpdater()
+      // domain.getStorageEngine().getCompactingUpdater()
     }
 
     @Override
