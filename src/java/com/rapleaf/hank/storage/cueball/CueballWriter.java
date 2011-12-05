@@ -88,15 +88,15 @@ public class CueballWriter implements Writer {
       throw new IOException("Size of value to be written is: "
           + value.remaining() + ", but configured value size is: " + valueSize);
     }
-    // Hash key
-    hasher.hash(key, keyHashSize, keyHashBytes);
-    // Compare with previous key hash
-    int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that key is different from previous one
     if (previousKey != null && previousKey.remaining() == key.remaining()
         && 0 == Bytes.compareBytesUnsigned(key, previousKey)) {
       throw new IOException("Keys must be distinct but two consecutive (in terms of comparableKey) keys are equal.");
     }
+    // Hash key
+    hasher.hash(key, keyHashSize, keyHashBytes);
+    // Compare with previous key hash
+    int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that there is not a key hash collision
     if (0 == previousKeyHashComparision) {
       throw new IOException("Collision: two consecutive keys have the same hash value."
