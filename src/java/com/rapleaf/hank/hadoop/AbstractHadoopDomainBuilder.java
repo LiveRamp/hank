@@ -36,7 +36,7 @@ public abstract class AbstractHadoopDomainBuilder {
     }
     // Try to build new version
     JobConf conf = new JobConf();
-    configureJobCommon(domainVersion.getVersionNumber(), properties, conf);
+    configureJobCommon(properties, domainVersion.getVersionNumber(), conf);
     configureJob(conf);
     try {
       // Set up job
@@ -59,13 +59,15 @@ public abstract class AbstractHadoopDomainBuilder {
     DomainBuilderOutputCommitter.cleanupJob(domain.getName(), conf);
   }
 
-  private void configureJobCommon(int versionNumber, DomainBuilderProperties properties, JobConf conf) {
+  private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, JobConf conf) {
     // Hank specific configuration
     properties.setJobConfProperties(conf, versionNumber);
     // Output Committer
     conf.setOutputCommitter(DomainBuilderOutputCommitter.class);
     // Output path (set to tmp output path)
     FileOutputFormat.setOutputPath(conf, new Path(properties.getTmpOutputPath(versionNumber)));
+    // Output format
+    conf.setOutputFormat(properties.getOutputFormatClass());
   }
 
   protected abstract void configureJob(JobConf conf);

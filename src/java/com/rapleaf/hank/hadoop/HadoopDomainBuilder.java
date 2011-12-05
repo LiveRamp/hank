@@ -32,16 +32,13 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
   private final String inputPath;
   private final Class<? extends InputFormat> inputFormatClass;
   private final Class<? extends Mapper> mapperClass;
-  private final Class<? extends OutputFormat> outputFormatClass;
 
   public HadoopDomainBuilder(final String inputPath,
                              final Class<? extends InputFormat> inputFormatClass,
-                             final Class<? extends Mapper> mapperClass,
-                             final Class<? extends OutputFormat> outputFormatClass) {
+                             final Class<? extends Mapper> mapperClass) {
     this.inputPath = inputPath;
     this.inputFormatClass = inputFormatClass;
     this.mapperClass = mapperClass;
-    this.outputFormatClass = outputFormatClass;
   }
 
   // Use a non-default output format
@@ -58,8 +55,6 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
     conf.setReducerClass(DomainBuilderReducer.class);
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
-    // Output format
-    conf.setOutputFormat(outputFormatClass);
     // Partitioner
     conf.setPartitionerClass(DomainBuilderPartitioner.class);
   }
@@ -78,8 +73,7 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
     DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
     HadoopDomainBuilder builder = new HadoopDomainBuilder(inputPath,
         SequenceFileInputFormat.class,
-        DomainBuilderMapperDefault.class,
-        properties.getOutputFormatClass());
+        DomainBuilderMapperDefault.class);
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath
         + " and coordinator configuration " + configurator);
     builder.buildHankDomain(properties);
