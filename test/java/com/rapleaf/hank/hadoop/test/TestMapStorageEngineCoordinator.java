@@ -16,19 +16,14 @@
 
 package com.rapleaf.hank.hadoop.test;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.hadoop.mapred.TextInputFormat;
-
-import com.rapleaf.hank.hadoop.DomainBuilderEmptyOutputFormat;
-import com.rapleaf.hank.hadoop.DomainBuilderProperties;
-import com.rapleaf.hank.hadoop.HadoopDomainBuilder;
-import com.rapleaf.hank.hadoop.HadoopTestCase;
-import com.rapleaf.hank.hadoop.TestHadoopDomainBuilder;
+import com.rapleaf.hank.hadoop.*;
 import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 import com.rapleaf.hank.util.Bytes;
+import org.apache.hadoop.mapred.TextInputFormat;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 
 public class TestMapStorageEngineCoordinator extends HadoopTestCase {
@@ -48,8 +43,9 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
   }
 
   public void testOutput() throws IOException {
-    HadoopDomainBuilder.buildHankDomain(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class,
-        new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE, MapStorageEngineCoordinator.getConfigurator(1), "/a", DomainBuilderEmptyOutputFormat.class));
+    new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class)
+        .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
+            MapStorageEngineCoordinator.getConfigurator(1), "/a", DomainBuilderEmptyOutputFormat.class));
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions(DOMAIN_A_NAME).size());
