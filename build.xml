@@ -25,6 +25,9 @@
 
   <property name="thrift.compiler" value="thrift" />
 
+  <fileset id="lib.jars" dir="${basedir}/lib" includes="*.jar"/>
+  <property name="jobjar.tmp.dir" value="${build}/jobjar-tmp"/>
+
   <fileset id="jars" dir="${lib}" includes="*.jar" />
 
   <path id="compile.classpath">
@@ -48,7 +51,7 @@
     <delete dir="${build}" />
     <delete dir="${build.test}" />
   </target>
-  
+
   <target name="init">
     <mkdir dir="${build}"/>
     <mkdir dir="${build.classes}"/>
@@ -57,7 +60,7 @@
   <target name="compile" depends="init">
     <javac srcdir="${src.java}" destdir="${build.classes}" debug="true" classpathref="compile.classpath" />
   </target>
-  
+
   <target name="init-test">
     <mkdir dir="${build.test}" />
   </target>
@@ -75,7 +78,7 @@
   <target name="test" depends="compile-test,ensure-specific-test-exists" description="Run the unit test suite">
     <mkdir dir="${test.log.dir}"/>
     <junit
-      printsummary="yes" showoutput="${test.output}" 
+      printsummary="yes" showoutput="${test.output}"
       haltonfailure="no" fork="yes" maxmemory="512m"
       errorProperty="tests.failed" failureProperty="tests.failed"
       timeout="${test.timeout}"
@@ -97,7 +100,7 @@
   <target name="integration-test" depends="compile-test" description="Run the integration test suite">
     <mkdir dir="${test.log.dir}"/>
     <junit
-      printsummary="yes" showoutput="${test.output}" 
+      printsummary="yes" showoutput="${test.output}"
       haltonfailure="no" fork="yes" maxmemory="512m"
       errorProperty="tests.failed" failureProperty="tests.failed"
       timeout="${test.timeout}"
@@ -166,7 +169,7 @@
       </fileset>
     </jar>
   </target>
-  
+
   <target name="gen-thrift" description="Generate the Thrift interfaces and structures" depends="init">
     <delete dir="${src.java.generated}"/>
     <exec executable="${thrift.compiler}" failonerror="true">
@@ -204,8 +207,25 @@
       <!-- copy bash scripts to bin/. note that we want the filemode set, so we have to use tarfileset -->
       <tarfileset prefix="hank/bin" dir="${src.bash}" includes="**/*" filemode="555"/>
     </tar>
-    
+
     <!-- delete tar_temp -->
     <delete dir="${build}/tar_temp" />
   </target>
+
+  <target name="jobjar" depends="dist" description="--> build a job jar (with all dependency classes)">
+    <delete file="${build}/hank.job.jar" />
+    <delete dir="${jobjar.tmp.dir}"/>
+    <mkdir dir="${jobjar.tmp.dir}" />
+    <unjar dest="${jobjar.tmp.dir}" overwrite="false">
+      <fileset refid="lib.jars"/>
+    </unjar>
+    <copy todir="${jobjar.tmp.dir}" >
+      <fileset dir="${build}/classes"/>
+    </copy>
+    <delete dir="${jobjar.tmp.dir}/META-INF" quiet="true" />
+    <jar jarfile="${build}/hank.job.jar"
+      basedir="${jobjar.tmp.dir}" />
+    <delete dir="${jobjar.tmp.dir}"/>
+  </target>
+
 </project>
