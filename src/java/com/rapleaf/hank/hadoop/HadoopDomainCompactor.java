@@ -16,8 +16,11 @@
 
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
+import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.SimpleDataDirectoriesConfigurator;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionUpdater;
@@ -221,5 +224,23 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         return 0;
       }
     }
+  }
+
+  public static void main(String[] args) throws IOException, InvalidConfigurationException {
+    if (args.length != 4) {
+      LOG.fatal("Usage: " + HadoopDomainCompactor.class.getSimpleName()
+          + " <domain name> <version to compact number> <config path>");
+      System.exit(1);
+    }
+    String domainName = args[0];
+    Integer versionToCompactNumber = Integer.valueOf(args[1]);
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
+
+    DomainCompactorProperties properties = new DomainCompactorProperties(domainName, versionToCompactNumber.intValue(),
+        configurator);
+    HadoopDomainCompactor compactor = new HadoopDomainCompactor();
+    LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
+        + " with coordinator configuration " + configurator);
+    compactor.buildHankDomain(properties);
   }
 }

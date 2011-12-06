@@ -61,7 +61,8 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     if (args.length != 5) {
-      LOG.fatal("Usage: HadoopDomainBuilder <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
+      LOG.fatal("Usage: " + HadoopDomainBuilder.class.getSimpleName()
+          + " <domain name> <'base' or 'delta'> <config path> <input path> <output_path>");
       System.exit(1);
     }
     String domainName = args[0];

@@ -28,6 +28,13 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
 
   public DomainCompactorProperties(String domainName,
                                    int versionToCompactNumber,
+                                   CoordinatorConfigurator configurator) {
+    super(domainName, VersionType.BASE, configurator);
+    this.versionToCompactNumber = versionToCompactNumber;
+  }
+
+  public DomainCompactorProperties(String domainName,
+                                   int versionToCompactNumber,
                                    CoordinatorConfigurator configurator,
                                    String outputPath) {
     super(domainName, VersionType.BASE, configurator, outputPath);
