@@ -46,21 +46,21 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public boolean exists(String relativePath) throws IOException {
-    return fs.exists(new Path(getAbsolutePath(relativePath)));
+  public boolean exists(String remoteRelativePath) throws IOException {
+    return fs.exists(new Path(getAbsolutePath(remoteRelativePath)));
   }
 
   @Override
-  public void copyToLocalRoot(String relativePath, String localRoot) throws IOException {
-    Path source = new Path(getAbsolutePath(relativePath));
-    Path destination = new Path(localRoot + "/" + source.getName());
+  public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
+    Path source = new Path(getAbsolutePath(remoteSourceRelativePath));
+    Path destination = new Path(localDestinationRoot + "/" + source.getName());
     fs.copyToLocalFile(source, destination);
   }
 
   @Override
-  public boolean attemptDelete(String relativePath) throws IOException {
-    if (exists(relativePath)) {
-      fs.delete(new Path(getAbsolutePath(relativePath)), true);
+  public boolean attemptDelete(String remoteRelativePath) throws IOException {
+    if (exists(remoteRelativePath)) {
+      fs.delete(new Path(getAbsolutePath(remoteRelativePath)), true);
     }
     return true;
   }

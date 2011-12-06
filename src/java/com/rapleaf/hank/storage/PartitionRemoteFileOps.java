@@ -20,9 +20,9 @@ import java.io.IOException;
 
 public interface PartitionRemoteFileOps {
 
-  public boolean exists(String relativePath) throws IOException;
+  public boolean exists(String remoteRelativePath) throws IOException;
 
-  void copyToLocalRoot(String relativePath, String localRoot) throws IOException;
+  void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException;
 
-  public boolean attemptDelete(String relativePath) throws IOException;
+  public boolean attemptDelete(String remoteRelativePath) throws IOException;
 }
