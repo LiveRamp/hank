@@ -57,7 +57,7 @@ public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPa
     }
   }
 
-  protected String getTaskAttemptOutputPath(JobConf conf) {
+  public static String getTaskAttemptOutputPath(JobConf conf) {
     String outputPath = conf.get("mapred.work.output.dir");
     if (outputPath == null) {
       throw new RuntimeException("Path was not set in mapred.work.output.dir");

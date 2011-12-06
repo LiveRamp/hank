@@ -24,6 +24,9 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionUpdater;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -34,7 +37,9 @@ import org.apache.log4j.Logger;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
@@ -62,20 +67,39 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
 
     private Domain domain;
-    private String tmpOutputPath;
+    private File localTmpOutput;
+    private String outputPath;
     private DomainVersion domainVersionToCompact;
+    private FileSystem fs;
 
     @Override
     public void configure(JobConf conf) {
       domain = DomainBuilderProperties.getDomain(conf);
-      tmpOutputPath = DomainBuilderProperties.getTmpOutputPath(domain.getName(), conf);
+      // Create unique local directory
+      String uniqueString = UUID.randomUUID().toString();
+      String localTmpOutputPath;
+      try {
+        localTmpOutputPath = conf.getLocalPath(uniqueString).toString();
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to determine local temporary output directory", e);
+      }
+      localTmpOutput = new File(localTmpOutputPath);
+      if (localTmpOutput.exists() || !localTmpOutput.mkdirs()) {
+        throw new RuntimeException("Failed to initialize local temporary output directory " + localTmpOutputPath);
+      }
+      // tmpOutputPath = DomainBuilderProperties.getTmpOutputPath(domain.getName(), conf);
+      outputPath = DomainBuilderOutputFormat.getTaskAttemptOutputPath(conf);
       int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
       try {
-        domainVersionToCompact =
-            domain.getVersionByNumber(versionNumberToCompact);
+        domainVersionToCompact = domain.getVersionByNumber(versionNumberToCompact);
       } catch (IOException e) {
         throw new RuntimeException("Failed to load Version " + versionNumberToCompact
             + " of Domain " + domain.getName(), e);
+      }
+      try {
+        fs = FileSystem.get(new Configuration());
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to instantiate FileSystem", e);
       }
     }
 
@@ -86,8 +110,9 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       LOG.info("Compacting Domain " + domainName.toString()
           + " Version " + domainVersionToCompact.getVersionNumber()
           + " Partition " + partitionNumber.get()
-          + " in " + tmpOutputPath);
-      DataDirectoriesConfigurator dataDirectoriesConfigurator = new SimpleDataDirectoriesConfigurator(tmpOutputPath);
+          + " in " + localTmpOutput.getAbsolutePath());
+      DataDirectoriesConfigurator dataDirectoriesConfigurator =
+          new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
       PartitionUpdater compactingUpdater = domain.getStorageEngine()
           .getCompactingUpdater(dataDirectoriesConfigurator, partitionNumber.get());
       if (compactingUpdater == null) {
@@ -95,6 +120,15 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
             + " with storage engine: " + domain.getStorageEngine());
       }
       compactingUpdater.updateTo(domainVersionToCompact);
+      commitLocalFilesToOutputPath();
+    }
+
+    private void commitLocalFilesToOutputPath() throws IOException {
+      for (File localFile : localTmpOutput.listFiles()) {
+        LOG.info("Committing local file " + localFile.getAbsolutePath() + " to output " + outputPath);
+        fs.copyFromLocalFile(true, true, new Path(localFile.getAbsolutePath()),
+            new Path(outputPath + "/" + localFile.getName()));
+      }
     }
 
     @Override
