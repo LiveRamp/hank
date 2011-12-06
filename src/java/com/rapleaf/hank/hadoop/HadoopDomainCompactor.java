@@ -24,6 +24,7 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionUpdater;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -39,8 +40,6 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
@@ -51,8 +50,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     super();
   }
 
-  public HadoopDomainCompactor(Map<String, String> userProperties) {
-    super(userProperties);
+  public HadoopDomainCompactor(JobConf conf) {
+    super(conf);
   }
 
   @Override
@@ -271,21 +270,18 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
-    if (args.length != 4) {
-      LOG.fatal("Usage: " + HadoopDomainCompactor.class.getSimpleName()
-          + " <domain name> <version to compact number> <config path> <jobjar>");
-      System.exit(1);
-    }
+    CommandLineChecker.check(args, new String[] {
+        "domain name", "version to compact number", "config path", "jobjar"}, HadoopDomainCompactor.class);
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
     CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
     String jobJar = args[3];
-
+    
     DomainCompactorProperties properties = new DomainCompactorProperties(domainName, versionToCompactNumber.intValue(),
         configurator);
-    Map<String, String> hadoopProperties = new HashMap<String, String>();
-    hadoopProperties.put("mapred.jar", jobJar);
-    HadoopDomainCompactor compactor = new HadoopDomainCompactor(hadoopProperties);
+    JobConf conf = new JobConf();
+    conf.setJar(jobJar);
+    HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
     compactor.buildHankDomain(properties);

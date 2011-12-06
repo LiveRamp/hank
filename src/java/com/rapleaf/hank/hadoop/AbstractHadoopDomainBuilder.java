@@ -24,21 +24,17 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public abstract class AbstractHadoopDomainBuilder {
 
-  private final Map<String, String> userProperties;
+  private final JobConf baseConf;
 
   public AbstractHadoopDomainBuilder() {
-    userProperties = Collections.emptyMap();
+    this.baseConf = null;
   }
 
-  public AbstractHadoopDomainBuilder(Map<String, String> userProperties) {
-    this.userProperties = new HashMap<String, String>();
-    this.userProperties.putAll(userProperties);
+  public AbstractHadoopDomainBuilder(JobConf baseConf) {
+    this.baseConf = baseConf;
   }
 
   public void buildHankDomain(DomainBuilderProperties properties) throws IOException {
@@ -49,9 +45,11 @@ public abstract class AbstractHadoopDomainBuilder {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }
     // Try to build new version
-    JobConf conf = new JobConf();
-    for (Map.Entry<String, String> entry : userProperties.entrySet()) {
-      conf.set(entry.getKey(), entry.getValue());
+    JobConf conf;
+    if (baseConf == null) {
+      conf = new JobConf();
+    } else {
+      conf = new JobConf(baseConf);
     }
     configureJobCommon(properties, domainVersion.getVersionNumber(), conf);
     configureJob(conf);
