@@ -84,6 +84,8 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
     DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
+    conf.setJobName(HadoopDomainBuilder.class.getSimpleName()
+        + " Domain " + domainName + ", Output path: " + outputPath);
     HadoopDomainBuilder builder = new HadoopDomainBuilder(conf, inputPath,
         SequenceFileInputFormat.class,
         DomainBuilderMapperDefault.class);

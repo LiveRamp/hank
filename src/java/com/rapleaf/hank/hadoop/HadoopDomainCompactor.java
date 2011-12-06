@@ -276,11 +276,13 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
     CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
     String jobJar = args[3];
-    
-    DomainCompactorProperties properties = new DomainCompactorProperties(domainName, versionToCompactNumber.intValue(),
-        configurator);
+
+    DomainCompactorProperties properties =
+        new DomainCompactorProperties(domainName, versionToCompactNumber, configurator);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
+    conf.setJobName(HadoopDomainCompactor.class.getSimpleName()
+        + " Domain " + domainName + ", Version " + versionToCompactNumber);
     HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
