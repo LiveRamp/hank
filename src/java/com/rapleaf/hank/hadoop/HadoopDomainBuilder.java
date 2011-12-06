@@ -24,6 +24,7 @@ import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
 
@@ -36,6 +37,16 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
   public HadoopDomainBuilder(final String inputPath,
                              final Class<? extends InputFormat> inputFormatClass,
                              final Class<? extends Mapper> mapperClass) {
+    this.inputPath = inputPath;
+    this.inputFormatClass = inputFormatClass;
+    this.mapperClass = mapperClass;
+  }
+
+  public HadoopDomainBuilder(Map<String, String> userProperties,
+                             final String inputPath,
+                             final Class<? extends InputFormat> inputFormatClass,
+                             final Class<? extends Mapper> mapperClass) {
+    super(userProperties);
     this.inputPath = inputPath;
     this.inputFormatClass = inputFormatClass;
     this.mapperClass = mapperClass;

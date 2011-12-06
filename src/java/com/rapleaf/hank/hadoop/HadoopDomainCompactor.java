@@ -39,11 +39,21 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainCompactor.class);
+
+  public HadoopDomainCompactor() {
+    super();
+  }
+
+  public HadoopDomainCompactor(Map<String, String> userProperties) {
+    super(userProperties);
+  }
 
   @Override
   protected void configureJob(JobConf conf) {
@@ -261,18 +271,21 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
-    if (args.length != 3) {
+    if (args.length != 4) {
       LOG.fatal("Usage: " + HadoopDomainCompactor.class.getSimpleName()
-          + " <domain name> <version to compact number> <config path>");
+          + " <domain name> <version to compact number> <config path> <jobjar>");
       System.exit(1);
     }
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
     CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
+    String jobJar = args[3];
 
     DomainCompactorProperties properties = new DomainCompactorProperties(domainName, versionToCompactNumber.intValue(),
         configurator);
-    HadoopDomainCompactor compactor = new HadoopDomainCompactor();
+    Map<String, String> hadoopProperties = new HashMap<String, String>();
+    hadoopProperties.put("mapred.jar", jobJar);
+    HadoopDomainCompactor compactor = new HadoopDomainCompactor(hadoopProperties);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
     compactor.buildHankDomain(properties);

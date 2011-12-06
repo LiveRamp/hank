@@ -24,8 +24,22 @@ import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AbstractHadoopDomainBuilder {
+
+  private final Map<String, String> userProperties;
+
+  public AbstractHadoopDomainBuilder() {
+    userProperties = Collections.emptyMap();
+  }
+
+  public AbstractHadoopDomainBuilder(Map<String, String> userProperties) {
+    this.userProperties = new HashMap<String, String>();
+    this.userProperties.putAll(userProperties);
+  }
 
   public void buildHankDomain(DomainBuilderProperties properties) throws IOException {
     // Open new version and check for success
@@ -36,6 +50,9 @@ public abstract class AbstractHadoopDomainBuilder {
     }
     // Try to build new version
     JobConf conf = new JobConf();
+    for (Map.Entry<String, String> entry : userProperties.entrySet()) {
+      conf.set(entry.getKey(), entry.getValue());
+    }
     configureJobCommon(properties, domainVersion.getVersionNumber(), conf);
     configureJob(conf);
     try {
