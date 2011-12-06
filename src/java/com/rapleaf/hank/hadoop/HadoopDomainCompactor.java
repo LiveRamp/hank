@@ -227,7 +227,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
-    if (args.length != 4) {
+    if (args.length != 3) {
       LOG.fatal("Usage: " + HadoopDomainCompactor.class.getSimpleName()
           + " <domain name> <version to compact number> <config path>");
       System.exit(1);
