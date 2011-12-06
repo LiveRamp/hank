@@ -17,8 +17,8 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.Domains;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.Domains;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.VersionType;

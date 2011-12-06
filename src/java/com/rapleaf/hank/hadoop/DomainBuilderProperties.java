@@ -243,7 +243,7 @@ public class DomainBuilderProperties {
   public static Integer getVersionNumber(String domainName, JobConf conf) {
     return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
         DomainBuilderOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
-        "Hank temporary output path", conf));
+        "Hank version number", conf));
   }
 
   public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {

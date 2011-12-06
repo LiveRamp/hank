@@ -16,7 +16,11 @@
 
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.config.DataDirectoriesConfigurator;
+import com.rapleaf.hank.config.SimpleDataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.PartitionUpdater;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -56,21 +60,38 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     private Domain domain;
     private String tmpOutputPath;
+    private DomainVersion domainVersionToCompact;
 
     @Override
     public void configure(JobConf conf) {
       domain = DomainBuilderProperties.getDomain(conf);
       tmpOutputPath = DomainBuilderProperties.getTmpOutputPath(domain.getName(), conf);
+      int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
+      try {
+        domainVersionToCompact =
+            domain.getVersionByNumber(versionNumberToCompact);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to load Version " + versionNumberToCompact
+            + " of Domain " + domain.getName(), e);
+      }
     }
 
     @Override
     public void map(Text domainName, IntWritable partitionNumber,
                     OutputCollector<NullWritable, NullWritable> stringStringOutputCollector,
                     Reporter reporter) throws IOException {
-      LOG.info("Compacting domain " + domainName.toString() + " partition " + partitionNumber.get()
+      LOG.info("Compacting Domain " + domainName.toString()
+          + " Version " + domainVersionToCompact.getVersionNumber()
+          + " Partition " + partitionNumber.get()
           + " in " + tmpOutputPath);
-      //TODO: Implement
-      // domain.getStorageEngine().getCompactingUpdater()
+      DataDirectoriesConfigurator dataDirectoriesConfigurator = new SimpleDataDirectoriesConfigurator(tmpOutputPath);
+      PartitionUpdater compactingUpdater = domain.getStorageEngine()
+          .getCompactingUpdater(dataDirectoriesConfigurator, partitionNumber.get());
+      if (compactingUpdater == null) {
+        throw new RuntimeException("Failed to load compacting updater for domain " + domain.getName()
+            + " with storage engine: " + domain.getStorageEngine());
+      }
+      compactingUpdater.updateTo(domainVersionToCompact);
     }
 
     @Override
