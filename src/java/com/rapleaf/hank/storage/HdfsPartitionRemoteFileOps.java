@@ -32,6 +32,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   private final String partitionRoot;
+  private final Path partitionRootPath;
   private final FileSystem fs;
   private final String remoteFsUserName;
   private final String remoteFsGroupName;
@@ -41,8 +42,9 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
                                     String remoteFsUserName,
                                     String remoteFsGroupName) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
+    this.partitionRootPath = new Path(partitionRoot);
     this.fs = FileSystem.get(new Configuration());
-    if (!new Path(partitionRoot).isAbsolute()) {
+    if (!partitionRootPath.isAbsolute()) {
       throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
           + " with a non absolute remote partition root: "
           + partitionRoot);
@@ -75,6 +77,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     fs.copyFromLocalFile(source, destination);
     if (remoteFsUserName != null && remoteFsGroupName != null) {
       fs.setOwner(destination, remoteFsUserName, remoteFsGroupName);
+      fs.setOwner(partitionRootPath, remoteFsUserName, remoteFsGroupName);
     }
   }
 
