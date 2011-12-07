@@ -67,4 +67,9 @@ public class Echo implements StorageEngine {
       }
     };
   }
+
+  @Override
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 }

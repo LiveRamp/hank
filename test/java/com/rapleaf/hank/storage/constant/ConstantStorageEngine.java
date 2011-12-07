@@ -81,4 +81,9 @@ public class ConstantStorageEngine implements StorageEngine {
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     throw new UnsupportedOperationException();
   }
+
+  @Override
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 }

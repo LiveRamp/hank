@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage.cueball;
 
 import com.rapleaf.hank.compress.CompressionCodec;
@@ -261,5 +262,11 @@ public class Cueball implements StorageEngine {
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     return new CueballDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
+  }
+
+  @Override
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+    String localDir = getLocalDir(configurator, partNum);
+    return new CueballCopier(localDir);
   }
 }

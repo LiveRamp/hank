@@ -26,10 +26,7 @@ import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.cueball.CueballMerger;
-import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
-import com.rapleaf.hank.storage.cueball.CueballWriter;
+import com.rapleaf.hank.storage.cueball.*;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -366,5 +363,11 @@ public class Curly implements StorageEngine {
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     return new CurlyDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
+  }
+
+  @Override
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+    String localDir = getLocalDir(configurator, partNum);
+    return new CurlyCopier(localDir, new CueballCopier(localDir));
   }
 }

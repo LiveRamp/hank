@@ -40,4 +40,6 @@ public interface StorageEngine {
   public ByteBuffer getComparableKey(ByteBuffer key);
 
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException;
+
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
 }

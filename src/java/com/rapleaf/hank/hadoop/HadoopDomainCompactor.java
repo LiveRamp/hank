@@ -23,11 +23,11 @@ import com.rapleaf.hank.config.SimpleDataDirectoriesConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -120,6 +120,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           + " Version " + domainVersionToCompact.getVersionNumber()
           + " Partition " + partitionNumber.get()
           + " in " + localTmpOutput.getAbsolutePath());
+      // Get compacting updater
       DataDirectoriesConfigurator dataDirectoriesConfigurator =
           new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
       PartitionUpdater compactingUpdater = domain.getStorageEngine()
@@ -128,16 +129,12 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         throw new RuntimeException("Failed to load compacting updater for domain " + domain.getName()
             + " with storage engine: " + domain.getStorageEngine());
       }
+      // Perform compacting update
       compactingUpdater.updateTo(domainVersionToCompact);
-      commitLocalFilesToOutputPath();
-    }
-
-    private void commitLocalFilesToOutputPath() throws IOException {
-      for (File localFile : localTmpOutput.listFiles()) {
-        LOG.info("Committing local file " + localFile.getAbsolutePath() + " to output " + outputPath);
-        fs.copyFromLocalFile(true, true, new Path(localFile.getAbsolutePath()),
-            new Path(outputPath + "/" + localFile.getName()));
-      }
+      // Copy results
+      domain.getStorageEngine().getCopier(dataDirectoriesConfigurator, partitionNumber.get())
+          .copyVersionTo(domainVersionToCompact.getVersionNumber(),
+          new HdfsPartitionRemoteFileOps(outputPath, domainVersionToCompact.getVersionNumber()));
     }
 
     @Override

@@ -18,13 +18,8 @@ package com.rapleaf.hank.storage;
 
 import java.io.IOException;
 
-public interface PartitionRemoteFileOps {
+public interface Copier {
 
-  public boolean exists(String remoteRelativePath) throws IOException;
-
-  void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException;
-
-  void copyToRemoteRoot(String localSourcePath) throws IOException;
-
-  public boolean attemptDelete(String remoteRelativePath) throws IOException;
+  public void copyVersionTo(int versionNumber,
+                            PartitionRemoteFileOps partitionRemoteFileOps) throws IOException;
 }
