@@ -129,8 +129,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       // Copy resulting compacted partition
       domain.getStorageEngine().getCopier(dataDirectoriesConfigurator, partitionNumber.get())
           .copyVersionTo(domainVersionToCompact.getVersionNumber(),
-              new HdfsPartitionRemoteFileOps(outputPath, domainVersionToCompact.getVersionNumber(),
-                  hdfsUserName, hdfsGroupName));
+              new HdfsPartitionRemoteFileOps(outputPath, partitionNumber.get(), hdfsUserName, hdfsGroupName));
     }
 
     @Override
