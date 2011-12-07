@@ -26,8 +26,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.util.CommandLineChecker;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -46,12 +44,27 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainCompactor.class);
 
+  private final String hdfsUserName;
+  private final String hdfsGroupName;
+
   public HadoopDomainCompactor() {
     super();
+    hdfsUserName = null;
+    hdfsGroupName = null;
   }
 
   public HadoopDomainCompactor(JobConf conf) {
     super(conf);
+    hdfsUserName = null;
+    hdfsGroupName = null;
+  }
+
+  public HadoopDomainCompactor(JobConf conf,
+                               String hdfsUserName,
+                               String hdfsGroupName) {
+    super(conf);
+    this.hdfsUserName = hdfsUserName;
+    this.hdfsGroupName = hdfsGroupName;
   }
 
   @Override
@@ -73,13 +86,12 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     conf.setOutputValueClass(NullWritable.class);
   }
 
-  private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
+  private class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
 
     private Domain domain;
     private File localTmpOutput;
     private String outputPath;
     private DomainVersion domainVersionToCompact;
-    private FileSystem fs;
 
     @Override
     public void configure(JobConf conf) {
@@ -96,7 +108,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       if (localTmpOutput.exists() || !localTmpOutput.mkdirs()) {
         throw new RuntimeException("Failed to initialize local temporary output directory " + localTmpOutputPath);
       }
-      // tmpOutputPath = DomainBuilderProperties.getTmpOutputPath(domain.getName(), conf);
       outputPath = DomainBuilderOutputFormat.getTaskAttemptOutputPath(conf);
       int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
       try {
@@ -104,11 +115,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       } catch (IOException e) {
         throw new RuntimeException("Failed to load Version " + versionNumberToCompact
             + " of Domain " + domain.getName(), e);
-      }
-      try {
-        fs = FileSystem.get(new Configuration());
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to instantiate FileSystem", e);
       }
     }
 
@@ -131,10 +137,11 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       }
       // Perform compacting update
       compactingUpdater.updateTo(domainVersionToCompact);
-      // Copy results
+      // Copy resulting compacted partition
       domain.getStorageEngine().getCopier(dataDirectoriesConfigurator, partitionNumber.get())
           .copyVersionTo(domainVersionToCompact.getVersionNumber(),
-          new HdfsPartitionRemoteFileOps(outputPath, domainVersionToCompact.getVersionNumber()));
+              new HdfsPartitionRemoteFileOps(outputPath, domainVersionToCompact.getVersionNumber(),
+                  hdfsUserName, hdfsGroupName));
     }
 
     @Override
@@ -267,12 +274,15 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   }
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
-    CommandLineChecker.check(args, new String[] {
-        "domain name", "version to compact number", "config path", "jobjar"}, HadoopDomainCompactor.class);
+    CommandLineChecker.check(args, new String[]{
+        "domain name", "version to compact number", "HDFS user name", "HDFS group name", "config path", "jobjar"},
+        HadoopDomainCompactor.class);
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
-    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
-    String jobJar = args[3];
+    String hdfsUserName = args[2];
+    String hdfsGroupName = args[3];
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[4]);
+    String jobJar = args[5];
 
     DomainCompactorProperties properties =
         new DomainCompactorProperties(domainName, versionToCompactNumber, configurator);
@@ -280,7 +290,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     conf.setJar(jobJar);
     conf.setJobName(HadoopDomainCompactor.class.getSimpleName()
         + " Domain " + domainName + ", Version " + versionToCompactNumber);
-    HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
+    HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf, hdfsUserName, hdfsGroupName);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
     compactor.buildHankDomain(properties);
