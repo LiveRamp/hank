@@ -44,27 +44,12 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   private static final Logger LOG = Logger.getLogger(HadoopDomainCompactor.class);
 
-  private final String hdfsUserName;
-  private final String hdfsGroupName;
-
   public HadoopDomainCompactor() {
     super();
-    hdfsUserName = null;
-    hdfsGroupName = null;
   }
 
   public HadoopDomainCompactor(JobConf conf) {
     super(conf);
-    hdfsUserName = null;
-    hdfsGroupName = null;
-  }
-
-  public HadoopDomainCompactor(JobConf conf,
-                               String hdfsUserName,
-                               String hdfsGroupName) {
-    super(conf);
-    this.hdfsUserName = hdfsUserName;
-    this.hdfsGroupName = hdfsGroupName;
   }
 
   @Override
@@ -86,12 +71,14 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     conf.setOutputValueClass(NullWritable.class);
   }
 
-  private class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
+  private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
 
     private Domain domain;
     private File localTmpOutput;
     private String outputPath;
     private DomainVersion domainVersionToCompact;
+    private String hdfsUserName;
+    private String hdfsGroupName;
 
     @Override
     public void configure(JobConf conf) {
@@ -116,6 +103,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         throw new RuntimeException("Failed to load Version " + versionNumberToCompact
             + " of Domain " + domain.getName(), e);
       }
+      hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
+      hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
     }
 
     @Override
@@ -285,12 +274,12 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     String jobJar = args[5];
 
     DomainCompactorProperties properties =
-        new DomainCompactorProperties(domainName, versionToCompactNumber, configurator);
+        new DomainCompactorProperties(domainName, versionToCompactNumber, configurator, hdfsUserName, hdfsGroupName);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
     conf.setJobName(HadoopDomainCompactor.class.getSimpleName()
         + " Domain " + domainName + ", Version " + versionToCompactNumber);
-    HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf, hdfsUserName, hdfsGroupName);
+    HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
     compactor.buildHankDomain(properties);
