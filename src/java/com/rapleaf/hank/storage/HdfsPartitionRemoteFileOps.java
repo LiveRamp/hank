@@ -19,10 +19,13 @@ package com.rapleaf.hank.storage;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
+
+  private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
 
   public static class Factory implements PartitionRemoteFileOpsFactory {
     @Override
@@ -74,8 +77,10 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public void copyToRemoteRoot(String localSourcePath) throws IOException {
     Path source = new Path(localSourcePath);
     Path destination = new Path(getAbsolutePath(source.getName()));
+    LOG.info("Copying local file " + source + " to remote file " + destination);
     fs.copyFromLocalFile(source, destination);
-    if (remoteFsUserName != null && remoteFsGroupName != null) {
+    if (remoteFsUserName != null || remoteFsGroupName != null) {
+      LOG.info("Changing owner of " + destination + " to " + remoteFsUserName + "," + remoteFsGroupName);
       fs.setOwner(destination, remoteFsUserName, remoteFsGroupName);
       fs.setOwner(partitionRootPath, remoteFsUserName, remoteFsGroupName);
     }

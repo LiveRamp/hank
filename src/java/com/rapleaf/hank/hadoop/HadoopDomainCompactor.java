@@ -26,6 +26,9 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.util.CommandLineChecker;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -75,10 +78,11 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     private Domain domain;
     private File localTmpOutput;
-    private String outputPath;
     private DomainVersion domainVersionToCompact;
     private String hdfsUserName;
     private String hdfsGroupName;
+    private String outputPath;
+    private FileSystem fs;
 
     @Override
     public void configure(JobConf conf) {
@@ -95,7 +99,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       if (localTmpOutput.exists() || !localTmpOutput.mkdirs()) {
         throw new RuntimeException("Failed to initialize local temporary output directory " + localTmpOutputPath);
       }
-      outputPath = DomainBuilderOutputFormat.getTaskAttemptOutputPath(conf);
       int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
       try {
         domainVersionToCompact = domain.getVersionByNumber(versionNumberToCompact);
@@ -105,6 +108,18 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       }
       hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
       hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
+      // Create output directory
+      outputPath = DomainBuilderOutputFormat.getTaskAttemptOutputPath(conf);
+      Path outputPathPath = new Path(outputPath);
+      try {
+        fs = FileSystem.get(new Configuration());
+        fs.mkdirs(outputPathPath);
+        if (hdfsUserName != null || hdfsGroupName != null) {
+          fs.setOwner(outputPathPath, hdfsUserName, hdfsGroupName);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to create output directory " + outputPath, e);
+      }
     }
 
     @Override
