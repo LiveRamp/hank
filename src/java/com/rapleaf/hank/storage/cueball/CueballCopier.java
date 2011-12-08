@@ -31,8 +31,10 @@ public class CueballCopier implements Copier {
 
   @Override
   public void copyVersionTo(int versionNumber,
+                            int newVersionNumber,
                             PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
     String fileName = localDir + "/" + Cueball.getName(versionNumber, true);
-    partitionRemoteFileOps.copyToRemoteRoot(fileName);
+    String newRemoteFileName = Cueball.getName(newVersionNumber, true);
+    partitionRemoteFileOps.copyToRemoteRoot(fileName, newRemoteFileName);
   }
 }

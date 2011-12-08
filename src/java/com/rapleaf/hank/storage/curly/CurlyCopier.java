@@ -32,9 +32,12 @@ public class CurlyCopier implements Copier {
   }
 
   @Override
-  public void copyVersionTo(int versionNumber, PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
-    keyFileCopier.copyVersionTo(versionNumber, partitionRemoteFileOps);
+  public void copyVersionTo(int versionNumber,
+                            int newVersionNumber,
+                            PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+    keyFileCopier.copyVersionTo(versionNumber, newVersionNumber, partitionRemoteFileOps);
     String fileName = localDir + "/" + Curly.getName(versionNumber, true);
-    partitionRemoteFileOps.copyToRemoteRoot(fileName);
+    String newRemoteFileName = Curly.getName(newVersionNumber, true);
+    partitionRemoteFileOps.copyToRemoteRoot(fileName, newRemoteFileName);
   }
 }

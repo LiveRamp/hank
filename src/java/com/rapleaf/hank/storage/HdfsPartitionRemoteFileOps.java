@@ -74,9 +74,9 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public void copyToRemoteRoot(String localSourcePath) throws IOException {
+  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
     Path source = new Path(localSourcePath);
-    Path destination = new Path(getAbsolutePath(source.getName()));
+    Path destination = new Path(getAbsolutePath(remoteDestinationRelativePath));
     LOG.info("Copying local file " + source + " to remote file " + destination);
     fs.copyFromLocalFile(source, destination);
     if (remoteFsUserName != null || remoteFsGroupName != null) {

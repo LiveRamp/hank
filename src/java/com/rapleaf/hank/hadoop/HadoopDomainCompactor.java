@@ -79,6 +79,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private Domain domain;
     private File localTmpOutput;
     private DomainVersion domainVersionToCompact;
+    private int domainVersionNumberToCreate;
     private String hdfsUserName;
     private String hdfsGroupName;
     private String outputPath;
@@ -99,6 +100,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       if (localTmpOutput.exists() || !localTmpOutput.mkdirs()) {
         throw new RuntimeException("Failed to initialize local temporary output directory " + localTmpOutputPath);
       }
+      // Determine version to compact
       int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
       try {
         domainVersionToCompact = domain.getVersionByNumber(versionNumberToCompact);
@@ -106,6 +108,9 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         throw new RuntimeException("Failed to load Version " + versionNumberToCompact
             + " of Domain " + domain.getName(), e);
       }
+      // Determine version to create
+      domainVersionNumberToCreate = DomainBuilderProperties.getVersionNumber(domain.getName(), conf);
+      // Determine custom HDFS owners
       hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
       hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
       // Create output directory
@@ -144,6 +149,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       // Copy resulting compacted partition
       domain.getStorageEngine().getCopier(dataDirectoriesConfigurator, partitionNumber.get())
           .copyVersionTo(domainVersionToCompact.getVersionNumber(),
+              domainVersionNumberToCreate,
               new HdfsPartitionRemoteFileOps(outputPath, partitionNumber.get(), hdfsUserName, hdfsGroupName));
     }
 

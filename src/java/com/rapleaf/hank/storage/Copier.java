@@ -21,5 +21,6 @@ import java.io.IOException;
 public interface Copier {
 
   public void copyVersionTo(int versionNumber,
+                            int newVersionNumber,
                             PartitionRemoteFileOps partitionRemoteFileOps) throws IOException;
 }
