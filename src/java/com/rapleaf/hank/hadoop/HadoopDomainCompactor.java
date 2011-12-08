@@ -284,19 +284,22 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     CommandLineChecker.check(args, new String[]{
-        "domain name", "version to compact number", "HDFS user name", "HDFS group name", "config path", "jobjar"},
+        "domain name", "version to compact number", "HDFS user name", "HDFS group name", "mapred.task.timeout",
+        "config path", "jobjar"},
         HadoopDomainCompactor.class);
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
     String hdfsUserName = args[2];
     String hdfsGroupName = args[3];
-    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[4]);
-    String jobJar = args[5];
+    Integer mapredTaskTimeout = Integer.valueOf(args[4]);
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[5]);
+    String jobJar = args[6];
 
     DomainCompactorProperties properties =
         new DomainCompactorProperties(domainName, versionToCompactNumber, configurator, hdfsUserName, hdfsGroupName);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
+    conf.set("mapred.task.timeout", mapredTaskTimeout.toString());
     conf.setJobName(HadoopDomainCompactor.class.getSimpleName()
         + " Domain " + domainName + ", Version " + versionToCompactNumber);
     HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
