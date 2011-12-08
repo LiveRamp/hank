@@ -11,6 +11,7 @@ import org.apache.hadoop.mapred.JobConf;
 import java.io.*;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 public class DomainBuilderProperties {
 
@@ -103,7 +104,7 @@ public class DomainBuilderProperties {
   }
 
   public String getTmpOutputPath(int versionNumber) {
-    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "/";
+    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "_" + UUID.randomUUID().toString() + "/";
   }
 
   public Class<? extends DomainBuilderOutputFormat> getOutputFormatClass() {
