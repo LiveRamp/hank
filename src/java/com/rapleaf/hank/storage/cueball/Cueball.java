@@ -186,7 +186,9 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                                OutputStreamFactory outputStreamFactory,
+                                int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -262,11 +264,5 @@ public class Cueball implements StorageEngine {
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     return new CueballDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
-  }
-
-  @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getLocalDir(configurator, partitionNumber);
-    return new CueballCopier(localDir);
   }
 }

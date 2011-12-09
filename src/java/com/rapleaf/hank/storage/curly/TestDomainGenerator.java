@@ -58,7 +58,7 @@ public class TestDomainGenerator {
     }
 
     final Curly curly = new Curly(hashLength, h, 10L * 1024 * 1024 * 1024,
-        indexBits, 32 * 1024, "", null, codecClass, false, null);
+      indexBits, 32 * 1024, "", null, codecClass, null);
 
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
       Collections.sort(part.getValue(), new Comparator<byte[]>() {

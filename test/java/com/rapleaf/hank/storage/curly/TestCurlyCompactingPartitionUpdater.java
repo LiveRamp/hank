@@ -54,7 +54,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
       }
     }
   };
-  private CurlyCompactingPartitionUpdater updater;
+  private CurlyCompactor updater;
 
   @Override
   public void setUp() throws Exception {
@@ -94,13 +94,15 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
       }
     };
 
-    this.updater = new CurlyCompactingPartitionUpdater(domain,
+    this.updater = new CurlyCompactor(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         localPartitionRoot,
+        0,
         merger,
         cueballStreamBufferMergeSortFactory,
         null,
-        curlyWriterFactory);
+        curlyWriterFactory,
+        null); //TODO: should provide an output stream factory
 
     if (!new File(updateWorkRoot).mkdir()) {
       throw new IOException("Failed to create update work root");

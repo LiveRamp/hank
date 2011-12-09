@@ -44,7 +44,9 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                                OutputStreamFactory outputStreamFactory,
+                                int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -66,10 +68,5 @@ public class Echo implements StorageEngine {
       public void cleanVersion(int versionNumber) throws IOException {
       }
     };
-  }
-
-  @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    throw new UnsupportedOperationException();
   }
 }

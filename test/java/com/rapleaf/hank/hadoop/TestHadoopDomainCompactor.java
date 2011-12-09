@@ -24,10 +24,12 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.storage.PartitionUpdater;
+import com.rapleaf.hank.storage.Compactor;
+import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class TestHadoopDomainCompactor extends HadoopTestCase {
 
@@ -40,25 +42,25 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
 
   public void setUp() throws Exception {
     super.setUp();
-    LocalMockCoordinatorConfigurator.compactingUpdater = new LocalMockPartitionUpdater();
+    LocalMockCoordinatorConfigurator.compactor = new LocalMockCompactor();
     LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, Long.valueOf(0));
   }
 
-  private static class LocalMockPartitionUpdater implements PartitionUpdater {
+  private static class LocalMockCompactor implements Compactor {
 
-    public DomainVersion updatingToVersion;
+    public DomainVersion versionToCompact;
     public int numCalls = 0;
 
     @Override
-    public void updateTo(DomainVersion updatingToVersion) throws IOException {
-      this.updatingToVersion = updatingToVersion;
+    public void compact(DomainVersion versionToCompact, DomainVersion newCompactedVersion) throws IOException {
+      this.versionToCompact = versionToCompact;
       ++numCalls;
     }
   }
 
   private static class LocalMockCoordinatorConfigurator implements CoordinatorConfigurator {
 
-    private static LocalMockPartitionUpdater compactingUpdater;
+    private static LocalMockCompactor compactor;
     private static DomainVersion versionToCompact;
 
     @Override
@@ -69,11 +71,12 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
           return new MockDomain(domainName, 0, 2, null,
               new MockStorageEngine() {
                 @Override
-                public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator,
-                                                             int partitionNumber) throws IOException {
-                  return compactingUpdater;
+                public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                                              OutputStreamFactory outputStreamFactory,
+                                              int partitionNumber) throws IOException {
+                  return compactor;
                 }
-              }, null, versionToCompact);
+              }, Collections.<String, Object>emptyMap(), versionToCompact);
         }
       };
     }
@@ -86,8 +89,8 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
     new HadoopDomainCompactor().buildHankDomain(properties);
 
     // Check that updater was called with correct version twice
-    assertEquals(2, LocalMockCoordinatorConfigurator.compactingUpdater.numCalls);
-    assertEquals(LocalMockCoordinatorConfigurator.versionToCompact,
-        LocalMockCoordinatorConfigurator.compactingUpdater.updatingToVersion);
+    assertEquals(2, LocalMockCoordinatorConfigurator.compactor.numCalls);
+    assertEquals(LocalMockCoordinatorConfigurator.versionToCompact.getVersionNumber(),
+        LocalMockCoordinatorConfigurator.compactor.versionToCompact.getVersionNumber());
   }
 }

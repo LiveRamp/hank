@@ -37,7 +37,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
     Domain domain = DomainBuilderProperties.getDomain(conf);
     // Always return a no-op OutputStream
     return new DomainBuilderRecordWriter(domain, VersionType.BASE, new OutputStreamFactory() {
-      public OutputStream getOutputStream(int partNum, String name)
+      public OutputStream getOutputStream(int partitionNumber, String name)
           throws IOException {
         return new OutputStream() {
           @Override

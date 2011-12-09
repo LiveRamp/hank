@@ -28,8 +28,8 @@ public class LocalDiskOutputStreamFactory implements OutputStreamFactory {
   }
 
   @Override
-  public OutputStream getOutputStream(int partNum, String name) throws IOException {
-    String fullPath = basePath + "/" + partNum + "/" + name;
+  public OutputStream getOutputStream(int partitionNumber, String name) throws IOException {
+    String fullPath = basePath + "/" + partitionNumber + "/" + name;
     new File(new File(fullPath).getParent()).mkdirs();
     return new FileOutputStream(fullPath);
   }

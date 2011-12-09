@@ -68,12 +68,16 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
     conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
         CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
         Integer.toString(versionToCompactNumber));
-    // HDFS Username
-    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        CONF_PARAM_HANK_HDFS_USER_NAME), hdfsUserName);
-    // HDFS Groupname
-    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        CONF_PARAM_HANK_HDFS_GROUP_NAME), hdfsGroupName);
+    if (hdfsUserName != null) {
+      // HDFS Username
+      conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+          CONF_PARAM_HANK_HDFS_USER_NAME), hdfsUserName);
+    }
+    if (hdfsGroupName != null) {
+      // HDFS Groupname
+      conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+          CONF_PARAM_HANK_HDFS_GROUP_NAME), hdfsGroupName);
+    }
     return conf;
   }
 

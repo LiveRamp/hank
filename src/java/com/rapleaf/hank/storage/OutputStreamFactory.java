@@ -23,5 +23,5 @@ import java.io.OutputStream;
  * in different environments.
  */
 public interface OutputStreamFactory {
-  public OutputStream getOutputStream(int partNum, String name) throws IOException;
+  public OutputStream getOutputStream(int partitionNumber, String name) throws IOException;
 }

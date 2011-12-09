@@ -19,8 +19,8 @@ public class TestCurlyDomainVersionCleaner extends ZkTestCase {
 
   public void testIt() throws Exception {
     final Curly storageEngine = new Curly(1, new Murmur64Hasher(), 100000, 1, 1000, localDiskRoot,
-        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, false,
-        new MockDomain("domain", 0, 1, null, null, null, null));
+      new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
+      new MockDomain("domain", 0, 1, null, null, null, null));
     Writer writer = storageEngine.getWriter(new LocalDiskOutputStreamFactory(localDiskRoot), 0, 1, true);
     writer.write(key, value);
     writer.close();

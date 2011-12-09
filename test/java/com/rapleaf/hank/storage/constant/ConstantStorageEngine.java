@@ -57,7 +57,9 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                                OutputStreamFactory outputStreamFactory,
+                                int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -79,11 +81,6 @@ public class ConstantStorageEngine implements StorageEngine {
 
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 }

@@ -40,7 +40,9 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+  public Compactor getCompactor(DataDirectoriesConfigurator configurator,
+                                OutputStreamFactory outputStreamFactory,
+                                int partitionNumber) throws IOException {
     return null;
   }
 
@@ -64,10 +66,5 @@ public class MockStorageEngine implements StorageEngine {
   @Override
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     throw new NotImplementedException();
-  }
-
-  @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return null;
   }
 }

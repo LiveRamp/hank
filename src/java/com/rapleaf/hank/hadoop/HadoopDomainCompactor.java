@@ -23,8 +23,7 @@ import com.rapleaf.hank.config.SimpleDataDirectoriesConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
-import com.rapleaf.hank.storage.PartitionUpdater;
+import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -79,7 +78,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private Domain domain;
     private File localTmpOutput;
     private DomainVersion domainVersionToCompact;
-    private int domainVersionNumberToCreate;
+    private DomainVersion domainVersionToCreate;
     private String hdfsUserName;
     private String hdfsGroupName;
     private String outputPath;
@@ -109,7 +108,13 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
             + " of Domain " + domain.getName(), e);
       }
       // Determine version to create
-      domainVersionNumberToCreate = DomainBuilderProperties.getVersionNumber(domain.getName(), conf);
+      int versionNumberToCreate = DomainBuilderProperties.getVersionNumber(domain.getName(), conf);
+      try {
+        domainVersionToCreate = domain.getVersionByNumber(versionNumberToCreate);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to load Version " + versionNumberToCreate
+            + " of Domain " + domain.getName(), e);
+      }
       // Determine custom HDFS owners
       hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
       hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
@@ -138,19 +143,16 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       // Get compacting updater
       DataDirectoriesConfigurator dataDirectoriesConfigurator =
           new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
-      PartitionUpdater compactingUpdater = domain.getStorageEngine()
-          .getCompactingUpdater(dataDirectoriesConfigurator, partitionNumber.get());
-      if (compactingUpdater == null) {
+      Compactor compactor = domain.getStorageEngine()
+          .getCompactor(dataDirectoriesConfigurator,
+              new HDFSOutputStreamFactory(fs, outputPath),
+              partitionNumber.get());
+      if (compactor == null) {
         throw new RuntimeException("Failed to load compacting updater for domain " + domain.getName()
             + " with storage engine: " + domain.getStorageEngine());
       }
-      // Perform compacting update
-      compactingUpdater.updateTo(domainVersionToCompact);
-      // Copy resulting compacted partition
-      domain.getStorageEngine().getCopier(dataDirectoriesConfigurator, partitionNumber.get())
-          .copyVersionTo(domainVersionToCompact.getVersionNumber(),
-              domainVersionNumberToCreate,
-              new HdfsPartitionRemoteFileOps(outputPath, partitionNumber.get(), hdfsUserName, hdfsGroupName));
+      // Perform compaction
+      compactor.compact(domainVersionToCompact, domainVersionToCreate);
     }
 
     @Override

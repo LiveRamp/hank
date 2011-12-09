@@ -16,13 +16,12 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.io.OutputStream;
-
+import com.rapleaf.hank.storage.OutputStreamFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class HDFSOutputStreamFactory implements OutputStreamFactory {
 
@@ -35,12 +34,12 @@ public class HDFSOutputStreamFactory implements OutputStreamFactory {
   }
 
   @Override
-  public OutputStream getOutputStream(int partNum, String name) {
+  public OutputStream getOutputStream(int partitionNumber, String name) {
     try {
-      return fs.create(new Path(getPath(outputPath, partNum, name)), false);
+      return fs.create(new Path(getPath(outputPath, partitionNumber, name)), false);
     } catch (IOException e) {
       throw new RuntimeException("Could not create output stream for partition "
-          + partNum + " of " + name + " in output path: " + outputPath);
+          + partitionNumber + " of " + name + " in output path: " + outputPath);
     }
   }
 

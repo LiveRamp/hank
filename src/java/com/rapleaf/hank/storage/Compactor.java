@@ -16,11 +16,11 @@
 
 package com.rapleaf.hank.storage;
 
+import com.rapleaf.hank.coordinator.DomainVersion;
+
 import java.io.IOException;
 
-public interface Copier {
+public interface Compactor {
 
-  public void copyVersionTo(int versionNumber,
-                            int newVersionNumber,
-                            PartitionRemoteFileOps partitionRemoteFileOps) throws IOException;
+  public void compact(DomainVersion versionToCompact, DomainVersion newCompactedVersion) throws IOException;
 }
