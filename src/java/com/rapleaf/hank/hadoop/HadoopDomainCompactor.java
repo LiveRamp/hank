@@ -158,6 +158,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public void close() throws IOException {
+      LOG.info("Deleting local temporary directory " + localTmpOutput.getAbsolutePath());
       FileUtils.deleteDirectory(localTmpOutput);
     }
   }
