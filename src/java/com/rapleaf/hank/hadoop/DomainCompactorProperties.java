@@ -22,7 +22,7 @@ import org.apache.hadoop.mapred.JobConf;
 
 public class DomainCompactorProperties extends DomainBuilderProperties {
 
-  public static final String CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT = "com.rapleaf.hank.output.version_number_to_compact";
+  public static final String CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT = "com.rapleaf.hank.compactor.version_number_to_compact";
   public static final String CONF_PARAM_HANK_HDFS_USER_NAME = "com.rapleaf.hank.hdfs.username";
   public static final String CONF_PARAM_HANK_HDFS_GROUP_NAME = "com.rapleaf.hank.hdfs.groupname";
 
@@ -65,16 +65,13 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
   public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
     super.setJobConfProperties(conf, versionNumber);
     // Version Number to compact
-    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
-        CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
-        Integer.toString(versionToCompactNumber));
+    // HDFS Username
     if (hdfsUserName != null) {
-      // HDFS Username
       conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
           CONF_PARAM_HANK_HDFS_USER_NAME), hdfsUserName);
     }
+    // HDFS Groupname
     if (hdfsGroupName != null) {
-      // HDFS Groupname
       conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
           CONF_PARAM_HANK_HDFS_GROUP_NAME), hdfsGroupName);
     }
