@@ -65,6 +65,9 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
   public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
     super.setJobConfProperties(conf, versionNumber);
     // Version Number to compact
+    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+        CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
+        Integer.toString(versionToCompactNumber));
     // HDFS Username
     if (hdfsUserName != null) {
       conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
