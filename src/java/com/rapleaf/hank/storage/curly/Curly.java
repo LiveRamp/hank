@@ -208,14 +208,14 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    return new CurlyReader(getLocalDir(configurator, partNum), recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator, partNum));
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    return new CurlyReader(getLocalDir(configurator, partitionNumber), recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator, partitionNumber));
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException {
-    OutputStream outputStream = streamFactory.getOutputStream(partNum, getName(versionNumber, base));
-    Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partNum, versionNumber, base);
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean base) throws IOException {
+    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber, getName(versionNumber, base));
+    Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partitionNumber, versionNumber, base);
     return new CurlyWriter(outputStream, cueballWriter, offsetSize);
   }
 
@@ -224,25 +224,25 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    File localDir = new File(getLocalDir(configurator, partNum));
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    File localDir = new File(getLocalDir(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
     if (compactOnUpdate) {
-      return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partNum);
+      return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partitionNumber);
     } else {
-      return getFastPartitionUpdater(localDir.getAbsolutePath(), partNum);
+      return getFastPartitionUpdater(localDir.getAbsolutePath(), partitionNumber);
     }
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    File localDir = new File(getLocalDir(configurator, partNum));
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    File localDir = new File(getLocalDir(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
-    return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partNum);
+    return getCompactingPartitionUpdater(localDir.getAbsolutePath(), partitionNumber);
   }
 
   private CurlyCompactingPartitionUpdater getCompactingPartitionUpdater(String localDir,
@@ -294,9 +294,9 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
       throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
+    String localDir = getLocalDir(configurator, partitionNumber);
     return new CurlyDeleter(localDir);
   }
 
@@ -366,8 +366,8 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    String localDir = getLocalDir(configurator, partitionNumber);
     return new CurlyCopier(localDir, new CueballCopier(localDir));
   }
 }

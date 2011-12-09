@@ -70,7 +70,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
               new MockStorageEngine() {
                 @Override
                 public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator,
-                                                             int partNum) throws IOException {
+                                                             int partitionNumber) throws IOException {
                   return compactingUpdater;
                 }
               }, null, versionToCompact);

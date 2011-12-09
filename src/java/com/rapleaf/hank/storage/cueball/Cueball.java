@@ -155,8 +155,8 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    return new CueballReader(getLocalDir(configurator, partNum), keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec());
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    return new CueballReader(getLocalDir(configurator, partitionNumber), keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec());
   }
 
   private CompressionCodec getCompressionCodec() throws IOException {
@@ -168,15 +168,15 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory outputStream, int partNum, int versionNumber, boolean base) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partNum, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
+  public Writer getWriter(OutputStreamFactory outputStream, int partitionNumber, int versionNumber, boolean base) throws IOException {
+    return new CueballWriter(outputStream.getOutputStream(partitionNumber, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
+        fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -186,7 +186,7 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -197,8 +197,8 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballDeleter(localDir);
   }
 
@@ -265,8 +265,8 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
-    String localDir = getLocalDir(configurator, partNum);
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
+    String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballCopier(localDir);
   }
 }

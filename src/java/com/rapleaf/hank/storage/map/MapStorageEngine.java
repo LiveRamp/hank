@@ -59,15 +59,15 @@ public class MapStorageEngine extends MockStorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
                           int versionNumber, boolean base) throws IOException {
     if (!partitions.containsKey(domainName)) {
       partitions.put(domainName, new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>());
     }
-    if (!partitions.get(domainName).containsKey(partNum)) {
-      partitions.get(domainName).put(partNum, new HashMap<ByteBuffer, ByteBuffer>());
+    if (!partitions.get(domainName).containsKey(partitionNumber)) {
+      partitions.get(domainName).put(partitionNumber, new HashMap<ByteBuffer, ByteBuffer>());
     }
-    return new MapWriter(partitions.get(domainName).get(partNum));
+    return new MapWriter(partitions.get(domainName).get(partitionNumber));
   }
 
   @Override

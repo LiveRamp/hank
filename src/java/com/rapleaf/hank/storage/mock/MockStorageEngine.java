@@ -28,32 +28,32 @@ public class MockStorageEngine implements StorageEngine {
   public boolean getReaderCalled;
 
   @Override
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum)
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber)
       throws IOException {
     getReaderCalled = true;
     return null;
   }
 
   @Override
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) {
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) {
     return null;
   }
 
   @Override
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     return null;
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
                           int versionNumber, boolean base) throws IOException {
     return null;
   }
 
   @Override
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
       throws IOException {
-    return new MockDeleter(partNum);
+    return new MockDeleter(partitionNumber);
   }
 
   @Override
@@ -67,7 +67,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException {
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     return null;
   }
 }

@@ -27,19 +27,19 @@ import java.nio.ByteBuffer;
  */
 public interface StorageEngine {
 
-  public Reader getReader(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
+  public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
-  public Writer getWriter(OutputStreamFactory streamFactory, int partNum, int versionNumber, boolean base) throws IOException;
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean base) throws IOException;
 
-  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
+  public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
-  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
+  public PartitionUpdater getCompactingUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
-  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
+  public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
   public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException;
 
-  public Copier getCopier(DataDirectoriesConfigurator configurator, int partNum) throws IOException;
+  public Copier getCopier(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 }

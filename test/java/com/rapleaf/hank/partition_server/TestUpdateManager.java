@@ -93,12 +93,12 @@ public class TestUpdateManager extends BaseTestCase {
       }
 
       @Override
-      public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partNum) {
+      public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) {
         return updater;
       }
 
       @Override
-      public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partNum)
+      public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
           throws IOException {
         return MOCK_DELETER;
       }

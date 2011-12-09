@@ -89,9 +89,9 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   private static class IntStringKeyStorageEngine extends MockStorageEngine {
     @Override
-    public Writer getWriter(OutputStreamFactory streamFactory, int partNum,
+    public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
                             int versionNumber, boolean base) throws IOException {
-      return new IntStringKeyWriter(streamFactory, partNum, versionNumber, base);
+      return new IntStringKeyWriter(streamFactory, partitionNumber, versionNumber, base);
     }
 
     @Override
