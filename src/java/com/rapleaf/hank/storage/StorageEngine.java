@@ -29,7 +29,7 @@ public interface StorageEngine {
 
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean base) throws IOException;
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException;
 
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 

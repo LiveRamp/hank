@@ -168,8 +168,8 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory outputStream, int partitionNumber, int versionNumber, boolean base) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partitionNumber, getName(versionNumber, base)), keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
+  public Writer getWriter(OutputStreamFactory outputStream, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
+    return new CueballWriter(outputStream.getOutputStream(partitionNumber, getName(versionNumber, isBase)), keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
   }
 
   @Override

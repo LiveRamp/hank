@@ -213,9 +213,9 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean base) throws IOException {
-    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber, getName(versionNumber, base));
-    Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partitionNumber, versionNumber, base);
+  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
+    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber, getName(versionNumber, isBase));
+    Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partitionNumber, versionNumber, isBase);
     return new CurlyWriter(outputStream, cueballWriter, offsetSize);
   }
 

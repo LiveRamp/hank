@@ -60,7 +60,7 @@ public class MapStorageEngine extends MockStorageEngine {
 
   @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
-                          int versionNumber, boolean base) throws IOException {
+                          int versionNumber, boolean isBase) throws IOException {
     if (!partitions.containsKey(domainName)) {
       partitions.put(domainName, new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>());
     }
