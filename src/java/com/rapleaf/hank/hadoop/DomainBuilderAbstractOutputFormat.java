@@ -36,7 +36,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 // Base class of output formats used to build domains.
-public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
+public abstract class DomainBuilderAbstractOutputFormat
+    implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
 
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATOR = "com.rapleaf.hank.configuration";
@@ -49,6 +50,7 @@ public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<
     return domainName + "#" + confParamName;
   }
 
+  @Override
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
       throws IOException {
     String outputPath = getJobOutputPath(conf);
@@ -57,7 +59,7 @@ public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<
     }
   }
 
-  public static String getTaskAttemptOutputPath(JobConf conf) {
+  protected static String getTaskAttemptOutputPath(JobConf conf) {
     String outputPath = conf.get("mapred.work.output.dir");
     if (outputPath == null) {
       throw new RuntimeException("Path was not set in mapred.work.output.dir");
@@ -96,11 +98,13 @@ public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<
       this.outputStreamFactory = outputStreamFactory;
     }
 
+    @Override
     public final void close(Reporter reporter) throws IOException {
       // Close current writer
       closeCurrentWriterIfNeeded();
     }
 
+    @Override
     public final void write(KeyAndPartitionWritable key, ValueWritable value) throws IOException {
       int partition = key.getPartition();
       // If writing a new partition, get a new writer
@@ -127,14 +131,16 @@ public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<
         throw new IOException("There is no version currently open for domain "
             + domain.getName());
       }
-      writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(), versionType.equals(VersionType.BASE));
+      writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(),
+          versionType.equals(VersionType.BASE));
       writerPartition = partition;
       writtenPartitions.add(partition);
     }
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        Domains.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(), writer.getNumRecordsWritten());
+        Domains.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(),
+            writer.getNumRecordsWritten());
         writer.close();
       }
     }
