@@ -26,7 +26,7 @@ import org.apache.hadoop.util.Progressable;
 import java.io.IOException;
 
 
-public class DomainBuilderDefaultOutputFormat extends DomainBuilderOutputFormat {
+public class DomainBuilderDefaultOutputFormat extends DomainBuilderAbstractOutputFormat {
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)

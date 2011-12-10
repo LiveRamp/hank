@@ -65,35 +65,35 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
   public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
     super.setJobConfProperties(conf, versionNumber);
     // Version Number to compact
-    conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+    conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
         Integer.toString(versionToCompactNumber));
     // HDFS Username
     if (hdfsUserName != null) {
-      conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+      conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
           CONF_PARAM_HANK_HDFS_USER_NAME), hdfsUserName);
     }
     // HDFS Groupname
     if (hdfsGroupName != null) {
-      conf.set(DomainBuilderOutputFormat.createConfParamName(getDomainName(),
+      conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
           CONF_PARAM_HANK_HDFS_GROUP_NAME), hdfsGroupName);
     }
     return conf;
   }
 
   public static int getVersionNumberToCompact(String domainName, JobConf conf) {
-    return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderOutputFormat.createConfParamName(domainName,
+    return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
         CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
         "Hank version number to compact", conf));
   }
 
   public static String getHdfsUserName(JobConf conf) {
-    return conf.get(DomainBuilderOutputFormat.createConfParamName(getDomainName(conf),
+    return conf.get(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(conf),
         CONF_PARAM_HANK_HDFS_USER_NAME));
   }
 
   public static String getHdfsGroupName(JobConf conf) {
-    return conf.get(DomainBuilderOutputFormat.createConfParamName(getDomainName(conf),
+    return conf.get(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(conf),
         CONF_PARAM_HANK_HDFS_GROUP_NAME));
   }
 }

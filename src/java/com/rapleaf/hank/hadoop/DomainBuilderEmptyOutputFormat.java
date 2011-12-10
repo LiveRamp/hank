@@ -30,7 +30,7 @@ import com.rapleaf.hank.storage.VersionType;
 
 // This class is intended to be used for testing. It does not output anything but
 // still forwards key,value pairs to the underlying Writer from the Domain.
-public class DomainBuilderEmptyOutputFormat extends DomainBuilderOutputFormat {
+public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputFormat {
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {

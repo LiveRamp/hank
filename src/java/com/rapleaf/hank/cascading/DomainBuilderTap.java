@@ -30,7 +30,7 @@ import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
-import com.rapleaf.hank.hadoop.DomainBuilderOutputFormat;
+import com.rapleaf.hank.hadoop.DomainBuilderAbstractOutputFormat;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.KeyAndPartitionWritable;
 import com.rapleaf.hank.hadoop.ValueWritable;
@@ -42,7 +42,7 @@ public class DomainBuilderTap extends Hfs {
 
   private static final long serialVersionUID = 1L;
   private final String domainName;
-  private final Class<? extends DomainBuilderOutputFormat> outputFormatClass;
+  private final Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass;
 
   public DomainBuilderTap(String keyFieldName, String valueFieldName, int versionNumber, DomainBuilderProperties properties) {
     // Set the output to the temporary output path
@@ -60,11 +60,11 @@ public class DomainBuilderTap extends Hfs {
     // Output Committer
     conf.setOutputCommitter(DomainBuilderOutputCommitter.class);
     // Set this tap's Domain name locally in the conf
-    if (conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME) != null) {
+    if (conf.get(DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME) != null) {
       throw new RuntimeException("Trying to set domain name configuration parameter to " + domainName +
-          " but it was previously set to " + conf.get(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME));
+          " but it was previously set to " + conf.get(DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME));
     } else {
-      conf.set(DomainBuilderOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
+      conf.set(DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, domainName);
     }
   }
 

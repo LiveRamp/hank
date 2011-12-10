@@ -36,7 +36,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 // Base class of output formats used to build domains.
-public abstract class DomainBuilderOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
+public abstract class DomainBuilderAbstractOutputFormat implements OutputFormat<KeyAndPartitionWritable, ValueWritable> {
 
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATOR = "com.rapleaf.hank.configuration";

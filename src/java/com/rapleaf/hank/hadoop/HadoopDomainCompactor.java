@@ -120,7 +120,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
       hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
       // Create output directory
-      outputPath = DomainBuilderOutputFormat.getTaskAttemptOutputPath(conf);
+      outputPath = DomainBuilderAbstractOutputFormat.getTaskAttemptOutputPath(conf);
       Path outputPathPath = new Path(outputPath);
       try {
         fs = FileSystem.get(new Configuration());
