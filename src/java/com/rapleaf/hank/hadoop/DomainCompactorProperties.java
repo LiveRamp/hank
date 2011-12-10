@@ -22,32 +22,16 @@ import org.apache.hadoop.mapred.JobConf;
 
 public class DomainCompactorProperties extends DomainBuilderProperties {
 
-  public static final String CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT = "com.rapleaf.hank.compactor.version_number_to_compact";
-  public static final String CONF_PARAM_HANK_HDFS_USER_NAME = "com.rapleaf.hank.hdfs.username";
-  public static final String CONF_PARAM_HANK_HDFS_GROUP_NAME = "com.rapleaf.hank.hdfs.groupname";
+  public static final String CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT
+      = "com.rapleaf.hank.compactor.version_number_to_compact";
 
   private final int versionToCompactNumber;
-  private final String hdfsUserName;
-  private final String hdfsGroupName;
 
   public DomainCompactorProperties(String domainName,
                                    int versionToCompactNumber,
                                    CoordinatorConfigurator configurator) {
     super(domainName, VersionType.BASE, configurator);
     this.versionToCompactNumber = versionToCompactNumber;
-    this.hdfsUserName = null;
-    this.hdfsGroupName = null;
-  }
-
-  public DomainCompactorProperties(String domainName,
-                                   int versionToCompactNumber,
-                                   CoordinatorConfigurator configurator,
-                                   String hdfsUserName,
-                                   String hdfsGroupName) {
-    super(domainName, VersionType.BASE, configurator);
-    this.versionToCompactNumber = versionToCompactNumber;
-    this.hdfsUserName = hdfsUserName;
-    this.hdfsGroupName = hdfsGroupName;
   }
 
   public DomainCompactorProperties(String domainName,
@@ -56,8 +40,6 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
                                    String outputPath) {
     super(domainName, VersionType.BASE, configurator, outputPath);
     this.versionToCompactNumber = versionToCompactNumber;
-    this.hdfsUserName = null;
-    this.hdfsGroupName = null;
   }
 
   // To configure Hadoop MapReduce jobs
@@ -68,32 +50,12 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
     conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
         Integer.toString(versionToCompactNumber));
-    // HDFS Username
-    if (hdfsUserName != null) {
-      conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
-          CONF_PARAM_HANK_HDFS_USER_NAME), hdfsUserName);
-    }
-    // HDFS Groupname
-    if (hdfsGroupName != null) {
-      conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
-          CONF_PARAM_HANK_HDFS_GROUP_NAME), hdfsGroupName);
-    }
     return conf;
   }
 
   public static int getVersionNumberToCompact(String domainName, JobConf conf) {
-    return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
-        CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
+    return Integer.valueOf(getRequiredConfigurationItem(
+        DomainBuilderAbstractOutputFormat.createConfParamName(domainName, CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT),
         "Hank version number to compact", conf));
-  }
-
-  public static String getHdfsUserName(JobConf conf) {
-    return conf.get(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(conf),
-        CONF_PARAM_HANK_HDFS_USER_NAME));
-  }
-
-  public static String getHdfsGroupName(JobConf conf) {
-    return conf.get(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(conf),
-        CONF_PARAM_HANK_HDFS_GROUP_NAME));
   }
 }

@@ -37,7 +37,6 @@ public interface StorageEngine {
       throws IOException;
 
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
-                                OutputStreamFactory outputStreamFactory,
                                 int partitionNumber) throws IOException;
 
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;

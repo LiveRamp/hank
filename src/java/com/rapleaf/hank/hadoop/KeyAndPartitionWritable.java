@@ -16,16 +16,15 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
+import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
-import com.rapleaf.hank.coordinator.Domain;
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartitionWritable> {
   private BytesWritable key;
@@ -72,5 +71,9 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
   @Override
   public String toString() {
     return "<key: " + key.toString() + ", partition: " + partition.toString() + ">";
+  }
+
+  public void setKey(BytesWritable key) {
+    this.key = key;
   }
 }

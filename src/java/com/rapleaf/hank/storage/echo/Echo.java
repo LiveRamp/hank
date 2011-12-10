@@ -45,7 +45,6 @@ public class Echo implements StorageEngine {
 
   @Override
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
-                                OutputStreamFactory outputStreamFactory,
                                 int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }

@@ -25,7 +25,7 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.storage.Compactor;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
     public int numCalls = 0;
 
     @Override
-    public void compact(DomainVersion versionToCompact, DomainVersion newCompactedVersion) throws IOException {
+    public void compact(DomainVersion versionToCompact, Writer writer) throws IOException {
       this.versionToCompact = versionToCompact;
       ++numCalls;
     }
@@ -72,7 +72,6 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
               new MockStorageEngine() {
                 @Override
                 public Compactor getCompactor(DataDirectoriesConfigurator configurator,
-                                              OutputStreamFactory outputStreamFactory,
                                               int partitionNumber) throws IOException {
                   return compactor;
                 }

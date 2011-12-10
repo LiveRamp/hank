@@ -41,7 +41,6 @@ public class MockStorageEngine implements StorageEngine {
 
   @Override
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
-                                OutputStreamFactory outputStreamFactory,
                                 int partitionNumber) throws IOException {
     return null;
   }

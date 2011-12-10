@@ -22,5 +22,6 @@ import java.io.IOException;
 
 public interface Compactor {
 
-  public void compact(DomainVersion versionToCompact, DomainVersion newCompactedVersion) throws IOException;
+  public void compact(DomainVersion versionToCompact,
+                      Writer writer) throws IOException;
 }

@@ -26,9 +26,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
@@ -74,16 +71,13 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     conf.setOutputValueClass(NullWritable.class);
   }
 
-  private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable, NullWritable, NullWritable> {
+  private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
+      KeyAndPartitionWritable, ValueWritable> {
 
     private Domain domain;
     private File localTmpOutput;
     private DomainVersion domainVersionToCompact;
     private DomainVersion domainVersionToCreate;
-    private String hdfsUserName;
-    private String hdfsGroupName;
-    private String outputPath;
-    private FileSystem fs;
 
     @Override
     public void configure(JobConf conf) {
@@ -116,26 +110,11 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         throw new RuntimeException("Failed to load Version " + versionNumberToCreate
             + " of Domain " + domain.getName(), e);
       }
-      // Determine custom HDFS owners
-      hdfsUserName = DomainCompactorProperties.getHdfsUserName(conf);
-      hdfsGroupName = DomainCompactorProperties.getHdfsGroupName(conf);
-      // Create output directory
-      outputPath = DomainBuilderAbstractOutputFormat.getTaskAttemptOutputPath(conf);
-      Path outputPathPath = new Path(outputPath);
-      try {
-        fs = FileSystem.get(new Configuration());
-        fs.mkdirs(outputPathPath);
-        if (hdfsUserName != null || hdfsGroupName != null) {
-          fs.setOwner(outputPathPath, hdfsUserName, hdfsGroupName);
-        }
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to create output directory " + outputPath, e);
-      }
     }
 
     @Override
     public void map(Text domainName, IntWritable partitionNumber,
-                    OutputCollector<NullWritable, NullWritable> stringStringOutputCollector,
+                    OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector,
                     Reporter reporter) throws IOException {
       LOG.info("Compacting Domain " + domainName.toString()
           + " Version " + domainVersionToCompact.getVersionNumber()
@@ -146,14 +125,13 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
       Compactor compactor = domain.getStorageEngine()
           .getCompactor(dataDirectoriesConfigurator,
-              new HDFSOutputStreamFactory(fs, outputPath),
               partitionNumber.get());
       if (compactor == null) {
         throw new RuntimeException("Failed to load compacting updater for domain " + domain.getName()
             + " with storage engine: " + domain.getStorageEngine());
       }
       // Perform compaction
-      compactor.compact(domainVersionToCompact, domainVersionToCreate);
+      compactor.compact(domainVersionToCompact, new OutputCollectorWriter(partitionNumber, outputCollector));
     }
 
     @Override
@@ -289,19 +267,16 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     CommandLineChecker.check(args, new String[]{
-        "domain name", "version to compact number", "HDFS user name", "HDFS group name", "mapred.task.timeout",
-        "config path", "jobjar"},
+        "domain name", "version to compact number", "mapred.task.timeout", "config path", "jobjar"},
         HadoopDomainCompactor.class);
     String domainName = args[0];
     Integer versionToCompactNumber = Integer.valueOf(args[1]);
-    String hdfsUserName = args[2];
-    String hdfsGroupName = args[3];
-    Integer mapredTaskTimeout = Integer.valueOf(args[4]);
-    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[5]);
-    String jobJar = args[6];
+    Integer mapredTaskTimeout = Integer.valueOf(args[2]);
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[3]);
+    String jobJar = args[4];
 
     DomainCompactorProperties properties =
-        new DomainCompactorProperties(domainName, versionToCompactNumber, configurator, hdfsUserName, hdfsGroupName);
+        new DomainCompactorProperties(domainName, versionToCompactNumber, configurator);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
     conf.set("mapred.task.timeout", mapredTaskTimeout.toString());

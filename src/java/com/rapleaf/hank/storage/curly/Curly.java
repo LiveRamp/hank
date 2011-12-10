@@ -21,7 +21,6 @@ import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Reader;
@@ -29,7 +28,6 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
-import com.rapleaf.hank.storage.cueball.CueballWriter;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -228,22 +226,19 @@ public class Curly implements StorageEngine {
 
   @Override
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
-                                OutputStreamFactory outputStreamFactory,
                                 int partitionNumber) throws IOException {
     File localDir = new File(getLocalDir(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
-    return getCompacter(localDir.getAbsolutePath(), outputStreamFactory, partitionNumber);
+    return getCompacter(localDir.getAbsolutePath(), partitionNumber);
   }
 
   private Compactor getCompacter(String localDir,
-                                 OutputStreamFactory outputStreamFactory,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
         fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
         localDir,
-        partitionNumber,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
         new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetSize, hashIndexBits, getCompressionCodec(), null),
         new ICurlyReaderFactory() {
@@ -252,19 +247,7 @@ public class Curly implements StorageEngine {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes, null);
           }
-        },
-        new ICurlyWriterFactory() {
-          @Override
-          public CurlyWriter getCurlyWriter(OutputStream keyFileOutputStream,
-                                            OutputStream recordFileOutputStream) throws IOException {
-            // Note: using an IdentityHasher here as the actual values are unknown during compaction, hence the key
-            // hashes are passed in directly to the key file writer
-            Writer keyFileWriter = new CueballWriter(keyFileOutputStream, keyHashSize,
-                new IdentityHasher(), offsetSize, getCompressionCodec(), hashIndexBits);
-            return new CurlyWriter(recordFileOutputStream, keyFileWriter, offsetSize);
-          }
-        },
-        outputStreamFactory
+        }
     );
   }
 

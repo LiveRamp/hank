@@ -20,46 +20,39 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
-import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.cueball.*;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
+import com.rapleaf.hank.storage.cueball.ICueballStreamBufferMergeSortFactory;
+import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Compactor {
 
-  private final int partitionNumber;
   private final ICurlyCompactingMerger merger;
   private final ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory;
   private final ICurlyReaderFactory curlyReaderFactory;
-  private final ICurlyWriterFactory curlyWriterFactory;
-  private final OutputStreamFactory outputStreamFactory;
-  private DomainVersion newCompactedVersion;
+  private Writer writer;
 
   public CurlyCompactor(Domain domain,
                         PartitionRemoteFileOps partitionRemoteFileOps,
                         String localPartitionRoot,
-                        int partitionNumber,
                         ICurlyCompactingMerger merger,
                         ICueballStreamBufferMergeSortFactory cueballStreamBufferMergeSortFactory,
-                        ICurlyReaderFactory curlyReaderFactory,
-                        ICurlyWriterFactory curlyWriterFactory,
-                        OutputStreamFactory outputStreamFactory) throws IOException {
+                        ICurlyReaderFactory curlyReaderFactory) throws IOException {
     super(domain, partitionRemoteFileOps, localPartitionRoot);
-    this.partitionNumber = partitionNumber;
     this.merger = merger;
     this.cueballStreamBufferMergeSortFactory = cueballStreamBufferMergeSortFactory;
     this.curlyReaderFactory = curlyReaderFactory;
-    this.curlyWriterFactory = curlyWriterFactory;
-    this.outputStreamFactory = outputStreamFactory;
   }
 
   @Override
-  public void compact(DomainVersion versionToCompact, DomainVersion newCompactedVersion) throws IOException {
-    this.newCompactedVersion = newCompactedVersion;
+  public void compact(DomainVersion versionToCompact, Writer writer) throws IOException {
+    this.writer = writer;
     this.updateTo(versionToCompact);
   }
 
@@ -68,7 +61,6 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) throws IOException {
-
 
     // Prepare Curly
 
@@ -108,20 +100,11 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
       CueballPartitionUpdater.checkRequiredFileExists(cueballDelta.getPath());
     }
 
-    // Determine new Curly base output stream
-    OutputStream newCurlyBaseOutputStream = outputStreamFactory.getOutputStream(partitionNumber,
-        Curly.getName(newCompactedVersion.getVersionNumber(), true));
-    // Determine new Cueball base output stream
-    OutputStream newCueballBaseOutputStream = outputStreamFactory.getOutputStream(partitionNumber,
-        Cueball.getName(newCompactedVersion.getVersionNumber(), true));
-
-    // Note: the Curly writer used to perform the compaction must not hash the passed-in key because
+    // Note: the writer used to perform the compaction must not hash the passed-in key because
     // it will directly receive key hashes. This is because the actual key is unknown when compacting.
-    CurlyWriter curlyWriter = curlyWriterFactory.getCurlyWriter(newCueballBaseOutputStream, newCurlyBaseOutputStream);
-
     IKeyFileStreamBufferMergeSort cueballStreamBufferMergeSort =
         cueballStreamBufferMergeSortFactory.getInstance(cueballBasePath, cueballDeltas);
 
-    merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyReaderFactory, curlyWriter);
+    merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyReaderFactory, writer);
   }
 }

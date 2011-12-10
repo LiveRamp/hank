@@ -30,11 +30,10 @@ import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
+public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
 
   private final DomainVersion v0 = new MockDomainVersion(0, 0l);
   private final DomainVersion v1 = new MockDomainVersion(1, 0l);
@@ -54,7 +53,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
       }
     }
   };
-  private CurlyCompactor updater;
+  private CurlyCompactor compactor;
 
   @Override
   public void setUp() throws Exception {
@@ -87,21 +86,11 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
           }
         };
 
-    ICurlyWriterFactory curlyWriterFactory = new ICurlyWriterFactory() {
-      @Override
-      public CurlyWriter getCurlyWriter(OutputStream keyFileOutputStream, OutputStream recordFileOutputStream) {
-        return null;
-      }
-    };
-
-    this.updater = new CurlyCompactor(domain,
+    this.compactor = new CurlyCompactor(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         localPartitionRoot,
-        0,
         merger,
         cueballStreamBufferMergeSortFactory,
-        null,
-        curlyWriterFactory,
         null); //TODO: should provide an output stream factory
 
     if (!new File(updateWorkRoot).mkdir()) {
@@ -116,7 +105,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
     deltas.add(v2);
     // Fail when missing files
     try {
-      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+      compactor.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
       fail("Should fail");
     } catch (IOException e) {
       // Good
@@ -137,7 +126,7 @@ public class TestCurlyCompactingPartitionUpdater extends IncrementalPartitionUpd
     makeRemoteFile("0/00002.delta.cueball");
     makeRemoteFile("0/00002.delta.curly");
 
-    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+    compactor.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
     // Deltas still exist
     assertTrue(existsCacheFile("00001.delta.curly"));
     assertTrue(existsCacheFile("00002.delta.curly"));
