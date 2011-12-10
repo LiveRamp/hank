@@ -76,7 +76,7 @@ public abstract class DomainBuilderAbstractOutputFormat
   }
 
   // Base class of record writers used to build domains.
-  protected static class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
+  protected abstract static class DomainBuilderRecordWriter implements RecordWriter<KeyAndPartitionWritable, ValueWritable> {
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
@@ -97,6 +97,12 @@ public abstract class DomainBuilderAbstractOutputFormat
       this.versionType = versionType;
       this.outputStreamFactory = outputStreamFactory;
     }
+
+    protected abstract Writer getWriter(StorageEngine storageEngine,
+                                        OutputStreamFactory outputStreamFactory,
+                                        int partitionNumber,
+                                        int versionNumber,
+                                        VersionType versionType) throws IOException;
 
     @Override
     public final void close(Reporter reporter) throws IOException {
@@ -131,8 +137,7 @@ public abstract class DomainBuilderAbstractOutputFormat
         throw new IOException("There is no version currently open for domain "
             + domain.getName());
       }
-      writer = storageEngine.getWriter(outputStreamFactory, partition, domainVersion.getVersionNumber(),
-          versionType.equals(VersionType.BASE));
+      writer = getWriter(storageEngine, outputStreamFactory, partition, domainVersion.getVersionNumber(), versionType);
       writerPartition = partition;
       writtenPartitions.add(partition);
     }

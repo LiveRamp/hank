@@ -39,6 +39,11 @@ public interface StorageEngine {
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException;
 
+  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber,
+                                   int versionNumber,
+                                   boolean isBase) throws IOException;
+
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);

@@ -46,6 +46,14 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
+  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber,
+                                   int versionNumber,
+                                   boolean isBase) throws IOException {
+    return null;
+  }
+
+  @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
                           int versionNumber, boolean isBase) throws IOException {
     return null;

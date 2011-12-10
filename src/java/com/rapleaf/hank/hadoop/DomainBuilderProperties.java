@@ -19,7 +19,8 @@ public class DomainBuilderProperties {
 
   public static final String REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION = "remote_domain_root";
 
-  private static final Class<? extends DomainBuilderAbstractOutputFormat> DEFAULT_OUTPUT_FORMAT_CLASS = DomainBuilderDefaultOutputFormat.class;
+  private static final Class<? extends DomainBuilderAbstractOutputFormat> DEFAULT_OUTPUT_FORMAT_CLASS
+      = DomainBuilderDefaultOutputFormat.class;
 
   private final String domainName;
   private final CoordinatorConfigurator configurator;

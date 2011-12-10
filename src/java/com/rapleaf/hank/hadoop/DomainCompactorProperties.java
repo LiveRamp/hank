@@ -30,7 +30,7 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
   public DomainCompactorProperties(String domainName,
                                    int versionToCompactNumber,
                                    CoordinatorConfigurator configurator) {
-    super(domainName, VersionType.BASE, configurator);
+    super(domainName, VersionType.BASE, configurator, DomainCompactorOutputFormat.class);
     this.versionToCompactNumber = versionToCompactNumber;
   }
 

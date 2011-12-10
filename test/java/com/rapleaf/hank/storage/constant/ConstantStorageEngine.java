@@ -63,6 +63,14 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
+  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber,
+                                   int versionNumber,
+                                   boolean isBase) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
   public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
     throw new UnsupportedOperationException();
   }

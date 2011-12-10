@@ -205,10 +205,22 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
-    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber, getName(versionNumber, isBase));
+  public Writer getWriter(OutputStreamFactory streamFactory,
+                          int partitionNumber,
+                          int versionNumber,
+                          boolean isBase) throws IOException {
     Writer cueballWriter = cueballStorageEngine.getWriter(streamFactory, partitionNumber, versionNumber, isBase);
-    return new CurlyWriter(outputStream, cueballWriter, offsetSize);
+    return getWriter(streamFactory, partitionNumber, versionNumber, isBase, cueballWriter);
+  }
+
+  // Helper
+  private Writer getWriter(OutputStreamFactory outputStreamFactory,
+                           int partitionNumber,
+                           int versionNumber,
+                           boolean isBase,
+                           Writer keyFileWriter) throws IOException {
+    OutputStream outputStream = outputStreamFactory.getOutputStream(partitionNumber, getName(versionNumber, isBase));
+    return new CurlyWriter(outputStream, keyFileWriter, offsetSize);
   }
 
   public static String padVersionNumber(int versionNumber) {
@@ -232,6 +244,16 @@ public class Curly implements StorageEngine {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
     return getCompacter(localDir.getAbsolutePath(), partitionNumber);
+  }
+
+  @Override
+  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber,
+                                   int versionNumber,
+                                   boolean isBase) throws IOException {
+    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(outputStreamFactory, partitionNumber,
+        versionNumber, isBase);
+    return getWriter(outputStreamFactory, partitionNumber, versionNumber, isBase, cueballWriter);
   }
 
   private Compactor getCompacter(String localDir,

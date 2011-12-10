@@ -25,13 +25,13 @@ import org.apache.hadoop.mapred.RecordWriter;
 
 import java.io.IOException;
 
-public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFormat {
+public class DomainCompactorOutputFormat extends DomainBuilderBaseOutputFormat {
 
-  private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
+  private static class DomainCompactorRecordWriter extends DomainBuilderRecordWriter {
 
-    protected DomainBuilderDefaultRecordWriter(Domain domain,
-                                               VersionType versionType,
-                                               OutputStreamFactory outputStreamFactory) {
+    protected DomainCompactorRecordWriter(Domain domain,
+                                          VersionType versionType,
+                                          OutputStreamFactory outputStreamFactory) {
       super(domain, versionType, outputStreamFactory);
     }
 
@@ -41,7 +41,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
                                int partitionNumber,
                                int versionNumber,
                                VersionType versionType) throws IOException {
-      return storageEngine.getWriter(outputStreamFactory, partitionNumber, versionNumber,
+      return storageEngine.getCompactorWriter(outputStreamFactory, partitionNumber, versionNumber,
           versionType.equals(VersionType.BASE));
     }
   }
@@ -51,6 +51,6 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
   getRecordWriter(Domain domain,
                   VersionType versionType,
                   OutputStreamFactory outputStreamFactory) {
-    return new DomainBuilderDefaultRecordWriter(domain, versionType, outputStreamFactory);
+    return new DomainCompactorRecordWriter(domain, versionType, outputStreamFactory);
   }
 }

@@ -22,6 +22,7 @@ import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
+import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.util.FsUtils;
@@ -189,6 +190,17 @@ public class Cueball implements StorageEngine {
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
+    // Note: We use the identity hasher since keys coming in are already hashed keys
+    return new CueballWriter(outputStreamFactory.getOutputStream(partitionNumber, getName(versionNumber, isBase)),
+        keyHashSize,
+        new IdentityHasher(),
+        valueSize,
+        getCompressionCodec(),
+        hashIndexBits);
   }
 
   @Override
