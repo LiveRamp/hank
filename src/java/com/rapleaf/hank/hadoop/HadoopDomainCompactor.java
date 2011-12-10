@@ -27,11 +27,9 @@ import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.mapred.lib.NullOutputFormat;
 import org.apache.log4j.Logger;
 
 import java.io.DataInput;
@@ -59,16 +57,15 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     // Mappers
     conf.setMapperClass(HadoopDomainCompactorMapper.class);
-    conf.setMapOutputKeyClass(NullWritable.class);
-    conf.setMapOutputValueClass(NullWritable.class);
+    conf.setMapOutputKeyClass(KeyAndPartitionWritable.class);
+    conf.setMapOutputValueClass(ValueWritable.class);
 
     // No reducers
     conf.setNumReduceTasks(0);
 
-    // No output
-    conf.setOutputFormat(NullOutputFormat.class);
-    conf.setOutputKeyClass(NullWritable.class);
-    conf.setOutputValueClass(NullWritable.class);
+    // Output
+    conf.setOutputKeyClass(KeyAndPartitionWritable.class);
+    conf.setOutputValueClass(ValueWritable.class);
   }
 
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
