@@ -28,6 +28,7 @@ public class DomainBuilderProperties {
   private final String outputPath;
   private final Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass;
   private Coordinator coordinator;
+  private String randomTmpOutputPathId;
 
   // With a default output format
   // Get output path from the Coordinator
@@ -105,7 +106,10 @@ public class DomainBuilderProperties {
   }
 
   public String getTmpOutputPath(int versionNumber) {
-    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "_" + UUID.randomUUID().toString() + "/";
+    if (randomTmpOutputPathId == null) {
+      randomTmpOutputPathId = UUID.randomUUID().toString();
+    }
+    return outputPath + "/" + TMP_OUTPUT_PATH + "version-" + versionNumber + "_" + randomTmpOutputPathId + "/";
   }
 
   public Class<? extends DomainBuilderAbstractOutputFormat> getOutputFormatClass() {
