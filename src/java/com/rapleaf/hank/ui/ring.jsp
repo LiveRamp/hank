@@ -117,7 +117,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         </tr>
 
         <tr>
-        <td>Updated & Served (uniques)</td>
+        <td>Updated & Served (fully)</td>
           <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>

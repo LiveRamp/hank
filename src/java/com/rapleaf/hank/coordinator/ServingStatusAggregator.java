@@ -80,7 +80,7 @@ public class ServingStatusAggregator {
   }
 
   // Compute, for each domain, the number of _domain partitions_ (unique partitions)
-  // that are served and up to date
+  // that are fully (all copies) served and up to date
   public ServingStatus computeUniquePartitionsServingStatus(DomainGroupVersion domainGroupVersion) {
     ServingStatus result = new ServingStatus();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {

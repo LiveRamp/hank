@@ -130,7 +130,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </tr>
 
         <tr>
-        <td>Updated & Served (uniques)</td>
+        <td>Updated & Served (fully)</td>
           <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -215,7 +215,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Throughput</th>
       <th>Hit Rate</th>
       <th>Updated & Served</th>
-      <th>(uniques)</th>
+      <th>(fully)</th>
       <th></th>
     </tr>
 

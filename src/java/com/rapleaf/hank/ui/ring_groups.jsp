@@ -88,7 +88,7 @@
       <th>Throughput</th>
       <th>Hit rate</th>
       <th>Updated & Served</th>
-      <th>(uniques)</th>
+      <th>(fully)</th>
     </tr>
     <%
       for (RingGroup ringGroup : coord.getRingGroupsSorted()) {
