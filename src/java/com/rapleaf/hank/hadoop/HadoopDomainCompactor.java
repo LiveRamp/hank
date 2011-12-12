@@ -74,7 +74,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private Domain domain;
     private File localTmpOutput;
     private DomainVersion domainVersionToCompact;
-    private DomainVersion domainVersionToCreate;
 
     @Override
     public void configure(JobConf conf) {
@@ -97,14 +96,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         domainVersionToCompact = domain.getVersionByNumber(versionNumberToCompact);
       } catch (IOException e) {
         throw new RuntimeException("Failed to load Version " + versionNumberToCompact
-            + " of Domain " + domain.getName(), e);
-      }
-      // Determine version to create
-      int versionNumberToCreate = DomainBuilderProperties.getVersionNumber(domain.getName(), conf);
-      try {
-        domainVersionToCreate = domain.getVersionByNumber(versionNumberToCreate);
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to load Version " + versionNumberToCreate
             + " of Domain " + domain.getName(), e);
       }
     }

@@ -43,7 +43,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
   public void setUp() throws Exception {
     super.setUp();
     LocalMockCoordinatorConfigurator.compactor = new LocalMockCompactor();
-    LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, Long.valueOf(0));
+    LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, (long) 0);
   }
 
   private static class LocalMockCompactor implements Compactor {
@@ -87,7 +87,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
         new DomainCompactorProperties(DOMAIN_A_NAME, 0, configurator, OUTPUT_PATH_A);
     new HadoopDomainCompactor().buildHankDomain(properties);
 
-    // Check that updater was called with correct version twice
+    // Check that compactor was called with correct version twice
     assertEquals(2, LocalMockCoordinatorConfigurator.compactor.numCalls);
     assertEquals(LocalMockCoordinatorConfigurator.versionToCompact.getVersionNumber(),
         LocalMockCoordinatorConfigurator.compactor.versionToCompact.getVersionNumber());
