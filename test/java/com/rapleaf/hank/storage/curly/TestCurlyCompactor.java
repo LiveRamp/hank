@@ -21,7 +21,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdaterTestCase;
-import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
@@ -30,7 +29,7 @@ import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
@@ -53,7 +52,11 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
       }
     }
   };
+
   private CurlyCompactor compactor;
+
+  private boolean mergerCalled = false;
+  private boolean mergeSortBufferCalled = false;
 
   @Override
   public void setUp() throws Exception {
@@ -70,6 +73,7 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
         assertEquals("Correct number of deltas used by merge", 2, curlyDeltas.size());
         assertEquals("Correct delta version", 1, curlyDeltas.get(0).getVersion());
         assertEquals("Correct delta version", 2, curlyDeltas.get(1).getVersion());
+        mergerCalled = true;
       }
     };
 
@@ -82,6 +86,7 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
             assertEquals("Correct number of deltas used by merge sort", 2, cueballDeltas.size());
             assertEquals("Correct delta version", 1, cueballDeltas.get(0).getVersion());
             assertEquals("Correct delta version", 2, cueballDeltas.get(1).getVersion());
+            mergeSortBufferCalled = true;
             return null;
           }
         };
@@ -91,7 +96,7 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
         localPartitionRoot,
         merger,
         cueballStreamBufferMergeSortFactory,
-        null); //TODO: should provide an output stream factory
+        null);
 
     if (!new File(updateWorkRoot).mkdir()) {
       throw new IOException("Failed to create update work root");
@@ -99,17 +104,6 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
   }
 
   public void testUpdate() throws IOException {
-    // Updating from v0 to v2
-    List<DomainVersion> deltas = new ArrayList<DomainVersion>();
-    deltas.add(v1);
-    deltas.add(v2);
-    // Fail when missing files
-    try {
-      compactor.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
-      fail("Should fail");
-    } catch (IOException e) {
-      // Good
-    }
     // Success merging with deltas
     assertFalse(existsUpdateWorkFile("00002.base.cueball"));
     assertFalse(existsUpdateWorkFile("00002.base.curly"));
@@ -126,18 +120,27 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
     makeRemoteFile("0/00002.delta.cueball");
     makeRemoteFile("0/00002.delta.curly");
 
-    compactor.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
-    // Deltas still exist
-    assertTrue(existsCacheFile("00001.delta.curly"));
-    assertTrue(existsCacheFile("00002.delta.curly"));
-    assertTrue(existsCacheFile("00001.delta.cueball"));
-    assertTrue(existsCacheFile("00002.delta.cueball"));
-    // New base created
-    assertTrue(existsUpdateWorkFile("00002.base.cueball"));
-    assertTrue(existsUpdateWorkFile("00002.base.curly"));
-    // Old Cueball base still exists
-    assertTrue(existsLocalFile("00000.base.cueball"));
-    // Old Curly base still exists
-    assertTrue(existsLocalFile("00000.base.curly"));
+    compactor.compact(v2, new Writer() {
+      @Override
+      public void write(ByteBuffer key, ByteBuffer value) throws IOException {
+      }
+
+      @Override
+      public void close() throws IOException {
+      }
+
+      @Override
+      public long getNumBytesWritten() {
+        return 0;
+      }
+
+      @Override
+      public long getNumRecordsWritten() {
+        return 0;
+      }
+    });
+
+    assertTrue(mergerCalled);
+    assertTrue(mergeSortBufferCalled);
   }
 }
