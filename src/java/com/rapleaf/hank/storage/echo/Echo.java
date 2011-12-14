@@ -69,7 +69,7 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
+  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     return new RemoteDomainVersionCleaner() {
       @Override
       public void cleanVersion(int versionNumber) throws IOException {

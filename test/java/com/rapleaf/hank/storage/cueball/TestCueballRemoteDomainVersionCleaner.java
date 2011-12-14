@@ -49,7 +49,7 @@ public class TestCueballRemoteDomainVersionCleaner extends BaseTestCase {
     assertTrue(new File(localDiskRoot + "/0/00001.base.cueball").exists());
     assertTrue(new File(localDiskRoot + "/0/00002.delta.cueball").exists());
 
-    final RemoteDomainVersionCleaner cleaner = storageEngine.getDomainVersionCleaner(null);
+    final RemoteDomainVersionCleaner cleaner = storageEngine.getRemoteDomainVersionCleaner(null);
     cleaner.cleanVersion(1);
 
     assertFalse(new File(localDiskRoot + "/0/00001.base.cueball").exists());

@@ -71,7 +71,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
+  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
     throw new NotImplementedException();
   }
 }
