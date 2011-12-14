@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.storage.mock;
 
-import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.storage.*;
 import org.apache.commons.lang.NotImplementedException;
@@ -71,7 +70,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
+  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner() throws IOException {
     throw new NotImplementedException();
   }
 }

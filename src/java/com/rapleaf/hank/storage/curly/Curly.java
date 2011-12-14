@@ -17,7 +17,6 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
-import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.hasher.Hasher;
@@ -361,7 +360,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
+  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner() throws IOException {
     return new CurlyRemoteDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
   }
 }

@@ -33,7 +33,7 @@ public class TestCurlyRemoteDomainVersionCleaner extends ZkTestCase {
     assertTrue(new File(localDiskRoot + "/0/00001.base.curly").exists());
     assertTrue(new File(localDiskRoot + "/0/00002.delta.curly").exists());
 
-    final RemoteDomainVersionCleaner cleaner = storageEngine.getRemoteDomainVersionCleaner(null);
+    final RemoteDomainVersionCleaner cleaner = storageEngine.getRemoteDomainVersionCleaner();
     cleaner.cleanVersion(1);
 
     assertFalse(new File(localDiskRoot + "/0/00001.base.cueball").exists());
