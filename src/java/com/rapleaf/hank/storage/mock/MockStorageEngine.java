@@ -70,7 +70,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner() throws IOException {
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     throw new NotImplementedException();
   }
 }

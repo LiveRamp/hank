@@ -360,7 +360,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public RemoteDomainVersionCleaner getRemoteDomainVersionCleaner() throws IOException {
-    return new CurlyRemoteDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
+  public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
+    return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
   }
 }
