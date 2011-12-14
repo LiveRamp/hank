@@ -361,7 +361,7 @@ public class Curly implements StorageEngine {
   }
 
   @Override
-  public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
-    return new CurlyDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
+  public RemoteDomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException {
+    return new CurlyRemoteDomainVersionCleaner(domain, remoteDomainRoot, fileOpsFactory);
   }
 }

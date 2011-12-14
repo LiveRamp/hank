@@ -48,5 +48,5 @@ public interface StorageEngine {
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
-  public DomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException;
+  public RemoteDomainVersionCleaner getDomainVersionCleaner(CoordinatorConfigurator configurator) throws IOException;
 }

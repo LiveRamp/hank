@@ -2,7 +2,7 @@ package com.rapleaf.hank.storage;
 
 import java.io.IOException;
 
-public interface DomainVersionCleaner {
+public interface RemoteDomainVersionCleaner {
   /**
    * Purge the specified version from remote storage.
    *
