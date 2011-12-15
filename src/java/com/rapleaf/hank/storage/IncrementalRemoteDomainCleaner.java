@@ -35,6 +35,9 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
   }
 
+  protected abstract DomainVersion getParentDomainVersion(Domain domain, DomainVersion domainVersion)
+      throws IOException;
+
   @Override
   public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter) throws IOException {
     if (numRemoteLeafVersionsToKeep <= 0) {
@@ -72,23 +75,23 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
         }
         // Keep ancestry
         versionsToKeep.addAll(ancestry);
-        // Remove ancestry from versions to examine
+        // Remove ancestry from versions to examine. Note: since the version being kept is contained in the ancestry,
+        // the next iteration will advance to the next last (most recent) version.
         sortedVersions.removeAll(ancestry);
       }
     }
 
+    // Note: all versions to keep have been removed from sortedVersions, so sortedVersions is exactly the set of
+    // versions we want to delete.
+
     // Perform deletion
-    for (DomainVersion version : domain.getVersions()) {
-      if (versionsToKeep.contains(version)) {
-        LOG.info("Keeping Version " + version.getVersionNumber() + " of Domain " + domain.getName());
-      } else {
-        LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
-        version.setDefunct(true);
-        remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
-      }
+    for (DomainVersion version : versionsToKeep) {
+      LOG.info("Keeping Version " + version.getVersionNumber() + " of Domain " + domain.getName());
+    }
+    for (DomainVersion version : sortedVersions) {
+      LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
+      version.setDefunct(true);
+      remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
     }
   }
-
-  protected abstract DomainVersion getParentDomainVersion(Domain domain, DomainVersion domainVersion)
-      throws IOException;
 }
