@@ -92,6 +92,7 @@ public final class Domains {
   }
 
   public static void cleanDomains(Collection<Domain> domains) throws IOException {
+    LOG.info("Cleaning all Domains");
     for (Domain domain : domains) {
       StorageEngine storageEngine = domain.getStorageEngine();
       RemoteDomainCleaner cleaner = storageEngine.getRemoteDomainCleaner();
@@ -107,5 +108,6 @@ public final class Domains {
       LOG.info("Cleaning Domain " + domain.getName());
       cleaner.deleteOldVersions(deleter);
     }
+    LOG.info("Done cleaning all Domains");
   }
 }
