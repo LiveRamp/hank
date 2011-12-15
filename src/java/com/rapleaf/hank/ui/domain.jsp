@@ -152,6 +152,15 @@
       </form>
       <% } %>
 
+      <% if (DomainVersions.isClosed(version) && version.isDefunct()) { %>
+      <form action="/domain/undefunctify" method="post">
+        <input type=hidden name="n" value="<%= domain.getName() %>" />
+        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
+        <input type=submit value="unmark defunct"
+          onclick="return confirm('Are you sure you want to mark this version NOT defunct? Subsequent data deploys will use this version.');"/>
+      </form>
+      <% } %>
+
       <% if (!DomainVersions.isClosed(version)) { %>
       <form action="/domain/close" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />

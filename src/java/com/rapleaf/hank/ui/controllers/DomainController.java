@@ -60,6 +60,15 @@ public class DomainController extends Controller {
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
+    actions.put("undefunctify", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        domainVersion.setDefunct(false);
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
     actions.put("close", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
