@@ -49,6 +49,7 @@ public class TestCurlyFactory extends BaseTestCase {
     options.put(Curly.Factory.RECORD_FILE_READ_BUFFER_BYTES_KEY, 32000);
     options.put(Curly.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Curly.Factory.MAX_ALLOWED_PART_SIZE_KEY, 15000);
+    options.put(Curly.Factory.NUM_REMOTE_LEAF_VERSIONS_TO_KEEP, 0);
     factory.getStorageEngine(options, null);
   }
 }

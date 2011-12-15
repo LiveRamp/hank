@@ -17,7 +17,6 @@ package com.rapleaf.hank.storage.mock;
 
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.storage.*;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -71,6 +70,11 @@ public class MockStorageEngine implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    throw new NotImplementedException();
+    return null;
+  }
+
+  @Override
+  public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
+    return null;
   }
 }

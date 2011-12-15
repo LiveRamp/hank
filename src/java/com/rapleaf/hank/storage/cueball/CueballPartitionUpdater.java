@@ -70,11 +70,17 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   // TODO: determining the parent domain version should be based on DomainVersion metadata instead
   @Override
   protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
+    return getParentDomainVersion(partitionRemoteFileOps, domain, domainVersion);
+  }
+
+  public static DomainVersion getParentDomainVersion(PartitionRemoteFileOps partitionRemoteFileOps,
+                                                     Domain domain,
+                                                     DomainVersion domainVersion) throws IOException {
     if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
       // Base file exists, there is no parent
       return null;
     } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-        || isEmptyVersion(domainVersion)) {
+        || isEmptyVersion(partitionRemoteFileOps, domainVersion)) {
       // Delta file exists, or the version is empty, the parent is just the previous version based on version number
       int versionNumber = domainVersion.getVersionNumber();
       if (versionNumber <= 0) {
@@ -93,12 +99,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
-  private boolean isEmptyVersion(DomainVersion domainVersion) throws IOException {
-    return isEmptyVersion(domainVersion, partitionRemoteFileOps);
-  }
-
-  public static boolean isEmptyVersion(DomainVersion domainVersion,
-                                       PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+  public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
+                                       DomainVersion domainVersion) throws IOException {
     return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
         && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false));
   }
@@ -196,7 +198,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     List<CueballFilePath> deltas = new ArrayList<CueballFilePath>();
     for (DomainVersion delta : updatePlan.getDeltasOrdered()) {
       // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(delta, partitionRemoteFileOps)) {
+      if (!isEmptyVersion(partitionRemoteFileOps, delta)) {
         deltas.add(getCueballFilePathForVersion(delta, currentVersion,
             localPartitionRoot, localPartitionRootCache, false));
       }
@@ -224,16 +226,6 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
           hashIndexBits,
           compressionCodec);
     }
-  }
-
-  public CueballFilePath getCueballFilePathForVersion(DomainVersion version,
-                                                      DomainVersion currentVersion,
-                                                      boolean isBase) {
-    return getCueballFilePathForVersion(version,
-        currentVersion,
-        localPartitionRoot,
-        localPartitionRootCache,
-        isBase);
   }
 
   public static CueballFilePath getCueballFilePathForVersion(DomainVersion version,

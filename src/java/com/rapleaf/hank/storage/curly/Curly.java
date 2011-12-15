@@ -54,12 +54,12 @@ public class Curly implements StorageEngine {
     public static final String KEY_HASH_SIZE_KEY = "key_hash_size";
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
-    public static final String COMPACT_ON_UPDATE_KEY = "compact_on_update";
     private static final String COMPRESSION_CODEC = "compression_codec";
+    public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
-        FILE_OPS_FACTORY_KEY, HASHER_KEY));
+        FILE_OPS_FACTORY_KEY, HASHER_KEY, NUM_REMOTE_LEAF_VERSIONS_TO_KEEP));
 
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
@@ -88,6 +88,10 @@ public class Curly implements StorageEngine {
       }
       final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
           : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
+
+      // num remote bases to keep
+      Integer numRemoteLeafVersionsToKeep = (Integer) options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
+
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
@@ -96,7 +100,8 @@ public class Curly implements StorageEngine {
           (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
-          domain);
+          domain,
+          numRemoteLeafVersionsToKeep);
     }
 
     @Override
@@ -145,8 +150,8 @@ public class Curly implements StorageEngine {
       pw.println("# ignore it in most cases.");
       pw.println(RECORD_FILE_READ_BUFFER_BYTES_KEY + ": " + (32 * 1024));
       pw.println();
-      pw.println("# Set to true if you want record files to be compacted during each update.");
-      pw.println(COMPACT_ON_UPDATE_KEY + ": false");
+      pw.println("# Set the number of newest full versions (bases + deltas) to keep on remote storage. 0 means keep all versions.");
+      pw.println(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP + ": " + 0);
       pw.println();
       pw.println("# Optional: compression codec. If no codec is specified,");
       pw.println("# no compression will be used. Be sure to verify that compression");
@@ -169,6 +174,7 @@ public class Curly implements StorageEngine {
   private final PartitionRemoteFileOpsFactory fileOpsFactory;
   private final int hashIndexBits;
   private final Class<? extends CompressionCodec> compressionCodecClass;
+  private final int numRemoteLeafVersionsToKeep;
 
   public Curly(int keyHashSize,
                Hasher hasher,
@@ -178,7 +184,8 @@ public class Curly implements StorageEngine {
                String remoteDomainRoot,
                PartitionRemoteFileOpsFactory fileOpsFactory,
                Class<? extends CompressionCodec> compressionCodecClass,
-               Domain domain) {
+               Domain domain,
+               int numRemoteLeafVersionsToKeep) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
@@ -188,6 +195,7 @@ public class Curly implements StorageEngine {
     this.domain = domain;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
         / Math.log(2)) / 8.0));
+    this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.cueballStorageEngine = new Cueball(keyHashSize,
         hasher,
         offsetSize,
@@ -195,7 +203,7 @@ public class Curly implements StorageEngine {
         remoteDomainRoot,
         fileOpsFactory,
         compressionCodecClass,
-        domain);
+        domain, numRemoteLeafVersionsToKeep);
   }
 
   @Override
@@ -361,6 +369,18 @@ public class Curly implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    // return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    return new RemoteDomainVersionDeleter() {
+      @Override
+      public void deleteVersion(int versionNumber) throws IOException {
+
+      }
+    };
+  }
+
+  @Override
+  public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
+    return new CurlyRemoteDomainCleaner(fileOpsFactory.getFileOps(remoteDomainRoot, 0),
+        domain, numRemoteLeafVersionsToKeep);
   }
 }

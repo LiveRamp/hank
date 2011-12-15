@@ -85,6 +85,17 @@ public class DomainController extends Controller {
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
+    actions.put("clean_domains", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doCleanDomains();
+        redirect("/domains.jsp", resp);
+      }
+    });
+  }
+
+  private void doCleanDomains() throws IOException {
+    Domains.cleanDomains(coordinator.getDomains());
   }
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {

@@ -47,6 +47,7 @@ public class TestCueballFactory extends BaseTestCase {
     options.put(Cueball.Factory.KEY_HASH_SIZE_KEY, 7);
     options.put(Cueball.Factory.REMOTE_DOMAIN_ROOT_KEY, "/path/to/what/i/say");
     options.put(Cueball.Factory.VALUE_SIZE_KEY, 15);
+    options.put(Cueball.Factory.NUM_REMOTE_LEAF_VERSIONS_TO_KEEP, 0);
     factory.getStorageEngine(options, null);
   }
 }

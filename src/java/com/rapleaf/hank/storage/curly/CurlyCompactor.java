@@ -69,7 +69,7 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
     List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
     for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
       // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(curlyDeltaVersion)) {
+      if (!isEmptyVersion(partitionRemoteFileOps, curlyDeltaVersion)) {
         curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
       }
     }
@@ -88,7 +88,7 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
     List<CueballFilePath> cueballDeltas = new ArrayList<CueballFilePath>();
     for (DomainVersion cueballDelta : updatePlan.getDeltasOrdered()) {
       // Only add to the delta list if the version is not empty
-      if (!CueballPartitionUpdater.isEmptyVersion(cueballDelta, partitionRemoteFileOps)) {
+      if (!CueballPartitionUpdater.isEmptyVersion(partitionRemoteFileOps, cueballDelta)) {
         cueballDeltas.add(CueballPartitionUpdater.getCueballFilePathForVersion(cueballDelta, currentVersion,
             localPartitionRoot, localPartitionRootCache, false));
       }

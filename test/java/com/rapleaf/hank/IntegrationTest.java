@@ -208,6 +208,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_0_DATAFILES);
     pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
+    pw.println("num_remote_leaf_versions_to_keep: 0");
     pw.close();
     coordinator.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
@@ -221,6 +222,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("remote_domain_root: " + DOMAIN_1_DATAFILES);
     pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
     pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
+    pw.println("num_remote_leaf_versions_to_keep: 0");
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 

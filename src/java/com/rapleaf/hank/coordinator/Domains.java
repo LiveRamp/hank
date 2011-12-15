@@ -16,14 +16,22 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.storage.RemoteDomainCleaner;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
+import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.ReverseComparator;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public final class Domains {
+
+  private static final Logger LOG = Logger.getLogger(Domains.class);
+
   private Domains() {
   }
 
@@ -81,5 +89,23 @@ public final class Domains {
       }
     }
     return null;
+  }
+
+  public static void cleanDomains(Collection<Domain> domains) throws IOException {
+    for (Domain domain : domains) {
+      StorageEngine storageEngine = domain.getStorageEngine();
+      RemoteDomainCleaner cleaner = storageEngine.getRemoteDomainCleaner();
+      if (cleaner == null) {
+        LOG.info("Failed to clean Domain " + domain.getName() + ". No Remote Domain Cleaner is configured.");
+        continue;
+      }
+      RemoteDomainVersionDeleter deleter = storageEngine.getRemoteDomainVersionDeleter();
+      if (deleter == null) {
+        LOG.info("Failed to clean Domain " + domain.getName() + ". No Remote Domain Version Deleter is configured.");
+        continue;
+      }
+      LOG.info("Cleaning Domain " + domain.getName());
+      cleaner.deleteOldVersions(deleter);
+    }
   }
 }

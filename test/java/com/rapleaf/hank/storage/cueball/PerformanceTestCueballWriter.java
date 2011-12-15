@@ -26,7 +26,7 @@ public class PerformanceTestCueballWriter {
 
     Cueball cueball = new Cueball(5,
         new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root",
-        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null);
+        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0);
     OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
 //      @Override
 //      public OutputStream getOutputStream(int partNum, String name)

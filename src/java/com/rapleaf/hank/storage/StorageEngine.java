@@ -48,4 +48,6 @@ public interface StorageEngine {
   public ByteBuffer getComparableKey(ByteBuffer key);
 
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
+
+  public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
 }

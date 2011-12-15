@@ -20,12 +20,16 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <jsp:include page="_top_nav.jsp" />
 
-
   <h1>Domains</h1>
 
-  <h2>Create New Domain</h2>
+  <h2>Actions</h2>
 
   <a href="new_domain.jsp">Create New Domain</a>
+
+  <form action="/domain/clean_domains" method=post>
+    <input type=submit value="Clean all Domains"
+    onclick="return confirm('Are you sure you want to clean all Domains? This action cannot be undone.');"/>
+  </form>
 
   <h2>All Domains</h2>
 

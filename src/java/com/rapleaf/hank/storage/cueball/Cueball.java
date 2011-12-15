@@ -52,6 +52,7 @@ public class Cueball implements StorageEngine {
     public static final String FILE_OPS_FACTORY_KEY = "file_ops_factory";
     public static final String HASHER_KEY = "hasher";
     public static final String COMPRESSION_CODEC = "compression_codec";
+    public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
 
     private static final Set<String> REQUIRED_KEYS =
         new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
@@ -59,7 +60,8 @@ public class Cueball implements StorageEngine {
             HASHER_KEY,
             VALUE_SIZE_KEY,
             KEY_HASH_SIZE_KEY,
-            FILE_OPS_FACTORY_KEY));
+            FILE_OPS_FACTORY_KEY,
+            NUM_REMOTE_LEAF_VERSIONS_TO_KEEP));
 
     @Override
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
@@ -70,6 +72,7 @@ public class Cueball implements StorageEngine {
         }
       }
 
+      // Hasher
       Hasher hasher;
       PartitionRemoteFileOpsFactory fileOpsFactory;
       try {
@@ -79,6 +82,7 @@ public class Cueball implements StorageEngine {
         throw new RuntimeException(e);
       }
 
+      // Compression codec
       String compressionCodec = (String) options.get(COMPRESSION_CODEC);
       Class<? extends CompressionCodec> compressionCodecClass = NoCompressionCodec.class;
       if (compressionCodec != null) {
@@ -90,6 +94,9 @@ public class Cueball implements StorageEngine {
         }
       }
 
+      // num remote bases to keep
+      Integer numRemoteLeafVersionsToKeep = (Integer) options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
+
       return new Cueball((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           (Integer) options.get(VALUE_SIZE_KEY),
@@ -97,7 +104,8 @@ public class Cueball implements StorageEngine {
           (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
-          domain);
+          domain,
+          numRemoteLeafVersionsToKeep);
     }
 
     @Override
@@ -118,6 +126,7 @@ public class Cueball implements StorageEngine {
       pw.println("remote_domain_root: #fill this in!");
       pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
       pw.println("value_size: #fill this in!");
+      pw.println("num_remote_leaf_versions_to_keep: #fill this in! 0 means keep all versions.");
 
       return sw.toString();
     }
@@ -132,6 +141,7 @@ public class Cueball implements StorageEngine {
   private final String remoteDomainRoot;
   private final PartitionRemoteFileOpsFactory fileOpsFactory;
   private final ByteBuffer keyHashBuffer;
+  private final int numRemoteLeafVersionsToKeep;
 
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
@@ -142,7 +152,8 @@ public class Cueball implements StorageEngine {
                  String remoteDomainRoot,
                  PartitionRemoteFileOpsFactory fileOpsFactory,
                  Class<? extends CompressionCodec> compressionCodecClass,
-                 Domain domain) {
+                 Domain domain,
+                 int numRemoteLeafVersionsToKeep) {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
@@ -152,6 +163,7 @@ public class Cueball implements StorageEngine {
     this.keyHashBuffer = ByteBuffer.allocate(keyHashSize);
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
+    this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
   }
 
   @Override
@@ -273,6 +285,17 @@ public class Cueball implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    // return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    return new RemoteDomainVersionDeleter() {
+      @Override
+      public void deleteVersion(int versionNumber) throws IOException {
+      }
+    };
+  }
+
+  @Override
+  public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
+    return new CueballRemoteDomainCleaner(fileOpsFactory.getFileOps(remoteDomainRoot, 0),
+        domain, numRemoteLeafVersionsToKeep);
   }
 }

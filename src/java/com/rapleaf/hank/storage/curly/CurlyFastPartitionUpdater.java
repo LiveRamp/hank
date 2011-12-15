@@ -74,7 +74,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
     for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
       // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(curlyDeltaVersion)) {
+      if (!isEmptyVersion(partitionRemoteFileOps, curlyDeltaVersion)) {
         curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
       }
     }
