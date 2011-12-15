@@ -59,7 +59,7 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
     // Determine what versions to keep
     Set<DomainVersion> versionsToKeep = new HashSet<DomainVersion>();
     for (int i = 0; !sortedVersions.isEmpty() && i < numRemoteLeafVersionsToKeep; ++i) {
-      // Keep the latest version
+      // Keep the next latest leaf version
       DomainVersion version = sortedVersions.last();
       // Backtrack the ancestry of the latest version to know what versions need to be kept
       Set<DomainVersion> ancestry = new HashSet<DomainVersion>();
@@ -73,12 +73,12 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
           ancestry.add(parent);
           version = parent;
         }
-        // Keep ancestry
-        versionsToKeep.addAll(ancestry);
-        // Remove ancestry from versions to examine. Note: since the version being kept is contained in the ancestry,
-        // the next iteration will advance to the next last (most recent) version.
-        sortedVersions.removeAll(ancestry);
       }
+      // Keep ancestry
+      versionsToKeep.addAll(ancestry);
+      // Remove ancestry from versions to examine. Note: since the version being kept is contained in the ancestry,
+      // the next iteration will advance to the next last (most recent) version.
+      sortedVersions.removeAll(ancestry);
     }
 
     // Note: all versions to keep have been removed from sortedVersions, so sortedVersions is exactly the set of
