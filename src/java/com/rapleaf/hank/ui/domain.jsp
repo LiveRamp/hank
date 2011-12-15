@@ -147,7 +147,7 @@
       <form action="/domain/defunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="mark defunct"
+        <input type=submit value="Mark defunct"
           onclick="return confirm('Are you sure you want to mark this version defunct? Subsequent data deploys will skip this version.');"/>
       </form>
       <% } %>
@@ -156,7 +156,7 @@
       <form action="/domain/undefunctify" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="unmark defunct"
+        <input type=submit value="Unmark defunct"
           onclick="return confirm('Are you sure you want to mark this version NOT defunct? Subsequent data deploys will use this version.');"/>
       </form>
       <% } %>
@@ -165,7 +165,7 @@
       <form action="/domain/close" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="close"
+        <input type=submit value="Close"
           onclick="return confirm('Are you sure you want to close this version? This can have adverse effects if done prematurely.');" />
       </form>
       <% } %>
@@ -174,7 +174,7 @@
       <form action="/domain/cleanup" method="post">
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
-        <input type=submit value="delete from remote storage"
+        <input type=submit value="Delete from remote storage"
           onclick="return confirm('Are you sure you want to delete this version from remote storage? This action cannot be undone!');"/>
       </form>
       <% } %>
