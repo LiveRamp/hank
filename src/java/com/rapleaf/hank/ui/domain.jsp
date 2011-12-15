@@ -148,7 +148,7 @@
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="Mark defunct"
-          onclick="return confirm('Are you sure you want to mark this version defunct? Subsequent data deploys will skip this version.');"/>
+          onclick="return confirm('Are you sure you want to mark version <%= version.getVersionNumber() %> defunct? Subsequent data deploys will skip this version.');"/>
       </form>
       <% } %>
 
@@ -157,7 +157,7 @@
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="Unmark defunct"
-          onclick="return confirm('Are you sure you want to mark this version NOT defunct? Subsequent data deploys will use this version.');"/>
+          onclick="return confirm('Are you sure you want to mark version <%= version.getVersionNumber() %> NOT defunct? Subsequent data deploys will use this version.');"/>
       </form>
       <% } %>
 
@@ -166,7 +166,7 @@
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="Close"
-          onclick="return confirm('Are you sure you want to close this version? This can have adverse effects if done prematurely.');" />
+          onclick="return confirm('Are you sure you want to close version <%= version.getVersionNumber() %>? This can have adverse effects if done prematurely.');" />
       </form>
       <% } %>
 
@@ -175,7 +175,7 @@
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="Delete from remote storage"
-          onclick="return confirm('Are you sure you want to delete this version from remote storage? This action cannot be undone!');"/>
+          onclick="return confirm('Are you sure you want to delete version <%= version.getVersionNumber() %> from remote storage? This action cannot be undone!');"/>
       </form>
       <% } %>
     </td>
