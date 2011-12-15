@@ -285,12 +285,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    // return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
-    return new RemoteDomainVersionDeleter() {
-      @Override
-      public void deleteVersion(int versionNumber) throws IOException {
-      }
-    };
+    return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
   }
 
   @Override
