@@ -78,10 +78,6 @@ public class Echo implements StorageEngine {
 
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
-    return new RemoteDomainCleaner() {
-      @Override
-      public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter) throws IOException {
-      }
-    };
+    return null;
   }
 }
