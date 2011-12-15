@@ -57,7 +57,7 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
     }
 
     // Determine what versions to keep
-    Set<DomainVersion> versionsToKeep = new HashSet<DomainVersion>();
+    SortedSet<DomainVersion> versionsToKeep = new TreeSet<DomainVersion>();
     for (int i = 0; !sortedVersions.isEmpty() && i < numRemoteLeafVersionsToKeep; ++i) {
       // Keep the next latest leaf version
       DomainVersion version = sortedVersions.last();
@@ -90,8 +90,9 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
     }
     for (DomainVersion version : sortedVersions) {
       LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
-      // version.setDefunct(true);
-      // remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
+      //TODO: not attempt to delete already deleted versions
+      version.setDefunct(true);
+      remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
     }
   }
 }
