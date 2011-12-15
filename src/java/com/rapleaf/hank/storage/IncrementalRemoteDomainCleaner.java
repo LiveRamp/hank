@@ -44,8 +44,8 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
       return;
     }
 
-    LOG.info("Deleting old versions of Domain " + domain.getName()
-        + " (keeping " + numRemoteLeafVersionsToKeep + " newest versions)");
+    LOG.info("Deleting remote old versions of Domain " + domain.getName()
+        + " (keeping " + numRemoteLeafVersionsToKeep + " newest leaf versions)");
 
     SortedSet<DomainVersion> sortedVersions = new TreeSet<DomainVersion>();
     sortedVersions.addAll(domain.getVersions());
