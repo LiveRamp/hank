@@ -61,16 +61,16 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private CompletionAwaiter awaiter = new CompletionAwaiter() {
     @Override
     public void completed(String relPath) {
-      synchronized (internalMap) {
-        try {
-          final T element = elementLoader.load(zk, path, relPath);
-          if (element == null) {
-            return;
-          }
-          internalMap.put(relPath, element);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+      try {
+        final T element = elementLoader.load(zk, path, relPath);
+        if (element == null) {
+          return;
         }
+        synchronized (internalMap) {
+          internalMap.put(relPath, element);
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
   };
