@@ -226,17 +226,14 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       completionDetectionExecutor.execute(new DetectCompletionRunnable(zk, path, relPath, awaiter, completionDetector));
     }
     completionDetectionExecutor.shutdown();
-    while (true) {
-      boolean terminated;
+    boolean terminated = false;
+    while (!terminated) {
       try {
         terminated =
             completionDetectionExecutor.awaitTermination(COMPLETION_DETECTION_EXECUTOR_TERMINATION_CHECK_PERIOD,
                 TimeUnit.MILLISECONDS);
       } catch (InterruptedException e) {
-        break;
-      }
-      if (terminated) {
-        break;
+        completionDetectionExecutor.shutdownNow();
       }
     }
   }
