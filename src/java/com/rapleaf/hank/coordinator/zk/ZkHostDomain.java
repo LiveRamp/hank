@@ -66,17 +66,22 @@ public class ZkHostDomain extends AbstractHostDomain {
             }
           }
         }, new DotComplete());
-    statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(root, STATISTICS_PATH_SEGMENT),
-        new WatchedMap.ElementLoader<WatchedString>() {
-          @Override
-          public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            if (!ZkPath.isHidden(relPath)) {
-              return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
-            } else {
-              return null;
+    try {
+      statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(root, STATISTICS_PATH_SEGMENT),
+          new WatchedMap.ElementLoader<WatchedString>() {
+            @Override
+            public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+              if (!ZkPath.isHidden(relPath)) {
+                return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
+              } else {
+                return null;
+              }
             }
-          }
-        });
+          });
+    } catch (Exception e) {
+      //TODO: remove temporary for migration
+      zk.create(ZkPath.append(root, STATISTICS_PATH_SEGMENT), null);
+    }
   }
 
   @Override
