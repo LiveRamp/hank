@@ -34,8 +34,6 @@ class UpdateManager implements IUpdateManager {
 
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
   private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
-  private static final long UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE = 1;
-  private static final TimeUnit UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT = TimeUnit.SECONDS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class PartitionUpdateTask implements Runnable {
@@ -119,13 +117,7 @@ class UpdateManager implements IUpdateManager {
       }
     };
 
-    ExecutorService executor = new ThreadPoolExecutor(
-        configurator.getNumConcurrentUpdates(),
-        configurator.getNumConcurrentUpdates(),
-        UPDATE_EXECUTOR_KEEPALIVE_TIME_VALUE,
-        UPDATE_EXECUTOR_KEEPALIVE_TIME_UNIT,
-        new LinkedBlockingQueue<Runnable>(),
-        factory);
+    ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
 
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
@@ -135,9 +127,7 @@ class UpdateManager implements IUpdateManager {
     IOException failedUpdateException = null;
     boolean keepWaiting = true;
     executor.shutdown();
-    while (keepWaiting)
-
-    {
+    while (keepWaiting) {
       LOG.debug("Waiting for update executor to complete...");
       try {
         boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
