@@ -7,10 +7,18 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 public class WatchedMap<T> extends AbstractMap<String, T> {
 
   private static final Logger LOG = Logger.getLogger(WatchedMap.class);
+
+  private static final int NUM_CONCURRENT_COMPLETION_DETECTORS = 16;
+  private static final int NUM_NEW_CHILDREN_CONCURRENT_DETECT_COMPLETION_THRESHOLD = 256;
+  private static final long COMPLETION_DETECTION_EXECUTOR_TERMINATION_CHECK_PERIOD = 5; // In millisecond
 
   public interface CompletionAwaiter {
     public void completed(String relPath);
@@ -135,11 +143,29 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private void syncMap() {
     try {
       final List<String> childrenRelPaths = zk.getChildren(path, watcher);
+      // Detect new children
+      List<String> newChildrenRelPaths = null;
       for (String relpath : childrenRelPaths) {
         if (!internalMap.containsKey(relpath)) {
-          completionDetector.detectCompletion(zk, path, relpath, awaiter);
+          if (newChildrenRelPaths == null) {
+            newChildrenRelPaths = new ArrayList<String>();
+          }
+          newChildrenRelPaths.add(relpath);
         }
       }
+
+      // Load new children
+      if (newChildrenRelPaths != null) {
+        // If number of new children is below a threshold, load them sequentially, otherwise do it concurrently
+        if (newChildrenRelPaths.size() < NUM_NEW_CHILDREN_CONCURRENT_DETECT_COMPLETION_THRESHOLD) {
+          for (String relPath : newChildrenRelPaths) {
+            completionDetector.detectCompletion(zk, path, relPath, awaiter);
+          }
+        } else {
+          detectCompletionConcurrently(zk, path, newChildrenRelPaths, awaiter, completionDetector);
+        }
+      }
+
       Set<String> deletedKeys = new HashSet<String>(internalMap.keySet());
       deletedKeys.removeAll(childrenRelPaths);
       for (String deletedKey : deletedKeys) {
@@ -150,8 +176,73 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     }
   }
 
+  private static class DetectCompletionRunnable implements Runnable {
+
+    private final ZooKeeperPlus zk;
+    private final String path;
+    private final String relPath;
+    private final CompletionAwaiter awaiter;
+    private final CompletionDetector completionDetector;
+
+    public DetectCompletionRunnable(ZooKeeperPlus zk,
+                                    String path,
+                                    String relPath,
+                                    CompletionAwaiter awaiter,
+                                    CompletionDetector completionDetector) {
+      this.zk = zk;
+      this.path = path;
+      this.relPath = relPath;
+      this.awaiter = awaiter;
+      this.completionDetector = completionDetector;
+    }
+
+    @Override
+    public void run() {
+      try {
+        completionDetector.detectCompletion(zk, path, relPath, awaiter);
+      } catch (Exception e) {
+        LOG.error("Exception while detecting completion for " + path + "/" + relPath, e);
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private static synchronized void detectCompletionConcurrently(ZooKeeperPlus zk,
+                                                                String path,
+                                                                Collection<String> relPaths,
+                                                                CompletionAwaiter awaiter,
+                                                                CompletionDetector completionDetector) {
+    final ExecutorService completionDetectionExecutor =
+        Executors.newFixedThreadPool(NUM_CONCURRENT_COMPLETION_DETECTORS,
+            new ThreadFactory() {
+              private int threadId = 0;
+
+              @Override
+              public Thread newThread(Runnable runnable) {
+                return new Thread(runnable, "Completion Detector #" + threadId++);
+              }
+            });
+    for (String relPath : relPaths) {
+      completionDetectionExecutor.execute(new DetectCompletionRunnable(zk, path, relPath, awaiter, completionDetector));
+    }
+    completionDetectionExecutor.shutdown();
+    while (true) {
+      boolean terminated;
+      try {
+        terminated =
+            completionDetectionExecutor.awaitTermination(COMPLETION_DETECTION_EXECUTOR_TERMINATION_CHECK_PERIOD,
+                TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        break;
+      }
+      if (terminated) {
+        break;
+      }
+    }
+  }
+
   @Override
-  public T put(String arg0, T arg1) {
-    return internalMap.put(arg0, arg1);
+  public T put(String key, T value) {
+    return internalMap.put(key, value);
   }
 }
