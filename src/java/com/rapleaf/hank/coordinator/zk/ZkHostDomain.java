@@ -66,11 +66,6 @@ public class ZkHostDomain extends AbstractHostDomain {
             }
           }
         }, new DotComplete());
-    try {
-      //TODO: remove temporary for migration
-      zk.create(ZkPath.append(root, STATISTICS_PATH_SEGMENT), null);
-    } catch (Exception e) {
-    }
     statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(root, STATISTICS_PATH_SEGMENT),
         new WatchedMap.ElementLoader<WatchedString>() {
           @Override
