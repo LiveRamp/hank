@@ -25,7 +25,7 @@ public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<Strin
 
   private final Class clazz;
   private final WatchedString watchedString;
-  private Set<WatchedNodeListener<E>> listeners = new HashSet<WatchedNodeListener<E>>();
+  private final Set<WatchedNodeListener<E>> listeners = new HashSet<WatchedNodeListener<E>>();
   private E cachedValue = null;
 
   public WatchedEnum(final Class clazz,
