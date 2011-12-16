@@ -38,16 +38,6 @@ public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<Strin
     onWatchedNodeChange(watchedString.get());
   }
 
-  public WatchedEnum(final Class clazz,
-                     final ZooKeeperPlus zk,
-                     final String nodePath,
-                     final E initValue) throws KeeperException, InterruptedException {
-    this.clazz = clazz;
-    this.watchedString = new WatchedString(zk, nodePath, initValue.toString());
-    this.watchedString.addListener(this);
-    onWatchedNodeChange(watchedString.get());
-  }
-
   public E get() {
     return cachedValue;
   }

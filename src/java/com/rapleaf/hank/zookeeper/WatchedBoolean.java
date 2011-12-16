@@ -3,10 +3,6 @@ package com.rapleaf.hank.zookeeper;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedBoolean extends WatchedNode<Boolean> {
-  public WatchedBoolean(ZooKeeperPlus zk, String nodePath, Boolean initialValue)
-      throws KeeperException, InterruptedException {
-    super(zk, nodePath, initialValue);
-  }
 
   public WatchedBoolean(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
       throws KeeperException, InterruptedException {

@@ -30,18 +30,6 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(22), wi.get());
   }
 
-  public void testCreate() throws Exception {
-    WatchedInt wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), false);
-
-    assertNull(wi.get());
-
-    wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 7);
-    assertEquals(Integer.valueOf(7), wi.get());
-
-    wi = new WatchedInt(getZk(), ZkPath.append(getRoot(), "watchedNode"), 10);
-    assertEquals(Integer.valueOf(7), wi.get());
-  }
-
   public void testWaitForCreation() throws InterruptedException, KeeperException {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");

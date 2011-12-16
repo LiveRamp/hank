@@ -17,14 +17,11 @@
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
-import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
-import org.eclipse.jetty.util.log.Log;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -94,40 +91,17 @@ public abstract class WatchedNode<T> {
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
-    if (waitForCreation) {
-      NodeCreationBarrier.block(zk, nodePath);
-    }
-    initWatch();
-  }
-
-  /**
-   * Start watching a node and create the underlying node with an initial value
-   *
-   * @param zk
-   * @param nodePath
-   * @param initValue
-   * @throws KeeperException
-   * @throws InterruptedException
-   */
-  public WatchedNode(ZooKeeperPlus zk, String nodePath, T initValue)
-      throws KeeperException, InterruptedException {
-    this.zk = zk;
-    this.nodePath = nodePath;
-    // Create
-    if (zk.exists(nodePath, false) == null) {
-      if (Log.isDebugEnabled()) {
-        LOG.debug(String.format("Creating non-existent node %s with value %s", nodePath, initValue));
-      }
-      try {
-        zk.create(nodePath, encode(initValue), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-      } catch (KeeperException e) {
-        // The node was probably created just now, after we tested its existence. Rethrow if it still does not exist
-        if (zk.exists(nodePath, false) == null) {
-          throw e;
-        }
+    // Immediately try to load the data, if it fails, then optionally wait
+    try {
+      watchForData();
+    } catch (KeeperException.NoNodeException e) {
+      if (waitForCreation) {
+        NodeCreationBarrier.block(zk, nodePath);
+        watchForData();
+      } else {
+        watchForCreation();
       }
     }
-    initWatch();
   }
 
   public void addListener(WatchedNodeListener<T> listener) {
@@ -152,14 +126,6 @@ public abstract class WatchedNode<T> {
       LOG.trace(String.format("Getting value for %s", nodePath));
     }
     value = decode(zk.getData(nodePath, watcher, new Stat()));
-  }
-
-  private void initWatch() throws KeeperException, InterruptedException {
-    if (zk.exists(nodePath, watcher) != null) {
-      value = decode(zk.getData(nodePath, false, new Stat()));
-    } else {
-      value = null;
-    }
   }
 
   protected abstract T decode(byte[] data);
