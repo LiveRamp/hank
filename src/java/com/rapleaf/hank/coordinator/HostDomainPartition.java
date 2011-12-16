@@ -37,10 +37,4 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public void setDeletable(boolean deletable) throws IOException;
 
   public void delete() throws IOException;
-
-  public void setEphemeralStatistic(String key, String value) throws IOException;
-
-  public String getStatistic(String key) throws IOException;
-
-  public void deleteStatistic(String key) throws IOException;
 }

@@ -16,8 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.partition_server.PartitionAccessor;
-import com.rapleaf.hank.partition_server.PartitionAccessorRuntimeStatistics;
+import com.rapleaf.hank.partition_server.DomainAccessor;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 
 import java.io.IOException;
@@ -120,19 +119,7 @@ public final class Hosts {
     Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       Domain domain = hostDomain.getDomain();
-      for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        // Ignore deletable partitions
-        if (!partition.isDeletable()) {
-          String partitionRuntimeStatistics = partition.getStatistic(PartitionAccessor.RUNTIME_STATISTICS_KEY);
-          if (partitionRuntimeStatistics != null) {
-            if (!result.containsKey(domain)) {
-              result.put(domain, new RuntimeStatisticsAggregator());
-            }
-            result.get(domain).add(
-                new PartitionAccessorRuntimeStatistics(partitionRuntimeStatistics).getRuntimeStatistics());
-          }
-        }
-      }
+      result.put(domain, DomainAccessor.getRuntimeStatistics(hostDomain));
     }
     return result;
   }

@@ -16,15 +16,12 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
   private Integer currentDomainGroupVersion;
   private Integer updatingToDomainGroupVersion;
-  private Map<String, String> statistics = new HashMap<String, String>();
   private boolean deletable;
   private boolean isDeleted;
 
@@ -77,20 +74,5 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   public boolean isDeleted() {
     return isDeleted;
-  }
-
-  @Override
-  public void setEphemeralStatistic(String key, String value) throws IOException {
-    statistics.put(key, value);
-  }
-
-  @Override
-  public String getStatistic(String key) throws IOException {
-    return statistics.get(key);
-  }
-
-  @Override
-  public void deleteStatistic(String key) throws IOException {
-    statistics.remove(key);
   }
 }

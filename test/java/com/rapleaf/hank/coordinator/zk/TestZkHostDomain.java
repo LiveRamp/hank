@@ -32,5 +32,12 @@ public class TestZkHostDomain extends ZkTestCase {
     hdc.addPartition(1, 1);
     assertEquals(1, hdc.getPartitions().size());
     assertEquals(1, ((HostDomainPartition) hdc.getPartitions().toArray()[0]).getPartitionNumber());
+
+    hdc.setEphemeralStatistic("a", "A");
+    hdc.setEphemeralStatistic("b", "B");
+    Thread.sleep(10);
+    assertEquals("A", hdc.getStatistic("a"));
+    assertEquals("B", hdc.getStatistic("b"));
+    assertNull(hdc.getStatistic("c"));
   }
 }

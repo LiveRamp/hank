@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.partition_server;
 
+import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
@@ -29,28 +30,30 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Class that manages accessing data on behalf of a particular Domain.
  */
-class DomainAccessor {
+public class DomainAccessor {
 
   private static final HankResponse WRONG_HOST = HankResponse.xception(HankException.wrong_host(true));
 
   private static final Logger LOG = Logger.getLogger(DomainAccessor.class);
-  private final Partitioner partitioner;
-  private final String name;
+  private final HostDomain hostDomain;
   private final PartitionAccessor[] partitionAccessors;
+  private final Partitioner partitioner;
   private final int updateStatisticsThreadSleepTimeMS;
   private final UpdateStatisticsRunnable updateStatisticsRunnable;
   private final Thread updateStatisticsThread;
 
   private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
+  private static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
 
-  public DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
+  public DomainAccessor(HostDomain hostDomain,
+                        PartitionAccessor[] partitionAccessors,
                         Partitioner partitioner) throws IOException {
-    this(name, partitionAccessors, partitioner, UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
+    this(hostDomain, partitionAccessors, partitioner, UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
   }
 
-  DomainAccessor(String name, PartitionAccessor[] partitionAccessors,
+  DomainAccessor(HostDomain hostDomain, PartitionAccessor[] partitionAccessors,
                  Partitioner partitioner, int updateStatisticsThreadSleepTimeMS) throws IOException {
-    this.name = name;
+    this.hostDomain = hostDomain;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
     this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
@@ -80,7 +83,8 @@ class DomainAccessor {
 
     public void run() {
       while (true) {
-        // Update all partition runtime statistics
+        RuntimeStatisticsAggregator runtimeStatisticsAggregator = new RuntimeStatisticsAggregator();
+        // Compute aggregate partition runtime statistics
         for (PartitionAccessor partitionAccessor : partitionAccessors) {
           // Check for cancelled status
           if (cancelled.get()) {
@@ -88,12 +92,14 @@ class DomainAccessor {
             return;
           }
           if (partitionAccessor != null) {
-            try {
-              partitionAccessor.updateRuntimeStatistics();
-            } catch (IOException e) {
-              LOG.error("Failed to update statistics", e);
-            }
+            runtimeStatisticsAggregator.add(partitionAccessor.getRuntimeStatistics());
           }
+        }
+        // Set statistics
+        try {
+          setRuntimeStatistics(hostDomain, runtimeStatisticsAggregator);
+        } catch (IOException e) {
+          LOG.error("Failed to set runtime statistics", e);
         }
         // Sleep a given interval. Interrupt the thread to stop it while it is sleeping
         try {
@@ -106,15 +112,11 @@ class DomainAccessor {
     }
 
     private void cleanup() {
-      // Delete all runtime statistics
-      for (PartitionAccessor partitionAccessor : partitionAccessors) {
-        try {
-          if (partitionAccessor != null) {
-            partitionAccessor.deleteRuntimeStatistics();
-          }
-        } catch (IOException e1) {
-          // Swallow
-        }
+      try {
+        deleteRuntimeStatistics();
+      } catch (IOException e) {
+        LOG.error("Error while deleting runtime statistics.", e);
+        throw new RuntimeException(e);
       }
     }
 
@@ -124,7 +126,7 @@ class DomainAccessor {
   }
 
   public String getName() {
-    return name;
+    return hostDomain.getDomain().getName();
   }
 
   public void shutDown() {
@@ -135,5 +137,24 @@ class DomainAccessor {
     } catch (InterruptedException e) {
       LOG.info("Interrupted while waiting for update statistics thread to terminate during shutdown.");
     }
+  }
+
+  public static RuntimeStatisticsAggregator getRuntimeStatistics(HostDomain hostDomain) throws IOException {
+    String runtimeStatistics = hostDomain.getStatistic(RUNTIME_STATISTICS_KEY);
+    if (runtimeStatistics == null) {
+      return new RuntimeStatisticsAggregator();
+    } else {
+      return new RuntimeStatisticsAggregator(runtimeStatistics);
+    }
+  }
+
+  public static void setRuntimeStatistics(HostDomain hostDomain,
+                                          RuntimeStatisticsAggregator runtimeStatisticsAggregator) throws IOException {
+    hostDomain.setEphemeralStatistic(RUNTIME_STATISTICS_KEY,
+        RuntimeStatisticsAggregator.toString(runtimeStatisticsAggregator));
+  }
+
+  public void deleteRuntimeStatistics() throws IOException {
+    hostDomain.deleteStatistic(RUNTIME_STATISTICS_KEY);
   }
 }

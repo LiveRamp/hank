@@ -192,7 +192,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
       }
       // configure and store the DomainAccessors
-      domainAccessors[domainId] = new DomainAccessor(domain.getName(), partitionAccessors, domain.getPartitioner());
+      domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner());
     }
   }
 

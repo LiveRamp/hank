@@ -34,5 +34,11 @@ public interface HostDomain extends Comparable<HostDomain> {
 
   public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException;
 
+  public void setEphemeralStatistic(String key, String value) throws IOException;
+
+  public String getStatistic(String key) throws IOException;
+
+  public void deleteStatistic(String key) throws IOException;
+
   public void delete() throws IOException;
 }

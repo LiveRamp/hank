@@ -33,9 +33,9 @@ import java.nio.ByteBuffer;
  * for number of requests and hits in a given time window
  */
 public class PartitionAccessor {
+
   private static final HankResponse NOT_FOUND = HankResponse.not_found(true);
   private static final Logger LOG = Logger.getLogger(PartitionAccessor.class);
-  public static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
 
   private final HostDomainPartition partition;
   private final Reader reader;
@@ -72,17 +72,18 @@ public class PartitionAccessor {
     }
   }
 
-  public void updateRuntimeStatistics() throws IOException {
+  public RuntimeStatistics getRuntimeStatistics() {
     // Copy duration and counts
     long windowDurationNanos = windowTimer.getDuration();
     windowTimer.restart();
     // Get atomic counters
-    String countersString = numRequestsAndHitsInWindow.getAsStringAndSet(0, 0);
-    // Update statistics
-    partition.setEphemeralStatistic(RUNTIME_STATISTICS_KEY, windowDurationNanos + " " + countersString);
-  }
-
-  public void deleteRuntimeStatistics() throws IOException {
-    partition.deleteStatistic(RUNTIME_STATISTICS_KEY);
+    long[] counters = numRequestsAndHitsInWindow.getAsArrayAndSet(0, 0);
+    long numRequestsInWindow = counters[0];
+    long numHitsInWindow = counters[1];
+    double throughput = 0;
+    if (windowDurationNanos != 0) {
+      throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
+    }
+    return new RuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
   }
 }

@@ -17,7 +17,6 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 import com.rapleaf.hank.zookeeper.*;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -27,7 +26,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
   private static final String DELETABLE_PATH_SEGMENT = "selected_for_deletion";
-  private static final String STATISTICS_PATH_SEGMENT = "statistics";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
@@ -35,7 +33,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedInt updatingToDomainGroupVersion;
   private final WatchedBoolean deletable;
-  private final WatchedMap<WatchedString> statistics;
 
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
@@ -44,7 +41,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       zk.create(ZkPath.append(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
       zk.createInt(ZkPath.append(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
       zk.create(ZkPath.append(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
-      zk.create(ZkPath.append(hdpPath, STATISTICS_PATH_SEGMENT), null);
       zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
 
       return new ZkHostDomainPartition(zk, hdpPath);
@@ -62,17 +58,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
     updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
     deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
-    statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(path, STATISTICS_PATH_SEGMENT),
-        new WatchedMap.ElementLoader<WatchedString>() {
-          @Override
-          public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            if (!ZkPath.isHidden(relPath)) {
-              return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
-            } else {
-              return null;
-            }
-          }
-        });
   }
 
   @Override
@@ -135,35 +120,5 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   public String getPath() {
     return path;
-  }
-
-  @Override
-  public void setEphemeralStatistic(String key, String value) throws IOException {
-    String path = ZkPath.append(this.path, STATISTICS_PATH_SEGMENT, key);
-    try {
-      zk.setOrCreate(path, value, CreateMode.EPHEMERAL);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public String getStatistic(String key) throws IOException {
-    WatchedString statistic = statistics.get(key);
-    if (statistic != null) {
-      return statistic.get();
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public void deleteStatistic(String key) throws IOException {
-    String path = ZkPath.append(this.path, STATISTICS_PATH_SEGMENT, key);
-    try {
-      zk.deleteIfExists(path);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 }

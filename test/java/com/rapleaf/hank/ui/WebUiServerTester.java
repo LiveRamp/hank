@@ -7,8 +7,8 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
-import com.rapleaf.hank.partition_server.PartitionAccessor;
-import com.rapleaf.hank.partition_server.PartitionAccessorRuntimeStatistics;
+import com.rapleaf.hank.partition_server.DomainAccessor;
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -46,11 +46,10 @@ public class WebUiServerTester extends ZkTestCase {
       for (Host host : ring.getHosts()) {
         host.setState(HostState.SERVING);
         for (HostDomain hd : host.getAssignedDomains()) {
+          DomainAccessor.setRuntimeStatistics(hd, new RuntimeStatisticsAggregator(14, 142, 100));
           for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setUpdatingToDomainGroupVersion(null);
             partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
-            partition.setEphemeralStatistic(PartitionAccessor.RUNTIME_STATISTICS_KEY,
-                new PartitionAccessorRuntimeStatistics(1000000000, 142, 100).toString());
           }
         }
       }

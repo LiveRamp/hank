@@ -46,13 +46,6 @@ public class TestZkHostDomainPartition extends ZkTestCase {
     Thread.sleep(10);
     assertEquals(true, hdpc2.isDeletable());
 
-    hdpc.setEphemeralStatistic("a", "A");
-    hdpc.setEphemeralStatistic("b", "B");
-    Thread.sleep(10);
-    assertEquals("A", hdpc.getStatistic("a"));
-    assertEquals("B", hdpc.getStatistic("b"));
-    assertNull(hdpc.getStatistic("c"));
-
     hdpc.delete();
     Thread.sleep(10);
     assertNull(getZk().exists(hdpc.getPath(), false));

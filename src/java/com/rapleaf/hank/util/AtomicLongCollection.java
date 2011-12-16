@@ -42,15 +42,10 @@ public class AtomicLongCollection {
     }
   }
 
-  synchronized public String getAsStringAndSet(long... newValues) {
-    StringBuilder result = new StringBuilder();
-    for (int i = 0; i < values.length; ++i) {
-      result.append(values[i]);
-      if (i != values.length - 1) {
-        result.append(' ');
-      }
-    }
+  synchronized public long[] getAsArrayAndSet(long... newValues) {
+    long[] result = new long[values.length];
+    System.arraycopy(values, 0, result, 0, values.length);
     set(newValues);
-    return result.toString();
+    return result;
   }
 }
