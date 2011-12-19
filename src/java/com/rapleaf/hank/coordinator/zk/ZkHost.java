@@ -95,13 +95,6 @@ public class ZkHost extends AbstractHost {
             return null;
           }
         });
-
-    try {
-      // TODO: remove migration code
-      zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
-    } catch (Throwable t) {
-    }
-
     statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT),
         new WatchedMap.ElementLoader<WatchedString>() {
           @Override
