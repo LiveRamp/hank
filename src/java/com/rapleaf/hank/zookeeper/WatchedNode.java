@@ -63,7 +63,10 @@ public abstract class WatchedNode<T> {
                 LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
               }
             }
-            if (value != previousValue) {
+            // Notify of new value if either value XOR previous value is null, otherwise,
+            // only notify if values are different
+            if ((value != null ^ previousValue != null) ||
+                (value != null && previousValue != null && !value.equals(previousValue))) {
               synchronized (listeners) {
                 for (WatchedNodeListener<T> listener : listeners) {
                   listener.onWatchedNodeChange(value);
