@@ -23,7 +23,8 @@ import java.util.*;
 
 public final class RingGroups {
 
-  private RingGroups() {}
+  private RingGroups() {
+  }
 
   public static boolean isUpdating(RingGroup ringGroup) throws IOException {
     return ringGroup.getUpdatingToVersion() != null;
@@ -83,11 +84,11 @@ public final class RingGroups {
   }
 
   public static Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>>
-  computeRuntimeStatistics(RingGroup ringGroup) throws IOException {
+  computeRuntimeStatistics(Coordinator coordinator, RingGroup ringGroup) throws IOException {
     Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> result =
         new HashMap<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>>();
     for (Ring ring : ringGroup.getRings()) {
-      result.put(ring, Rings.computeRuntimeStatistics(ring));
+      result.put(ring, Rings.computeRuntimeStatistics(coordinator, ring));
     }
     return result;
   }

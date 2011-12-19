@@ -15,13 +15,10 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
+
+import java.io.IOException;
+import java.util.*;
 
 public class MockHost extends AbstractHost {
 
@@ -36,6 +33,7 @@ public class MockHost extends AbstractHost {
   private final Set<WatchedNodeListener<HostState>> hostStateChangeListeners
       = new HashSet<WatchedNodeListener<HostState>>();
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
+  private Map<String, String> statistics = new HashMap<String, String>();
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -159,5 +157,20 @@ public class MockHost extends AbstractHost {
   @Override
   public Long getUpSince() throws IOException {
     return 0L;
+  }
+
+  @Override
+  public void setEphemeralStatistic(String key, String value) throws IOException {
+    statistics.put(key, value);
+  }
+
+  @Override
+  public String getStatistic(String key) throws IOException {
+    return statistics.get(key);
+  }
+
+  @Override
+  public void deleteStatistic(String key) throws IOException {
+    statistics.remove(key);
   }
 }

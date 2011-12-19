@@ -36,7 +36,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <%
     Map<Host, Map<Domain, RuntimeStatisticsAggregator>> runtimeStatistics =
-      Rings.computeRuntimeStatistics(ring);
+      Rings.computeRuntimeStatistics(coord, ring);
 
     RuntimeStatisticsAggregator runtimeStatisticsForRing =
       Rings.computeRuntimeStatisticsForRing(runtimeStatistics);

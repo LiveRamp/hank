@@ -25,7 +25,6 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Class that manages accessing data on behalf of a particular Domain.
@@ -38,29 +37,12 @@ public class DomainAccessor {
   private final HostDomain hostDomain;
   private final PartitionAccessor[] partitionAccessors;
   private final Partitioner partitioner;
-  private final int updateStatisticsThreadSleepTimeMS;
-  private final UpdateStatisticsRunnable updateStatisticsRunnable;
-  private final Thread updateStatisticsThread;
-
-  private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
-  private static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
-
-  public DomainAccessor(HostDomain hostDomain,
-                        PartitionAccessor[] partitionAccessors,
-                        Partitioner partitioner) throws IOException {
-    this(hostDomain, partitionAccessors, partitioner, UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
-  }
 
   DomainAccessor(HostDomain hostDomain, PartitionAccessor[] partitionAccessors,
-                 Partitioner partitioner, int updateStatisticsThreadSleepTimeMS) throws IOException {
+                 Partitioner partitioner) throws IOException {
     this.hostDomain = hostDomain;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
-    this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
-
-    updateStatisticsRunnable = new UpdateStatisticsRunnable();
-    updateStatisticsThread = new Thread(updateStatisticsRunnable, "Update Statistics");
-    updateStatisticsThread.start();
   }
 
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
@@ -73,71 +55,15 @@ public class DomainAccessor {
     return partitionAccessor.get(key, result);
   }
 
-  /**
-   * This thread periodically updates the counters on the HostDomainPartition
-   * with the values in the cached counters
-   */
-  private class UpdateStatisticsRunnable implements Runnable {
-
-    private final AtomicBoolean cancelled = new AtomicBoolean(false);
-
-    public void run() {
-      while (true) {
-        RuntimeStatisticsAggregator runtimeStatisticsAggregator = new RuntimeStatisticsAggregator();
-        // Compute aggregate partition runtime statistics
-        for (PartitionAccessor partitionAccessor : partitionAccessors) {
-          // Check for cancelled status
-          if (cancelled.get()) {
-            cleanup();
-            return;
-          }
-          if (partitionAccessor != null) {
-            runtimeStatisticsAggregator.add(partitionAccessor.getRuntimeStatistics());
-          }
-        }
-        // Set statistics
-        try {
-          setRuntimeStatistics(hostDomain, runtimeStatisticsAggregator);
-        } catch (IOException e) {
-          LOG.error("Failed to set runtime statistics", e);
-        }
-        // Sleep a given interval. Interrupt the thread to stop it while it is sleeping
-        try {
-          Thread.sleep(updateStatisticsThreadSleepTimeMS);
-        } catch (InterruptedException e) {
-          cleanup();
-          return;
-        }
-      }
-    }
-
-    private void cleanup() {
-      try {
-        deleteRuntimeStatistics();
-      } catch (IOException e) {
-        LOG.error("Error while deleting runtime statistics.", e);
-        throw new RuntimeException(e);
-      }
-    }
-
-    public void cancel() {
-      cancelled.set(true);
-    }
-  }
-
   public String getName() {
     return hostDomain.getDomain().getName();
   }
 
+  public HostDomain getHostDomain() {
+    return hostDomain;
+  }
+
   public void shutDown() {
-    // Stop update statistics
-    updateStatisticsRunnable.cancel();
-    updateStatisticsThread.interrupt();
-    try {
-      updateStatisticsThread.join();
-    } catch (InterruptedException e) {
-      LOG.info("Interrupted while waiting for update statistics thread to terminate during shutdown.");
-    }
     // Shutdown partition accessors
     for (PartitionAccessor partitionAccessor : partitionAccessors) {
       if (partitionAccessor != null) {
@@ -146,22 +72,13 @@ public class DomainAccessor {
     }
   }
 
-  public static RuntimeStatisticsAggregator getRuntimeStatistics(HostDomain hostDomain) throws IOException {
-    String runtimeStatistics = hostDomain.getStatistic(RUNTIME_STATISTICS_KEY);
-    if (runtimeStatistics == null) {
-      return new RuntimeStatisticsAggregator();
-    } else {
-      return new RuntimeStatisticsAggregator(runtimeStatistics);
+  public RuntimeStatisticsAggregator getRuntimeStatistics() {
+    RuntimeStatisticsAggregator runtimeStatisticsAggregator = new RuntimeStatisticsAggregator();
+    for (PartitionAccessor partitionAccessor : partitionAccessors) {
+      if (partitionAccessor != null) {
+        runtimeStatisticsAggregator.add(partitionAccessor.getRuntimeStatistics());
+      }
     }
-  }
-
-  public static void setRuntimeStatistics(HostDomain hostDomain,
-                                          RuntimeStatisticsAggregator runtimeStatisticsAggregator) throws IOException {
-    hostDomain.setEphemeralStatistic(RUNTIME_STATISTICS_KEY,
-        RuntimeStatisticsAggregator.toString(runtimeStatisticsAggregator));
-  }
-
-  public void deleteRuntimeStatistics() throws IOException {
-    hostDomain.deleteStatistic(RUNTIME_STATISTICS_KEY);
+    return runtimeStatisticsAggregator;
   }
 }

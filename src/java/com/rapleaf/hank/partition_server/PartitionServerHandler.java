@@ -30,23 +30,23 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implements the actual data serving logic of the PartitionServer
  */
-class PartitionServerHandler implements IfaceWithShutdown {
+public class PartitionServerHandler implements IfaceWithShutdown {
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
+  private final Host host;
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
   private final int getBulkTaskSize;
-  private final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
-  private final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
+  private static final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
+  private static final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
   private final HankTimerAggregator getTimerAggregator;
 
@@ -57,6 +57,10 @@ class PartitionServerHandler implements IfaceWithShutdown {
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
   private static final double USED_SIZE_THRESHOLD_FOR_VALUE_BUFFER_DEEP_COPY = 0.75;
 
+  private final UpdateStatisticsRunnable updateStatisticsRunnable;
+  private final Thread updateStatisticsThread;
+  private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
+  private static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
@@ -109,7 +113,7 @@ class PartitionServerHandler implements IfaceWithShutdown {
     }
 
     // Get the corresponding Host
-    Host host = ring.getHostByAddress(address);
+    host = ring.getHostByAddress(address);
     if (host == null) {
       throw new IOException(String.format("Could not get Host at address %s of Ring %s", address, ring));
     }
@@ -190,6 +194,11 @@ class PartitionServerHandler implements IfaceWithShutdown {
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner());
     }
+
+    // Start the update statistics thread
+    updateStatisticsRunnable = new UpdateStatisticsRunnable(UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
+    updateStatisticsThread = new Thread(updateStatisticsRunnable, "Update Statistics");
+    updateStatisticsThread.start();
   }
 
   public HankResponse get(int domainId, ByteBuffer key) {
@@ -365,8 +374,118 @@ class PartitionServerHandler implements IfaceWithShutdown {
     return domainAccessors[domainId];
   }
 
+  public static Map<Domain, RuntimeStatisticsAggregator> getRuntimeStatistics(Coordinator coordinator,
+                                                                              Host host) throws IOException {
+    String runtimeStatistics = host.getStatistic(RUNTIME_STATISTICS_KEY);
+
+    if (runtimeStatistics == null) {
+      return Collections.emptyMap();
+    } else {
+      Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
+      String[] domainStatistics = runtimeStatistics.split("\n");
+      for (String statistics : domainStatistics) {
+        if (statistics.length() == 0) {
+          continue;
+        }
+        String[] tokens = statistics.split("\t");
+        String domainName = tokens[0];
+        double throughputTotal = Double.parseDouble(tokens[1]);
+        long numRequestsTotal = Long.parseLong(tokens[2]);
+        long numHitsTotal = Long.parseLong(tokens[3]);
+        result.put(coordinator.getDomain(domainName), new RuntimeStatisticsAggregator(throughputTotal, numRequestsTotal, numHitsTotal));
+      }
+      return result;
+    }
+  }
+
+  public static void setRuntimeStatistics(Host host,
+                                           Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators)
+      throws IOException {
+
+    StringBuilder statistics = new StringBuilder();
+    for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatisticsAggregators.entrySet()) {
+      Domain domain = entry.getKey();
+      RuntimeStatisticsAggregator runtimeStatisticsAggregator = entry.getValue();
+      statistics.append(domain.getName());
+      statistics.append('\t');
+      statistics.append(RuntimeStatisticsAggregator.toString(runtimeStatisticsAggregator));
+      statistics.append('\n');
+    }
+    host.setEphemeralStatistic(RUNTIME_STATISTICS_KEY, statistics.toString());
+  }
+
+  private void deleteRuntimeStatistics() throws IOException {
+    host.deleteStatistic(RUNTIME_STATISTICS_KEY);
+  }
+
+  /**
+   * This thread periodically updates statistics of the Host
+   */
+  private class UpdateStatisticsRunnable implements Runnable {
+
+    private final AtomicBoolean cancelled = new AtomicBoolean(false);
+    private final int updateStatisticsThreadSleepTimeMS;
+
+    public UpdateStatisticsRunnable(int updateStatisticsThreadSleepTimeMS) {
+      this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
+    }
+
+    public void run() {
+      while (true) {
+        Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators
+            = new HashMap<Domain, RuntimeStatisticsAggregator>();
+        // Compute aggregate partition runtime statistics
+        for (DomainAccessor domainAccessor : domainAccessors) {
+          // Check for cancelled status
+          if (cancelled.get()) {
+            cleanup();
+            return;
+          }
+          if (domainAccessor != null) {
+            runtimeStatisticsAggregators.put(domainAccessor.getHostDomain().getDomain(),
+                domainAccessor.getRuntimeStatistics());
+          }
+        }
+        // Set statistics
+        try {
+          setRuntimeStatistics(host, runtimeStatisticsAggregators);
+        } catch (IOException e) {
+          LOG.error("Failed to set runtime statistics", e);
+        }
+        // Sleep a given interval. Interrupt the thread to stop it while it is sleeping
+        try {
+          Thread.sleep(updateStatisticsThreadSleepTimeMS);
+        } catch (InterruptedException e) {
+          cleanup();
+          return;
+        }
+      }
+    }
+
+    private void cleanup() {
+      try {
+        deleteRuntimeStatistics();
+      } catch (IOException e) {
+        LOG.error("Error while deleting runtime statistics.", e);
+        throw new RuntimeException(e);
+      }
+    }
+
+    public void cancel() {
+      cancelled.set(true);
+    }
+  }
+
   @Override
   public void shutDown() {
+    // Stop update statistics
+    updateStatisticsRunnable.cancel();
+    updateStatisticsThread.interrupt();
+    try {
+      updateStatisticsThread.join();
+    } catch (InterruptedException e) {
+      LOG.info("Interrupted while waiting for update statistics thread to terminate during shutdown.");
+    }
     // Shut down domain accessors
     for (DomainAccessor domainAccessor : domainAccessors) {
       if (domainAccessor != null) {

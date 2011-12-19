@@ -44,7 +44,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <%
   Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics =
-    Hosts.computeRuntimeStatistics(host);
+    Hosts.computeRuntimeStatistics(coord, host);
 
   RuntimeStatisticsAggregator runtimeStatisticsForHost =
     Hosts.computeRuntimeStatisticsForHost(runtimeStatistics);

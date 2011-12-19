@@ -50,7 +50,7 @@ public interface Host extends Comparable<Host> {
   /**
    * The date (milliseconds since epoch) when the partition server came online,
    * or null if the server is not currently online.
-   * 
+   *
    * @return
    * @throws IOException
    */
@@ -155,4 +155,10 @@ public interface Host extends Comparable<Host> {
    * @throws IOException
    */
   public void clearCommandQueue() throws IOException;
+
+  public void setEphemeralStatistic(String key, String value) throws IOException;
+
+  public String getStatistic(String key) throws IOException;
+
+  public void deleteStatistic(String key) throws IOException;
 }

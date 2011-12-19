@@ -16,11 +16,10 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.partition_server.DomainAccessor;
+import com.rapleaf.hank.partition_server.PartitionServerHandler;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Hosts {
@@ -115,13 +114,9 @@ public final class Hosts {
     return result;
   }
 
-  public static Map<Domain, RuntimeStatisticsAggregator> computeRuntimeStatistics(Host host) throws IOException {
-    Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
-    for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Domain domain = hostDomain.getDomain();
-      result.put(domain, DomainAccessor.getRuntimeStatistics(hostDomain));
-    }
-    return result;
+  public static Map<Domain, RuntimeStatisticsAggregator> computeRuntimeStatistics(Coordinator coordinator,
+                                                                                  Host host) throws IOException {
+    return PartitionServerHandler.getRuntimeStatistics(coordinator, host);
   }
 
   public static RuntimeStatisticsAggregator

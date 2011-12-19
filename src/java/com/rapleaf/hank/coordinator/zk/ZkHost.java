@@ -15,32 +15,16 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.*;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
-import com.rapleaf.hank.coordinator.AbstractHost;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.zookeeper.WatchedEnum;
-import com.rapleaf.hank.zookeeper.WatchedMap;
-import com.rapleaf.hank.zookeeper.WatchedNodeListener;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.io.IOException;
+import java.util.*;
 
 public class ZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
@@ -49,6 +33,7 @@ public class ZkHost extends AbstractHost {
   private static final String PARTS_PATH_SEGMENT = "parts";
   private static final String COMMAND_QUEUE_PATH_SEGMENT = "command_queue";
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "current_command";
+  private static final String STATISTICS_PATH_SEGMENT = "statistics";
 
   private final ZooKeeperPlus zk;
   private final String hostPath;
@@ -60,6 +45,7 @@ public class ZkHost extends AbstractHost {
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
   private final WatchedMap<ZkHostDomain> domains;
+  private final WatchedMap<WatchedString> statistics;
 
   public static ZkHost create(ZooKeeperPlus zk,
                               Coordinator coordinator,
@@ -73,6 +59,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
 
     zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
     return new ZkHost(zk, coordinator, hostPath);
@@ -94,20 +81,38 @@ public class ZkHost extends AbstractHost {
         ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), true);
     domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT),
         new ElementLoader<ZkHostDomain>() {
-      @Override
-      public ZkHostDomain load(ZooKeeperPlus zk,
-                               String basePath,
-                               String relPath) throws KeeperException, InterruptedException {
-        if (!ZkPath.isHidden(relPath)) {
-          Domain domain = coordinator.getDomain(relPath);
-          if (domain == null) {
-            throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
+          @Override
+          public ZkHostDomain load(ZooKeeperPlus zk,
+                                   String basePath,
+                                   String relPath) throws KeeperException, InterruptedException {
+            if (!ZkPath.isHidden(relPath)) {
+              Domain domain = coordinator.getDomain(relPath);
+              if (domain == null) {
+                throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
+              }
+              return new ZkHostDomain(zk, basePath, domain);
+            }
+            return null;
           }
-          return new ZkHostDomain(zk, basePath, domain);
-        }
-        return null;
-      }
-    });
+        });
+
+    try {
+      // TODO: remove migration code
+      zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
+    } catch (Throwable t) {
+    }
+
+    statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT),
+        new WatchedMap.ElementLoader<WatchedString>() {
+          @Override
+          public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            if (!ZkPath.isHidden(relPath)) {
+              return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
+            } else {
+              return null;
+            }
+          }
+        });
   }
 
   private class CommandQueueWatcher extends HankWatcher {
@@ -186,23 +191,30 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     ZkHost other = (ZkHost) obj;
     if (address == null) {
-      if (other.address != null)
+      if (other.address != null) {
         return false;
-    } else if (!address.equals(other.address))
+      }
+    } else if (!address.equals(other.address)) {
       return false;
+    }
     if (hostPath == null) {
-      if (other.hostPath != null)
+      if (other.hostPath != null) {
         return false;
-    } else if (!hostPath.equals(other.hostPath))
+      }
+    } else if (!hostPath.equals(other.hostPath)) {
       return false;
+    }
     return true;
   }
 
@@ -321,6 +333,36 @@ public class ZkHost extends AbstractHost {
 
     try {
       return zk.exists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false).getCtime();
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void setEphemeralStatistic(String key, String value) throws IOException {
+    String path = ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT, key);
+    try {
+      zk.setOrCreate(path, value, CreateMode.EPHEMERAL);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public String getStatistic(String key) throws IOException {
+    WatchedString statistic = statistics.get(key);
+    if (statistic != null) {
+      return statistic.get();
+    } else {
+      return null;
+    }
+  }
+
+  @Override
+  public void deleteStatistic(String key) throws IOException {
+    String path = ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT, key);
+    try {
+      zk.deleteIfExists(path);
     } catch (Exception e) {
       throw new IOException(e);
     }

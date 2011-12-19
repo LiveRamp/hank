@@ -22,7 +22,7 @@ public class TestDomainAccessor extends BaseTestCase {
         new MockReader(null, 1, "v".getBytes(), null));
     // MapPartitioner maps both 'key' and 'nullkey' to partitionAccessors[0]
     DomainAccessor drs = new DomainAccessor(new MockHostDomain(new MockDomain("domain")), partitionAccessors,
-        new MapPartitioner(key, 0, nullKey, 0), 2000);
+        new MapPartitioner(key, 0, nullKey, 0));
 
     drs.get(key, new ReaderResult());
     drs.get(nullKey, new ReaderResult());

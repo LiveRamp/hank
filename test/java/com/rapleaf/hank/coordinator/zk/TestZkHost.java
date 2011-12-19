@@ -15,19 +15,14 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.HostCommand;
-import com.rapleaf.hank.coordinator.HostDomain;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.Hosts;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
@@ -39,6 +34,13 @@ public class TestZkHost extends ZkTestCase {
     assertNull(c.getCurrentCommand());
     assertEquals(HostState.OFFLINE, c.getState());
     assertFalse(Hosts.isOnline(c));
+
+    c.setEphemeralStatistic("a", "A");
+    c.setEphemeralStatistic("b", "B");
+    Thread.sleep(10);
+    assertEquals("A", c.getStatistic("a"));
+    assertEquals("B", c.getStatistic("b"));
+    assertNull(c.getStatistic("c"));
   }
 
   public void testStateChangeListener() throws Exception {

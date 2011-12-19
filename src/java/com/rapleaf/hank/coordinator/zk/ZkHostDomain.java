@@ -20,10 +20,8 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.WatchedString;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -32,19 +30,15 @@ import java.util.Set;
 
 public class ZkHostDomain extends AbstractHostDomain {
 
-  private static final String STATISTICS_PATH_SEGMENT = ".statistics";
-
   private final ZooKeeperPlus zk;
   private final String root;
 
   private final WatchedMap<ZkHostDomainPartition> partitions;
   private final Domain domain;
-  private final WatchedMap<WatchedString> statistics;
 
   public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
     try {
       zk.create(ZkPath.append(partsRoot, domain.getName()), null);
-      zk.create(ZkPath.append(partsRoot, domain.getName(), STATISTICS_PATH_SEGMENT), null);
       return new ZkHostDomain(zk, partsRoot, domain);
     } catch (Exception e) {
       throw new IOException(e);
@@ -66,17 +60,6 @@ public class ZkHostDomain extends AbstractHostDomain {
             }
           }
         }, new DotComplete());
-    statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(root, STATISTICS_PATH_SEGMENT),
-        new WatchedMap.ElementLoader<WatchedString>() {
-          @Override
-          public WatchedString load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            if (!ZkPath.isHidden(relPath)) {
-              return new WatchedString(zk, ZkPath.append(basePath, relPath), true);
-            } else {
-              return null;
-            }
-          }
-        });
   }
 
   @Override
@@ -97,36 +80,6 @@ public class ZkHostDomain extends AbstractHostDomain {
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
     partitions.put(Integer.toString(partNum), part);
     return part;
-  }
-
-  @Override
-  public void setEphemeralStatistic(String key, String value) throws IOException {
-    String path = ZkPath.append(this.root, STATISTICS_PATH_SEGMENT, key);
-    try {
-      zk.setOrCreate(path, value, CreateMode.EPHEMERAL);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public String getStatistic(String key) throws IOException {
-    WatchedString statistic = statistics.get(key);
-    if (statistic != null) {
-      return statistic.get();
-    } else {
-      return null;
-    }
-  }
-
-  @Override
-  public void deleteStatistic(String key) throws IOException {
-    String path = ZkPath.append(this.root, STATISTICS_PATH_SEGMENT, key);
-    try {
-      zk.deleteIfExists(path);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 
   @Override

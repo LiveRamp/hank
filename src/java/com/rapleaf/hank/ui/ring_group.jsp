@@ -39,7 +39,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
   <%
     Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics =
-      RingGroups.computeRuntimeStatistics(ringGroup);
+      RingGroups.computeRuntimeStatistics(coord, ringGroup);
 
     RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
       RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);

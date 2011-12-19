@@ -28,13 +28,6 @@ public class RuntimeStatisticsAggregator {
     numHitsTotal = 0;
   }
 
-  public RuntimeStatisticsAggregator(String s) {
-    String[] tokens = s.split(" ");
-    throughputTotal = Double.parseDouble(tokens[0]);
-    numRequestsTotal = Long.parseLong(tokens[1]);
-    numHitsTotal = Long.parseLong(tokens[2]);
-  }
-
   public RuntimeStatisticsAggregator(double throughputTotal, long numRequestsTotal, long numHitsTotal) {
     this.throughputTotal = throughputTotal;
     this.numRequestsTotal = numRequestsTotal;
@@ -67,7 +60,7 @@ public class RuntimeStatisticsAggregator {
 
   public static String toString(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
     return runtimeStatisticsAggregator.throughputTotal
-        + " " + runtimeStatisticsAggregator.numRequestsTotal
-        + " " + runtimeStatisticsAggregator.numHitsTotal;
+        + "\t" + runtimeStatisticsAggregator.numRequestsTotal
+        + "\t" + runtimeStatisticsAggregator.numHitsTotal;
   }
 }

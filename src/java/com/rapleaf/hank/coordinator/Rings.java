@@ -211,11 +211,11 @@ public class Rings {
   }
 
   public static Map<Host, Map<Domain, RuntimeStatisticsAggregator>>
-  computeRuntimeStatistics(Ring ring) throws IOException {
+  computeRuntimeStatistics(Coordinator coordinator, Ring ring) throws IOException {
     Map<Host, Map<Domain, RuntimeStatisticsAggregator>> result =
         new HashMap<Host, Map<Domain, RuntimeStatisticsAggregator>>();
     for (Host host : ring.getHosts()) {
-      result.put(host, Hosts.computeRuntimeStatistics(host));
+      result.put(host, Hosts.computeRuntimeStatistics(coordinator, host));
     }
     return result;
   }
