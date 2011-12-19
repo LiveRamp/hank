@@ -137,6 +137,11 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   @Override
   public void close() throws IOException {
-    recordFile.close();
+    if (recordFile != null) {
+      recordFile.close();
+    }
+    if (keyFileReader != null) {
+      keyFileReader.close();
+    }
   }
 }

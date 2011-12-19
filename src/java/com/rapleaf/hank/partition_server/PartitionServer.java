@@ -316,21 +316,27 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
    * @throws InterruptedException
    */
   protected void startThriftServer() throws TTransportException, IOException, InterruptedException {
-    // set up the service handler
-    IfaceWithShutdown handler = getHandler();
-
-    // launch the thrift server
-    TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
-    Args options = new Args(serverSocket);
-    options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
-    options.workerThreads(configurator.getNumConcurrentQueries());
-    options.protocolFactory(new TCompactProtocol.Factory());
-    dataServer = new THsHaServer(options);
-    LOG.debug("Launching Thrift server...");
-    dataServer.serve();
-    LOG.debug("Thrift server exited.");
-    handler.shutDown();
-    LOG.debug("Handler shutdown.");
+    IfaceWithShutdown handler = null;
+    try {
+      // Set up the service handler
+      handler = getHandler();
+      // Launch the thrift server
+      TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
+      Args options = new Args(serverSocket);
+      options.processor(new com.rapleaf.hank.generated.PartitionServer.Processor(handler));
+      options.workerThreads(configurator.getNumConcurrentQueries());
+      options.protocolFactory(new TCompactProtocol.Factory());
+      dataServer = new THsHaServer(options);
+      LOG.debug("Launching Thrift server...");
+      dataServer.serve();
+      LOG.debug("Thrift server exited.");
+    } finally {
+      // Always shut down the handler
+      if (handler != null) {
+        LOG.debug("Shutting down Partition Server handler.");
+        handler.shutDown();
+      }
+    }
   }
 
   /**

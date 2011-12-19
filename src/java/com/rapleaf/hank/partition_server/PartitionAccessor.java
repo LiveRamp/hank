@@ -86,4 +86,14 @@ public class PartitionAccessor {
     }
     return new RuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
   }
+
+  public void shutDown() {
+    if (reader != null) {
+      try {
+        reader.close();
+      } catch (IOException e) {
+        LOG.error("Exception while closing Reader", e);
+      }
+    }
+  }
 }

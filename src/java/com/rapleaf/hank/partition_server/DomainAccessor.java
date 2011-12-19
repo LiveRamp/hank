@@ -130,12 +130,19 @@ public class DomainAccessor {
   }
 
   public void shutDown() {
+    // Stop update statistics
     updateStatisticsRunnable.cancel();
     updateStatisticsThread.interrupt();
     try {
       updateStatisticsThread.join();
     } catch (InterruptedException e) {
       LOG.info("Interrupted while waiting for update statistics thread to terminate during shutdown.");
+    }
+    // Shutdown partition accessors
+    for (PartitionAccessor partitionAccessor : partitionAccessors) {
+      if (partitionAccessor != null) {
+        partitionAccessor.shutDown();
+      }
     }
   }
 

@@ -365,8 +365,15 @@ class PartitionServerHandler implements IfaceWithShutdown {
     return domainAccessors[domainId];
   }
 
+  @Override
   public void shutDown() {
-    // Shutdown GET tasks
+    // Shut down domain accessors
+    for (DomainAccessor domainAccessor : domainAccessors) {
+      if (domainAccessor != null) {
+        domainAccessor.shutDown();
+      }
+    }
+    // Shut down GET tasks
     getBulkTaskExecutor.shutdown();
     try {
       while (!getBulkTaskExecutor.awaitTermination(GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE,
@@ -375,12 +382,6 @@ class PartitionServerHandler implements IfaceWithShutdown {
       }
     } catch (InterruptedException e) {
       LOG.debug("Interrupted while waiting for termination of GET BULK task executor during shutdown.");
-    }
-    // Shutdown domain accessors
-    for (DomainAccessor domainAccessor : domainAccessors) {
-      if (domainAccessor != null) {
-        domainAccessor.shutDown();
-      }
     }
   }
 }
