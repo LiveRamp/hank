@@ -31,6 +31,7 @@ public abstract class WatchedNode<T> {
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
 
   private T value;
+  private T previousValue = null;
   private final String nodePath;
   private final ZooKeeperPlus zk;
   private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
@@ -62,9 +63,12 @@ public abstract class WatchedNode<T> {
                 LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
               }
             }
-            synchronized (listeners) {
-              for (WatchedNodeListener<T> listener : listeners) {
-                listener.onWatchedNodeChange(value);
+            if (value != previousValue) {
+              synchronized (listeners) {
+                for (WatchedNodeListener<T> listener : listeners) {
+                  listener.onWatchedNodeChange(value);
+                }
+                previousValue = value;
               }
             }
           } else {
