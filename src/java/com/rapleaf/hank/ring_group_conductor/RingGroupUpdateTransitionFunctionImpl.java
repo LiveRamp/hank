@@ -110,7 +110,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 for (Host host : ring.getHosts()) {
                   if (!Hosts.isUpToDate(host, updatingToVersion)) {
                     LOG.info("Host " + host + " needs to UPDATE again since it is not up to date.");
-                    if (!host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
+                    if (host.getCurrentCommand() != HostCommand.EXECUTE_UPDATE &&
+                        !host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
                       host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
                     }
                   }
