@@ -44,10 +44,6 @@ class PartitionServerHandler implements IfaceWithShutdown {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
-  private static final HankResponse INTERRUPTED_GET = HankResponse.xception(
-      HankException.internal_error("Interrupted while waiting for GET to complete."));
-  private static final HankBulkResponse INTERRUPTED_GET_BULK = HankBulkResponse.xception(
-      HankException.internal_error("Interrupted while waiting for GET BULK to complete."));
   private final int getBulkTaskSize;
   private final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
   private final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
