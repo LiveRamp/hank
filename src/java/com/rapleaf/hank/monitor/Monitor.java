@@ -22,8 +22,10 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.StringNotification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
+import com.rapleaf.hank.util.LocalHostUtils;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -41,7 +43,11 @@ public class Monitor {
     this.coordinator = coordinator;
 
     globalNotifier = configurator.getGlobalNotifier();
-    globalNotifier.notify(new StringNotification("Hank monitor starting."));
+    try {
+      globalNotifier.notify(new StringNotification("Hank monitor starting on " + LocalHostUtils.getHostName() + "."));
+    } catch (UnknownHostException e) {
+      globalNotifier.notify(new StringNotification("Hank monitor starting on 'unknown host'."));
+    }
     addShutdownHook();
 
     for (RingGroup ringGroup : coordinator.getRingGroups()) {
@@ -73,7 +79,12 @@ public class Monitor {
       @Override
       public void run() {
         if (globalNotifier != null) {
-          globalNotifier.notify(new StringNotification("Hank monitor stopping."));
+          try {
+            globalNotifier.notify(new StringNotification("Hank monitor stopping on "
+                + LocalHostUtils.getHostName() + "."));
+          } catch (UnknownHostException e) {
+            globalNotifier.notify(new StringNotification("Hank monitor stopping on 'unknown host'."));
+          }
         }
         stop();
       }
