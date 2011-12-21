@@ -48,10 +48,9 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   private static final long GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_KEEP_ALIVE_UNIT = TimeUnit.DAYS;
 
-  private final HankTimerAggregator getTimerAggregator;
-
   private static final ReaderResultThreadLocal readerResultThreadLocal = new ReaderResultThreadLocal();
   private final DomainAccessor[] domainAccessors;
+  private final HankTimerAggregator[] getTimerAggregators;
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private static final long GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
@@ -79,9 +78,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Prestart core threads
     getBulkTaskExecutor.prestartAllCoreThreads();
-
-    // Set up timer aggregators
-    getTimerAggregator = new HankTimerAggregator("GET", configurator.getGetTimerAggregatorWindow());
 
     // Find the ring
     Ring ring = coordinator.getRingGroup(configurator.getRingGroupName()).getRingForHost(address);
@@ -118,7 +114,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       throw new IOException(String.format("Could not get Host at address %s of Ring %s", address, ring));
     }
 
-    // Determine the max domain id so we can bound the array
+    // Determine the max domain id so we can bound the arrays
     int maxDomainId = 0;
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       int domainId = dgvdv.getDomain().getId();
@@ -127,6 +123,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       }
     }
     domainAccessors = new DomainAccessor[maxDomainId + 1];
+    getTimerAggregators = new HankTimerAggregator[maxDomainId + 1];
 
     // Loop over the domains and get set up
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
@@ -142,6 +139,11 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       if (partitions == null) {
         throw new IOException(String.format("Could not get partitions assignements of HostDomain %s", hostDomain));
       }
+
+      // Set up timer aggregators
+      getTimerAggregators[domainId] = new HankTimerAggregator("GET " + domain.getName(),
+          configurator.getGetTimerAggregatorWindow());
+
       LOG.info(String.format("Loading %d/%d partitions of domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
 
@@ -245,7 +247,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   private HankResponse _get(PartitionServerHandler partitionServerHandler, int domainId, ByteBuffer key, ReaderResult result) {
-    HankTimer timer = getTimerAggregator.getTimer();
+    HankTimer timer = getDomainGetTimerAggregator(domainId);
     try {
       DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
       if (domainAccessor == null) {
@@ -267,7 +269,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
             HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
       }
     } finally {
-      getTimerAggregator.add(timer);
+      addDomainGetTimer(domainId, timer);
     }
   }
 
@@ -368,10 +370,26 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   private DomainAccessor getDomainAccessor(int domainId) {
-    if (domainAccessors.length <= domainId) {
+    if (domainId < domainAccessors.length) {
+      return domainAccessors[domainId];
+    } else {
       return null;
     }
-    return domainAccessors[domainId];
+  }
+
+  private HankTimer getDomainGetTimerAggregator(int domainId) {
+    if (domainId < getTimerAggregators.length) {
+      return getTimerAggregators[domainId].getTimer();
+    } else {
+      return null;
+    }
+  }
+
+  private void addDomainGetTimer(int domainId, HankTimer timer) {
+    if (timer != null) {
+      // No need to check if domainId is within bounds. If it is not, timer is null.
+      getTimerAggregators[domainId].add(timer);
+    }
   }
 
   public static Map<Domain, RuntimeStatisticsAggregator> getRuntimeStatistics(Coordinator coordinator,
@@ -399,7 +417,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   public static void setRuntimeStatistics(Host host,
-                                           Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators)
+                                          Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators)
       throws IOException {
 
     StringBuilder statistics = new StringBuilder();
