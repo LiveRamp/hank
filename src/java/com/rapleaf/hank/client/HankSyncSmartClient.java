@@ -11,6 +11,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class HankSyncSmartClient implements SmartClient.Iface {
 
@@ -48,22 +49,24 @@ public class HankSyncSmartClient implements SmartClient.Iface {
   private static class SyncGetCallback implements GetCallback {
 
     private HankResponse response;
+    private final CountDownLatch countDownLatch = new CountDownLatch(1); // A simple barrier
 
     @Override
     public void onComplete(HankResponse response) {
       this.response = response;
-      this.notifyAll();
+      countDownLatch.countDown();
     }
   }
 
   private static class SyncGetBulkCallback implements GetBulkCallback {
 
     private HankBulkResponse response;
+    private final CountDownLatch countDownLatch = new CountDownLatch(1); // A simple barrier
 
     @Override
     public void onComplete(HankBulkResponse response) {
       this.response = response;
-      this.notifyAll();
+      countDownLatch.countDown();
     }
   }
 
@@ -72,7 +75,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetCallback callback = new SyncGetCallback();
     asyncSmartClient.get(domainName, key, callback);
     try {
-      callback.wait();
+      callback.countDownLatch.await();
       return callback.response;
     } catch (InterruptedException e) {
       return INTERRUPTED_GET;
@@ -84,7 +87,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetBulkCallback callback = new SyncGetBulkCallback();
     asyncSmartClient.getBulk(domainName, keys, callback);
     try {
-      callback.wait();
+      callback.countDownLatch.await();
       return callback.response;
     } catch (InterruptedException e) {
       return INTERRUPTED_GET_BULK;
