@@ -143,24 +143,6 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     connectionTasks = new LinkedList<ConnectionTask>();
   }
 
-  private class SelectRunnable implements Runnable {
-
-    @Override
-    public void run() {
-
-
-
-    }
-  }
-
-
-  private class ConnectingRunnable implements Runnable {
-
-    @Override
-    public void run() {
-
-    }
-  }
 
   private static class GetTask {
     private final ByteBuffer key;
