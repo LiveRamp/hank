@@ -29,11 +29,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-/**
- * HankSmartClient implements the logic of determining which PartitionServer to
- * contact to fulfill requests for a given key, as well as managing a connection
- * pool and detecting PartitionServer failures.
- */
 public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
