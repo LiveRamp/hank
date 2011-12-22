@@ -1,23 +1,20 @@
 package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.generated.PartitionServer;
-import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.TAsyncClientManager;
 import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.List;
 
 public class AsyncHostConnection {
 
@@ -26,13 +23,13 @@ public class AsyncHostConnection {
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
+  private final TAsyncClientManager asyncClientManager;
+  private final Host host;
   private SocketChannel socket;
   private TNonblockingTransport transport;
   private PartitionServer.AsyncClient client;
-  private final Host host;
-  protected final ReentrantLock lock = new ReentrantLock(true); // Use a fair ReentrantLock
   private HostConnectionState state = HostConnectionState.DISCONNECTED;
-  private final TAsyncClientManager asyncClientManager;
+
 
   private static enum HostConnectionState {
     CONNECTED,
@@ -52,6 +49,14 @@ public class AsyncHostConnection {
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     this.asyncClientManager = asyncClientManager;
+  }
+
+  public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) throws TException {
+    client.get(domainId, key, resultHandler);
+  }
+
+  public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) throws TException {
+    client.getBulk(domainId, keys, resultHandler);
   }
 
   Host getHost() {
