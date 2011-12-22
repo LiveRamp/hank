@@ -16,5 +16,220 @@
 
 package com.rapleaf.hank.client;
 
-public class HankAsyncSmartClient {
+
+import com.rapleaf.hank.config.HankSmartClientConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HankBulkResponse;
+import com.rapleaf.hank.generated.HankException;
+import com.rapleaf.hank.generated.HankResponse;
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateChangeListener {
+
+  private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
+  private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
+
+  private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
+
+  private final RingGroup ringGroup;
+  private final Coordinator coordinator;
+  private final int numConnectionsPerHost;
+  private final int queryMaxNumTries;
+  private final int tryLockConnectionTimeoutMs;
+  private final int establishConnectionTimeoutMs;
+  private final int queryTimeoutMs;
+  private final int bulkQueryTimeoutMs;
+
+  private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
+      = new HashMap<PartitionServerAddress, HostConnectionPool>();
+  private final Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
+      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
+  private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
+      = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+
+  /**
+   * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
+   * with the requested ring group. Note that a given HankSmartClient can only
+   * contact one ring group. Queries will not timeout.
+   *
+   * @param coordinator
+   * @param configurator
+   * @throws IOException
+   * @throws TException
+   */
+  public HankAsyncSmartClient(Coordinator coordinator,
+                              HankSmartClientConfigurator configurator) throws IOException, TException {
+    this(coordinator,
+        configurator.getRingGroupName(),
+        configurator.getNumConnectionsPerHost(),
+        configurator.getQueryNumMaxTries(),
+        configurator.getTryLockConnectionTimeoutMs(),
+        configurator.getEstablishConnectionTimeoutMs(),
+        configurator.getQueryTimeoutMs(),
+        configurator.getBulkQueryTimeoutMs());
+  }
+
+  /**
+   * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
+   * with the requested ring group. Note that a given HankSmartClient can only
+   * contact one ring group. Queries will timeout after the given period of time.
+   * A timeout of 0 means no timeout.
+   *
+   * @param coordinator
+   * @param ringGroupName
+   * @param numConnectionsPerHost
+   * @param queryTimeoutMs
+   * @throws IOException
+   * @throws TException
+   */
+  public HankAsyncSmartClient(Coordinator coordinator,
+                              String ringGroupName,
+                              int numConnectionsPerHost,
+                              int queryMaxNumTries,
+                              int tryLockConnectionTimeoutMs,
+                              int establishConnectionTimeoutMs,
+                              int queryTimeoutMs,
+                              int bulkQueryTimeoutMs) throws IOException, TException {
+    this.coordinator = coordinator;
+    ringGroup = coordinator.getRingGroup(ringGroupName);
+
+    if (ringGroup == null) {
+      throw new IOException("Could not find Ring Group " + ringGroupName + " with Coordinator " + coordinator.toString());
+    }
+
+    this.numConnectionsPerHost = numConnectionsPerHost;
+    this.queryMaxNumTries = queryMaxNumTries;
+    this.tryLockConnectionTimeoutMs = tryLockConnectionTimeoutMs;
+    this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
+    this.queryTimeoutMs = queryTimeoutMs;
+    this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
+    loadCache(numConnectionsPerHost);
+    ringGroup.setListener(this);
+    for (Ring ring : ringGroup.getRings()) {
+      ring.setStateChangeListener(this);
+    }
+  }
+
+  private void loadCache(int numConnectionsPerHost) throws IOException, TException {
+    LOG.info("Loading Hank's smart client metadata cache and connections.");
+    clearCache();
+    // Preprocess the config to create skeleton domain -> part -> [hosts] map
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
+    if (domainGroup == null) {
+      String errMsg = "Could not get domain group of ring group " + ringGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
+    }
+    Integer currentVersion = ringGroup.getCurrentVersionNumber();
+    if (currentVersion == null) {
+      String errMsg = "Could not get current version of ring group " + ringGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
+    }
+    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(currentVersion);
+    if (domainGroupVersion == null) {
+      String errMsg = "Could not get version " + currentVersion + " of domain group " + domainGroup;
+      LOG.error(errMsg);
+      throw new IOException(errMsg);
+    }
+
+    // Build domainToPartitionToPartitionServerAdresses with empty address lists
+    for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
+      Domain domain = domainVersion.getDomain();
+      HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
+      for (int i = 0; i < domain.getNumParts(); i++) {
+        partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
+      }
+      domainToPartitionToPartitionServerAddresses.put(domain.getId(), partitionToAddress);
+    }
+
+    // Populate the skeleton, while also establishing connections to online hosts
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        for (HostDomain hd : host.getAssignedDomains()) {
+          Domain domain = hd.getDomain();
+          if (domain == null) {
+            throw new IOException(String.format("Could not load Domain from HostDomain %s", hd.toString()));
+          }
+          LOG.info("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
+          Map<Integer, List<PartitionServerAddress>> partToAddresses =
+              domainToPartitionToPartitionServerAddresses.get(domain.getId());
+          // Add this host to list of addresses only if this domain is in the domain group version
+          if (partToAddresses != null) {
+            for (HostDomainPartition hdcp : hd.getPartitions()) {
+              List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
+              partList.add(host.getAddress());
+            }
+          }
+        }
+
+        // Establish connection to hosts
+        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
+            + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
+            + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
+            + ", query timeout = " + queryTimeoutMs + "ms"
+            + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
+        List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
+        for (int i = 0; i < numConnectionsPerHost; i++) {
+          hostConnections.add(new HostConnection(host,
+              tryLockConnectionTimeoutMs,
+              establishConnectionTimeoutMs,
+              queryTimeoutMs,
+              bulkQueryTimeoutMs));
+        }
+        partitionServerAddressToConnectionPool.put(host.getAddress(),
+            HostConnectionPool.createFromList(hostConnections));
+      }
+    }
+
+    // Build domainToPartitionToConnectionPool
+    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
+      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
+      for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
+        List<HostConnection> connections = new ArrayList<HostConnection>();
+        for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
+          connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
+        }
+        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
+      }
+      domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
+    }
+  }
+
+  private void clearCache() {
+    partitionServerAddressToConnectionPool.clear();
+    domainToPartitionToConnectionPool.clear();
+    domainToPartitionToPartitionServerAddresses.clear();
+  }
+
+  @Override
+  public void onRingGroupChange(RingGroup newRingGroup) {
+    LOG.debug("Smart client notified of ring group change");
+  }
+
+  @Override
+  public void onRingStateChange(Ring ring) {
+    LOG.debug("Smart client notified of ring state change");
+  }
+
+  public void get(String domainName,
+                  ByteBuffer key,
+                  GetCallback resultHandler) throws TException {
+    throw new NotImplementedException();
+  }
+
+  public void getBulk(String domainName,
+                      List<ByteBuffer> keys,
+                      GetBulkCallback resultHandler) throws TException {
+    throw new NotImplementedException();
+  }
 }
