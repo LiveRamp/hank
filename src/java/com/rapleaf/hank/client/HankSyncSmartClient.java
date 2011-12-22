@@ -49,24 +49,24 @@ public class HankSyncSmartClient implements SmartClient.Iface {
   private static class SyncGetCallback implements GetCallback {
 
     private HankResponse response;
-    private final CountDownLatch countDownLatch = new CountDownLatch(1); // A simple barrier
+    private final CountDownLatch completionBarrier = new CountDownLatch(1);
 
     @Override
     public void onComplete(HankResponse response) {
       this.response = response;
-      countDownLatch.countDown();
+      completionBarrier.countDown();
     }
   }
 
   private static class SyncGetBulkCallback implements GetBulkCallback {
 
     private HankBulkResponse response;
-    private final CountDownLatch countDownLatch = new CountDownLatch(1); // A simple barrier
+    private final CountDownLatch completionBarrier = new CountDownLatch(1);
 
     @Override
     public void onComplete(HankBulkResponse response) {
       this.response = response;
-      countDownLatch.countDown();
+      completionBarrier.countDown();
     }
   }
 
@@ -75,7 +75,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetCallback callback = new SyncGetCallback();
     asyncSmartClient.get(domainName, key, callback);
     try {
-      callback.countDownLatch.await();
+      callback.completionBarrier.await();
       return callback.response;
     } catch (InterruptedException e) {
       return INTERRUPTED_GET;
@@ -87,7 +87,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetBulkCallback callback = new SyncGetBulkCallback();
     asyncSmartClient.getBulk(domainName, keys, callback);
     try {
-      callback.countDownLatch.await();
+      callback.completionBarrier.await();
       return callback.response;
     } catch (InterruptedException e) {
       return INTERRUPTED_GET_BULK;
