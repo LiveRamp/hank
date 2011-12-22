@@ -30,10 +30,7 @@ import org.apache.thrift.async.TAsyncClientManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateChangeListener {
 
@@ -52,6 +49,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int bulkQueryTimeoutMs;
 
   private final Thread selectThread;
+  private final Thread connectingThread;
   private final TAsyncClientManager asyncClientManager;
 
   private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
@@ -60,6 +58,11 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
       = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
       = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+
+
+  private LinkedList<GetTask> getTasks;
+  private LinkedList<GetTask> getTasksComplete;
+  private LinkedList<ConnectionTask> connectionTasks;
 
   /**
    * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
@@ -126,12 +129,32 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     // Start select thread
     selectThread = new Thread(new SelectRunnable());
     selectThread.start();
+    
+    // Start connecting thread
+    connectingThread = new Thread(new ConnectingRunnable());
+    connectingThread.start();
 
     // Initialize asynchronous client manager
     asyncClientManager = new TAsyncClientManager();
+
+    // Initialize select queues
+    getTasks = new LinkedList<GetTask>();
+    getTasksComplete = new LinkedList<GetTask>();
+    connectionTasks = new LinkedList<ConnectionTask>();
   }
 
   private class SelectRunnable implements Runnable {
+
+    @Override
+    public void run() {
+
+
+
+    }
+  }
+
+
+  private class ConnectingRunnable implements Runnable {
 
     @Override
     public void run() {
@@ -140,7 +163,23 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   }
 
   private static class GetTask {
+    private final ByteBuffer key;
+    private final HostConnectionPool hostConnectionPool;
+    private final GetCallback resultHanlder;
+    private int retry;
+    private HostConnectionPool.HostConnectionAndHostIndex hostConnectionAndHostIndex;
 
+    public GetTask(ByteBuffer key, HostConnectionPool hostConnectionPool, GetCallback resultHandler) {
+      this.key = key;
+      this.hostConnectionPool = hostConnectionPool;
+      this.resultHanlder = resultHandler;
+      this.retry = 0;
+      this.hostConnectionAndHostIndex = null;
+    }
+  }
+
+  private static class ConnectionTask {
+    
   }
 
   public void get(String domainName,
@@ -180,7 +219,12 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
       LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: "
           + Bytes.bytesToHexString(key));
     }
-    throw new NotImplementedException();
+
+    // Add task to select queue
+    GetTask task = new GetTask(key, hostConnectionPool, resultHandler);
+    synchronized (getTasks) {
+      getTasks.addLast(task);
+    }
   }
 
   public void getBulk(String domainName,
