@@ -19,7 +19,6 @@ package com.rapleaf.hank.client;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class ConnectingRunnable implements Runnable {
@@ -27,12 +26,7 @@ class ConnectingRunnable implements Runnable {
   private static Logger LOG = Logger.getLogger(ConnectingRunnable.class);
 
   private final LinkedBlockingQueue<AsyncHostConnection> connections =
-          new LinkedBlockingQueue<AsyncHostConnection>();
-  private final LinkedList<AsyncHostConnection> validConnections;
-
-  ConnectingRunnable(LinkedList<AsyncHostConnection> validConnections) {
-    this.validConnections = validConnections;
-  }
+      new LinkedBlockingQueue<AsyncHostConnection>();
 
   @Override
   public void run() {
@@ -46,9 +40,6 @@ class ConnectingRunnable implements Runnable {
       }
       try {
         connection.connect();
-        synchronized (validConnections) {
-          validConnections.addLast(connection);
-        }
       } catch (IOException e) {
         LOG.error("Failed to connect", e);
         addConnection(connection);
