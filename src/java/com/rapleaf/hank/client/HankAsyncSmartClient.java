@@ -22,9 +22,11 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.util.Bytes;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+import org.apache.thrift.async.TAsyncClientManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -48,6 +50,9 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
+
+  private final Thread selectThread;
+  private final TAsyncClientManager asyncClientManager;
 
   private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
@@ -117,6 +122,71 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     for (Ring ring : ringGroup.getRings()) {
       ring.setStateChangeListener(this);
     }
+
+    // Start select thread
+    selectThread = new Thread(new SelectRunnable());
+    selectThread.start();
+
+    // Initialize asynchronous client manager
+    asyncClientManager = new TAsyncClientManager();
+  }
+
+  private class SelectRunnable implements Runnable {
+
+    @Override
+    public void run() {
+
+    }
+  }
+
+  private static class GetTask {
+
+  }
+
+  public void get(String domainName,
+                  ByteBuffer key,
+                  GetCallback resultHandler) throws TException {
+    // Find domain
+    Domain domain = this.coordinator.getDomain(domainName);
+    if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
+      resultHandler.onComplete(NO_SUCH_DOMAIN);
+      return;
+    }
+
+    // Determine partition
+    int partition = domain.getPartitioner().partition(key, domain.getNumParts());
+
+    // Find connection pool
+    Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    if (partitionToConnectionPool == null) {
+      String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName,
+          domain.getId());
+      LOG.error(errMsg);
+      resultHandler.onComplete(HankResponse.xception(HankException.internal_error(errMsg)));
+      return;
+    }
+
+    HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
+    if (hostConnectionPool == null) {
+      // This is a problem, since the cache must not have been loaded correctly
+      String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d",
+          domainName, domain.getId(), partition);
+      LOG.error(errMsg);
+      resultHandler.onComplete(HankResponse.xception(HankException.internal_error(errMsg)));
+      return;
+    }
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: "
+          + Bytes.bytesToHexString(key));
+    }
+    throw new NotImplementedException();
+  }
+
+  public void getBulk(String domainName,
+                      List<ByteBuffer> keys,
+                      GetBulkCallback resultHandler) throws TException {
+    throw new NotImplementedException();
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
@@ -219,17 +289,5 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   @Override
   public void onRingStateChange(Ring ring) {
     LOG.debug("Smart client notified of ring state change");
-  }
-
-  public void get(String domainName,
-                  ByteBuffer key,
-                  GetCallback resultHandler) throws TException {
-    throw new NotImplementedException();
-  }
-
-  public void getBulk(String domainName,
-                      List<ByteBuffer> keys,
-                      GetBulkCallback resultHandler) throws TException {
-    throw new NotImplementedException();
   }
 }
