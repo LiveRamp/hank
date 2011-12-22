@@ -81,7 +81,7 @@ public class AsyncHostConnection {
     state = HostConnectionState.DISCONNECTED;
   }
 
-  private void connect() throws IOException {
+  public void connect() throws IOException {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Trying to connect to " + host.getAddress());
     }
