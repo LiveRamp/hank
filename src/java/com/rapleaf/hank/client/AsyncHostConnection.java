@@ -11,7 +11,6 @@ import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.transport.TNonblockingSocket;
 import org.apache.thrift.transport.TNonblockingTransport;
-import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -27,11 +26,13 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
-  private final TAsyncClientManager asyncClientManager;
   private final Host host;
+  private final Runnable connectionListener;
+  private final TAsyncClientManager asyncClientManager;
   private SocketChannel socket;
   private TNonblockingTransport transport;
   private PartitionServer.AsyncClient client;
+
   // Note: state is volatile because it is read and written by different threads and we want to avoid the overhead
   // of synchronize. Missing an update is fine in this case.
   private volatile HostConnectionState state = HostConnectionState.DISCONNECTED;
@@ -49,15 +50,17 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
 
   // A timeout of 0 means no timeout
   public AsyncHostConnection(Host host,
+                             Runnable connectionListener,
                              TAsyncClientManager asyncClientManager,
                              int establishConnectionTimeoutMs,
                              int queryTimeoutMs,
                              int bulkQueryTimeoutMs) throws TException, IOException {
     this.host = host;
+    this.connectionListener = connectionListener;
+    this.asyncClientManager = asyncClientManager;
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
-    this.asyncClientManager = asyncClientManager;
     host.setStateChangeListener(this);
     onWatchedNodeChange(host.getState());
   }
@@ -120,21 +123,22 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
     socket = SocketChannel.open(new InetSocketAddress(host.getAddress().getHostName(),
         host.getAddress().getPortNumber()));
     transport = new TNonblockingSocket(socket);
-    try {
-      transport.open();
-      // Set socket timeout to regular mode
-      setSocketTimeout(queryTimeoutMs);
-    } catch (TTransportException e) {
-      LOG.error("Failed to establish connection to host " + host.getAddress(), e);
-      disconnectNotSynchronized();
-      throw new IOException("Failed to establish connection to host " + host.getAddress(), e);
-    }
+    //try {
+    //transport.open();
+    // Set socket timeout to regular mode
+    setSocketTimeout(queryTimeoutMs);
+    //} catch (TTransportException e) {
+    //  LOG.error("Failed to establish connection to host " + host.getAddress(), e);
+    //  disconnectNotSynchronized();
+    //  throw new IOException("Failed to establish connection to host " + host.getAddress(), e);
+    //}
     TProtocolFactory factory = new TCompactProtocol.Factory();
     client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
     if (LOG.isTraceEnabled()) {
       LOG.trace("Connection to " + host.getAddress() + " opened.");
     }
     state = HostConnectionState.CONNECTED;
+    connectionListener.run();
   }
 
   private void disconnectNotSynchronized() {
@@ -161,8 +165,15 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
   public void onWatchedNodeChange(HostState hostState) {
     if (hostState != null && hostState == HostState.SERVING) {
       isStandby = false;
+      connectionListener.run();
     } else {
       isStandby = true;
     }
+  }
+
+  @Override
+  public String toString() {
+    return "AsyncHostConnection [host=" + host.getAddress() + ", state=" + state
+        + ", busy=" + isBusy + ", standby=" + isStandby + "]";
   }
 }

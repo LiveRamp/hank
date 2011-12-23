@@ -19,6 +19,7 @@ package com.rapleaf.hank.client;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
+import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -34,6 +35,15 @@ class SelectRunnable implements Runnable {
   private final LinkedList<GetTask> getTasks;
   private final LinkedList<GetTask> getTasksComplete;
   private final Semaphore workSemaphore = new Semaphore(0, true);
+
+  public Runnable getOnChangeRunnable() {
+    return new Runnable() {
+      @Override
+      public void run() {
+        workSemaphore.release();
+      }
+    };
+  }
 
   protected class GetTask {
 
@@ -87,10 +97,12 @@ class SelectRunnable implements Runnable {
     }
 
     public void complete() {
+      LOG.trace("Completing task " + this);
       resultHanlder.onComplete(response);
     }
 
     public void releaseConnection() {
+      LOG.trace("Releasing connection for task " + this);
       hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
     }
 
@@ -101,13 +113,22 @@ class SelectRunnable implements Runnable {
         hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
       }
       if (hostConnectionAndHostIndex == null) {
+        //TODO: remove trace
+        LOG.trace("No connection found for task " + this);
         return false;
       }
       // Claim connection
       hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
       // Execute asynchronous task
       hostConnectionAndHostIndex.hostConnection.get(domainId, key, new Callback());
+      //TODO: remove trace
+      LOG.trace("Executing task " + this);
       return true;
+    }
+
+    @Override
+    public String toString() {
+      return "GetTask [domainId=" + domainId + ", key=" + Bytes.bytesToHexString(key) + ", retry=" + retry + "]";
     }
   }
 
@@ -134,14 +155,24 @@ class SelectRunnable implements Runnable {
   @Override
   public void run() {
     while (true) {
+      //TODO: remove trace
+      LOG.trace("--------------------------");
       completeTasks();
-      executeTasks();
+      startTasks();
+      /*
+      int availableWorkUnits = workSemaphore.availablePermits();
       try {
-        workSemaphore.acquire(1);
+        // Wait for at least one task to have been added, one task to have completed or one connection change
+        workSemaphore.acquire(availableWorkUnits <= 0 ? 1 : availableWorkUnits);
       } catch (InterruptedException e) {
         break;
       }
-      workSemaphore.drainPermits();
+      */
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException e) {
+        break;
+      }
     }
   }
 
@@ -157,13 +188,13 @@ class SelectRunnable implements Runnable {
     }
   }
 
-  private void executeTasks() {
+  private void startTasks() {
     synchronized (getTasks) {
       Iterator<GetTask> iterator = getTasks.iterator();
       while (iterator.hasNext()) {
         GetTask task = iterator.next();
         if (task.execute()) {
-          getTasks.remove(iterator);
+          iterator.remove();
         }
       }
     }

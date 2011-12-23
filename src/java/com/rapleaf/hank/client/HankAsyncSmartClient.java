@@ -40,13 +40,12 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
 
-  private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
+  private static final Logger LOG = Logger.getLogger(HankAsyncSmartClient.class);
 
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
   private final int queryMaxNumTries;
-  private final int tryLockConnectionTimeoutMs;
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
@@ -80,7 +79,6 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
         configurator.getRingGroupName(),
         configurator.getNumConnectionsPerHost(),
         configurator.getQueryNumMaxTries(),
-        configurator.getTryLockConnectionTimeoutMs(),
         configurator.getEstablishConnectionTimeoutMs(),
         configurator.getQueryTimeoutMs(),
         configurator.getBulkQueryTimeoutMs());
@@ -103,7 +101,6 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
                               String ringGroupName,
                               int numConnectionsPerHost,
                               int queryMaxNumTries,
-                              int tryLockConnectionTimeoutMs,
                               int establishConnectionTimeoutMs,
                               int queryTimeoutMs,
                               int bulkQueryTimeoutMs) throws IOException, TException {
@@ -116,28 +113,29 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
 
     this.numConnectionsPerHost = numConnectionsPerHost;
     this.queryMaxNumTries = queryMaxNumTries;
-    this.tryLockConnectionTimeoutMs = tryLockConnectionTimeoutMs;
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
+
+    // Start select thread
+    selectRunnable = new SelectRunnable();
+    selectThread = new Thread(selectRunnable, "HankAsyncSmartClient Select Thread");
+    selectThread.start();
+
+    // Start connecting thread
+    connectingRunnable = new ConnectingRunnable();
+    connectingThread = new Thread(connectingRunnable, "HankAsyncSmartClient Connecting Thread");
+    connectingThread.start();
+
+    // Initialize asynchronous client manager
+    asyncClientManager = new TAsyncClientManager();
+
+    // Load cache
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
     for (Ring ring : ringGroup.getRings()) {
       ring.setStateChangeListener(this);
     }
-
-    // Start select thread
-    selectRunnable = new SelectRunnable();
-    selectThread = new Thread(selectRunnable);
-    selectThread.start();
-
-    // Start connecting thread
-    connectingRunnable = new ConnectingRunnable();
-    connectingThread = new Thread(connectingRunnable);
-    connectingThread.start();
-
-    // Initialize asynchronous client manager
-    asyncClientManager = new TAsyncClientManager();
   }
 
   public void get(String domainName,
@@ -241,15 +239,18 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
           }
         }
 
+        // Create connection listener
+        Runnable connectionListener = selectRunnable.getOnChangeRunnable();
+
         // Establish connection to hosts
         LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
-            + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
-            + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
+            + " with connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
             + ", query timeout = " + queryTimeoutMs + "ms"
             + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
         List<AsyncHostConnection> hostConnections = new ArrayList<AsyncHostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
           hostConnections.add(new AsyncHostConnection(host,
+              connectionListener,
               asyncClientManager,
               establishConnectionTimeoutMs,
               queryTimeoutMs,
