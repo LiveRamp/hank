@@ -36,12 +36,15 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
   // of synchronize. Missing an update is fine in this case.
   private volatile HostConnectionState state = HostConnectionState.DISCONNECTED;
 
+  // Standby: we are waiting for the host to be SERVING
+  private volatile boolean isStandby = true;
+
+  private boolean isBusy = false;
 
   private static enum HostConnectionState {
-    CONNECTED,
     DISCONNECTED,
-    // STANDBY: we are waiting for the host to be SERVING
-    STANDBY
+    CONNECTING,
+    CONNECTED
   }
 
   // A timeout of 0 means no timeout
@@ -55,40 +58,58 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     this.asyncClientManager = asyncClientManager;
+    host.setStateChangeListener(this);
+    onWatchedNodeChange(host.getState());
   }
 
-  public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) throws TException {
-    client.get(domainId, key, resultHandler);
+  public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) {
+    try {
+      client.get(domainId, key, resultHandler);
+    } catch (TException e) {
+      resultHandler.onError(e);
+    }
   }
 
-  public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) throws TException {
-    client.getBulk(domainId, keys, resultHandler);
+  public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) {
+    try {
+      client.getBulk(domainId, keys, resultHandler);
+    } catch (TException e) {
+      resultHandler.onError(e);
+    }
   }
 
   Host getHost() {
     return host;
   }
 
-  boolean isAvailable() {
-    return state != HostConnectionState.STANDBY;
+  public boolean isBusy() {
+    return isBusy;
   }
 
-  private boolean isDisconnected() {
+  public void setIsBusy(boolean isBusy) {
+    this.isBusy = isBusy;
+  }
+
+  boolean isStandby() {
+    return isStandby;
+  }
+
+  protected boolean isDisconnected() {
     return state == HostConnectionState.DISCONNECTED;
   }
 
-  public synchronized void connect() throws IOException {
-    connectNotSynchronized();
+  protected boolean isConnected() {
+    return state == HostConnectionState.CONNECTED;
   }
 
-  private synchronized void reconnect() throws IOException {
-    disconnectNotSynchronized();
-    connectNotSynchronized();
+  public synchronized void setConnecting() {
+    state = HostConnectionState.CONNECTING;
   }
 
-  private synchronized void disconnectAndStandby() {
-    disconnectNotSynchronized();
-    state = HostConnectionState.STANDBY;
+  public synchronized void attemptConnect() throws IOException {
+    if (state == HostConnectionState.CONNECTING && !isStandby) {
+      connectNotSynchronized();
+    }
   }
 
   private void connectNotSynchronized() throws IOException {
@@ -139,15 +160,9 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
   @Override
   public void onWatchedNodeChange(HostState hostState) {
     if (hostState != null && hostState == HostState.SERVING) {
-      // Reconnect
-      try {
-        reconnect();
-      } catch (IOException e) {
-        LOG.error("Error connecting to host " + host.getAddress(), e);
-      }
+      isStandby = false;
     } else {
-      // Disconnect and standby
-      disconnectAndStandby();
+      isStandby = true;
     }
   }
 }
