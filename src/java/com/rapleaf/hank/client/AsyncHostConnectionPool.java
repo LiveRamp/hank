@@ -17,14 +17,8 @@
 package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.generated.HankBulkResponse;
-import com.rapleaf.hank.generated.HankException;
-import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 public class AsyncHostConnectionPool {
@@ -32,7 +26,8 @@ public class AsyncHostConnectionPool {
   private static Logger LOG = Logger.getLogger(AsyncHostConnectionPool.class);
 
   private ArrayList<List<AsyncHostConnectionAndHostIndex>> hostToConnections
-          = new ArrayList<List<AsyncHostConnectionAndHostIndex>>();
+      = new ArrayList<List<AsyncHostConnectionAndHostIndex>>();
+  private final ConnectingRunnable connectingRunnable;
 
   private int globalPreviouslyUsedHostIndex;
   private Random random = new Random();
@@ -42,13 +37,14 @@ public class AsyncHostConnectionPool {
     int hostIndex;
 
     private AsyncHostConnectionAndHostIndex(AsyncHostConnection hostConnection,
-                                       int hostIndex) {
+                                            int hostIndex) {
       this.hostConnection = hostConnection;
       this.hostIndex = hostIndex;
     }
   }
 
-  AsyncHostConnectionPool(Map<Host, List<AsyncHostConnection>> hostToConnectionsMap) {
+  AsyncHostConnectionPool(Map<Host, List<AsyncHostConnection>> hostToConnectionsMap,
+                          ConnectingRunnable connectingRunnable) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
@@ -66,9 +62,12 @@ public class AsyncHostConnectionPool {
     // Previously used host is randomized so that different connection pools start querying
     // different hosts.
     globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
+    // Initialize connecting runnable
+    this.connectingRunnable = connectingRunnable;
   }
 
-  static AsyncHostConnectionPool createFromList(Collection<AsyncHostConnection> connections) {
+  static AsyncHostConnectionPool createFromList(Collection<AsyncHostConnection> connections,
+                                                ConnectingRunnable connectingRunnable) {
     Map<Host, List<AsyncHostConnection>> hostToConnectionsMap = new HashMap<Host, List<AsyncHostConnection>>();
     for (AsyncHostConnection connection : connections) {
       List<AsyncHostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
@@ -78,7 +77,7 @@ public class AsyncHostConnectionPool {
       }
       connectionList.add(connection);
     }
-    return new AsyncHostConnectionPool(hostToConnectionsMap);
+    return new AsyncHostConnectionPool(hostToConnectionsMap, connectingRunnable);
   }
 
   Collection<AsyncHostConnection> getConnections() {
@@ -92,8 +91,8 @@ public class AsyncHostConnectionPool {
   }
 
   // Return a connection to a host, initially skipping the previously used host
-  private AsyncHostConnectionAndHostIndex getConnectionToUse() {
-    AsyncHostConnectionAndHostIndex result = getConnectionToUse(globalPreviouslyUsedHostIndex);
+  public AsyncHostConnectionAndHostIndex findConnectionToUse() {
+    AsyncHostConnectionAndHostIndex result = findConnectionToUse(globalPreviouslyUsedHostIndex);
     if (result != null) {
       globalPreviouslyUsedHostIndex = result.hostIndex;
     }
@@ -102,50 +101,34 @@ public class AsyncHostConnectionPool {
 
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
   // a failure using a connection to it)
-  private AsyncHostConnectionAndHostIndex getConnectionToUse(int previouslyUsedHostIndex) {
-    return null;
+  public AsyncHostConnectionAndHostIndex findConnectionToUse(int previouslyUsedHostIndex) {
 
-
-/*
-    // First, search for any unused (unlocked) connection
+    // Search for any unused connection
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
       previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
-      List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
-      for (HostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
-        // If a host has one unavaible connection, it is itself unavailable. Move on to the next host.
-        if (!connectionAndHostIndex.hostConnection.isAvailable()) {
+      List<AsyncHostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
+      for (AsyncHostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
+        // If a host has one standby connection, it is itself unavailable. Move on to the next host.
+        if (connectionAndHostIndex.hostConnection.isStandby()) {
           break;
         }
-        // If successful in locking a non locked connection, return it
-        if (connectionAndHostIndex.hostConnection.tryLockRespectingFairness()) {
-          // Note: here the returned connection is already locked.
-          // Unlocking it is not the responsibily of this method.
+        // If connection is busy, skip it
+        if (connectionAndHostIndex.hostConnection.isBusy()) {
+          continue;
+        }
+        // If connection is disconnected, add it to the connection queue
+        if (connectionAndHostIndex.hostConnection.isDisconnected()) {
+          connectingRunnable.addConnection(connectionAndHostIndex.hostConnection);
+        }
+        // If connection is connected, use it
+        if (connectionAndHostIndex.hostConnection.isConnected()) {
           return connectionAndHostIndex;
         }
       }
     }
 
-    // Here, host index is back to the same host we started with (it looped over once)
-
-    // No unused connection was found, return a random connection that is available
-    for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
-      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
-      List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
-      // Pick a random connection for that host
-      HostConnectionAndHostIndex connectionAndHostIndex
-              = connectionAndHostList.get(random.nextInt(connectionAndHostList.size()));
-      // If a host has one unavaible connection, it is itself unavailable.
-      // Move on to the next host. Otherwise, return it.
-      if (connectionAndHostIndex.hostConnection.isAvailable()) {
-        // Note: here the returned connection is not locked.
-        // Locking/unlocking it is not the responsibily of this method.
-        return connectionAndHostIndex;
-      }
-    }
-
     // No available connection was found, return null
     return null;
-    */
   }
 
   private int getNextHostIndexToUse(int previouslyUsedHostIndex) {

@@ -17,18 +17,7 @@
 package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.generated.PartitionServer;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.thrift.async.AsyncMethodCallback;
 
-public class HostConnectionGetCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
-
-  @Override
-  public void onComplete(PartitionServer.AsyncClient.get_call response) {
-    throw new NotImplementedException();
-  }
-
-  @Override
-  public void onError(Exception exception) {
-    throw new NotImplementedException();
-  }
+public interface HostConnectionGetCallback extends AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
 }

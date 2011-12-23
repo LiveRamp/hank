@@ -30,7 +30,10 @@ import org.apache.thrift.async.TAsyncClientManager;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateChangeListener {
 
@@ -49,20 +52,17 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int bulkQueryTimeoutMs;
 
   private final Thread selectThread;
+  private final SelectRunnable selectRunnable;
   private final Thread connectingThread;
+  private final ConnectingRunnable connectingRunnable;
   private final TAsyncClientManager asyncClientManager;
 
-  private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
-      = new HashMap<PartitionServerAddress, HostConnectionPool>();
-  private final Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
-      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
+  private final Map<PartitionServerAddress, AsyncHostConnectionPool> partitionServerAddressToConnectionPool
+      = new HashMap<PartitionServerAddress, AsyncHostConnectionPool>();
+  private final Map<Integer, Map<Integer, AsyncHostConnectionPool>> domainToPartitionToConnectionPool
+      = new HashMap<Integer, Map<Integer, AsyncHostConnectionPool>>();
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
       = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
-
-
-  private LinkedList<GetTask> getTasks;
-  private LinkedList<GetTask> getTasksComplete;
-  private LinkedList<ConnectionTask> connectionTasks;
 
   /**
    * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
@@ -127,41 +127,17 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     }
 
     // Start select thread
-    selectThread = new Thread(new SelectRunnable());
+    selectRunnable = new SelectRunnable();
+    selectThread = new Thread(selectRunnable);
     selectThread.start();
-    
+
     // Start connecting thread
-    connectingThread = new Thread(new ConnectingRunnable());
+    connectingRunnable = new ConnectingRunnable();
+    connectingThread = new Thread(connectingRunnable);
     connectingThread.start();
 
     // Initialize asynchronous client manager
     asyncClientManager = new TAsyncClientManager();
-
-    // Initialize select queues
-    getTasks = new LinkedList<GetTask>();
-    getTasksComplete = new LinkedList<GetTask>();
-    connectionTasks = new LinkedList<ConnectionTask>();
-  }
-
-
-  private static class GetTask {
-    private final ByteBuffer key;
-    private final HostConnectionPool hostConnectionPool;
-    private final GetCallback resultHanlder;
-    private int retry;
-    private HostConnectionPool.HostConnectionAndHostIndex hostConnectionAndHostIndex;
-
-    public GetTask(ByteBuffer key, HostConnectionPool hostConnectionPool, GetCallback resultHandler) {
-      this.key = key;
-      this.hostConnectionPool = hostConnectionPool;
-      this.resultHanlder = resultHandler;
-      this.retry = 0;
-      this.hostConnectionAndHostIndex = null;
-    }
-  }
-
-  private static class ConnectionTask {
-    
   }
 
   public void get(String domainName,
@@ -179,7 +155,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
 
     // Find connection pool
-    Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    Map<Integer, AsyncHostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
     if (partitionToConnectionPool == null) {
       String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName,
           domain.getId());
@@ -188,7 +164,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
       return;
     }
 
-    HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
+    AsyncHostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
     if (hostConnectionPool == null) {
       // This is a problem, since the cache must not have been loaded correctly
       String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d",
@@ -203,10 +179,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     }
 
     // Add task to select queue
-    GetTask task = new GetTask(key, hostConnectionPool, resultHandler);
-    synchronized (getTasks) {
-      getTasks.addLast(task);
-    }
+    selectRunnable.addTask(selectRunnable.new GetTask(domain.getId(), key, hostConnectionPool, resultHandler));
   }
 
   public void getBulk(String domainName,
@@ -274,28 +247,29 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
             + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
             + ", query timeout = " + queryTimeoutMs + "ms"
             + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
-        List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
+        List<AsyncHostConnection> hostConnections = new ArrayList<AsyncHostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new HostConnection(host,
-              tryLockConnectionTimeoutMs,
+          hostConnections.add(new AsyncHostConnection(host,
+              asyncClientManager,
               establishConnectionTimeoutMs,
               queryTimeoutMs,
               bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
-            HostConnectionPool.createFromList(hostConnections));
+            AsyncHostConnectionPool.createFromList(hostConnections, connectingRunnable));
       }
     }
 
     // Build domainToPartitionToConnectionPool
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
-      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
+      Map<Integer, AsyncHostConnectionPool> partitionToConnectionPool = new HashMap<Integer, AsyncHostConnectionPool>();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
-        List<HostConnection> connections = new ArrayList<HostConnection>();
+        List<AsyncHostConnection> connections = new ArrayList<AsyncHostConnection>();
         for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
           connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
         }
-        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
+        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(),
+            AsyncHostConnectionPool.createFromList(connections, connectingRunnable));
       }
       domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
     }

@@ -39,16 +39,16 @@ class ConnectingRunnable implements Runnable {
         break;
       }
       try {
-        connection.connect();
+        connection.attemptConnect();
       } catch (IOException e) {
         LOG.error("Failed to connect", e);
-        addConnection(connection);
       }
     }
   }
 
   public void addConnection(AsyncHostConnection connection) {
     try {
+      connection.setConnecting();
       connections.put(connection);
     } catch (InterruptedException e) {
       LOG.error("Failed to add connection", e);
