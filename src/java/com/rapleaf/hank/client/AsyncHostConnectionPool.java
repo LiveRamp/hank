@@ -108,6 +108,8 @@ public class AsyncHostConnectionPool {
       previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
       List<AsyncHostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       for (AsyncHostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
+        //TODO: remove trace
+        LOG.trace("- " + connectionAndHostIndex.hostConnection);
         // If a host has one standby connection, it is itself unavailable. Move on to the next host.
         if (connectionAndHostIndex.hostConnection.isStandby()) {
           break;

@@ -28,7 +28,6 @@ public class HankSyncSmartClient implements SmartClient.Iface {
         configurator.getRingGroupName(),
         configurator.getNumConnectionsPerHost(),
         configurator.getQueryNumMaxTries(),
-        configurator.getTryLockConnectionTimeoutMs(),
         configurator.getEstablishConnectionTimeoutMs(),
         configurator.getQueryTimeoutMs(),
         configurator.getBulkQueryTimeoutMs());
@@ -38,12 +37,11 @@ public class HankSyncSmartClient implements SmartClient.Iface {
                              String ringGroupName,
                              int numConnectionsPerHost,
                              int queryMaxNumTries,
-                             int tryLockConnectionTimeoutMs,
                              int establishConnectionTimeoutMs,
                              int queryTimeoutMs,
                              int bulkQueryTimeoutMs) throws IOException, TException {
     asyncSmartClient = new HankAsyncSmartClient(coordinator, ringGroupName, numConnectionsPerHost,
-        queryMaxNumTries, tryLockConnectionTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs);
+        queryMaxNumTries, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs);
   }
 
   private static class SyncGetCallback implements GetCallback {
