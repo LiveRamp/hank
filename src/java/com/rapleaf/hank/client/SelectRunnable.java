@@ -112,6 +112,9 @@ class SelectRunnable implements Runnable {
       } else {
         hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
       }
+
+      //TODO: if all connections are "standby" then we want to return a no connection available exception
+
       if (hostConnectionAndHostIndex == null) {
         //TODO: remove trace
         LOG.trace("No connection found for task " + this);
