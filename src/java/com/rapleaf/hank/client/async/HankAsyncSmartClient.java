@@ -14,9 +14,11 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
 
+import com.rapleaf.hank.client.GetBulkCallback;
+import com.rapleaf.hank.client.GetCallback;
 import com.rapleaf.hank.config.HankSmartClientConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
@@ -51,9 +53,9 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int bulkQueryTimeoutMs;
 
   private final Thread selectThread;
-  private final SelectRunnable selectRunnable;
+  private final HankAsyncSmartClientDispatcher selectRunnable;
   private final Thread connectingThread;
-  private final ConnectingRunnable connectingRunnable;
+  private final HankAsyncSmartClientConnector connectingRunnable;
   private final TAsyncClientManager asyncClientManager;
 
   private final Map<PartitionServerAddress, AsyncHostConnectionPool> partitionServerAddressToConnectionPool
@@ -118,12 +120,12 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
 
     // Start select thread
-    selectRunnable = new SelectRunnable();
+    selectRunnable = new HankAsyncSmartClientDispatcher();
     selectThread = new Thread(selectRunnable, "HankAsyncSmartClient Select Thread");
     selectThread.start();
 
     // Start connecting thread
-    connectingRunnable = new ConnectingRunnable();
+    connectingRunnable = new HankAsyncSmartClientConnector();
     connectingThread = new Thread(connectingRunnable, "HankAsyncSmartClient Connecting Thread");
     connectingThread.start();
 

@@ -17,7 +17,7 @@ package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.generated.HankBulkResponse;
 
-interface GetBulkCallback {
+public interface GetBulkCallback {
 
   public void onComplete(HankBulkResponse response);
 }

@@ -1,4 +1,4 @@
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;

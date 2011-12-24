@@ -1,5 +1,8 @@
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.sync;
 
+import com.rapleaf.hank.client.GetBulkCallback;
+import com.rapleaf.hank.client.GetCallback;
+import com.rapleaf.hank.client.async.HankAsyncSmartClient;
 import com.rapleaf.hank.config.HankSmartClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;

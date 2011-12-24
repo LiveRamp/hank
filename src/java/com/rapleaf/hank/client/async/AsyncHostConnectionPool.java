@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
 import com.rapleaf.hank.coordinator.Host;
 import org.apache.log4j.Logger;
@@ -27,7 +27,7 @@ public class AsyncHostConnectionPool {
 
   private ArrayList<List<AsyncHostConnectionAndHostIndex>> hostToConnections
       = new ArrayList<List<AsyncHostConnectionAndHostIndex>>();
-  private final ConnectingRunnable connectingRunnable;
+  private final HankAsyncSmartClientConnector connectingRunnable;
 
   private int globalPreviouslyUsedHostIndex;
   private Random random = new Random();
@@ -44,7 +44,7 @@ public class AsyncHostConnectionPool {
   }
 
   AsyncHostConnectionPool(Map<Host, List<AsyncHostConnection>> hostToConnectionsMap,
-                          ConnectingRunnable connectingRunnable) {
+                          HankAsyncSmartClientConnector connectingRunnable) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
@@ -67,7 +67,7 @@ public class AsyncHostConnectionPool {
   }
 
   static AsyncHostConnectionPool createFromList(Collection<AsyncHostConnection> connections,
-                                                ConnectingRunnable connectingRunnable) {
+                                                HankAsyncSmartClientConnector connectingRunnable) {
     Map<Host, List<AsyncHostConnection>> hostToConnectionsMap = new HashMap<Host, List<AsyncHostConnection>>();
     for (AsyncHostConnection connection : connections) {
       List<AsyncHostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
