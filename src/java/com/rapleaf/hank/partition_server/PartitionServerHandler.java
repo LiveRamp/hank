@@ -372,21 +372,17 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     if (runtimeStatistics == null) {
       return Collections.emptyMap();
     } else {
-      try {
-        Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
-        String[] domainStatistics = runtimeStatistics.split("\n");
-        for (String statistics : domainStatistics) {
-          if (statistics.length() == 0) {
-            continue;
-          }
-          String[] tokens = statistics.split("\t");
-          int domainId = Integer.parseInt(tokens[0]);
-          result.put(coordinator.getDomainById(domainId), RuntimeStatisticsAggregator.parse(tokens[1]));
+      Map<Domain, RuntimeStatisticsAggregator> result = new HashMap<Domain, RuntimeStatisticsAggregator>();
+      String[] domainStatistics = runtimeStatistics.split("\n");
+      for (String statistics : domainStatistics) {
+        if (statistics.length() == 0) {
+          continue;
         }
-        return result;
-      } catch (Throwable t) {
-        return Collections.emptyMap();
+        String[] tokens = statistics.split("\t");
+        int domainId = Integer.parseInt(tokens[0]);
+        result.put(coordinator.getDomainById(domainId), RuntimeStatisticsAggregator.parse(tokens[1]));
       }
+      return result;
     }
   }
 
