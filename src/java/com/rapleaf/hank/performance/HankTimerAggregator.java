@@ -126,7 +126,7 @@ public class HankTimerAggregator {
     Arrays.sort(durations);
     // Compute deciles
     for (int i = 0; i < 9; ++i) {
-      deciles[i] = durations[(count / 10) * (i + 1)];
+      deciles[i] = durations[(count / 10) * (i + 1)] / 1000000d;
     }
     // Build log string
     StringBuilder logStr = new StringBuilder();
@@ -155,7 +155,7 @@ public class HankTimerAggregator {
       logStr.append(", ");
       logStr.append((i + 1) * 10);
       logStr.append("%: ");
-      logStr.append((deciles[i] / 1000000d));
+      logStr.append((deciles[i]));
       logStr.append("ms");
     }
     logStr.append(", QPS: ");
@@ -166,6 +166,6 @@ public class HankTimerAggregator {
     }
     LOG.info(logStr.toString());
     // Aggregate population statistics
-    populationStatistics.aggregate(minDuration, maxDuration, count, totalDuration, deciles);
+    populationStatistics.aggregate(minDuration / 1000000d, maxDuration / 1000000d, count, totalDuration / 1000000d, deciles);
   }
 }
