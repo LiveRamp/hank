@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
+import com.rapleaf.hank.client.GetCallback;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
@@ -28,9 +29,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
-class SelectRunnable implements Runnable {
+class HankAsyncSmartClientDispatcher implements Runnable {
 
-  private static final Logger LOG = Logger.getLogger(SelectRunnable.class);
+  private static final Logger LOG = Logger.getLogger(HankAsyncSmartClientDispatcher.class);
 
   private final LinkedList<GetTask> getTasks;
   private final LinkedList<GetTask> getTasksComplete;
@@ -135,7 +136,7 @@ class SelectRunnable implements Runnable {
     }
   }
 
-  public SelectRunnable() {
+  public HankAsyncSmartClientDispatcher() {
     // Initialize select queues
     getTasks = new LinkedList<GetTask>();
     getTasksComplete = new LinkedList<GetTask>();

@@ -14,22 +14,10 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
 import com.rapleaf.hank.generated.PartitionServer;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.thrift.async.AsyncMethodCallback;
 
-public class HostConnectionGetBulkCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.getBulk_call> {
-
-  @Override
-  public void onComplete(PartitionServer.AsyncClient.getBulk_call response) {
-    throw new NotImplementedException();
-
-  }
-
-  @Override
-  public void onError(Exception exception) {
-    throw new NotImplementedException();
-  }
+public interface HostConnectionGetCallback extends AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
 }

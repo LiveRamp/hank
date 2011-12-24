@@ -14,16 +14,16 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.client;
+package com.rapleaf.hank.client.async;
 
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-class ConnectingRunnable implements Runnable {
+class HankAsyncSmartClientConnector implements Runnable {
 
-  private static Logger LOG = Logger.getLogger(ConnectingRunnable.class);
+  private static Logger LOG = Logger.getLogger(HankAsyncSmartClientConnector.class);
 
   private final LinkedBlockingQueue<AsyncHostConnection> connections =
       new LinkedBlockingQueue<AsyncHostConnection>();
