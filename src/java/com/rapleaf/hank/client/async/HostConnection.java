@@ -19,9 +19,9 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
-public class AsyncHostConnection implements WatchedNodeListener<HostState> {
+public class HostConnection implements WatchedNodeListener<HostState> {
 
-  private static final Logger LOG = Logger.getLogger(AsyncHostConnection.class);
+  private static final Logger LOG = Logger.getLogger(HostConnection.class);
 
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
@@ -49,12 +49,12 @@ public class AsyncHostConnection implements WatchedNodeListener<HostState> {
   }
 
   // A timeout of 0 means no timeout
-  public AsyncHostConnection(Host host,
-                             Runnable connectionListener,
-                             TAsyncClientManager asyncClientManager,
-                             int establishConnectionTimeoutMs,
-                             int queryTimeoutMs,
-                             int bulkQueryTimeoutMs) throws TException, IOException {
+  public HostConnection(Host host,
+                        Runnable connectionListener,
+                        TAsyncClientManager asyncClientManager,
+                        int establishConnectionTimeoutMs,
+                        int queryTimeoutMs,
+                        int bulkQueryTimeoutMs) throws TException, IOException {
     this.host = host;
     this.connectionListener = connectionListener;
     this.asyncClientManager = asyncClientManager;

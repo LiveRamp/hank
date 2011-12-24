@@ -21,17 +21,17 @@ import org.apache.log4j.Logger;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-class HankAsyncSmartClientConnector implements Runnable {
+class Connector implements Runnable {
 
-  private static Logger LOG = Logger.getLogger(HankAsyncSmartClientConnector.class);
+  private static Logger LOG = Logger.getLogger(Connector.class);
 
-  private final LinkedBlockingQueue<AsyncHostConnection> connections =
-      new LinkedBlockingQueue<AsyncHostConnection>();
+  private final LinkedBlockingQueue<HostConnection> connections =
+      new LinkedBlockingQueue<HostConnection>();
 
   @Override
   public void run() {
     while (true) {
-      AsyncHostConnection connection;
+      HostConnection connection;
       try {
         connection = connections.take();
       } catch (InterruptedException e) {
@@ -46,7 +46,7 @@ class HankAsyncSmartClientConnector implements Runnable {
     }
   }
 
-  public void addConnection(AsyncHostConnection connection) {
+  public void addConnection(HostConnection connection) {
     try {
       connection.setConnecting();
       connections.put(connection);

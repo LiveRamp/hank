@@ -29,9 +29,9 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.concurrent.Semaphore;
 
-class HankAsyncSmartClientDispatcher implements Runnable {
+class Dispatcher implements Runnable {
 
-  private static final Logger LOG = Logger.getLogger(HankAsyncSmartClientDispatcher.class);
+  private static final Logger LOG = Logger.getLogger(Dispatcher.class);
 
   private final LinkedList<GetTask> getTasks;
   private final LinkedList<GetTask> getTasksComplete;
@@ -50,10 +50,10 @@ class HankAsyncSmartClientDispatcher implements Runnable {
 
     private final int domainId;
     private final ByteBuffer key;
-    private final AsyncHostConnectionPool hostConnectionPool;
+    private final HostConnectionPool hostConnectionPool;
     private final GetCallback resultHanlder;
     private int retry;
-    private AsyncHostConnectionPool.AsyncHostConnectionAndHostIndex hostConnectionAndHostIndex;
+    private HostConnectionPool.AsyncHostConnectionAndHostIndex hostConnectionAndHostIndex;
     private HankResponse response;
 
     private class Callback implements HostConnectionGetCallback {
@@ -87,7 +87,7 @@ class HankAsyncSmartClientDispatcher implements Runnable {
 
     public GetTask(int domainId,
                    ByteBuffer key,
-                   AsyncHostConnectionPool hostConnectionPool,
+                   HostConnectionPool hostConnectionPool,
                    GetCallback resultHandler) {
       this.domainId = domainId;
       this.key = key;
@@ -136,7 +136,7 @@ class HankAsyncSmartClientDispatcher implements Runnable {
     }
   }
 
-  public HankAsyncSmartClientDispatcher() {
+  public Dispatcher() {
     // Initialize select queues
     getTasks = new LinkedList<GetTask>();
     getTasksComplete = new LinkedList<GetTask>();
