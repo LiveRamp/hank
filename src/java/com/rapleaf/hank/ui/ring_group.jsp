@@ -99,7 +99,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Latency:</td>
         <td>
-        <%= UiUtils.formatPopulationStatistics("Latency on " + ringGroup.getName(), runtimeStatisticsForRingGroup.getGetRequestsPopulationStatistics()) %>
+        <%= UiUtils.formatPopulationStatistics("Server-side latency on " + ringGroup.getName(), runtimeStatisticsForRingGroup.getGetRequestsPopulationStatistics()) %>
         </td>
         </tr>
 
@@ -172,7 +172,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          <tr>
            <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
            <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
-           <td class='centered'><%= UiUtils.formatPopulationStatistics("Latency for " + domain.getName() + " on " + ringGroup.getName(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
+           <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
            <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
          </tr>
        <%
@@ -302,7 +302,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       %>
 
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps </td>
-      <td class='centered'><%= UiUtils.formatPopulationStatistics("Latency on " + ringGroup.getName() + " Ring " + ring.getRingNumber(), runtimeStatisticsForRing.getGetRequestsPopulationStatistics()) %></td>
+      <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency on " + ringGroup.getName() + " Ring " + ring.getRingNumber(), runtimeStatisticsForRing.getGetRequestsPopulationStatistics()) %></td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
 
         <!-- Serving Status -->

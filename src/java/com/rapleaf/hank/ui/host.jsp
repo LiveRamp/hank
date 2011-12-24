@@ -72,7 +72,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <tr>
       <td>Latency:</td>
       <td>
-      <%= UiUtils.formatPopulationStatistics("Latency on " + host.getAddress(), runtimeStatisticsForHost.getGetRequestsPopulationStatistics()) %>
+      <%= UiUtils.formatPopulationStatistics("Server-side latency on " + host.getAddress(), runtimeStatisticsForHost.getGetRequestsPopulationStatistics()) %>
       </td>
       </tr>
 
@@ -138,7 +138,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
-      <td class='centered'><%= UiUtils.formatPopulationStatistics("Latency for " + domain.getName() + " on " + host.getAddress(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
+      <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + host.getAddress(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     </tr>
   <%

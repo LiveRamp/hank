@@ -151,11 +151,13 @@ public class DoublePopulationStatisticsAggregator {
     StringBuilder result = new StringBuilder();
     // Compute median on the fly
     double median = numValues == 0 ? 0 : deciles[4] / numValues;
-    result.append(formatDouble(median));
-    result.append(" / ");
+    // Compute 90% percentile on the fly
+    double ninetiethPercentile = numValues == 0 ? 0 : deciles[8] / numValues;
     result.append(formatDouble(getMean()));
     result.append(" / ");
-    result.append(formatDouble(maximum));
+    result.append(formatDouble(median));
+    result.append(" / ");
+    result.append(formatDouble(ninetiethPercentile));
     return result.toString();
   }
 }

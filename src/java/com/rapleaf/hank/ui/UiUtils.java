@@ -40,13 +40,13 @@ public class UiUtils {
       size = 1;
     }
     content.append("<tr><td>");
-    content.append(DoublePopulationStatisticsAggregator.formatDouble(value));
-    content.append(' ');
-    content.append(unit);
+    content.append(label);
     content.append("</td><td>");
     content.append("<div class='tooltipBar' style='width: " + size + "px;'></div>");
     content.append("</td><td>");
-    content.append(label);
+    content.append(DoublePopulationStatisticsAggregator.formatDouble(value));
+    content.append(' ');
+    content.append(unit);
     content.append("</td></tr>");
   }
 
