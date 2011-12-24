@@ -207,6 +207,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
+  public Domain getDomainById(int domainId) {
+    for (Domain domain : getDomains()) {
+      if (domain.getId() == domainId) {
+        return domain;
+      }
+    }
+    return null;
+  }
+
+  @Override
   public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
     Set<DomainGroupVersion> domainGroupVersions = new HashSet<DomainGroupVersion>();
     for (DomainGroup dg : domainGroups.values()) {

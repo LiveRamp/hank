@@ -72,7 +72,7 @@ public class PartitionAccessor {
     }
   }
 
-  public RuntimeStatistics getRuntimeStatistics() {
+  public PartitionAccessorRuntimeStatistics getRuntimeStatistics() {
     // Copy duration and counts
     long windowDurationNanos = windowTimer.getDuration();
     windowTimer.restart();
@@ -84,7 +84,7 @@ public class PartitionAccessor {
     if (windowDurationNanos != 0) {
       throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
     }
-    return new RuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
+    return new PartitionAccessorRuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
   }
 
   public void shutDown() {

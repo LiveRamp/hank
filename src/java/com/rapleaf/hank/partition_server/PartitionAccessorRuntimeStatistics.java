@@ -16,13 +16,13 @@
 
 package com.rapleaf.hank.partition_server;
 
-public class RuntimeStatistics {
+public class PartitionAccessorRuntimeStatistics {
 
   protected final long numRequests;
   protected final long numHits;
   protected final double throughput;
 
-  public RuntimeStatistics(long numRequests, long numHits, double throughput) {
+  public PartitionAccessorRuntimeStatistics(long numRequests, long numHits, double throughput) {
     this.numRequests = numRequests;
     this.numHits = numHits;
     this.throughput = throughput;

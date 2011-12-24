@@ -68,6 +68,8 @@ public interface Coordinator {
    */
   public Domain getDomain(String domainName);
 
+  public Domain getDomainById(int domainId);
+
   /**
    * Delete the domain with the given name. Please beware of removing a
    * domain if it is referenced in any domain groups - you will probably break

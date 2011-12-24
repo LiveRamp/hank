@@ -206,3 +206,45 @@ table.table-blue td,
 .defunct-version {
   color: #bbbbbb;
 }
+
+/* Tooltip */
+#tt {
+  position: absolute;
+  display: block;
+  opacity: 0;
+  filter: 'alpha(opacity=0)';
+}
+
+#tttop {
+  margin: 0;
+  padding: .5em 1em .5em 1em;
+  text-align: center;
+  border-width: 0 0 1px 0;
+  border-style: solid;
+  border-color: #808080;
+  font-size: .8em;
+}
+
+#ttcont {
+  font-size: .75em;
+  padding: 1em;
+}
+
+#ttcont,
+#tttop {
+  display: block;
+  background: #404040;
+  color: white;
+}
+
+#ttbot {
+  display: block;
+}
+
+.tooltipBar {
+  display: block;
+  height: 1em;
+  background: #8cdbf3;
+  margin-left: 10px;
+  margin-right: 10px;
+}

@@ -21,20 +21,24 @@ public class RuntimeStatisticsAggregator {
   private double throughputTotal;
   private long numRequestsTotal;
   private long numHitsTotal;
+  private DoublePopulationStatisticsAggregator getRequestsPopulationStatistics;
 
   public RuntimeStatisticsAggregator() {
     throughputTotal = 0;
     numRequestsTotal = 0;
     numHitsTotal = 0;
+    getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator();
   }
 
-  public RuntimeStatisticsAggregator(double throughputTotal, long numRequestsTotal, long numHitsTotal) {
+  public RuntimeStatisticsAggregator(double throughputTotal, long numRequestsTotal, long numHitsTotal,
+                                     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics) {
     this.throughputTotal = throughputTotal;
     this.numRequestsTotal = numRequestsTotal;
     this.numHitsTotal = numHitsTotal;
+    this.getRequestsPopulationStatistics = getRequestsPopulationStatistics;
   }
 
-  public void add(RuntimeStatistics runtimeStatistics) {
+  public void add(PartitionAccessorRuntimeStatistics runtimeStatistics) {
     throughputTotal += runtimeStatistics.throughput;
     numRequestsTotal += runtimeStatistics.numRequests;
     numHitsTotal += runtimeStatistics.numHits;
@@ -44,6 +48,11 @@ public class RuntimeStatisticsAggregator {
     throughputTotal += runtimeStatisticsAggregator.throughputTotal;
     numRequestsTotal += runtimeStatisticsAggregator.numRequestsTotal;
     numHitsTotal += runtimeStatisticsAggregator.numHitsTotal;
+    getRequestsPopulationStatistics.aggregate(runtimeStatisticsAggregator.getRequestsPopulationStatistics);
+  }
+
+  public void setGetRequestsPopulationStatistics(DoublePopulationStatisticsAggregator populationStatistics) {
+    this.getRequestsPopulationStatistics = populationStatistics;
   }
 
   public double getThroughput() {
@@ -58,9 +67,34 @@ public class RuntimeStatisticsAggregator {
     }
   }
 
+  public DoublePopulationStatisticsAggregator getGetRequestsPopulationStatistics() {
+    return getRequestsPopulationStatistics;
+  }
+
   public static String toString(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
     return runtimeStatisticsAggregator.throughputTotal
-        + "\t" + runtimeStatisticsAggregator.numRequestsTotal
-        + "\t" + runtimeStatisticsAggregator.numHitsTotal;
+        + " " + runtimeStatisticsAggregator.numRequestsTotal
+        + " " + runtimeStatisticsAggregator.numHitsTotal
+        + " " + DoublePopulationStatisticsAggregator.toString(
+        runtimeStatisticsAggregator.getRequestsPopulationStatistics);
+  }
+
+  public static RuntimeStatisticsAggregator parse(String str) {
+    String[] tokens = str.split(" ");
+    double throughputTotal = Double.parseDouble(tokens[0]);
+    long numRequestsTotal = Long.parseLong(tokens[1]);
+    long numHitsTotal = Long.parseLong(tokens[2]);
+    double[] deciles = new double[9];
+    for (int i = 0; i < 9; ++i) {
+      deciles[i] = Double.parseDouble(tokens[7 + i]);
+    }
+    DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
+        Double.parseDouble(tokens[3]),
+        Double.parseDouble(tokens[4]),
+        Long.parseLong(tokens[5]),
+        Double.parseDouble(tokens[6]),
+        deciles);
+    return new RuntimeStatisticsAggregator(throughputTotal, numRequestsTotal, numHitsTotal,
+        getRequestsPopulationStatistics);
   }
 }

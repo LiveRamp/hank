@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.performance;
 
+import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import org.apache.log4j.Logger;
 
 import java.util.Arrays;
@@ -38,17 +39,18 @@ public class HankTimerAggregator {
   private Long maxDuration;
   double[] deciles = new double[9];
   private long totalUnderlyingCount;
+  private DoublePopulationStatisticsAggregator populationStatistics;
 
   /**
-   *
    * @param name
    * @param statsComputationWindow Number of timers to aggregate before computing and
-   * logging statistics. 0 means no timer aggregation.
+   *                               logging statistics. 0 means no timer aggregation.
    */
   public HankTimerAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
     this.isActive = statsComputationWindow != 0;
+    this.populationStatistics = new DoublePopulationStatisticsAggregator();
     clear();
   }
 
@@ -72,6 +74,12 @@ public class HankTimerAggregator {
       return;
     }
     _add(timer.getStartTime(), timer.getDuration(), underlyingCount);
+  }
+
+  public DoublePopulationStatisticsAggregator getAndResetPopulationStatistics() {
+    DoublePopulationStatisticsAggregator result = populationStatistics;
+    populationStatistics = new DoublePopulationStatisticsAggregator();
+    return result;
   }
 
   private synchronized void _add(long startTimeNanos, long durationNanos, int underlyingCount) {
@@ -157,5 +165,7 @@ public class HankTimerAggregator {
       logStr.append(totalUnderlyingCount / (statsComputationWindowDuration / 1000000000d));
     }
     LOG.info(logStr.toString());
+    // Aggregate population statistics
+    populationStatistics.aggregate(minDuration, maxDuration, count, totalDuration, deciles);
   }
 }

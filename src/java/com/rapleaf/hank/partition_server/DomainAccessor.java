@@ -20,6 +20,8 @@ import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.performance.HankTimerAggregator;
 import com.rapleaf.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 
@@ -37,22 +39,32 @@ public class DomainAccessor {
   private final HostDomain hostDomain;
   private final PartitionAccessor[] partitionAccessors;
   private final Partitioner partitioner;
+  private final HankTimerAggregator getRequestsTimerAggregator;
 
-  DomainAccessor(HostDomain hostDomain, PartitionAccessor[] partitionAccessors,
-                 Partitioner partitioner) throws IOException {
+  DomainAccessor(HostDomain hostDomain,
+                 PartitionAccessor[] partitionAccessors,
+                 Partitioner partitioner,
+                 int getTimerAggregatorWindow) throws IOException {
     this.hostDomain = hostDomain;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
+    this.getRequestsTimerAggregator = new HankTimerAggregator("GET " + hostDomain.getDomain().getName(),
+        getTimerAggregatorWindow);
   }
 
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
-    LOG.trace("Domain GET");
-    int partition = partitioner.partition(key, partitionAccessors.length);
-    PartitionAccessor partitionAccessor = partitionAccessors[partition];
-    if (partitionAccessor == null) {
-      return WRONG_HOST;
+    HankTimer timer = getRequestsTimerAggregator.getTimer();
+    try {
+      LOG.trace("Domain GET");
+      int partition = partitioner.partition(key, partitionAccessors.length);
+      PartitionAccessor partitionAccessor = partitionAccessors[partition];
+      if (partitionAccessor == null) {
+        return WRONG_HOST;
+      }
+      return partitionAccessor.get(key, result);
+    } finally {
+      getRequestsTimerAggregator.add(timer);
     }
-    return partitionAccessor.get(key, result);
   }
 
   public String getName() {
@@ -79,6 +91,8 @@ public class DomainAccessor {
         runtimeStatisticsAggregator.add(partitionAccessor.getRuntimeStatistics());
       }
     }
+    runtimeStatisticsAggregator.setGetRequestsPopulationStatistics(
+        getRequestsTimerAggregator.getAndResetPopulationStatistics());
     return runtimeStatisticsAggregator;
   }
 }

@@ -20,8 +20,6 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.performance.HankTimer;
-import com.rapleaf.hank.performance.HankTimerAggregator;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -50,7 +48,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
   private static final ReaderResultThreadLocal readerResultThreadLocal = new ReaderResultThreadLocal();
   private final DomainAccessor[] domainAccessors;
-  private final HankTimerAggregator[] getTimerAggregators;
   private final ThreadPoolExecutor getBulkTaskExecutor;
   private static final long GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_BULK_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
@@ -123,7 +120,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       }
     }
     domainAccessors = new DomainAccessor[maxDomainId + 1];
-    getTimerAggregators = new HankTimerAggregator[maxDomainId + 1];
 
     // Loop over the domains and get set up
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
@@ -139,10 +135,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       if (partitions == null) {
         throw new IOException(String.format("Could not get partitions assignements of HostDomain %s", hostDomain));
       }
-
-      // Set up timer aggregators
-      getTimerAggregators[domainId] = new HankTimerAggregator("GET " + domain.getName(),
-          configurator.getGetTimerAggregatorWindow());
 
       LOG.info(String.format("Loading %d/%d partitions of domain %s",
           partitions.size(), domain.getNumParts(), domain.getName()));
@@ -194,7 +186,8 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
       }
       // configure and store the DomainAccessors
-      domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner());
+      domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner(),
+          configurator.getGetTimerAggregatorWindow());
     }
 
     // Start the update statistics thread
@@ -247,29 +240,24 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   }
 
   private HankResponse _get(PartitionServerHandler partitionServerHandler, int domainId, ByteBuffer key, ReaderResult result) {
-    HankTimer timer = getDomainGetTimerAggregator(domainId);
+    DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
+    if (domainAccessor == null) {
+      return NO_SUCH_DOMAIN;
+    }
     try {
-      DomainAccessor domainAccessor = partitionServerHandler.getDomainAccessor(domainId);
-      if (domainAccessor == null) {
-        return NO_SUCH_DOMAIN;
-      }
-      try {
-        return domainAccessor.get(key, result);
-      } catch (IOException e) {
-        String errMsg = String.format(
-            "Exception during GET. Domain: %s (domain #%d) Key: %s",
-            domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
-        LOG.error(errMsg, e);
-        return HankResponse.xception(
-            HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
-      } catch (Throwable t) {
-        String errMsg = "Throwable during GET";
-        LOG.fatal(errMsg, t);
-        return HankResponse.xception(
-            HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
-      }
-    } finally {
-      addDomainGetTimer(domainId, timer);
+      return domainAccessor.get(key, result);
+    } catch (IOException e) {
+      String errMsg = String.format(
+          "Exception during GET. Domain: %s (domain #%d) Key: %s",
+          domainAccessor.getName(), domainId, Bytes.bytesToHexString(key));
+      LOG.error(errMsg, e);
+      return HankResponse.xception(
+          HankException.internal_error(errMsg + " " + (e.getMessage() != null ? e.getMessage() : "")));
+    } catch (Throwable t) {
+      String errMsg = "Throwable during GET";
+      LOG.fatal(errMsg, t);
+      return HankResponse.xception(
+          HankException.internal_error(errMsg + " " + (t.getMessage() != null ? t.getMessage() : "")));
     }
   }
 
@@ -377,21 +365,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     }
   }
 
-  private HankTimer getDomainGetTimerAggregator(int domainId) {
-    if (domainId < getTimerAggregators.length) {
-      return getTimerAggregators[domainId].getTimer();
-    } else {
-      return null;
-    }
-  }
-
-  private void addDomainGetTimer(int domainId, HankTimer timer) {
-    if (timer != null) {
-      // No need to check if domainId is within bounds. If it is not, timer is null.
-      getTimerAggregators[domainId].add(timer);
-    }
-  }
-
   public static Map<Domain, RuntimeStatisticsAggregator> getRuntimeStatistics(Coordinator coordinator,
                                                                               Host host) throws IOException {
     String runtimeStatistics = host.getStatistic(RUNTIME_STATISTICS_KEY);
@@ -406,11 +379,8 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           continue;
         }
         String[] tokens = statistics.split("\t");
-        String domainName = tokens[0];
-        double throughputTotal = Double.parseDouble(tokens[1]);
-        long numRequestsTotal = Long.parseLong(tokens[2]);
-        long numHitsTotal = Long.parseLong(tokens[3]);
-        result.put(coordinator.getDomain(domainName), new RuntimeStatisticsAggregator(throughputTotal, numRequestsTotal, numHitsTotal));
+        int domainId = Integer.parseInt(tokens[0]);
+        result.put(coordinator.getDomainById(domainId), RuntimeStatisticsAggregator.parse(tokens[1]));
       }
       return result;
     }
@@ -424,7 +394,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatisticsAggregators.entrySet()) {
       Domain domain = entry.getKey();
       RuntimeStatisticsAggregator runtimeStatisticsAggregator = entry.getValue();
-      statistics.append(domain.getName());
+      statistics.append(domain.getId());
       statistics.append('\t');
       statistics.append(RuntimeStatisticsAggregator.toString(runtimeStatisticsAggregator));
       statistics.append('\n');

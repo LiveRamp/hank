@@ -86,6 +86,7 @@
       <th>Idle</th>
       <th>Offline</th>
       <th>Throughput</th>
+      <th>Latency</th>
       <th>Hit rate</th>
       <th>Updated & Served</th>
       <th>(fully)</th>
@@ -170,6 +171,7 @@
         %>
 
         <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps </td>
+        <td class='centered'><%= UiUtils.formatPopulationStatistics("Latency on " + ringGroup.getName(), runtimeStatisticsForRingGroup.getGetRequestsPopulationStatistics()) %></td>
         <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
 
         <!-- Serving Status -->

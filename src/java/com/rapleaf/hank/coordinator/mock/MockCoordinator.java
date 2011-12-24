@@ -48,6 +48,11 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
+  public Domain getDomainById(int domainId) {
+    return null;
+  }
+
   public Set<DomainGroup> getDomainGroupsForDomain(String domainName) throws IOException {
     return null;
   }
