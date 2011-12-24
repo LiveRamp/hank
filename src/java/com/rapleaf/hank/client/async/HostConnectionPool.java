@@ -21,37 +21,37 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class AsyncHostConnectionPool {
+public class HostConnectionPool {
 
-  private static Logger LOG = Logger.getLogger(AsyncHostConnectionPool.class);
+  private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
 
   private ArrayList<List<AsyncHostConnectionAndHostIndex>> hostToConnections
       = new ArrayList<List<AsyncHostConnectionAndHostIndex>>();
-  private final HankAsyncSmartClientConnector connectingRunnable;
+  private final Connector connectingRunnable;
 
   private int globalPreviouslyUsedHostIndex;
   private Random random = new Random();
 
   static class AsyncHostConnectionAndHostIndex {
-    AsyncHostConnection hostConnection;
+    HostConnection hostConnection;
     int hostIndex;
 
-    private AsyncHostConnectionAndHostIndex(AsyncHostConnection hostConnection,
+    private AsyncHostConnectionAndHostIndex(HostConnection hostConnection,
                                             int hostIndex) {
       this.hostConnection = hostConnection;
       this.hostIndex = hostIndex;
     }
   }
 
-  AsyncHostConnectionPool(Map<Host, List<AsyncHostConnection>> hostToConnectionsMap,
-                          HankAsyncSmartClientConnector connectingRunnable) {
+  HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap,
+                     Connector connectingRunnable) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
     int hostIndex = 0;
-    for (Map.Entry<Host, List<AsyncHostConnection>> entry : hostToConnectionsMap.entrySet()) {
+    for (Map.Entry<Host, List<HostConnection>> entry : hostToConnectionsMap.entrySet()) {
       List<AsyncHostConnectionAndHostIndex> connections = new ArrayList<AsyncHostConnectionAndHostIndex>();
-      for (AsyncHostConnection hostConnection : entry.getValue()) {
+      for (HostConnection hostConnection : entry.getValue()) {
         connections.add(new AsyncHostConnectionAndHostIndex(hostConnection, hostIndex));
       }
       // Shuffle list of connections for that host, so that different pools try connections in different orders
@@ -66,22 +66,22 @@ public class AsyncHostConnectionPool {
     this.connectingRunnable = connectingRunnable;
   }
 
-  static AsyncHostConnectionPool createFromList(Collection<AsyncHostConnection> connections,
-                                                HankAsyncSmartClientConnector connectingRunnable) {
-    Map<Host, List<AsyncHostConnection>> hostToConnectionsMap = new HashMap<Host, List<AsyncHostConnection>>();
-    for (AsyncHostConnection connection : connections) {
-      List<AsyncHostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
+  static HostConnectionPool createFromList(Collection<HostConnection> connections,
+                                                Connector connectingRunnable) {
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+    for (HostConnection connection : connections) {
+      List<HostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
       if (connectionList == null) {
-        connectionList = new ArrayList<AsyncHostConnection>();
+        connectionList = new ArrayList<HostConnection>();
         hostToConnectionsMap.put(connection.getHost(), connectionList);
       }
       connectionList.add(connection);
     }
-    return new AsyncHostConnectionPool(hostToConnectionsMap, connectingRunnable);
+    return new HostConnectionPool(hostToConnectionsMap, connectingRunnable);
   }
 
-  Collection<AsyncHostConnection> getConnections() {
-    List<AsyncHostConnection> connections = new ArrayList<AsyncHostConnection>();
+  Collection<HostConnection> getConnections() {
+    List<HostConnection> connections = new ArrayList<HostConnection>();
     for (List<AsyncHostConnectionAndHostIndex> hostConnectionAndHostIndexList : hostToConnections) {
       for (AsyncHostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexList) {
         connections.add(hostConnectionAndHostIndex.hostConnection);

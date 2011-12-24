@@ -53,15 +53,15 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int bulkQueryTimeoutMs;
 
   private final Thread selectThread;
-  private final HankAsyncSmartClientDispatcher selectRunnable;
+  private final Dispatcher selectRunnable;
   private final Thread connectingThread;
-  private final HankAsyncSmartClientConnector connectingRunnable;
+  private final Connector connectingRunnable;
   private final TAsyncClientManager asyncClientManager;
 
-  private final Map<PartitionServerAddress, AsyncHostConnectionPool> partitionServerAddressToConnectionPool
-      = new HashMap<PartitionServerAddress, AsyncHostConnectionPool>();
-  private final Map<Integer, Map<Integer, AsyncHostConnectionPool>> domainToPartitionToConnectionPool
-      = new HashMap<Integer, Map<Integer, AsyncHostConnectionPool>>();
+  private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
+      = new HashMap<PartitionServerAddress, HostConnectionPool>();
+  private final Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
+      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
       = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
@@ -120,12 +120,12 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
 
     // Start select thread
-    selectRunnable = new HankAsyncSmartClientDispatcher();
+    selectRunnable = new Dispatcher();
     selectThread = new Thread(selectRunnable, "HankAsyncSmartClient Select Thread");
     selectThread.start();
 
     // Start connecting thread
-    connectingRunnable = new HankAsyncSmartClientConnector();
+    connectingRunnable = new Connector();
     connectingThread = new Thread(connectingRunnable, "HankAsyncSmartClient Connecting Thread");
     connectingThread.start();
 
@@ -155,7 +155,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
 
     // Find connection pool
-    Map<Integer, AsyncHostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
     if (partitionToConnectionPool == null) {
       String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName,
           domain.getId());
@@ -164,7 +164,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
       return;
     }
 
-    AsyncHostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
+    HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
     if (hostConnectionPool == null) {
       // This is a problem, since the cache must not have been loaded correctly
       String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d",
@@ -249,9 +249,9 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
             + " with connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
             + ", query timeout = " + queryTimeoutMs + "ms"
             + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
-        List<AsyncHostConnection> hostConnections = new ArrayList<AsyncHostConnection>(numConnectionsPerHost);
+        List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
         for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new AsyncHostConnection(host,
+          hostConnections.add(new HostConnection(host,
               connectionListener,
               asyncClientManager,
               establishConnectionTimeoutMs,
@@ -259,20 +259,20 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
               bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
-            AsyncHostConnectionPool.createFromList(hostConnections, connectingRunnable));
+            HostConnectionPool.createFromList(hostConnections, connectingRunnable));
       }
     }
 
     // Build domainToPartitionToConnectionPool
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
-      Map<Integer, AsyncHostConnectionPool> partitionToConnectionPool = new HashMap<Integer, AsyncHostConnectionPool>();
+      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
-        List<AsyncHostConnection> connections = new ArrayList<AsyncHostConnection>();
+        List<HostConnection> connections = new ArrayList<HostConnection>();
         for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
           connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
         }
         partitionToConnectionPool.put(partitionToAddressesEntry.getKey(),
-            AsyncHostConnectionPool.createFromList(connections, connectingRunnable));
+            HostConnectionPool.createFromList(connections, connectingRunnable));
       }
       domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
     }
