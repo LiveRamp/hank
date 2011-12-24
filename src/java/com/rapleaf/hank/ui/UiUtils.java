@@ -67,7 +67,7 @@ public class UiUtils {
     return "<script type=\"text/javascript\">"
         + "var tooltipContent_" + uniqueId + " = \"" + tooltipContent.toString() + "\";"
         + "</script>"
-        + "<div onmouseover=\"tooltip.show(tooltipContent_" + uniqueId
+        + "<div style=\"cursor: help;\" onmouseover=\"tooltip.show(tooltipContent_" + uniqueId
         + ", '" + title + "');\" onmouseout=\"tooltip.hide();\">"
         + populationStatistics.format()
         + " ms"
