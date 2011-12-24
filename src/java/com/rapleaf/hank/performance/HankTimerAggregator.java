@@ -40,6 +40,7 @@ public class HankTimerAggregator {
   double[] deciles = new double[9];
   private long totalUnderlyingCount;
   private DoublePopulationStatisticsAggregator populationStatistics;
+  private DoublePopulationStatisticsAggregator previousPopulationStatistics;
 
   /**
    * @param name
@@ -50,7 +51,8 @@ public class HankTimerAggregator {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
     this.isActive = statsComputationWindow != 0;
-    this.populationStatistics = new DoublePopulationStatisticsAggregator();
+    this.populationStatistics = null;
+    this.previousPopulationStatistics = new DoublePopulationStatisticsAggregator();
     clear();
   }
 
@@ -76,10 +78,13 @@ public class HankTimerAggregator {
     _add(timer.getStartTime(), timer.getDuration(), underlyingCount);
   }
 
-  public DoublePopulationStatisticsAggregator getAndResetPopulationStatistics() {
-    DoublePopulationStatisticsAggregator result = populationStatistics;
-    populationStatistics = new DoublePopulationStatisticsAggregator();
-    return result;
+  public synchronized DoublePopulationStatisticsAggregator getAndResetPopulationStatistics() {
+    // If there are new statistics, return them and reset the current statistics
+    if (populationStatistics != null) {
+      previousPopulationStatistics = populationStatistics;
+      populationStatistics = null;
+    }
+    return previousPopulationStatistics;
   }
 
   private synchronized void _add(long startTimeNanos, long durationNanos, int underlyingCount) {
@@ -166,6 +171,9 @@ public class HankTimerAggregator {
     }
     LOG.info(logStr.toString());
     // Aggregate population statistics
+    if (populationStatistics == null) {
+      populationStatistics = new DoublePopulationStatisticsAggregator();
+    }
     populationStatistics.aggregate(minDuration / 1000000d, maxDuration / 1000000d, count, totalDuration / 1000000d, deciles);
   }
 }
