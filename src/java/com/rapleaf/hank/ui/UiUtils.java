@@ -34,7 +34,7 @@ public class UiUtils {
     }
     long size = 0;
     if (maximum != 0) {
-      size = Math.round(BAR_SIZE * (value / maximum));
+      size = Math.round(BAR_SIZE * (Math.log(1 + value) / Math.log(1 + maximum)));
     }
     if (size < 1) {
       size = 1;
