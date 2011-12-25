@@ -86,7 +86,12 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       <tr>
       <td>Uptime:</td>
       <td>
-        Started <%= new SimpleDateFormat().format(new Date(host.getUpSince())) %> (online <%= (System.currentTimeMillis() - host.getUpSince()) / 1000 %> seconds)
+      <% Long upSince = host.getUpSince(); %>
+      <% if (upSince == null) { %>
+        Unknown
+      <% } else { %>
+        Started <%= new SimpleDateFormat().format(new Date(upSince)) %> (online <%= (System.currentTimeMillis() - upSince) / 1000 %> seconds)
+      <% } %>
       </td>
       </tr>
 
