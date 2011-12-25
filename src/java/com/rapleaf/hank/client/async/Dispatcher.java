@@ -17,6 +17,7 @@
 package com.rapleaf.hank.client.async;
 
 import com.rapleaf.hank.client.GetCallback;
+import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
@@ -27,21 +28,25 @@ import org.apache.thrift.TException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.concurrent.Semaphore;
 
-class Dispatcher implements Runnable {
+public class Dispatcher implements Runnable {
 
   private static final Logger LOG = Logger.getLogger(Dispatcher.class);
+  private static final HankResponse NO_CONNECTION_AVAILABLE_RESPONSE
+      = HankResponse.xception(HankException.no_connection_available(true));
+  private static final HankBulkResponse NO_CONNECTION_AVAILABLE_BULK_RESPONSE
+      = HankBulkResponse.xception(HankException.no_connection_available(true));
 
   private final LinkedList<GetTask> getTasks;
   private final LinkedList<GetTask> getTasksComplete;
-  private final Semaphore workSemaphore = new Semaphore(0, true);
+  private Thread dispatcherThread;
+  private volatile boolean stopping = false;
 
   public Runnable getOnChangeRunnable() {
     return new Runnable() {
       @Override
       public void run() {
-        workSemaphore.release();
+        dispatcherThread.interrupt();
       }
     };
   }
@@ -53,7 +58,7 @@ class Dispatcher implements Runnable {
     private final HostConnectionPool hostConnectionPool;
     private final GetCallback resultHanlder;
     private int retry;
-    private HostConnectionPool.AsyncHostConnectionAndHostIndex hostConnectionAndHostIndex;
+    private HostConnectionPool.HostConnectionAndHostIndex hostConnectionAndHostIndex;
     private HankResponse response;
 
     private class Callback implements HostConnectionGetCallback {
@@ -103,8 +108,10 @@ class Dispatcher implements Runnable {
     }
 
     public void releaseConnection() {
-      LOG.trace("Releasing connection for task " + this);
-      hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
+      if (hostConnectionAndHostIndex.hostConnection != null) {
+        LOG.trace("Releasing connection for task " + this);
+        hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
+      }
     }
 
     public boolean execute() {
@@ -114,17 +121,23 @@ class Dispatcher implements Runnable {
         hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
       }
 
-      //TODO: if all connections are "standby" then we want to return a no connection available exception
-
       if (hostConnectionAndHostIndex == null) {
         //TODO: remove trace
         LOG.trace("No connection found for task " + this);
         return false;
       }
+
+      // All hosts were in standby, set the response appropriately and complete task
+      if (hostConnectionAndHostIndex.hostConnection == null) {
+        response = NO_CONNECTION_AVAILABLE_RESPONSE;
+        addCompleteTask(this);
+        return true;
+      }
+
       // Claim connection
       hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
       // Execute asynchronous task
-      hostConnectionAndHostIndex.hostConnection.get(domainId, key, new Callback());
+      hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
       //TODO: remove trace
       LOG.trace("Executing task " + this);
       return true;
@@ -142,40 +155,43 @@ class Dispatcher implements Runnable {
     getTasksComplete = new LinkedList<GetTask>();
   }
 
+  public void stop() {
+    stopping = true;
+    dispatcherThread.interrupt();
+  }
+
+  public void setDispatcherThread(DispatcherThread dispatcherThread) {
+    if (this.dispatcherThread != null) {
+      throw new RuntimeException("Tried to set dispatcher thread but it was already set.");
+    }
+    this.dispatcherThread = dispatcherThread;
+  }
+
   public void addTask(GetTask task) {
     synchronized (getTasks) {
       getTasks.addLast(task);
     }
-    workSemaphore.release();
+    dispatcherThread.interrupt();
   }
 
   public void addCompleteTask(GetTask task) {
     synchronized (getTasksComplete) {
       getTasksComplete.addLast(task);
     }
-    workSemaphore.release();
+    dispatcherThread.interrupt();
   }
 
   @Override
   public void run() {
-    while (true) {
+    while (!stopping) {
       //TODO: remove trace
       LOG.trace("--------------------------");
       completeTasks();
       startTasks();
-      /*
-      int availableWorkUnits = workSemaphore.availablePermits();
       try {
-        // Wait for at least one task to have been added, one task to have completed or one connection change
-        workSemaphore.acquire(availableWorkUnits <= 0 ? 1 : availableWorkUnits);
+        Thread.sleep(Long.MAX_VALUE);
       } catch (InterruptedException e) {
-        break;
-      }
-      */
-      try {
-        Thread.sleep(100);
-      } catch (InterruptedException e) {
-        break;
+        // There is work to do
       }
     }
   }

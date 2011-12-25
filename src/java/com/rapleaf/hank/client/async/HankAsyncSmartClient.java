@@ -52,10 +52,10 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
-  private final Thread selectThread;
-  private final Dispatcher selectRunnable;
-  private final Thread connectingThread;
-  private final Connector connectingRunnable;
+  private final Dispatcher dispatcher;
+  private final DispatcherThread dispatcherThread;
+  private final Thread connectorThread;
+  private final Connector connector;
   private final TAsyncClientManager asyncClientManager;
 
   private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
@@ -119,15 +119,15 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
 
-    // Start select thread
-    selectRunnable = new Dispatcher();
-    selectThread = new Thread(selectRunnable, "HankAsyncSmartClient Select Thread");
-    selectThread.start();
+    // Start Dispatcher thread
+    dispatcher = new Dispatcher();
+    dispatcherThread = new DispatcherThread(dispatcher);
+    dispatcherThread.start();
 
-    // Start connecting thread
-    connectingRunnable = new Connector();
-    connectingThread = new Thread(connectingRunnable, "HankAsyncSmartClient Connecting Thread");
-    connectingThread.start();
+    // Start Connector thread
+    connector = new Connector();
+    connectorThread = new ConnectorThread(connector);
+    connectorThread.start();
 
     // Initialize asynchronous client manager
     asyncClientManager = new TAsyncClientManager();
@@ -179,7 +179,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     }
 
     // Add task to select queue
-    selectRunnable.addTask(selectRunnable.new GetTask(domain.getId(), key, hostConnectionPool, resultHandler));
+    dispatcher.addTask(dispatcher.new GetTask(domain.getId(), key, hostConnectionPool, resultHandler));
   }
 
   public void getBulk(String domainName,
@@ -242,7 +242,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
         }
 
         // Create connection listener
-        Runnable connectionListener = selectRunnable.getOnChangeRunnable();
+        Runnable connectionListener = dispatcher.getOnChangeRunnable();
 
         // Establish connection to hosts
         LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
@@ -259,7 +259,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
               bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
-            HostConnectionPool.createFromList(hostConnections, connectingRunnable));
+            HostConnectionPool.createFromList(hostConnections, connector));
       }
     }
 
@@ -272,7 +272,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
           connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
         }
         partitionToConnectionPool.put(partitionToAddressesEntry.getKey(),
-            HostConnectionPool.createFromList(connections, connectingRunnable));
+            HostConnectionPool.createFromList(connections, connector));
       }
       domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
     }

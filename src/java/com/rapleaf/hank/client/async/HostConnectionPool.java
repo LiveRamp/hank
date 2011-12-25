@@ -25,34 +25,35 @@ public class HostConnectionPool {
 
   private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
 
-  private ArrayList<List<AsyncHostConnectionAndHostIndex>> hostToConnections
-      = new ArrayList<List<AsyncHostConnectionAndHostIndex>>();
-  private final Connector connectingRunnable;
+  private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections
+      = new ArrayList<List<HostConnectionAndHostIndex>>();
+  private final Connector connector;
+  private final HostConnectionAndHostIndex allConnectionsStandby = new HostConnectionAndHostIndex(null, -1);
 
   private int globalPreviouslyUsedHostIndex;
-  private Random random = new Random();
 
-  static class AsyncHostConnectionAndHostIndex {
+  static class HostConnectionAndHostIndex {
     HostConnection hostConnection;
     int hostIndex;
 
-    private AsyncHostConnectionAndHostIndex(HostConnection hostConnection,
-                                            int hostIndex) {
+    private HostConnectionAndHostIndex(HostConnection hostConnection,
+                                       int hostIndex) {
       this.hostConnection = hostConnection;
       this.hostIndex = hostIndex;
     }
   }
 
   HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap,
-                     Connector connectingRunnable) {
+                     Connector connector) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
     int hostIndex = 0;
+    Random random = new Random();
     for (Map.Entry<Host, List<HostConnection>> entry : hostToConnectionsMap.entrySet()) {
-      List<AsyncHostConnectionAndHostIndex> connections = new ArrayList<AsyncHostConnectionAndHostIndex>();
+      List<HostConnectionAndHostIndex> connections = new ArrayList<HostConnectionAndHostIndex>();
       for (HostConnection hostConnection : entry.getValue()) {
-        connections.add(new AsyncHostConnectionAndHostIndex(hostConnection, hostIndex));
+        connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
       }
       // Shuffle list of connections for that host, so that different pools try connections in different orders
       Collections.shuffle(connections, random);
@@ -62,12 +63,12 @@ public class HostConnectionPool {
     // Previously used host is randomized so that different connection pools start querying
     // different hosts.
     globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
-    // Initialize connecting runnable
-    this.connectingRunnable = connectingRunnable;
+    // Initialize connector
+    this.connector = connector;
   }
 
   static HostConnectionPool createFromList(Collection<HostConnection> connections,
-                                                Connector connectingRunnable) {
+                                           Connector connector) {
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
     for (HostConnection connection : connections) {
       List<HostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
@@ -77,13 +78,13 @@ public class HostConnectionPool {
       }
       connectionList.add(connection);
     }
-    return new HostConnectionPool(hostToConnectionsMap, connectingRunnable);
+    return new HostConnectionPool(hostToConnectionsMap, connector);
   }
 
   Collection<HostConnection> getConnections() {
     List<HostConnection> connections = new ArrayList<HostConnection>();
-    for (List<AsyncHostConnectionAndHostIndex> hostConnectionAndHostIndexList : hostToConnections) {
-      for (AsyncHostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexList) {
+    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexList : hostToConnections) {
+      for (HostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexList) {
         connections.add(hostConnectionAndHostIndex.hostConnection);
       }
     }
@@ -91,8 +92,8 @@ public class HostConnectionPool {
   }
 
   // Return a connection to a host, initially skipping the previously used host
-  public AsyncHostConnectionAndHostIndex findConnectionToUse() {
-    AsyncHostConnectionAndHostIndex result = findConnectionToUse(globalPreviouslyUsedHostIndex);
+  public HostConnectionAndHostIndex findConnectionToUse() {
+    HostConnectionAndHostIndex result = findConnectionToUse(globalPreviouslyUsedHostIndex);
     if (result != null) {
       globalPreviouslyUsedHostIndex = result.hostIndex;
     }
@@ -101,17 +102,19 @@ public class HostConnectionPool {
 
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
   // a failure using a connection to it)
-  public AsyncHostConnectionAndHostIndex findConnectionToUse(int previouslyUsedHostIndex) {
+  public HostConnectionAndHostIndex findConnectionToUse(int previouslyUsedHostIndex) {
 
     // Search for any unused connection
+    int numHostsStandby = 0;
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
       previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
-      List<AsyncHostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
-      for (AsyncHostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
+      List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
+      for (HostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
         //TODO: remove trace
         LOG.trace("- " + connectionAndHostIndex.hostConnection);
         // If a host has one standby connection, it is itself unavailable. Move on to the next host.
         if (connectionAndHostIndex.hostConnection.isStandby()) {
+          ++numHostsStandby;
           break;
         }
         // If connection is busy, skip it
@@ -120,7 +123,7 @@ public class HostConnectionPool {
         }
         // If connection is disconnected, add it to the connection queue
         if (connectionAndHostIndex.hostConnection.isDisconnected()) {
-          connectingRunnable.addConnection(connectionAndHostIndex.hostConnection);
+          connector.addConnection(connectionAndHostIndex.hostConnection);
         }
         // If connection is connected, use it
         if (connectionAndHostIndex.hostConnection.isConnected()) {
@@ -129,6 +132,10 @@ public class HostConnectionPool {
       }
     }
 
+    // If all hosts are in standby, return a specific error
+    if (numHostsStandby == hostToConnections.size()) {
+      return allConnectionsStandby;
+    }
     // No available connection was found, return null
     return null;
   }
