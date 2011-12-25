@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
 import java.util.*;
@@ -325,7 +326,12 @@ public class ZkHost extends AbstractHost {
     }
 
     try {
-      return zk.exists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false).getCtime();
+      Stat stat = zk.exists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), false);
+      if (stat == null) {
+        return null;
+      } else {
+        return stat.getCtime();
+      }
     } catch (Exception e) {
       throw new IOException(e);
     }
