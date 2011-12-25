@@ -93,7 +93,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
         return callback.response;
       }
     }
-    return null;
+    return INTERRUPTED_GET;
   }
 
   @Override
@@ -109,6 +109,6 @@ public class HankSyncSmartClient implements SmartClient.Iface {
         return callback.response;
       }
     }
-    return null;
+    return INTERRUPTED_GET_BULK;
   }
 }
