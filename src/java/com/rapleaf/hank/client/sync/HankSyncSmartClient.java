@@ -14,6 +14,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 public class HankSyncSmartClient implements SmartClient.Iface {
 
@@ -49,34 +50,24 @@ public class HankSyncSmartClient implements SmartClient.Iface {
   private static class SyncGetCallback implements GetCallback {
 
     private HankResponse response;
-    private final Thread threadToInterrupt;
-
-    public SyncGetCallback() {
-      response = null;
-      threadToInterrupt = Thread.currentThread();
-    }
+    private final CountDownLatch completionBarrier = new CountDownLatch(1);
 
     @Override
     public void onComplete(HankResponse response) {
       this.response = response;
-      threadToInterrupt.interrupt();
+      completionBarrier.countDown();
     }
   }
 
   private static class SyncGetBulkCallback implements GetBulkCallback {
 
     private HankBulkResponse response;
-    private final Thread threadToInterrupt;
-
-    public SyncGetBulkCallback() {
-      response = null;
-      threadToInterrupt = Thread.currentThread();
-    }
+    private final CountDownLatch completionBarrier = new CountDownLatch(1);
 
     @Override
     public void onComplete(HankBulkResponse response) {
       this.response = response;
-      threadToInterrupt.interrupt();
+      completionBarrier.countDown();
     }
   }
 
@@ -85,15 +76,11 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetCallback callback = new SyncGetCallback();
     asyncSmartClient.get(domainName, key, callback);
     try {
-      Thread.sleep(Long.MAX_VALUE);
+      callback.completionBarrier.await();
+      return callback.response;
     } catch (InterruptedException e) {
-      if (callback.response == null) {
-        return INTERRUPTED_GET;
-      } else {
-        return callback.response;
-      }
+      return INTERRUPTED_GET;
     }
-    return INTERRUPTED_GET;
   }
 
   @Override
@@ -101,14 +88,10 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     SyncGetBulkCallback callback = new SyncGetBulkCallback();
     asyncSmartClient.getBulk(domainName, keys, callback);
     try {
-      Thread.sleep(Long.MAX_VALUE);
+      callback.completionBarrier.await();
+      return callback.response;
     } catch (InterruptedException e) {
-      if (callback.response == null) {
-        return INTERRUPTED_GET_BULK;
-      } else {
-        return callback.response;
-      }
+      return INTERRUPTED_GET_BULK;
     }
-    return INTERRUPTED_GET_BULK;
   }
 }
