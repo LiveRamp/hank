@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.generated.HankBulkResponse;
+import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partition_server.IfaceWithShutdown;
 import org.apache.log4j.Logger;
@@ -118,6 +119,19 @@ public class TestHostConnectionPool extends BaseTestCase {
     }
   }
 
+  private class HankExceptionIface extends MockIface {
+
+    @Override
+    protected HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
+      return HankResponse.xception(HankException.internal_error("Internal Error"));
+    }
+
+    @Override
+    protected HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException {
+      return HankBulkResponse.xception(HankException.internal_error("Internal Error"));
+    }
+  }
+
   @Override
   public void setUp() throws Exception {
     super.setUp();
@@ -166,6 +180,66 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
     assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
+    assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
+    assertEquals("All keys should have been found", 10, numHits);
+  }
+
+  public void testOneHankExceptions() throws IOException, TException, InterruptedException {
+
+    MockIface iface1 = new Response1Iface();
+    MockIface iface2 = new HankExceptionIface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 100;
+    int establishConnectionTimeoutMs = 100;
+    int queryTimeoutMs = 10;
+    int bulkQueryTimeoutMs = 100;
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap);
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    // With num retries = 1
+
+    int numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1);
+      if (response.is_set_value()) {
+        assertEquals(RESPONSE_1, response);
+        ++numHits;
+      }
+    }
+
+    assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
+    assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
+    assertEquals("Half the keys should have been found", 5, numHits);
+
+    iface1.clearCounts();
+    iface2.clearCounts();
+
+    // With num retries = 2
+
+    numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 2);
+      assertEquals(RESPONSE_1, response);
+      if (response.is_set_value()) {
+        ++numHits;
+      }
+    }
+    assertEquals("Non failing host should get all requests", 10, iface1.numGets);
     assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
     assertEquals("All keys should have been found", 10, numHits);
   }
