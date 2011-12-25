@@ -136,11 +136,16 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       }
       // Query timeout is by default always set to regular mode
       // Perform query
-      return client.get(domainId, key);
+      HankResponse result = client.get(domainId, key);
+      if (result.is_set_xception()) {
+        throw new IOException("Server failed to execute GET: " + result.get_xception().get_internal_error());
+      } else {
+        return result;
+      }
     } catch (TException e) {
       // Disconnect and give up
       disconnect();
-      throw new IOException("Failed to execute get()", e);
+      throw new IOException("Failed to execute GET", e);
     } finally {
       unlock();
     }
@@ -167,7 +172,12 @@ public class HostConnection implements WatchedNodeListener<HostState> {
         // Set socket timeout to bulk mode
         setSocketTimeout(bulkQueryTimeoutMs);
         // Perform query
-        return client.getBulk(domainId, keys);
+        HankBulkResponse result = client.getBulk(domainId, keys);
+        if (result.is_set_xception()) {
+          throw new IOException("Server failed to execute GET BULK: " + result.get_xception().get_internal_error());
+        } else {
+          return result;
+        }
       } finally {
         // Set socket timeout back to regular mode
         setSocketTimeout(queryTimeoutMs);
@@ -175,7 +185,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     } catch (TException e) {
       // Disconnect and give up
       disconnect();
-      throw new IOException("Failed to execute getBulk()", e);
+      throw new IOException("Failed to execute GET BULK", e);
     } finally {
       unlock();
     }
