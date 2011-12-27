@@ -144,7 +144,7 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        Domains.getOpenedVersion(domain).addPartitionInfo(writerPartition, writer.getNumBytesWritten(),
+        Domains.getOpenedVersion(domain).addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
             writer.getNumRecordsWritten());
         writer.close();
       }

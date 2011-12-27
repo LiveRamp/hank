@@ -2,7 +2,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersions;
-import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.coordinator.PartitionProperties;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
@@ -22,7 +22,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final ZooKeeperPlus zk;
   private final String path;
 
-  private final Map<String, ZkPartitionInfo> partitionInfos;
+  private final Map<String, ZkPartitionProperties> partitionProperties;
   private final WatchedBoolean defunct;
 
   public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
@@ -41,13 +41,13 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     String last = ZkPath.getFilename(path);
     String[] toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
-    final ElementLoader<ZkPartitionInfo> elementLoader = new ElementLoader<ZkPartitionInfo>() {
+    final ElementLoader<ZkPartitionProperties> elementLoader = new ElementLoader<ZkPartitionProperties>() {
       @Override
-      public ZkPartitionInfo load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkPartitionInfo(zk, ZkPath.append(basePath, relPath));
+      public ZkPartitionProperties load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new ZkPartitionProperties(zk, ZkPath.append(basePath, relPath));
       }
     };
-    partitionInfos = new WatchedMap<ZkPartitionInfo>(zk, ZkPath.append(path, "parts"), elementLoader,
+    partitionProperties = new WatchedMap<ZkPartitionProperties>(zk, ZkPath.append(path, "parts"), elementLoader,
         new DotComplete());
 
     defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT), true);
@@ -69,18 +69,18 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   }
 
   @Override
-  public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException {
+  public void addPartitionProperties(int partNum, long numBytes, long numRecords) throws IOException {
     try {
-      final ZkPartitionInfo p = ZkPartitionInfo.create(zk, ZkPath.append(path, "parts"), partNum, numBytes, numRecords);
-      partitionInfos.put(ZkPartitionInfo.nodeName(partNum), p);
+      final ZkPartitionProperties p = ZkPartitionProperties.create(zk, ZkPath.append(path, "parts"), partNum, numBytes, numRecords);
+      partitionProperties.put(ZkPartitionProperties.nodeName(partNum), p);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public Set<PartitionInfo> getPartitionInfos() throws IOException {
-    return new HashSet<PartitionInfo>(partitionInfos.values());
+  public Set<PartitionProperties> getPartitionProperties() throws IOException {
+    return new HashSet<PartitionProperties>(partitionProperties.values());
   }
 
   @Override

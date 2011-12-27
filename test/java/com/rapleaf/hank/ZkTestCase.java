@@ -271,12 +271,9 @@ public class ZkTestCase extends BaseTestCase {
     DomainVersion ver = d0.openNewVersion();
     ver.close();
     ver = d0.openNewVersion();
-    //ver.addPartitionInfo(0, 1024, 55);
     final Domain d1 = coord.addDomain("domain1", 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
     ver = d1.openNewVersion();
     dumpZk();
-    //ver.addPartitionInfo(0, 1024, 55);
-    //ver.addPartitionInfo(1, 32555, 7500000000L);
     ver.close();
     ver = d1.openNewVersion();
     ver.close();

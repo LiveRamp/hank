@@ -26,9 +26,9 @@ public interface DomainVersion extends Comparable<DomainVersion> {
    */
   public void cancel() throws IOException;
 
-  public Set<PartitionInfo> getPartitionInfos() throws IOException;
+  public Set<PartitionProperties> getPartitionProperties() throws IOException;
 
-  public void addPartitionInfo(int partNum, long numBytes, long numRecords) throws IOException;
+  public void addPartitionProperties(int partNum, long numBytes, long numRecords) throws IOException;
 
   /**
    * A defunct version should not be used or deployed.

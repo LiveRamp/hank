@@ -16,7 +16,7 @@
 package com.rapleaf.hank.coordinator.mock;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.PartitionInfo;
+import com.rapleaf.hank.coordinator.PartitionProperties;
 
 import java.io.IOException;
 import java.util.Set;
@@ -39,7 +39,7 @@ public class MockDomainVersion extends AbstractDomainVersion {
     return versionNumber;
   }
 
-  public void addPartitionInfo(int partNum, long numBytes, long numRecords) {
+  public void addPartitionProperties(int partNum, long numBytes, long numRecords) {
   }
 
   public void cancel() {
@@ -48,7 +48,7 @@ public class MockDomainVersion extends AbstractDomainVersion {
   public void close() {
   }
 
-  public Set<PartitionInfo> getPartitionInfos() {
+  public Set<PartitionProperties> getPartitionProperties() {
     return null;
   }
 

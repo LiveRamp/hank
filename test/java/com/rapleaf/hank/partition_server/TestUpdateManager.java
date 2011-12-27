@@ -175,7 +175,7 @@ public class TestUpdateManager extends BaseTestCase {
                 }
 
                 @Override
-                public Set<PartitionInfo> getPartitionInfos() throws IOException {
+                public Set<PartitionProperties> getPartitionProperties() throws IOException {
                   return null;
                 }
 
@@ -193,8 +193,8 @@ public class TestUpdateManager extends BaseTestCase {
                 }
 
                 @Override
-                public void addPartitionInfo(int partNum, long numBytes,
-                                             long numRecords) throws IOException {
+                public void addPartitionProperties(int partNum, long numBytes,
+                                                   long numRecords) throws IOException {
                 }
               }));
         }

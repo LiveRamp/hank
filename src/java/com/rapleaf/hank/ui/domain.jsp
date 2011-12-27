@@ -137,7 +137,7 @@
       <%   } %>
       <%= new Date(version.getClosedAt())%>
       <% } else { %>
-      Open - <%= version.getPartitionInfos().size() %>/<%= domain.getNumParts() %> complete
+      Open - <%= version.getPartitionProperties().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
     </td>
     <td><%= FileUtils.byteCountToDisplaySize(DomainVersions.getTotalNumBytes(version)) %></td>

@@ -48,19 +48,19 @@ public class TestZkDomainVersion extends ZkTestCase {
     assertTrue(DomainVersions.isClosed(dv));
   }
 
-  public void testPartitionInfos() throws Exception {
+  public void testPartitionProperties() throws Exception {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
     DomainVersion dv2 = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "versions/version_1"));
 
-    assertTrue(dv.getPartitionInfos().isEmpty());
-    assertTrue(dv2.getPartitionInfos().isEmpty());
+    assertTrue(dv.getPartitionProperties().isEmpty());
+    assertTrue(dv2.getPartitionProperties().isEmpty());
 
-    dv.addPartitionInfo(1, 2, 3);
+    dv.addPartitionProperties(1, 2, 3);
     // should be available immediately
-    assertEquals(1, dv.getPartitionInfos().size());
+    assertEquals(1, dv.getPartitionProperties().size());
     // should be available after a short wait
     Thread.sleep(1000);
-    assertEquals(1, dv2.getPartitionInfos().size());
+    assertEquals(1, dv2.getPartitionProperties().size());
   }
 
   public void testDefunct() throws Exception {
