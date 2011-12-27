@@ -27,15 +27,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public abstract class BaseYamlConfigurator implements Serializable {
+public abstract class YamlConfigurator implements Serializable {
 
   protected Map<String, Object> config;
   private String contentSource;
 
-  public BaseYamlConfigurator() {
+  public YamlConfigurator() {
   }
 
-  public BaseYamlConfigurator(String configurationFilePath) throws FileNotFoundException,
+  public YamlConfigurator(String configurationFilePath) throws FileNotFoundException,
       InvalidConfigurationException {
     loadFromFile(configurationFilePath);
     validate();

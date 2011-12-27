@@ -22,7 +22,7 @@ import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 
 
-public class YamlRingGroupConductorConfigurator extends BaseYamlCoordinatorConfigurator implements RingGroupConductorConfigurator {
+public class YamlRingGroupConductorConfigurator extends YamlCoordinatorConfigurator implements RingGroupConductorConfigurator {
   public static final String RING_GROUP_CONDUCTOR_SECTION_KEY = "ring_group_conductor";
   public static final String SLEEP_INTERVAL_KEY = "sleep_interval";
   public static final String RING_GROUP_NAME_KEY = "ring_group_name";

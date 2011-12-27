@@ -20,7 +20,7 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 
 import java.io.FileNotFoundException;
 
-public class YamlClientConfigurator extends BaseYamlCoordinatorConfigurator implements ClientConfigurator {
+public class YamlClientConfigurator extends YamlCoordinatorConfigurator implements ClientConfigurator {
 
   public YamlClientConfigurator() {
     super();

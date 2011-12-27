@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class YamlPartitionServerConfigurator extends BaseYamlCoordinatorConfigurator implements PartitionServerConfigurator {
+public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator implements PartitionServerConfigurator {
 
   public static final String PARTITION_SERVER_SECTION_KEY = "partition_server";
   public static final String LOCAL_DATA_DIRS_KEY = "local_data_dirs";

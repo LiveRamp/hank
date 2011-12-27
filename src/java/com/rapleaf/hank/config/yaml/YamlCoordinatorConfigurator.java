@@ -23,17 +23,17 @@ import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import java.io.FileNotFoundException;
 import java.io.Serializable;
 
-public abstract class BaseYamlCoordinatorConfigurator extends BaseYamlConfigurator
+public abstract class YamlCoordinatorConfigurator extends YamlConfigurator
     implements CoordinatorConfigurator, Serializable {
 
   private static final String COORDINATOR_SECTION_KEY = "coordinator";
   private static final String COORDINATOR__FACTORY_KEY = "factory";
   private static final String COORDINATOR__OPTIONS_KEY = "options";
 
-  protected BaseYamlCoordinatorConfigurator() {
+  protected YamlCoordinatorConfigurator() {
   }
 
-  protected BaseYamlCoordinatorConfigurator(String configPath) throws FileNotFoundException,
+  protected YamlCoordinatorConfigurator(String configPath) throws FileNotFoundException,
       InvalidConfigurationException {
     super(configPath);
   }

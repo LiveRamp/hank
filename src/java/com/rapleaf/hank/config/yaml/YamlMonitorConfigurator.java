@@ -26,7 +26,7 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class YamlMonitorConfigurator extends BaseYamlConfigurator implements MonitorConfigurator {
+public class YamlMonitorConfigurator extends YamlConfigurator implements MonitorConfigurator {
 
   private static final String MONITOR_SECTION_KEY = "monitor";
   private static final String WEB_UI_URL_KEY = "web_ui_url";
