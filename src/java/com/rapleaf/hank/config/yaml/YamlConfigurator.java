@@ -67,6 +67,11 @@ public abstract class YamlConfigurator implements Serializable {
     return new Yaml().dump(config);
   }
 
+  @Override
+  public String toString() {
+    return toYaml();
+  }
+
   protected void checkNonEmptyConfiguration() throws InvalidConfigurationException {
     if (config == null) {
       throw new InvalidConfigurationException("Configuration is empty '" + contentSource + "'");
