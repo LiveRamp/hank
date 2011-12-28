@@ -102,6 +102,7 @@
 <table class='table-blue'>
   <tr>
     <th>Version Number</th>
+    <th>Properties</th>
     <th>State</th>
     <th>Size</th>
     <th>Number of Records</th>
@@ -116,6 +117,7 @@
   %>
   <tr class="<%= version.isDefunct() ? "defunct-version" : "" %>">
     <td><%= version.getVersionNumber() %></td>
+    <td><%= version.getProperties() %></td>
     <td>
       <% if (DomainVersions.isClosed(version)) { %>
       Closed
