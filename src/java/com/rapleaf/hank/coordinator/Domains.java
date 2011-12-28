@@ -36,21 +36,6 @@ public final class Domains {
   }
 
   /**
-   * @return The current opened version, null if there is none.
-   */
-  public static DomainVersion getOpenedVersion(Domain domain) throws IOException {
-    if (domain.getVersions().isEmpty()) {
-      return null;
-    }
-    DomainVersion last = domain.getVersions().last();
-    if (DomainVersions.isClosed(last)) {
-      return null;
-    } else {
-      return last;
-    }
-  }
-
-  /**
    * Get the sum of the num bytes used for all versions.
    *
    * @return

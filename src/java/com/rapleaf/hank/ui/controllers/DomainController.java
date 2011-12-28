@@ -41,16 +41,6 @@ public class DomainController extends Controller {
         doDeleteDomain(req, resp);
       }
     });
-    actions.put("new_version", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        if (domain.openNewVersion(null) != null) {
-          Domains.getOpenedVersion(domain).close();
-        }
-        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
-      }
-    });
     actions.put("defunctify", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {

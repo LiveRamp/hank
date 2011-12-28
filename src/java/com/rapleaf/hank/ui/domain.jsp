@@ -96,19 +96,6 @@
 <h2>Versions</h2>
 
 <div>
-  <% if (Domains.getOpenedVersion(domain) == null) { %>
-  No open version.
-  <form method="post" action="/domain/new_version">
-    <input type="hidden" name="n" value="<%= domain.getName() %>"/>
-    You can force a new version to be created. Note that this will only write the metadata, not any actual data. You should only use this if you know what you're doing!<br/>
-    <input type="submit" value="I understand. Open and close a new version."/>
-  </form>
-  <% } else { %>
-  Version #<%= Domains.getOpenedVersion(domain).getVersionNumber() %> is currently open.
-  <% } %>
-</div>
-
-<div>
   Total of <%= FileUtils.byteCountToDisplaySize(Domains.getTotalNumBytes(domain)) %> in <%= domain.getVersions().size() %> versions.
 </div>
 
