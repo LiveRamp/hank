@@ -23,6 +23,7 @@ import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
+
+  private static final Logger LOG = Logger.getLogger(CurlyFastPartitionUpdater.class);
 
   private final int keyHashSize;
   private final int offsetSize;
@@ -76,6 +79,8 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
       // Only add to the delta list if the version is not empty
       if (!isEmptyVersion(partitionRemoteFileOps, curlyDeltaVersion)) {
         curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
+      } else {
+        LOG.error("Skipping empty version: " + curlyDeltaVersion.getVersionNumber() + " in " + partitionRemoteFileOps);
       }
     }
 

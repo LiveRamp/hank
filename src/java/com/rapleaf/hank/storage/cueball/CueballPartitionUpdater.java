@@ -144,6 +144,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
     if (isBase == null) {
       // If unable to determine if it's a base or delta, do not fetch anything
+      LOG.error("Unable to determine if version " + domainVersion.getVersionNumber()
+          + " is a base or a delta in " + partitionRemoteFileOps);
       return;
     }
     // Fetch version files
@@ -201,6 +203,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
       if (!isEmptyVersion(partitionRemoteFileOps, delta)) {
         deltas.add(getCueballFilePathForVersion(delta, currentVersion,
             localPartitionRoot, localPartitionRootCache, false));
+      } else {
+        LOG.error("Skipping empty version: " + delta.getVersionNumber() + " in " + partitionRemoteFileOps);
       }
     }
 
