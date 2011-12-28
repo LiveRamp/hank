@@ -232,7 +232,16 @@ public class Curly implements StorageEngine {
   }
 
   private CurlyDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
-    return (CurlyDomainVersionProperties) domainVersion.getProperties();
+    CurlyDomainVersionProperties result;
+    try {
+      result = (CurlyDomainVersionProperties) domainVersion.getProperties();
+    } catch (ClassCastException e) {
+      throw new IOException("Failed to load properties of version " + domainVersion);
+    }
+    if (result == null) {
+      throw new IOException("Null properties for version " + domainVersion);
+    }
+    return result;
   }
 
   public static String padVersionNumber(int versionNumber) {

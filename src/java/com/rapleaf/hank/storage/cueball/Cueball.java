@@ -189,7 +189,16 @@ public class Cueball implements StorageEngine {
   }
 
   private CueballDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
-    return (CueballDomainVersionProperties) domainVersion.getProperties();
+    CueballDomainVersionProperties result;
+    try {
+      result = (CueballDomainVersionProperties) domainVersion.getProperties();
+    } catch (ClassCastException e) {
+      throw new IOException("Failed to load properties of version " + domainVersion);
+    }
+    if (result == null) {
+      throw new IOException("Null properties for version " + domainVersion);
+    }
+    return result;
   }
 
   @Override
