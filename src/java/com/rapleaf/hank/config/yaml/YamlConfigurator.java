@@ -63,6 +63,10 @@ public abstract class YamlConfigurator implements Serializable {
     validate();
   }
 
+  public String toYaml() {
+    return new Yaml().dump(config);
+  }
+
   protected void checkNonEmptyConfiguration() throws InvalidConfigurationException {
     if (config == null) {
       throw new InvalidConfigurationException("Configuration is empty '" + contentSource + "'");
@@ -74,14 +78,14 @@ public abstract class YamlConfigurator implements Serializable {
     String path = "_root";
     int i = 0;
     for (; i < optionPath.length - 1; ++i) {
-      if (currentSection.get(optionPath[i]) == null) {
+      if (!currentSection.containsKey(optionPath[i])) {
         throw new InvalidConfigurationException("Section '" + optionPath[i]
             + "' is required in configuration section '" + path + "' of configuration '" + contentSource + "'");
       }
       path = path + ":" + optionPath[i];
       currentSection = (Map<String, Object>) currentSection.get(optionPath[i]);
     }
-    if (currentSection.get(optionPath[i]) == null) {
+    if (!currentSection.containsKey(optionPath[i])) {
       throw new InvalidConfigurationException("Option '" + optionPath[i]
           + "' is required in configuration section '" + path + "' of configuration '" + contentSource + "'");
     }
@@ -106,7 +110,7 @@ public abstract class YamlConfigurator implements Serializable {
 
   protected String getRequiredString(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
-    if (!(option instanceof String)) {
+    if (option != null && !(option instanceof String)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type String in configuration '" + contentSource + "'");
     }
     return (String) option;
@@ -122,7 +126,7 @@ public abstract class YamlConfigurator implements Serializable {
 
   protected Integer getRequiredInteger(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
-    if (!(option instanceof Integer)) {
+    if (option != null && !(option instanceof Integer)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type Integer in configuration '" + contentSource + "'");
     }
     return (Integer) option;
@@ -138,7 +142,7 @@ public abstract class YamlConfigurator implements Serializable {
 
   protected List<String> getRequiredStringList(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
-    if (!(option instanceof List)) {
+    if (option != null && !(option instanceof List)) {
       throw new InvalidConfigurationException("Option '" + Arrays.toString(optionPath) + "' must be of type List of strings in configuration '" + contentSource + "'");
     }
     try {
