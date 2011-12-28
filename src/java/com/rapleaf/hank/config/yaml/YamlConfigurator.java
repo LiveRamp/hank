@@ -78,7 +78,7 @@ public abstract class YamlConfigurator implements Serializable {
     String path = "_root";
     int i = 0;
     for (; i < optionPath.length - 1; ++i) {
-      if (!currentSection.containsKey(optionPath[i])) {
+      if (currentSection.get(optionPath[i]) == null) {
         throw new InvalidConfigurationException("Section '" + optionPath[i]
             + "' is required in configuration section '" + path + "' of configuration '" + contentSource + "'");
       }
