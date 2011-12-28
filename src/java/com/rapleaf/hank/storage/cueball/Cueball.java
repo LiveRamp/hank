@@ -182,16 +182,16 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Writer getWriter(DomainVersion domainVersion, OutputStreamFactory outputStream, int partitionNumber) throws IOException {
-    CueballDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
+    IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     return new CueballWriter(outputStream.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
         keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
   }
 
-  private CueballDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
-    CueballDomainVersionProperties result;
+  private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
+    IncrementalDomainVersionProperties result;
     try {
-      result = (CueballDomainVersionProperties) domainVersion.getProperties();
+      result = (IncrementalDomainVersionProperties) domainVersion.getProperties();
     } catch (ClassCastException e) {
       throw new IOException("Failed to load properties of version " + domainVersion);
     }
@@ -222,7 +222,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion, OutputStreamFactory outputStreamFactory, int partitionNumber) throws IOException {
-    CueballDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
+    IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     // Note: We use the identity hasher since keys coming in are already hashed keys
     return new CueballWriter(outputStreamFactory.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),

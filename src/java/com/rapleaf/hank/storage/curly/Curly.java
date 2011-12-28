@@ -225,16 +225,16 @@ public class Curly implements StorageEngine {
                            OutputStreamFactory outputStreamFactory,
                            int partitionNumber,
                            Writer keyFileWriter) throws IOException {
-    CurlyDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
+    IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     OutputStream outputStream = outputStreamFactory.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase()));
     return new CurlyWriter(outputStream, keyFileWriter, offsetSize);
   }
 
-  private CurlyDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
-    CurlyDomainVersionProperties result;
+  private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
+    IncrementalDomainVersionProperties result;
     try {
-      result = (CurlyDomainVersionProperties) domainVersion.getProperties();
+      result = (IncrementalDomainVersionProperties) domainVersion.getProperties();
     } catch (ClassCastException e) {
       throw new IOException("Failed to load properties of version " + domainVersion);
     }
