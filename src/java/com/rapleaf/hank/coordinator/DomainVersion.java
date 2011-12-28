@@ -42,4 +42,6 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public void setDefunct(boolean isDefunct) throws IOException;
 
   public DomainVersionProperties getProperties() throws IOException;
+
+  public void setProperties(DomainVersionProperties properties) throws IOException;
 }

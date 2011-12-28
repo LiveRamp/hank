@@ -27,7 +27,7 @@ public class MockDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;
   private final Long closedAt;
   private boolean isDefunct = false;
-  private final DomainVersionProperties properties;
+  private DomainVersionProperties properties;
 
   public MockDomainVersion(int versionNumber, Long closedAt, DomainVersionProperties domainVersionProperties) {
     this.versionNumber = versionNumber;
@@ -73,5 +73,10 @@ public class MockDomainVersion extends AbstractDomainVersion {
   @Override
   public DomainVersionProperties getProperties() throws IOException {
     return properties;
+  }
+
+  @Override
+  public void setProperties(DomainVersionProperties properties) throws IOException {
+    this.properties = properties;
   }
 }

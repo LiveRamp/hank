@@ -1,3 +1,19 @@
+/**
+ *  Copyright 2011 Rapleaf
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
@@ -5,11 +21,8 @@ import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.coordinator.PartitionProperties;
 import com.rapleaf.hank.util.SerializationUtils;
-import com.rapleaf.hank.zookeeper.WatchedBoolean;
-import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
@@ -25,6 +38,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final ZooKeeperPlus zk;
   private final String path;
 
+  private final WatchedBytes properties;
   private final Map<String, ZkPartitionProperties> partitionProperties;
   private final WatchedBoolean defunct;
 
@@ -48,15 +62,13 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     String last = ZkPath.getFilename(path);
     String[] toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
-    final ElementLoader<ZkPartitionProperties> elementLoader = new ElementLoader<ZkPartitionProperties>() {
+    properties = new WatchedBytes(zk, path, true);
+    partitionProperties = new WatchedMap<ZkPartitionProperties>(zk, ZkPath.append(path, "parts"), new ElementLoader<ZkPartitionProperties>() {
       @Override
       public ZkPartitionProperties load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         return new ZkPartitionProperties(zk, ZkPath.append(basePath, relPath));
       }
-    };
-    partitionProperties = new WatchedMap<ZkPartitionProperties>(zk, ZkPath.append(path, "parts"), elementLoader,
-        new DotComplete());
-
+    }, new DotComplete());
     defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT), true);
   }
 
@@ -106,7 +118,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     try {
       zk.create(ZkPath.append(path, "closed"), null);
     } catch (Exception e) {
-      throw new IOException(e);
+      throw new IOException("Failed to close Domain Version", e);
     }
   }
 
@@ -126,12 +138,22 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public DomainVersionProperties getProperties() throws IOException {
+    byte[] propertiesBytes = properties.get();
+    if (propertiesBytes == null) {
+      return null;
+    } else {
+      return (DomainVersionProperties) SerializationUtils.deserializeObject(propertiesBytes);
+    }
+  }
+
+  @Override
+  public void setProperties(DomainVersionProperties properties) throws IOException {
     try {
-      return (DomainVersionProperties) SerializationUtils.deserializeObject(zk.getData(path, null, null));
+      this.properties.set(SerializationUtils.serializeObject(properties));
     } catch (KeeperException e) {
-      throw new IOException("Failed to load Domain Version properties.", e);
+      throw new IOException("Failed to set Domain Version Properties", e);
     } catch (InterruptedException e) {
-      throw new IOException("Failed to load Domain Version properties.", e);
+      throw new IOException("Failed to set Domain Version Properties", e);
     }
   }
 
