@@ -35,9 +35,7 @@ import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
-import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
-import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
-import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.util.Bytes;
@@ -228,8 +226,6 @@ public class IntegrationTest extends ZkTestCase {
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
 
     // create empty versions of each domain
-    coordinator.getDomain("domain0").openNewVersion(null).close();
-    coordinator.getDomain("domain1").openNewVersion(null).close();
 
     // write a base version of each domain
     Map<ByteBuffer, ByteBuffer> domain0DataItems = new HashMap<ByteBuffer, ByteBuffer>();
@@ -242,7 +238,7 @@ public class IntegrationTest extends ZkTestCase {
     domain0DataItems.put(bb(7), bb(7, 3));
     domain0DataItems.put(bb(8), bb(8, 4));
 
-    writeOut(coordinator.getDomain("domain0"), domain0DataItems, 1, true, DOMAIN_0_DATAFILES);
+    writeOut(coordinator.getDomain("domain0"), domain0DataItems, 0, true, DOMAIN_0_DATAFILES);
 
     Map<ByteBuffer, ByteBuffer> domain1DataItems = new HashMap<ByteBuffer, ByteBuffer>();
     domain1DataItems.put(bb(4), bb(1, 1));
@@ -254,7 +250,7 @@ public class IntegrationTest extends ZkTestCase {
     domain1DataItems.put(bb(6), bb(7, 3));
     domain1DataItems.put(bb(5), bb(8, 4));
 
-    writeOut(coordinator.getDomain("domain1"), domain1DataItems, 1, true, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1DataItems, 0, true, DOMAIN_1_DATAFILES);
 
     // configure domain group
     coordinator.addDomainGroup("dg1");
@@ -274,8 +270,8 @@ public class IntegrationTest extends ZkTestCase {
     assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
 
     Map<Domain, Integer> versionMap = new HashMap<Domain, Integer>();
-    versionMap.put(coordinator.getDomain("domain0"), 1);
-    versionMap.put(coordinator.getDomain("domain1"), 1);
+    versionMap.put(coordinator.getDomain("domain0"), 0);
+    versionMap.put(coordinator.getDomain("domain1"), 0);
     domainGroup.createNewVersion(versionMap);
 
     // configure ring group
@@ -399,11 +395,11 @@ public class IntegrationTest extends ZkTestCase {
     domain1Delta.put(bb(4), bb(6, 6));
     domain1Delta.put(bb(5), bb(5, 5));
 
-    writeOut(coordinator.getDomain("domain1"), domain1Delta, 2, false, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1Delta, 1, false, DOMAIN_1_DATAFILES);
 
     versionMap = new HashMap<Domain, Integer>();
-    versionMap.put(coordinator.getDomain("domain0"), 1);
-    versionMap.put(coordinator.getDomain("domain1"), 2);
+    versionMap.put(coordinator.getDomain("domain0"), 0);
+    versionMap.put(coordinator.getDomain("domain1"), 1);
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
 
@@ -596,7 +592,9 @@ public class IntegrationTest extends ZkTestCase {
     new File(domainRoot).mkdirs();
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
       LOG.debug("Writing out part " + part.getKey() + " for domain " + domain.getName() + " to root " + domainRoot);
-      Writer writer = engine.getWriter(new MockDomainVersion(versionNumber, null, null), new LocalDiskOutputStreamFactory(domainRoot), part.getKey());
+      Writer writer = engine.getWriter(new MockDomainVersion(versionNumber, null,
+          new IncrementalDomainVersionProperties(versionNumber == 0 ? null : versionNumber - 1)),
+          new LocalDiskOutputStreamFactory(domainRoot), part.getKey());
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
         LOG.trace(String.format("writing %s -> %s", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue())));
