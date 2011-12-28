@@ -60,6 +60,8 @@ public class CurlyReader implements Reader, ICurlyReader {
   // Note: the buffer in result must be at least readBufferSize long
   @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
+    // Let's reset the buffer so we can do our read.
+    result.getBuffer().rewind();
     // the buffer is already at least this big, so we'll extend it back out.
     result.getBuffer().limit(readBufferSize);
 
@@ -124,9 +126,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (result.isFound()) {
       // the result buffer contains the offset in the record file. decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(result.getBuffer());
-      // now we know where to look, let's reset the buffer so we can do our
-      // read.
-      result.getBuffer().rewind();
+      // now we know where to look
       readRecordAtOffset(recordFileOffset, result);
     }
   }
