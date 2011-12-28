@@ -177,6 +177,8 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     }
     if (isBase == null) {
       // If unable to determine if it's a base or delta, do not fetch anything
+      LOG.error("Unable to determine if version " + version.getVersionNumber()
+          + " is a base or a delta in " + partitionRemoteFileOps);
       return;
     }
     // Fetch version files

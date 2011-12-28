@@ -81,6 +81,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
       if (updatePlan == null) {
         return;
       }
+      LOG.info("Using update plan " + updatePlan + " to update " + localPartitionRoot);
       // Fetch and cache versions needed to update
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
       // Run update in a workspace

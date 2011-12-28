@@ -15,12 +15,12 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.util.EncodingHelper;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.util.EncodingHelper;
 
 public class CurlyWriter implements Writer {
 
@@ -30,12 +30,11 @@ public class CurlyWriter implements Writer {
   private long currentRecordOffset;
   private final long maxOffset;
   private final ByteBuffer offsetBuffer;
-  private final byte[] lengthBuffer = new byte[5];;
+  private final byte[] lengthBuffer = new byte[5];
 
   public CurlyWriter(OutputStream recordfileStream,
-      Writer keyfileWriter,
-      int offsetSize)
-  {
+                     Writer keyfileWriter,
+                     int offsetSize) {
     this.recordFileStream = recordfileStream;
     this.keyfileWriter = keyfileWriter;
     this.maxOffset = 1L << (offsetSize * 8);

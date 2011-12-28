@@ -264,7 +264,7 @@ public class Curly implements StorageEngine {
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
-    return getCompacter(localDir.getAbsolutePath(), partitionNumber);
+    return getCompactor(localDir.getAbsolutePath(), partitionNumber);
   }
 
   @Override
@@ -275,7 +275,7 @@ public class Curly implements StorageEngine {
     return getWriter(domainVersion, outputStreamFactory, partitionNumber, cueballWriter);
   }
 
-  private Compactor getCompacter(String localDir,
+  private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
         fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
