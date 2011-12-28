@@ -45,7 +45,7 @@ public class DomainController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        if (domain.openNewVersion() != null) {
+        if (domain.openNewVersion(null) != null) {
           Domains.getOpenedVersion(domain).close();
         }
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);

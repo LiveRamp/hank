@@ -268,14 +268,14 @@ public class ZkTestCase extends BaseTestCase {
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
     final Domain d0 = coord.addDomain("domain0", 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
-    DomainVersion ver = d0.openNewVersion();
+    DomainVersion ver = d0.openNewVersion(null);
     ver.close();
-    ver = d0.openNewVersion();
+    ver = d0.openNewVersion(null);
     final Domain d1 = coord.addDomain("domain1", 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
-    ver = d1.openNewVersion();
+    ver = d1.openNewVersion(null);
     dumpZk();
     ver.close();
-    ver = d1.openNewVersion();
+    ver = d1.openNewVersion(null);
     ver.close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");

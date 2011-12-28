@@ -16,22 +16,21 @@
 
 package com.rapleaf.hank.cascading;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.log4j.Logger;
-
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
-
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 
 public class CascadingDomainBuilder {
 
@@ -40,12 +39,14 @@ public class CascadingDomainBuilder {
   private final Domain domain;
   private Tap outputTap = null;
   private final DomainBuilderProperties properties;
+  private final DomainVersionProperties domainVersionProperties;
   private Pipe pipe;
   private final String keyFieldName;
   private final String valueFieldName;
   private DomainVersion domainVersion = null;
 
   public CascadingDomainBuilder(DomainBuilderProperties properties,
+                                DomainVersionProperties domainVersionProperties,
                                 Pipe pipe,
                                 String keyFieldName,
                                 String valueFieldName) throws IOException {
@@ -56,13 +57,14 @@ public class CascadingDomainBuilder {
       throw new IOException("Could not load domain for: " + properties);
     }
     this.properties = properties;
+    this.domainVersionProperties = domainVersionProperties;
     this.pipe = pipe;
     this.keyFieldName = keyFieldName;
     this.valueFieldName = valueFieldName;
   }
 
-  public void openNewVersion() throws IOException {
-    domainVersion = domain.openNewVersion();
+  public void openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
+    domainVersion = domain.openNewVersion(domainVersionProperties);
     if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " +
           properties.getDomainName());
@@ -111,7 +113,7 @@ public class CascadingDomainBuilder {
     pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
 
     // Open new version and check for success
-    openNewVersion();
+    openNewVersion(domainVersionProperties);
 
     Flow flow = null;
     try {
@@ -163,7 +165,7 @@ public class CascadingDomainBuilder {
     try {
       // Open new versions
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        domainBuilder.openNewVersion();
+        domainBuilder.openNewVersion(domainBuilder.getDomainVersionProperties());
       }
 
       // Create tails
@@ -249,22 +251,29 @@ public class CascadingDomainBuilder {
     return flow;
   }
 
+  private DomainVersionProperties getDomainVersionProperties() {
+    return domainVersionProperties;
+  }
+
   // Build a single domain using a single source
   public Flow build(Map<Object, Object> cascadingProperties,
+                    DomainVersionProperties domainVersionProperties,
                     Tap source) throws IOException {
-    return build(mapToProperties(cascadingProperties), source);
+    return build(mapToProperties(cascadingProperties), domainVersionProperties, source);
   }
 
   // Build a single domain using a multiple sources
   public Flow build(Map<Object, Object> cascadingProperties,
+                    DomainVersionProperties domainVersionProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), sources);
+    return build(mapToProperties(cascadingProperties), domainVersionProperties, sources);
   }
 
   // Build a single domain
   public Flow build(Map<Object, Object> cascadingProperties,
+                    DomainVersionProperties domainVersionProperties,
                     TapOrTapMap sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), sources);
+    return build(mapToProperties(cascadingProperties), domainVersionProperties, sources);
   }
 
   // Build multiple domains

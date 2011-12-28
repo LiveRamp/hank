@@ -17,9 +17,9 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.RecordWriter;
 
@@ -29,28 +29,26 @@ public class DomainCompactorOutputFormat extends DomainBuilderBaseOutputFormat {
 
   private static class DomainCompactorRecordWriter extends DomainBuilderRecordWriter {
 
-    protected DomainCompactorRecordWriter(Domain domain,
-                                          VersionType versionType,
-                                          OutputStreamFactory outputStreamFactory) {
-      super(domain, versionType, outputStreamFactory);
+    DomainCompactorRecordWriter(Domain domain,
+                                DomainVersion domainVersion,
+                                OutputStreamFactory outputStreamFactory) {
+      super(domain, domainVersion, outputStreamFactory);
     }
 
     @Override
     protected Writer getWriter(StorageEngine storageEngine,
+                               DomainVersion domainVersion,
                                OutputStreamFactory outputStreamFactory,
-                               int partitionNumber,
-                               int versionNumber,
-                               VersionType versionType) throws IOException {
-      return storageEngine.getCompactorWriter(outputStreamFactory, partitionNumber, versionNumber,
-          versionType.equals(VersionType.BASE));
+                               int partitionNumber) throws IOException {
+      return storageEngine.getCompactorWriter(domainVersion, outputStreamFactory, partitionNumber);
     }
   }
 
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(Domain domain,
-                  VersionType versionType,
+                  DomainVersion domainVersion,
                   OutputStreamFactory outputStreamFactory) {
-    return new DomainCompactorRecordWriter(domain, versionType, outputStreamFactory);
+    return new DomainCompactorRecordWriter(domain, domainVersion, outputStreamFactory);
   }
 }

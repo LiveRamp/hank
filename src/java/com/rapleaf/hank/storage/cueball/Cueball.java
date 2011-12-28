@@ -20,6 +20,7 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
@@ -180,8 +181,15 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory outputStream, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
-    return new CueballWriter(outputStream.getOutputStream(partitionNumber, getName(versionNumber, isBase)), keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
+  public Writer getWriter(DomainVersion domainVersion, OutputStreamFactory outputStream, int partitionNumber) throws IOException {
+    CueballDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
+    return new CueballWriter(outputStream.getOutputStream(partitionNumber,
+        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
+        keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
+  }
+
+  private CueballDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
+    return (CueballDomainVersionProperties) domainVersion.getProperties();
   }
 
   @Override
@@ -204,9 +212,11 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
+  public Writer getCompactorWriter(DomainVersion domainVersion, OutputStreamFactory outputStreamFactory, int partitionNumber) throws IOException {
+    CueballDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     // Note: We use the identity hasher since keys coming in are already hashed keys
-    return new CueballWriter(outputStreamFactory.getOutputStream(partitionNumber, getName(versionNumber, isBase)),
+    return new CueballWriter(outputStreamFactory.getOutputStream(partitionNumber,
+        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
         keyHashSize,
         new IdentityHasher(),
         valueSize,

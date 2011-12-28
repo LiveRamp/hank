@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public interface DomainVersion extends Comparable<DomainVersion> {
+
   public int getVersionNumber();
 
   /**
@@ -39,4 +40,6 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public boolean isDefunct() throws IOException;
 
   public void setDefunct(boolean isDefunct) throws IOException;
+
+  public DomainVersionProperties getProperties() throws IOException;
 }

@@ -27,6 +27,7 @@ import java.util.SortedSet;
  * Encapsulates all the information about a given Domain.
  */
 public interface Domain extends Comparable<Domain> {
+
   public String getName();
 
   public int getId();
@@ -55,16 +56,7 @@ public interface Domain extends Comparable<Domain> {
    */
   public SortedSet<DomainVersion> getVersions() throws IOException;
 
-  /**
-   * Attempt to open a new version of this domain. If there isn't another
-   * version already open, the return value is a new DomainVersion with the next
-   * available version number. If there is another version open, then the return
-   * value is null, indicating that another writer has the version lock and you
-   * should try again later.
-   *
-   * @return
-   */
-  public DomainVersion openNewVersion() throws IOException;
+  public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException;
 
   public DomainVersion getVersionByNumber(int versionNumber) throws IOException;
 }

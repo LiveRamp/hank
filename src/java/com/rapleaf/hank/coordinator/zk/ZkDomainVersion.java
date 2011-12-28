@@ -1,8 +1,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.coordinator.PartitionProperties;
+import com.rapleaf.hank.util.SerializationUtils;
 import com.rapleaf.hank.zookeeper.WatchedBoolean;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
@@ -17,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
+
   private static final String DEFUNCT_PATH_SEGMENT = "defunct";
   private final int versionNumber;
   private final ZooKeeperPlus zk;
@@ -25,9 +28,13 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final Map<String, ZkPartitionProperties> partitionProperties;
   private final WatchedBoolean defunct;
 
-  public static ZkDomainVersion create(ZooKeeperPlus zk, String domainPath, int nextVerNum) throws KeeperException, InterruptedException {
-    String versionPath = ZkPath.append(domainPath, "versions", "version_" + nextVerNum);
-    zk.create(versionPath, null);
+  public static ZkDomainVersion create(ZooKeeperPlus zk,
+                                       String domainPath,
+                                       int versionNumber,
+                                       DomainVersionProperties domainVersionProperties)
+      throws KeeperException, InterruptedException, IOException {
+    String versionPath = ZkPath.append(domainPath, "versions", "version_" + versionNumber);
+    zk.create(versionPath, SerializationUtils.serializeObject(domainVersionProperties));
     zk.create(ZkPath.append(versionPath, "parts"), null);
     zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
     zk.create(ZkPath.append(versionPath, DotComplete.NODE_NAME), null);
@@ -114,6 +121,17 @@ public class ZkDomainVersion extends AbstractDomainVersion {
       defunct.set(isDefunct);
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  @Override
+  public DomainVersionProperties getProperties() throws IOException {
+    try {
+      return (DomainVersionProperties) SerializationUtils.deserializeObject(zk.getData(path, null, null));
+    } catch (KeeperException e) {
+      throw new IOException("Failed to load Domain Version properties.", e);
+    } catch (InterruptedException e) {
+      throw new IOException("Failed to load Domain Version properties.", e);
     }
   }
 

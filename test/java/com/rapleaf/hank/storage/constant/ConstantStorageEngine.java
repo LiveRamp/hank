@@ -17,6 +17,7 @@ package com.rapleaf.hank.storage.constant;
 
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.*;
 
 import java.io.IOException;
@@ -62,15 +63,16 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
-                                   int partitionNumber,
-                                   int versionNumber,
-                                   boolean isBase) throws IOException {
+  public Writer getCompactorWriter(DomainVersion domainVersion,
+                                   OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion,
+                          OutputStreamFactory streamFactory,
+                          int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 

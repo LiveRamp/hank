@@ -17,6 +17,7 @@
 package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
+import com.rapleaf.hank.coordinator.DomainVersion;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -29,7 +30,9 @@ public interface StorageEngine {
 
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber, int versionNumber, boolean isBase)
+  public Writer getWriter(DomainVersion domainVersion,
+                          OutputStreamFactory streamFactory,
+                          int partitionNumber)
       throws IOException;
 
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber)
@@ -38,10 +41,9 @@ public interface StorageEngine {
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException;
 
-  public Writer getCompactorWriter(OutputStreamFactory outputStreamFactory,
-                                   int partitionNumber,
-                                   int versionNumber,
-                                   boolean isBase) throws IOException;
+  public Writer getCompactorWriter(DomainVersion domainVersion,
+                                   OutputStreamFactory outputStreamFactory,
+                                   int partitionNumber) throws IOException;
 
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 

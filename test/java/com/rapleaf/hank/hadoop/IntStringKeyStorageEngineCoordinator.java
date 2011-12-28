@@ -16,24 +16,26 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Map;
-
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.CoordinatorFactory;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Map;
 
 // Integer String key storage engine.
 // Store records (key, value) where key is an Integer's String representation
@@ -51,9 +53,16 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
     protected final OutputStream outputStream;
 
-    IntStringKeyWriter(OutputStreamFactory streamFactory, int partNum,
-                       int versionNumber, boolean base) throws IOException {
-      this.outputStream = streamFactory.getOutputStream(partNum, Integer.toString(versionNumber) + "." + (base ? "base" : "nobase"));
+    IntStringKeyWriter(DomainVersion domainVersion,
+                       OutputStreamFactory streamFactory,
+                       int partNum) throws IOException {
+      IncrementalDomainVersionProperties domainVersionProperties =
+          (IncrementalDomainVersionProperties) domainVersion.getProperties();
+      if (domainVersionProperties == null) {
+        throw new RuntimeException("IntStringKeyWriter needs a non null DomainVersionProperties");
+      }
+      this.outputStream = streamFactory.getOutputStream(partNum,
+          Integer.toString(domainVersion.getVersionNumber()) + "." + (domainVersionProperties.isBase() ? "base" : "nobase"));
     }
 
     public void write(ByteBuffer key, ByteBuffer value) throws IOException {
@@ -89,9 +98,10 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   private static class IntStringKeyStorageEngine extends MockStorageEngine {
     @Override
-    public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
-                            int versionNumber, boolean isBase) throws IOException {
-      return new IntStringKeyWriter(streamFactory, partitionNumber, versionNumber, isBase);
+    public Writer getWriter(DomainVersion domainVersion,
+                            OutputStreamFactory streamFactory,
+                            int partitionNumber) throws IOException {
+      return new IntStringKeyWriter(domainVersion, streamFactory, partitionNumber);
     }
 
     @Override
@@ -113,7 +123,13 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
 
   @Override
   public Domain getDomain(String domainName) {
-    return new MockDomain(domainName, 1, numPartitions, new IntStringKeyModPartitioner(), new IntStringKeyStorageEngine(), null, new MockDomainVersion(0, null));
+    return new MockDomain(domainName,
+        1,
+        numPartitions,
+        new IntStringKeyModPartitioner(),
+        new IntStringKeyStorageEngine(),
+        null,
+        new MockDomainVersion(0, null, new IncrementalDomainVersionProperties(null)));
   }
 
   static public CoordinatorConfigurator getConfigurator(int numPartitions) {

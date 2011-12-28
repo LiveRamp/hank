@@ -85,7 +85,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
     CoordinatorConfigurator configurator = new LocalMockCoordinatorConfigurator();
     DomainBuilderProperties properties =
         new DomainCompactorProperties(DOMAIN_A_NAME, 0, configurator, OUTPUT_PATH_A);
-    new HadoopDomainCompactor().buildHankDomain(properties);
+    new HadoopDomainCompactor().buildHankDomain(properties, null);
 
     // Check that compactor was called with correct version twice
     assertEquals(2, LocalMockCoordinatorConfigurator.compactor.numCalls);

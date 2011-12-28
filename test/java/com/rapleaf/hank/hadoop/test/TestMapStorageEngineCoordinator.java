@@ -17,7 +17,6 @@
 package com.rapleaf.hank.hadoop.test;
 
 import com.rapleaf.hank.hadoop.*;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.map.MapStorageEngine;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.hadoop.mapred.TextInputFormat;
@@ -44,8 +43,8 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
 
   public void testOutput() throws IOException {
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class)
-        .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
-            MapStorageEngineCoordinator.getConfigurator(1), "/a", DomainBuilderEmptyOutputFormat.class));
+        .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
+            MapStorageEngineCoordinator.getConfigurator(1), "/a", DomainBuilderEmptyOutputFormat.class), null);
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions(DOMAIN_A_NAME).size());

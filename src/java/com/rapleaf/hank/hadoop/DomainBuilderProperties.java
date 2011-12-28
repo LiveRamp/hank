@@ -4,7 +4,6 @@ import cascading.flow.FlowProcess;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.VersionType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.mapred.JobConf;
 
@@ -24,7 +23,6 @@ public class DomainBuilderProperties {
 
   private final String domainName;
   private final CoordinatorConfigurator configurator;
-  private final VersionType versionType;
   private final String outputPath;
   private final Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass;
   private Coordinator coordinator;
@@ -33,10 +31,8 @@ public class DomainBuilderProperties {
   // With a default output format
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
-                                 VersionType versionType,
                                  CoordinatorConfigurator configurator) {
     this.domainName = domainName;
-    this.versionType = versionType;
     this.configurator = configurator;
     this.outputPath = getRemoteDomainRoot(domainName, getCoordinator());
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
@@ -45,11 +41,9 @@ public class DomainBuilderProperties {
   // With a specific output format
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
-                                 VersionType versionType,
                                  CoordinatorConfigurator configurator,
                                  Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass) {
     this.domainName = domainName;
-    this.versionType = versionType;
     this.configurator = configurator;
     this.outputPath = getRemoteDomainRoot(domainName, getCoordinator());
     this.outputFormatClass = outputFormatClass;
@@ -58,11 +52,9 @@ public class DomainBuilderProperties {
   // With a default output format
   // With a specific output path
   public DomainBuilderProperties(String domainName,
-                                 VersionType versionType,
                                  CoordinatorConfigurator configurator,
                                  String outputPath) {
     this.domainName = domainName;
-    this.versionType = versionType;
     this.configurator = configurator;
     this.outputPath = outputPath;
     this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
@@ -71,12 +63,10 @@ public class DomainBuilderProperties {
   // With a specific output format
   // With a specific output path
   public DomainBuilderProperties(String domainName,
-                                 VersionType versionType,
                                  CoordinatorConfigurator configurator,
                                  String outputPath,
                                  Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass) {
     this.domainName = domainName;
-    this.versionType = versionType;
     this.configurator = configurator;
     this.outputPath = outputPath;
     this.outputFormatClass = outputFormatClass;
@@ -126,10 +116,6 @@ public class DomainBuilderProperties {
     properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_CONFIGURATOR),
         buildConfigurationString(configurator));
-    // Version type
-    properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
-        versionType.toString());
     // Output Path
     properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH), outputPath);
@@ -152,10 +138,6 @@ public class DomainBuilderProperties {
     conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_CONFIGURATOR),
         buildConfigurationString(configurator));
-    // Version type
-    conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
-        DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
-        versionType.toString());
     // Output path
     conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
@@ -228,12 +210,6 @@ public class DomainBuilderProperties {
     return configurator;
   }
 
-  public static VersionType getVersionType(String domainName, JobConf conf) {
-    return VersionType.valueOf(getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
-        DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_TYPE),
-        "Hank version type (base or delta)", conf));
-  }
-
   public static String getOutputPath(String domainName, JobConf conf) {
     return getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_OUTPUT_PATH),
@@ -292,7 +268,6 @@ public class DomainBuilderProperties {
 
   public String toString() {
     return "<DomainBuilderProperties: domain name: " + domainName
-        + ", version type: " + versionType
         + ", configurator: " + configurator
         + ", output path: " + outputPath
         + ", output format class: " + outputFormatClass

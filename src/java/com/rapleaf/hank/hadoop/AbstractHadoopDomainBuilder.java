@@ -18,6 +18,7 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
@@ -37,10 +38,11 @@ public abstract class AbstractHadoopDomainBuilder {
     this.baseConf = baseConf;
   }
 
-  public void buildHankDomain(DomainBuilderProperties properties) throws IOException {
+  public void buildHankDomain(DomainBuilderProperties properties,
+                              DomainVersionProperties newDomainVersionProperties) throws IOException {
     // Open new version and check for success
     Domain domain = properties.getDomain();
-    DomainVersion domainVersion = domain.openNewVersion();
+    DomainVersion domainVersion = domain.openNewVersion(newDomainVersionProperties);
     if (domainVersion == null) {
       throw new IOException("Could not open a new version of domain " + properties.getDomainName());
     }

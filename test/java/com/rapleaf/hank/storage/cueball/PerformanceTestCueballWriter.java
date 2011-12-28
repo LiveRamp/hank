@@ -1,6 +1,7 @@
 package com.rapleaf.hank.storage.cueball;
 
 import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
@@ -43,7 +44,7 @@ public class PerformanceTestCueballWriter {
 //        };
 //      }
 //    };
-    Writer writer = cueball.getWriter(localFs, 0, 1, true);
+    Writer writer = cueball.getWriter(new MockDomainVersion(1, 0L, null), localFs, 0);
 
     long start = System.currentTimeMillis();
     for (int i = 0; i < numRecords; i++) {

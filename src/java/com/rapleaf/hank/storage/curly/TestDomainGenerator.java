@@ -1,6 +1,7 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
@@ -71,7 +72,8 @@ public class TestDomainGenerator {
 
     long start = System.currentTimeMillis();
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
-      final CurlyWriter writer = (CurlyWriter) curly.getWriter(new LocalDiskOutputStreamFactory(outputPath), part.getKey(), 0, true);
+      final CurlyWriter writer = (CurlyWriter) curly.getWriter(new MockDomainVersion(0, 0L),
+          new LocalDiskOutputStreamFactory(outputPath), part.getKey());
       for (int i = 0; i < part.getValue().size(); i++) {
         final byte[] keyHash = part.getValue().get(i);
         writer.write(ByteBuffer.wrap(hashesToKeys.get(keyHash)), ByteBuffer.wrap(hashesToValues.get(keyHash)));

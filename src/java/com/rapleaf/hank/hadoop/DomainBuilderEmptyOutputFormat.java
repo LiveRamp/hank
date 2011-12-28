@@ -17,9 +17,9 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
@@ -35,9 +35,12 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
+    String domainName = DomainBuilderProperties.getDomainName(conf);
     Domain domain = DomainBuilderProperties.getDomain(conf);
+    int versionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
+    DomainVersion domainVersion = domain.getVersionByNumber(versionNumber);
     // Always return a no-op OutputStream
-    return new DomainBuilderRecordWriter(domain, VersionType.BASE, new OutputStreamFactory() {
+    return new DomainBuilderRecordWriter(domain, domainVersion, new OutputStreamFactory() {
       public OutputStream getOutputStream(int partitionNumber, String name)
           throws IOException {
         return new OutputStream() {
@@ -49,12 +52,10 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
     }) {
       @Override
       protected Writer getWriter(StorageEngine storageEngine,
+                                 DomainVersion domainVersion,
                                  OutputStreamFactory outputStreamFactory,
-                                 int partitionNumber,
-                                 int versionNumber,
-                                 VersionType versionType) throws IOException {
-        return storageEngine.getWriter(outputStreamFactory, partitionNumber,
-            versionNumber, versionType.equals(VersionType.BASE));
+                                 int partitionNumber) throws IOException {
+        return storageEngine.getWriter(domainVersion, outputStreamFactory, partitionNumber);
       }
     };
   }

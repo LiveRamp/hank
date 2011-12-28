@@ -21,6 +21,7 @@ import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
+import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.Deleter;
 import com.rapleaf.hank.storage.PartitionUpdater;
@@ -159,42 +160,10 @@ public class TestUpdateManager extends BaseTestCase {
         @Override
         public SortedSet<DomainVersion> getVersions() {
           return new TreeSet<DomainVersion>(
-              Arrays.asList(new AbstractDomainVersion() {
-                @Override
-                public void setDefunct(boolean isDefunct) throws IOException {
-                }
-
+              Arrays.asList(new MockDomainVersion(0, null) {
                 @Override
                 public boolean isDefunct() throws IOException {
                   return true;
-                }
-
-                @Override
-                public int getVersionNumber() {
-                  return 0;
-                }
-
-                @Override
-                public Set<PartitionProperties> getPartitionProperties() throws IOException {
-                  return null;
-                }
-
-                @Override
-                public Long getClosedAt() throws IOException {
-                  return null;
-                }
-
-                @Override
-                public void close() throws IOException {
-                }
-
-                @Override
-                public void cancel() throws IOException {
-                }
-
-                @Override
-                public void addPartitionProperties(int partNum, long numBytes,
-                                                   long numRecords) throws IOException {
                 }
               }));
         }

@@ -273,6 +273,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
-    compactor.buildHankDomain(properties);
+    compactor.buildHankDomain(properties, null);
   }
 }

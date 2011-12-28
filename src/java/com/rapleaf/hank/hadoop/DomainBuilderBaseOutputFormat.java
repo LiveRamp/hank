@@ -17,8 +17,8 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -31,7 +31,7 @@ public abstract class DomainBuilderBaseOutputFormat extends DomainBuilderAbstrac
 
   protected abstract RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(Domain domain,
-                  VersionType versionType,
+                  DomainVersion domainVersion,
                   OutputStreamFactory outputStreamFactory);
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
@@ -41,10 +41,11 @@ public abstract class DomainBuilderBaseOutputFormat extends DomainBuilderAbstrac
     String outputPath = getTaskAttemptOutputPath(conf);
     // Load configuration items
     String domainName = DomainBuilderProperties.getDomainName(conf);
-    VersionType versionType = DomainBuilderProperties.getVersionType(domainName, conf);
+    int versionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
     // Load domain
     Domain domain = DomainBuilderProperties.getDomain(conf);
+    DomainVersion domainVersion = domain.getVersionByNumber(versionNumber);
     // Build RecordWriter with the Domain
-    return getRecordWriter(domain, versionType, new HDFSOutputStreamFactory(fs, outputPath));
+    return getRecordWriter(domain, domainVersion, new HDFSOutputStreamFactory(fs, outputPath));
   }
 }

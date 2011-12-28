@@ -17,7 +17,6 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.config.CoordinatorConfigurator;
-import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.mapred.JobConf;
 
 public class DomainCompactorProperties extends DomainBuilderProperties {
@@ -30,7 +29,7 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
   public DomainCompactorProperties(String domainName,
                                    int versionToCompactNumber,
                                    CoordinatorConfigurator configurator) {
-    super(domainName, VersionType.BASE, configurator, DomainCompactorOutputFormat.class);
+    super(domainName, configurator, DomainCompactorOutputFormat.class);
     this.versionToCompactNumber = versionToCompactNumber;
   }
 
@@ -38,7 +37,7 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
                                    int versionToCompactNumber,
                                    CoordinatorConfigurator configurator,
                                    String outputPath) {
-    super(domainName, VersionType.BASE, configurator, outputPath);
+    super(domainName, configurator, outputPath);
     this.versionToCompactNumber = versionToCompactNumber;
   }
 

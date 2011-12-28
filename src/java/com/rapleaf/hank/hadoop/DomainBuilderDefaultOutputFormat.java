@@ -17,9 +17,9 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.RecordWriter;
 
@@ -30,27 +30,25 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
 
     protected DomainBuilderDefaultRecordWriter(Domain domain,
-                                               VersionType versionType,
+                                               DomainVersion domainVersion,
                                                OutputStreamFactory outputStreamFactory) {
-      super(domain, versionType, outputStreamFactory);
+      super(domain, domainVersion, outputStreamFactory);
     }
 
     @Override
     protected Writer getWriter(StorageEngine storageEngine,
+                               DomainVersion domainVersion,
                                OutputStreamFactory outputStreamFactory,
-                               int partitionNumber,
-                               int versionNumber,
-                               VersionType versionType) throws IOException {
-      return storageEngine.getWriter(outputStreamFactory, partitionNumber, versionNumber,
-          versionType.equals(VersionType.BASE));
+                               int partitionNumber) throws IOException {
+      return storageEngine.getWriter(domainVersion, outputStreamFactory, partitionNumber);
     }
   }
 
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(Domain domain,
-                  VersionType versionType,
+                  DomainVersion domainVersion,
                   OutputStreamFactory outputStreamFactory) {
-    return new DomainBuilderDefaultRecordWriter(domain, versionType, outputStreamFactory);
+    return new DomainBuilderDefaultRecordWriter(domain, domainVersion, outputStreamFactory);
   }
 }

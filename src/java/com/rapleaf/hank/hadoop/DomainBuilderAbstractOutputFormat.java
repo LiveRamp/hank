@@ -18,10 +18,8 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.Domains;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -41,7 +39,6 @@ public abstract class DomainBuilderAbstractOutputFormat
 
   public static final String CONF_PARAM_HANK_DOMAIN_NAME = "com.rapleaf.hank.output.domain";
   public static final String CONF_PARAM_HANK_CONFIGURATOR = "com.rapleaf.hank.configuration";
-  public static final String CONF_PARAM_HANK_VERSION_TYPE = "com.rapleaf.hank.version_type";
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_TMP_OUTPUT_PATH = "com.rapleaf.hank.output.tmp_path";
   public static final String CONF_PARAM_HANK_VERSION_NUMBER = "com.rapleaf.hank.output.version_number";
@@ -80,9 +77,8 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
-    private final Domain domain;
     private final StorageEngine storageEngine;
-    private final VersionType versionType;
+    private final DomainVersion domainVersion;
     private final OutputStreamFactory outputStreamFactory;
 
     private Writer writer = null;
@@ -90,19 +86,17 @@ public abstract class DomainBuilderAbstractOutputFormat
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(Domain domain,
-                              VersionType versionType,
+                              DomainVersion domainVersion,
                               OutputStreamFactory outputStreamFactory) {
-      this.domain = domain;
       this.storageEngine = domain.getStorageEngine();
-      this.versionType = versionType;
+      this.domainVersion = domainVersion;
       this.outputStreamFactory = outputStreamFactory;
     }
 
     protected abstract Writer getWriter(StorageEngine storageEngine,
+                                        DomainVersion domainVersion,
                                         OutputStreamFactory outputStreamFactory,
-                                        int partitionNumber,
-                                        int versionNumber,
-                                        VersionType versionType) throws IOException;
+                                        int partitionNumber) throws IOException;
 
     @Override
     public final void close(Reporter reporter) throws IOException {
@@ -132,19 +126,17 @@ public abstract class DomainBuilderAbstractOutputFormat
             + " has already been written.");
       }
       // Set up new writer
-      DomainVersion domainVersion = Domains.getOpenedVersion(domain);
-      if (domainVersion == null) {
-        throw new IOException("There is no version currently open for domain "
-            + domain.getName());
-      }
-      writer = getWriter(storageEngine, outputStreamFactory, partition, domainVersion.getVersionNumber(), versionType);
+      writer = getWriter(storageEngine,
+          domainVersion,
+          outputStreamFactory,
+          partition);
       writerPartition = partition;
       writtenPartitions.add(partition);
     }
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        Domains.getOpenedVersion(domain).addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
+        domainVersion.addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
             writer.getNumRecordsWritten());
         writer.close();
       }

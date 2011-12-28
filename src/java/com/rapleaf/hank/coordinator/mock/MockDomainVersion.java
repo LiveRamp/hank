@@ -16,19 +16,27 @@
 package com.rapleaf.hank.coordinator.mock;
 
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.PartitionProperties;
 
 import java.io.IOException;
 import java.util.Set;
 
 public class MockDomainVersion extends AbstractDomainVersion {
+
   private final int versionNumber;
   private final Long closedAt;
   private boolean isDefunct = false;
+  private final DomainVersionProperties properties;
 
-  public MockDomainVersion(int versionNumber, Long closedAt) {
+  public MockDomainVersion(int versionNumber, Long closedAt, DomainVersionProperties domainVersionProperties) {
     this.versionNumber = versionNumber;
     this.closedAt = closedAt;
+    this.properties = domainVersionProperties;
+  }
+
+  public MockDomainVersion(int versionNumber, Long closedAt) {
+    this(versionNumber, closedAt, null);
   }
 
   public Long getClosedAt() {
@@ -60,5 +68,10 @@ public class MockDomainVersion extends AbstractDomainVersion {
   @Override
   public void setDefunct(boolean isDefunct) throws IOException {
     this.isDefunct = isDefunct;
+  }
+
+  @Override
+  public DomainVersionProperties getProperties() throws IOException {
+    return properties;
   }
 }

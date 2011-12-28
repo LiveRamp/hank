@@ -15,18 +15,20 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
+import com.rapleaf.hank.coordinator.AbstractDomain;
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.storage.StorageEngineFactory;
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import com.rapleaf.hank.coordinator.AbstractDomain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.StorageEngine;
-import com.rapleaf.hank.storage.StorageEngineFactory;
-
 public class MockDomain extends AbstractDomain {
+
   private final String name;
   private final int numParts;
   private final Partitioner part;
@@ -55,18 +57,22 @@ public class MockDomain extends AbstractDomain {
     this(domainName, 0, 1, null, null, null, null);
   }
 
+  @Override
   public String getName() {
     return name;
   }
 
+  @Override
   public int getNumParts() {
     return numParts;
   }
 
+  @Override
   public Partitioner getPartitioner() {
     return part;
   }
 
+  @Override
   public StorageEngine getStorageEngine() {
     return storageEngine;
   }
@@ -78,21 +84,25 @@ public class MockDomain extends AbstractDomain {
         + version + "]";
   }
 
+  @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     return null;
   }
 
+  @Override
   public Map<String, Object> getStorageEngineOptions() {
     return storageEngineOptions;
   }
 
+  @Override
   public SortedSet<DomainVersion> getVersions() {
     SortedSet<DomainVersion> versions = new TreeSet<DomainVersion>();
     versions.add(version);
     return versions;
   }
 
-  public DomainVersion openNewVersion() throws IOException {
+  @Override
+  public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
     return version;
   }
 

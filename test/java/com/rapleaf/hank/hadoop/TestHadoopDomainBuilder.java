@@ -15,7 +15,6 @@
  */
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.storage.VersionType;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -49,8 +48,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     fs.create(new Path(OUTPUT_PATH_A));
     try {
       new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
-          .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
-              IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A));
+          .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
+              IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A), null);
       fail("Should fail when output exists");
     } catch (IOException e) {
     }
@@ -58,8 +57,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
 
   public void testOutput() throws IOException {
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
-        .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME, VersionType.BASE,
-            IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A));
+        .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
+            IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A), null);
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
@@ -68,8 +67,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
 
   public void testSorted() throws IOException {
     new HadoopDomainBuilder(INPUT_PATH_B, TextInputFormat.class, TestMapper.class)
-        .buildHankDomain(new DomainBuilderProperties(DOMAIN_B_NAME, VersionType.BASE,
-            IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_B));
+        .buildHankDomain(new DomainBuilderProperties(DOMAIN_B_NAME,
+            IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_B), null);
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));
     String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_B, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);

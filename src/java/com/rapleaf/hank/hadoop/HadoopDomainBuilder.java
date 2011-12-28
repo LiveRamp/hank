@@ -19,7 +19,6 @@ package com.rapleaf.hank.hadoop;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.storage.VersionType;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
@@ -72,16 +71,15 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException {
     CommandLineChecker.check(args, new String[]
-        {"domain name", "'base' or 'delta'", "config path", "jobjar", "input path", "output_path"},
+        {"domain name", "config path", "jobjar", "input path", "output_path"},
         HadoopDomainBuilder.class);
     String domainName = args[0];
-    VersionType versionType = VersionType.fromString(args[1]);
-    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[2]);
-    String jobJar = args[3];
-    String inputPath = args[4];
-    String outputPath = args[5];
+    CoordinatorConfigurator configurator = new YamlClientConfigurator(args[1]);
+    String jobJar = args[2];
+    String inputPath = args[3];
+    String outputPath = args[4];
 
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, versionType, configurator, outputPath);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, configurator, outputPath);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
     conf.setJobName(HadoopDomainBuilder.class.getSimpleName()
@@ -91,6 +89,6 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
         DomainBuilderMapperDefault.class);
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath
         + " and coordinator configuration " + configurator);
-    builder.buildHankDomain(properties);
+    builder.buildHankDomain(properties, null);
   }
 }

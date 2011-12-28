@@ -9,7 +9,7 @@ import org.apache.zookeeper.ZooDefs.Ids;
 
 public class TestZkDomainVersion extends ZkTestCase {
   public void testCreate() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(DomainVersions.isClosed(dv));
@@ -17,7 +17,7 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testLoad() throws Exception {
-    ZkDomainVersion.create(getZk(), getRoot(), 1);
+    ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     dumpZk();
     DomainVersion dv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "versions/version_" + 1));
     assertEquals(1, dv.getVersionNumber());
@@ -27,7 +27,7 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testCancelVersion() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(DomainVersions.isClosed(dv));
@@ -37,7 +37,7 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testCloseVersion() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(DomainVersions.isClosed(dv));
@@ -49,7 +49,7 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testPartitionProperties() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     DomainVersion dv2 = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "versions/version_1"));
 
     assertTrue(dv.getPartitionProperties().isEmpty());
@@ -64,7 +64,7 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testDefunct() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1);
+    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null);
     DomainVersion otherDv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "versions/version_1"));
 
     assertFalse(dv.isDefunct());

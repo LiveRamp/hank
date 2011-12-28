@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -35,6 +36,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class ZkDomain extends AbstractDomain {
+
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   private static final String KEY_NUM_PARTS = "num_parts";
@@ -113,18 +115,22 @@ public class ZkDomain extends AbstractDomain {
     }
   }
 
+  @Override
   public String getName() {
     return name;
   }
 
+  @Override
   public int getNumParts() {
     return numParts;
   }
 
+  @Override
   public Partitioner getPartitioner() {
     return partitioner;
   }
 
+  @Override
   public StorageEngine getStorageEngine() {
     if (storageEngine != null) {
       return storageEngine;
@@ -172,11 +178,13 @@ public class ZkDomain extends AbstractDomain {
     }
   }
 
+  @Override
   public SortedSet<DomainVersion> getVersions() throws IOException {
     return new TreeSet<DomainVersion>(versions.values());
   }
 
-  public DomainVersion openNewVersion() throws IOException {
+  @Override
+  public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
     Integer nextVerNum;
 
     if (getVersions().isEmpty()) {
@@ -190,7 +198,7 @@ public class ZkDomain extends AbstractDomain {
     }
 
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum);
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties);
       versions.put(newVersion.getPathSeg(), newVersion);
       return newVersion;
     } catch (Exception e) {
@@ -219,23 +227,30 @@ public class ZkDomain extends AbstractDomain {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     ZkDomain other = (ZkDomain) obj;
     if (domainPath == null) {
-      if (other.domainPath != null)
+      if (other.domainPath != null) {
         return false;
-    } else if (!domainPath.equals(other.domainPath))
+      }
+    } else if (!domainPath.equals(other.domainPath)) {
       return false;
+    }
     if (name == null) {
-      if (other.name != null)
+      if (other.name != null) {
         return false;
-    } else if (!name.equals(other.name))
+      }
+    } else if (!name.equals(other.name)) {
       return false;
+    }
     return true;
   }
 

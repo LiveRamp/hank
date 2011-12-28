@@ -16,14 +16,15 @@
 
 package com.rapleaf.hank.storage.map;
 
+import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.rapleaf.hank.storage.OutputStreamFactory;
-import com.rapleaf.hank.storage.Writer;
-import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 // Storage engine used for testing. Stores key-value pairs in a static
 // partition map instead of writing them to an output stream. It is not thread
@@ -59,8 +60,9 @@ public class MapStorageEngine extends MockStorageEngine {
   }
 
   @Override
-  public Writer getWriter(OutputStreamFactory streamFactory, int partitionNumber,
-                          int versionNumber, boolean isBase) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion,
+                          OutputStreamFactory streamFactory,
+                          int partitionNumber) throws IOException {
     if (!partitions.containsKey(domainName)) {
       partitions.put(domainName, new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>());
     }
