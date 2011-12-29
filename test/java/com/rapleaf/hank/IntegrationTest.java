@@ -25,7 +25,6 @@ import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlSmartClientDaemonConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
@@ -35,7 +34,9 @@ import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
-import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
@@ -239,7 +240,7 @@ public class IntegrationTest extends ZkTestCase {
     domain0DataItems.put(bb(7), bb(7, 3));
     domain0DataItems.put(bb(8), bb(8, 4));
 
-    writeOut(coordinator.getDomain("domain0"), domain0DataItems, 0, true, DOMAIN_0_DATAFILES);
+    writeOut(coordinator.getDomain("domain0"), domain0DataItems, 0, DOMAIN_0_DATAFILES);
 
     Map<ByteBuffer, ByteBuffer> domain1DataItems = new HashMap<ByteBuffer, ByteBuffer>();
     domain1DataItems.put(bb(4), bb(1, 1));
@@ -251,7 +252,7 @@ public class IntegrationTest extends ZkTestCase {
     domain1DataItems.put(bb(6), bb(7, 3));
     domain1DataItems.put(bb(5), bb(8, 4));
 
-    writeOut(coordinator.getDomain("domain1"), domain1DataItems, 0, true, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1DataItems, 0, DOMAIN_1_DATAFILES);
 
     // configure domain group
     coordinator.addDomainGroup("dg1");
@@ -396,7 +397,7 @@ public class IntegrationTest extends ZkTestCase {
     domain1Delta.put(bb(4), bb(6, 6));
     domain1Delta.put(bb(5), bb(5, 5));
 
-    writeOut(coordinator.getDomain("domain1"), domain1Delta, 1, false, DOMAIN_1_DATAFILES);
+    writeOut(coordinator.getDomain("domain1"), domain1Delta, 1, DOMAIN_1_DATAFILES);
 
     versionMap = new HashMap<Domain, Integer>();
     versionMap.put(coordinator.getDomain("domain0"), 0);
@@ -565,9 +566,9 @@ public class IntegrationTest extends ZkTestCase {
     partitionServerThreads.get(a).join();
   }
 
-  private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, boolean isBase, String domainRoot) throws IOException {
+  private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, String domainRoot) throws IOException {
     // Create new version
-    domain.openNewVersion(null).close();
+    domain.openNewVersion(new IncrementalDomainVersionProperties(versionNumber == 0 ? null : versionNumber - 1)).close();
     assertEquals(versionNumber, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     // partition keys and values
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer, ByteBuffer>>();
@@ -593,8 +594,7 @@ public class IntegrationTest extends ZkTestCase {
     new File(domainRoot).mkdirs();
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
       LOG.debug("Writing out part " + part.getKey() + " for domain " + domain.getName() + " to root " + domainRoot);
-      Writer writer = engine.getWriter(new MockDomainVersion(versionNumber, null,
-          new IncrementalDomainVersionProperties(versionNumber == 0 ? null : versionNumber - 1)),
+      Writer writer = engine.getWriter(domain.getVersionByNumber(versionNumber),
           new LocalDiskOutputStreamFactory(domainRoot), part.getKey());
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
