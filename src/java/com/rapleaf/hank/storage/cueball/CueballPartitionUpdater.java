@@ -19,6 +19,7 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
@@ -67,36 +68,9 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     }
   }
 
-  // TODO: determining the parent domain version should be based on DomainVersion metadata instead
   @Override
   protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    return getParentDomainVersion(partitionRemoteFileOps, domain, domainVersion);
-  }
-
-  public static DomainVersion getParentDomainVersion(PartitionRemoteFileOps partitionRemoteFileOps,
-                                                     Domain domain,
-                                                     DomainVersion domainVersion) throws IOException {
-    if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
-      // Base file exists, there is no parent
-      return null;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-        || isEmptyVersion(partitionRemoteFileOps, domainVersion)) {
-      // Delta file exists, or the version is empty, the parent is just the previous version based on version number
-      int versionNumber = domainVersion.getVersionNumber();
-      if (versionNumber <= 0) {
-        return null;
-      } else {
-        DomainVersion result = domain.getVersionByNumber(versionNumber - 1);
-        if (result == null) {
-          throw new IOException("Failed to find version numbered " + (versionNumber - 1)
-              + " of domain " + domain
-              + " which was determined be the parent of domain version " + domainVersion);
-        }
-        return result;
-      }
-    } else {
-      throw new IOException("Failed to determine parent version of domain version " + domainVersion);
-    }
+    return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
   public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,

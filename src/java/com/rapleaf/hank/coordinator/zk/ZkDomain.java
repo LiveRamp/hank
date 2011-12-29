@@ -19,11 +19,8 @@ import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
-import com.rapleaf.hank.storage.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.storage.curly.CurlyFastPartitionUpdater;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -114,21 +111,6 @@ public class ZkDomain extends AbstractDomain {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
       throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
-    }
-    // TODO: remove
-    // Migration code to add properties
-    if (storageEngineFactoryName.equals("com.rapleaf.hank.storage.curly.Curly$Factory")) {
-      try {
-        for (DomainVersion version : getVersions()) {
-          DomainVersion parent = CurlyFastPartitionUpdater.getParentDomainVersion(
-              new HdfsPartitionRemoteFileOps("/data/hank/" + getName(), 0),
-              this, version);
-          version.setProperties(new IncrementalDomainVersionProperties(
-              parent == null ? null : parent.getVersionNumber()));
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);  //TODO: Deal with exception
-      }
     }
   }
 

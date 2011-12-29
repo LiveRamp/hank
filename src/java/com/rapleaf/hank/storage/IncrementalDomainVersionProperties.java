@@ -18,8 +18,11 @@ package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlConfigurator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -57,5 +60,19 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
 
   public boolean isBase() {
     return getParentVersionNumber() == null;
+  }
+
+  public static DomainVersion getParentDomainVersion(Domain domain, DomainVersion version) throws IOException {
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) version.getProperties();
+    if (properties == null) {
+      throw new IOException("Failed to get parent of Domain Version since corresponding properties are empty." + version);
+    } else {
+      Integer parentVersionNumber = properties.getParentVersionNumber();
+      if (parentVersionNumber == null) {
+        return null;
+      } else {
+        return domain.getVersionByNumber(parentVersionNumber);
+      }
+    }
   }
 }

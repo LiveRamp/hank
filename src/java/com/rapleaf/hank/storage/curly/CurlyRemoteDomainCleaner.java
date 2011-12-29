@@ -18,24 +18,20 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.IncrementalRemoteDomainCleaner;
-import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.RemoteDomainCleaner;
 
 import java.io.IOException;
 
 public class CurlyRemoteDomainCleaner extends IncrementalRemoteDomainCleaner implements RemoteDomainCleaner {
 
-  private final PartitionRemoteFileOps partitionRemoteFileOps;
-
-  public CurlyRemoteDomainCleaner(PartitionRemoteFileOps partitionRemoteFileOps,
-                                  Domain domain,
+  public CurlyRemoteDomainCleaner(Domain domain,
                                   int numRemoteLeafVersionsToKeep) {
     super(domain, numRemoteLeafVersionsToKeep);
-    this.partitionRemoteFileOps = partitionRemoteFileOps;
   }
 
   protected DomainVersion getParentDomainVersion(Domain domain, DomainVersion domainVersion) throws IOException {
-    return AbstractCurlyPartitionUpdater.getParentDomainVersion(partitionRemoteFileOps, domain, domainVersion);
+    return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 }

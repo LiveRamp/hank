@@ -386,7 +386,6 @@ public class Curly implements StorageEngine {
 
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
-    return new CurlyRemoteDomainCleaner(fileOpsFactory.getFileOps(remoteDomainRoot, 0),
-        domain, numRemoteLeafVersionsToKeep);
+    return new CurlyRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
   }
 }
