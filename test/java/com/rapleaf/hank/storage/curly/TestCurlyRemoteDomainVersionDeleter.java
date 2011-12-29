@@ -20,11 +20,11 @@ public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
         new MockDomain("domain", 0, 1, null, null, null, null),
         0);
-    Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties(null)),
+    Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalDiskOutputStreamFactory(localDiskRoot), 0);
     writer.write(key, value);
     writer.close();
-    writer = storageEngine.getWriter(new MockDomainVersion(2, 0L, new IncrementalDomainVersionProperties(1)),
+    writer = storageEngine.getWriter(new MockDomainVersion(2, 0L, new IncrementalDomainVersionProperties.Delta(1)),
         new LocalDiskOutputStreamFactory(localDiskRoot), 0);
     writer.write(key, value);
     writer.close();

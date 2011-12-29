@@ -129,7 +129,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
         new IntStringKeyModPartitioner(),
         new IntStringKeyStorageEngine(),
         null,
-        new MockDomainVersion(0, null, new IncrementalDomainVersionProperties(null)));
+        new MockDomainVersion(0, null, new IncrementalDomainVersionProperties.Base()));
   }
 
   static public CoordinatorConfigurator getConfigurator(int numPartitions) {

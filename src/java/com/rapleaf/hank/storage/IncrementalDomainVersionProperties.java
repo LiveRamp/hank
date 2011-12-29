@@ -32,32 +32,44 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
   private static final String PARENT_KEY = "parent";
   private static final String SOURCE_KEY = "source";
 
-  // Static helpers to create properties objects
+  // Static helper classes to create properties objects
 
-  public static IncrementalDomainVersionProperties base() {
-    return base(null);
+  public static class Base extends IncrementalDomainVersionProperties {
+
+    public Base() {
+      super(null);
+    }
+
+    public Base(String source) {
+      super(null, source);
+    }
   }
 
-  public static IncrementalDomainVersionProperties base(String source) {
-    return new IncrementalDomainVersionProperties(null, source);
-  }
+  public static class Delta extends IncrementalDomainVersionProperties {
 
-  public static IncrementalDomainVersionProperties delta(int parentVersionNumber) {
-    return delta(parentVersionNumber, null);
-  }
+    public Delta(int parentVersion) {
+      this(parentVersion, null);
+    }
 
-  public static IncrementalDomainVersionProperties delta(int parentVersionNumber, String source) {
-    return new IncrementalDomainVersionProperties(parentVersionNumber, source);
-  }
+    public Delta(int parentVersion, String source) {
+      super(parentVersion, source);
+    }
 
-  public static IncrementalDomainVersionProperties deltaOnLatestVersion(Domain domain) throws IOException {
-    return deltaOnLatestVersion(domain, null);
-  }
+    public Delta(Domain domain) throws IOException {
+      this(domain, null);
+    }
 
-  public static IncrementalDomainVersionProperties deltaOnLatestVersion(Domain domain, String source) throws IOException {
-    DomainVersion latestVersion = Domains.getLatestVersion(domain);
-    return new IncrementalDomainVersionProperties(latestVersion == null ? null : latestVersion.getVersionNumber(),
-        source);
+    public Delta(Domain domain, String source) throws IOException {
+      this(Domains.getLatestVersion(domain), source);
+    }
+
+    public Delta(DomainVersion parentVersion) {
+      this(parentVersion, null);
+    }
+
+    public Delta(DomainVersion parentVersion, String source) {
+      super(parentVersion == null ? null : parentVersion.getVersionNumber(), source);
+    }
   }
 
   public IncrementalDomainVersionProperties(Integer parentVersion) {
