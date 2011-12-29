@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.BaseTestCase;
 

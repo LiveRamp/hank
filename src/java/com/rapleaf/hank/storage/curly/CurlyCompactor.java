@@ -19,7 +19,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
-import com.rapleaf.hank.storage.IncrementalUpdatePlan;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;

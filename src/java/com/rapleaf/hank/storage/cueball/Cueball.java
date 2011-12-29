@@ -25,6 +25,7 @@ import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.IOException;

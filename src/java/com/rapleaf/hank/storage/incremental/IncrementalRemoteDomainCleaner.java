@@ -14,10 +14,12 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.RemoteDomainCleaner;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;

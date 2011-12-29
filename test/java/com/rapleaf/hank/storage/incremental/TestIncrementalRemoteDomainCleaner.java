@@ -14,13 +14,15 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
+import com.rapleaf.hank.storage.incremental.IncrementalRemoteDomainCleaner;
 
 import java.io.IOException;
 import java.util.ArrayList;

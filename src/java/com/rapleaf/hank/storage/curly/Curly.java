@@ -28,6 +28,7 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;

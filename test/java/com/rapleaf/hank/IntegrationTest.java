@@ -38,6 +38,7 @@ import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Level;

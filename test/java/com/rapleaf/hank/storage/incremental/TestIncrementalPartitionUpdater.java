@@ -14,12 +14,16 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
+import com.rapleaf.hank.storage.incremental.MockIncrementalPartitionUpdater;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;

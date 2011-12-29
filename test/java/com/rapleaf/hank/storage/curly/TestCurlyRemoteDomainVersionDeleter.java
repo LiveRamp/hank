@@ -6,6 +6,7 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 
 import java.io.File;
 import java.nio.ByteBuffer;

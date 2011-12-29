@@ -20,7 +20,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.storage.IncrementalPartitionUpdaterTestCase;
+import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
