@@ -62,7 +62,6 @@ public class TestZkDomain extends ZkTestCase {
     assertEquals(0, version.getVersionNumber());
     assertEquals(1, dc.getVersions().size());
 
-    assertNull(dc.openNewVersion(null));
     assertEquals(1, dc.getVersions().size());
 
     version.close();
