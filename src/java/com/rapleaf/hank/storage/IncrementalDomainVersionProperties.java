@@ -21,6 +21,7 @@ import com.rapleaf.hank.config.yaml.YamlConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
+import com.rapleaf.hank.coordinator.Domains;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,6 +31,34 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
 
   private static final String PARENT_KEY = "parent";
   private static final String SOURCE_KEY = "source";
+
+  // Static helpers to create properties objects
+
+  public static IncrementalDomainVersionProperties base() {
+    return base(null);
+  }
+
+  public static IncrementalDomainVersionProperties base(String source) {
+    return new IncrementalDomainVersionProperties(null, source);
+  }
+
+  public static IncrementalDomainVersionProperties delta(int parentVersionNumber) {
+    return delta(parentVersionNumber, null);
+  }
+
+  public static IncrementalDomainVersionProperties delta(int parentVersionNumber, String source) {
+    return new IncrementalDomainVersionProperties(parentVersionNumber, source);
+  }
+
+  public static IncrementalDomainVersionProperties deltaOnLatestVersion(Domain domain) throws IOException {
+    return deltaOnLatestVersion(domain, null);
+  }
+
+  public static IncrementalDomainVersionProperties deltaOnLatestVersion(Domain domain, String source) throws IOException {
+    DomainVersion latestVersion = Domains.getLatestVersion(domain);
+    return new IncrementalDomainVersionProperties(latestVersion == null ? null : latestVersion.getVersionNumber(),
+        source);
+  }
 
   public IncrementalDomainVersionProperties(Integer parentVersion) {
     this(parentVersion, null);
