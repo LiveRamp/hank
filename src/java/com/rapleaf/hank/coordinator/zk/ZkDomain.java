@@ -120,13 +120,11 @@ public class ZkDomain extends AbstractDomain {
     if (storageEngineFactoryName.equals("com.rapleaf.hank.storage.curly.Curly$Factory")) {
       try {
         for (DomainVersion version : getVersions()) {
-          if (version.getProperties() == null) {
-            DomainVersion parent = CurlyFastPartitionUpdater.getParentDomainVersion(
-                new HdfsPartitionRemoteFileOps("/data/hank/" + getName(), 0),
-                this, version);
-            version.setProperties(new IncrementalDomainVersionProperties(
-                parent == null ? null : parent.getVersionNumber()));
-          }
+          DomainVersion parent = CurlyFastPartitionUpdater.getParentDomainVersion(
+              new HdfsPartitionRemoteFileOps("/data/hank/" + getName(), 0),
+              this, version);
+          version.setProperties(new IncrementalDomainVersionProperties(
+              parent == null ? null : parent.getVersionNumber()));
         }
       } catch (IOException e) {
         throw new RuntimeException(e);  //TODO: Deal with exception

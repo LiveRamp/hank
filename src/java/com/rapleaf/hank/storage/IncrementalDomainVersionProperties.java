@@ -22,7 +22,7 @@ import com.rapleaf.hank.coordinator.DomainVersionProperties;
 
 public class IncrementalDomainVersionProperties extends YamlConfigurator implements DomainVersionProperties {
 
-  private static final String PARENT_VERSION_KEY = "parent_version";
+  private static final String PARENT_VERSION_KEY = "parent";
 
   public IncrementalDomainVersionProperties(Integer parentVersion) {
     try {
