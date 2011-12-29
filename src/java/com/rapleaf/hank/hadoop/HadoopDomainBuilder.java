@@ -20,6 +20,7 @@ import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.util.CommandLineChecker;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.mapred.*;
 import org.apache.log4j.Logger;
 
@@ -89,6 +90,8 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
         DomainBuilderMapperDefault.class);
     LOG.info("Building Hank domain " + domainName + " from input " + inputPath
         + " and coordinator configuration " + configurator);
-    builder.buildHankDomain(properties, null);
+    // TODO: Create DomainVersionProperties
+    throw new NotImplementedException("TODO: Create DomainVersionProperties");
+    // builder.buildHankDomain(properties, null);
   }
 }

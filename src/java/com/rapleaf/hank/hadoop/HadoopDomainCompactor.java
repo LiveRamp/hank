@@ -26,6 +26,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
@@ -273,6 +274,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
-    compactor.buildHankDomain(properties, null);
+    // TODO: Create DomainVersionProperties
+    throw new NotImplementedException("TODO: Create DomainVersionProperties");
+    // compactor.buildHankDomain(properties, null);
   }
 }
