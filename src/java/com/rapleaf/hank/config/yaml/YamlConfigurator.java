@@ -63,6 +63,11 @@ public abstract class YamlConfigurator implements Serializable {
     validate();
   }
 
+  public void loadFromObjectMap(Map<String, Object> yaml) throws InvalidConfigurationException {
+    config = yaml;
+    validate();
+  }
+
   public String toYaml() {
     return new Yaml().dump(config);
   }

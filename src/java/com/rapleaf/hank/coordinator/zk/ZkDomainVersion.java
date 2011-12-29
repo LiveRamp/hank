@@ -48,7 +48,11 @@ public class ZkDomainVersion extends AbstractDomainVersion {
                                        DomainVersionProperties domainVersionProperties)
       throws KeeperException, InterruptedException, IOException {
     String versionPath = ZkPath.append(domainPath, "versions", "version_" + versionNumber);
-    zk.create(versionPath, SerializationUtils.serializeObject(domainVersionProperties));
+    if (domainVersionProperties != null) {
+      zk.create(versionPath, SerializationUtils.serializeObject(domainVersionProperties));
+    } else {
+      zk.create(versionPath, null);
+    }
     zk.create(ZkPath.append(versionPath, "parts"), null);
     zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
     zk.create(ZkPath.append(versionPath, DotComplete.NODE_NAME), null);

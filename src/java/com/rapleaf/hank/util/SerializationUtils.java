@@ -26,6 +26,9 @@ public class SerializationUtils implements DomainVersionProperties, Serializable
   }
 
   public static byte[] serializeObject(Object obj) throws IOException {
+    if (obj == null) {
+      return null;
+    }
     ByteArrayOutputStream result = new ByteArrayOutputStream();
     ObjectOutputStream objectOutputStream = new ObjectOutputStream(result);
     objectOutputStream.writeObject(obj);

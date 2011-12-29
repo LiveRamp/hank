@@ -20,13 +20,26 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlConfigurator;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 
+import java.util.Map;
+import java.util.TreeMap;
+
 public class IncrementalDomainVersionProperties extends YamlConfigurator implements DomainVersionProperties {
 
-  private static final String PARENT_VERSION_KEY = "parent";
+  private static final String PARENT_KEY = "parent";
+  private static final String SOURCE_KEY = "source";
 
   public IncrementalDomainVersionProperties(Integer parentVersion) {
+    this(parentVersion, null);
+  }
+
+  public IncrementalDomainVersionProperties(Integer parentVersion, String source) {
     try {
-      loadFromYaml(PARENT_VERSION_KEY + ": " + parentVersion);
+      Map<String, Object> yaml = new TreeMap<String, Object>();
+      yaml.put(PARENT_KEY, parentVersion);
+      if (source != null) {
+        yaml.put(SOURCE_KEY, source);
+      }
+      loadFromObjectMap(yaml);
     } catch (InvalidConfigurationException e) {
       throw new RuntimeException("Failed to construct IncrementalDomainVersionProperties.", e);
     }
@@ -35,11 +48,11 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
   @Override
   protected void validate() throws InvalidConfigurationException {
     this.checkNonEmptyConfiguration();
-    this.getRequiredInteger(PARENT_VERSION_KEY);
+    this.getRequiredInteger(PARENT_KEY);
   }
 
   public Integer getParentVersionNumber() {
-    return getInteger(PARENT_VERSION_KEY);
+    return getInteger(PARENT_KEY);
   }
 
   public boolean isBase() {
