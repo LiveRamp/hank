@@ -88,8 +88,8 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
-  protected static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
-                                          DomainVersion domainVersion) throws IOException {
+  public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
+                                       DomainVersion domainVersion) throws IOException {
     return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
         && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
         && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))
