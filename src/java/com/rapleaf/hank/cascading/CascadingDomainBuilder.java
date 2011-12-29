@@ -257,23 +257,20 @@ public class CascadingDomainBuilder {
 
   // Build a single domain using a single source
   public Flow build(Map<Object, Object> cascadingProperties,
-                    DomainVersionProperties domainVersionProperties,
                     Tap source) throws IOException {
-    return build(mapToProperties(cascadingProperties), domainVersionProperties, source);
+    return build(mapToProperties(cascadingProperties), source);
   }
 
   // Build a single domain using a multiple sources
   public Flow build(Map<Object, Object> cascadingProperties,
-                    DomainVersionProperties domainVersionProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), domainVersionProperties, sources);
+    return build(mapToProperties(cascadingProperties), sources);
   }
 
   // Build a single domain
   public Flow build(Map<Object, Object> cascadingProperties,
-                    DomainVersionProperties domainVersionProperties,
                     TapOrTapMap sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), domainVersionProperties, sources);
+    return build(mapToProperties(cascadingProperties), sources);
   }
 
   // Build multiple domains
