@@ -20,9 +20,10 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
-import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
@@ -33,9 +34,9 @@ import java.util.Set;
 
 public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
-  private final DomainVersion v0 = new MockDomainVersion(0, 0l);
-  private final DomainVersion v1 = new MockDomainVersion(1, 0l);
-  private final DomainVersion v2 = new MockDomainVersion(2, 0l);
+  private final DomainVersion v0 = new MockDomainVersion(0, 0l, new IncrementalDomainVersionProperties.Base());
+  private final DomainVersion v1 = new MockDomainVersion(1, 0l, new IncrementalDomainVersionProperties.Base());
+  private final DomainVersion v2 = new MockDomainVersion(2, 0l, new IncrementalDomainVersionProperties.Delta(1));
   private final Domain domain = new MockDomain("domain") {
     @Override
     public DomainVersion getVersionByNumber(int versionNumber) {
@@ -75,19 +76,9 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
   }
 
   public void testGetDomainVersionParent() throws IOException {
-    // Parent is null when base found
-    makeRemoteFile("0/00001.base.cueball");
-    makeRemoteFile("0/00001.base.curly");
+    assertNull(updater.getParentDomainVersion(v0));
     assertNull(updater.getParentDomainVersion(v1));
-    deleteRemoteFile("0/00001.base.cueball");
-    deleteRemoteFile("0/00001.base.curly");
-
-    // Parent is previous version number when delta found
-    makeRemoteFile("0/00001.delta.cueball");
-    makeRemoteFile("0/00001.delta.curly");
-    assertEquals(v0, updater.getParentDomainVersion(v1));
-    deleteRemoteFile("0/00001.delta.cueball");
-    deleteRemoteFile("0/00001.delta.curly");
+    assertEquals(v1, updater.getParentDomainVersion(v2));
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
