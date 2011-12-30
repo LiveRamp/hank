@@ -94,4 +94,9 @@ public class HankSyncSmartClient implements SmartClient.Iface {
       return INTERRUPTED_GET_BULK;
     }
   }
+
+  public void stop() {
+    asyncSmartClient.stop();
+  }
+
 }

@@ -20,20 +20,19 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.LinkedList;
-import java.util.concurrent.LinkedBlockingQueue;
 
 class Connector implements Runnable {
 
   private static Logger LOG = Logger.getLogger(Connector.class);
 
   private Thread connectorThread;
-  private volatile boolean endThread = false;
+  private volatile boolean stopping = false;
   private final LinkedList<HostConnection> connections =
           new LinkedList<HostConnection>();
 
   @Override
   public void run() {
-    while (!endThread) {
+    while (!stopping) {
       HostConnection connection = null;
       int remaining = 0;
       synchronized (connections) {
@@ -70,7 +69,7 @@ class Connector implements Runnable {
   }
 
   public void stop() {
-    endThread = true;
+    stopping = true;
     connectorThread.interrupt();
   }
 

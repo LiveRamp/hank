@@ -266,8 +266,9 @@ public class TestHankSyncSmartClient extends BaseTestCase {
   private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[]{2});
 
   public void testGet() throws Exception {
+    HankSyncSmartClient c = null;
     try {
-      HankSyncSmartClient c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0);
+      c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0);
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), c.get("nonexistent_domain", null));
@@ -295,18 +296,15 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       // Simulate servers that fail to perform gets
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.FAILING);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.FAILING);
-      assertTrue(c.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
-      assertTrue(c.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
+      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+      assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
 
       // Simulate servers that throws an error
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_1));
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_2));
+      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+      assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
 
-      LOG.trace("--------------------------HANGS");
       // Simulate servers that hangs
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
@@ -316,6 +314,9 @@ public class TestHankSyncSmartClient extends BaseTestCase {
 //          c.get("existent_domain", KEY_2));
       LOG.trace("--------------------------Done testing");
     } finally {
+      if (c != null) {
+        c.stop();
+      }
       server1.stop();
       server2.stop();
       thread1.join();

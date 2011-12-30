@@ -36,16 +36,26 @@ public class Dispatcher implements Runnable {
       = HankResponse.xception(HankException.no_connection_available(true));
   private static final HankBulkResponse NO_CONNECTION_AVAILABLE_BULK_RESPONSE
       = HankBulkResponse.xception(HankException.no_connection_available(true));
-  private static final HankResponse TIMEOUT_RESPONSE // TODO: Add new error type for timeout
-      = HankResponse.xception(HankException.internal_error("Request timeout"));
+  private static final HankResponse TIMEOUT_RESPONSE // TODO: Add new error type for queryTimeoutNano
+      = HankResponse.xception(HankException.internal_error("Request queryTimeoutNano"));
 
   private final LinkedList<GetTask> getTasks;
   private final LinkedList<GetTask> getTasksComplete;
+  private final long queryTimeoutNano;
+  private final long bulkQueryTimeoutNano;
+  private final int queryMaxNumTries;
   private Thread dispatcherThread;
   private volatile boolean stopping = false;
-  private long timeout = 2000 * 1000000; // 2s
-  private int maxRetry = 3;
   private long sleepNanoTime;
+
+  public Dispatcher(int queryTimeoutMs, int bulkQueryTimeoutMs, int queryMaxNumTries) {
+    // Initialize select queues
+    getTasks = new LinkedList<GetTask>();
+    getTasksComplete = new LinkedList<GetTask>();
+    this.queryTimeoutNano = queryTimeoutMs * 1000000; // convert ms to nano
+    this.bulkQueryTimeoutNano = bulkQueryTimeoutMs * 1000000; // convert ms to nano
+    this.queryMaxNumTries = queryMaxNumTries;
+  }
 
   public Runnable getOnChangeRunnable() {
     return new Runnable() {
@@ -62,7 +72,7 @@ public class Dispatcher implements Runnable {
     private final ByteBuffer key;
     private final HostConnectionPool hostConnectionPool;
     private final GetCallback resultHanlder;
-    private int retry;
+    private int tryCount;
     private HostConnectionPool.HostConnectionAndHostIndex hostConnectionAndHostIndex;
     private HankResponse response;
     private long startNanoTime;
@@ -82,7 +92,7 @@ public class Dispatcher implements Runnable {
         } catch (TException e) {
           String errMsg = "Failed to load GET result: " + e.getMessage();
           LOG.error(errMsg);
-          GetTask.this.response = HankResponse.xception(HankException.failed_retries(retry));
+          GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           addCompleteTask(GetTask.this);
         }
@@ -93,7 +103,7 @@ public class Dispatcher implements Runnable {
         try {
           String errMsg = "Failed to execute GET: " + e.getMessage();
           LOG.error(errMsg);
-          GetTask.this.response = HankResponse.xception(HankException.failed_retries(retry));
+          GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           addCompleteTask(GetTask.this);
         }
@@ -108,7 +118,7 @@ public class Dispatcher implements Runnable {
       this.key = key;
       this.hostConnectionPool = hostConnectionPool;
       this.resultHanlder = resultHandler;
-      this.retry = 0;
+      this.tryCount = 0;
       this.hostConnectionAndHostIndex = null;
       this.startNanoTime = 0;
     }
@@ -119,7 +129,7 @@ public class Dispatcher implements Runnable {
     }
 
     public void completeWithTimeout() {
-      LOG.trace("Completing task with timeout " + this);
+      LOG.trace("Completing task with queryTimeoutNano " + this);
       response = TIMEOUT_RESPONSE;
       addCompleteTask(GetTask.this);
     }
@@ -161,28 +171,14 @@ public class Dispatcher implements Runnable {
     }
 
     public long getNanoTimeBeforeTimeout(long currentNanoTime) {
-      // Return time in nanosecond before task timeout. Return 0 if task has timed out.
-      return Math.max(timeout - Math.abs(currentNanoTime - startNanoTime), 0);
+      // Return time in nanosecond before task queryTimeoutNano. Return 0 if task has timed out.
+      return Math.max(queryTimeoutNano - Math.abs(currentNanoTime - startNanoTime), 0);
     }
 
     @Override
     public String toString() {
-      return "GetTask [domainId=" + domainId + ", key=" + Bytes.bytesToHexString(key) + ", retry=" + retry + "]";
+      return "GetTask [domainId=" + domainId + ", key=" + Bytes.bytesToHexString(key) + ", tryCount=" + tryCount + "]";
     }
-  }
-
-  public Dispatcher() {
-    // Initialize select queues
-    getTasks = new LinkedList<GetTask>();
-    getTasksComplete = new LinkedList<GetTask>();
-  }
-
-  public void setTimeout(long timeoutMs) {
-    this.timeout = timeoutMs * 1000000;
-  }
-
-  public void setMaxRetry(int maxRetry) {
-    this.maxRetry = maxRetry;
   }
 
   public void stop() {
@@ -216,17 +212,13 @@ public class Dispatcher implements Runnable {
   public void run() {
     while (!stopping) {
       //TODO: remove trace
-      LOG.trace("Complete task has: " + getTasksComplete.size());
-      LOG.trace("Get task has: " + getTasks.size());
       LOG.trace("--------------------------");
       completeTasks();
       startTasks();
       try {
-        Thread.sleep(/*sleepNanoTime / 1000000*/1000);
+        Thread.sleep(sleepNanoTime / 1000000);
       } catch (InterruptedException e) {
         // There is work to do
-        //TODO: remove trace
-        LOG.trace("Waking up dispatcher");
       }
     }
   }
@@ -237,9 +229,9 @@ public class Dispatcher implements Runnable {
 
         if (task.response.is_set_xception()) {
           // Error
+          ++task.tryCount;
           task.disconnect();
-          if (task.retry < maxRetry) {
-            ++task.retry;
+          if (task.tryCount < queryMaxNumTries) {
             addTask(task);
           } else {
             task.complete();
@@ -266,8 +258,8 @@ public class Dispatcher implements Runnable {
       while (iterator.hasNext()) {
         GetTask task = iterator.next();
 
-        // If we have timeout set, keep track of the next task to timeout to adjust sleep time.
-        if (timeout != 0) {
+        // If we have queryTimeoutNano set, keep track of the next task to queryTimeoutNano to adjust sleep time.
+        if (queryTimeoutNano != 0) {
           long taskNanoTimeBeforeTimeout = task.getNanoTimeBeforeTimeout(currentNanoTime);
           sleepNanoTime = Math.min(sleepNanoTime, taskNanoTimeBeforeTimeout);
           if (taskNanoTimeBeforeTimeout == 0) {
