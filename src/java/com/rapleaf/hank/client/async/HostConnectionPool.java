@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class HostConnectionPool {
+public class  HostConnectionPool {
 
   private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
 

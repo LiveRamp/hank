@@ -19,39 +19,67 @@ package com.rapleaf.hank.client.async;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.concurrent.LinkedBlockingQueue;
 
 class Connector implements Runnable {
 
   private static Logger LOG = Logger.getLogger(Connector.class);
 
-  private final LinkedBlockingQueue<HostConnection> connections =
-      new LinkedBlockingQueue<HostConnection>();
+  private Thread connectorThread;
+  private volatile boolean endThread = false;
+  private final LinkedList<HostConnection> connections =
+          new LinkedList<HostConnection>();
 
   @Override
   public void run() {
-    while (true) {
-      HostConnection connection;
-      try {
-        connection = connections.take();
-      } catch (InterruptedException e) {
-        LOG.info("Exiting Connecting Thread", e);
-        break;
+    while (!endThread) {
+      HostConnection connection = null;
+      int remaining = 0;
+      synchronized (connections) {
+        if (connections.size() > 0) {
+          connection = connections.pop();
+          remaining = connections.size();
+        }
       }
-      try {
-        connection.attemptConnect();
-      } catch (IOException e) {
-        LOG.error("Failed to connect", e);
+      // If there is no connection to connect, do nothing.
+      if (connection != null) {
+        try {
+          connection.attemptConnect();
+        } catch (IOException e) {
+          LOG.error("Failed to connect", e);
+        }
+      }
+      // If there is no connection waiting, sleep and wait for a new connection.
+      if (remaining == 0) {
+        try {
+          Thread.sleep(Long.MAX_VALUE);
+        } catch (InterruptedException e) {
+          // We have something to do.
+        }
       }
     }
   }
 
   public void addConnection(HostConnection connection) {
-    try {
-      connection.setConnecting();
-      connections.put(connection);
-    } catch (InterruptedException e) {
-      LOG.error("Failed to add connection", e);
+    connection.setConnecting();
+    synchronized (connections) {
+      connections.addLast(connection);
     }
+    connectorThread.interrupt();
   }
+
+  public void stop() {
+    endThread = true;
+    connectorThread.interrupt();
+  }
+
+  public void setConnectorThread(ConnectorThread connectorThread) {
+    if (this.connectorThread != null) {
+      throw new RuntimeException("Tried to set connector thread but it was already set.");
+    }
+    this.connectorThread = connectorThread;
+  }
+
+
 }
