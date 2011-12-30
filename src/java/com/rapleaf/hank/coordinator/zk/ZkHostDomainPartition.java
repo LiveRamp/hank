@@ -16,7 +16,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
-import com.rapleaf.hank.zookeeper.*;
+import com.rapleaf.hank.zookeeper.WatchedBoolean;
+import com.rapleaf.hank.zookeeper.WatchedInt;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -33,6 +36,12 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedInt updatingToDomainGroupVersion;
   private final WatchedBoolean deletable;
+
+  private static boolean doUsePartitionWatches = true;
+
+  public static void setDoUsePartitionWatches(boolean value) {
+    doUsePartitionWatches = value;
+  }
 
   public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
     try {
@@ -55,14 +64,28 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     this.path = path;
     this.partNum = Integer.parseInt(ZkPath.getFilename(path));
 
-    currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
-    updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
-    deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
+    if (doUsePartitionWatches) {
+      currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
+      updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
+      deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
+    } else {
+      currentDomainGroupVersion = null;
+      updatingToDomainGroupVersion = null;
+      deletable = null;
+    }
   }
 
   @Override
   public Integer getCurrentDomainGroupVersion() throws IOException {
-    return currentDomainGroupVersion.get();
+    if (currentDomainGroupVersion != null) {
+      return currentDomainGroupVersion.get();
+    } else {
+      try {
+        return WatchedInt.get(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT));
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
   }
 
   @Override
@@ -72,12 +95,28 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public Integer getUpdatingToDomainGroupVersion() throws IOException {
-    return updatingToDomainGroupVersion.get();
+    if (updatingToDomainGroupVersion != null) {
+      return updatingToDomainGroupVersion.get();
+    } else {
+      try {
+        return WatchedInt.get(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT));
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
   }
 
   @Override
   public boolean isDeletable() throws IOException {
-    return deletable.get();
+    if (deletable != null) {
+      return deletable.get();
+    } else {
+      try {
+        return WatchedBoolean.get(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT));
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
   }
 
   @Override

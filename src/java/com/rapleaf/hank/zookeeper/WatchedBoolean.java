@@ -9,19 +9,31 @@ public class WatchedBoolean extends WatchedNode<Boolean> {
     super(zk, nodePath, waitForCreation);
   }
 
-  @Override
-  protected Boolean decode(byte[] data) {
+  public static Boolean get(ZooKeeperPlus zk, String nodePath) throws InterruptedException, KeeperException {
+    return decodeValue(zk.getData(nodePath, null, null));
+  }
+
+  protected static Boolean decodeValue(byte[] data) {
     if (data == null) {
       return null;
     }
     return Boolean.parseBoolean(new String(data));
   }
 
-  @Override
-  protected byte[] encode(Boolean v) {
+  protected static byte[] encodeValue(Boolean v) {
     if (v == null) {
       return null;
     }
     return v.toString().getBytes();
+  }
+
+  @Override
+  protected Boolean decode(byte[] data) {
+    return decodeValue(data);
+  }
+
+  @Override
+  protected byte[] encode(Boolean v) {
+    return encodeValue(v);
   }
 }

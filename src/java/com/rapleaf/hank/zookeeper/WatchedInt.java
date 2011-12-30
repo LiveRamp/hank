@@ -23,19 +23,31 @@ public class WatchedInt extends WatchedNode<Integer> {
     super(zk, nodePath, waitForCreation);
   }
 
-  @Override
-  protected Integer decode(byte[] data) {
+  public static Integer get(ZooKeeperPlus zk, String nodePath) throws InterruptedException, KeeperException {
+    return decodeValue(zk.getData(nodePath, null, null));
+  }
+
+  protected static Integer decodeValue(byte[] data) {
     if (data == null) {
       return null;
     }
     return Integer.parseInt(new String(data));
   }
 
-  @Override
-  protected byte[] encode(Integer v) {
+  protected static byte[] encodeValue(Integer v) {
     if (v == null) {
       return null;
     }
     return v.toString().getBytes();
+  }
+
+  @Override
+  protected Integer decode(byte[] data) {
+    return decodeValue(data);
+  }
+
+  @Override
+  protected byte[] encode(Integer v) {
+    return encodeValue(v);
   }
 }
