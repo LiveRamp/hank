@@ -13,10 +13,7 @@ import org.apache.thrift.transport.TNonblockingSocket;
 import org.apache.thrift.transport.TNonblockingTransport;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.List;
 
 public class HostConnection implements WatchedNodeListener<HostState> {
@@ -29,7 +26,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   private final Host host;
   private final Runnable connectionListener;
   private final TAsyncClientManager asyncClientManager;
-  private SocketChannel socket;
   private TNonblockingTransport transport;
   private PartitionServer.AsyncClient client;
 
@@ -67,6 +63,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
 
   public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) {
     try {
+      client.setTimeout(queryTimeoutMs);
       client.get(domainId, key, resultHandler);
     } catch (TException e) {
       resultHandler.onError(e);
@@ -75,6 +72,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
 
   public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) {
     try {
+      client.setTimeout(bulkQueryTimeoutMs);
       client.getBulk(domainId, keys, resultHandler);
     } catch (TException e) {
       resultHandler.onError(e);
@@ -115,23 +113,16 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     }
   }
 
+  public synchronized void attemptDisconnect() {
+    disconnectNotSynchronized();
+  }
+
   private void connectNotSynchronized() throws IOException {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Trying to connect to " + host.getAddress());
     }
     // Use connection timeout to connect
-    socket = SocketChannel.open(new InetSocketAddress(host.getAddress().getHostName(),
-        host.getAddress().getPortNumber()));
-    transport = new TNonblockingSocket(socket);
-    //try {
-    //transport.open();
-    // Set socket timeout to regular mode
-    setSocketTimeout(queryTimeoutMs);
-    //} catch (TTransportException e) {
-    //  LOG.error("Failed to establish connection to host " + host.getAddress(), e);
-    //  disconnectNotSynchronized();
-    //  throw new IOException("Failed to establish connection to host " + host.getAddress(), e);
-    //}
+    transport = new TNonblockingSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber(), establishConnectionTimeoutMs);
     TProtocolFactory factory = new TCompactProtocol.Factory();
     client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
     if (LOG.isTraceEnabled()) {
@@ -145,20 +136,9 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     if (transport != null) {
       transport.close();
     }
-    socket = null;
     transport = null;
     client = null;
     state = HostConnectionState.DISCONNECTED;
-  }
-
-  private void setSocketTimeout(int timeout) throws IOException {
-    if (socket != null) {
-      try {
-        socket.socket().setSoTimeout(timeout);
-      } catch (SocketException e) {
-        throw new IOException("Failed to set socket timeout to " + timeout, e);
-      }
-    }
   }
 
   @Override

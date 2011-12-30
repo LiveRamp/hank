@@ -47,14 +47,13 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   private final RingGroup ringGroup;
   private final Coordinator coordinator;
   private final int numConnectionsPerHost;
-  private final int queryMaxNumTries;
   private final int establishConnectionTimeoutMs;
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
   private final Dispatcher dispatcher;
   private final DispatcherThread dispatcherThread;
-  private final Thread connectorThread;
+  private final ConnectorThread connectorThread;
   private final Connector connector;
   private final TAsyncClientManager asyncClientManager;
 
@@ -114,19 +113,21 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     }
 
     this.numConnectionsPerHost = numConnectionsPerHost;
-    this.queryMaxNumTries = queryMaxNumTries;
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
 
     // Start Dispatcher thread
     dispatcher = new Dispatcher();
+    dispatcher.setTimeout(queryTimeoutMs);
+    dispatcher.setMaxRetry(queryMaxNumTries);
     dispatcherThread = new DispatcherThread(dispatcher);
     dispatcherThread.start();
 
     // Start Connector thread
     connector = new Connector();
     connectorThread = new ConnectorThread(connector);
+    connector.setConnectorThread(connectorThread);
     connectorThread.start();
 
     // Initialize asynchronous client manager
