@@ -118,9 +118,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
 
     // Start Dispatcher thread
-    dispatcher = new Dispatcher();
-    dispatcher.setTimeout(queryTimeoutMs);
-    dispatcher.setMaxRetry(queryMaxNumTries);
+    dispatcher = new Dispatcher(queryTimeoutMs, bulkQueryTimeoutMs, queryMaxNumTries);
     dispatcherThread = new DispatcherThread(dispatcher);
     dispatcherThread.start();
 
@@ -293,5 +291,10 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
   @Override
   public void onRingStateChange(Ring ring) {
     LOG.debug("Smart client notified of ring state change");
+  }
+
+  public void stop() {
+    connector.stop();
+    dispatcher.stop();
   }
 }
