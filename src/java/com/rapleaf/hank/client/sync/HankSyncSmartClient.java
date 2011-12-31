@@ -43,8 +43,14 @@ public class HankSyncSmartClient implements SmartClient.Iface {
                              int establishConnectionTimeoutMs,
                              int queryTimeoutMs,
                              int bulkQueryTimeoutMs) throws IOException, TException {
-    asyncSmartClient = new HankAsyncSmartClient(coordinator, ringGroupName, numConnectionsPerHost,
-        queryMaxNumTries, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs);
+    asyncSmartClient = new HankAsyncSmartClient(
+            coordinator,
+            ringGroupName,
+            numConnectionsPerHost,
+            queryMaxNumTries,
+            /*establishConnectionTimeoutMs*/0,
+            queryTimeoutMs,
+            bulkQueryTimeoutMs);
   }
 
   private static class SyncGetCallback implements GetCallback {

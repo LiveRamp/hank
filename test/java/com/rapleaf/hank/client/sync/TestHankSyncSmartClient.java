@@ -165,6 +165,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
     private static enum Mode {
       NORMAL,
       HANGING,
+      HARD_HANGING,
       FAILING,
       THROWING_ERROR
     }
@@ -197,8 +198,15 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       switch (mode) {
         case HANGING:
           // Simulating hanging
-          while (true) {
+          try {
+            Thread.sleep(5000);
+            break;
+          } catch (InterruptedException e) {
+
           }
+        case HARD_HANGING:
+          // Simulating hanging
+          while (true) {}
         case FAILING:
           throw new RuntimeException("In failing mode.");
         case THROWING_ERROR:
@@ -268,7 +276,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
   public void testGet() throws Exception {
     HankSyncSmartClient c = null;
     try {
-      c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0);
+      c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 2, 0, 1000, 0);
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), c.get("nonexistent_domain", null));
@@ -308,11 +316,14 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       // Simulate servers that hangs
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
-//      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-//          c.get("existent_domain", KEY_1));
-//      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-//          c.get("existent_domain", KEY_2));
-      LOG.trace("--------------------------Done testing");
+      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+      assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
+
+      // Simulate servers that hangs
+      //((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HARD_HANGING);
+      //((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HARD_HANGING);
+      //assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+      //assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
     } finally {
       if (c != null) {
         c.stop();
@@ -325,6 +336,29 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       transport2.close();
     }
   }
+//
+//  public void testConnectionTimeout() throws Exception {
+//    HankSyncSmartClient c = null;
+//    try {
+//      c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 1000, 0);
+//      // Simulate servers that hangs
+//      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
+//      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
+//      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+//      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
+//
+//    } finally {
+//      if (c != null) {
+//        c.stop();
+//      }
+//      server1.stop();
+//      server2.stop();
+//      thread1.join();
+//      thread2.join();
+//      transport1.close();
+//      transport2.close();
+//    }
+//  }
 
   /*
   public void testGetBulk() throws Exception {

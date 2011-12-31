@@ -41,6 +41,10 @@ public class  HostConnectionPool {
       this.hostConnection = hostConnection;
       this.hostIndex = hostIndex;
     }
+
+    public String toString() {
+      return "HostConnectionAndHostIndex[" + hostIndex + ", " + hostConnection + "]";
+    }
   }
 
   HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap,

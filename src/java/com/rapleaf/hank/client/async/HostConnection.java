@@ -4,6 +4,7 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.TAsyncClientManager;
@@ -59,9 +60,13 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     host.setStateChangeListener(this);
     onWatchedNodeChange(host.getState());
+    if (this.establishConnectionTimeoutMs != 0) {
+      throw new NotImplementedException("ConnectionTimeout is not implemented. Set it to 0.");
+    }
   }
 
   public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) {
+    checkValidState();
     try {
       client.setTimeout(queryTimeoutMs);
       client.get(domainId, key, resultHandler);
@@ -71,6 +76,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   }
 
   public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) {
+    checkValidState();
     try {
       client.setTimeout(bulkQueryTimeoutMs);
       client.getBulk(domainId, keys, resultHandler);
@@ -97,6 +103,10 @@ public class HostConnection implements WatchedNodeListener<HostState> {
 
   protected boolean isDisconnected() {
     return state == HostConnectionState.DISCONNECTED;
+  }
+
+  protected boolean isConnecting() {
+    return state == HostConnectionState.CONNECTING;
   }
 
   protected boolean isConnected() {
@@ -129,10 +139,15 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       LOG.trace("Connection to " + host.getAddress() + " opened.");
     }
     state = HostConnectionState.CONNECTED;
-    connectionListener.run();
+    if (connectionListener != null) {
+      connectionListener.run();
+    }
   }
 
   private void disconnectNotSynchronized() {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Disconnecting " + host.getAddress().getHostName() + ":" + host.getAddress().getPortNumber());
+    }
     if (transport != null) {
       transport.close();
     }
@@ -141,11 +156,19 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     state = HostConnectionState.DISCONNECTED;
   }
 
+  private void checkValidState() {
+    if (client == null || isStandby() || !isConnected() || !isBusy()) {
+      throw new IllegalStateException();
+    }
+  }
+
   @Override
   public void onWatchedNodeChange(HostState hostState) {
     if (hostState != null && hostState == HostState.SERVING) {
       isStandby = false;
-      connectionListener.run();
+      if (connectionListener != null) {
+        connectionListener.run();
+      }
     } else {
       isStandby = true;
     }
@@ -155,5 +178,11 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   public String toString() {
     return "AsyncHostConnection [host=" + host.getAddress() + ", state=" + state
         + ", busy=" + isBusy + ", standby=" + isStandby + "]";
+  }
+
+  protected class IllegalStateException extends RuntimeException {
+    public IllegalStateException() {
+      super("Invalid state for request: " + HostConnection.this);
+    }
   }
 }

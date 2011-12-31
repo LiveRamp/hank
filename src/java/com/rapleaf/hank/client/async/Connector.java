@@ -65,12 +65,16 @@ class Connector implements Runnable {
     synchronized (connections) {
       connections.addLast(connection);
     }
-    connectorThread.interrupt();
+    if (connectorThread != null) {
+      connectorThread.interrupt();
+    }
   }
 
   public void stop() {
     stopping = true;
-    connectorThread.interrupt();
+    if (connectorThread != null) {
+      connectorThread.interrupt();
+    }
   }
 
   public void setConnectorThread(ConnectorThread connectorThread) {
