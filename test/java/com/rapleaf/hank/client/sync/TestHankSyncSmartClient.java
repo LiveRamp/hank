@@ -336,29 +336,6 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       transport2.close();
     }
   }
-//
-//  public void testConnectionTimeout() throws Exception {
-//    HankSyncSmartClient c = null;
-//    try {
-//      c = new HankSyncSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 1000, 0);
-//      // Simulate servers that hangs
-//      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
-//      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
-//      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
-//      assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
-//
-//    } finally {
-//      if (c != null) {
-//        c.stop();
-//      }
-//      server1.stop();
-//      server2.stop();
-//      thread1.join();
-//      thread2.join();
-//      transport1.close();
-//      transport2.close();
-//    }
-//  }
 
   /*
   public void testGetBulk() throws Exception {
