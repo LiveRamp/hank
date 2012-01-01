@@ -99,6 +99,10 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
     return getInteger(PARENT_KEY);
   }
 
+  public String getSource() {
+    return getOptionalString(SOURCE_KEY);
+  }
+
   public boolean isBase() {
     return getParentVersionNumber() == null;
   }
@@ -115,5 +119,22 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
         return domain.getVersionByNumber(parentVersionNumber);
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    Integer parentVersionNumber = getParentVersionNumber();
+    String source = getSource();
+    if (parentVersionNumber == null) {
+      result.append("Base");
+    } else {
+      result.append("Delta (parent: " + parentVersionNumber + ")");
+    }
+    if (source != null) {
+      result.append(", Source: ");
+      result.append(source);
+    }
+    return result.toString();
   }
 }

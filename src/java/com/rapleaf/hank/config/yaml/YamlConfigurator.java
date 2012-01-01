@@ -134,6 +134,14 @@ public abstract class YamlConfigurator implements Serializable {
     }
   }
 
+  protected String getOptionalString(String... optionPath) {
+    try {
+      return getRequiredString(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return null;
+    }
+  }
+
   protected Integer getRequiredInteger(String... optionPath) throws InvalidConfigurationException {
     Object option = getRequiredOption(optionPath);
     if (option != null && !(option instanceof Integer)) {
@@ -147,6 +155,14 @@ public abstract class YamlConfigurator implements Serializable {
       return getRequiredInteger(optionPath);
     } catch (InvalidConfigurationException e) {
       throw new RuntimeException(e);
+    }
+  }
+
+  protected Integer getOptionalInteger(String... optionPath) {
+    try {
+      return getRequiredInteger(optionPath);
+    } catch (InvalidConfigurationException e) {
+      return null;
     }
   }
 
