@@ -29,8 +29,11 @@ import java.util.TreeMap;
 
 public class IncrementalDomainVersionProperties extends YamlConfigurator implements DomainVersionProperties {
 
+
   private static final String PARENT_KEY = "parent";
   private static final String SOURCE_KEY = "source";
+
+  private static final long serialVersionUID = 1;
 
   // Static helper classes to create properties objects
 
