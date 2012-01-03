@@ -18,22 +18,17 @@ package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersionProperties;
-import com.rapleaf.hank.coordinator.Domains;
+import com.rapleaf.hank.coordinator.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class IncrementalDomainVersionProperties extends YamlConfigurator implements DomainVersionProperties {
+public class IncrementalDomainVersionProperties implements DomainVersionProperties {
 
-
-  private static final String PARENT_KEY = "parent";
-  private static final String SOURCE_KEY = "source";
-
-  private static final long serialVersionUID = 1;
+  private final Integer parentVersion;
+  private final String source;
 
   // Static helper classes to create properties objects
 
@@ -80,30 +75,16 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
   }
 
   public IncrementalDomainVersionProperties(Integer parentVersion, String source) {
-    try {
-      Map<String, Object> yaml = new TreeMap<String, Object>();
-      yaml.put(PARENT_KEY, parentVersion);
-      if (source != null) {
-        yaml.put(SOURCE_KEY, source);
-      }
-      loadFromObjectMap(yaml);
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Failed to construct IncrementalDomainVersionProperties.", e);
-    }
-  }
-
-  @Override
-  protected void validate() throws InvalidConfigurationException {
-    this.checkNonEmptyConfiguration();
-    this.getRequiredInteger(PARENT_KEY);
+    this.parentVersion = parentVersion;
+    this.source = source;
   }
 
   public Integer getParentVersionNumber() {
-    return getInteger(PARENT_KEY);
+    return parentVersion;
   }
 
   public String getSource() {
-    return getOptionalString(SOURCE_KEY);
+    return source;
   }
 
   public boolean isBase() {
@@ -121,6 +102,66 @@ public class IncrementalDomainVersionProperties extends YamlConfigurator impleme
       } else {
         return domain.getVersionByNumber(parentVersionNumber);
       }
+    }
+  }
+
+  public static class Serialization implements DomainVersionPropertiesSerialization {
+
+    private static final String PARENT_KEY = "parent";
+    private static final String SOURCE_KEY = "source";
+    private static final String SERIALIZATION_CHARSET = "UTF-8";
+
+    private static class Configurator extends YamlConfigurator {
+
+      @Override
+      protected void validate() throws InvalidConfigurationException {
+        this.checkNonEmptyConfiguration();
+        this.getRequiredInteger(PARENT_KEY);
+      }
+
+      protected Integer getParentVersionNumber() throws InvalidConfigurationException {
+        return getRequiredInteger(PARENT_KEY);
+      }
+
+      protected String getSource() {
+        return getOptionalString(SOURCE_KEY);
+      }
+    }
+
+    @Override
+    public DomainVersionProperties deserializeProperties(byte[] serializedProperties) throws IOException {
+      String yaml;
+      try {
+        yaml = new String(serializedProperties, SERIALIZATION_CHARSET);
+      } catch (UnsupportedEncodingException e) {
+        throw new IOException("Failed to deserialize domain version properties.", e);
+      }
+      Configurator configurator = new Configurator();
+      try {
+        configurator.loadFromYaml(yaml);
+        return new IncrementalDomainVersionProperties(
+            configurator.getParentVersionNumber(),
+            configurator.getSource());
+      } catch (InvalidConfigurationException e) {
+        throw new IOException("Failed to deserialize domain version properties.", e);
+      }
+    }
+
+    @Override
+    public byte[] serializeProperties(DomainVersionProperties propertiesObj) throws IOException {
+      IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) propertiesObj;
+      Configurator configurator = new Configurator();
+      Map<String, Object> yaml = new TreeMap<String, Object>();
+      yaml.put(PARENT_KEY, properties.getParentVersionNumber());
+      if (properties.getSource() != null) {
+        yaml.put(SOURCE_KEY, properties.getSource());
+      }
+      try {
+        configurator.loadFromObjectMap(yaml);
+      } catch (InvalidConfigurationException e) {
+        throw new IOException("Failed to serialize domain version properties.", e);
+      }
+      return configurator.toYaml().getBytes(SERIALIZATION_CHARSET);
     }
   }
 

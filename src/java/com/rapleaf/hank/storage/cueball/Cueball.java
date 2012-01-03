@@ -21,6 +21,7 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
@@ -311,5 +312,10 @@ public class Cueball implements StorageEngine {
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
     return new CueballRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
+  }
+
+  @Override
+  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
+    return new IncrementalDomainVersionProperties.Serialization();
   }
 }

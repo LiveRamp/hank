@@ -17,6 +17,7 @@ package com.rapleaf.hank.storage.mock;
 
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.storage.*;
 
 import java.io.IOException;
@@ -72,6 +73,11 @@ public class MockStorageEngine implements StorageEngine {
 
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
+    return null;
+  }
+
+  @Override
+  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     return null;
   }
 }

@@ -16,11 +16,7 @@
 
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.AbstractDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersionProperties;
-import com.rapleaf.hank.coordinator.DomainVersions;
-import com.rapleaf.hank.coordinator.PartitionProperties;
-import com.rapleaf.hank.util.SerializationUtils;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.zookeeper.KeeperException;
@@ -37,6 +33,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
+  private final DomainVersionPropertiesSerialization domainVersionPropertiesFactory;
 
   private final WatchedBytes properties;
   private final Map<String, ZkPartitionProperties> partitionProperties;
@@ -45,24 +42,29 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   public static ZkDomainVersion create(ZooKeeperPlus zk,
                                        String domainPath,
                                        int versionNumber,
-                                       DomainVersionProperties domainVersionProperties)
+                                       DomainVersionProperties domainVersionProperties,
+                                       DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws KeeperException, InterruptedException, IOException {
     String versionPath = ZkPath.append(domainPath, "versions", "version_" + versionNumber);
     if (domainVersionProperties != null) {
-      zk.create(versionPath, SerializationUtils.serializeObject(domainVersionProperties));
+      if (domainVersionPropertiesSerialization == null) {
+        throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
+      }
+      zk.create(versionPath, domainVersionPropertiesSerialization.serializeProperties(domainVersionProperties));
     } else {
       zk.create(versionPath, null);
     }
     zk.create(ZkPath.append(versionPath, "parts"), null);
     zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
     zk.create(ZkPath.append(versionPath, DotComplete.NODE_NAME), null);
-    return new ZkDomainVersion(zk, versionPath);
+    return new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization);
   }
 
-  public ZkDomainVersion(ZooKeeperPlus zk, String path)
+  public ZkDomainVersion(ZooKeeperPlus zk, String path, DomainVersionPropertiesSerialization domainVersionPropertiesFactory)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
+    this.domainVersionPropertiesFactory = domainVersionPropertiesFactory;
     String last = ZkPath.getFilename(path);
     String[] toks = last.split("_");
     this.versionNumber = Integer.parseInt(toks[1]);
@@ -142,18 +144,22 @@ public class ZkDomainVersion extends AbstractDomainVersion {
 
   @Override
   public DomainVersionProperties getProperties() throws IOException {
-    byte[] propertiesBytes = properties.get();
-    if (propertiesBytes == null) {
+    byte[] serializedProperties = properties.get();
+    if (serializedProperties == null) {
       return null;
     } else {
-      return (DomainVersionProperties) SerializationUtils.deserializeObject(propertiesBytes);
+      return domainVersionPropertiesFactory.deserializeProperties(serializedProperties);
     }
   }
 
   @Override
   public void setProperties(DomainVersionProperties properties) throws IOException {
     try {
-      this.properties.set(SerializationUtils.serializeObject(properties));
+      if (properties == null) {
+        this.properties.set(null);
+      } else {
+        this.properties.set(domainVersionPropertiesFactory.serializeProperties(properties));
+      }
     } catch (KeeperException e) {
       throw new IOException("Failed to set Domain Version Properties", e);
     } catch (InterruptedException e) {

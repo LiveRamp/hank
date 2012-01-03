@@ -3,6 +3,7 @@ package com.rapleaf.hank.storage.echo;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.storage.*;
 
 import java.io.IOException;
@@ -76,6 +77,11 @@ public class Echo implements StorageEngine {
 
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
+    return null;
+  }
+
+  @Override
+  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     return null;
   }
 }
