@@ -16,19 +16,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomain;
-import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.HdfsPartitionRemoteFileOps;
-import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.storage.cueball.Cueball;
-import com.rapleaf.hank.storage.curly.Curly;
-import com.rapleaf.hank.storage.curly.CurlyFastPartitionUpdater;
-import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -121,51 +114,6 @@ public class ZkDomain extends AbstractDomain {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
       throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
-    }
-    // TODO: remove
-    // Migration code to add properties
-    if (storageEngineFactoryName.equals("com.rapleaf.hank.storage.curly.Curly$Factory")) {
-      try {
-        for (DomainVersion version : getVersions()) {
-          //if (version.getProperties() == null) {
-          DomainVersion parent = getParentDomainVersion(
-              new HdfsPartitionRemoteFileOps("/data/hank/" + getName(), 0),
-              this, version);
-          version.setProperties(new IncrementalDomainVersionProperties(
-              parent == null ? null : parent.getVersionNumber()));
-          //}
-        }
-      } catch (IOException e) {
-        throw new RuntimeException(e);  //TODO: Deal with exception
-      }
-    }
-  }
-
-  private DomainVersion getParentDomainVersion(PartitionRemoteFileOps partitionRemoteFileOps,
-                                               Domain domain,
-                                               DomainVersion domainVersion) throws IOException {
-    if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
-        && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))) {
-      // Base files exists, there is no parent
-      return null;
-    } else if ((partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-        && partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false)))
-        || CurlyFastPartitionUpdater.isEmptyVersion(partitionRemoteFileOps, domainVersion)) {
-      // Delta files exists, or the version is empty, the parent is just the previous version based on version number
-      int versionNumber = domainVersion.getVersionNumber();
-      if (versionNumber <= 0) {
-        return null;
-      } else {
-        DomainVersion result = domain.getVersionByNumber(versionNumber - 1);
-        if (result == null) {
-          throw new IOException("Failed to find version numbered " + (versionNumber - 1)
-              + " of domain " + domain
-              + " which was determined be the parent of domain version " + domainVersion);
-        }
-        return result;
-      }
-    } else {
-      throw new IOException("Failed to determine parent version of domain version " + domainVersion);
     }
   }
 
