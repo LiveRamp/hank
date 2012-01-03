@@ -16,5 +16,11 @@
 
 package com.rapleaf.hank.coordinator;
 
-public interface DomainVersionProperties {
+import java.io.IOException;
+
+public interface DomainVersionPropertiesSerialization {
+
+  public DomainVersionProperties deserializeProperties(byte[] serializedProperties) throws IOException;
+
+  byte[] serializeProperties(DomainVersionProperties properties) throws IOException;
 }

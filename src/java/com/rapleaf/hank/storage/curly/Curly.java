@@ -20,6 +20,7 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
@@ -388,5 +389,10 @@ public class Curly implements StorageEngine {
   @Override
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException {
     return new CurlyRemoteDomainCleaner(domain, numRemoteLeafVersionsToKeep);
+  }
+
+  @Override
+  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
+    return new IncrementalDomainVersionProperties.Serialization();
   }
 }

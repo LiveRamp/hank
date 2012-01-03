@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.coordinator.AbstractDomain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -96,11 +97,13 @@ public class ZkDomain extends AbstractDomain {
     this.storageEngineOptions =
         (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
     this.storageEngineFactoryName = zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
+    final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization =
+        getStorageEngine().getDomainVersionPropertiesSerialization();
 
     final ElementLoader<ZkDomainVersion> elementLoader = new ElementLoader<ZkDomainVersion>() {
       @Override
       public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath));
+        return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
       }
     };
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
@@ -194,7 +197,8 @@ public class ZkDomain extends AbstractDomain {
     }
 
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties);
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties,
+          getStorageEngine().getDomainVersionPropertiesSerialization());
       versions.put(newVersion.getPathSeg(), newVersion);
       return newVersion;
     } catch (Exception e) {

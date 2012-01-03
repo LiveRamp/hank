@@ -18,6 +18,7 @@ package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -52,4 +53,6 @@ public interface StorageEngine {
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
 
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
+
+  public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization();
 }
