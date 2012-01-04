@@ -39,29 +39,11 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public Integer getUpdatingToVersionNumber() {
-      return null;
-    }
-
-    @Override
-    public Integer getCurrentVersionNumber() {
-      return null;
-    }
-
-    @Override
-    public void setCurrentVersion(Integer version) throws IOException {
-    }
-
-    @Override
     public void setState(RingState newState) throws IOException {
     }
 
     @Override
     public void setStateChangeListener(RingStateChangeListener listener) throws IOException {
-    }
-
-    @Override
-    public void setUpdatingToVersion(Integer version) throws IOException {
     }
 
     @Override
@@ -72,22 +54,6 @@ public class TestAbstractRing extends BaseTestCase {
     @Override
     public void delete() throws IOException {
     }
-  }
-
-  public void testIsUpdatePending() {
-    assertTrue(Rings.isUpdatePending(new SlightlyLessAbstractRing(1, null) {
-      @Override
-      public Integer getUpdatingToVersionNumber() {
-        return 5;
-      }
-    }));
-
-    assertFalse(Rings.isUpdatePending(new SlightlyLessAbstractRing(1, null) {
-      @Override
-      public Integer getUpdatingToVersionNumber() {
-        return null;
-      }
-    }));
   }
 
   public void testCommandAll() throws IOException {
@@ -112,8 +78,8 @@ public class TestAbstractRing extends BaseTestCase {
   public void testGetHostsForDomainPartition() throws Exception {
     final Domain d0 = new MockDomain("d0");
     final Host hc = new MockHost(LOCALHOST) {
-      HostDomain hd1 = new MockHostDomain(d0, 1, 1, 2, 2, 2, 2);
-      HostDomain hd2 = new MockHostDomain(null, 1, 2, 2, 2, 2, 2);
+      HostDomain hd1 = new MockHostDomain(d0, 1, 1, 2, 2);
+      HostDomain hd2 = new MockHostDomain(null, 1, 2, 2, 2);
 
       @Override
       public Set<HostDomain> getAssignedDomains() throws IOException {
@@ -206,7 +172,7 @@ public class TestAbstractRing extends BaseTestCase {
       public LocalMockHostDomain(Domain domain, int... assignedPartitions) {
         super(domain);
         for (int partition : assignedPartitions) {
-          partitions.add(new MockHostDomainPartition(partition, 0, 0));
+          partitions.add(new MockHostDomainPartition(partition, 0));
         }
       }
 

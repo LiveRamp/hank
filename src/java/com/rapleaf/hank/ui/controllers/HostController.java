@@ -91,8 +91,7 @@ public class HostController extends Controller {
     if (d == null) {
       d = h.addDomain(domain);
     }
-    d.addPartition(Integer.parseInt(req.getParameter("partNum")),
-        Integer.parseInt(req.getParameter("initialVersion")));
+    d.addPartition(Integer.parseInt(req.getParameter("partNum")));
 
     redirectBack(resp, rg, r, h);
   }

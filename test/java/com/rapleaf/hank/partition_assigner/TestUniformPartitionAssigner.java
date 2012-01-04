@@ -99,65 +99,65 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
     }
   }
 
-  private final static HostDomain hostDomain1 = new MockHostDomain(domain, 0, 0, 1) {
+  private final static HostDomain hostDomain1 = new MockHostDomain(domain, 0, 0) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
 
       for (Integer partNum : partsOn1) {
-        partitions.add(new MockHostDomainPartition(partNum, 0, 1));
+        partitions.add(new MockHostDomainPartition(partNum, 0));
       }
 
       return partitions;
     }
 
     @Override
-    public HostDomainPartition addPartition(int partNum, int initialVersion) {
+    public HostDomainPartition addPartition(int partNum) {
       partsOn1.add(partNum);
       return null;
     }
   };
 
-  private final static HostDomain hostDomain2 = new MockHostDomain(domain, 0, 0, 1) {
+  private final static HostDomain hostDomain2 = new MockHostDomain(domain, 0, 0) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
 
       for (Integer partNum : partsOn2) {
-        partitions.add(new MockHostDomainPartition(partNum, 0, 1));
+        partitions.add(new MockHostDomainPartition(partNum, 0));
       }
 
       return partitions;
     }
 
     @Override
-    public HostDomainPartition addPartition(int partNum, int initialVersion) {
+    public HostDomainPartition addPartition(int partNum) {
       partsOn2.add(partNum);
       return null;
     }
   };
 
-  private final static HostDomain hostDomain3 = new MockHostDomain(domain, 0, 0, 1) {
+  private final static HostDomain hostDomain3 = new MockHostDomain(domain, 0, 0) {
     @Override
     public Set<HostDomainPartition> getPartitions() {
       Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
 
       for (Integer partNum : partsOn3) {
-        partitions.add(new MockHostDomainPartition(partNum, 0, 1));
+        partitions.add(new MockHostDomainPartition(partNum, 0));
       }
 
       return partitions;
     }
 
     @Override
-    public HostDomainPartition addPartition(int partNum, int initialVersion) {
+    public HostDomainPartition addPartition(int partNum) {
       partsOn3.add(partNum);
       return null;
     }
   };
 
   private static final HashSet<Ring> rings = new HashSet<Ring>();
-  private static final RingGroup ringGroup = new MockRingGroup(domainGroup, "TestRingGroup", rings) {
+  private static final RingGroup ringGroup = new MockRingGroup(domainGroup, "TestRingGroup", rings, null) {
     @Override
     public Ring getRing(int ringNumber) {
       return ring;
@@ -236,8 +236,9 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
       HostDomain hostDomain = host.getHostDomain(domainId);
       for (HostDomainPartition hdp : hostDomain.getPartitions()) {
         int partNum = hdp.getPartitionNumber();
-        if (partNums.contains(partNum))
+        if (partNums.contains(partNum)) {
           return false;
+        }
         partNums.add(partNum);
       }
     }

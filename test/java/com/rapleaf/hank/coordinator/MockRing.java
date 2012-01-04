@@ -22,22 +22,11 @@ import java.util.Set;
 public class MockRing extends AbstractRing {
   private RingState state;
   private final Set<Host> hosts;
-  public Integer currentVersion;
-  public Integer updatingToVersion;
 
   public MockRing(Set<PartitionServerAddress> hosts,
                   RingGroup ringGroup,
                   int number,
                   RingState state) {
-    this(hosts, ringGroup, number, state, null, null);
-  }
-
-  public MockRing(Set<PartitionServerAddress> hosts,
-                  RingGroup ringGroup,
-                  int number,
-                  RingState state,
-                  Integer currentVersion,
-                  Integer updatingToVersion) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {
@@ -46,8 +35,6 @@ public class MockRing extends AbstractRing {
       }
     }
     this.state = state;
-    this.currentVersion = currentVersion;
-    this.updatingToVersion = updatingToVersion;
   }
 
   @Override
@@ -58,26 +45,6 @@ public class MockRing extends AbstractRing {
   @Override
   public RingState getState() {
     return state;
-  }
-
-  @Override
-  public Integer getCurrentVersionNumber() {
-    return currentVersion;
-  }
-
-  @Override
-  public void setCurrentVersion(Integer version) throws IOException {
-    currentVersion = version;
-  }
-
-  @Override
-  public Integer getUpdatingToVersionNumber() {
-    return updatingToVersion;
-  }
-
-  @Override
-  public void setUpdatingToVersion(Integer version) throws IOException {
-    updatingToVersion = version;
   }
 
   @Override

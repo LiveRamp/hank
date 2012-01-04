@@ -25,7 +25,7 @@ import java.io.IOException;
 
 public class TestHostMonitor extends BaseTestCase {
 
-  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", null);
+  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", null, null);
   private Ring mockRing = new MockRing(null, mockRingGroup, 0, null);
   private Host mockHost;
   private MockNotifier mockNotifier;

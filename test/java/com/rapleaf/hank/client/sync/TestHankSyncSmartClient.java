@@ -53,7 +53,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
   private TServer server2;
   private Thread thread2;
 
-  public void setUp() throws Exception{
+  public void setUp() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;
 
@@ -72,12 +72,12 @@ public class TestHankSyncSmartClient extends BaseTestCase {
     thread2.start();
 
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
-            new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
+        new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
 
     host1 = getHost(existentDomain, new PartitionServerAddress("localhost",
-            server1Port), 0);
+        server1Port), 0);
     host2 = getHost(existentDomain, new PartitionServerAddress("localhost",
-            server2Port), 1);
+        server2Port), 1);
 
     final MockRing mockRing = new MockRing(null, null, 1, RingState.OPEN) {
 
@@ -111,13 +111,13 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       @Override
       public DomainGroupVersion getVersionByNumber(int version) {
         return new MockDomainGroupVersion(
-                new HashSet<DomainGroupVersionDomainVersion>(
-                        Arrays.asList(new MockDomainGroupVersionDomainVersion(
-                                existentDomain, 1))), this, 1);
+            new HashSet<DomainGroupVersionDomainVersion>(
+                Arrays.asList(new MockDomainGroupVersionDomainVersion(
+                    existentDomain, 1))), this, 1);
       }
     };
     final MockRingGroup mockRingGroup = new MockRingGroup(
-            mockDomainGroup, "myRingGroup", null, 0, null) {
+        mockDomainGroup, "myRingGroup", null, 0) {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);
@@ -206,7 +206,8 @@ public class TestHankSyncSmartClient extends BaseTestCase {
           }
         case HARD_HANGING:
           // Simulating hanging
-          while (true) {}
+          while (true) {
+          }
         case FAILING:
           throw new RuntimeException("In failing mode.");
         case THROWING_ERROR:
@@ -251,7 +252,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain) new MockHostDomain(domain) {
           @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+          public HostDomainPartition addPartition(int partNum) {
             return null;
           }
 
@@ -259,7 +260,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
           public Set<HostDomainPartition> getPartitions() {
             return Collections
                 .singleton((HostDomainPartition) new MockHostDomainPartition(
-                    partNum, 1, -1));
+                    partNum, 1));
           }
         });
       }
@@ -288,13 +289,13 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       // Host state change
       host1.setState(HostState.OFFLINE);
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-              c.get("existent_domain", KEY_1));
+          c.get("existent_domain", KEY_1));
 
       host2.setState(HostState.UPDATING);
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-              c.get("existent_domain", KEY_1));
+          c.get("existent_domain", KEY_1));
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-              c.get("existent_domain", KEY_2));
+          c.get("existent_domain", KEY_2));
 
       host1.setState(HostState.SERVING);
       host2.setState(HostState.SERVING);

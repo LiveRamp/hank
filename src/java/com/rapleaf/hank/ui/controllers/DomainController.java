@@ -117,12 +117,12 @@ public class DomainController extends Controller {
     final Domain domain = coordinator.getDomain(req.getParameter("name"));
     // check if this domain is in use anywhere
     for (RingGroup rg : coordinator.getRingGroups()) {
-      if (rg.getCurrentVersion() == null) {
+      if (rg.getTargetVersion() == null) {
         continue;
       }
 
       DomainGroup dg = rg.getDomainGroup();
-      DomainGroupVersion dgv = rg.getCurrentVersion();
+      DomainGroupVersion dgv = rg.getTargetVersion();
       if (DomainGroupVersions.containsDomain(dgv, domain)) {
         resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
         return;

@@ -73,11 +73,11 @@ public class ZkHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException {
+  public HostDomainPartition addPartition(int partNum) throws IOException {
     if (partitions.containsKey(Integer.toString(partNum))) {
       throw new IOException("Partition " + partNum + " is already assigned to host domain " + this);
     }
-    final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum, initialVersion);
+    final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum);
     partitions.put(Integer.toString(partNum), part);
     return part;
   }

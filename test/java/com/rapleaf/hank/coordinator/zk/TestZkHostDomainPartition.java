@@ -20,27 +20,16 @@ import com.rapleaf.hank.zookeeper.ZkPath;
 
 public class TestZkHostDomainPartition extends ZkTestCase {
   public void testIt() throws Exception {
-    ZkHostDomainPartition hdpc = ZkHostDomainPartition.create(getZk(),
-        getRoot(), 1234, 7);
+    ZkHostDomainPartition hdpc = ZkHostDomainPartition.create(getZk(), getRoot(), 1234);
     Thread.sleep(10);
     assertEquals(1234, hdpc.getPartitionNumber());
-    assertNull("current version should be unset",
-        hdpc.getCurrentDomainGroupVersion());
-    assertEquals(Integer.valueOf(7), hdpc.getUpdatingToDomainGroupVersion());
+    assertNull("current version should be unset", hdpc.getCurrentDomainGroupVersion());
 
     hdpc.setCurrentDomainGroupVersion(7);
     Thread.sleep(10);
     assertEquals(Integer.valueOf(7), hdpc.getCurrentDomainGroupVersion());
 
-    hdpc.setUpdatingToDomainGroupVersion(8);
-    Thread.sleep(10);
-    assertEquals(Integer.valueOf(8), hdpc.getUpdatingToDomainGroupVersion());
-
-    hdpc.setUpdatingToDomainGroupVersion(null);
-    Thread.sleep(10);
-    assertNull(hdpc.getUpdatingToDomainGroupVersion());
     assertEquals(false, hdpc.isDeletable());
-
     hdpc.setDeletable(true);
     ZkHostDomainPartition hdpc2 = new ZkHostDomainPartition(getZk(), ZkPath.append(getRoot(), Integer.toString(1234)));
     Thread.sleep(10);

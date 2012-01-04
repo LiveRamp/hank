@@ -26,10 +26,6 @@ public final class RingGroups {
   private RingGroups() {
   }
 
-  public static boolean isUpdating(RingGroup ringGroup) throws IOException {
-    return ringGroup.getUpdatingToVersion() != null;
-  }
-
   public static boolean isUpToDate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isUpToDate(ring, domainGroupVersion)) {
@@ -62,16 +58,6 @@ public final class RingGroups {
       result.addAll(Rings.getHostsInState(ring, state));
     }
     return result;
-  }
-
-  public static DomainGroupVersion getMostRecentVersion(RingGroup ringGroup) throws IOException {
-    // Use updating to version if there is one, current version otherwise
-    if (ringGroup.getUpdatingToVersion() != null) {
-      return ringGroup.getUpdatingToVersion();
-    } else if (ringGroup.getCurrentVersion() != null) {
-      return ringGroup.getCurrentVersion();
-    }
-    return null;
   }
 
   public static ServingStatusAggregator

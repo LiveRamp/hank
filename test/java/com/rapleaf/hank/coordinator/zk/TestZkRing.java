@@ -55,8 +55,6 @@ public class TestZkRing extends ZkTestCase {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
 
     assertEquals("ring number", 1, ring.getRingNumber());
-    assertNull("version number", ring.getCurrentVersionNumber());
-    assertNull("updating to version", ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
     assertEquals("initial state", RingState.CLOSED, ring.getState());
     ring.close();
@@ -69,40 +67,8 @@ public class TestZkRing extends ZkTestCase {
     ring = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null, coordinator);
 
     assertEquals("ring number", 1, ring.getRingNumber());
-    assertNull("version number", ring.getCurrentVersionNumber());
-    assertNull("updating to version", ring.getUpdatingToVersionNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
     assertEquals("initial state", RingState.CLOSED, ring.getState());
-    ring.close();
-  }
-
-  public void testUpdatingSemantics() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
-
-    assertNull("updating_to_version number", ring.getUpdatingToVersionNumber());
-
-    ring.setUpdatingToVersion(1);
-    Thread.sleep(10);
-
-    assertEquals("updating_to_version number", Integer.valueOf(1), ring.getUpdatingToVersionNumber());
-    assertTrue("should be updating", Rings.isUpdatePending(ring));
-    assertNull("current version", ring.getCurrentVersionNumber());
-
-    ring.markUpdateComplete();
-    Thread.sleep(10);
-
-    assertFalse("updating", Rings.isUpdatePending(ring));
-    assertEquals("current version", Integer.valueOf(1), ring.getCurrentVersionNumber());
-    assertNull("updating to version", ring.getUpdatingToVersionNumber());
-
-    ring.setUpdatingToVersion(7);
-    Thread.sleep(10);
-
-    assertTrue("should be updating", Rings.isUpdatePending(ring));
-    assertEquals("current version", Integer.valueOf(1), ring.getCurrentVersionNumber());
-    assertEquals("updating_to_version number", Integer.valueOf(7),
-        ring.getUpdatingToVersionNumber());
-
     ring.close();
   }
 
@@ -145,17 +111,6 @@ public class TestZkRing extends ZkTestCase {
     assertEquals(RingState.OPEN, ring.getState());
     ring = new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-1"), null, coordinator);
     assertEquals(RingState.OPEN, ring.getState());
-  }
-
-  public void testSetUpdatingToVersion() throws Exception {
-    Ring ring = ZkRing.create(getZk(), coordinator, getRoot(), 1, null);
-    Thread.sleep(10);
-    ring.markUpdateComplete();
-    Thread.sleep(10);
-    assertNull(ring.getUpdatingToVersionNumber());
-    ring.setUpdatingToVersion(7);
-    Thread.sleep(10);
-    assertEquals(Integer.valueOf(7), ring.getUpdatingToVersionNumber());
   }
 
   public void testRingStateListener() throws Exception {

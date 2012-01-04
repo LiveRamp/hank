@@ -176,7 +176,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
     final MockRingGroup mockRingGroup = new MockRingGroup(
-        mockDomainGroup, "myRingGroup", null, 0, null) {
+        mockDomainGroup, "myRingGroup", null, 0) {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);
@@ -316,7 +316,7 @@ public class TestHankSmartClient extends BaseTestCase {
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain) new MockHostDomain(domain) {
           @Override
-          public HostDomainPartition addPartition(int partNum, int initialVersion) {
+          public HostDomainPartition addPartition(int partNum) {
             return null;
           }
 
@@ -324,7 +324,7 @@ public class TestHankSmartClient extends BaseTestCase {
           public Set<HostDomainPartition> getPartitions() {
             return Collections
                 .singleton((HostDomainPartition) new MockHostDomainPartition(
-                    partNum, 1, -1));
+                    partNum, 1));
           }
         });
       }

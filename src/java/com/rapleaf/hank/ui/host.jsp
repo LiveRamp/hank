@@ -191,8 +191,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         }
       %>
     </select>
-    Part:<input type=text size=4 name="partNum" />
-    Initial Version:<input type=text size=4 name="initialVersion"/>
+    Partition number:<input type=text size=4 name="partNum" />
     <input type=submit value="Add"/>
   </form>
 

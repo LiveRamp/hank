@@ -54,8 +54,7 @@ public class TestZkRingGroup extends ZkTestCase {
 
   public void testLoad() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
-    create(ZkPath.append(ring_group, ZkRingGroup.CURRENT_VERSION_PATH_SEGMENT), Integer.toString(0));
-    create(ZkPath.append(ring_group, ZkRingGroup.UPDATING_TO_VERSION_PATH_SEGMENT), Integer.toString(1));
+    create(ZkPath.append(ring_group, ZkRingGroup.TARGET_VERSION_PATH_SEGMENT), Integer.toString(0));
     createRing(1);
     createRing(2);
     createRing(3);
@@ -70,44 +69,32 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartitionServerAddress("localhost", 2)).getRingNumber());
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
 
-    assertEquals("current version", Integer.valueOf(0), rg.getCurrentVersionNumber());
-    assertEquals("current version", Integer.valueOf(1), rg.getUpdatingToVersionNumber());
+    assertEquals("target version", Integer.valueOf(0), rg.getTargetVersionNumber());
   }
 
   public void testVersionStuff() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
     DomainGroupVersion version = dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
     dumpZk();
-    assertNull(rg.getCurrentVersion());
-    assertNull(rg.getUpdatingToVersionNumber());
-    rg.setUpdatingToVersion(Integer.valueOf(version.getVersionNumber()));
+    assertNull(rg.getTargetVersion());
+    rg.setTargetVersion(version.getVersionNumber());
     Thread.sleep(10);
-    rg.markUpdateComplete();
-    Thread.sleep(10);
-    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getCurrentVersionNumber());
-    assertNull(rg.getUpdatingToVersion());
+    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getTargetVersionNumber());
   }
 
   public void testListener() throws Exception {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
     RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
-    rg.markUpdateComplete();
 
     MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
     rg.setListener(listener);
     assertNull(listener.calledWith);
-    rg.setUpdatingToVersion(2);
+    rg.setTargetVersion(2);
     Thread.sleep(10);
     assertNotNull(listener.calledWith);
-    assertEquals(Integer.valueOf(2), listener.calledWith.getUpdatingToVersionNumber());
-
-    listener.calledWith = null;
-    rg.markUpdateComplete();
-    Thread.sleep(10);
-    assertNotNull(listener.calledWith);
-    assertEquals(Integer.valueOf(2), listener.calledWith.getCurrentVersionNumber());
+    assertEquals(Integer.valueOf(2), listener.calledWith.getTargetVersionNumber());
 
     listener.calledWith = null;
     Ring newRing = rg.addRing(1);

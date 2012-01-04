@@ -16,7 +16,6 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     Random random = new Random();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      int version = domainGroupVersion.getVersionNumber();
 
       // Add domain to hosts when necessary
       for (Host host : ring.getHosts()) {
@@ -27,7 +26,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
 
       // make random assignments for any of the currently unassigned parts
       for (Integer partNum : Rings.getUnassignedPartitions(ring, domain)) {
-        getMinHostDomain(ring, domain).addPartition(partNum, version);
+        getMinHostDomain(ring, domain).addPartition(partNum);
       }
 
       while (!assignmentsBalanced(ring, domain)) {
@@ -42,7 +41,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
         // assign it to the min host. note that we assign it before we unassign it
         // to ensure that if we fail at this point, we haven't left any parts
         // unassigned.
-        minHostDomain.addPartition(toMove.getPartitionNumber(), version);
+        minHostDomain.addPartition(toMove.getPartitionNumber());
 
         // unassign it from the max host
         unassign(toMove);

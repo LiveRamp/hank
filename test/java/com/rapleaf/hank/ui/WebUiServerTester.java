@@ -38,12 +38,9 @@ public class WebUiServerTester extends ZkTestCase {
     }
 
     // Ring ALPHA
-    rgAlpha.setCurrentVersion(dgv.getVersionNumber());
-    rgAlpha.setUpdatingToVersion(null);
+    rgAlpha.setTargetVersion(dgv.getVersionNumber());
     for (Ring ring : rgAlpha.getRings()) {
       ring.setState(RingState.OPEN);
-      ring.setCurrentVersion(dgv.getVersionNumber());
-      ring.setUpdatingToVersion(null);
       for (Host host : ring.getHosts()) {
         Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
         host.setState(HostState.SERVING);
@@ -53,7 +50,6 @@ public class WebUiServerTester extends ZkTestCase {
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
                       new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250})));
           for (HostDomainPartition partition : hd.getPartitions()) {
-            partition.setUpdatingToDomainGroupVersion(null);
             partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
           }
         }
@@ -62,20 +58,15 @@ public class WebUiServerTester extends ZkTestCase {
     }
 
     // Ring BETA
-    rgBeta.setCurrentVersion(0);
-    rgBeta.setUpdatingToVersion(null);
     // Assign
     for (Ring ring : rgBeta.getRings()) {
       partitionAssigner.assign(dgv, ring);
     }
-    rgBeta.setUpdatingToVersion(1);
+    rgBeta.setTargetVersion(1);
     for (Ring ring : rgBeta.getRings()) {
       // Set first ring to updating
       if (ring.getRingNumber() == rgBeta.getRings().iterator().next().getRingNumber()) {
         ring.setState(RingState.UPDATING);
-        ring.setCurrentVersion(0);
-        ring.setUpdatingToVersion(null);
-        ring.setUpdatingToVersion(dgv.getVersionNumber());
         for (Host host : ring.getHosts()) {
           // Set first host to done updating
           if (host.getAddress().equals(ring.getHosts().iterator().next().getAddress())) {
@@ -83,7 +74,6 @@ public class WebUiServerTester extends ZkTestCase {
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
                 partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
-                partition.setUpdatingToDomainGroupVersion(null);
               }
             }
           } else {
@@ -92,21 +82,17 @@ public class WebUiServerTester extends ZkTestCase {
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
                 partition.setCurrentDomainGroupVersion(0);
-                partition.setUpdatingToDomainGroupVersion(dgv.getVersionNumber());
               }
             }
           }
         }
       } else {
-        ring.setCurrentVersion(dgv.getVersionNumber());
-        ring.setUpdatingToVersion(null);
         ring.setState(RingState.OPEN);
         for (Host host : ring.getHosts()) {
           host.setState(HostState.SERVING);
           for (HostDomain hd : host.getAssignedDomains()) {
             for (HostDomainPartition partition : hd.getPartitions()) {
               partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
-              partition.setUpdatingToDomainGroupVersion(null);
             }
           }
         }
@@ -114,8 +100,6 @@ public class WebUiServerTester extends ZkTestCase {
     }
 
     // Ring GAMMA
-    rgGamma.setCurrentVersion(0);
-    rgGamma.setUpdatingToVersion(null);
     for (Ring ring : rgGamma.getRings()) {
       ring.setState(RingState.OPEN);
       for (Host host : ring.getHosts()) {

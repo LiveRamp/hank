@@ -39,7 +39,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     assertTrue(globalNotifier instanceof MockNotifier);
     assertEquals("a", ((MockNotifier) globalNotifier).getConfiguration().get("a"));
 
-    Notifier ringNotifier = configurator.getRingGroupNotifier(new MockRingGroup(null, "rg1", null));
+    Notifier ringNotifier = configurator.getRingGroupNotifier(new MockRingGroup(null, "rg1", null, null));
     assertTrue(ringNotifier instanceof MockNotifier);
     assertEquals("b", ((MockNotifier) ringNotifier).getConfiguration().get("b"));
   }

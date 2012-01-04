@@ -27,14 +27,12 @@ import java.io.IOException;
 public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
-  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
   private static final String DELETABLE_PATH_SEGMENT = "selected_for_deletion";
   private final String path;
   private final int partNum;
   private final ZooKeeperPlus zk;
 
   private final WatchedInt currentDomainGroupVersion;
-  private final WatchedInt updatingToDomainGroupVersion;
   private final WatchedBoolean deletable;
 
   private static boolean doUsePartitionWatches = true;
@@ -43,12 +41,11 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     doUsePartitionWatches = value;
   }
 
-  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum, int initialDomainGroupVersion) throws IOException {
+  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum) throws IOException {
     try {
       String hdpPath = ZkPath.append(domainPath, Integer.toString(partNum));
       zk.create(hdpPath, null);
       zk.create(ZkPath.append(hdpPath, CURRENT_VERSION_PATH_SEGMENT), null);
-      zk.createInt(ZkPath.append(hdpPath, UPDATING_TO_VERSION_PATH_SEGMENT), initialDomainGroupVersion);
       zk.create(ZkPath.append(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
       zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
 
@@ -66,11 +63,9 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
     if (doUsePartitionWatches) {
       currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
-      updatingToDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), true);
       deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
     } else {
       currentDomainGroupVersion = null;
-      updatingToDomainGroupVersion = null;
       deletable = null;
     }
   }
@@ -91,19 +86,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public int getPartitionNumber() {
     return partNum;
-  }
-
-  @Override
-  public Integer getUpdatingToDomainGroupVersion() throws IOException {
-    if (updatingToDomainGroupVersion != null) {
-      return updatingToDomainGroupVersion.get();
-    } else {
-      try {
-        return WatchedInt.get(zk, ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT));
-      } catch (Exception e) {
-        throw new IOException(e);
-      }
-    }
   }
 
   @Override
@@ -132,15 +114,6 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   public void setCurrentDomainGroupVersion(int version) throws IOException {
     try {
       currentDomainGroupVersion.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setUpdatingToDomainGroupVersion(Integer version) throws IOException {
-    try {
-      updatingToDomainGroupVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }

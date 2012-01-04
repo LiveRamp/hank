@@ -51,15 +51,15 @@ public class TestPartitionServerHandler extends BaseTestCase {
 
       return new MockHostDomain(domain) {
         @Override
-        public HostDomainPartition addPartition(int partNum, int initialVersion) {
+        public HostDomainPartition addPartition(int partNum) {
           return null;
         }
 
         @Override
         public Set<HostDomainPartition> getPartitions() throws IOException {
           return new HashSet<HostDomainPartition>(Arrays.asList(
-              new MockHostDomainPartition(0, 0, 2),
-              new MockHostDomainPartition(4, 0, 2)));
+              new MockHostDomainPartition(0, 0),
+              new MockHostDomainPartition(4, 0)));
         }
       };
     }
@@ -156,9 +156,9 @@ public class TestPartitionServerHandler extends BaseTestCase {
         return dgv;
       }
     };
-    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null);
+    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null, 0);
 
-    final MockRing mockRingConfig = new MockRing(null, rg, 1, RingState.OPEN, 0, null) {
+    final MockRing mockRing = new MockRing(null, rg, 1, RingState.OPEN) {
       @Override
       public Host getHostByAddress(PartitionServerAddress address) {
         return mockHostConfig;
@@ -169,10 +169,10 @@ public class TestPartitionServerHandler extends BaseTestCase {
       @Override
       public RingGroup getRingGroup(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
-        return new MockRingGroup(dg, "myRingGroupName", null) {
+        return new MockRingGroup(dg, "myRingGroupName", null, null) {
           @Override
           public Ring getRingForHost(PartitionServerAddress hostAddress) {
-            return mockRingConfig;
+            return mockRing;
           }
         };
       }

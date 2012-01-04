@@ -127,15 +127,9 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
       LOG.error(errMsg);
       throw new IOException(errMsg);
     }
-    Integer currentVersion = ringGroup.getCurrentVersionNumber();
-    if (currentVersion == null) {
-      String errMsg = "Could not get current version of ring group " + ringGroup;
-      LOG.error(errMsg);
-      throw new IOException(errMsg);
-    }
-    DomainGroupVersion domainGroupVersion = domainGroup.getVersionByNumber(currentVersion);
+    DomainGroupVersion domainGroupVersion = ringGroup.getTargetVersion();
     if (domainGroupVersion == null) {
-      String errMsg = "Could not get version " + currentVersion + " of domain group " + domainGroup;
+      String errMsg = "Could not get target version of ring group " + ringGroup;
       LOG.error(errMsg);
       throw new IOException(errMsg);
     }

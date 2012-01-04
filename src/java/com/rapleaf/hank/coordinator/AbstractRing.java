@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -45,49 +44,13 @@ public abstract class AbstractRing implements Ring {
   }
 
   @Override
-  public DomainGroupVersion getCurrentVersion() throws IOException {
-    Integer currentVersionNumber = getCurrentVersionNumber();
-    if (currentVersionNumber != null) {
-      RingGroup ringGroup = getRingGroup();
-      if (ringGroup != null) {
-        DomainGroup domainGroup = ringGroup.getDomainGroup();
-        if (domainGroup != null) {
-          return domainGroup.getVersionByNumber(currentVersionNumber);
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public DomainGroupVersion getUpdatingToVersion() throws IOException {
-    Integer updatingToVersionNumber = getUpdatingToVersionNumber();
-    if (updatingToVersionNumber != null) {
-      RingGroup ringGroup = getRingGroup();
-      if (ringGroup != null) {
-        DomainGroup domainGroup = ringGroup.getDomainGroup();
-        if (domainGroup != null) {
-          return domainGroup.getVersionByNumber(updatingToVersionNumber);
-        }
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public void markUpdateComplete() throws IOException {
-    setCurrentVersion(getUpdatingToVersionNumber());
-    setUpdatingToVersion(null);
-  }
-
-  @Override
   public int compareTo(Ring other) {
     return Integer.valueOf(ringNumber).compareTo(other.getRingNumber());
   }
 
   @Override
   public String toString() {
-    return String.format("AbstractRing [ringGroup=%s, ring=%d, version=%d, updatingToVersion=%d]",
-        (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber(), this.getCurrentVersionNumber(), this.getUpdatingToVersionNumber());
+    return String.format("AbstractRing [ringGroup=%s, ring=%d]",
+        (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber());
   }
 }

@@ -82,7 +82,7 @@ public class TestPartitionServer extends BaseTestCase {
       }
     };
 
-    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null) {
+    final RingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", null, null) {
       @Override
       public Ring getRingForHost(PartitionServerAddress hostAddress) {
         return mockRing;

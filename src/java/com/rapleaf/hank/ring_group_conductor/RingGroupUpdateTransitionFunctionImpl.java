@@ -26,19 +26,26 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
+  protected boolean isUpToDate(Ring ring, DomainGroupVersion targetVersion) throws IOException {
+    return Rings.isUpToDate(ring, targetVersion);
+  }
+
+  protected boolean isUpToDate(Host host, DomainGroupVersion targetVersion) throws IOException {
+    return Hosts.isUpToDate(host, targetVersion);
+  }
+
   @Override
   public void manageTransitions(RingGroup ringGroup) throws IOException {
-    boolean anyUpdatesPending = false;
     boolean anyClosedOrUpdating = false;
     Queue<Ring> closable = new LinkedList<Ring>();
 
+    DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
+
     for (Ring ring : ringGroup.getRings()) {
-      if (Rings.isUpdatePending(ring) || (ring.getState() != RingState.OPEN)) {
-        anyUpdatesPending = true;
+      if (!isUpToDate(ring, targetVersion) || (ring.getState() != RingState.OPEN)) {
         LOG.info("Ring "
             + ring.getRingNumber()
-            + " is updating to version " + ring.getUpdatingToVersionNumber()
-            + " and is " + ring.getState() + ".");
+            + " is " + ring.getState() + ".");
 
         switch (ring.getState()) {
           case OPEN:
@@ -95,8 +102,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               break;
             } else {
               // No host is updating. Check that we are indeed up to date
-              DomainGroupVersion updatingToVersion = ring.getUpdatingToVersion();
-              if (Rings.isUpToDate(ring, updatingToVersion)) {
+              if (isUpToDate(ring, targetVersion)) {
                 // Set the ring state to updated
                 LOG.info("Ring " + ring.getRingNumber() + " is UPDATED.");
                 ring.setState(RingState.UPDATED);
@@ -108,7 +114,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 LOG.info("No host in ring " + ring.getRingNumber() + " was UPDATING but the ring is not up to date.");
                 // Ring state is still UPDATING
                 for (Host host : ring.getHosts()) {
-                  if (!Hosts.isUpToDate(host, updatingToVersion)) {
+                  if (!isUpToDate(host, targetVersion)) {
                     LOG.info("Host " + host + " needs to UPDATE again since it is not up to date.");
                     if (host.getCurrentCommand() != HostCommand.EXECUTE_UPDATE &&
                         !host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
@@ -125,8 +131,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
             // sweet, we're done updating, so we can start all our daemons now
             LOG.info("Ring " + ring.getRingNumber()
-                + " is fully UPDATED to version " + ring.getUpdatingToVersionNumber() + ". Commanding hosts to serve.");
-            ring.markUpdateComplete();
+                + " is fully UPDATED to version " + ringGroup.getTargetVersionNumber() + ". Commanding hosts to serve.");
             Rings.commandAll(ring, HostCommand.SERVE_DATA);
             ring.setState(RingState.OPENING);
             break;
@@ -172,14 +177,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           + toDown.getRingNumber() + ".");
       Rings.commandAll(toDown, HostCommand.GO_TO_IDLE);
       toDown.setState(RingState.CLOSING);
-    }
-
-    // if there are no updates pending, then it's impossible for for there to
-    // be any new closable rings, and in fact, the ring is ready to go.
-    // complete its update.
-    if (!anyUpdatesPending) {
-      LOG.info("There are no more updates pending. The update is complete!");
-      ringGroup.markUpdateComplete();
     }
   }
 }

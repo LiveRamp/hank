@@ -16,11 +16,9 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.zookeeper.WatchedInt;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 
@@ -31,10 +29,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ZkRing extends AbstractRing {
-  private static final Logger LOG = Logger.getLogger(ZkRing.class);
 
-  private static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
-  private static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
   private static final String STATUS_PATH_SEGMENT = "status";
   private static final String HOSTS_PATH_SEGMENT = "hosts";
@@ -44,9 +39,6 @@ public class ZkRing extends AbstractRing {
   private final WatchedMap<Host> hosts;
   private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
   private final StateChangeWatcher stateChangeWatcher;
-
-  private final WatchedInt currentVersionNumber;
-  private final WatchedInt updatingToVersionNumber;
 
   private final ZooKeeperPlus zk;
 
@@ -59,8 +51,6 @@ public class ZkRing extends AbstractRing {
                               RingGroup group) throws KeeperException, InterruptedException {
     String ringPath = ZkPath.append(ringGroup, "ring-" + ringNum);
     zk.create(ringPath, null);
-    zk.create(ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.CLOSED.toString().getBytes());
     zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
     return new ZkRing(zk, ringPath, group, coordinator);
@@ -83,9 +73,6 @@ public class ZkRing extends AbstractRing {
       }
     });
     this.stateChangeWatcher = new StateChangeWatcher();
-
-    currentVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, CURRENT_VERSION_PATH_SEGMENT), true);
-    updatingToVersionNumber = new WatchedInt(zk, ZkPath.append(ringPath, UPDATING_TO_VERSION_PATH_SEGMENT), true);
   }
 
   private final class StateChangeWatcher extends HankWatcher {
@@ -117,7 +104,7 @@ public class ZkRing extends AbstractRing {
 
   @Override
   public RingState getState() throws IOException {
-    String statusString = null;
+    String statusString;
     try {
       statusString = zk.getString(ZkPath.append(ringPath, STATUS_PATH_SEGMENT));
     } catch (Exception e) {
@@ -129,34 +116,6 @@ public class ZkRing extends AbstractRing {
   @Override
   public Set<Host> getHosts() {
     return new HashSet<Host>(hosts.values());
-  }
-
-  @Override
-  public Integer getCurrentVersionNumber() {
-    return currentVersionNumber.get();
-  }
-
-  @Override
-  public void setCurrentVersion(Integer version) throws IOException {
-    try {
-      currentVersionNumber.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public Integer getUpdatingToVersionNumber() {
-    return updatingToVersionNumber.get();
-  }
-
-  @Override
-  public void setUpdatingToVersion(Integer version) throws IOException {
-    try {
-      updatingToVersionNumber.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
   }
 
   @Override

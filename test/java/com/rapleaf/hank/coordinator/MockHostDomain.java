@@ -10,18 +10,17 @@ public class MockHostDomain extends AbstractHostDomain {
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
   private boolean deleted = false;
 
-  public MockHostDomain(Domain domain, int... numberAndVersionAndUpdatingToVersionTriples) {
+  public MockHostDomain(Domain domain, int... numberAndVersionPairs) {
     this.domain = domain;
 
-    for (int i = 0; i < numberAndVersionAndUpdatingToVersionTriples.length; i += 3) {
-      parts.add(new MockHostDomainPartition(numberAndVersionAndUpdatingToVersionTriples[i],
-          numberAndVersionAndUpdatingToVersionTriples[i + 1],
-          numberAndVersionAndUpdatingToVersionTriples[i + 2]));
+    for (int i = 0; i < numberAndVersionPairs.length; i += 2) {
+      parts.add(new MockHostDomainPartition(numberAndVersionPairs[i],
+          numberAndVersionPairs[i + 1]));
     }
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum, int initialVersion) {
+  public HostDomainPartition addPartition(int partNum) {
     throw new UnsupportedOperationException();
   }
 
