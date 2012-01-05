@@ -61,7 +61,7 @@ public class Dispatcher implements Runnable {
     return new Runnable() {
       @Override
       public void run() {
-        dispatcherThread.interrupt();
+        //dispatcherThread.interrupt();
       }
     };
   }
@@ -176,7 +176,7 @@ public class Dispatcher implements Runnable {
 
   public void stop() {
     stopping = true;
-    dispatcherThread.interrupt();
+    //dispatcherThread.interrupt();
   }
 
   public void setDispatcherThread(DispatcherThread dispatcherThread) {
@@ -191,14 +191,14 @@ public class Dispatcher implements Runnable {
       task.startNanoTime = System.nanoTime();
       getTasks.addLast(task);
     }
-    dispatcherThread.interrupt();
+    //dispatcherThread.interrupt();
   }
 
   public void addCompleteTask(GetTask task) {
     synchronized (getTasksComplete) {
       getTasksComplete.addLast(task);
     }
-    dispatcherThread.interrupt();
+    //dispatcherThread.interrupt();
   }
 
   @Override
@@ -206,11 +206,11 @@ public class Dispatcher implements Runnable {
     while (!stopping) {
       completeTasks();
       startTasks();
-      try {
-        Thread.sleep(sleepNanoTime / 1000000);
-      } catch (InterruptedException e) {
-        // There is work to do
-      }
+//      try {
+//        Thread.sleep(sleepNanoTime / 1000000);
+//      } catch (InterruptedException e) {
+//        // There is work to do
+//      }
     }
   }
 
