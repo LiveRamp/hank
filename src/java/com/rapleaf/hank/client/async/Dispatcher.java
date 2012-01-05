@@ -228,14 +228,14 @@ public class Dispatcher implements Runnable {
   @Override
   public void run() {
     while (!stopping) {
-      try {
-        GetTask task = getTasks.take();
-        // TODO: remove trace
-        //LOG.trace("Acquire task with state " + task.state);
-        task.execute();
-      } catch (InterruptedException e) {
+      //try {
+        GetTask task = getTasks.poll();
+        if (task != null) {
+          task.execute();
+        }
+      //} catch (InterruptedException e) {
         // Someone is trying to stop Dispatcher
-      }
+      //}
     }
   }
 }
