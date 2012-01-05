@@ -89,7 +89,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     if (zk.exists(targetVersionPath, null) == null &&
         zk.exists(ZkPath.append(ringGroupPath, "current_version"), null) != null) {
       Integer currentVersion = new WatchedInt(zk, ZkPath.append(ringGroupPath, "current_version"), true).get();
-      WatchedInt.set(zk, targetVersionPath, currentVersion);
+      zk.setOrCreate(targetVersionPath, currentVersion, CreateMode.PERSISTENT);
     }
 
     targetVersion = new WatchedInt(zk, targetVersionPath, true);
