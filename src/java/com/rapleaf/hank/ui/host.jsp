@@ -237,7 +237,8 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         if (hdp != null) {
           if (hdp.getCurrentDomainGroupVersion() == null) {
             className = "partition_undeployed";
-          } else if (hdp.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion)) {
+          } else if (targetDomainGroupVersion != null &&
+                     hdp.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
             className = "partition_updated";
           } else {
             className = "partition_updating";
