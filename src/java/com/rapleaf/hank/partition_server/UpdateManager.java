@@ -70,23 +70,24 @@ class UpdateManager implements IUpdateManager {
           // Skip partitions already up-to-date
           if (partition.getCurrentDomainGroupVersion() != null &&
               partition.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
+            LOG.info(String.format(
+                "Skipping partition update of domain %s partition %d to version %d (it is already up-to-date).",
+                domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
             return;
           }
 
           // Perform update
           StorageEngine storageEngine = domain.getStorageEngine();
           LOG.info(String.format(
-              "Starting partition update of domain %s partition %d to version %d (storage engine: %s)",
-              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber(),
-              storageEngine.toString()));
+              "Starting partition update of domain %s partition %d to version %d.",
+              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
           storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion);
 
           // Record update suceess
           partition.setCurrentDomainGroupVersion(targetDomainGroupVersion.getVersionNumber());
           LOG.info(String.format(
-              "Completed partition update of domain %s partition %d to version %d (storage engine: %s).",
-              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber(),
-              storageEngine.toString()));
+              "Completed partition update of domain %s partition %d to version %d.",
+              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
         }
       } catch (Throwable e) {
         LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
