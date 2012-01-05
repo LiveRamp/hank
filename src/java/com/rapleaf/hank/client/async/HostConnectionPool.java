@@ -114,8 +114,6 @@ public class  HostConnectionPool {
       previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
       List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       for (HostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
-        //TODO: remove trace
-        LOG.trace("- " + connectionAndHostIndex.hostConnection);
         // If a host has one standby connection, it is itself unavailable. Move on to the next host.
         if (connectionAndHostIndex.hostConnection.isStandby()) {
           ++numHostsStandby;

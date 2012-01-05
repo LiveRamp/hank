@@ -20,7 +20,6 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -29,7 +28,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class HankSmartClient implements Iface, RingGroupChangeListener, RingStateChangeListener {
+public class HankSmartClient implements HankSmartClientIface, RingGroupChangeListener, RingStateChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -321,6 +320,10 @@ public class HankSmartClient implements Iface, RingGroupChangeListener, RingStat
     }
 
     return HankBulkResponse.responses(allResponses);
+  }
+
+  @Override
+  public void stop() {
   }
 
   @Override

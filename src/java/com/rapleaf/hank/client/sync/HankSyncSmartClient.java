@@ -2,13 +2,13 @@ package com.rapleaf.hank.client.sync;
 
 import com.rapleaf.hank.client.GetBulkCallback;
 import com.rapleaf.hank.client.GetCallback;
+import com.rapleaf.hank.client.HankSmartClientIface;
 import com.rapleaf.hank.client.async.HankAsyncSmartClient;
 import com.rapleaf.hank.config.HankSmartClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.generated.SmartClient;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-public class HankSyncSmartClient implements SmartClient.Iface {
+public class HankSyncSmartClient implements HankSmartClientIface {
 
   private final HankAsyncSmartClient asyncSmartClient;
 
@@ -78,9 +78,13 @@ public class HankSyncSmartClient implements SmartClient.Iface {
   }
 
   @Override
-  public HankResponse get(String domainName, ByteBuffer key) throws TException {
+  public HankResponse get(String domainName, ByteBuffer key) {
     SyncGetCallback callback = new SyncGetCallback();
-    asyncSmartClient.get(domainName, key, callback);
+    try {
+      asyncSmartClient.get(domainName, key, callback);
+    } catch (TException e) {
+      return HankResponse.xception(HankException.internal_error("GET throws an exception"));
+    }
     try {
       callback.completionBarrier.await();
       return callback.response;
@@ -90,9 +94,13 @@ public class HankSyncSmartClient implements SmartClient.Iface {
   }
 
   @Override
-  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) throws TException {
+  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
     SyncGetBulkCallback callback = new SyncGetBulkCallback();
-    asyncSmartClient.getBulk(domainName, keys, callback);
+    try {
+      asyncSmartClient.getBulk(domainName, keys, callback);
+    } catch (TException e) {
+      return HankBulkResponse.xception(HankException.internal_error("GET throws an exception"));
+    }
     try {
       callback.completionBarrier.await();
       return callback.response;
@@ -101,6 +109,7 @@ public class HankSyncSmartClient implements SmartClient.Iface {
     }
   }
 
+  @Override
   public void stop() {
     asyncSmartClient.stop();
   }

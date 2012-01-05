@@ -124,19 +124,16 @@ public class Dispatcher implements Runnable {
     }
 
     public void complete() {
-      LOG.trace("Completing task " + this);
       resultHanlder.onComplete(response);
     }
 
     public void completeWithTimeout() {
-      LOG.trace("Completing task with queryTimeoutNano " + this);
       response = TIMEOUT_RESPONSE;
       addCompleteTask(GetTask.this);
     }
 
     public void releaseConnection() {
       if (hostConnectionAndHostIndex.hostConnection != null) {
-        LOG.trace("Releasing connection for task " + this);
         hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
       }
     }
@@ -149,8 +146,6 @@ public class Dispatcher implements Runnable {
       }
 
       if (hostConnectionAndHostIndex == null) {
-        //TODO: remove trace
-        LOG.trace("No connection found for task " + this);
         return false;
       }
 
@@ -165,8 +160,6 @@ public class Dispatcher implements Runnable {
       hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
       // Execute asynchronous task
       hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
-      //TODO: remove trace
-      LOG.trace("Executing task " + this);
       return true;
     }
 
@@ -211,8 +204,6 @@ public class Dispatcher implements Runnable {
   @Override
   public void run() {
     while (!stopping) {
-      //TODO: remove trace
-      LOG.trace("--------------------------");
       completeTasks();
       startTasks();
       try {
