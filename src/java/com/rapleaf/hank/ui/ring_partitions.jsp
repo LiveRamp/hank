@@ -39,17 +39,17 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <%
   int total = 0;
-  if (ring.getCurrentVersion() != null) {
-    DomainGroupVersion currentVersion = ring.getCurrentVersion();
-    if (currentVersion != null && currentVersion.getDomainVersions() != null) {
+  if (ringGroup.getTargetVersion() != null) {
+    DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
+    if (targetVersion.getDomainVersions() != null) {
 
-      for (DomainGroupVersionDomainVersion dc : currentVersion.getDomainVersions()) {
+      for (DomainGroupVersionDomainVersion dc : targetVersion.getDomainVersions()) {
         total += Rings.getUnassignedPartitions(ring, dc.getDomain()).size();
       }
   %>
 
   <% if (total > 0) { %>
-  There are <%=total%> unassigned partitions in <%= currentVersion.getDomainVersions().size() %> domains.
+  There are <%=total%> unassigned partitions in <%= targetVersion.getDomainVersions().size() %> domains.
   <% } %>
   <form action="/ring/redistribute_partitions_for_ring" method=post>
     <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
@@ -59,7 +59,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h2>Assignment visualization</h2>
   <%
-  for (DomainGroupVersionDomainVersion d : currentVersion.getDomainVersions()) {
+  for (DomainGroupVersionDomainVersion d : targetVersion.getDomainVersions()) {
     Set<Integer> unassignedParts = Rings.getUnassignedPartitions(ring, d.getDomain());
 
     int squareDim = (int)Math.floor(Math.sqrt(d.getDomain().getNumParts()));

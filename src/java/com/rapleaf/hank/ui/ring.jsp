@@ -41,7 +41,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     RuntimeStatisticsAggregator runtimeStatisticsForRing =
       Rings.computeRuntimeStatisticsForRing(runtimeStatistics);
 
-    DomainGroupVersion currentDomainGroupVersion = ring.getCurrentVersion();
+    DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
   %>
 
   <h2>State</h2>
@@ -50,24 +50,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td>State:</td>
       <td>
       <%=ring.getState()%>
-      </td>
-      </tr>
-
-      <tr>
-      <td>Current version:</td>
-      <td>
-      <%= ring.getCurrentVersionNumber() %>
-      </td>
-      </tr>
-
-      <tr>
-      <td>Update Status:</td>
-      <td>
-      <% if (Rings.isUpdatePending(ring)) { %>
-      Updating from <%=ring.getCurrentVersionNumber()%> to <%=ring.getUpdatingToVersionNumber()%>
-      <% } else { %>
-      Not updating
-      <% } %>
       </td>
       </tr>
 
@@ -103,16 +85,15 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
         ServingStatus uniquePartitionsServingStatus = null;
-        DomainGroupVersion mostRecentDomainGroupVersion = Rings.getMostRecentVersion(ring);
-        if (mostRecentDomainGroupVersion != null) {
-          servingStatusAggregator = Rings.computeServingStatusAggregator(ring, mostRecentDomainGroupVersion);
+        if (targetDomainGroupVersion != null) {
+          servingStatusAggregator = Rings.computeServingStatusAggregator(ring, targetDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>
         <tr>
-        <td>Updated & Served</td>
+        <td>Up-to-date & Served</td>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -124,7 +105,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         </tr>
 
         <tr>
-        <td>Updated & Served (fully)</td>
+        <td>Up-to-date & Served (fully)</td>
           <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -140,9 +121,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <!-- Domain specific Runtime Statistics -->
 
-  <%
-    if (currentDomainGroupVersion != null) {
-  %>
   <table class='table-blue-compact'>
   <tr>
      <th>Domain</th>
@@ -164,9 +142,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     </tr>
   <%
     }
-  %>
-  <%
-  }
   %>
   </table>
 
@@ -215,7 +190,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Throughput</th>
       <th>Latency</th>
       <th>Hit Rate</th>
-      <th>Updated & Served</th>
+      <th>Up-to-date & Served</th>
       <th>Actions</th>
     </tr>
     <%
@@ -230,11 +205,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       </td>
       <%
       UpdateProgress progress = null;
-      if (Rings.isUpdatePending(ring)) {
-        DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
-        if (domainGroupVersion != null) {
-          progress = Hosts.computeUpdateProgress(host, domainGroupVersion);
-        }
+      if (!Rings.isUpToDate(ring, targetDomainGroupVersion)) {
+        progress = Hosts.computeUpdateProgress(host, targetDomainGroupVersion);
       }
       %>
       <% if (progress != null) { %>
@@ -244,7 +216,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         </div>
       </td>
       <td>
-        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions updated
+        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions up-to-date
         (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
       </td>
       <% } else { %>
@@ -269,9 +241,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <%
         ServingStatusAggregator hostServingStatusAggregator = null;
         ServingStatus hostServingStatus = null;
-        DomainGroupVersion ringMostRecentDomainGroupVersion = Rings.getMostRecentVersion(ring);
-        if (ringMostRecentDomainGroupVersion != null) {
-          hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, ringMostRecentDomainGroupVersion);
+        if (targetDomainGroupVersion != null) {
+          hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, targetDomainGroupVersion);
           hostServingStatus = hostServingStatusAggregator.computeServingStatus();
         }
         %>
