@@ -86,8 +86,11 @@ public class ZkRingGroup extends AbstractRingGroup {
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
 
     //TODO: Remove migration code
-    Integer currentVersion = new WatchedInt(zk, ZkPath.append(ringGroupPath, "current_version"), true).get();
-    WatchedInt.set(zk, targetVersionPath, currentVersion);
+    if (zk.exists(targetVersionPath, null) == null &&
+        zk.exists(ZkPath.append(ringGroupPath, "current_version"), null) != null) {
+      Integer currentVersion = new WatchedInt(zk, ZkPath.append(ringGroupPath, "current_version"), true).get();
+      WatchedInt.set(zk, targetVersionPath, currentVersion);
+    }
 
     targetVersion = new WatchedInt(zk, targetVersionPath, true);
     ringGroupConductorMode = new WatchedEnum<RingGroupConductorMode>(RingGroupConductorMode.class,
