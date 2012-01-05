@@ -42,7 +42,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
 
     for (Ring ring : ringGroup.getRings()) {
-      if (!isUpToDate(ring, targetVersion) || (ring.getState() != RingState.OPEN)) {
+      if ((ring.getState() != RingState.OPEN) || !isUpToDate(ring, targetVersion)) {
         LOG.info("Ring "
             + ring.getRingNumber()
             + " is " + ring.getState() + ".");
