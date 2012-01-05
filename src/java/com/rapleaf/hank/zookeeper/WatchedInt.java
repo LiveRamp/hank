@@ -27,6 +27,10 @@ public class WatchedInt extends WatchedNode<Integer> {
     return decodeValue(zk.getData(nodePath, null, null));
   }
 
+  public static void set(ZooKeeperPlus zk, String nodePath, Integer value) throws InterruptedException, KeeperException {
+    zk.setData(nodePath, encodeValue(value), -1);
+  }
+
   protected static Integer decodeValue(byte[] data) {
     if (data == null) {
       return null;
