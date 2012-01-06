@@ -14,7 +14,11 @@ import java.util.UUID;
 
 public class UiUtils {
 
+  private UiUtils() {
+  }
+
   private static final int BAR_SIZE = 100;
+  private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
 
   public static String hostStateToClass(HostState state) throws IOException {
     switch (state) {
@@ -70,7 +74,7 @@ public class UiUtils {
   public static String formatDomainGroupVersionTable(DomainGroupVersion domainGroupVersion, String cssClass)
       throws IOException {
     StringBuilder content = new StringBuilder();
-    content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed At</th></tr>");
+    content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed On</th></tr>");
     for (DomainGroupVersionDomainVersion version : domainGroupVersion.getDomainVersionsSorted()) {
       content.append("<tr><td>");
       content.append(version.getDomain().getName());
@@ -86,12 +90,10 @@ public class UiUtils {
 
   public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
     String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
-        + " created at " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
+        + " created on " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
     String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info");
     return htmlTooltip(text, title, content);
   }
-
-  private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
 
   public static String formatDomainGroupVersionCreatedAt(DomainGroupVersion domainGroupVersion) {
     Long createdAt = domainGroupVersion.getCreatedAt();
