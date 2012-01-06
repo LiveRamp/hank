@@ -28,7 +28,7 @@ class Connector implements Runnable {
   private Thread connectorThread;
   private volatile boolean stopping = false;
   private final LinkedList<HostConnection> connections =
-          new LinkedList<HostConnection>();
+      new LinkedList<HostConnection>();
 
   @Override
   public void run() {
@@ -83,6 +83,5 @@ class Connector implements Runnable {
     }
     this.connectorThread = connectorThread;
   }
-
 
 }
