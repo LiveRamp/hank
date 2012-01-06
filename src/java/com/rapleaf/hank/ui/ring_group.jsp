@@ -148,30 +148,52 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          <th>Throughput</th>
          <th>Latency</th>
          <th>Hit Rate</th>
+         <th>Version</th>
+         <th>Closed On</th>
        </tr>
        <%
-         SortedMap<Domain, RuntimeStatisticsAggregator> runtimeStatisticsForDomains = RingGroups.computeRuntimeStatisticsForDomains(runtimeStatistics);
-         for (SortedMap.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatisticsForDomains.entrySet()) {
-           Domain domain = entry.getKey();
-           RuntimeStatisticsAggregator runtimeStatisticsForDomain = entry.getValue();
+         SortedMap<Domain, RuntimeStatisticsAggregator> runtimeStatisticsForDomains =
+         RingGroups.computeRuntimeStatisticsForDomains(runtimeStatistics);
+
+         SortedSet<Domain> relevantDomains = new TreeSet<Domain>();
+         relevantDomains.addAll(runtimeStatisticsForDomains.keySet());
+         if (targetDomainGroupVersion != null) {
+           for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersions()) {
+           relevantDomains.add(dgvdv.getDomain());
+           }
+         }
+
+         for (Domain domain : relevantDomains) {
+           RuntimeStatisticsAggregator runtimeStatisticsForDomain = runtimeStatisticsForDomains.get(domain);
+           DomainVersion targetDomainVersion = null;
+           if (targetDomainGroupVersion != null) {
+             targetDomainVersion =
+              domain.getVersionByNumber(targetDomainGroupVersion.getDomainVersion(domain).getVersion());
+           }
        %>
          <tr>
-           <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-           <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
-           <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
-           <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+           <td><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+           <% if (runtimeStatisticsForDomain != null) { %>
+             <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
+             <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
+             <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+           <% } else { %>
+             <td class='centered'>-</td>
+             <td class='centered'>-</td>
+             <td class='centered'>-</td>
+           <% } %>
+           <% if (targetDomainVersion != null) { %>
+             <td class='centered'><%= targetDomainVersion != null ? targetDomainVersion.getVersionNumber() : "-" %></td>
+             <td class='centered'><%= targetDomainVersion != null ? UiUtils.formatDomainVersionClosedAt(targetDomainVersion) : "-"  %></td>
+           <% } else { %>
+             <td class='centered'>-</td>
+             <td class='centered'>-</td>
+           <% } %>
          </tr>
        <%
          }
        %>
       </table>
-
-      <!-- Target Domain Group Version Information -->
-
-      <% if (targetDomainGroupVersion != null) { %>
-        <%= UiUtils.formatDomainGroupVersionTable(targetDomainGroupVersion, "table-blue-compact", true) %>
-      <% } %>
-
 
     <h2>Actions</h2>
 
