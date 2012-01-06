@@ -16,167 +16,151 @@
 package com.rapleaf.hank.ring_group_conductor;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
-  protected boolean isUpToDate(Ring ring, DomainGroupVersion targetVersion) throws IOException {
-    return Rings.isUpToDate(ring, targetVersion);
+  private final PartitionAssigner partitionAssigner;
+
+  public RingGroupUpdateTransitionFunctionImpl() throws IOException {
+    partitionAssigner = new UniformPartitionAssigner();
   }
 
-  protected boolean isUpToDate(Host host, DomainGroupVersion targetVersion) throws IOException {
-    return Hosts.isUpToDate(host, targetVersion);
+  protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    return Rings.isUpToDate(ring, domainGroupVersion);
+  }
+
+  protected boolean isUpToDateAndServing(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    ServingStatus servingStatus = Rings.computeServingStatusAggregator(ring, domainGroupVersion)
+        .computeUniquePartitionsServingStatus(domainGroupVersion);
+    return servingStatus.getNumPartitions() == servingStatus.getNumPartitionsServedAndUpToDate();
+  }
+
+  protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+    return Hosts.isUpToDate(host, domainGroupVersion);
+  }
+
+  protected boolean fullyServing(Ring ring) throws IOException {
+    for (Host host : ring.getHosts()) {
+      if (!host.getState().equals(HostState.SERVING)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  protected void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    partitionAssigner.assign(domainGroupVersion, ring);
   }
 
   @Override
   public void manageTransitions(RingGroup ringGroup) throws IOException {
-    boolean anyClosedOrUpdating = false;
-    Queue<Ring> closable = new LinkedList<Ring>();
-
     DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
 
+    Set<Ring> ringsFullyServing = new TreeSet<Ring>();
+    List<Ring> ringsNotUpToDateOrServing = new ArrayList<Ring>();
+
+    // TODO: this could be configurable
+    int minNumRingsFullyServing = ringGroup.getRings().size() - 1;
+
+    // Determine ring statuses (serving and or up-to-date)
     for (Ring ring : ringGroup.getRings()) {
-      if ((ring.getState() != RingState.OPEN) || !isUpToDate(ring, targetVersion)) {
-        LOG.info("Ring "
-            + ring.getRingNumber()
-            + " is " + ring.getState() + ".");
-
-        switch (ring.getState()) {
-          case OPEN:
-            // the ring is eligible to be closed, but we don't want to
-            // do that until we're sure no other ring is already closed.
-            // add it to the candidate queue.
-            LOG.info("Ring "
-                + ring.getRingNumber()
-                + " is a candidate for being closed.");
-            closable.add(ring);
-            break;
-
-          case CLOSING:
-            // the ring is closing, so we don't want to close any other
-            anyClosedOrUpdating = true;
-
-            // let's check if the ring is fully down or not.
-            int numHostsIdle = Rings.getHostsInState(ring, HostState.IDLE).size();
-            if (numHostsIdle == ring.getHosts().size()) {
-              // sweet, everyone's either offline or idle.
-              LOG.info("Ring "
-                  + ring.getRingNumber()
-                  + " is currently " + ring.getState() + ", and has nothing but IDLE or OFFLINE hosts. It's CLOSED.");
-              ring.setState(RingState.CLOSED);
-            } else {
-              LOG.info(String.format("Ring %d is currently " + ring.getState() + ", but has only %d idle hosts, so it isn't fully closed yet.",
-                  ring.getRingNumber(), numHostsIdle));
-              break;
-            }
-            // note that we are intentionally falling through here - we can take
-            // the next step in the update process
-
-          case CLOSED:
-            anyClosedOrUpdating = true;
-
-            // we just finished stopping
-            // start up all the updaters
-            LOG.info("Ring " + ring.getRingNumber()
-                + " is " + ring.getState() + ", so we're going to start UPDATING.");
-            Rings.commandAll(ring, HostCommand.EXECUTE_UPDATE);
-            ring.setState(RingState.UPDATING);
-            break;
-
-          case UPDATING:
-            // need to let the updates finish before continuing
-            anyClosedOrUpdating = true;
-
-            // let's check if we're done updating yet
-            int numHostsUpdating = Rings.getHostsInState(ring, HostState.UPDATING).size();
-            if (numHostsUpdating > 0) {
-              // we're not done updating yet.
-              LOG.info("Ring " + ring.getRingNumber() + " still has "
-                  + numHostsUpdating + " UPDATING hosts.");
-              break;
-            } else {
-              // No host is updating. Check that we are indeed up to date
-              if (isUpToDate(ring, targetVersion)) {
-                // Set the ring state to updated
-                LOG.info("Ring " + ring.getRingNumber() + " is UPDATED.");
-                ring.setState(RingState.UPDATED);
-                // note that we are intentionally falling through here so that we
-                // can go right into starting the hosts again.
-              } else {
-                // Ring is not up to date but no host was updating,
-                // telling hosts that are not up to date to UPDATE again since they probably failed.
-                LOG.info("No host in ring " + ring.getRingNumber() + " was UPDATING but the ring is not up to date.");
-                // Ring state is still UPDATING
-                for (Host host : ring.getHosts()) {
-                  if (!isUpToDate(host, targetVersion)) {
-                    LOG.info("Host " + host + " needs to UPDATE again since it is not up to date.");
-                    if (host.getCurrentCommand() != HostCommand.EXECUTE_UPDATE &&
-                        !host.getCommandQueue().contains(HostCommand.EXECUTE_UPDATE)) {
-                      host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
-                    }
-                  }
-                }
-                break;
-              }
-            }
-
-          case UPDATED:
-            anyClosedOrUpdating = true;
-
-            // sweet, we're done updating, so we can start all our daemons now
-            LOG.info("Ring " + ring.getRingNumber()
-                + " is fully UPDATED to version " + ringGroup.getTargetVersionNumber() + ". Commanding hosts to serve.");
-            Rings.commandAll(ring, HostCommand.SERVE_DATA);
-            ring.setState(RingState.OPENING);
-            break;
-
-          case OPENING:
-            // need to let the servers come online before continuing
-            anyClosedOrUpdating = true;
-
-            // let's check if we're all the way online yet
-            int numHostsServing = Rings.getHostsInState(ring, HostState.SERVING).size();
-            if (numHostsServing == ring.getHosts().size()) {
-              // yay! we're all online!
-              LOG.info("Ring " + ring.getRingNumber()
-                  + " is OPEN.");
-              ring.setState(RingState.OPEN);
-            } else {
-              LOG.info("Ring " + ring.getRingNumber()
-                  + " still has hosts that are not SERVING. Waiting for them to be serving:");
-              for (Host host : ring.getHosts()) {
-                LOG.info(String.format("  [%s] %s", host.getState(), host));
-              }
-            }
-
-            break;
-        }
-        // if we saw a down or updating state, break out of the loop, since
-        // we've seen enough.
-        // if (anyClosedOrUpdating) {
-        // break;
-        // }
+      if (fullyServing(ring)) {
+        ringsFullyServing.add(ring);
+      }
+      if (isUpToDateAndServing(ring, targetVersion)) {
+        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date and serving.");
       } else {
-        LOG.info("Ring " + ring.getRingNumber() + " is not in the process of updating.");
+        ringsNotUpToDateOrServing.add(ring);
       }
     }
 
-    // as long as we didn't encounter any down or updating rings, we can take
-    // down one of the currently up and not-yet-updated ones.
-    if (!anyClosedOrUpdating && !closable.isEmpty()) {
-      Ring toDown = closable.poll();
+    // Take appropriate actions for rings that are not up-to-date or fully serving
+    for (Ring ring : ringsNotUpToDateOrServing) {
+      if (isUpToDate(ring, targetVersion)) {
 
-      LOG.info("There were " + closable.size()
-          + " candidates for the next ring to update. Selecting ring "
-          + toDown.getRingNumber() + ".");
-      Rings.commandAll(toDown, HostCommand.GO_TO_IDLE);
-      toDown.setState(RingState.CLOSING);
+        // Ring is up-to-date but not fully serving
+
+        // Tell all non SERVING hosts to serve (if they don't have the serve command already)
+        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date but NOT fully serving. Commanding hosts to serve.");
+        for (Host host : ring.getHosts()) {
+          if (!host.getState().equals(HostState.SERVING)) {
+            Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+          }
+        }
+
+      } else {
+
+        // Ring is not even up-to-date
+
+        // What we do with not up-to-date rings depends on whether or not we are fully serving enough
+        // replicas (i.e. enough rings are fully serving)
+
+        if (ringsFullyServing.size() > minNumRingsFullyServing) {
+
+          // Enough rings are fully serving, we can command hosts to stop serving
+
+          // We are about to take actions and this ring will not be fully serving anymore. Remove it from the set.
+          ringsFullyServing.remove(ring);
+
+          if (Rings.isAssigned(ring, targetVersion)) {
+            // Ring is assigned target version but is not up-to-date
+            LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date.");
+            // Take appropriate action on hosts that are not up-to-date: idle hosts should update. Serving hosts
+            // should go idle.
+            for (Host host : ring.getHosts()) {
+              if (!isUpToDate(host, targetVersion)) {
+                switch (host.getState()) {
+                  case IDLE:
+                    host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+                    break;
+                  case SERVING:
+                    host.enqueueCommand(HostCommand.GO_TO_IDLE);
+                    break;
+                }
+              }
+            }
+          } else {
+            // Ring is not even assigned target version
+            LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date and is NOT assigned target version.");
+            if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0) {
+              // If no host is serving in the ring, assign it
+              LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
+              assign(ring, targetVersion);
+            } else {
+              // If some hosts are serving, command them to go idle
+              LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
+                  + ". Commanding them to go idle.");
+              for (Host host : ring.getHosts()) {
+                if (host.getState().equals(HostState.SERVING)) {
+                  Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+                }
+              }
+            }
+          }
+        } else {
+          // Not enough rings are fully serving, we can't command any host to stop serving.
+          // Instead, simply command hosts to serve (if they don't have the serve command already).
+          LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date but only "
+              + ringsFullyServing.size() + " rings are fully serving. Waiting for " + (minNumRingsFullyServing + 1)
+              + " ring to be fully serving. Commanding hosts to serve.");
+          for (Host host : ring.getHosts()) {
+            if (!host.getState().equals(HostState.SERVING)) {
+              Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+            }
+          }
+        }
+      }
     }
   }
 }

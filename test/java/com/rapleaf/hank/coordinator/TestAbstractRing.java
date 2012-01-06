@@ -34,19 +34,6 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public RingState getState() throws IOException {
-      return null;
-    }
-
-    @Override
-    public void setState(RingState newState) throws IOException {
-    }
-
-    @Override
-    public void setStateChangeListener(RingStateChangeListener listener) throws IOException {
-    }
-
-    @Override
     public boolean removeHost(PartitionServerAddress address) {
       return false;
     }

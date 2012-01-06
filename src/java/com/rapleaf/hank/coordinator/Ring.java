@@ -38,18 +38,6 @@ public interface Ring extends Comparable<Ring> {
 
   public Host addHost(PartitionServerAddress address) throws IOException;
 
-  public RingState getState() throws IOException;
-
-  public void setState(RingState newState) throws IOException;
-
-  /**
-   * Listener will be notified when the ring's state changes.
-   *
-   * @param listener
-   * @throws IOException
-   */
-  public void setStateChangeListener(RingStateChangeListener listener) throws IOException;
-
   /**
    * Remove a host from this ring. Returns true if the host was removed, false
    * if there was no such host.

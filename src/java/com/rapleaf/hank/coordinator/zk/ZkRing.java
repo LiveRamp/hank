@@ -103,17 +103,6 @@ public class ZkRing extends AbstractRing {
   }
 
   @Override
-  public RingState getState() throws IOException {
-    String statusString;
-    try {
-      statusString = zk.getString(ZkPath.append(ringPath, STATUS_PATH_SEGMENT));
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-    return RingState.valueOf(statusString);
-  }
-
-  @Override
   public Set<Host> getHosts() {
     return new HashSet<Host>(hosts.values());
   }
@@ -130,20 +119,6 @@ public class ZkRing extends AbstractRing {
     } catch (Exception e) {
       throw new IOException(e);
     }
-  }
-
-  @Override
-  public void setState(RingState newState) throws IOException {
-    try {
-      zk.setString(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), newState.toString());
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setStateChangeListener(RingStateChangeListener listener) throws IOException {
-    stateChangeListeners.add(listener);
   }
 
   public void close() {

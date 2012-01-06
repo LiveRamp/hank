@@ -94,18 +94,18 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     return new RingGroupUpdateTransitionFunctionImpl() {
 
       @Override
-      protected boolean isUpToDate(Ring ring, DomainGroupVersion targetVersion) {
+      protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) {
         MockRingLocal mockRing = (MockRingLocal) ring;
         return mockRing.currentVersion != null &&
-            mockRing.currentVersion.equals(targetVersion);
+            mockRing.currentVersion.equals(domainGroupVersion);
       }
 
       @Override
-      protected boolean isUpToDate(Host host, DomainGroupVersion targetVersion) {
+      protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) {
         if (host.getAddress().equals(address1)) {
-          return targetVersion.equals(host1CurrentVersion);
+          return domainGroupVersion.equals(host1CurrentVersion);
         } else if (host.getAddress().equals(address2)) {
-          return targetVersion.equals(host2CurrentVersion);
+          return domainGroupVersion.equals(host2CurrentVersion);
         } else {
           throw new RuntimeException("Unknown host: " + host);
         }
