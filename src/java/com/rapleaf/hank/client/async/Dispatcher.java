@@ -100,6 +100,7 @@ public class Dispatcher implements Runnable {
     }
 
     public void execute() {
+      /*
       if (hasTimedout()) {
         // If we timedout just complete the task with timeout response
         response = TIMEOUT_RESPONSE;
@@ -125,6 +126,10 @@ public class Dispatcher implements Runnable {
           hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
         }
       }
+      */
+      hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+      // Execute asynchronous task
+      hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
     }
 
     private void doCompleted() {
@@ -177,8 +182,9 @@ public class Dispatcher implements Runnable {
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           // Always release the connection and transition
-          releaseConnection();
-          GetTask.this.transition();
+          //releaseConnection();
+          //GetTask.this.transition();
+          doCompleted();
         }
       }
 
@@ -192,11 +198,13 @@ public class Dispatcher implements Runnable {
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           // Always release the connection and transition
-          releaseConnection();
-          GetTask.this.transition();
+          //releaseConnection();
+          //GetTask.this.transition();
+          doCompleted();
         }
       }
     }
+
   }
 
   public void stop() {
@@ -212,6 +220,7 @@ public class Dispatcher implements Runnable {
   }
 
   public void addTask(GetTask task) {
+    /*
     try {
       if (task.startNanoTime == null) {
         task.startNanoTime = System.nanoTime();
@@ -220,6 +229,8 @@ public class Dispatcher implements Runnable {
     } catch (InterruptedException e) {
       // Someone is trying to stop Dispatcher
     }
+    */
+    task.execute();
   }
 
   @Override
