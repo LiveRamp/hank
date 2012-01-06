@@ -134,6 +134,8 @@ public class Dispatcher implements Runnable {
           hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
         }
       }
+      // Claim connection
+      hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
       // Execute asynchronous task
       hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
     }
@@ -188,7 +190,7 @@ public class Dispatcher implements Runnable {
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           // Always release the connection and transition
-          //releaseConnection();
+          releaseConnection();
           //GetTask.this.transition();
           doCompleted();
         }
@@ -204,7 +206,7 @@ public class Dispatcher implements Runnable {
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
           // Always release the connection and transition
-          //releaseConnection();
+          releaseConnection();
           //GetTask.this.transition();
           doCompleted();
         }
