@@ -110,7 +110,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
           // Enough rings are fully serving, we can command hosts to stop serving
 
-          // We are about to take actions and this ring will not be fully serving anymore. Remove it from the set.
+          // We are about to take actions and this ring will not be fully serving anymore (if it even was).
+          // Remove it from the set anyway (it might not be contained in the fully serving state).
           ringsFullyServing.remove(ring);
 
           if (Rings.isAssigned(ring, targetVersion)) {
