@@ -121,7 +121,10 @@
         <td></td>
         <% } %>
 
-        <td class='centered'><%= ringGroup.getTargetVersionNumber() != null ? ringGroup.getTargetVersionNumber() : "-" %></td>
+        <td class='centered'><%= targetDomainGroupVersion != null ?
+        UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
+        "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
+        "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %></td>
 
         <!-- Hosts State -->
 

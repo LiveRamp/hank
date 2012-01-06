@@ -207,6 +207,19 @@ table.table-blue td,
   color: #bbbbbb;
 }
 
+/* Domain Group Info */
+
+.domain-group-info {
+  width: 100%;
+}
+
+.domain-group-info td,
+.domain-group-info th {
+  padding-left: .5em;
+  padding-right: .5em;
+  text-align: center;
+}
+
 /* Tooltip */
 #tt {
   position: absolute;

@@ -1,9 +1,15 @@
 package com.rapleaf.hank.ui;
 
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 public class UiUtils {
@@ -50,6 +56,55 @@ public class UiUtils {
     content.append("</td></tr>");
   }
 
+  private static String htmlTooltip(String text, String title, String content) {
+    String uniqueId = UUID.randomUUID().toString().replaceAll("-", "_");
+    return "<script type=\"text/javascript\">"
+        + "var tooltipContent_" + uniqueId + " = \"" + content + "\";"
+        + "</script>"
+        + "<div style=\"cursor: help;\" onmouseover=\"tooltip.show(tooltipContent_" + uniqueId
+        + ", '" + title + "');\" onmouseout=\"tooltip.hide();\">"
+        + text
+        + "</div>";
+  }
+
+  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
+    String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
+        + " created at " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
+    StringBuilder content = new StringBuilder();
+    content.append("<table class='domain-group-info'><tr><th>Domain</th><th>Version</th><th>Closed At</th></tr>");
+    for (DomainGroupVersionDomainVersion version : domainGroupVersion.getDomainVersionsSorted()) {
+      content.append("<tr><td>");
+      content.append(version.getDomain().getName());
+      content.append("</td><td>");
+      content.append(version.getVersion().toString());
+      content.append("</td><td>");
+      content.append(formatDomainVersionClosedAt(version.getDomain().getVersionByNumber(version.getVersion())));
+      content.append("</td></tr>");
+    }
+    content.append("</table>");
+    return htmlTooltip(text, title, content.toString());
+  }
+
+  private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
+
+  public static String formatDomainGroupVersionCreatedAt(DomainGroupVersion domainGroupVersion) {
+    Long createdAt = domainGroupVersion.getCreatedAt();
+    if (createdAt == null) {
+      return "-";
+    } else {
+      return dateFormat.format(new Date(createdAt));
+    }
+  }
+
+  public static String formatDomainVersionClosedAt(DomainVersion domainVersion) throws IOException {
+    Long closedAt = domainVersion.getClosedAt();
+    if (closedAt == null) {
+      return "-";
+    } else {
+      return dateFormat.format(new Date(closedAt));
+    }
+  }
+
   public static String formatPopulationStatistics(String title,
                                                   DoublePopulationStatisticsAggregator populationStatistics) {
     double[] deciles = populationStatistics.computeDeciles();
@@ -63,14 +118,6 @@ public class UiUtils {
     addBar(tooltipContent, "max", populationStatistics.getMaximum(), populationStatistics.getMaximum(), "ms");
     tooltipContent.append("</table>");
 
-    String uniqueId = UUID.randomUUID().toString().replaceAll("-", "_");
-    return "<script type=\"text/javascript\">"
-        + "var tooltipContent_" + uniqueId + " = \"" + tooltipContent.toString() + "\";"
-        + "</script>"
-        + "<div style=\"cursor: help;\" onmouseover=\"tooltip.show(tooltipContent_" + uniqueId
-        + ", '" + title + "');\" onmouseout=\"tooltip.hide();\">"
-        + populationStatistics.format()
-        + " ms"
-        + "</div>";
+    return htmlTooltip(populationStatistics.format(), title, tooltipContent.toString());
   }
 }

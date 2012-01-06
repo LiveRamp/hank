@@ -58,8 +58,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <tr>
         <td>Target version:</td>
+
         <td>
-        <%= targetDomainGroupVersion == null ? "-" : targetDomainGroupVersion.getVersionNumber() %>
+        <%= targetDomainGroupVersion != null ?
+        UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
+        "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
+        "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %>
         </td>
         </tr>
 

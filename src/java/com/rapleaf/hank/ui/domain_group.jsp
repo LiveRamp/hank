@@ -99,21 +99,22 @@ tr.not_included td {
           <select size=3 id="<%= domain.getId() %>_version"
              name="<%=domain.getName() %>_version"
              <%= included ? "" : "disabled='disabled'" %> >
-             <% 
-              TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>()); 
+             <%
+              TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
               revSortedVersions.addAll(domain.getVersions());
               boolean first = true;
              %>
-             <% for (DomainVersion v : revSortedVersions) { 
+             <% for (DomainVersion v : revSortedVersions) {
                   if (v.getClosedAt() == null || v.isDefunct()) {continue;}
              %>
              <option
-              <% if (first) { 
+              <% if (first) {
                   first = false;
               %>
               selected
               <% } %>
-              value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %> (<%= new SimpleDateFormat().format(new Date(v.getClosedAt())) %>)</option>
+              value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %>
+              (<%= UiUtils.formatDomainVersionClosedAt(v) %>)</option>
              <% } %>
           </select>
         </td>
@@ -145,7 +146,7 @@ tr.not_included td {
   %>
   <tr>
     <td>v<%= dgcv.getVersionNumber() %></td>
-    <td>created <%= new SimpleDateFormat("d MMM yyyy HH:mm:ss").format(new Date(dgcv.getCreatedAt())) %></td>
+    <td>created <%= UiUtils.formatDomainGroupVersionCreatedAt(dgcv) %></td>
   </tr>
   <tr>
     <td colspan=2 style="padding-left: 10px">

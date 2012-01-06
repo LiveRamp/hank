@@ -124,7 +124,7 @@
       <%   if (version.isDefunct()) { %>
       DEFUNCT
       <%   } %>
-      <%= new Date(version.getClosedAt())%>
+      <%= UiUtils.formatDomainVersionClosedAt(version) %>
       <% } else { %>
       Open - <%= version.getPartitionProperties().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
