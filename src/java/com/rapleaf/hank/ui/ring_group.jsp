@@ -223,7 +223,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <table class='table-blue'>
     <tr>
       <th>Ring</th>
-      <th>State</th>
       <th></th>
       <th></th>
       <th>Hosts</th>
@@ -244,7 +243,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     %>
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
-      <td class='centered'><%=ring.getState()%></td>
       <%
       UpdateProgress progress = null;
       if (targetDomainGroupVersion != null &&

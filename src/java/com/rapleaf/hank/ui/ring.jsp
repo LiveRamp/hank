@@ -46,12 +46,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h2>State</h2>
     <table class='table-blue-compact'>
-      <tr>
-      <td>State:</td>
-      <td>
-      <%=ring.getState()%>
-      </td>
-      </tr>
 
       <tr>
       <td>Throughput:</td>

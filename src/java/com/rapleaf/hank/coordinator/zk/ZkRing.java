@@ -20,7 +20,6 @@ import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -31,14 +30,11 @@ import java.util.regex.Pattern;
 public class ZkRing extends AbstractRing {
 
   private static final Pattern RING_NUMBER_PATTERN = Pattern.compile("ring-(\\d+)", Pattern.DOTALL);
-  private static final String STATUS_PATH_SEGMENT = "status";
   private static final String HOSTS_PATH_SEGMENT = "hosts";
 
   private final String ringPath;
 
   private final WatchedMap<Host> hosts;
-  private final Set<RingStateChangeListener> stateChangeListeners = new HashSet<RingStateChangeListener>();
-  private final StateChangeWatcher stateChangeWatcher;
 
   private final ZooKeeperPlus zk;
 
@@ -51,7 +47,6 @@ public class ZkRing extends AbstractRing {
                               RingGroup group) throws KeeperException, InterruptedException {
     String ringPath = ZkPath.append(ringGroup, "ring-" + ringNum);
     zk.create(ringPath, null);
-    zk.create(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), RingState.CLOSED.toString().getBytes());
     zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
     return new ZkRing(zk, ringPath, group, coordinator);
   }
@@ -72,28 +67,6 @@ public class ZkRing extends AbstractRing {
         return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath));
       }
     });
-    this.stateChangeWatcher = new StateChangeWatcher();
-  }
-
-  private final class StateChangeWatcher extends HankWatcher {
-
-    protected StateChangeWatcher() throws KeeperException, InterruptedException {
-      super();
-    }
-
-    public void setWatch() throws KeeperException, InterruptedException {
-      zk.getData(ZkPath.append(ringPath, STATUS_PATH_SEGMENT), this, null);
-    }
-
-    @Override
-    public void realProcess(WatchedEvent event) {
-      switch (event.getType()) {
-        case NodeDataChanged:
-          for (RingStateChangeListener listener : stateChangeListeners) {
-            listener.onRingStateChange(ZkRing.this);
-          }
-      }
-    }
   }
 
   private static int parseRingNum(String ringPath) {
@@ -122,7 +95,6 @@ public class ZkRing extends AbstractRing {
   }
 
   public void close() {
-    stateChangeWatcher.cancel();
     for (Host host : getHosts()) {
       ((ZkHost) host).close();
     }

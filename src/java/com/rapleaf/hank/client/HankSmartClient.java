@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class HankSmartClient implements HankSmartClientIface, RingGroupChangeListener, RingStateChangeListener {
+public class HankSmartClient implements HankSmartClientIface, RingGroupChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -111,9 +111,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     loadCache(numConnectionsPerHost);
     ringGroup.setListener(this);
-    for (Ring ring : ringGroup.getRings()) {
-      ring.setStateChangeListener(this);
-    }
   }
 
   private void loadCache(int numConnectionsPerHost) throws IOException, TException {
@@ -329,11 +326,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {
     LOG.debug("Smart client notified of ring group change");
-  }
-
-  @Override
-  public void onRingStateChange(Ring ring) {
-    LOG.debug("Smart client notified of ring state change");
   }
 
   private static class BulkRequest {
