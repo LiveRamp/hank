@@ -49,21 +49,18 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <h2>State</h2>
       <table class='table-blue-compact'>
+
         <tr>
-        <td>Domain Group:</td>
+        <td>Target Version:</td>
         <td>
         <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
-        </td>
-        </tr>
-
-        <tr>
-        <td>Target version:</td>
-
-        <td>
-        <%= targetDomainGroupVersion != null ?
-        UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
-        "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
-        "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %>
+        version
+        <% if (targetDomainGroupVersion != null) { %>
+          <%= targetDomainGroupVersion.getVersionNumber() %>
+          (<%= UiUtils.formatDomainGroupVersionCreatedAt(targetDomainGroupVersion) %>)
+        <% } else { %>
+          unspecified
+        <% } %>
         </td>
         </tr>
 
@@ -168,6 +165,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          }
        %>
       </table>
+
+      <!-- Target Domain Group Version Information -->
+
+      <% if (targetDomainGroupVersion != null) { %>
+        <%= UiUtils.formatDomainGroupVersionTable(targetDomainGroupVersion, "table-blue-compact", true) %>
+      <% } %>
+
 
     <h2>Actions</h2>
 

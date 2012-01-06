@@ -71,13 +71,21 @@ public class UiUtils {
         + "</div>";
   }
 
-  public static String formatDomainGroupVersionTable(DomainGroupVersion domainGroupVersion, String cssClass)
+  public static String formatDomainGroupVersionTable(DomainGroupVersion domainGroupVersion,
+                                                     String cssClass,
+                                                     boolean linkToDomains)
       throws IOException {
     StringBuilder content = new StringBuilder();
     content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed On</th></tr>");
     for (DomainGroupVersionDomainVersion version : domainGroupVersion.getDomainVersionsSorted()) {
       content.append("<tr><td>");
-      content.append(version.getDomain().getName());
+      if (linkToDomains) {
+        content.append("<a href='/domain.jsp?n=" + URLEnc.encode(version.getDomain().getName()) + "'>");
+        content.append(version.getDomain().getName());
+        content.append("</a>");
+      } else {
+        content.append(version.getDomain().getName());
+      }
       content.append("</td><td>");
       content.append(version.getVersion().toString());
       content.append("</td><td>");
@@ -91,7 +99,7 @@ public class UiUtils {
   public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
     String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
         + " created on " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
-    String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info");
+    String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info", false);
     return htmlTooltip(text, title, content);
   }
 

@@ -150,7 +150,7 @@ tr.not_included td {
   </tr>
   <tr>
     <td colspan=2 style="padding-left: 10px">
-      <%= UiUtils.formatDomainGroupVersionTable(dgcv, "table-blue") %>
+      <%= UiUtils.formatDomainGroupVersionTable(dgcv, "table-blue", true) %>
     </td>
   </tr>
   <% } %>
