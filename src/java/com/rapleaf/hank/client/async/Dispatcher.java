@@ -48,7 +48,7 @@ public class Dispatcher implements Runnable {
 
   public Dispatcher(int queryTimeoutMs, int bulkQueryTimeoutMs, int queryMaxNumTries) {
     // Initialize select queues
-    getTasks = new LinkedBlockingQueue<GetTask> ();
+    getTasks = new LinkedBlockingQueue<GetTask>();
     this.queryTimeoutNano = queryTimeoutMs * 1000000; // convert ms to nano
     this.bulkQueryTimeoutNano = bulkQueryTimeoutMs * 1000000; // convert ms to nano
     this.queryMaxNumTries = queryMaxNumTries;
@@ -213,13 +213,10 @@ public class Dispatcher implements Runnable {
 
   public void addTask(GetTask task) {
     try {
-      // TODO: remove trace
-      //LOG.trace("Adding task with state " + task.state);
       if (task.startNanoTime == null) {
         task.startNanoTime = System.nanoTime();
       }
       getTasks.put(task);
-      //LOG.trace("Get Task is now " + getTasks.size());
     } catch (InterruptedException e) {
       // Someone is trying to stop Dispatcher
     }
@@ -228,14 +225,12 @@ public class Dispatcher implements Runnable {
   @Override
   public void run() {
     while (!stopping) {
-      //try {
-        GetTask task = getTasks.poll();
-        if (task != null) {
-          task.execute();
-        }
-      //} catch (InterruptedException e) {
+      try {
+        GetTask task = getTasks.take();
+        task.execute();
+      } catch (InterruptedException e) {
         // Someone is trying to stop Dispatcher
-      //}
+      }
     }
   }
 }
