@@ -127,7 +127,13 @@ public class Dispatcher implements Runnable {
         }
       }
       */
-      hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+      while (hostConnectionAndHostIndex == null || hostConnectionAndHostIndex.hostConnection == null) {
+        if (hostConnectionAndHostIndex == null) {
+          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+        } else {
+          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
+        }
+      }
       // Execute asynchronous task
       hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
     }
