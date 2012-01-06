@@ -150,18 +150,7 @@ tr.not_included td {
   </tr>
   <tr>
     <td colspan=2 style="padding-left: 10px">
-      <table>
-        <%
-          for (DomainGroupVersionDomainVersion dcv : dgcv.getDomainVersionsSorted()) {
-        %>
-        <tr>
-          <td>
-            <%=dcv.getDomain().getName()%>
-            @ v<%= dcv.getVersion() %>
-          </td>
-        </tr>
-        <% } %>
-      </table>
+      <%= UiUtils.formatDomainGroupVersionTable(dgcv, "table-blue") %>
     </td>
   </tr>
   <% } %>

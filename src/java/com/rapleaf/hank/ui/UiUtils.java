@@ -67,11 +67,10 @@ public class UiUtils {
         + "</div>";
   }
 
-  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
-    String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
-        + " created at " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
+  public static String formatDomainGroupVersionTable(DomainGroupVersion domainGroupVersion, String cssClass)
+      throws IOException {
     StringBuilder content = new StringBuilder();
-    content.append("<table class='domain-group-info'><tr><th>Domain</th><th>Version</th><th>Closed At</th></tr>");
+    content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed At</th></tr>");
     for (DomainGroupVersionDomainVersion version : domainGroupVersion.getDomainVersionsSorted()) {
       content.append("<tr><td>");
       content.append(version.getDomain().getName());
@@ -82,7 +81,14 @@ public class UiUtils {
       content.append("</td></tr>");
     }
     content.append("</table>");
-    return htmlTooltip(text, title, content.toString());
+    return content.toString();
+  }
+
+  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
+    String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
+        + " created at " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
+    String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info");
+    return htmlTooltip(text, title, content);
   }
 
   private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy HH:mm:ss");
