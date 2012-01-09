@@ -58,7 +58,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
    * @return
    * @throws IOException
    */
-  protected boolean fullyServing(Ring ring) throws IOException {
+  protected boolean isFullyServing(Ring ring) throws IOException {
     for (Host host : ring.getHosts()) {
       if (!host.getState().equals(HostState.SERVING)
           || host.getCurrentCommand() != null
@@ -85,7 +85,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     // Determine ring statuses (serving and or up-to-date)
     for (Ring ring : ringGroup.getRings()) {
-      if (fullyServing(ring)) {
+      if (isFullyServing(ring)) {
         ringsFullyServing.add(ring);
       }
       if (isUpToDateAndServing(ring, targetVersion)) {
