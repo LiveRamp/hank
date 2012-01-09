@@ -83,7 +83,7 @@ public class TestRingGroupConductor extends TestCase {
       }
     };
 
-    final MockRing mockRing = new MockRing(null, null, 1, null) {
+    final MockRing mockRing = new MockRing(null, null, 1) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton((Host) mockHost);

@@ -28,11 +28,11 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     protected DomainGroupVersion currentVersion;
 
+
     public MockRingLocal(int number,
-                         RingState state,
                          DomainGroupVersion currentVersion,
                          PartitionServerAddress... hosts) {
-      super(new LinkedHashSet<PartitionServerAddress>(Arrays.asList(hosts)), null, number, state);
+      super(new LinkedHashSet<PartitionServerAddress>(Arrays.asList(hosts)), null, number);
       this.currentVersion = currentVersion;
     }
   }

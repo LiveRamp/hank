@@ -114,6 +114,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         ringsFullyServing.add(ring);
       }
       if (isFullyServing && isUpToDate) {
+        // Nothing needs to be done with this ring
         LOG.info("Ring " + ring.getRingNumber() + " is up-to-date and fully serving.");
       } else {
         ringsNotUpToDateOrServing.add(ring);

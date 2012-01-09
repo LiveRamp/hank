@@ -172,7 +172,7 @@ public class TestAbstractRing extends BaseTestCase {
     final LocalMockHost h1 = new LocalMockHost();
     final LocalMockHost h2 = new LocalMockHost();
 
-    MockRing r = new MockRing(null, null, 0, null) {
+    MockRing r = new MockRing(null, null, 0) {
       Set<Host> hosts = new HashSet<Host>() {{
         add(h1);
         add(h2);

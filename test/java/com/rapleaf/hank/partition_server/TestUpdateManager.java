@@ -76,7 +76,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     private Ring getMockRing(final Host host, final RingGroup ringGroup) {
-      return new MockRing(null, ringGroup, 0, null) {
+      return new MockRing(null, ringGroup, 0) {
         @Override
         public Host getHostByAddress(PartitionServerAddress address) {
           return host;

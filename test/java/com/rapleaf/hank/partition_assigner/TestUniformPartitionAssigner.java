@@ -164,7 +164,7 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
     }
   };
 
-  private static final Ring ring = new MockRing(addresses, ringGroup, 0, RingState.OPEN) {
+  private static final Ring ring = new MockRing(addresses, ringGroup, 0) {
     @Override
     public Set<Host> getHosts() {
       return hosts;

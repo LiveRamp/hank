@@ -21,13 +21,11 @@ import java.util.Set;
 
 public class MockRing extends AbstractRing {
 
-  private RingState state;
   private final Set<Host> hosts;
 
   public MockRing(Set<PartitionServerAddress> hosts,
                   RingGroup ringGroup,
-                  int number,
-                  RingState state) {
+                  int number) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {
@@ -35,7 +33,6 @@ public class MockRing extends AbstractRing {
         this.hosts.add(new MockHost(addy));
       }
     }
-    this.state = state;
   }
 
   @Override
