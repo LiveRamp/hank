@@ -52,12 +52,12 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
   private static final PartitionServerAddress pda2 = new PartitionServerAddress("host2", 12345);
   private static final PartitionServerAddress pda3 = new PartitionServerAddress("host3", 12345);
 
-  private static final HashSet<PartitionServerAddress> addresses = new HashSet<PartitionServerAddress>();
+  private static final HashSet<Host> addresses = new HashSet<Host>();
 
   static {
-    addresses.add(pda1);
-    addresses.add(pda2);
-    addresses.add(pda3);
+    addresses.add(new MockHost(pda1));
+    addresses.add(new MockHost(pda2));
+    addresses.add(new MockHost(pda3));
   }
 
   private final static Host host1 = new MockHost(pda1) {

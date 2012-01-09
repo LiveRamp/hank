@@ -16,41 +16,64 @@
 package com.rapleaf.hank.ring_group_conductor;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import junit.framework.TestCase;
 
+import java.io.IOException;
 import java.util.*;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   private class MockRingLocal extends MockRing {
 
-    protected DomainGroupVersion currentVersion;
-
+    protected DomainGroupVersion assignedVersion = null;
+    protected Boolean isUpToDate = null;
 
     public MockRingLocal(int number,
-                         DomainGroupVersion currentVersion,
-                         PartitionServerAddress... hosts) {
-      super(new LinkedHashSet<PartitionServerAddress>(Arrays.asList(hosts)), null, number);
-      this.currentVersion = currentVersion;
+                         Set<Host> hosts) {
+      super(hosts, null, number);
+    }
+
+    public void assignVersion(DomainGroupVersion domainGroupVersion) {
+      assignedVersion = domainGroupVersion;
+    }
+
+    public boolean isUpToDate(DomainGroupVersion domainGroupVersion) {
+      return isAssigned(domainGroupVersion) && isUpToDate.equals(Boolean.TRUE);
+    }
+
+    public void setIsUpToDate(boolean isUpToDate) {
+      this.isUpToDate = isUpToDate;
+    }
+
+    public boolean isAssigned(DomainGroupVersion domainGroupVersion) {
+      return assignedVersion != null && assignedVersion.equals(domainGroupVersion);
     }
   }
 
   private class MockRingGroupLocal extends MockRingGroup {
 
-    public MockRingGroupLocal(int targetVersion, Ring... rings) {
-      super(domainGroup, "myRingGroup", new LinkedHashSet<Ring>(Arrays.asList(rings)), targetVersion);
+    public MockRingGroupLocal(Ring... rings) {
+      super(domainGroup, "myRingGroup", new LinkedHashSet<Ring>(Arrays.asList(rings)), null);
     }
   }
 
-  private static Domain domain1 = new MockDomain("domain1");
+  private class MockHostLocal extends MockHost {
 
-  private static PartitionServerAddress address1 = new PartitionServerAddress("localhost", 1);
-  private static PartitionServerAddress address2 = new PartitionServerAddress("localhost", 2);
+    private DomainGroupVersion currentVersion = null;
 
-  private static DomainGroupVersion host1CurrentVersion = null;
-  private static DomainGroupVersion host2CurrentVersion = null;
+    public MockHostLocal(PartitionServerAddress address) {
+      super(address);
+    }
+
+    public boolean isUpToDate(DomainGroupVersion domainGroupVersion) {
+      return currentVersion != null && currentVersion.equals(domainGroupVersion);
+    }
+
+    public void setCurrentVersion(DomainGroupVersion domainGroupVersion) {
+      currentVersion = domainGroupVersion;
+    }
+  }
 
   private static DomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
 
@@ -73,10 +96,67 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 1);
   private static DomainGroupVersion v2 =
       new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 2);
-  private static Set<DomainGroupVersionDomainVersion> domainVersions = new HashSet<DomainGroupVersionDomainVersion>() {{
-    add(new MockDomainGroupVersionDomainVersion(domain1, 0));
-  }};
-  private static DomainGroupVersion v3 = new MockDomainGroupVersion(domainVersions, domainGroup, 2);
+  private static DomainGroupVersion v3 =
+      new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 3);
+
+  private MockRingLocal r1;
+  private MockRingLocal r2;
+  private MockRingLocal r3;
+
+  private MockHostLocal r1h1 = null;
+  private MockHostLocal r1h2 = null;
+  private MockHostLocal r2h1 = null;
+  private MockHostLocal r2h2 = null;
+  private MockHostLocal r3h1 = null;
+  private MockHostLocal r3h2 = null;
+
+  private MockRingGroupLocal rg = null;
+
+  private RingGroupUpdateTransitionFunctionImpl transitionFunction = null;
+
+  @Override
+  public void setUp() throws IOException {
+
+    r1h1 = new MockHostLocal(new PartitionServerAddress("localhost", 1));
+    r1h2 = new MockHostLocal(new PartitionServerAddress("localhost", 2));
+    r2h1 = new MockHostLocal(new PartitionServerAddress("localhost", 3));
+    r2h2 = new MockHostLocal(new PartitionServerAddress("localhost", 4));
+    r3h1 = new MockHostLocal(new PartitionServerAddress("localhost", 5));
+    r3h2 = new MockHostLocal(new PartitionServerAddress("localhost", 6));
+
+    Set<Host> r1Hosts = new HashSet<Host>();
+    r1Hosts.add(r1h1);
+    r1Hosts.add(r1h2);
+    Set<Host> r2Hosts = new HashSet<Host>();
+    r1Hosts.add(r2h1);
+    r1Hosts.add(r2h2);
+    Set<Host> r3Hosts = new HashSet<Host>();
+    r1Hosts.add(r3h1);
+    r1Hosts.add(r3h2);
+
+    r1 = new MockRingLocal(0, r1Hosts);
+    r2 = new MockRingLocal(1, r2Hosts);
+    r3 = new MockRingLocal(2, r3Hosts);
+
+    rg = new MockRingGroupLocal(r1, r2, r3);
+
+    transitionFunction = new RingGroupUpdateTransitionFunctionImpl() {
+      @Override
+      protected boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
+        return ((MockRingLocal) ring).isAssigned(domainGroupVersion);
+      }
+
+      @Override
+      protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) {
+        return ((MockRingLocal) ring).isUpToDate(domainGroupVersion);
+      }
+
+      @Override
+      protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) {
+        return ((MockHostLocal) host).isUpToDate(domainGroupVersion);
+      }
+    };
+  }
 
   //TODO: write new tests
 

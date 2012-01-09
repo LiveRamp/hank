@@ -23,16 +23,12 @@ public class MockRing extends AbstractRing {
 
   private final Set<Host> hosts;
 
-  public MockRing(Set<PartitionServerAddress> hosts,
+  public MockRing(Set<Host> hosts,
                   RingGroup ringGroup,
                   int number) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
-    if (hosts != null) {
-      for (PartitionServerAddress addy : hosts) {
-        this.hosts.add(new MockHost(addy));
-      }
-    }
+    this.hosts.addAll(hosts);
   }
 
   @Override
