@@ -50,9 +50,19 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     return Hosts.isUpToDate(host, domainGroupVersion);
   }
 
+  /**
+   * Return true iff all hosts in given ring are serving and they are not about to
+   * stop serving (i.e. there is no current or pending command).
+   *
+   * @param ring
+   * @return
+   * @throws IOException
+   */
   protected boolean fullyServing(Ring ring) throws IOException {
     for (Host host : ring.getHosts()) {
-      if (!host.getState().equals(HostState.SERVING)) {
+      if (!host.getState().equals(HostState.SERVING)
+          || host.getCurrentCommand() != null
+          || host.getCommandQueue().size() != 0) {
         return false;
       }
     }
