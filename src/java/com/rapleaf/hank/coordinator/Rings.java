@@ -78,10 +78,6 @@ public class Rings {
     return results;
   }
 
-  public static final boolean isUpdatePending(Ring ring) {
-    return ring.getUpdatingToVersionNumber() != null;
-  }
-
   /**
    * Get the set of partition IDs that are not currently assigned to a host.
    *
@@ -189,16 +185,6 @@ public class Rings {
       result.aggregate(Hosts.computeUpdateProgress(host, domainGroupVersion));
     }
     return result;
-  }
-
-  public static DomainGroupVersion getMostRecentVersion(Ring ring) throws IOException {
-    // Use updating to version if there is one, current version otherwise
-    if (ring.getUpdatingToVersion() != null) {
-      return ring.getUpdatingToVersion();
-    } else if (ring.getCurrentVersion() != null) {
-      return ring.getCurrentVersion();
-    }
-    return null;
   }
 
   public static ServingStatusAggregator

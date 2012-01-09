@@ -24,6 +24,7 @@ import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -66,6 +67,9 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     // Output
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
+
+    // No map speculative execution because these tasks are hard on the disks
+    conf.setSpeculativeExecution(false);
   }
 
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
@@ -273,6 +277,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     HadoopDomainCompactor compactor = new HadoopDomainCompactor(conf);
     LOG.info("Compacting Hank domain " + domainName + " version " + versionToCompactNumber
         + " with coordinator configuration " + configurator);
-    compactor.buildHankDomain(properties, null);
+    compactor.buildHankDomain(properties, new IncrementalDomainVersionProperties.Base("Version "
+        + versionToCompactNumber + " compacted"));
   }
 }

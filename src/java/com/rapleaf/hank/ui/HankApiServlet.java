@@ -169,9 +169,7 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getRingGroupData(RingGroup ringGroup) throws IOException {
     Map<String, Object> ringGroupData = new HashMap<String, Object>();
     ringGroupData.put("name", ringGroup.getName());
-    ringGroupData.put("current_version", ringGroup.getCurrentVersionNumber());
-    ringGroupData.put("updating_to_version", ringGroup.getUpdatingToVersionNumber());
-    ringGroupData.put("is_updating", RingGroups.isUpdating(ringGroup));
+    ringGroupData.put("target_version", ringGroup.getTargetVersionNumber());
     ringGroupData.put("is_ring_group_conductor_online", ringGroup.isRingGroupConductorOnline());
     ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
     ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));
@@ -189,9 +187,6 @@ public class HankApiServlet extends HttpServlet {
   private Map<String, Object> getRingData(Ring ring) throws IOException {
     Map<String, Object> ringData = new HashMap<String, Object>();
     ringData.put("ring_number", ring.getRingNumber());
-    ringData.put("version_number", ring.getCurrentVersionNumber());
-    ringData.put("updating_to_version", ring.getUpdatingToVersionNumber());
-    ringData.put("is_update_pending", Rings.isUpdatePending(ring));
     ringData.put("status", ring.getState().name());
     ringData.put("hosts", getHostsMap(ring.getHosts()));
     return ringData;
@@ -229,11 +224,9 @@ public class HankApiServlet extends HttpServlet {
 
         for (RingGroup ringGroup : ringGroups) {
           Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-          Integer currentDomainGroupVersion = ringGroup.getCurrentVersionNumber();
-          addDomainVersionToRingGroupMap("current_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, currentDomainGroupVersion);
+          Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
+          addDomainVersionToRingGroupMap("target_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, targetDomainGroupVersion);
 
-          Integer updatedToDomainGroupVersion = ringGroup.getUpdatingToVersionNumber();
-          addDomainVersionToRingGroupMap("updating_to_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, updatedToDomainGroupVersion);
           responseData.put(ringGroup.getName(), ringGroupMap);
         }
       }
@@ -253,8 +246,7 @@ public class HankApiServlet extends HttpServlet {
       Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
       for (RingGroup ringGroup : ringGroups) {
         Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-        ringGroupMap.put("current_version", ringGroup.getCurrentVersionNumber());
-        ringGroupMap.put("update_to_version", ringGroup.getUpdatingToVersionNumber());
+        ringGroupMap.put("target_version", ringGroup.getTargetVersionNumber());
         responseData.put(ringGroup.getName(), ringGroupMap);
       }
     }

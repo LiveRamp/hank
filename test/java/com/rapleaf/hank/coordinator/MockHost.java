@@ -47,8 +47,8 @@ public class MockHost extends AbstractHost {
   }
 
   public MockHostDomain addMockDomain(Domain domain,
-                                      int... numberAndVersionAndUpdatingToVersionTriples) throws IOException {
-    MockHostDomain hostDomain = new MockHostDomain(domain, numberAndVersionAndUpdatingToVersionTriples);
+                                      int... numberAndVersionPairs) throws IOException {
+    MockHostDomain hostDomain = new MockHostDomain(domain, numberAndVersionPairs);
     hostDomains.add(hostDomain);
     return hostDomain;
   }

@@ -21,14 +21,12 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
   private Integer currentDomainGroupVersion;
-  private Integer updatingToDomainGroupVersion;
   private boolean deletable;
   private boolean isDeleted;
 
-  public MockHostDomainPartition(int partNum, int currentDomainGroupVersion, int updatingToDomainGroupVersion) {
+  public MockHostDomainPartition(int partNum, int currentDomainGroupVersion) {
     this.partNum = partNum;
     this.currentDomainGroupVersion = currentDomainGroupVersion;
-    this.updatingToDomainGroupVersion = updatingToDomainGroupVersion;
     deletable = false;
   }
 
@@ -43,18 +41,8 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public Integer getUpdatingToDomainGroupVersion() throws IOException {
-    return updatingToDomainGroupVersion;
-  }
-
-  @Override
   public void setCurrentDomainGroupVersion(int version) {
     currentDomainGroupVersion = version;
-  }
-
-  @Override
-  public void setUpdatingToDomainGroupVersion(Integer version) {
-    updatingToDomainGroupVersion = version;
   }
 
   @Override

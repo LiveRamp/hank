@@ -78,8 +78,7 @@
       <th>Domain Group</th>
       <th></th>
       <th></th>
-      <th>Version</th>
-      <th>Updating to version</th>
+      <th>Target Version</th>
       <th>Hosts</th>
       <th>Serving</th>
       <th>Updating</th>
@@ -88,7 +87,7 @@
       <th>Throughput</th>
       <th>Latency</th>
       <th>Hit rate</th>
-      <th>Updated & Served</th>
+      <th>Up-to-date & Served</th>
       <th>(fully)</th>
     </tr>
     <%
@@ -99,12 +98,11 @@
         <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
 
         <%
+        DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
         UpdateProgress progress = null;
-        if (RingGroups.isUpdating(ringGroup)) {
-          DomainGroupVersion domainGroupVersion = ringGroup.getUpdatingToVersion();
-          if (domainGroupVersion != null) {
-            progress = RingGroups.computeUpdateProgress(ringGroup, domainGroupVersion);
-          }
+        if (targetDomainGroupVersion != null &&
+            !RingGroups.isUpToDate(ringGroup, targetDomainGroupVersion)) {
+          progress = RingGroups.computeUpdateProgress(ringGroup, targetDomainGroupVersion);
         }
         %>
 
@@ -115,7 +113,7 @@
           </div>
         </td>
         <td>
-          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions updated
+          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions up-to-date
           (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
         </td>
         <% } else { %>
@@ -123,10 +121,12 @@
         <td></td>
         <% } %>
 
-        <!-- Hosts State -->
+        <td class='centered'><%= targetDomainGroupVersion != null ?
+        UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
+        "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
+        "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %></td>
 
-        <td class='centered'><%= ringGroup.getCurrentVersionNumber() != null ? ringGroup.getCurrentVersionNumber() : "-" %></td>
-        <td class='centered'><%= ringGroup.getUpdatingToVersionNumber() != null ? ringGroup.getUpdatingToVersionNumber() : "-" %></td>
+        <!-- Hosts State -->
 
         <%
         int hostsTotal = RingGroups.getNumHosts(ringGroup);
@@ -180,11 +180,10 @@
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
         ServingStatus uniquePartitionsServingStatus = null;
-        DomainGroupVersion mostRecentDomainGroupVersion = RingGroups.getMostRecentVersion(ringGroup);
-        if (mostRecentDomainGroupVersion != null) {
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, mostRecentDomainGroupVersion);
+        if (targetDomainGroupVersion != null) {
+          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, targetDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(mostRecentDomainGroupVersion);
+          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>

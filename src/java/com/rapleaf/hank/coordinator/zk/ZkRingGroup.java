@@ -34,8 +34,7 @@ import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup {
 
-  protected static final String UPDATING_TO_VERSION_PATH_SEGMENT = "updating_to_version";
-  protected static final String CURRENT_VERSION_PATH_SEGMENT = "current_version";
+  protected static final String TARGET_VERSION_PATH_SEGMENT = "target_version";
   protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
   private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
@@ -43,14 +42,12 @@ public class ZkRingGroup extends AbstractRingGroup {
   private DomainGroup domainGroup;
   private final Map<String, ZkRing> ringsByNumber;
   private final String ringGroupPath;
-  private final String currentVerPath;
-  private final String updatingToVersionPath;
+  private final String targetVersionPath;
   private final String ringGroupConductorOnlinePath;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
 
-  private final WatchedInt currentVersion;
-  private final WatchedInt updatingToVersion;
+  private final WatchedInt targetVersion;
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
@@ -59,8 +56,7 @@ public class ZkRingGroup extends AbstractRingGroup {
           "You cannot create a ring group for a domain group that has no versions!");
     }
     zk.create(path, domainGroup.getName().getBytes());
-    zk.create(ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(path, UPDATING_TO_VERSION_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(path, TARGET_VERSION_PATH_SEGMENT), null);
     return new ZkRingGroup(zk, path, domainGroup, coordinator);
   }
 
@@ -86,12 +82,10 @@ public class ZkRingGroup extends AbstractRingGroup {
       }
     });
 
-    currentVerPath = ZkPath.append(ringGroupPath, CURRENT_VERSION_PATH_SEGMENT);
-    updatingToVersionPath = ZkPath.append(ringGroupPath, UPDATING_TO_VERSION_PATH_SEGMENT);
+    targetVersionPath = ZkPath.append(ringGroupPath, TARGET_VERSION_PATH_SEGMENT);
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
 
-    currentVersion = new WatchedInt(zk, currentVerPath, true);
-    updatingToVersion = new WatchedInt(zk, updatingToVersionPath, true);
+    targetVersion = new WatchedInt(zk, targetVersionPath, true);
     ringGroupConductorMode = new WatchedEnum<RingGroupConductorMode>(RingGroupConductorMode.class,
         zk, ringGroupConductorOnlinePath, false);
   }
@@ -142,11 +136,8 @@ public class ZkRingGroup extends AbstractRingGroup {
 
     private void reregister() throws KeeperException, InterruptedException {
       zk.getChildren(ringGroupPath, this);
-      if (zk.exists(currentVerPath, this) != null) {
-        zk.getData(currentVerPath, this, new Stat());
-      }
-      if (zk.exists(updatingToVersionPath, this) != null) {
-        zk.getData(updatingToVersionPath, this, new Stat());
+      if (zk.exists(targetVersionPath, this) != null) {
+        zk.getData(targetVersionPath, this, new Stat());
       }
     }
   }
@@ -225,27 +216,18 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public Integer getCurrentVersionNumber() throws IOException {
+  public Integer getTargetVersionNumber() throws IOException {
     try {
-      return currentVersion.get();
+      return targetVersion.get();
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
   @Override
-  public void setCurrentVersion(Integer version) throws IOException {
+  public void setTargetVersion(Integer version) throws IOException {
     try {
-      currentVersion.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setUpdatingToVersion(Integer version) throws IOException {
-    try {
-      updatingToVersion.set(version);
+      targetVersion.set(version);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -255,15 +237,6 @@ public class ZkRingGroup extends AbstractRingGroup {
   public void setListener(RingGroupChangeListener listener) throws IOException {
     try {
       new StateChangeListener(listener);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public Integer getUpdatingToVersionNumber() throws IOException {
-    try {
-      return updatingToVersion.get();
     } catch (Exception e) {
       throw new IOException(e);
     }

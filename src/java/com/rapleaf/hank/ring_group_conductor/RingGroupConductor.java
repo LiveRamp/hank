@@ -118,41 +118,31 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   }
 
   void processUpdates(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
-    if (RingGroups.isUpdating(ringGroup)) {
-      LOG.info("Ring group " + ringGroupName
-          + " is currently updating from version "
-          + ringGroup.getCurrentVersion() + " to version "
-          + ringGroup.getUpdatingToVersion() + ".");
-      // There's already an update in progress. Let's just move that one along as necessary.
-      transFunc.manageTransitions(ringGroup);
-    } else {
-      // Check if there is a new version available for this ring group
-      final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
-      if (domainGroupVersion != null &&
-          (ringGroup.getCurrentVersionNumber() == null ||
-              ringGroup.getCurrentVersionNumber() < domainGroupVersion.getVersionNumber())) {
-        // There is a more recent version available
-        LOG.info("There is a new domain group version available for ring group " + ringGroupName
-            + ": " + domainGroupVersion);
-        if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
-          LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
-        } else {
-          // We can start a new update of this ring group.
-          // Check that new version is correctly assigned to ring group. If not, assign it.
-          for (Ring ring : ringGroup.getRings()) {
-            if (!Rings.isAssigned(ring, domainGroupVersion)) {
-              LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
-              partitionAssigner.assign(domainGroupVersion, ring);
-            }
-          }
-          // We are ready to update this ring group
-          LOG.info("Updating ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
-          startUpdate(ringGroup, domainGroupVersion);
-        }
+    // Check if there is a new version available for this ring group
+    final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
+    if (domainGroupVersion != null &&
+        (ringGroup.getTargetVersionNumber() == null ||
+            ringGroup.getTargetVersionNumber() < domainGroupVersion.getVersionNumber())) {
+      // There is a more recent version available
+      LOG.info("There is a new domain group version available for ring group " + ringGroupName
+          + ": " + domainGroupVersion);
+      if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
+        LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
       } else {
-        // No updates in process and no updates pending
+        // We can start a new update of this ring group.
+        // Check that new version is correctly assigned to ring group. If not, assign it.
+        for (Ring ring : ringGroup.getRings()) {
+          if (!Rings.isAssigned(ring, domainGroupVersion)) {
+            LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
+            partitionAssigner.assign(domainGroupVersion, ring);
+          }
+        }
+        // We are ready to update this ring group
+        LOG.info("Changing target version of ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
+        ringGroup.setTargetVersion(domainGroupVersion.getVersionNumber());
       }
     }
+    transFunc.manageTransitions(ringGroup);
   }
 
   // Check that all domains included in the given domain group version exist and that the specified versions
@@ -180,34 +170,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     }
     return true;
   }
-
-  private void startUpdate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
-    for (Ring ring : ringGroup.getRings()) {
-      for (Host host : ring.getHosts()) {
-        for (DomainGroupVersionDomainVersion domainGroupVersionDomainVersion : domainGroupVersion.getDomainVersions()) {
-          Domain domain = domainGroupVersionDomainVersion.getDomain();
-          HostDomain hostDomain = host.getHostDomain(domain);
-          if (hostDomain != null) {
-            for (HostDomainPartition partition : hostDomain.getPartitions()) {
-              // Skip partitions that are up-to-date
-              if (partition.getCurrentDomainGroupVersion() == null ||
-                  !partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber())) {
-                // Partitions that we want to update
-                partition.setUpdatingToDomainGroupVersion(domainGroupVersion.getVersionNumber());
-                // If partition is deletable, we want to keep it and we switch to non deletable
-                if (partition.isDeletable()) {
-                  partition.setDeletable(false);
-                }
-              }
-            }
-          }
-        }
-      }
-      ring.setUpdatingToVersion(domainGroupVersion.getVersionNumber());
-    }
-    ringGroup.setUpdatingToVersion(domainGroupVersion.getVersionNumber());
-  }
-
 
   @Override
   public void onRingGroupChange(RingGroup newRingGroup) {

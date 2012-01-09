@@ -29,7 +29,7 @@ import java.util.Collections;
 
 public class TestRingGroupMonitor extends BaseTestCase {
 
-  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", Collections.<Ring>emptySet());
+  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", Collections.<Ring>emptySet(), null);
   private MockNotifier mockNotifier;
 
   @Override

@@ -75,8 +75,19 @@
     <fail unless="testcase.exists">Specified testcase was not found!</fail>
   </target>
 
-  <target name="test" depends="compile-test,ensure-specific-test-exists" description="Run the unit test suite">
+  <target name="ensure-specific-test-package-exists" if="testpackage">
+    <fileset id="selected.test.package" dir="${test.src.dir}" includes="**/${testpackage}/**/Test*.java" />
+    <pathconvert refid="selected.test.package" property="testpackage.exists" setonempty="false" />
+    <fail unless="testpackage.exists">Specified package does not exist or contains no tests!</fail>
+  </target>
+
+  <target name="test" depends="compile-test,ensure-specific-test-exists,ensure-specific-test-package-exists" description="Run the unit test suite">
     <mkdir dir="${test.log.dir}"/>
+
+    <condition property="testpackage" value="${testpackage}" else="">
+      <isset property="testpackage" />
+    </condition>
+
     <junit
       printsummary="yes" showoutput="${test.output}"
       haltonfailure="no" fork="yes" maxmemory="512m"
@@ -87,9 +98,12 @@
       <sysproperty key="test.port" value="${test.port}" />
       <classpath refid="test.classpath"/>
       <formatter type="${test.junit.output.format}" />
-      <batchtest todir="${test.log.dir}" unless="testcase">
-        <fileset dir="${test.src.dir}" includes="**/Test*.java" />
+
+
+      <batchtest todir="${build.test}/log" unless="testcase">
+        <fileset dir="${test.src.dir}" includes="**/${testpackage}/**/Test*.java" />
       </batchtest>
+
       <batchtest todir="${test.log.dir}" if="testcase">
         <fileset dir="${test.src.dir}" includes="**/${testcase}.java" />
       </batchtest>

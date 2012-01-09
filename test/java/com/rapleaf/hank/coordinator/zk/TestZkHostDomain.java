@@ -29,7 +29,7 @@ public class TestZkHostDomain extends ZkTestCase {
     assertEquals(d0, hdc.getDomain());
     assertEquals(0, hdc.getPartitions().size());
     dumpZk();
-    hdc.addPartition(1, 1);
+    hdc.addPartition(1);
     assertEquals(1, hdc.getPartitions().size());
     assertEquals(1, ((HostDomainPartition) hdc.getPartitions().toArray()[0]).getPartitionNumber());
   }

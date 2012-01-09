@@ -32,7 +32,7 @@ public interface HostDomain extends Comparable<HostDomain> {
 
   public HostDomainPartition getPartitionByNumber(int partNum) throws IOException;
 
-  public HostDomainPartition addPartition(int partNum, int initialVersion) throws IOException;
+  public HostDomainPartition addPartition(int partNum) throws IOException;
 
   public void delete() throws IOException;
 }

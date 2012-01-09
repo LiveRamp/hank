@@ -158,6 +158,7 @@ public class DoublePopulationStatisticsAggregator {
     result.append(formatDouble(median));
     result.append(" / ");
     result.append(formatDouble(ninetiethPercentile));
+    result.append(" ms");
     return result.toString();
   }
 }

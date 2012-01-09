@@ -15,7 +15,6 @@ public abstract class AbstractHostDomainPartition implements HostDomainPartition
     try {
       return "AbstractHostDomainPartition [partition number=" + getPartitionNumber() +
           ", current domain group version=" + getCurrentDomainGroupVersion() +
-          ", updating to domain group version=" + getUpdatingToDomainGroupVersion() +
           ", deletable=" + isDeletable() + "]";
     } catch (IOException e) {
       throw new RuntimeException(e);

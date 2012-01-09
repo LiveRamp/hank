@@ -22,7 +22,7 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
-import com.rapleaf.hank.storage.curly.Curly;
+import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.KeeperException;
 
@@ -46,8 +46,10 @@ public class TestZkDomainGroup extends ZkTestCase {
   private final String domains_root = ZkPath.append(getRoot(), "domains");
 
   public void testLoad() throws Exception {
-    final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0);
-    final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Curly.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 1);
+    final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Echo.Factory.class.getName(), "---",
+        Murmur64Partitioner.class.getName(), 0);
+    final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Echo.Factory.class.getName(), "---",
+        Murmur64Partitioner.class.getName(), 1);
 
     Coordinator coord = new MockCoordinator() {
       @Override

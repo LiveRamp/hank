@@ -18,7 +18,7 @@ public class TestDomainAccessor extends BaseTestCase {
     ByteBuffer nullKey = ByteBuffer.wrap("nullKey".getBytes());
 
     // setup DomainAccessor
-    partitionAccessors[0] = new PartitionAccessor(new MockHostDomainPartition(0, 1, 2),
+    partitionAccessors[0] = new PartitionAccessor(new MockHostDomainPartition(0, 1),
         new MockReader(null, 1, "v".getBytes(), null));
     // MapPartitioner maps both 'key' and 'nullkey' to partitionAccessors[0]
     DomainAccessor drs = new DomainAccessor(new MockHostDomain(new MockDomain("domain")), partitionAccessors,

@@ -37,44 +37,61 @@ class UpdateManager implements IUpdateManager {
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class PartitionUpdateTask implements Runnable {
-    private final StorageEngine engine;
-    private final int partitionNumber;
-    private final Queue<Throwable> exceptionQueue;
-    private final DomainVersion toDomainVersion;
-    private final HostDomainPartition partition;
-    private final String domainName;
-    private final int toDomainGroupVersion;
 
-    public PartitionUpdateTask(StorageEngine engine,
-                               int partitionNumber,
-                               Queue<Throwable> exceptionQueue,
-                               DomainVersion toDomainVersion,
+    private final Domain domain;
+    private final HostDomainPartition partition;
+    private final Queue<Throwable> exceptionQueue;
+
+    public PartitionUpdateTask(Domain domain,
                                HostDomainPartition partition,
-                               String domainName,
-                               int toDomainGroupVersion) {
-      this.engine = engine;
-      this.partitionNumber = partitionNumber;
-      this.exceptionQueue = exceptionQueue;
-      this.toDomainVersion = toDomainVersion;
+                               Queue<Throwable> exceptionQueue) {
+      this.domain = domain;
       this.partition = partition;
-      this.domainName = domainName;
-      this.toDomainGroupVersion = toDomainGroupVersion;
+      this.exceptionQueue = exceptionQueue;
     }
 
     @Override
     public void run() {
       try {
-        LOG.info(String.format("Starting partition update of domain %s partition %d to version %d (storage engine: %s)",
-            domainName, partitionNumber, toDomainVersion.getVersionNumber(), engine.toString()));
-        engine.getUpdater(configurator, partitionNumber).updateTo(toDomainVersion);
-        partition.setCurrentDomainGroupVersion(toDomainGroupVersion);
-        partition.setUpdatingToDomainGroupVersion(null);
-        LOG.info(String.format("Completed partition update of domain %s partition %d to version %d (storage engine: %s).",
-            domainName, partitionNumber, toDomainVersion.getVersionNumber(), engine.toString()));
+        // Determine target version
+        DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
+        DomainGroupVersionDomainVersion targetDomainGroupVersionDomainVersion =
+            targetDomainGroupVersion.getDomainVersion(domain);
+
+        // If unable to determine the version, this partition is deletable (the corresponding domain is not in the
+        // target domain group version)
+        if (partition.isDeletable() || targetDomainGroupVersionDomainVersion == null) {
+          deletePartition(domain, partition);
+        } else {
+          // Determine Domain Version
+          DomainVersion targetDomainVersion =
+              domain.getVersionByNumber(targetDomainGroupVersionDomainVersion.getVersion());
+
+          // Skip partitions already up-to-date
+          if (partition.getCurrentDomainGroupVersion() != null &&
+              partition.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
+            LOG.info(String.format(
+                "Skipping partition update of domain %s partition %d to version %d (it is already up-to-date).",
+                domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
+            return;
+          }
+
+          // Perform update
+          StorageEngine storageEngine = domain.getStorageEngine();
+          LOG.info(String.format(
+              "Starting partition update of domain %s partition %d to version %d.",
+              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
+          storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion);
+
+          // Record update suceess
+          partition.setCurrentDomainGroupVersion(targetDomainGroupVersion.getVersionNumber());
+          LOG.info(String.format(
+              "Completed partition update of domain %s partition %d to version %d.",
+              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
+        }
       } catch (Throwable e) {
-        LOG.fatal(
-            String.format("Failed to complete partition update of domain %s partition %d to version %d.",
-                domainName, partitionNumber, toDomainVersion.getVersionNumber()), e);
+        LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
+            domain.getName(), partition.getPartitionNumber()), e);
         exceptionQueue.add(e);
       }
     }
@@ -95,18 +112,6 @@ class UpdateManager implements IUpdateManager {
   // When an Exception is thrown, the update has failed.
   public void update() throws IOException {
 
-    // Load domain group and version
-    DomainGroupVersion domainGroupVersion = ring.getUpdatingToVersion();
-
-    // If updating to version is not set, there is nothing to do
-    if (domainGroupVersion == null) {
-      LOG.info("Failed to determine domain group version to update to for ring: " + ring);
-      return;
-    }
-
-    // Garbage collect useless host domains and partitions and their corresponding data
-    garbageCollectHostDomainsAndPartitionsData(host, domainGroupVersion);
-
     // Perform update
     ThreadFactory factory = new ThreadFactory() {
       private int threadID = 0;
@@ -121,7 +126,7 @@ class UpdateManager implements IUpdateManager {
 
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    executePartitionUpdateTasks(domainGroupVersion, executor, exceptionQueue);
+    executePartitionUpdateTasks(executor, exceptionQueue);
 
     // Execute all tasks and wait for them to finish
     IOException failedUpdateException = null;
@@ -151,9 +156,7 @@ class UpdateManager implements IUpdateManager {
 
     // Detect failed tasks
     IOException failedTasksException = null;
-    if (!exceptionQueue.isEmpty())
-
-    {
+    if (!exceptionQueue.isEmpty()) {
       LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
       int i = 0;
       for (Throwable t : exceptionQueue) {
@@ -165,59 +168,27 @@ class UpdateManager implements IUpdateManager {
     }
 
     // First detect failed update
-    if (failedUpdateException != null)
-
-    {
+    if (failedUpdateException != null) {
       throw failedUpdateException;
     }
 
     // Then detect failed tasks
-    if (failedTasksException != null)
-
-    {
+    if (failedTasksException != null) {
       throw failedTasksException;
     }
+
+    // Garbage collect useless host domains
+    garbageCollectHostDomains(host);
   }
 
-  private void executePartitionUpdateTasks(DomainGroupVersion domainGroupVersion,
-                                           ExecutorService executor,
+  private void executePartitionUpdateTasks(ExecutorService executor,
                                            Queue<Throwable> exceptionQueue) throws IOException {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
-    // Loop over new domain versions and set partitions to updating state
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
-      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
-      if (domainVersion == null) {
-        throw new IOException("Aborting. Failed to load version " + dgvdv.getVersion() + " of domain " + domain);
-      }
-      StorageEngine engine = domain.getStorageEngine();
-      HostDomain hostDomain = host.getHostDomain(domain);
-      // Set partitions state
-      if (hostDomain == null) {
-        LOG.error(String.format("Host %s does not seem to be assigned Domain %s (Could not get corresponding HostDomain). Will not update.", host, domain));
-      } else {
-        for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          if (!partition.isDeletable() && partition.getUpdatingToDomainGroupVersion() != null) {
-            // Skip deletable partitions and partitions not updating
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(String.format("Configuring partition update task for group-%s/ring-%d/domain-%s/partition-%d from %d to %d",
-                  ringGroup.getName(),
-                  ring.getRingNumber(),
-                  domain.getName(),
-                  partition.getPartitionNumber(),
-                  partition.getCurrentDomainGroupVersion(),
-                  partition.getUpdatingToDomainGroupVersion()));
-            }
-            partitionUpdateTasks.add(new PartitionUpdateTask(engine,
-                partition.getPartitionNumber(),
-                exceptionQueue,
-                domainVersion,
-                partition,
-                domain.getName(),
-                partition.getUpdatingToDomainGroupVersion()));
-          }
-        }
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      Domain domain = hostDomain.getDomain();
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        partitionUpdateTasks.add(new PartitionUpdateTask(domain, partition, exceptionQueue));
       }
     }
 
@@ -230,40 +201,24 @@ class UpdateManager implements IUpdateManager {
     }
   }
 
-  private void garbageCollectHostDomainsAndPartitionsData(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+  private void garbageCollectHostDomains(Host host) throws IOException {
     // Delete deletable domains and partitions
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Domain domain = hostDomain.getDomain();
-      StorageEngine storageEngine = domain.getStorageEngine();
-      if (domainGroupVersion.getDomainVersion(domain) == null) {
-        // Host domain is deletable since it is not included in the version we are updating to
-        LOG.info("Deleting host domain " + hostDomain + " as it is not in domain group version " + domainGroupVersion);
-        deleteHostDomainAndData(hostDomain);
+      // Host domain does not contain anymore partitions. Delete it
+      if (hostDomain.getPartitions().size() == 0) {
+        LOG.info("Garbage collection Host Domain " + hostDomain + " as it is not used anymore.");
+        hostDomain.delete();
       } else {
-        // Detect deletable partitions
-        for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          if (partition.isDeletable()) {
-            LOG.info(String.format("Deleting ring %d host %s partition %d as it is selected for deletion.",
-                ring.getRingNumber(),
-                host.getAddress(),
-                partition.getPartitionNumber()));
-            Deleter deleter = storageEngine.getDeleter(configurator, partition.getPartitionNumber());
-            deleter.delete();
-            partition.delete();
-          }
-        }
+        LOG.debug(hostDomain.getPartitions());
       }
     }
   }
 
-  private void deleteHostDomainAndData(HostDomain hostDomain) throws IOException {
-    StorageEngine storageEngine = hostDomain.getDomain().getStorageEngine();
-    // This domain is not in the version we are updating to, delete it
-    for (HostDomainPartition partition : hostDomain.getPartitions()) {
-      Deleter deleter = storageEngine.getDeleter(configurator, partition.getPartitionNumber());
-      deleter.delete();
-      partition.delete();
-    }
-    hostDomain.delete();
+  private void deletePartition(Domain domain,
+                               HostDomainPartition partition) throws IOException {
+    LOG.info("Deleting Domain " + domain.getName() + " partition " + partition.getPartitionNumber());
+    Deleter deleter = domain.getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
+    deleter.delete();
+    partition.delete();
   }
 }

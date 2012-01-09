@@ -23,20 +23,8 @@ import java.util.TreeSet;
 public abstract class AbstractRingGroup implements RingGroup {
 
   @Override
-  public DomainGroupVersion getCurrentVersion() throws IOException {
-    Integer version = getCurrentVersionNumber();
-    if (version != null) {
-      DomainGroup domainGroup = getDomainGroup();
-      if (domainGroup != null) {
-        return domainGroup.getVersionByNumber(version);
-      }
-    }
-    return null;
-  }
-
-  @Override
-  public DomainGroupVersion getUpdatingToVersion() throws IOException {
-    Integer version = getUpdatingToVersionNumber();
+  public DomainGroupVersion getTargetVersion() throws IOException {
+    Integer version = getTargetVersionNumber();
     if (version != null) {
       DomainGroup domainGroup = getDomainGroup();
       if (domainGroup != null) {
@@ -52,12 +40,6 @@ public abstract class AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public void markUpdateComplete() throws IOException {
-    setCurrentVersion(getUpdatingToVersionNumber());
-    setUpdatingToVersion(null);
-  }
-
-  @Override
   public int compareTo(RingGroup other) {
     return getName().compareTo(other.getName());
   }
@@ -67,8 +49,7 @@ public abstract class AbstractRingGroup implements RingGroup {
     try {
       return "AbstractRingGroup [name=" + getName()
           + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
-          + ", current version=" + getCurrentVersionNumber()
-          + ", updating to version=" + getUpdatingToVersionNumber()
+          + ", target version=" + getTargetVersionNumber()
           + "]";
     } catch (IOException e) {
       return "AbstractRingGroup [name=" + getName()

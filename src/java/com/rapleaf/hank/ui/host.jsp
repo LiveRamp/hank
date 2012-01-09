@@ -49,7 +49,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   RuntimeStatisticsAggregator runtimeStatisticsForHost =
     Hosts.computeRuntimeStatisticsForHost(runtimeStatistics);
 
-  DomainGroupVersion currentDomainGroupVersion = ring.getCurrentVersion();
+  DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
 %>
 
 <div>
@@ -125,7 +125,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <!-- Domain specific Runtime Statistics -->
 
   <%
-    if (currentDomainGroupVersion != null) {
+    if (targetDomainGroupVersion != null) {
   %>
   <table class='table-blue-compact'>
   <tr>
@@ -135,7 +135,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
      <th>Hit Rate</th>
   </tr>
    <%
-     for (DomainGroupVersionDomainVersion dgvdv : currentDomainGroupVersion.getDomainVersionsSorted()) {
+     for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersionsSorted()) {
        Domain domain = dgvdv.getDomain();
        RuntimeStatisticsAggregator runtimeStatisticsForDomain =
        Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
@@ -182,8 +182,8 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     Add a domain partition:<br/>
     <select name="domainId">
       <%
-        if (ringGroup.getCurrentVersion() != null) {
-          for (DomainGroupVersionDomainVersion dgvdv : ringGroup.getCurrentVersion().getDomainVersions()) {
+        if (targetDomainGroupVersion != null) {
+          for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersions()) {
           %>
           <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
           <%
@@ -191,8 +191,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         }
       %>
     </select>
-    Part:<input type=text size=4 name="partNum" />
-    Initial Version:<input type=text size=4 name="initialVersion"/>
+    Partition number:<input type=text size=4 name="partNum" />
     <input type=submit value="Add"/>
   </form>
 
@@ -215,7 +214,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       </tr>
       <tr>
         <td class="partition_updated" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
-        <td>Assigned, latest version deployed</td>
+        <td>Assigned, target version deployed</td>
       </tr>
     </table>
   </div>
@@ -238,10 +237,11 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
         if (hdp != null) {
           if (hdp.getCurrentDomainGroupVersion() == null) {
             className = "partition_undeployed";
-          } else if (hdp.getUpdatingToDomainGroupVersion() != null) {
-            className = "partition_updating";
-          } else {
+          } else if (targetDomainGroupVersion != null &&
+                     hdp.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
             className = "partition_updated";
+          } else {
+            className = "partition_updating";
           }
         }
       %>
@@ -263,7 +263,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <div style="clear:both"></div>
 
   <table class="table-blue">
-    <tr><th>domain</th><th>part #</th><th>cur ver #</th><th>upd ver #</th><th>toggle deletable</th></tr>
+    <tr><th>Domain</th><th>Partition Number</th><th>Current Version</th><th>Toggle Deletable</th></tr>
   <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
@@ -278,7 +278,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       </td>
       <td><%= hdpc.getPartitionNumber() %></td>
       <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
-      <td><%= hdpc.getUpdatingToDomainGroupVersion() %></td>
       <td>
         <form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
