@@ -91,10 +91,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
         // Ring is up-to-date but not fully serving
 
-        // Tell all non SERVING hosts to serve (if they don't have the serve command already)
-        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date but NOT fully serving. Commanding hosts to serve.");
+        // Tell all idle hosts to serve (if they don't have the serve command already)
+        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date but NOT fully serving. Commanding idle hosts to serve.");
         for (Host host : ring.getHosts()) {
-          if (!host.getState().equals(HostState.SERVING)) {
+          if (host.getState().equals(HostState.IDLE)) {
             Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
           }
         }
@@ -154,9 +154,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           // Instead, simply command hosts to serve (if they don't have the serve command already).
           LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date but only "
               + ringsFullyServing.size() + " rings are fully serving. Waiting for " + (minNumRingsFullyServing + 1)
-              + " ring to be fully serving. Commanding hosts to serve.");
+              + " ring to be fully serving. Commanding idle hosts to serve.");
           for (Host host : ring.getHosts()) {
-            if (!host.getState().equals(HostState.SERVING)) {
+            if (host.getState().equals(HostState.IDLE)) {
               Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
             }
           }
