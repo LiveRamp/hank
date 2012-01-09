@@ -36,16 +36,39 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     partitionAssigner = new UniformPartitionAssigner();
   }
 
+  /**
+   * Return true iff given domain group version is assigned to given ring.
+   *
+   * @param ring
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
+  protected boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    return Rings.isAssigned(ring, domainGroupVersion);
+  }
+
+  /**
+   * Return true iff given ring is up-to-date for given domain group version (i.e. all partitions are
+   * assigned and up-to-date)
+   *
+   * @param ring
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
   protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
     return Rings.isUpToDate(ring, domainGroupVersion);
   }
 
-  protected boolean isUpToDateAndServing(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
-    ServingStatus servingStatus = Rings.computeServingStatusAggregator(ring, domainGroupVersion)
-        .computeUniquePartitionsServingStatus(domainGroupVersion);
-    return servingStatus.getNumPartitions() == servingStatus.getNumPartitionsServedAndUpToDate();
-  }
-
+  /**
+   * Return true iff given host is up-to-date for given domain group version (i.e. all partitions are up-to-date)
+   *
+   * @param host
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
   protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
     return Hosts.isUpToDate(host, domainGroupVersion);
   }
@@ -83,13 +106,15 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     // TODO: this could be configurable
     int minNumRingsFullyServing = ringGroup.getRings().size() - 1;
 
-    // Determine ring statuses (serving and or up-to-date)
+    // Determine ring statuses (serving and / or up-to-date)
     for (Ring ring : ringGroup.getRings()) {
-      if (isFullyServing(ring)) {
+      boolean isFullyServing = isFullyServing(ring);
+      boolean isUpToDate = isUpToDate(ring, targetVersion);
+      if (isFullyServing) {
         ringsFullyServing.add(ring);
       }
-      if (isUpToDateAndServing(ring, targetVersion)) {
-        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date and serving.");
+      if (isFullyServing && isUpToDate) {
+        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date and fully serving.");
       } else {
         ringsNotUpToDateOrServing.add(ring);
       }
@@ -124,7 +149,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           // Remove it from the set anyway (it might not be contained in the fully serving state).
           ringsFullyServing.remove(ring);
 
-          if (Rings.isAssigned(ring, targetVersion)) {
+          if (isAssigned(ring, targetVersion)) {
             // Ring is assigned target version but is not up-to-date
             LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date.");
             // Take appropriate action on hosts that are not up-to-date: idle hosts should update. Serving hosts
