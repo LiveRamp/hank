@@ -9,6 +9,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class HankSyncSmartClient implements HankSmartClientIface {
+
+  private static final Logger LOG = Logger.getLogger(HankAsyncSmartClient.class);
 
   private final HankAsyncSmartClient asyncSmartClient;
 
@@ -44,13 +47,13 @@ public class HankSyncSmartClient implements HankSmartClientIface {
                              int queryTimeoutMs,
                              int bulkQueryTimeoutMs) throws IOException, TException {
     asyncSmartClient = new HankAsyncSmartClient(
-            coordinator,
-            ringGroupName,
-            numConnectionsPerHost,
-            queryMaxNumTries,
-            /*establishConnectionTimeoutMs*/0,
-            queryTimeoutMs,
-            bulkQueryTimeoutMs);
+        coordinator,
+        ringGroupName,
+        numConnectionsPerHost,
+        queryMaxNumTries,
+        /*establishConnectionTimeoutMs*/0,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
   }
 
   private static class SyncGetCallback implements GetCallback {
