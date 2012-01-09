@@ -2,6 +2,7 @@ package com.rapleaf.hank.client.async;
 
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import org.apache.commons.lang.NotImplementedException;
@@ -9,9 +10,9 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.TAsyncClientManager;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TNonblockingSocket;
-import org.apache.thrift.transport.TNonblockingTransport;
+import org.apache.thrift.transport.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -28,7 +29,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   private final Runnable connectionListener;
   private final TAsyncClientManager asyncClientManager;
   private TNonblockingTransport transport;
-  private PartitionServer.AsyncClient client;
+  private PartitionServer.Client client;
 
   // Note: state is volatile because it is read and written by different threads and we want to avoid the overhead
   // of synchronize. Missing an update is fine in this case.
@@ -43,6 +44,19 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     DISCONNECTED,
     CONNECTING,
     CONNECTED
+  }
+
+  public static class fake_call_mock extends PartitionServer.AsyncClient.get_call {
+    HankResponse response;
+
+    public fake_call_mock(HankResponse response) throws TException {
+      super(0, null, null, null, null, null);
+      this.response = response;
+    }
+
+    public HankResponse getResult() throws org.apache.thrift.TException {
+      return response;
+    }
   }
 
   // A timeout of 0 means no timeout
@@ -68,8 +82,9 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   public void get(int domainId, ByteBuffer key, HostConnectionGetCallback resultHandler) {
     checkValidState();
     try {
-      client.setTimeout(queryTimeoutMs);
-      client.get(domainId, key, resultHandler);
+      //client.setTimeout(queryTimeoutMs);
+      HankResponse response = client.get(domainId, key/*, resultHandler*/);
+      resultHandler.onComplete(new fake_call_mock(response));
     } catch (TException e) {
       resultHandler.onError(e);
     }
@@ -78,8 +93,8 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   public void getBulk(int domainId, List<ByteBuffer> keys, HostConnectionGetBulkCallback resultHandler) {
     checkValidState();
     try {
-      client.setTimeout(bulkQueryTimeoutMs);
-      client.getBulk(domainId, keys, resultHandler);
+      //client.setTimeout(bulkQueryTimeoutMs);
+      client.getBulk(domainId, keys/*, resultHandler*/);
     } catch (TException e) {
       resultHandler.onError(e);
     }
@@ -132,12 +147,17 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       LOG.trace("Trying to connect to " + host.getAddress());
     }
     // Use connection timeout to connect
-    transport = new TNonblockingSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber(), establishConnectionTimeoutMs);
-    TProtocolFactory factory = new TCompactProtocol.Factory();
-    client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Connection to " + host.getAddress() + " opened.");
+    TFramedTransport transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
+        host.getAddress().getPortNumber(),
+        establishConnectionTimeoutMs));
+    try {
+      transport.open();
+    } catch (TTransportException e) {
+      LOG.error("Failed to establish connection to host " + host.getAddress(), e);
+      throw new IOException("Failed to establish connection to host " + host.getAddress(), e);
     }
+    TProtocol proto = new TCompactProtocol(transport);
+    client = new PartitionServer.Client(proto);
     state = HostConnectionState.CONNECTED;
     if (connectionListener != null) {
       connectionListener.run();
