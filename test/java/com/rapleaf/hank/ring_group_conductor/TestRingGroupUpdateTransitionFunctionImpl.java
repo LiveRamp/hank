@@ -212,6 +212,28 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
+  public void testDoNotAssignIfOneHostIsServing() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v1, v1, HostState.IDLE);
+    r0h1.setState(HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // v2 should not have been assigned to r0
+    assertTrue(r0.isAssigned(v1));
+
+    // No commands should have been issued to rings, except to r0h1
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
   public void testAssignIdleRing() throws IOException {
     rg.setTargetVersion(2);
 
