@@ -17,11 +17,14 @@
 package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 
 public final class RingGroups {
+
+  private static Logger LOG = Logger.getLogger(RingGroups.class);
 
   private RingGroups() {
   }
@@ -29,6 +32,47 @@ public final class RingGroups {
   public static boolean isUpToDate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isUpToDate(ring, domainGroupVersion)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public static void setTargetVersion(RingGroup ringGroup, Integer versionNumber) throws IOException {
+    DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(versionNumber);
+    setTargetVersion(ringGroup, domainGroupVersion);
+  }
+
+  public static void setTargetVersion(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
+    // Check that target version is deployable
+    if (domainGroupVersionIsDeployable(domainGroupVersion)) {
+      ringGroup.setTargetVersion(domainGroupVersion.getVersionNumber());
+    } else {
+      LOG.info("Target domain group version is not deployable. Ignoring: " + domainGroupVersion);
+    }
+  }
+
+  // Check that all domains included in the given domain group version exist and that the specified versions
+  // are not defunct or open.
+  private static boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
+    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
+      return false;
+    }
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      if (domain == null) {
+        return false;
+      }
+      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+      if (domainVersion == null
+          || !DomainVersions.isClosed(domainVersion)
+          || domainVersion.isDefunct()) {
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Version " + dgvdv.getVersion()
+              + " of domain " + domain.getName()
+              + " is null, still open or defunct. Hence domain group version "
+              + domainGroupVersion + " is not deployable.");
+        }
         return false;
       }
     }

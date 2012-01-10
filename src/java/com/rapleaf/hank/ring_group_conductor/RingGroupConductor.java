@@ -82,15 +82,13 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
             // take a snapshot of the current ring/domain group configs, since
             // they might get changed while we're processing the current update.
             RingGroup snapshotRingGroup;
-            DomainGroup snapshotDomainGroup;
             synchronized (lock) {
               snapshotRingGroup = ringGroup;
-              snapshotDomainGroup = domainGroup;
             }
 
             // Only process updates if ring group conductor is configured to be active
             if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) {
-              processUpdates(snapshotRingGroup, snapshotDomainGroup);
+              processUpdates(snapshotRingGroup);
             }
             Thread.sleep(configurator.getSleepInterval());
           }
@@ -113,50 +111,8 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     removeShutdownHook();
   }
 
-  void processUpdates(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
-    // Check if there is a new version available for this ring group
-    final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
-    if (domainGroupVersion != null &&
-        (ringGroup.getTargetVersionNumber() == null ||
-            ringGroup.getTargetVersionNumber() < domainGroupVersion.getVersionNumber())) {
-      // There is a more recent version available
-      LOG.info("There is a new domain group version available for ring group " + ringGroupName
-          + ": " + domainGroupVersion);
-      if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
-        LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
-      } else {
-        // We can change the target version of this ring group
-        LOG.info("Changing target version of ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
-        ringGroup.setTargetVersion(domainGroupVersion.getVersionNumber());
-      }
-    }
+  void processUpdates(RingGroup ringGroup) throws IOException {
     transFunc.manageTransitions(ringGroup);
-  }
-
-  // Check that all domains included in the given domain group version exist and that the specified versions
-  // are not defunct or open.
-  private boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
-    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
-      return false;
-    }
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
-      if (domain == null) {
-        return false;
-      }
-      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
-      if (domainVersion == null
-          || !DomainVersions.isClosed(domainVersion)
-          || domainVersion.isDefunct()) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Version " + dgvdv.getVersion()
-              + " of domain " + domain.getName()
-              + " is null, closed or defunct. Hence domain group version " + domainGroupVersion + " is not deployable.");
-        }
-        return false;
-      }
-    }
-    return true;
   }
 
   @Override

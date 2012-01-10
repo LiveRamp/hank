@@ -130,7 +130,7 @@ public class TestRingGroupConductor extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroup, domainGroup);
+    daemon.processUpdates(mockRingGroup);
 
     assertNotNull(mockTransFunc.calledWithRingGroup);
 
@@ -184,7 +184,7 @@ public class TestRingGroupConductor extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroup, domainGroup);
+    daemon.processUpdates(mockRingGroup);
 
     assertEquals(mockRingGroup, mockTransFunc.calledWithRingGroup);
   }
