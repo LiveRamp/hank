@@ -150,8 +150,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
             // Ring is assigned target version but is not up-to-date
 
-            // If the ring is not fully serving, or if it is but we have enough other rings serving, go idle and update
-            if (!ringsFullyServing.contains(ring) || ringsFullyServing.size() >= (minNumRingsFullyServing + 1)) {
+            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() < (minNumRingsFullyServing + 1)) {
+              LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date"
+                  + " but only " + ringsFullyServing.size() + " rings are fully serving."
+                  + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before updating.");
+            } else {
+              // If the ring is not fully serving, or if it is but we have enough other rings serving, go idle and update
               LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date."
                   + " Commanding serving hosts to go idle and idle hosts to update.");
               // We are about to take actions and this ring will not be fully serving anymore (if it even was).
@@ -171,10 +175,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                   }
                 }
               }
-            } else {
-              LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date"
-                  + " but only " + ringsFullyServing.size() + " rings are fully serving."
-                  + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before updating.");
             }
           } else {
             // Ring is not even assigned target version
@@ -184,9 +184,13 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
               assign(ring, targetVersion);
             } else {
-              // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
-              // hosts to go idle.
-              if (!ringsFullyServing.contains(ring) || ringsFullyServing.size() >= (minNumRingsFullyServing + 1)) {
+              if (ringsFullyServing.contains(ring) && ringsFullyServing.size() < (minNumRingsFullyServing + 1)) {
+                LOG.info("  Ring " + ring.getRingNumber()
+                    + " is fully serving but only " + ringsFullyServing.size() + " rings are fully serving."
+                    + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before assigning.");
+              } else {
+                // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
+                // hosts to go idle.
                 LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
                     + ". Commanding them to go idle.");
                 // We are about to take actions and this ring will not be fully serving anymore (if it even was).
@@ -198,10 +202,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                     Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
                   }
                 }
-              } else {
-                LOG.info("  Ring " + ring.getRingNumber()
-                    + " is fully serving but only " + ringsFullyServing.size() + " rings are fully serving."
-                    + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before assigning.");
               }
             }
           }
