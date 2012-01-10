@@ -100,6 +100,11 @@ public class TestRingGroupConductor extends TestCase {
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);
       }
+
+      @Override
+      public RingGroupConductorMode getRingGroupConductorMode() {
+        return RingGroupConductorMode.PROACTIVE;
+      }
     };
 
     RingGroupConductorConfigurator mockConfig = new RingGroupConductorConfigurator() {

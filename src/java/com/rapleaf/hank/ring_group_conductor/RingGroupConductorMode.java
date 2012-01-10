@@ -17,7 +17,8 @@
 package com.rapleaf.hank.ring_group_conductor;
 
 public enum RingGroupConductorMode {
-  ACTIVE,
+  OFFLINE,
   INACTIVE,
-  OFFLINE
+  ACTIVE,
+  PROACTIVE
 }

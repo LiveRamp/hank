@@ -32,6 +32,9 @@ public final class DomainGroups {
    * @throws IOException
    */
   public static DomainGroupVersion getLatestVersion(DomainGroup domainGroup) throws IOException {
+    if (domainGroup == null) {
+      throw new RuntimeException("Failed to get latest version: given Domain Group is null.");
+    }
     SortedSet<DomainGroupVersion> versions = domainGroup.getVersions();
     if (versions == null || versions.size() == 0) {
       return null;

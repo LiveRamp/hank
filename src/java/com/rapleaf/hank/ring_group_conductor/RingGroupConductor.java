@@ -79,8 +79,8 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         stopping = false;
         try {
           while (!stopping) {
-            // take a snapshot of the current ring/domain group configs, since
-            // they might get changed while we're processing the current update.
+            // take a snapshot of the current ring, since
+            // it might get changed while we're processing the current update.
             RingGroup snapshotRingGroup;
             synchronized (lock) {
               snapshotRingGroup = ringGroup;
@@ -112,6 +112,22 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   }
 
   void processUpdates(RingGroup ringGroup) throws IOException {
+    RingGroupConductorMode ringGroupConductorMode = ringGroup.getRingGroupConductorMode();
+    if (ringGroupConductorMode != null && ringGroupConductorMode.equals(RingGroupConductorMode.PROACTIVE)) {
+      // Check if there is a new version available for this ring group (only in PROACTIVE mode)
+      final DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(ringGroup.getDomainGroup());
+      if (domainGroupVersion != null &&
+          (ringGroup.getTargetVersionNumber() == null ||
+              ringGroup.getTargetVersionNumber() < domainGroupVersion.getVersionNumber())) {
+        // There is a more recent version available
+        LOG.info("There is a new domain group version available for ring group " + ringGroupName
+            + ": " + domainGroupVersion);
+        // We can change the target version of this ring group
+        LOG.info("Changing target version of ring group " + ringGroupName
+            + " to domain group version " + domainGroupVersion);
+        RingGroups.setTargetVersion(ringGroup, domainGroupVersion);
+      }
+    }
     transFunc.manageTransitions(ringGroup);
   }
 
