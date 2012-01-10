@@ -12,6 +12,7 @@ import org.apache.thrift.transport.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 import java.util.concurrent.BlockingQueue;
@@ -25,13 +26,13 @@ public class TheoreticalLimit {
   Random random = new Random();
   int queryPerThread;
   CountDownLatch queryCount;
-  TAsyncClientManager asyncClientManager;
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
   BlockingQueue<PartitionServer.Client> directConnectionPool;
   private boolean block;
   private boolean useDirectClient;
   private int nbConnection;
   private int nbThread;
+  private int nbManager;
 
   private class TheoreticalLimitRunnable implements Runnable {
 
@@ -98,7 +99,7 @@ public class TheoreticalLimit {
   }
 
   void test(String[] args) throws InterruptedException, IOException {
-    if (args.length != 5) {
+    if (args.length != 6) {
       System.out.println("Missing argument");
       return;
     }
@@ -107,16 +108,20 @@ public class TheoreticalLimit {
     nbConnection = Integer.parseInt(args[2]);
     block = Boolean.parseBoolean(args[3]);
     useDirectClient = Boolean.parseBoolean(args[4]);
+    nbManager = Integer.parseInt(args[5]);
 
     System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection);
 
     if (!useDirectClient) {
-      asyncClientManager = new TAsyncClientManager();
+      ArrayList<TAsyncClientManager> asyncClientManagers = new ArrayList<TAsyncClientManager>();
+      for (int i = 0; i < nbManager; ++i) {
+        asyncClientManagers.add(new TAsyncClientManager());
+      }
       connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
       for (int i = 0; i < nbConnection; ++i) {
         TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
         TProtocolFactory factory = new TCompactProtocol.Factory();
-        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
+        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManagers.get(random.nextInt(2)), transport);
         connectionPool.put(client);
       }
     } else {
