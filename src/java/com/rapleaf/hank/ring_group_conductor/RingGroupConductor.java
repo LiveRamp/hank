@@ -18,8 +18,6 @@ package com.rapleaf.hank.ring_group_conductor;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -34,7 +32,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private final String ringGroupName;
   private final Coordinator coordinator;
   private final Object lock = new Object();
-  private final PartitionAssigner partitionAssigner;
 
   private RingGroup ringGroup;
   private DomainGroup domainGroup;
@@ -55,7 +52,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     this.transFunc = transFunc;
     ringGroupName = configurator.getRingGroupName();
     this.coordinator = configurator.createCoordinator();
-    partitionAssigner = new UniformPartitionAssigner();
   }
 
   public void run() throws IOException {
@@ -129,15 +125,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       if (!domainGroupVersionIsDeployable(domainGroupVersion)) {
         LOG.info("Domain group version " + domainGroupVersion + " is not deployable. Ignoring it.");
       } else {
-        // We can start a new update of this ring group.
-        // Check that new version is correctly assigned to ring group. If not, assign it.
-        for (Ring ring : ringGroup.getRings()) {
-          if (!Rings.isAssigned(ring, domainGroupVersion)) {
-            LOG.info("Assigning Domain Group Version " + domainGroupVersion + " to Ring " + ring);
-            partitionAssigner.assign(domainGroupVersion, ring);
-          }
-        }
-        // We are ready to update this ring group
+        // We can change the target version of this ring group
         LOG.info("Changing target version of ring group " + ringGroupName + " to domain group version " + domainGroupVersion);
         ringGroup.setTargetVersion(domainGroupVersion.getVersionNumber());
       }
