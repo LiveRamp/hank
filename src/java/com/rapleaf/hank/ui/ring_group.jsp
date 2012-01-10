@@ -67,10 +67,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Ring Group Conductor:</td>
         <% if (ringGroup.isRingGroupConductorOnline()) { %>
-          <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
-            <td class='complete centered'>ACTIVE</td>
-          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
+          <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
             <td class='inactive centered'>INACTIVE</td>
+          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
+            <td class='complete centered'>ACTIVE</td>
+          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) { %>
+            <td class='complete centered'>PROACTIVE</td>
           <% } else { %>
             <td>unknown</td>
           <% } %>
@@ -198,18 +200,17 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <h2>Actions</h2>
 
     <!-- Set Ring Group Conductor Mode form -->
-    <form action="/ring_group/set_ring_group_conductor_mode" method=post>
-    <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
     <% if (ringGroup.isRingGroupConductorOnline()) { %>
-      <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
-    <input type=hidden name="mode" value="INACTIVE"/>
-    <input type=submit value="Deactivate Ring Group Conductor"/>
-      <% } else { %>
-    <input type=hidden name="mode" value="ACTIVE"/>
-    <input type=submit value="Activate Ring Group Conductor"/>
-      <% } %>
+      <form action="/ring_group/set_ring_group_conductor_mode" method=post>
+      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+        <select name="mode">
+          <option value=""></option>
+          <option value="INACTIVE">INACTIVE</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="PROACTIVE">PROACTIVE</option>
+        </select>
+      </form>
     <% } %>
-    </form>
 
     <!-- Delete Ring Group form -->
     <form action="/ring_group/delete_ring_group" method=post>
