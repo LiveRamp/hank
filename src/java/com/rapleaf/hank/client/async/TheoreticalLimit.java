@@ -86,7 +86,7 @@ public class TheoreticalLimit {
   }
 
   void test(String[] args) throws InterruptedException, IOException {
-    if (args.length != 3) {
+    if (args.length != 4) {
       System.out.println("Missing argument");
       return;
     }
