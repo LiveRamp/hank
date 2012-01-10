@@ -253,5 +253,45 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
+  public void testServeDataWhenUpdated() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v2, v2, HostState.IDLE);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // Hosts of r0 should have received execute update
+    assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r0h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to rings
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
+  public void testTakeDownSecondRingWhenFirstIsUpdated() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v2, v2, HostState.SERVING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // Hosts of r1 should have received execute update
+    assertEquals(HostCommand.GO_TO_IDLE, r1h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r1h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to rings
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
   //TODO: write more tests
 }
