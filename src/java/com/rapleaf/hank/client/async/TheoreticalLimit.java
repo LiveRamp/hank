@@ -46,14 +46,15 @@ public class TheoreticalLimit {
     @Override
     public void run() {
       try {
-        TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
-        TProtocolFactory factory = new TCompactProtocol.Factory();
-        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
-        TheoreticalLimitCallback callback = new TheoreticalLimitCallback();
         int domainId = 1;
         ByteBuffer key = ByteBuffer.wrap("test".getBytes());
+
         for (int i = 0; i < queryPerThread; ++i) {
-          countDownLatch = new CountDownLatch(1);
+          TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
+          TProtocolFactory factory = new TCompactProtocol.Factory();
+          PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
+          TheoreticalLimitCallback callback = new TheoreticalLimitCallback();
+          //countDownLatch = new CountDownLatch(1);
           client.get(domainId, key, callback);
           //countDownLatch.await();
         }
