@@ -111,7 +111,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   private MockRingGroupLocal rg = null;
 
-  private RingGroupUpdateTransitionFunctionImpl transitionFunction = null;
+  private RingGroupUpdateTransitionFunctionImpl testTransitionFunction = null;
 
   @Override
   public void setUp() throws IOException {
@@ -141,7 +141,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     rg = new MockRingGroupLocal(r0, r1, r2);
 
-    transitionFunction = new RingGroupUpdateTransitionFunctionImpl() {
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl() {
       @Override
       protected boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
         return ((MockRingLocal) ring).isAssigned(domainGroupVersion);
@@ -175,13 +175,32 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
   }
 
+  public void testIsFullyServing() throws IOException {
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl();
+
+    setUpRing(r0, v1, v1, HostState.IDLE);
+    assertFalse(transitionFunction.isFullyServing(r0));
+
+    r0h0.setState(HostState.SERVING);
+    assertFalse(transitionFunction.isFullyServing(r0));
+
+    r0h1.setState(HostState.SERVING);
+    assertTrue(transitionFunction.isFullyServing(r0));
+
+    r0h0.enqueueCommand(HostCommand.GO_TO_IDLE);
+    assertFalse(transitionFunction.isFullyServing(r0));
+
+    r0h0.setCurrentCommand(HostCommand.GO_TO_IDLE);
+    assertFalse(transitionFunction.isFullyServing(r0));
+  }
+
   public void testNothingToDo() throws IOException {
     rg.setTargetVersion(1);
     setUpRing(r0, v1, null, HostState.SERVING);
     setUpRing(r1, v1, null, HostState.SERVING);
     setUpRing(r2, v1, null, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // No commands should have been issued
     assertNull(r0h0.getLastEnqueuedCommand());
@@ -199,7 +218,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // All serving hosts in r1 should received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
@@ -220,7 +239,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // v2 should not have been assigned to r0
     assertTrue(r0.isAssigned(v1));
@@ -241,7 +260,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // v2 should have been assigned to r0
     assertTrue(r0.isAssigned(v2));
@@ -262,7 +281,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r0 should have received execute update
     assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getLastEnqueuedCommand());
@@ -282,7 +301,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r0 should have received execute update
     assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
@@ -302,7 +321,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v2, HostState.SERVING);
     setUpRing(r2, v1, v2, HostState.SERVING);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r1 should have received execute update
     assertEquals(HostCommand.GO_TO_IDLE, r1h0.getLastEnqueuedCommand());
@@ -322,7 +341,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r1, v1, v1, HostState.IDLE);
     setUpRing(r2, v1, v2, HostState.IDLE);
 
-    transitionFunction.manageTransitions(rg);
+    testTransitionFunction.manageTransitions(rg);
 
     // No commands should have been issued to r0
     assertNull(r0h0.getLastEnqueuedCommand());
