@@ -293,5 +293,23 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
-  //TODO: write more tests
+  public void testServeDataWhenNotEnoughRingsAreFullyServing() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.IDLE);
+    setUpRing(r2, v1, v2, HostState.IDLE);
+
+    transitionFunction.manageTransitions(rg);
+
+    // No commands should have been issued to r0
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+
+    // Other hosts should have received serve data
+    assertEquals(HostCommand.SERVE_DATA, r1h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r1h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r2h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r2h1.getLastEnqueuedCommand());
+  }
 }
