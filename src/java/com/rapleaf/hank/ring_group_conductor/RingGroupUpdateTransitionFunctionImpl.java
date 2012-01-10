@@ -177,7 +177,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             } else {
               // If the ring is not fully serving, or if it is but we have enough other rings serving, go idle and update
               LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date."
-                  + " Commanding serving hosts to go idle and idle hosts to update.");
+                  + " Commanding and waiting for serving hosts to go idle and idle hosts to update.");
               // We are about to take actions and this ring will not be fully serving anymore (if it even was).
               // Remove it from the set in all cases (it might not be contained in the fully serving set).
               ringsFullyServing.remove(ring);
