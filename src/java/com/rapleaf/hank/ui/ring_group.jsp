@@ -205,7 +205,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <h2>Actions</h2>
 
-    <table>
+    <table class='table-blue-compact'>
 
     <!-- Set Target Version form -->
     <tr>
