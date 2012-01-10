@@ -212,6 +212,39 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
+  public void testKickstartAllRings() throws IOException {
+    rg.setTargetVersion(1);
+
+    setUpRing(r0, null, null, HostState.IDLE);
+    setUpRing(r1, null, null, HostState.IDLE);
+    setUpRing(r2, null, null, HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // All rings should have been assigned
+    assertTrue(r0.isAssigned(v1));
+    assertTrue(r1.isAssigned(v1));
+    assertTrue(r2.isAssigned(v1));
+
+    // No commands should have been issued
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // All hosts should received execute update
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r1h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r1h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r2h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r2h1.getLastEnqueuedCommand());
+  }
+
   public void testTakesDownFirstRingForAssignmentWhenStartingUpdate() throws IOException {
     rg.setTargetVersion(2);
 
