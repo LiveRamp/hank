@@ -21,15 +21,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TheoreticalLimit {
 
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
-  int queryPerThread;
+
   CountDownLatch queryCount;
+  LinkedList<Long> latency;
+
+  // Connection pools
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
   BlockingQueue<PartitionServer.Client> directConnectionPool;
+
+  // Options
   private boolean block;
   private boolean useDirectClient;
   private int nbConnection;
   private int nbThread;
   private int nbManager;
+  private int queryPerThread;
 
   private class TheoreticalLimitRunnable implements Runnable {
 
@@ -37,9 +43,11 @@ public class TheoreticalLimit {
 
     private class TheoreticalLimitCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
       PartitionServer.AsyncClient client;
+      long start;
 
       public TheoreticalLimitCallback(PartitionServer.AsyncClient client) {
         this.client = client;
+        this.start = System.nanoTime();
       }
 
       @Override
@@ -53,6 +61,7 @@ public class TheoreticalLimit {
         if (block) {
           countDownLatch.countDown();
         }
+        latency.addLast(Math.abs(System.nanoTime() - start));
       }
 
       @Override
@@ -139,6 +148,7 @@ public class TheoreticalLimit {
 
     int queryTotal = nbThread * queryPerThread;
     queryCount = new CountDownLatch(queryTotal);
+    latency = new LinkedList<Long>();
     LinkedList<Thread> threads = new LinkedList<Thread>();
 
     long start = System.nanoTime();
@@ -157,6 +167,10 @@ public class TheoreticalLimit {
 
     float elapsedS = Math.abs(((float) (System.nanoTime() - start)) / 1000000000);
     System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
+
+    for (Long l : latency) {
+      System.err.println(l);
+    }
   }
 
   public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
