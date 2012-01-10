@@ -6,9 +6,9 @@ import org.apache.thrift.TException;
 import org.apache.thrift.async.AsyncMethodCallback;
 import org.apache.thrift.async.TAsyncClientManager;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TNonblockingSocket;
-import org.apache.thrift.transport.TNonblockingTransport;
+import org.apache.thrift.transport.*;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,10 +24,14 @@ public class TheoreticalLimit {
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
   Random random = new Random();
   int queryPerThread;
-  AtomicLong queryCount = new AtomicLong(0);
+  CountDownLatch queryCount;
   TAsyncClientManager asyncClientManager;
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
+  BlockingQueue<PartitionServer.Client> directConnectionPool;
   private boolean block;
+  private boolean useDirectClient;
+  private int nbConnection;
+  private int nbThread;
 
   private class TheoreticalLimitRunnable implements Runnable {
 
@@ -42,7 +46,7 @@ public class TheoreticalLimit {
 
       @Override
       public void onComplete(PartitionServer.AsyncClient.get_call response) {
-        queryCount.incrementAndGet();
+        queryCount.countDown();
         try {
           connectionPool.put(client);
         } catch (InterruptedException e) {
@@ -65,16 +69,24 @@ public class TheoreticalLimit {
         int domainId = 1;
         ByteBuffer key = ByteBuffer.wrap("test".getBytes());
 
-        for (int i = 0; i < queryPerThread; ++i) {
-          PartitionServer.AsyncClient client = connectionPool.take();
+        if (!useDirectClient) {
+          for (int i = 0; i < queryPerThread; ++i) {
+            PartitionServer.AsyncClient client = connectionPool.take();
 
-          TheoreticalLimitCallback callback = new TheoreticalLimitCallback(client);
-          if (block) {
-            countDownLatch = new CountDownLatch(1);
+            TheoreticalLimitCallback callback = new TheoreticalLimitCallback(client);
+            if (block) {
+              countDownLatch = new CountDownLatch(1);
+            }
+            client.get(domainId, key, callback);
+            if (block) {
+              countDownLatch.await();
+            }
           }
-          client.get(domainId, key, callback);
-          if (block) {
-            countDownLatch.await();
+        } else {
+          PartitionServer.Client client = directConnectionPool.take();
+          for (int i = 0; i < queryPerThread; ++i) {
+            client.get(domainId, key);
+            queryCount.countDown();
           }
         }
       } catch (TException e) {
@@ -86,26 +98,44 @@ public class TheoreticalLimit {
   }
 
   void test(String[] args) throws InterruptedException, IOException {
-    if (args.length != 4) {
+    if (args.length != 5) {
       System.out.println("Missing argument");
       return;
     }
-    int nbThread = Integer.parseInt(args[0]);
+    nbThread = Integer.parseInt(args[0]);
     queryPerThread = Integer.parseInt(args[1]);
-    int nbConnection = Integer.parseInt(args[2]);
+    nbConnection = Integer.parseInt(args[2]);
     block = Boolean.parseBoolean(args[3]);
+    useDirectClient = Boolean.parseBoolean(args[4]);
 
     System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection);
 
-    asyncClientManager = new TAsyncClientManager();
-    connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
-    for (int i = 0; i < nbConnection; ++i) {
-      TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
-      TProtocolFactory factory = new TCompactProtocol.Factory();
-      PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
-      connectionPool.put(client);
+    if (!useDirectClient) {
+      asyncClientManager = new TAsyncClientManager();
+      connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
+      for (int i = 0; i < nbConnection; ++i) {
+        TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
+        TProtocolFactory factory = new TCompactProtocol.Factory();
+        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
+        connectionPool.put(client);
+      }
+    } else {
+      directConnectionPool = new LinkedBlockingQueue<PartitionServer.Client>();
+      for (int i = 0; i < nbThread; ++i) {
+        try {
+          TTransport transport = new TFramedTransport(new TSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0));
+          transport.open();
+          TProtocol proto = new TCompactProtocol(transport);
+          PartitionServer.Client client = new PartitionServer.Client(proto);
+          directConnectionPool.put(client);
+        } catch (TTransportException e) {
+          e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+      }
     }
 
+    int queryTotal = nbThread * queryPerThread;
+    queryCount = new CountDownLatch(queryTotal);
     LinkedList<Thread> threads = new LinkedList<Thread>();
     long start = System.nanoTime();
     for (int i = 0; i < nbThread; ++i) {
@@ -117,9 +147,11 @@ public class TheoreticalLimit {
     for (Thread thread : threads) {
       thread.join();
     }
+
+    queryCount.await();
+
     float elapsedS = ((float) (System.nanoTime() - start)) / 1000000000;
-    System.out.println("QPS is " + ((float) queryCount.get() / elapsedS) + " (" + queryCount.get() + ", " + elapsedS + ")")
-    ;
+    System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
   }
 
   public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
