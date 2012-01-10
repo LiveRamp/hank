@@ -27,8 +27,11 @@ public class TheoreticalLimit {
   AtomicLong queryCount = new AtomicLong(0);
   TAsyncClientManager asyncClientManager;
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
+  private boolean block;
 
   private class TheoreticalLimitRunnable implements Runnable {
+
+    CountDownLatch countDownLatch;
 
     private class TheoreticalLimitCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
       PartitionServer.AsyncClient client;
@@ -44,6 +47,9 @@ public class TheoreticalLimit {
           connectionPool.put(client);
         } catch (InterruptedException e) {
           e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        if (block) {
+          countDownLatch.countDown();
         }
       }
 
@@ -63,7 +69,13 @@ public class TheoreticalLimit {
           PartitionServer.AsyncClient client = connectionPool.take();
 
           TheoreticalLimitCallback callback = new TheoreticalLimitCallback(client);
+          if (block) {
+            countDownLatch = new CountDownLatch(1);
+          }
           client.get(domainId, key, callback);
+          if (block) {
+            countDownLatch.await();
+          }
         }
       } catch (TException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
@@ -81,6 +93,7 @@ public class TheoreticalLimit {
     int nbThread = Integer.parseInt(args[0]);
     queryPerThread = Integer.parseInt(args[1]);
     int nbConnection = Integer.parseInt(args[2]);
+    block = Boolean.parseBoolean(args[3]);
 
     System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection);
 
@@ -104,8 +117,9 @@ public class TheoreticalLimit {
     for (Thread thread : threads) {
       thread.join();
     }
-    long elapsedMs = (System.nanoTime() - start) / 1000000;
-    System.out.println("QPS is " + ((float) queryCount.get() / ((float) elapsedMs) / 1000) + " (" + queryCount.get() + ", " + elapsedMs + ")");
+    float elapsedS = ((float) (System.nanoTime() - start)) / 1000000000;
+    System.out.println("QPS is " + ((float) queryCount.get() / elapsedS) + " (" + queryCount.get() + ", " + elapsedS + ")")
+    ;
   }
 
   public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
