@@ -18,32 +18,35 @@ package com.rapleaf.hank.ring_group_conductor;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import junit.framework.TestCase;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
+  private static Logger LOG = Logger.getLogger(TestRingGroupUpdateTransitionFunctionImpl.class);
+
   private class MockRingLocal extends MockRing {
 
     protected DomainGroupVersion assignedVersion = null;
-    protected Boolean isUpToDate = null;
 
     public MockRingLocal(int number,
                          Set<Host> hosts) {
       super(hosts, null, number);
     }
 
-    public void assignVersion(DomainGroupVersion domainGroupVersion) {
+    public void setAssignedVersion(DomainGroupVersion domainGroupVersion) {
       assignedVersion = domainGroupVersion;
     }
 
     public boolean isUpToDate(DomainGroupVersion domainGroupVersion) {
-      return isAssigned(domainGroupVersion) && isUpToDate.equals(Boolean.TRUE);
-    }
-
-    public void setIsUpToDate(boolean isUpToDate) {
-      this.isUpToDate = isUpToDate;
+      for (Host host : getHosts()) {
+        if (!((MockHostLocal) host).isUpToDate(domainGroupVersion)) {
+          return false;
+        }
+      }
+      return true;
     }
 
     public boolean isAssigned(DomainGroupVersion domainGroupVersion) {
@@ -71,7 +74,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     }
 
     public void setCurrentVersion(DomainGroupVersion domainGroupVersion) {
-      currentVersion = domainGroupVersion;
+      this.currentVersion = domainGroupVersion;
     }
   }
 
@@ -99,16 +102,16 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private static DomainGroupVersion v3 =
       new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 3);
 
+  private MockRingLocal r0;
   private MockRingLocal r1;
   private MockRingLocal r2;
-  private MockRingLocal r3;
 
+  private MockHostLocal r0h0 = null;
+  private MockHostLocal r0h1 = null;
+  private MockHostLocal r1h0 = null;
   private MockHostLocal r1h1 = null;
-  private MockHostLocal r1h2 = null;
+  private MockHostLocal r2h0 = null;
   private MockHostLocal r2h1 = null;
-  private MockHostLocal r2h2 = null;
-  private MockHostLocal r3h1 = null;
-  private MockHostLocal r3h2 = null;
 
   private MockRingGroupLocal rg = null;
 
@@ -117,28 +120,30 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   @Override
   public void setUp() throws IOException {
 
-    r1h1 = new MockHostLocal(new PartitionServerAddress("localhost", 1));
-    r1h2 = new MockHostLocal(new PartitionServerAddress("localhost", 2));
-    r2h1 = new MockHostLocal(new PartitionServerAddress("localhost", 3));
-    r2h2 = new MockHostLocal(new PartitionServerAddress("localhost", 4));
-    r3h1 = new MockHostLocal(new PartitionServerAddress("localhost", 5));
-    r3h2 = new MockHostLocal(new PartitionServerAddress("localhost", 6));
+    LOG.info("----- Test start -----");
 
+    r0h0 = new MockHostLocal(new PartitionServerAddress("localhost", 1));
+    r0h1 = new MockHostLocal(new PartitionServerAddress("localhost", 2));
+    r1h0 = new MockHostLocal(new PartitionServerAddress("localhost", 3));
+    r1h1 = new MockHostLocal(new PartitionServerAddress("localhost", 4));
+    r2h0 = new MockHostLocal(new PartitionServerAddress("localhost", 5));
+    r2h1 = new MockHostLocal(new PartitionServerAddress("localhost", 6));
+
+    Set<Host> r0Hosts = new HashSet<Host>();
+    r0Hosts.add(r0h0);
+    r0Hosts.add(r0h1);
     Set<Host> r1Hosts = new HashSet<Host>();
+    r1Hosts.add(r1h0);
     r1Hosts.add(r1h1);
-    r1Hosts.add(r1h2);
     Set<Host> r2Hosts = new HashSet<Host>();
-    r1Hosts.add(r2h1);
-    r1Hosts.add(r2h2);
-    Set<Host> r3Hosts = new HashSet<Host>();
-    r1Hosts.add(r3h1);
-    r1Hosts.add(r3h2);
+    r2Hosts.add(r2h0);
+    r2Hosts.add(r2h1);
 
-    r1 = new MockRingLocal(0, r1Hosts);
-    r2 = new MockRingLocal(1, r2Hosts);
-    r3 = new MockRingLocal(2, r3Hosts);
+    r0 = new MockRingLocal(0, r0Hosts);
+    r1 = new MockRingLocal(1, r1Hosts);
+    r2 = new MockRingLocal(2, r2Hosts);
 
-    rg = new MockRingGroupLocal(r1, r2, r3);
+    rg = new MockRingGroupLocal(r0, r1, r2);
 
     transitionFunction = new RingGroupUpdateTransitionFunctionImpl() {
       @Override
@@ -155,128 +160,79 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) {
         return ((MockHostLocal) host).isUpToDate(domainGroupVersion);
       }
-    };
-  }
-
-  //TODO: write new tests
-
-  /*
-  public void testDownsFirstAvailableRing() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.OPEN, v1, address1);
-    MockRingLocal r2 = new MockRingLocal(2, RingState.OPEN, v1, address2);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1, r2);
-    getFunc().manageTransitions(rg);
-
-    assertTrue("r1 should have been taken down", r1.isAllCommanded(HostCommand.GO_TO_IDLE));
-    assertEquals(RingState.CLOSING, r1.getState());
-    assertFalse("r2 should not have been taken down", r2.isAllCommanded(HostCommand.GO_TO_IDLE));
-    assertEquals(RingState.OPEN, r2.getState());
-  }
-
-  private RingGroupUpdateTransitionFunction getFunc() {
-    return new RingGroupUpdateTransitionFunctionImpl() {
 
       @Override
-      protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) {
-        MockRingLocal mockRing = (MockRingLocal) ring;
-        return mockRing.currentVersion != null &&
-            mockRing.currentVersion.equals(domainGroupVersion);
-      }
-
-      @Override
-      protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) {
-        if (host.getAddress().equals(address1)) {
-          return domainGroupVersion.equals(host1CurrentVersion);
-        } else if (host.getAddress().equals(address2)) {
-          return domainGroupVersion.equals(host2CurrentVersion);
-        } else {
-          throw new RuntimeException("Unknown host: " + host);
-        }
+      protected void assign(Ring ring, DomainGroupVersion domainGroupVersion) {
+        ((MockRingLocal) ring).setAssignedVersion(domainGroupVersion);
       }
     };
   }
 
-  public void testDownsOnlyNotYetUpdatedRing() throws Exception {
-    // this ring is fully updated
-    MockRingLocal r1 = new MockRingLocal(1, RingState.OPEN, v2, address1);
-    MockRingLocal r2 = new MockRingLocal(2, RingState.OPEN, v1, address2);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1, r2);
-    getFunc().manageTransitions(rg);
-
-    assertFalse("r1 should not have been taken down", r1.isAllCommanded(HostCommand.GO_TO_IDLE));
-    assertEquals(RingState.OPEN, r1.getState());
-    assertTrue("r2 should have been taken down", r2.isAllCommanded(HostCommand.GO_TO_IDLE));
-    assertEquals(RingState.CLOSING, r2.getState());
-  }
-
-  public void testDownsNothingIfSomethingIsAlreadyDown() throws Exception {
-    for (RingState s : EnumSet.of(RingState.CLOSING, RingState.OPENING, RingState.UPDATING, RingState.CLOSED)) {
-      MockRingLocal r1 = new MockRingLocal(1, s, v1, address1);
-      MockRingLocal r2 = new MockRingLocal(2, RingState.OPEN, v1, address2);
-      MockRingGroupLocal rg = new MockRingGroupLocal(2, r1, r2);
-      getFunc().manageTransitions(rg);
-
-      assertEquals("r2 should still be up", RingState.OPEN, r2.getState());
+  private void setUpRing(MockRingLocal ring, DomainGroupVersion assignedVersion, HostState hostState) throws IOException {
+    ring.setAssignedVersion(assignedVersion);
+    for (Host host : ring.getHosts()) {
+      host.setState(hostState);
+      ((MockHostLocal) host).setCurrentVersion(assignedVersion);
     }
   }
 
-  public void testDownToUpdating() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.CLOSED, v1, address1);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    getFunc().manageTransitions(rg);
+  public void testNothingToDo() throws IOException {
+    rg.setTargetVersion(1);
+    setUpRing(r0, v1, HostState.SERVING);
+    setUpRing(r1, v1, HostState.SERVING);
+    setUpRing(r2, v1, HostState.SERVING);
 
-    assertTrue("r1 should have been set to updating", r1.isAllCommanded(HostCommand.EXECUTE_UPDATE));
-    assertEquals(RingState.UPDATING, r1.getState());
+    transitionFunction.manageTransitions(rg);
+
+    // No commands should have been issued
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
   }
 
-  public void testUpdatingToComingUp() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.UPDATING, v2, address1);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    getFunc().manageTransitions(rg);
+  public void testTakesDownFirstRingWhenStartingUpdate() throws IOException {
+    rg.setTargetVersion(2);
 
-    assertTrue("r1 should have been set to starting", r1.isAllCommanded(HostCommand.SERVE_DATA));
-    assertEquals(RingState.OPENING, r1.getState());
+    setUpRing(r0, v1, HostState.SERVING);
+    setUpRing(r1, v1, HostState.SERVING);
+    setUpRing(r2, v1, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // All serving hosts in r1 should receive go to idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to other rings
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
   }
 
-  public void testDoesntLeaveUpdatingWhenThereAreStillHostsUpdating() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.UPDATING, v1, address1);
-    r1.getHostByAddress(address1).setState(HostState.UPDATING);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    getFunc().manageTransitions(rg);
+  public void testAssignIdleRing() throws IOException {
+    rg.setTargetVersion(2);
 
-    assertFalse("r1 should not have been set to starting", r1.isAllCommanded(HostCommand.SERVE_DATA));
-    assertEquals(RingState.UPDATING, r1.getState());
+    setUpRing(r0, v1, HostState.IDLE);
+    setUpRing(r1, v1, HostState.SERVING);
+    setUpRing(r2, v1, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // v2 should have been assigned to r0
+    assertTrue(r0.isAssigned(v2));
+
+    // No commands should have been issued to rings
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
   }
 
-  // this case will only occur when the Ring Group Conductor has died or something.
-  public void testUpdatedToComingUp() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.UPDATED, v1, address1);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    getFunc().manageTransitions(rg);
-
-    assertTrue("r1's hosts should be commanded to start", r1.isAllCommanded(HostCommand.SERVE_DATA));
-    assertEquals(RingState.OPENING, r1.getState());
-  }
-
-  public void testFailedUpdateNotComingUp() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.UPDATING, v1, address1);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    MockHost host = ((MockHost) r1.getHostByAddress(address1));
-    host1CurrentVersion = v1;
-    getFunc().manageTransitions(rg);
-
-    assertEquals(RingState.UPDATING, r1.getState());
-    assertFalse("r1's hosts should not be commanded to start", r1.isAllCommanded(HostCommand.SERVE_DATA));
-    assertEquals("Not up to date host should have been commanded to update",
-        HostCommand.EXECUTE_UPDATE, host.getLastEnqueuedCommand());
-  }
-
-  public void testComingUpToUp() throws Exception {
-    MockRingLocal r1 = new MockRingLocal(1, RingState.OPENING, v1, address1);
-    r1.getHostByAddress(address1).setState(HostState.SERVING);
-    MockRingGroupLocal rg = new MockRingGroupLocal(2, r1);
-    getFunc().manageTransitions(rg);
-    assertEquals(RingState.OPEN, r1.getState());
-  }
-  */
+  //TODO: write more tests
 }
