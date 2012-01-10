@@ -6,7 +6,7 @@
 <%@page import="com.rapleaf.hank.ring_group_conductor.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
-<%@page import="com.rapleaf.hank.util.Bytes"%>
+<%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
@@ -205,8 +205,36 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <h2>Actions</h2>
 
+    <table>
+
+    <!-- Set Target Version form -->
+    <tr>
+    <td>Set Target Version:</td>
+    <td>
+    <form action="/ring_group/set_target_version" method=post>
+      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+      <select name="version">
+        <option value=""></option>
+        <%
+        SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
+        dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
+        for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
+        <option value="<%= domainGroupVersion.getVersionNumber() %>">
+          <%= domainGroupVersion.getVersionNumber() %>
+          (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
+        </option>
+        <% } %>
+      </select>
+      <input type="submit" value="Submit"/>
+    </form>
+    </td>
+    </tr>
+
     <!-- Set Ring Group Conductor Mode form -->
     <% if (ringGroup.isRingGroupConductorOnline()) { %>
+    <tr>
+    <td>Set Ring Group Conductor mode:</td>
+    <td>
       <form action="/ring_group/set_ring_group_conductor_mode" method=post>
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
         <select name="mode">
@@ -215,15 +243,25 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <option value="ACTIVE">ACTIVE</option>
           <option value="PROACTIVE">PROACTIVE</option>
         </select>
+      <input type="submit" value="Submit"/>
       </form>
+    </td>
+    </tr>
     <% } %>
 
     <!-- Delete Ring Group form -->
+    <tr>
+    <td>Delete Ring Group:</td>
+    <td>
     <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <input type=submit value="Delete Ring Group"
+    <input type=submit value="Delete"
     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
     </form>
+    </td>
+    </tr>
+
+    </table>
 
   <h2>Rings</h2>
   <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
