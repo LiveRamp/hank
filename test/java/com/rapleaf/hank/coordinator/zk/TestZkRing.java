@@ -19,7 +19,6 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.KeeperException;
 
 import java.util.Collections;
 
@@ -114,11 +113,6 @@ public class TestZkRing extends ZkTestCase {
   public void testDelete() throws Exception {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null);
     ring.delete();
-    try {
-      new ZkRing(getZk(), ZkPath.append(getRoot(), "ring-group-one/ring-1"), null, coordinator);
-      fail("should have had an exception!");
-    } catch (KeeperException.NoNodeException e) {
-      // expected
-    }
+    assertTrue(getZk().exists(ZkPath.append(getRoot(), "ring-group-one/ring-1"), null) == null);
   }
 }

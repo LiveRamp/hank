@@ -28,7 +28,9 @@ public class MockRing extends AbstractRing {
                   int number) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
-    this.hosts.addAll(hosts);
+    if (hosts != null) {
+      this.hosts.addAll(hosts);
+    }
   }
 
   @Override
