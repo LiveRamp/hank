@@ -164,19 +164,22 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     };
   }
 
-  private void setUpRing(MockRingLocal ring, DomainGroupVersion assignedVersion, HostState hostState) throws IOException {
+  private void setUpRing(MockRingLocal ring,
+                         DomainGroupVersion currentVersion,
+                         DomainGroupVersion assignedVersion,
+                         HostState hostState) throws IOException {
     ring.setAssignedVersion(assignedVersion);
     for (Host host : ring.getHosts()) {
       host.setState(hostState);
-      ((MockHostLocal) host).setCurrentVersion(assignedVersion);
+      ((MockHostLocal) host).setCurrentVersion(currentVersion);
     }
   }
 
   public void testNothingToDo() throws IOException {
     rg.setTargetVersion(1);
-    setUpRing(r0, v1, HostState.SERVING);
-    setUpRing(r1, v1, HostState.SERVING);
-    setUpRing(r2, v1, HostState.SERVING);
+    setUpRing(r0, v1, null, HostState.SERVING);
+    setUpRing(r1, v1, null, HostState.SERVING);
+    setUpRing(r2, v1, null, HostState.SERVING);
 
     transitionFunction.manageTransitions(rg);
 
@@ -192,13 +195,13 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testTakesDownFirstRingWhenStartingUpdate() throws IOException {
     rg.setTargetVersion(2);
 
-    setUpRing(r0, v1, HostState.SERVING);
-    setUpRing(r1, v1, HostState.SERVING);
-    setUpRing(r2, v1, HostState.SERVING);
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
 
     transitionFunction.manageTransitions(rg);
 
-    // All serving hosts in r1 should receive go to idle
+    // All serving hosts in r1 should received go to idle
     assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
     assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
 
@@ -212,9 +215,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   public void testAssignIdleRing() throws IOException {
     rg.setTargetVersion(2);
 
-    setUpRing(r0, v1, HostState.IDLE);
-    setUpRing(r1, v1, HostState.SERVING);
-    setUpRing(r2, v1, HostState.SERVING);
+    setUpRing(r0, v1, v1, HostState.IDLE);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
 
     transitionFunction.manageTransitions(rg);
 
@@ -224,6 +227,26 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     // No commands should have been issued to rings
     assertNull(r0h0.getLastEnqueuedCommand());
     assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
+  public void testExecuteUpdateWhenAssignedAndIdle() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v1, v2, HostState.IDLE);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    transitionFunction.manageTransitions(rg);
+
+    // Hosts of r0 should have received execute update
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to rings
     assertNull(r1h0.getLastEnqueuedCommand());
     assertNull(r1h1.getLastEnqueuedCommand());
     assertNull(r2h0.getLastEnqueuedCommand());
