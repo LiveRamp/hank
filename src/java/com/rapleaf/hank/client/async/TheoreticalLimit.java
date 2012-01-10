@@ -88,7 +88,7 @@ public class TheoreticalLimit {
       thread.join();
     }
     long elapsedMs = (System.nanoTime() - start) / 1000000;
-    System.out.println("QPS is " + (queryCount.get() / elapsedMs));
+    System.out.println("QPS is " + (queryCount.get() / elapsedMs) + " (" + queryCount.get() + ", " + elapsedMs + ")");
   }
 
   public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
