@@ -82,6 +82,9 @@ public class TheoreticalLimit {
     queryPerThread = Integer.parseInt(args[1]);
     int nbConnection = Integer.parseInt(args[2]);
 
+    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection);
+
+    asyncClientManager = new TAsyncClientManager();
     connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
     for (int i = 0; i < nbConnection; ++i) {
       TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
@@ -90,9 +93,7 @@ public class TheoreticalLimit {
       connectionPool.put(client);
     }
 
-    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread);
     LinkedList<Thread> threads = new LinkedList<Thread>();
-    asyncClientManager = new TAsyncClientManager();
     long start = System.nanoTime();
     for (int i = 0; i < nbThread; ++i) {
       Thread thread = new Thread(new TheoreticalLimitRunnable(), "Runner");
