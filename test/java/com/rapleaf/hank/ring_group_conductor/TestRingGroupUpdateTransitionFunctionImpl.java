@@ -212,7 +212,27 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
-  public void testTakesDownFirstRingWhenStartingUpdate() throws IOException {
+  public void testTakesDownFirstRingForAssignmentWhenStartingUpdate() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v1, v1, HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // All serving hosts in r1 should received go to idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to other rings
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
+  public void testTakesDownFirstRingForUpdateWhenStartingUpdate() throws IOException {
     rg.setTargetVersion(2);
 
     setUpRing(r0, v1, v2, HostState.SERVING);
