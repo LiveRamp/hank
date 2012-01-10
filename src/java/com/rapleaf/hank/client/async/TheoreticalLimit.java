@@ -14,16 +14,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.Random;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class TheoreticalLimit {
 
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
-  Random random = new Random();
   int queryPerThread;
   CountDownLatch queryCount;
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
@@ -110,7 +107,7 @@ public class TheoreticalLimit {
     useDirectClient = Boolean.parseBoolean(args[4]);
     nbManager = Integer.parseInt(args[5]);
 
-    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection);
+    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection + ", NbManager " + nbManager);
 
     if (!useDirectClient) {
       ArrayList<TAsyncClientManager> asyncClientManagers = new ArrayList<TAsyncClientManager>();
@@ -119,9 +116,9 @@ public class TheoreticalLimit {
       }
       connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
       for (int i = 0; i < nbConnection; ++i) {
-        TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
+        TNonblockingTransport transport = new TNonblockingSocket(i % 2 == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
         TProtocolFactory factory = new TCompactProtocol.Factory();
-        TAsyncClientManager manager = asyncClientManagers.get(random.nextInt(asyncClientManagers.size()));
+        TAsyncClientManager manager = asyncClientManagers.get(i % asyncClientManagers.size());
         PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, manager, transport);
         connectionPool.put(client);
       }
@@ -129,7 +126,7 @@ public class TheoreticalLimit {
       directConnectionPool = new LinkedBlockingQueue<PartitionServer.Client>();
       for (int i = 0; i < nbThread; ++i) {
         try {
-          TTransport transport = new TFramedTransport(new TSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0));
+          TTransport transport = new TFramedTransport(new TSocket(i % 2 == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0));
           transport.open();
           TProtocol proto = new TCompactProtocol(transport);
           PartitionServer.Client client = new PartitionServer.Client(proto);
