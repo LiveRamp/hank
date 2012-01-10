@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TheoreticalLimit {
@@ -26,13 +27,14 @@ public class TheoreticalLimit {
   private class TheoreticalLimitRunnable implements Runnable {
 
     Random random = new Random();
+    CountDownLatch countDownLatch;
 
     private class TheoreticalLimitCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
 
       @Override
       public void onComplete(PartitionServer.AsyncClient.get_call response) {
         queryCount.incrementAndGet();
-        TheoreticalLimitRunnable.this.notify();
+        TheoreticalLimitRunnable.this.countDownLatch.countDown();
       }
 
       @Override
@@ -51,8 +53,9 @@ public class TheoreticalLimit {
         int domainId = 1;
         ByteBuffer key = ByteBuffer.wrap("test".getBytes());
         for (int i = 0; i < queryPerThread; ++i) {
+          countDownLatch = new CountDownLatch(1);
           client.get(domainId, key, callback);
-          this.wait();
+          countDownLatch.await();
         }
       } catch (IOException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
