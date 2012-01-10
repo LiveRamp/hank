@@ -14,27 +14,37 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TheoreticalLimit {
 
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
+  Random random = new Random();
   int queryPerThread;
   AtomicLong queryCount = new AtomicLong(0);
   TAsyncClientManager asyncClientManager;
+  BlockingQueue<PartitionServer.AsyncClient> connectionPool;
 
   private class TheoreticalLimitRunnable implements Runnable {
 
-    Random random = new Random();
-    CountDownLatch countDownLatch;
-
     private class TheoreticalLimitCallback implements AsyncMethodCallback<PartitionServer.AsyncClient.get_call> {
+      PartitionServer.AsyncClient client;
+
+      public TheoreticalLimitCallback(PartitionServer.AsyncClient client) {
+        this.client = client;
+      }
 
       @Override
       public void onComplete(PartitionServer.AsyncClient.get_call response) {
         queryCount.incrementAndGet();
-        //TheoreticalLimitRunnable.this.countDownLatch.countDown();
+        try {
+          connectionPool.put(client);
+        } catch (InterruptedException e) {
+          e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
       }
 
       @Override
@@ -50,31 +60,36 @@ public class TheoreticalLimit {
         ByteBuffer key = ByteBuffer.wrap("test".getBytes());
 
         for (int i = 0; i < queryPerThread; ++i) {
-          TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
-          TProtocolFactory factory = new TCompactProtocol.Factory();
-          PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
-          TheoreticalLimitCallback callback = new TheoreticalLimitCallback();
-          //countDownLatch = new CountDownLatch(1);
+          PartitionServer.AsyncClient client = connectionPool.take();
+
+          TheoreticalLimitCallback callback = new TheoreticalLimitCallback(client);
           client.get(domainId, key, callback);
-          //countDownLatch.await();
         }
-      } catch (IOException e) {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       } catch (TException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      } /*catch (InterruptedException e) {
+      } catch (InterruptedException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      }*/
+      }
     }
   }
 
   void test(String[] args) throws InterruptedException, IOException {
-    if (args.length != 2) {
+    if (args.length != 3) {
       System.out.println("Missing argument");
       return;
     }
     int nbThread = Integer.parseInt(args[0]);
     queryPerThread = Integer.parseInt(args[1]);
+    int nbConnection = Integer.parseInt(args[2]);
+
+    connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
+    for (int i = 0; i < nbConnection; ++i) {
+      TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
+      TProtocolFactory factory = new TCompactProtocol.Factory();
+      PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManager, transport);
+      connectionPool.put(client);
+    }
+
     System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread);
     LinkedList<Thread> threads = new LinkedList<Thread>();
     asyncClientManager = new TAsyncClientManager();
