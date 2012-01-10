@@ -1,6 +1,5 @@
 package com.rapleaf.hank.client.async;
 
-import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.generated.PartitionServer;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -15,13 +14,13 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class TheoreticalLimit {
 
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
-  static public AtomicLong queryCount = new AtomicLong(0);
+  int queryPerThread;
+  AtomicLong queryCount = new AtomicLong(0);
   TAsyncClientManager asyncClientManager;
 
   private class TheoreticalLimitRunnable implements Runnable {
@@ -51,8 +50,10 @@ public class TheoreticalLimit {
         TheoreticalLimitCallback callback = new TheoreticalLimitCallback();
         int domainId = 1;
         ByteBuffer key = ByteBuffer.wrap("test".getBytes());
-        client.get(domainId, key, callback);
-        this.wait();
+        for (int i = 0; i < queryPerThread; ++i) {
+          client.get(domainId, key, callback);
+          this.wait();
+        }
       } catch (IOException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       } catch (TException e) {
@@ -63,13 +64,17 @@ public class TheoreticalLimit {
     }
   }
 
-  void test(String[] args) throws InterruptedException {
+  void test(String[] args) throws InterruptedException, IOException {
     if (args.length != 2) {
       System.out.println("Missing argument");
       return;
     }
     int nbThread = Integer.parseInt(args[0]);
+    queryPerThread = Integer.parseInt(args[1]);
+    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread);
     LinkedList<Thread> threads = new LinkedList<Thread>();
+    asyncClientManager = new TAsyncClientManager();
+    long start = System.nanoTime();
     for (int i = 0; i < nbThread; ++i) {
       Thread thread = new Thread(new TheoreticalLimitRunnable(), "Runner");
       thread.run();
@@ -79,9 +84,11 @@ public class TheoreticalLimit {
     for (Thread thread : threads) {
       thread.join();
     }
+    long elapsedMs = (System.nanoTime() - start) / 1000000;
+    System.out.println("QPS is " + (queryCount.get() / elapsedMs));
   }
 
-  public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException {
+  public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
     TheoreticalLimit theoreticalLimit = new TheoreticalLimit();
     theoreticalLimit.test(args);
   }
