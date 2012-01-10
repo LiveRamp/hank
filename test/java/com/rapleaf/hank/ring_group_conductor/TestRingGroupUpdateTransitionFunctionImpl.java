@@ -191,6 +191,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertFalse(transitionFunction.isFullyServing(r0));
 
     r0h0.setCurrentCommand(HostCommand.GO_TO_IDLE);
+    r0h0.clearCommandQueue();
     assertFalse(transitionFunction.isFullyServing(r0));
   }
 
