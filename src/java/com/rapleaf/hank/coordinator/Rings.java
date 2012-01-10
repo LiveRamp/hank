@@ -106,6 +106,29 @@ public class Rings {
   }
 
   /**
+   * Return true iff there is at least one assigned partition in the given ring,
+   * and all partitions in the given ring have a current version that is not null (servable).
+   *
+   * @param ring
+   * @return
+   * @throws IOException
+   */
+  public static boolean isServable(Ring ring) throws IOException {
+    int numPartitions = 0;
+    for (Host host : ring.getHosts()) {
+      for (HostDomain hostDomain : host.getAssignedDomains()) {
+        for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
+          ++numPartitions;
+          if (hostDomainPartition.getCurrentDomainGroupVersion() == null) {
+            return false;
+          }
+        }
+      }
+    }
+    return numPartitions != 0;
+  }
+
+  /**
    * Return true if each partition in the given domain group version is assigned to at least one host
    * Note: This does not take versions into consideration.
    *

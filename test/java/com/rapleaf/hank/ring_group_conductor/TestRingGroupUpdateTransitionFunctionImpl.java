@@ -30,6 +30,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MockRingLocal extends MockRing {
 
     protected DomainGroupVersion assignedVersion = null;
+    private boolean isServable;
 
     public MockRingLocal(int number,
                          Set<Host> hosts) {
@@ -51,6 +52,14 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     public boolean isAssigned(DomainGroupVersion domainGroupVersion) {
       return assignedVersion != null && assignedVersion.equals(domainGroupVersion);
+    }
+
+    public void setServable(boolean isServable) {
+      this.isServable = isServable;
+    }
+
+    public boolean isServable() {
+      return isServable;
     }
   }
 
@@ -158,6 +167,11 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       }
 
       @Override
+      protected boolean isServable(Ring ring) {
+        return ((MockRingLocal) ring).isServable();
+      }
+
+      @Override
       protected void assign(Ring ring, DomainGroupVersion domainGroupVersion) {
         ((MockRingLocal) ring).setAssignedVersion(domainGroupVersion);
       }
@@ -173,6 +187,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       host.setState(hostState);
       ((MockHostLocal) host).setCurrentVersion(currentVersion);
     }
+    ring.setServable(true);
   }
 
   public void testIsFullyServing() throws IOException {
@@ -218,6 +233,10 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     setUpRing(r0, null, null, HostState.IDLE);
     setUpRing(r1, null, null, HostState.IDLE);
     setUpRing(r2, null, null, HostState.IDLE);
+
+    r0.setServable(false);
+    r1.setServable(false);
+    r2.setServable(false);
 
     testTransitionFunction.manageTransitions(rg);
 
