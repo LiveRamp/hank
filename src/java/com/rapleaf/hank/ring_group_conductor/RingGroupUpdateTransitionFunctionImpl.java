@@ -160,7 +160,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           // Ring is up-to-date but not fully serving.
           // Tell all idle hosts to serve (if they don't have the serve command already)
           LOG.info("Ring " + ring.getRingNumber() +
-              " is up-to-date but NOT fully serving. Commanding idle hosts to serve.");
+              " is up-to-date but NOT fully serving. Commanding and waiting for idle hosts to serve.");
           commandIdleHostsToServe(ring);
         } else {
 
@@ -214,7 +214,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
                 // hosts to go idle.
                 LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
-                    + ". Commanding them to go idle.");
+                    + ". Commanding and waiting for them to go idle.");
                 // We are about to take actions and this ring will not be fully serving anymore (if it even was).
                 // Remove it from the set in all cases (it might not be contained in the fully serving set).
                 ringsFullyServing.remove(ring);
