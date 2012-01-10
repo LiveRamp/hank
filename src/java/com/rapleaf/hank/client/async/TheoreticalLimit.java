@@ -121,7 +121,8 @@ public class TheoreticalLimit {
       for (int i = 0; i < nbConnection; ++i) {
         TNonblockingTransport transport = new TNonblockingSocket(random.nextInt(2) == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
         TProtocolFactory factory = new TCompactProtocol.Factory();
-        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, asyncClientManagers.get(random.nextInt(2)), transport);
+        TAsyncClientManager manager = asyncClientManagers.get(random.nextInt(asyncClientManagers.size()));
+        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, manager, transport);
         connectionPool.put(client);
       }
     } else {
@@ -142,7 +143,9 @@ public class TheoreticalLimit {
     int queryTotal = nbThread * queryPerThread;
     queryCount = new CountDownLatch(queryTotal);
     LinkedList<Thread> threads = new LinkedList<Thread>();
+
     long start = System.nanoTime();
+
     for (int i = 0; i < nbThread; ++i) {
       Thread thread = new Thread(new TheoreticalLimitRunnable(), "Runner");
       thread.start();
@@ -155,7 +158,7 @@ public class TheoreticalLimit {
 
     queryCount.await();
 
-    float elapsedS = ((float) (System.nanoTime() - start)) / 1000000000;
+    float elapsedS = Math.abs(((float) (System.nanoTime() - start)) / 1000000000);
     System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
   }
 
