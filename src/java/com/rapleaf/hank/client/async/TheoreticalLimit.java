@@ -34,7 +34,7 @@ public class TheoreticalLimit {
       @Override
       public void onComplete(PartitionServer.AsyncClient.get_call response) {
         queryCount.incrementAndGet();
-        TheoreticalLimitRunnable.this.countDownLatch.countDown();
+        //TheoreticalLimitRunnable.this.countDownLatch.countDown();
       }
 
       @Override
@@ -55,15 +55,15 @@ public class TheoreticalLimit {
         for (int i = 0; i < queryPerThread; ++i) {
           countDownLatch = new CountDownLatch(1);
           client.get(domainId, key, callback);
-          countDownLatch.await();
+          //countDownLatch.await();
         }
       } catch (IOException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
       } catch (TException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      } catch (InterruptedException e) {
+      } /*catch (InterruptedException e) {
         e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-      }
+      }*/
     }
   }
 
