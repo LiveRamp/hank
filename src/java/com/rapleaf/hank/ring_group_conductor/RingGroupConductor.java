@@ -86,8 +86,9 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
               snapshotRingGroup = ringGroup;
             }
 
-            // Only process updates if ring group conductor is configured to be active
-            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) {
+            // Only process updates if ring group conductor is configured to be active/proactive
+            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE ||
+                snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) {
               processUpdates(snapshotRingGroup);
             }
             Thread.sleep(configurator.getSleepInterval());
