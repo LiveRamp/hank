@@ -110,7 +110,7 @@ public class TheoreticalLimit {
     long start = System.nanoTime();
     for (int i = 0; i < nbThread; ++i) {
       Thread thread = new Thread(new TheoreticalLimitRunnable(), "Runner");
-      thread.run();
+      thread.start();
       threads.addLast(thread);
     }
 
