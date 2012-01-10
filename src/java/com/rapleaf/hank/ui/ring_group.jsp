@@ -51,10 +51,16 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <table class='table-blue-compact'>
 
         <tr>
-        <td>Target Version:</td>
+        <td>Domain Group:</td>
         <td>
         <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
-        version
+        </td>
+        </tr>
+
+        <tr>
+        <td>Target Version:</td>
+        <td>
+        Version
         <% if (targetDomainGroupVersion != null) { %>
           <%= targetDomainGroupVersion.getVersionNumber() %>
           (<%= UiUtils.formatDomainGroupVersionCreatedAt(targetDomainGroupVersion) %>)
