@@ -132,7 +132,7 @@ tr.not_included td {
 
   </table>
   <input type=submit value="Create"/>
-  <span style="color: red; font-weight:bold"> (This will likely trigger a data deploy!)</span>
+  <span style="color: red; font-weight:bold"> (This will trigger a data deploy for Ring Group Conductors in PROACTIVE mode.)</span>
 </form>
 
 <h2>Existing Versions</h2>
