@@ -147,7 +147,8 @@ table.table-blue td,
 /* Progress bars */
 .progress-bar {
   padding: 0;
-  width: 80px;
+  margin: .2em 0;
+  width: 100px;
   height: 4px;
   border-width: 1px;
   border-style: solid;

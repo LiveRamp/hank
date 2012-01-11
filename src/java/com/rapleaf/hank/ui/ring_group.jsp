@@ -182,8 +182,10 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
            RuntimeStatisticsAggregator runtimeStatisticsForDomain = runtimeStatisticsForDomains.get(domain);
            DomainVersion targetDomainVersion = null;
            if (targetDomainGroupVersion != null) {
-             targetDomainVersion =
-              domain.getVersionByNumber(targetDomainGroupVersion.getDomainVersion(domain).getVersion());
+             DomainGroupVersionDomainVersion dgvdv = targetDomainGroupVersion.getDomainVersion(domain);
+             if (dgvdv != null) {
+               targetDomainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+             }
            }
        %>
          <tr>
@@ -215,8 +217,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <table class='table-blue-compact'>
 
     <!-- Set Target Version form -->
+    <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
     <tr>
-    <td>Set Target Version:</td>
+    <td>Target Version:</td>
     <td>
     <form action="/ring_group/set_target_version" method=post>
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
@@ -226,31 +229,40 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
         dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
         for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
-        <option value="<%= domainGroupVersion.getVersionNumber() %>">
+        <option value="<%= domainGroupVersion.getVersionNumber() %>"
+        <%= ringGroup.getTargetVersionNumber() != null && ringGroup.getTargetVersionNumber()
+        .equals(domainGroupVersion.getVersionNumber()) ? "disabled='disabled'" : "" %>>
           <%= domainGroupVersion.getVersionNumber() %>
           (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
         </option>
         <% } %>
       </select>
-      <input type="submit" value="Submit"/>
+      <input type="submit" value="Change Target"/>
     </form>
     </td>
     </tr>
+    <% } %>
 
     <!-- Set Ring Group Conductor Mode form -->
     <% if (ringGroup.isRingGroupConductorOnline()) { %>
     <tr>
-    <td>Set Ring Group Conductor mode:</td>
+    <td>Ring Group Conductor mode:</td>
     <td>
       <form action="/ring_group/set_ring_group_conductor_mode" method=post>
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
         <select name="mode">
           <option value=""></option>
-          <option value="INACTIVE">INACTIVE</option>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="PROACTIVE">PROACTIVE</option>
+          <option value="INACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.INACTIVE ? "disabled" : "" %>>
+          INACTIVE: do nothing</option>
+          <option value="ACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.ACTIVE ? "disabled" : "" %>>
+          ACTIVE: use target version</option>
+          <option value="PROACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.PROACTIVE ? "disabled" : "" %>>
+          PROACTIVE: use most recent version</option>
         </select>
-      <input type="submit" value="Submit"/>
+      <input type="submit" value="Change mode"/>
       </form>
     </td>
     </tr>
@@ -262,7 +274,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <td>
     <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <input type=submit value="Delete"
+    <input type=submit value="Delete Ring Group"
     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
     </form>
     </td>
@@ -276,7 +288,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <table class='table-blue ALL-RINGS'>
     <tr>
       <th>Ring</th>
-      <th></th>
       <th></th>
       <th>Hosts</th>
       <th>Serving</th>
@@ -303,20 +314,18 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         progress = Rings.computeUpdateProgress(ring, targetDomainGroupVersion);
       }
       %>
-      <% if (progress != null) { %>
-      <td>
-        <div class='progress-bar'>
-          <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-        </div>
-      </td>
-      <td>
-        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions up-to-date
-        (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-      </td>
-      <% } else { %>
-      <td></td>
-      <td></td>
-      <% } %>
+
+        <% if (progress != null) { %>
+        <td>
+          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% up-to-date
+          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+          <div class='progress-bar'>
+            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
+          </div>
+        </td>
+        <% } else { %>
+        <td></td>
+        <% } %>
 
       <%
       int hostsTotal = ring.getHosts().size();

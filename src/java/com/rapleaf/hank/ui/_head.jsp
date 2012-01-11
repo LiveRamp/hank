@@ -20,13 +20,15 @@ function performAsyncReload() {
     xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
   }
   xmlhttp.onreadystatechange = function() {
-    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-      var html = xmlhttp.responseText;
-      var tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      for (var i = 0; i < elementUniqClasses.length; i++) {
-        document.getElementsByClassName(elementUniqClasses[i])[0].innerHTML
-        = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].innerHTML;
+    if (xmlhttp.readyState == 4) {
+      if (xmlhttp.status == 200) {
+        var html = xmlhttp.responseText;
+        var tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        for (var i = 0; i < elementUniqClasses.length; i++) {
+          document.getElementsByClassName(elementUniqClasses[i])[0].innerHTML
+          = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].innerHTML;
+        }
       }
       initAsyncReload();
     }

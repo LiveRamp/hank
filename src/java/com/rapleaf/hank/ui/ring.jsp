@@ -184,7 +184,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Host Address</th>
       <th>State</th>
       <th></th>
-      <th></th>
       <th>Current Command</th>
       <th>Command Queue</th>
       <th>Throughput</th>
@@ -209,20 +208,19 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         progress = Hosts.computeUpdateProgress(host, targetDomainGroupVersion);
       }
       %>
-      <% if (progress != null) { %>
-      <td>
-        <div class='progress-bar'>
-          <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-        </div>
-      </td>
-      <td>
-        <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions up-to-date
-        (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-      </td>
-      <% } else { %>
-      <td></td>
-      <td></td>
-      <% } %>
+
+        <% if (progress != null) { %>
+        <td>
+          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% up-to-date
+          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+          <div class='progress-bar'>
+            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
+          </div>
+        </td>
+        <% } else { %>
+        <td></td>
+        <% } %>
+
       <td class='centered'><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>
 

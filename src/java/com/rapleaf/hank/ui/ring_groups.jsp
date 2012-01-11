@@ -51,6 +51,7 @@
         <td>Domain group name:</td>
         <td>
           <select name="dgName">
+            <option></option>
           <%
             for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
               if (dgc.getVersions().isEmpty()) {continue;}
@@ -79,9 +80,8 @@
     <tr>
       <th>Ring Group</th>
       <th>Domain Group</th>
-      <th></th>
-      <th></th>
       <th>Target Version</th>
+      <th></th>
       <th>Hosts</th>
       <th>Serving</th>
       <th>Updating</th>
@@ -109,25 +109,22 @@
         }
         %>
 
-        <% if (progress != null) { %>
-        <td>
-          <div class='progress-bar'>
-            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-          </div>
-        </td>
-        <td>
-          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% partitions up-to-date
-          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-        </td>
-        <% } else { %>
-        <td></td>
-        <td></td>
-        <% } %>
-
         <td class='centered'><%= targetDomainGroupVersion != null ?
         UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
         "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
         "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %></td>
+
+        <% if (progress != null) { %>
+        <td>
+          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% up-to-date
+          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+          <div class='progress-bar'>
+            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
+          </div>
+        </td>
+        <% } else { %>
+        <td></td>
+        <% } %>
 
         <!-- Hosts State -->
 
