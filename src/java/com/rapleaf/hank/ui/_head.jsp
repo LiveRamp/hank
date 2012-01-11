@@ -17,7 +17,7 @@ function performAsyncReload() {
   if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
     xmlhttp = new XMLHttpRequest();
   } else { // code for IE6, IE5
-    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
   }
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
@@ -58,7 +58,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v, title, w){
+  show:function(contentId, title, w){
    if(tt == null){
     tt = document.createElement('div');
     tt.setAttribute('id',id);
@@ -76,7 +76,7 @@ var tooltip=function(){
    }
    tt.style.display = 'block';
    t.innerHTML = title;
-   c.innerHTML = v;
+   c.innerHTML = document.getElementById(contentId);
    tt.style.width = w ? w + 'px' : 'auto';
    if(!w && ie){
     t.style.display = 'none';
