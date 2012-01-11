@@ -34,19 +34,6 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public RingState getState() throws IOException {
-      return null;
-    }
-
-    @Override
-    public void setState(RingState newState) throws IOException {
-    }
-
-    @Override
-    public void setStateChangeListener(RingStateChangeListener listener) throws IOException {
-    }
-
-    @Override
     public boolean removeHost(PartitionServerAddress address) {
       return false;
     }
@@ -185,7 +172,7 @@ public class TestAbstractRing extends BaseTestCase {
     final LocalMockHost h1 = new LocalMockHost();
     final LocalMockHost h2 = new LocalMockHost();
 
-    MockRing r = new MockRing(null, null, 0, null) {
+    MockRing r = new MockRing(null, null, 0) {
       Set<Host> hosts = new HashSet<Host>() {{
         add(h1);
         add(h2);

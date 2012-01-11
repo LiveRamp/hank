@@ -6,7 +6,7 @@
 <%@page import="com.rapleaf.hank.ring_group_conductor.*"%>
 <%@page import="com.rapleaf.hank.generated.*"%>
 <%@page import="com.rapleaf.hank.ui.*"%>
-<%@page import="com.rapleaf.hank.util.Bytes"%>
+<%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
 <%@page import="java.net.*"%>
 <%@page import="java.nio.ByteBuffer"%>
@@ -31,6 +31,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <jsp:include page="_head.jsp" />
 </head>
 <body>
+
+  <script type="text/javascript">
+    addAsyncReload(['ALL-RINGS']);
+    addAsyncReload(['RING-GROUP-STATE']);
+    addAsyncReload(['DOMAIN-STATISTICS']);
+  </script>
+
   <jsp:include page="_top_nav.jsp" />
 
   <h1>
@@ -48,7 +55,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   %>
 
     <h2>State</h2>
-      <table class='table-blue-compact'>
+      <table class='table-blue-compact RING-GROUP-STATE'>
 
         <tr>
         <td>Domain Group:</td>
@@ -73,10 +80,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Ring Group Conductor:</td>
         <% if (ringGroup.isRingGroupConductorOnline()) { %>
-          <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
-            <td class='complete centered'>ACTIVE</td>
-          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
+          <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.INACTIVE) { %>
             <td class='inactive centered'>INACTIVE</td>
+          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
+            <td class='complete centered'>ACTIVE</td>
+          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) { %>
+            <td class='complete centered'>PROACTIVE</td>
           <% } else { %>
             <td>unknown</td>
           <% } %>
@@ -148,7 +157,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
       <!-- Domain specific Runtime Statistics -->
 
-      <table class='table-blue-compact'>
+      <table class='table-blue-compact DOMAIN-STATISTICS'>
        <tr>
          <th>Domain</th>
          <th>Throughput</th>
@@ -203,33 +212,70 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <h2>Actions</h2>
 
-    <!-- Set Ring Group Conductor Mode form -->
-    <form action="/ring_group/set_ring_group_conductor_mode" method=post>
-    <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <% if (ringGroup.isRingGroupConductorOnline()) { %>
-      <% if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
-    <input type=hidden name="mode" value="INACTIVE"/>
-    <input type=submit value="Deactivate Ring Group Conductor"/>
-      <% } else { %>
-    <input type=hidden name="mode" value="ACTIVE"/>
-    <input type=submit value="Activate Ring Group Conductor"/>
-      <% } %>
-    <% } %>
+    <table class='table-blue-compact'>
+
+    <!-- Set Target Version form -->
+    <tr>
+    <td>Set Target Version:</td>
+    <td>
+    <form action="/ring_group/set_target_version" method=post>
+      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+      <select name="version">
+        <option value=""></option>
+        <%
+        SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
+        dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
+        for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
+        <option value="<%= domainGroupVersion.getVersionNumber() %>">
+          <%= domainGroupVersion.getVersionNumber() %>
+          (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
+        </option>
+        <% } %>
+      </select>
+      <input type="submit" value="Submit"/>
     </form>
+    </td>
+    </tr>
+
+    <!-- Set Ring Group Conductor Mode form -->
+    <% if (ringGroup.isRingGroupConductorOnline()) { %>
+    <tr>
+    <td>Set Ring Group Conductor mode:</td>
+    <td>
+      <form action="/ring_group/set_ring_group_conductor_mode" method=post>
+      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+        <select name="mode">
+          <option value=""></option>
+          <option value="INACTIVE">INACTIVE</option>
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="PROACTIVE">PROACTIVE</option>
+        </select>
+      <input type="submit" value="Submit"/>
+      </form>
+    </td>
+    </tr>
+    <% } %>
 
     <!-- Delete Ring Group form -->
+    <tr>
+    <td>Delete Ring Group:</td>
+    <td>
     <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <input type=submit value="Delete Ring Group"
+    <input type=submit value="Delete"
     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
     </form>
+    </td>
+    </tr>
+
+    </table>
 
   <h2>Rings</h2>
   <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
-  <table class='table-blue'>
+
+  <table class='table-blue ALL-RINGS'>
     <tr>
       <th>Ring</th>
-      <th>State</th>
       <th></th>
       <th></th>
       <th>Hosts</th>
@@ -250,7 +296,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     %>
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
-      <td class='centered'><%=ring.getState()%></td>
       <%
       UpdateProgress progress = null;
       if (targetDomainGroupVersion != null &&

@@ -79,7 +79,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
     host2 = getHost(existentDomain, new PartitionServerAddress("localhost",
         server2Port), 1);
 
-    final MockRing mockRing = new MockRing(null, null, 1, RingState.OPEN) {
+    final MockRing mockRing = new MockRing(null, null, 1) {
 
       @Override
       public Set<Host> getHosts() {

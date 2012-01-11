@@ -20,31 +20,22 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MockRing extends AbstractRing {
-  private RingState state;
+
   private final Set<Host> hosts;
 
-  public MockRing(Set<PartitionServerAddress> hosts,
+  public MockRing(Set<Host> hosts,
                   RingGroup ringGroup,
-                  int number,
-                  RingState state) {
+                  int number) {
     super(number, ringGroup);
     this.hosts = new HashSet<Host>();
     if (hosts != null) {
-      for (PartitionServerAddress addy : hosts) {
-        this.hosts.add(new MockHost(addy));
-      }
+      this.hosts.addAll(hosts);
     }
-    this.state = state;
   }
 
   @Override
   public Set<Host> getHosts() {
     return hosts;
-  }
-
-  @Override
-  public RingState getState() {
-    return state;
   }
 
   @Override
@@ -60,16 +51,6 @@ public class MockRing extends AbstractRing {
       }
     }
     return null;
-  }
-
-  @Override
-  public void setState(RingState newState) throws IOException {
-    state = newState;
-  }
-
-  @Override
-  public void setStateChangeListener(RingStateChangeListener listener)
-      throws IOException {
   }
 
   @Override

@@ -1,6 +1,50 @@
 <link rel='stylesheet' href='css/global.css' type='text/css'></link>
 
-<!-- Script source: http://sixrevisions.com/tutorials/javascript_tutorial/create_lightweight_javascript_tooltip/ -->
+<!-- Ajax Reloading -->
+
+<script type="text/javascript">
+
+var asyncReloadPeriod = 5000;
+
+var elementUniqClasses = [];
+
+function addAsyncReload(elementUniqClass) {
+  elementUniqClasses.push(elementUniqClass);
+}
+
+function performAsyncReload() {
+  var xmlhttp;
+  if (window.XMLHttpRequest) { // code for IE7+, Firefox, Chrome, Opera, Safari
+    xmlhttp = new XMLHttpRequest();
+  } else { // code for IE6, IE5
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+      var html = xmlhttp.responseText;
+      var tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      for (var i = 0; i < elementUniqClasses.length; i++) {
+        document.getElementsByClassName(elementUniqClasses[i])[0].innerHTML
+        = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].innerHTML;
+      }
+      initAsyncReload();
+    }
+  }
+  xmlhttp.open("GET", window.location, true);
+  xmlhttp.send();
+}
+
+function initAsyncReload() {
+  setTimeout("performAsyncReload()", asyncReloadPeriod);
+}
+
+window.onload = initAsyncReload();
+
+</script>
+
+<!-- Tooltip. Script source: http://sixrevisions.com/tutorials/javascript_tutorial/create_lightweight_javascript_tooltip/ -->
+
 <script type="text/javascript">
 var tooltip=function(){
  var id = 'tt';
@@ -14,7 +58,7 @@ var tooltip=function(){
  var tt,t,c,b,h;
  var ie = document.all ? true : false;
  return{
-  show:function(v, title, w){
+  show:function(contentId, title, w){
    if(tt == null){
     tt = document.createElement('div');
     tt.setAttribute('id',id);
@@ -32,7 +76,7 @@ var tooltip=function(){
    }
    tt.style.display = 'block';
    t.innerHTML = title;
-   c.innerHTML = v;
+   c.innerHTML = document.getElementById(contentId).innerHTML;
    tt.style.width = w ? w + 'px' : 'auto';
    if(!w && ie){
     t.style.display = 'none';

@@ -83,7 +83,7 @@ public class TestRingGroupConductor extends TestCase {
       }
     };
 
-    final MockRing mockRing = new MockRing(null, null, 1, null) {
+    final MockRing mockRing = new MockRing(null, null, 1) {
       @Override
       public Set<Host> getHosts() {
         return Collections.singleton((Host) mockHost);
@@ -99,6 +99,11 @@ public class TestRingGroupConductor extends TestCase {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);
+      }
+
+      @Override
+      public RingGroupConductorMode getRingGroupConductorMode() {
+        return RingGroupConductorMode.PROACTIVE;
       }
     };
 
@@ -130,7 +135,7 @@ public class TestRingGroupConductor extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroup, domainGroup);
+    daemon.processUpdates(mockRingGroup);
 
     assertNotNull(mockTransFunc.calledWithRingGroup);
 
@@ -184,7 +189,7 @@ public class TestRingGroupConductor extends TestCase {
     };
     MockRingGroupUpdateTransitionFunction mockTransFunc = new MockRingGroupUpdateTransitionFunction();
     RingGroupConductor daemon = new RingGroupConductor(mockConfig, mockTransFunc);
-    daemon.processUpdates(mockRingGroup, domainGroup);
+    daemon.processUpdates(mockRingGroup);
 
     assertEquals(mockRingGroup, mockTransFunc.calledWithRingGroup);
   }

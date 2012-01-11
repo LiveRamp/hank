@@ -63,7 +63,7 @@ public class TestPartitionServer extends BaseTestCase {
       }
     };
 
-    final Ring mockRing = new MockRing(null, null, 0, null) {
+    final Ring mockRing = new MockRing(null, null, 0) {
       @Override
       public Host getHostByAddress(PartitionServerAddress address) {
         switch (address.getPortNumber()) {

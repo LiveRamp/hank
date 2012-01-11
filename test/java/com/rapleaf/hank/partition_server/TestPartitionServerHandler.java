@@ -158,7 +158,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
     };
     final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null, 0);
 
-    final MockRing mockRing = new MockRing(null, rg, 1, RingState.OPEN) {
+    final MockRing mockRing = new MockRing(null, rg, 1) {
       @Override
       public Host getHostByAddress(PartitionServerAddress address) {
         return mockHostConfig;

@@ -279,6 +279,8 @@ public class IntegrationTest extends ZkTestCase {
     // configure ring group
     final RingGroup rg1 = coordinator.addRingGroup("rg1", "dg1");
 
+    RingGroups.setTargetVersion(rg1, DomainGroups.getLatestVersion(domainGroup));
+
     // add ring 1
     final Ring rg1r1 = rg1.addRing(1);
     Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"));
@@ -404,6 +406,8 @@ public class IntegrationTest extends ZkTestCase {
     versionMap.put(coordinator.getDomain("domain1"), 1);
     LOG.info("----- stamping new dg1 version -----");
     final DomainGroupVersion newVersion = domainGroup.createNewVersion(versionMap);
+
+    RingGroups.setTargetVersion(rg1, newVersion);
 
     // wait until the rings have been updated to the new version
     waitForRingGroupToFinishUpdating(coordinator.getRingGroup("rg1"), newVersion);

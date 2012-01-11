@@ -40,7 +40,6 @@ public class WebUiServerTester extends ZkTestCase {
     // Ring ALPHA
     rgAlpha.setTargetVersion(dgv.getVersionNumber());
     for (Ring ring : rgAlpha.getRings()) {
-      ring.setState(RingState.OPEN);
       for (Host host : ring.getHosts()) {
         Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
         host.setState(HostState.SERVING);
@@ -66,7 +65,6 @@ public class WebUiServerTester extends ZkTestCase {
     for (Ring ring : rgBeta.getRings()) {
       // Set first ring to updating
       if (ring.getRingNumber() == rgBeta.getRings().iterator().next().getRingNumber()) {
-        ring.setState(RingState.UPDATING);
         for (Host host : ring.getHosts()) {
           // Set first host to done updating
           if (host.getAddress().equals(ring.getHosts().iterator().next().getAddress())) {
@@ -87,7 +85,6 @@ public class WebUiServerTester extends ZkTestCase {
           }
         }
       } else {
-        ring.setState(RingState.OPEN);
         for (Host host : ring.getHosts()) {
           host.setState(HostState.SERVING);
           for (HostDomain hd : host.getAssignedDomains()) {
@@ -101,7 +98,6 @@ public class WebUiServerTester extends ZkTestCase {
 
     // Ring GAMMA
     for (Ring ring : rgGamma.getRings()) {
-      ring.setState(RingState.OPEN);
       for (Host host : ring.getHosts()) {
         host.setState(HostState.IDLE);
       }

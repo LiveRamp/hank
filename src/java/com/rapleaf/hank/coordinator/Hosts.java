@@ -137,4 +137,11 @@ public final class Hosts {
       return new RuntimeStatisticsAggregator();
     }
   }
+
+  public static void enqueueCommandIfNotPresent(Host host, HostCommand command) throws IOException {
+    if (host.getCurrentCommand() != command &&
+        !host.getCommandQueue().contains(command)) {
+      host.enqueueCommand(command);
+    }
+  }
 }

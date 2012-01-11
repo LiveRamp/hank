@@ -3,6 +3,7 @@ package com.rapleaf.hank.ui.controllers;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroups;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.ui.URLEnc;
 
@@ -46,6 +47,12 @@ public class RingGroupController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doSetRingGroupConductorMode(req, resp);
+      }
+    });
+    actions.put("set_target_version", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doSetTargetVersion(req, resp);
       }
     });
   }
@@ -100,6 +107,14 @@ public class RingGroupController extends Controller {
     String encodedRingGroupName = req.getParameter("g");
     RingGroup ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
     ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
+    resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
+  }
+
+  protected void doSetTargetVersion(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    String encodedRingGroupName = req.getParameter("g");
+    RingGroup ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
+    Integer targetVersionNumber = Integer.valueOf(req.getParameter("version"));
+    RingGroups.setTargetVersion(ringGroup, targetVersionNumber);
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 

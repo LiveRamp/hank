@@ -5,7 +5,6 @@
 <%@page import="com.rapleaf.hank.ui.*"%>
 <%@page import="com.rapleaf.hank.util.*"%>
 <%@page import="java.util.*"%>
-<%@page import="java.text.*"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");

@@ -119,11 +119,13 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       int domainId = dgvdv.getDomain().getId();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain == null) {
-        throw new IOException(String.format("Could not get HostDomain of Domain %s on Host %s", domain, host));
+        LOG.error(String.format("Could not get HostDomain of Domain %s on Host %s. Skipping.", domain, host));
+        continue;
       }
       Set<HostDomainPartition> partitions = hostDomain.getPartitions();
       if (partitions == null) {
-        throw new IOException(String.format("Could not get partitions assignements of HostDomain %s", hostDomain));
+        LOG.error(String.format("Could not get partitions assignements of HostDomain %s. Skipping.", hostDomain));
+        continue;
       }
 
       LOG.info(String.format("Loading %d/%d partitions of domain %s",

@@ -78,7 +78,7 @@ public class MockHost extends AbstractHost {
     return currentCommand;
   }
 
-  private void setCurrentCommand(HostCommand command) {
+  public void setCurrentCommand(HostCommand command) {
     currentCommand = command;
     notifyCurrentCommandChangeListeners();
   }

@@ -61,12 +61,10 @@ public class UiUtils {
   }
 
   private static String htmlTooltip(String text, String title, String content) {
-    String uniqueId = UUID.randomUUID().toString().replaceAll("-", "_");
-    return "<script type=\"text/javascript\">"
-        + "var tooltipContent_" + uniqueId + " = \"" + content + "\";"
-        + "</script>"
-        + "<div style=\"cursor: help;\" onmouseover=\"tooltip.show(tooltipContent_" + uniqueId
-        + ", '" + title + "');\" onmouseout=\"tooltip.hide();\">"
+    String uniqueId = "tooltipContent_" + UUID.randomUUID().toString().replaceAll("-", "_");
+    return "<div id=\"" + uniqueId + "\" style=\"display: none;\">" + content + "</div>"
+        + "<div style=\"cursor: help;\" onmouseover=\"tooltip.show('" + uniqueId
+        + "', '" + title + "');\" onmouseout=\"tooltip.hide();\">"
         + text
         + "</div>";
   }
