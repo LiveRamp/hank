@@ -37,7 +37,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   // Standby: we are waiting for the host to be SERVING
   private volatile boolean isStandby = true;
 
-  private boolean isBusy = false;
+  private volatile boolean isBusy = false;
 
   private static enum HostConnectionState {
     DISCONNECTED,

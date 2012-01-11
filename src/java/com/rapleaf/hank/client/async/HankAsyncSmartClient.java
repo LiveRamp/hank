@@ -55,7 +55,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener {
   private final DispatcherThread dispatcherThread;
   private final ConnectorThread connectorThread;
   private final Connector connector;
-  private final TAsyncClientManager asyncClientManager;
+  private final ArrayList<TAsyncClientManager> asyncClientManager;
 
   private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
@@ -129,7 +129,11 @@ public class HankAsyncSmartClient implements RingGroupChangeListener {
     connectorThread.start();
 
     // Initialize asynchronous client manager
-    asyncClientManager = new TAsyncClientManager();
+    int asyncClientManagerCount = 2;
+    asyncClientManager = new ArrayList<TAsyncClientManager>();
+    for (int i = 0; i < asyncClientManagerCount; ++i) {
+      asyncClientManager.add(new TAsyncClientManager());
+    }
 
     // Load cache
     loadCache(numConnectionsPerHost);
@@ -243,7 +247,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener {
         for (int i = 0; i < numConnectionsPerHost; i++) {
           hostConnections.add(new HostConnection(host,
               connectionListener,
-              asyncClientManager,
+              asyncClientManager.get(i % asyncClientManager.size()),
               establishConnectionTimeoutMs,
               queryTimeoutMs,
               bulkQueryTimeoutMs));

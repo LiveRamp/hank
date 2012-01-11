@@ -26,8 +26,8 @@ import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class Dispatcher implements Runnable {
 
@@ -39,19 +39,16 @@ public class Dispatcher implements Runnable {
   private static final HankResponse TIMEOUT_RESPONSE // TODO: Add new error type for queryTimeoutNano
       = HankResponse.xception(HankException.internal_error("Request queryTimeoutNano"));
 
-  private final LinkedList<GetTask> getTasks;
-  private final LinkedList<GetTask> getTasksComplete;
+  private final BlockingQueue<GetTask> getTasks;
   private final long queryTimeoutNano;
   private final long bulkQueryTimeoutNano;
   private final int queryMaxNumTries;
   private Thread dispatcherThread;
   private volatile boolean stopping = false;
-  private long sleepNanoTime;
 
   public Dispatcher(int queryTimeoutMs, int bulkQueryTimeoutMs, int queryMaxNumTries) {
     // Initialize select queues
-    getTasks = new LinkedList<GetTask>();
-    getTasksComplete = new LinkedList<GetTask>();
+    getTasks = new LinkedBlockingQueue<GetTask>();
     this.queryTimeoutNano = queryTimeoutMs * 1000000; // convert ms to nano
     this.bulkQueryTimeoutNano = bulkQueryTimeoutMs * 1000000; // convert ms to nano
     this.queryMaxNumTries = queryMaxNumTries;
@@ -61,7 +58,6 @@ public class Dispatcher implements Runnable {
     return new Runnable() {
       @Override
       public void run() {
-        dispatcherThread.interrupt();
       }
     };
   }
@@ -71,16 +67,99 @@ public class Dispatcher implements Runnable {
     private final int domainId;
     private final ByteBuffer key;
     private final HostConnectionPool hostConnectionPool;
-    private final GetCallback resultHanlder;
+    private final GetCallback resultHandler;
     private int tryCount;
     private HostConnectionPool.HostConnectionAndHostIndex hostConnectionAndHostIndex;
     private HankResponse response;
-    private long startNanoTime;
+    private Long startNanoTime;
+
+    public GetTask(int domainId,
+                   ByteBuffer key,
+                   HostConnectionPool hostConnectionPool,
+                   GetCallback resultHandler) {
+      this.domainId = domainId;
+      this.key = key;
+      this.hostConnectionPool = hostConnectionPool;
+      this.resultHandler = resultHandler;
+      this.tryCount = 0;
+      this.hostConnectionAndHostIndex = null;
+      this.startNanoTime = null;
+    }
 
     public void disconnect() {
       if (hostConnectionAndHostIndex != null && hostConnectionAndHostIndex.hostConnection != null) {
         hostConnectionAndHostIndex.hostConnection.attemptDisconnect();
       }
+    }
+
+    public void releaseConnection() {
+      if (hostConnectionAndHostIndex != null && hostConnectionAndHostIndex.hostConnection != null) {
+        hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
+      }
+    }
+
+    public void execute() {
+      if (hasTimedout()) {
+        // If we timedout just complete the task with timeout response
+        response = TIMEOUT_RESPONSE;
+        doCompleted();
+      } else {
+        if (hostConnectionAndHostIndex == null) {
+          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+        } else {
+          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
+        }
+
+        if (hostConnectionAndHostIndex == null) {
+          // All connections are busy, add it back to the dispatcher queue
+          addTask(this);
+        } else if (hostConnectionAndHostIndex.hostConnection == null) {
+          // All hosts were in standby, set the response appropriately and complete task
+          response = NO_CONNECTION_AVAILABLE_RESPONSE;
+          doCompleted();
+        } else {
+          // Claim connection
+          hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
+          // Execute asynchronous task
+          hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
+        }
+      }
+    }
+
+    private void doCompleted() {
+      resultHandler.onComplete(response);
+    }
+
+    private void transition() {
+      ++tryCount;
+      if (response.is_set_xception() && tryCount < queryMaxNumTries) {
+        // Error: add it back to the dispatcher queue
+        addTask(this);
+      } else {
+        // Success
+        doCompleted();
+      }
+    }
+
+    private long getNanoTimeBeforeTimeout(long currentNanoTime) {
+      // Return time in nanosecond before task queryTimeoutNano. Return 0 if task has timed out.
+      return Math.max(queryTimeoutNano - Math.abs(currentNanoTime - startNanoTime), 0);
+    }
+
+    private boolean hasTimedout() {
+      if (queryTimeoutNano != 0) {
+        long currentNanoTime = System.nanoTime();
+        long taskNanoTimeBeforeTimeout = getNanoTimeBeforeTimeout(currentNanoTime);
+        if (taskNanoTimeBeforeTimeout == 0) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public String toString() {
+      return "GetTask [domainId=" + domainId + ", key=" + Bytes.bytesToHexString(key) + ", tryCount=" + tryCount + "]";
     }
 
     private class Callback implements HostConnectionGetCallback {
@@ -90,87 +169,32 @@ public class Dispatcher implements Runnable {
         try {
           GetTask.this.response = response.getResult();
         } catch (TException e) {
+          // Always disconnect in case of Thrift error
+          disconnect();
           String errMsg = "Failed to load GET result: " + e.getMessage();
           LOG.error(errMsg);
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
-          addCompleteTask(GetTask.this);
+          // Always release the connection and transition
+          releaseConnection();
+          GetTask.this.transition();
         }
       }
 
       @Override
       public void onError(Exception e) {
+        // Always disconnect in case of Thrift error
+        disconnect();
         try {
           String errMsg = "Failed to execute GET: " + e.getMessage();
           LOG.error(errMsg);
           GetTask.this.response = HankResponse.xception(HankException.internal_error(errMsg));
         } finally {
-          addCompleteTask(GetTask.this);
+          // Always release the connection and transition
+          releaseConnection();
+          GetTask.this.transition();
         }
       }
-    }
-
-    public GetTask(int domainId,
-                   ByteBuffer key,
-                   HostConnectionPool hostConnectionPool,
-                   GetCallback resultHandler) {
-      this.domainId = domainId;
-      this.key = key;
-      this.hostConnectionPool = hostConnectionPool;
-      this.resultHanlder = resultHandler;
-      this.tryCount = 0;
-      this.hostConnectionAndHostIndex = null;
-      this.startNanoTime = 0;
-    }
-
-    public void complete() {
-      resultHanlder.onComplete(response);
-    }
-
-    public void completeWithTimeout() {
-      response = TIMEOUT_RESPONSE;
-      addCompleteTask(GetTask.this);
-    }
-
-    public void releaseConnection() {
-      if (hostConnectionAndHostIndex.hostConnection != null) {
-        hostConnectionAndHostIndex.hostConnection.setIsBusy(false);
-      }
-    }
-
-    public boolean execute() {
-      if (hostConnectionAndHostIndex == null) {
-        hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
-      } else {
-        hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
-      }
-
-      if (hostConnectionAndHostIndex == null) {
-        return false;
-      }
-
-      // All hosts were in standby, set the response appropriately and complete task
-      if (hostConnectionAndHostIndex.hostConnection == null) {
-        response = NO_CONNECTION_AVAILABLE_RESPONSE;
-        addCompleteTask(this);
-        return true;
-      }
-
-      // Claim connection
-      hostConnectionAndHostIndex.hostConnection.setIsBusy(true);
-      // Execute asynchronous task
-      hostConnectionAndHostIndex.hostConnection.get(domainId, key, new GetTask.Callback());
-      return true;
-    }
-
-    public long getNanoTimeBeforeTimeout(long currentNanoTime) {
-      // Return time in nanosecond before task queryTimeoutNano. Return 0 if task has timed out.
-      return Math.max(queryTimeoutNano - Math.abs(currentNanoTime - startNanoTime), 0);
-    }
-
-    @Override
-    public String toString() {
-      return "GetTask [domainId=" + domainId + ", key=" + Bytes.bytesToHexString(key) + ", tryCount=" + tryCount + "]";
     }
   }
 
@@ -187,84 +211,25 @@ public class Dispatcher implements Runnable {
   }
 
   public void addTask(GetTask task) {
-    synchronized (getTasks) {
-      task.startNanoTime = System.nanoTime();
-      getTasks.addLast(task);
+    try {
+      if (task.startNanoTime == null) {
+        task.startNanoTime = System.nanoTime();
+      }
+      getTasks.put(task);
+    } catch (InterruptedException e) {
+      // Someone is trying to stop Dispatcher
     }
-    dispatcherThread.interrupt();
-  }
-
-  public void addCompleteTask(GetTask task) {
-    synchronized (getTasksComplete) {
-      getTasksComplete.addLast(task);
-    }
-    dispatcherThread.interrupt();
   }
 
   @Override
   public void run() {
     while (!stopping) {
-      completeTasks();
-      startTasks();
       try {
-        Thread.sleep(sleepNanoTime / 1000000);
+        GetTask task = getTasks.take();
+        task.execute();
       } catch (InterruptedException e) {
-        // There is work to do
+        // Someone is trying to stop Dispatcher
       }
-    }
-  }
-
-  private void completeTasks() {
-    synchronized (getTasksComplete) {
-      for (GetTask task : getTasksComplete) {
-
-        if (task.response.is_set_xception()) {
-          // Error
-          ++task.tryCount;
-          task.disconnect();
-          if (task.tryCount < queryMaxNumTries) {
-            addTask(task);
-          } else {
-            task.complete();
-          }
-        } else {
-          // Success
-          task.complete();
-        }
-
-        // Release connection
-        task.releaseConnection();
-
-      }
-      getTasksComplete.clear();
-    }
-  }
-
-  private void startTasks() {
-    long currentNanoTime = System.nanoTime();
-    // sleep forever by default
-    sleepNanoTime = Long.MAX_VALUE;
-    synchronized (getTasks) {
-      Iterator<GetTask> iterator = getTasks.iterator();
-      while (iterator.hasNext()) {
-        GetTask task = iterator.next();
-
-        // If we have queryTimeoutNano set, keep track of the next task to queryTimeoutNano to adjust sleep time.
-        if (queryTimeoutNano != 0) {
-          long taskNanoTimeBeforeTimeout = task.getNanoTimeBeforeTimeout(currentNanoTime);
-          sleepNanoTime = Math.min(sleepNanoTime, taskNanoTimeBeforeTimeout);
-          if (taskNanoTimeBeforeTimeout == 0) {
-            iterator.remove();
-            task.completeWithTimeout();
-            continue;
-          }
-        }
-
-        if (task.execute()) {
-          iterator.remove();
-        }
-      }
-
     }
   }
 }
