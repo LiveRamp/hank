@@ -155,7 +155,7 @@ public class TheoreticalLimit {
 
         System.out.println("ClientType " + args[0] + ", NbThread " + nbThread + ", QueryPerThread " + queryPerThread);
       }
-    } else if (args[0].equals("sync") || args.equals("async")) {
+    } else if (args[0].equals("sync") || args[0].equals("async")) {
       if (args.length != 5) {
         argumentError();
       } else {
