@@ -76,7 +76,7 @@ var tooltip=function(){
    }
    tt.style.display = 'block';
    t.innerHTML = title;
-   c.innerHTML = document.getElementById(contentId);
+   c.innerHTML = document.getElementById(contentId).innerHTML;
    tt.style.width = w ? w + 'px' : 'auto';
    if(!w && ie){
     t.style.display = 'none';
