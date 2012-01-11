@@ -227,7 +227,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
         dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
         for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
-        <option value="<%= domainGroupVersion.getVersionNumber() %>">
+        <option value="<%= domainGroupVersion.getVersionNumber() %>"
+        <%= ringGroup.getTargetVersionNumber() != null && ringGroup.getTargetVersionNumber()
+        .equals(domainGroupVersion.getVersionNumber()) ? "disabled='disabled'" : "" %>>
           <%= domainGroupVersion.getVersionNumber() %>
           (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
         </option>
