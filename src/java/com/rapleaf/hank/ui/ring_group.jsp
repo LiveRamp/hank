@@ -182,8 +182,10 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
            RuntimeStatisticsAggregator runtimeStatisticsForDomain = runtimeStatisticsForDomains.get(domain);
            DomainVersion targetDomainVersion = null;
            if (targetDomainGroupVersion != null) {
-             targetDomainVersion =
-              domain.getVersionByNumber(targetDomainGroupVersion.getDomainVersion(domain).getVersion());
+             DomainGroupVersionDomainVersion dgvdv = targetDomainGroupVersion.getDomainVersion(domain);
+             if (dgvdv != null) {
+               targetDomainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+             }
            }
        %>
          <tr>
