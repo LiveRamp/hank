@@ -14,6 +14,7 @@
   <property name="src.test" location="test" />
   <property name="build.test" location="${build}/test" />
   <property name="lib" location="lib" />
+  <property name="doc" location="javadoc"/>  
 
   <property name="test.junit.output.format" value="plain"/>
   <property name="test.timeout" value="300000"/>
@@ -47,7 +48,7 @@
     <pathelement location="${build.test}" />
   </path>
 
-  <target name="clean" description="Trash all build outputs">
+  <target name="clean" depends="clean-javadoc" description="Trash all build outputs">
     <delete dir="${build}" />
     <delete dir="${build.test}" />
   </target>
@@ -240,6 +241,15 @@
     <jar jarfile="${build}/hank.job.jar"
       basedir="${jobjar.tmp.dir}" />
     <delete dir="${jobjar.tmp.dir}"/>
+  </target>
+
+  <target name="javadoc" depends="clean-javadoc" description="Generate Javadoc">
+    <mkdir dir="${doc}"/>
+    <javadoc sourcepath="${src.java}" destdir="${doc}"/>
+  </target>
+
+  <target name="clean-javadoc" description="Clean Javadoc">
+    <delete includeemptydirs="true" dir="${doc}"/>
   </target>
 
 </project>
