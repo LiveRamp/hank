@@ -27,8 +27,8 @@ function performAsyncReload() {
       for (var i = 0; i < elementUniqClasses.length; i++) {
         document.getElementsByClassName(elementUniqClasses[i])[0].innerHTML
         = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].innerHTML;
-        initAsyncReload();
       }
+      initAsyncReload();
     }
   }
   xmlhttp.open("GET", window.location, true);
