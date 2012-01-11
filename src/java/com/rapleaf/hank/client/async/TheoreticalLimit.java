@@ -30,7 +30,7 @@ public class TheoreticalLimit {
   BlockingQueue<PartitionServer.Client> directConnectionPool;
 
   // Options
-  private boolean block;
+  private boolean isSync;
   private boolean useDirectClient;
   private int nbConnection;
   private int nbThread;
@@ -58,7 +58,7 @@ public class TheoreticalLimit {
         } catch (InterruptedException e) {
           e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
-        if (block) {
+        if (isSync) {
           countDownLatch.countDown();
         }
         latency.addLast(Math.abs(System.nanoTime() - start));
@@ -81,19 +81,21 @@ public class TheoreticalLimit {
             PartitionServer.AsyncClient client = connectionPool.take();
 
             TheoreticalLimitCallback callback = new TheoreticalLimitCallback(client);
-            if (block) {
+            if (isSync) {
               countDownLatch = new CountDownLatch(1);
             }
             client.get(domainId, key, callback);
-            if (block) {
+            if (isSync) {
               countDownLatch.await();
             }
           }
         } else {
           PartitionServer.Client client = directConnectionPool.take();
           for (int i = 0; i < queryPerThread; ++i) {
+            long start = System.nanoTime();
             client.get(domainId, key);
             queryCount.countDown();
+            latency.addLast(Math.abs(System.nanoTime() - start));
           }
         }
       } catch (TException e) {
@@ -105,53 +107,17 @@ public class TheoreticalLimit {
   }
 
   void test(String[] args) throws InterruptedException, IOException {
-    if (args.length != 6) {
-      System.out.println("Missing argument");
-      return;
-    }
-    nbThread = Integer.parseInt(args[0]);
-    queryPerThread = Integer.parseInt(args[1]);
-    nbConnection = Integer.parseInt(args[2]);
-    block = Boolean.parseBoolean(args[3]);
-    useDirectClient = Boolean.parseBoolean(args[4]);
-    nbManager = Integer.parseInt(args[5]);
-
-    System.out.println("NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection + ", NbManager " + nbManager);
-
-    if (!useDirectClient) {
-      ArrayList<TAsyncClientManager> asyncClientManagers = new ArrayList<TAsyncClientManager>();
-      for (int i = 0; i < nbManager; ++i) {
-        asyncClientManagers.add(new TAsyncClientManager());
-      }
-      connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
-      for (int i = 0; i < nbConnection; ++i) {
-        TNonblockingTransport transport = new TNonblockingSocket(i % 2 == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0);
-        TProtocolFactory factory = new TCompactProtocol.Factory();
-        TAsyncClientManager manager = asyncClientManagers.get(i % asyncClientManagers.size());
-        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, manager, transport);
-        connectionPool.put(client);
-      }
-    } else {
-      directConnectionPool = new LinkedBlockingQueue<PartitionServer.Client>();
-      for (int i = 0; i < nbThread; ++i) {
-        try {
-          TTransport transport = new TFramedTransport(new TSocket(i % 2 == 0 ? "hank04.rapleaf.com" : "hank05.rapleaf.com", 12345, 0));
-          transport.open();
-          TProtocol proto = new TCompactProtocol(transport);
-          PartitionServer.Client client = new PartitionServer.Client(proto);
-          directConnectionPool.put(client);
-        } catch (TTransportException e) {
-          e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-        }
-      }
-    }
+    parseCommandLine(args);
+    populateConnections();
 
     int queryTotal = nbThread * queryPerThread;
+    // Stop condition
     queryCount = new CountDownLatch(queryTotal);
+
     latency = new LinkedList<Long>();
     LinkedList<Thread> threads = new LinkedList<Thread>();
 
-    long start = System.nanoTime();
+    long qpsStart = System.nanoTime();
 
     for (int i = 0; i < nbThread; ++i) {
       Thread thread = new Thread(new TheoreticalLimitRunnable(), "Runner");
@@ -165,11 +131,82 @@ public class TheoreticalLimit {
 
     queryCount.await();
 
-    float elapsedS = Math.abs(((float) (System.nanoTime() - start)) / 1000000000);
+    float elapsedS = Math.abs(((float) (System.nanoTime() - qpsStart)) / 1000000000);
     System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
 
     for (Long l : latency) {
-      System.err.println(l / 1000000);
+      System.out.println(l / 1000000);
+    }
+  }
+
+  private void parseCommandLine(String[] args) {
+    if (args.length == 0) {
+      argumentError();
+    } else if (args[0].equals("direct")) {
+      if (args.length != 3) {
+        argumentError();
+      } else {
+        useDirectClient = true;
+        nbThread = Integer.parseInt(args[1]);
+        queryPerThread = Integer.parseInt(args[2]);
+
+        System.out.println("ClientType " + args[0] + ", NbThread " + nbThread + ", QueryPerThread " + queryPerThread);
+      }
+    } else if (args[0].equals("sync") || args.equals("async")) {
+      if (args.length != 5) {
+        argumentError();
+      } else {
+        isSync = args[0].equals("sync");
+        nbThread = Integer.parseInt(args[1]);
+        queryPerThread = Integer.parseInt(args[2]);
+        nbConnection = Integer.parseInt(args[3]);
+        nbManager = Integer.parseInt(args[4]);
+
+        System.out.println("ClientType " + args[0] + ", NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection + ", NbManager " + nbManager);
+      }
+    }
+  }
+
+  private void argumentError() {
+    System.out.println("direct <nbThread> <queryPerThread>");
+    System.out.println("async|sync <nbThread> <queryPerThread> <nbConnection> <nbManager>");
+    throw new RuntimeException("Bad Command line arguments");
+  }
+
+  private void populateConnections() throws IOException, InterruptedException {
+    String[] hostnames = {"hank04.rapleaf.com", "hank05.rapleaf.com"};
+    Integer[] ports = {12345, 12345};
+
+    if (!useDirectClient) {
+      ArrayList<TAsyncClientManager> asyncClientManagers = new ArrayList<TAsyncClientManager>();
+      for (int i = 0; i < nbManager; ++i) {
+        asyncClientManagers.add(new TAsyncClientManager());
+      }
+      connectionPool = new LinkedBlockingQueue<PartitionServer.AsyncClient>();
+      for (int i = 0; i < nbConnection; ++i) {
+        String hostname = hostnames[i % hostnames.length];
+        int port = ports[i % hostnames.length];
+        TNonblockingTransport transport = new TNonblockingSocket(hostname, port, 0);
+        TProtocolFactory factory = new TCompactProtocol.Factory();
+        TAsyncClientManager manager = asyncClientManagers.get(i % asyncClientManagers.size());
+        PartitionServer.AsyncClient client = new PartitionServer.AsyncClient(factory, manager, transport);
+        connectionPool.put(client);
+      }
+    } else {
+      directConnectionPool = new LinkedBlockingQueue<PartitionServer.Client>();
+      for (int i = 0; i < nbThread; ++i) {
+        try {
+          String hostname = hostnames[i % hostnames.length];
+          int port = ports[i % hostnames.length];
+          TTransport transport = new TFramedTransport(new TSocket(hostname, port, 0));
+          transport.open();
+          TProtocol proto = new TCompactProtocol(transport);
+          PartitionServer.Client client = new PartitionServer.Client(proto);
+          directConnectionPool.put(client);
+        } catch (TTransportException e) {
+          e.printStackTrace();
+        }
+      }
     }
   }
 
