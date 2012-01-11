@@ -36,7 +36,6 @@
 </head>
 <body>
 
-
   <script type="text/javascript">
     addAsyncReload(['ALL-RING-GROUPS']);
   </script>

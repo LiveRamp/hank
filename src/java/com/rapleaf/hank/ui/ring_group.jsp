@@ -31,6 +31,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   <jsp:include page="_head.jsp" />
 </head>
 <body>
+
+  <script type="text/javascript">
+    addAsyncReload(['ALL-RINGS']);
+    addAsyncReload(['RING-STATE']);
+    addAsyncReload(['DOMAIN-STATISTICS']);
+  </script>
+
   <jsp:include page="_top_nav.jsp" />
 
   <h1>
@@ -48,7 +55,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   %>
 
     <h2>State</h2>
-      <table class='table-blue-compact'>
+      <table class='table-blue-compact RING-STATE'>
 
         <tr>
         <td>Domain Group:</td>
@@ -150,7 +157,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
       <!-- Domain specific Runtime Statistics -->
 
-      <table class='table-blue-compact'>
+      <table class='table-blue-compact DOMAIN-STATISTICS'>
        <tr>
          <th>Domain</th>
          <th>Throughput</th>
@@ -265,7 +272,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
   <h2>Rings</h2>
   <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
-  <table class='table-blue'>
+
+  <table class='table-blue ALL-RINGS'>
     <tr>
       <th>Ring</th>
       <th></th>

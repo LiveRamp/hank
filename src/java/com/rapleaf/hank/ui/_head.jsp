@@ -4,7 +4,7 @@
 
 <script type="text/javascript">
 
-var asyncReloadPeriod = 3000;
+var asyncReloadPeriod = 5000;
 
 var elementUniqClasses = [];
 
