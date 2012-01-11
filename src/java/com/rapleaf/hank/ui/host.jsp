@@ -30,6 +30,12 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 </head>
 <body>
 
+  <script type="text/javascript">
+    addAsyncReload(['HOST-STATE']);
+    addAsyncReload(['DOMAIN-STATISTICS']);
+    addAsyncReload(['PARTITIONS-STATE']);
+  </script>
+
 <jsp:include page="_top_nav.jsp"/>
 
 <h1>
@@ -54,7 +60,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <div>
   <h2>State</h2>
-    <table class='table-blue-compact'>
+    <table class='table-blue-compact HOST-STATE'>
       <tr>
       <td>State:</td>
       <td class='centered <%= UiUtils.hostStateToClass(host.getState()) %>'>
@@ -127,7 +133,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   <%
     if (targetDomainGroupVersion != null) {
   %>
-  <table class='table-blue-compact'>
+  <table class='table-blue-compact DOMAIN-STATISTICS'>
   <tr>
      <th>Domain</th>
      <th>Throughput</th>
@@ -218,6 +224,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
       </tr>
     </table>
   </div>
+  <div class='PARTITIONS-STATE'>
   <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
@@ -258,7 +265,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   </div>
   <% } %>
   <% } %>
-
+  </div>
 
   <div style="clear:both"></div>
 

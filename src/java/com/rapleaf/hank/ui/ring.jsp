@@ -179,7 +179,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h2>Hosts</h2>
 
-  <table width=800 class='table-blue ALL-HOSTS'>
+  <table class='table-blue ALL-HOSTS'>
     <tr>
       <th>Host Address</th>
       <th>State</th>
