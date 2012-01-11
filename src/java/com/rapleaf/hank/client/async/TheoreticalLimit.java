@@ -164,7 +164,10 @@ public class TheoreticalLimit {
 
         System.out.println("ClientType " + args[0] + ", NbThread " + nbThread + ", QueryPerThread " + queryPerThread + ", NbConnection " + nbConnection + ", NbManager " + nbManager);
       }
+    } else {
+      argumentError();
     }
+
   }
 
   private void argumentError() {
