@@ -32,10 +32,14 @@
     }
   </script>
 
-
   <jsp:include page="_head.jsp" />
 </head>
 <body>
+
+
+  <script type="text/javascript">
+    addAsyncReload(['ALL-RING-GROUPS']);
+  </script>
 
   <jsp:include page="_top_nav.jsp" />
 
@@ -72,7 +76,7 @@
 
   <h2>All Ring Groups</h2>
 
-  <table class='table-blue'>
+  <table id='all-ring-groups' class='table-blue ALL-RING-GROUPS'>
     <tr>
       <th>Ring Group</th>
       <th>Domain Group</th>
