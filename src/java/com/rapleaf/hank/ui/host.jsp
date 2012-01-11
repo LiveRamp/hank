@@ -34,6 +34,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     addAsyncReload(['HOST-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
     addAsyncReload(['PARTITIONS-STATE']);
+    addAsyncReload(['PARTITIONS-TABLE']);
   </script>
 
 <jsp:include page="_top_nav.jsp"/>
@@ -269,7 +270,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
   <div style="clear:both"></div>
 
-  <table class="table-blue">
+  <table class="table-blue PARTITIONS-TABLE">
     <tr><th>Domain</th><th>Partition Number</th><th>Current Version</th><th>Toggle Deletable</th></tr>
   <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
