@@ -138,7 +138,7 @@ public class TheoreticalLimit {
     System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
 
     for (Long l : latencies) {
-      System.out.println(l / 1000000);
+      System.out.println((float) l / 1000000.);
     }
   }
 
