@@ -26,6 +26,12 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 </head>
 <body>
 
+  <script type="text/javascript">
+    addAsyncReload(['ALL-HOSTS']);
+    addAsyncReload(['RING-STATE']);
+    addAsyncReload(['DOMAIN-STATISTICS']);
+  </script>
+
   <jsp:include page="_top_nav.jsp" />
 
   <h1>
@@ -45,7 +51,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   %>
 
   <h2>State</h2>
-    <table class='table-blue-compact'>
+    <table class='table-blue-compact RING-STATE'>
 
       <tr>
       <td>Throughput:</td>
@@ -115,7 +121,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <!-- Domain specific Runtime Statistics -->
 
-  <table class='table-blue-compact'>
+  <table class='table-blue-compact DOMAIN-STATISTICS'>
   <tr>
      <th>Domain</th>
      <th>Throughput</th>
@@ -173,7 +179,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 
   <h2>Hosts</h2>
 
-  <table width=800 class='table-blue'>
+  <table width=800 class='table-blue ALL-HOSTS'>
     <tr>
       <th>Host Address</th>
       <th>State</th>

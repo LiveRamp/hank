@@ -34,7 +34,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
   <script type="text/javascript">
     addAsyncReload(['ALL-RINGS']);
-    addAsyncReload(['RING-STATE']);
+    addAsyncReload(['RING-GROUP-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
   </script>
 
@@ -55,7 +55,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   %>
 
     <h2>State</h2>
-      <table class='table-blue-compact RING-STATE'>
+      <table class='table-blue-compact RING-GROUP-STATE'>
 
         <tr>
         <td>Domain Group:</td>
