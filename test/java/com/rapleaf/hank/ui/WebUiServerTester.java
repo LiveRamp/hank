@@ -10,6 +10,7 @@ import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.rapleaf.hank.partition_server.PartitionServerHandler;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ public class WebUiServerTester extends ZkTestCase {
 
     // Ring ALPHA
     rgAlpha.setTargetVersion(dgv.getVersionNumber());
+    rgAlpha.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
     for (Ring ring : rgAlpha.getRings()) {
       for (Host host : ring.getHosts()) {
         Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics = new HashMap<Domain, RuntimeStatisticsAggregator>();
@@ -62,6 +64,7 @@ public class WebUiServerTester extends ZkTestCase {
       partitionAssigner.assign(dgv, ring);
     }
     rgBeta.setTargetVersion(1);
+    rgBeta.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);
     for (Ring ring : rgBeta.getRings()) {
       // Set first ring to updating
       if (ring.getRingNumber() == rgBeta.getRings().iterator().next().getRingNumber()) {

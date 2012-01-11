@@ -215,8 +215,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <table class='table-blue-compact'>
 
     <!-- Set Target Version form -->
+    <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
     <tr>
-    <td>Set Target Version:</td>
+    <td>Target Version:</td>
     <td>
     <form action="/ring_group/set_target_version" method=post>
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
@@ -232,25 +233,32 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </option>
         <% } %>
       </select>
-      <input type="submit" value="Submit"/>
+      <input type="submit" value="Change Target"/>
     </form>
     </td>
     </tr>
+    <% } %>
 
     <!-- Set Ring Group Conductor Mode form -->
     <% if (ringGroup.isRingGroupConductorOnline()) { %>
     <tr>
-    <td>Set Ring Group Conductor mode:</td>
+    <td>Ring Group Conductor mode:</td>
     <td>
       <form action="/ring_group/set_ring_group_conductor_mode" method=post>
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
         <select name="mode">
           <option value=""></option>
-          <option value="INACTIVE">INACTIVE</option>
-          <option value="ACTIVE">ACTIVE</option>
-          <option value="PROACTIVE">PROACTIVE</option>
+          <option value="INACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.INACTIVE ? "disabled" : "" %>>
+          INACTIVE: do nothing</option>
+          <option value="ACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.ACTIVE ? "disabled" : "" %>>
+          ACTIVE: use target version</option>
+          <option value="PROACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.PROACTIVE ? "disabled" : "" %>>
+          PROACTIVE: use most recent version</option>
         </select>
-      <input type="submit" value="Submit"/>
+      <input type="submit" value="Change mode"/>
       </form>
     </td>
     </tr>
@@ -262,7 +270,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <td>
     <form action="/ring_group/delete_ring_group" method=post>
     <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <input type=submit value="Delete"
+    <input type=submit value="Delete Ring Group"
     onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
     </form>
     </td>
