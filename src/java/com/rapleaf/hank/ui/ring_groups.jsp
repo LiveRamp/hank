@@ -51,6 +51,7 @@
         <td>Domain group name:</td>
         <td>
           <select name="dgName">
+            <option></option>
           <%
             for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
               if (dgc.getVersions().isEmpty()) {continue;}
