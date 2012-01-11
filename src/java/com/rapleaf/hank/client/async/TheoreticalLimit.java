@@ -15,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -23,7 +24,7 @@ public class TheoreticalLimit {
   private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
 
   CountDownLatch queryCount;
-  LinkedList<Long> latency;
+  ConcurrentLinkedQueue<Long> latencies;
 
   // Connection pools
   BlockingQueue<PartitionServer.AsyncClient> connectionPool;
@@ -61,7 +62,8 @@ public class TheoreticalLimit {
         if (isSync) {
           countDownLatch.countDown();
         }
-        latency.addLast(Math.abs(System.nanoTime() - start));
+        long latency = Math.abs(System.nanoTime() - start);
+        latencies.add(latency);
       }
 
       @Override
@@ -95,7 +97,8 @@ public class TheoreticalLimit {
             long start = System.nanoTime();
             client.get(domainId, key);
             queryCount.countDown();
-            latency.addLast(Math.abs(System.nanoTime() - start));
+            long latency = Math.abs(System.nanoTime() - start);
+            latencies.add(latency);
           }
         }
       } catch (TException e) {
@@ -114,7 +117,7 @@ public class TheoreticalLimit {
     // Stop condition
     queryCount = new CountDownLatch(queryTotal);
 
-    latency = new LinkedList<Long>();
+    latencies = new ConcurrentLinkedQueue<Long>();
     LinkedList<Thread> threads = new LinkedList<Thread>();
 
     long qpsStart = System.nanoTime();
@@ -134,7 +137,7 @@ public class TheoreticalLimit {
     float elapsedS = Math.abs(((float) (System.nanoTime() - qpsStart)) / 1000000000);
     System.out.println("QPS is " + ((float) queryTotal / elapsedS) + " (" + queryTotal + ", " + elapsedS + ")");
 
-    for (Long l : latency) {
+    for (Long l : latencies) {
       System.out.println(l / 1000000);
     }
   }
