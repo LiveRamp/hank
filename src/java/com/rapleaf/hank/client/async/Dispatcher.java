@@ -58,7 +58,6 @@ public class Dispatcher implements Runnable {
     return new Runnable() {
       @Override
       public void run() {
-        //dispatcherThread.interrupt();
       }
     };
   }
