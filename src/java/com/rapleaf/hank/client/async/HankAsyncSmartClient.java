@@ -129,8 +129,9 @@ public class HankAsyncSmartClient implements RingGroupChangeListener, RingStateC
     connectorThread.start();
 
     // Initialize asynchronous client manager
+    int asyncClientManagerCount = 2;
     asyncClientManager = new ArrayList<TAsyncClientManager>();
-    for (int i = 0; i < 1; ++i) {
+    for (int i = 0; i < asyncClientManagerCount; ++i) {
       asyncClientManager.add(new TAsyncClientManager());
     }
 

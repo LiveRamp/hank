@@ -1,4 +1,4 @@
-package com.rapleaf.hank.client.async;
+package com.rapleaf.hank.performance;
 
 import com.rapleaf.hank.generated.PartitionServer;
 import org.apache.log4j.Logger;
@@ -19,9 +19,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TheoreticalLimit {
+public class ThriftClientTheoreticalLimit {
 
-  private static final Logger LOG = Logger.getLogger(TheoreticalLimit.class);
+  private static final Logger LOG = Logger.getLogger(ThriftClientTheoreticalLimit.class);
 
   CountDownLatch queryCount;
   ConcurrentLinkedQueue<Long> latencies;
@@ -217,7 +217,7 @@ public class TheoreticalLimit {
   }
 
   public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException, InterruptedException, IOException {
-    TheoreticalLimit theoreticalLimit = new TheoreticalLimit();
+    ThriftClientTheoreticalLimit theoreticalLimit = new ThriftClientTheoreticalLimit();
     theoreticalLimit.test(args);
   }
 
