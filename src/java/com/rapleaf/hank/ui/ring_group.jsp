@@ -36,6 +36,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     addAsyncReload(['ALL-RINGS']);
     addAsyncReload(['RING-GROUP-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
+    addAsyncReload(['RING-GROUP-ACTIONS']);
   </script>
 
   <jsp:include page="_top_nav.jsp" />
@@ -214,7 +215,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <h2>Actions</h2>
 
-    <table class='table-blue-compact'>
+    <table class='table-blue-compact RING-GROUP-ACTIONS'>
 
     <!-- Set Target Version form -->
     <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
