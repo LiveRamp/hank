@@ -16,15 +16,21 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.*;
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 
 public final class RingGroups {
 
-  private static Logger LOG = Logger.getLogger(RingGroups.class);
+  private static final Logger LOG = Logger.getLogger(RingGroups.class);
 
   private RingGroups() {
   }
@@ -38,7 +44,7 @@ public final class RingGroups {
     return true;
   }
 
-  public static void setTargetVersion(RingGroup ringGroup, Integer versionNumber) throws IOException {
+  public static void setTargetVersion(RingGroup ringGroup, int versionNumber) throws IOException {
     DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(versionNumber);
     setTargetVersion(ringGroup, domainGroupVersion);
   }

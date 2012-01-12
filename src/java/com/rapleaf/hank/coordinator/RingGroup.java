@@ -80,7 +80,7 @@ public interface RingGroup extends Comparable<RingGroup> {
 
   public Integer getTargetVersionNumber() throws IOException;
 
-  public void setTargetVersion(Integer version) throws IOException;
+  public void setTargetVersion(int version) throws IOException;
 
   public void setListener(RingGroupChangeListener listener) throws IOException;
 

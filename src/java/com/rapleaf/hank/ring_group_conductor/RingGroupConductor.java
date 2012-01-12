@@ -15,14 +15,22 @@
  */
 package com.rapleaf.hank.ring_group_conductor;
 
-import com.rapleaf.hank.config.RingGroupConductorConfigurator;
-import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
-import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import java.io.IOException;
+import com.rapleaf.hank.config.RingGroupConductorConfigurator;
+import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroups;
+import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroupChangeListener;
+import com.rapleaf.hank.coordinator.RingGroups;
+import com.rapleaf.hank.util.CommandLineChecker;
 
 public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
 
@@ -79,8 +87,8 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         stopping = false;
         try {
           while (!stopping) {
-            // take a snapshot of the current ring, since
-            // it might get changed while we're processing the current update.
+            // take a snapshot of the current ring, since it might get changed
+            // while we're processing the current update.
             RingGroup snapshotRingGroup;
             synchronized (lock) {
               snapshotRingGroup = ringGroup;
@@ -102,10 +110,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     } catch (Throwable t) {
       LOG.fatal("unexpected exception!", t);
     } finally {
-      if (claimedRingGroupConductor) {
-        ringGroup.releaseRingGroupConductor();
-        claimedRingGroupConductor = false;
-      }
+      releaseIfClaimed();
     }
     LOG.info("Ring Group Conductor for ring group " + ringGroupName + " shutting down.");
     // Remove shutdown hook. We don't need it anymore
@@ -152,6 +157,13 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
     }
   }
 
+  private void releaseIfClaimed() throws IOException {
+    if (claimedRingGroupConductor) {
+      ringGroup.releaseRingGroupConductor();
+      claimedRingGroupConductor = false;
+    }
+  }
+
   // Give up ring group conductor status on VM exit
   private void addShutdownHook() {
     if (shutdownHook == null) {
@@ -159,10 +171,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
         @Override
         public void run() {
           try {
-            if (claimedRingGroupConductor) {
-              ringGroup.releaseRingGroupConductor();
-              claimedRingGroupConductor = false;
-            }
+            releaseIfClaimed();
           } catch (IOException e) {
             // When VM is exiting and we fail to release ring group conductor status, swallow the exception
           }

@@ -104,7 +104,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public void setTargetVersion(Integer version) {
+  public void setTargetVersion(int version) {
     this.targetVersion = version;
   }
 
