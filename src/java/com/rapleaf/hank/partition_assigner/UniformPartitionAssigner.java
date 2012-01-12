@@ -142,8 +142,11 @@ public class UniformPartitionAssigner implements PartitionAssigner {
   private boolean isBalanced(Ring ring, Domain domain) throws IOException {
     HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
     HostDomain minHostDomain = getMinHostDomain(ring, domain);
-    int maxDistance = Math.abs(maxHostDomain.getPartitions().size()
-        - minHostDomain.getPartitions().size());
+    if (maxHostDomain == null || minHostDomain == null) {
+      // If either maxHostDomain or minHostDomain is null, the domain is not balanced
+      return false;
+    }
+    int maxDistance = Math.abs(maxHostDomain.getPartitions().size() - minHostDomain.getPartitions().size());
     return maxDistance <= 1;
   }
 
@@ -152,13 +155,14 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
       HostDomain hostDomain = host.getHostDomain(domain);
-      int numPartitions = hostDomain.getPartitions().size();
-      if (numPartitions < minNumPartitions) {
-        minHostDomain = hostDomain;
-        minNumPartitions = numPartitions;
+      if (hostDomain != null) {
+        int numPartitions = hostDomain.getPartitions().size();
+        if (numPartitions < minNumPartitions) {
+          minHostDomain = hostDomain;
+          minNumPartitions = numPartitions;
+        }
       }
     }
-
     return minHostDomain;
   }
 
@@ -167,13 +171,14 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
       HostDomain hostDomain = host.getHostDomain(domain);
-      int numPartitions = hostDomain.getPartitions().size();
-      if (numPartitions > maxNumPartitions) {
-        maxHostDomain = hostDomain;
-        maxNumPartitions = numPartitions;
+      if (hostDomain != null) {
+        int numPartitions = hostDomain.getPartitions().size();
+        if (numPartitions > maxNumPartitions) {
+          maxHostDomain = hostDomain;
+          maxNumPartitions = numPartitions;
+        }
       }
     }
-
     return maxHostDomain;
   }
 }
