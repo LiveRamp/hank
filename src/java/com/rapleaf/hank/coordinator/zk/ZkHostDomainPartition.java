@@ -90,14 +90,20 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public boolean isDeletable() throws IOException {
+    Boolean result;
     if (deletable != null) {
-      return deletable.get();
+      result = deletable.get();
     } else {
       try {
-        return WatchedBoolean.get(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT));
+        result = WatchedBoolean.get(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT));
       } catch (Exception e) {
         throw new IOException(e);
       }
+    }
+    if (result == null) {
+      return false;
+    } else {
+      return result;
     }
   }
 
