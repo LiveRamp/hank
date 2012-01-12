@@ -18,7 +18,7 @@ package com.rapleaf.hank.ring_group_conductor;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;
 import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
+import com.rapleaf.hank.partition_assigner.ModPartitionAssigner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
@@ -45,7 +45,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
-    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new UniformPartitionAssigner()));
+    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new ModPartitionAssigner()));
   }
 
   RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {
