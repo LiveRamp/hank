@@ -63,7 +63,7 @@ public final class Hosts {
 
   /**
    * Return true if all partitions assigned to that host for domains of the given domain group version
-   * are at the correct version.
+   * are at the correct version. And there are no deletable partitions.
    *
    * @param host
    * @param domainGroupVersion
@@ -88,6 +88,14 @@ public final class Hosts {
               return false;
             }
           }
+        }
+      }
+    }
+    // Check if there is any deletable partition
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        if (partition.isDeletable()) {
+          return false;
         }
       }
     }
