@@ -151,7 +151,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             commandIdleHostsToServe(ring);
           } else {
 
-            // Ring is assigned but not not up-to-date
+            // Ring is assigned but not up-to-date
 
             if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
               // If ring is fully serving and we barely have enough fully serving rings, do nothing.
