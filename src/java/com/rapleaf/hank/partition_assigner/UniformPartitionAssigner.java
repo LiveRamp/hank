@@ -155,12 +155,10 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     int minNumPartitions = Integer.MAX_VALUE;
     for (Host host : ring.getHosts()) {
       HostDomain hostDomain = host.getHostDomain(domain);
-      if (hostDomain != null) {
-        int numPartitions = hostDomain.getPartitions().size();
-        if (numPartitions < minNumPartitions) {
-          minHostDomain = hostDomain;
-          minNumPartitions = numPartitions;
-        }
+      int numPartitions = hostDomain == null ? 0 : hostDomain.getPartitions().size();
+      if (numPartitions < minNumPartitions) {
+        minHostDomain = hostDomain;
+        minNumPartitions = numPartitions;
       }
     }
     return minHostDomain;
@@ -171,12 +169,10 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     int maxNumPartitions = Integer.MIN_VALUE;
     for (Host host : ring.getHosts()) {
       HostDomain hostDomain = host.getHostDomain(domain);
-      if (hostDomain != null) {
-        int numPartitions = hostDomain.getPartitions().size();
-        if (numPartitions > maxNumPartitions) {
-          maxHostDomain = hostDomain;
-          maxNumPartitions = numPartitions;
-        }
+      int numPartitions = hostDomain == null ? 0 : hostDomain.getPartitions().size();
+      if (numPartitions > maxNumPartitions) {
+        maxHostDomain = hostDomain;
+        maxNumPartitions = numPartitions;
       }
     }
     return maxHostDomain;
