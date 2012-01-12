@@ -83,17 +83,17 @@ public class HostController extends Controller {
   }
 
   private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
-    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
-    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    RingGroup ringGroup = coordinator.getRingGroup(req.getParameter("g"));
+    Ring ring = ringGroup.getRing(Integer.parseInt(req.getParameter("n")));
+    Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     final Domain domain = coordinator.getDomain(req.getParameter("domainId"));
-    HostDomain d = h.getHostDomain(domain);
-    if (d == null) {
-      d = h.addDomain(domain);
+    HostDomain hostDomain = host.getHostDomain(domain);
+    if (hostDomain == null) {
+      hostDomain = host.addDomain(domain);
     }
-    d.addPartition(Integer.parseInt(req.getParameter("partNum")));
+    HostDomains.addOrUndeletePartition(hostDomain, Integer.parseInt(req.getParameter("partNum")));
 
-    redirectBack(resp, rg, r, h);
+    redirectBack(resp, ringGroup, ring, host);
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {

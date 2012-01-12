@@ -17,6 +17,8 @@ package com.rapleaf.hank.ring_group_conductor;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
+import com.rapleaf.hank.partition_assigner.MockPartitionAssigner;
+import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 
@@ -150,11 +152,20 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     rg = new MockRingGroupLocal(r0, r1, r2);
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl() {
+    PartitionAssigner partitionAssigner = new MockPartitionAssigner() {
+
       @Override
-      protected boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
+      public void assign(Ring ring, DomainGroupVersion domainGroupVersion) {
+        ((MockRingLocal) ring).setAssignedVersion(domainGroupVersion);
+      }
+
+      @Override
+      public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
         return ((MockRingLocal) ring).isAssigned(domainGroupVersion);
       }
+    };
+
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner) {
 
       @Override
       protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) {
@@ -169,11 +180,6 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       @Override
       protected boolean isServable(Ring ring) {
         return ((MockRingLocal) ring).isServable();
-      }
-
-      @Override
-      protected void assign(Ring ring, DomainGroupVersion domainGroupVersion) {
-        ((MockRingLocal) ring).setAssignedVersion(domainGroupVersion);
       }
     };
   }
@@ -191,7 +197,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testIsFullyServing() throws IOException {
-    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl();
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     assertFalse(transitionFunction.isFullyServing(r0));
@@ -212,9 +218,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   public void testNothingToDo() throws IOException {
     rg.setTargetVersion(1);
-    setUpRing(r0, v1, null, HostState.SERVING);
-    setUpRing(r1, v1, null, HostState.SERVING);
-    setUpRing(r2, v1, null, HostState.SERVING);
+    setUpRing(r0, v1, v1, HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
 
     testTransitionFunction.manageTransitions(rg);
 
@@ -337,6 +343,47 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     // v2 should have been assigned to r0
     assertTrue(r0.isAssigned(v2));
+
+    // No commands should have been issued to rings
+    assertNull(r0h0.getLastEnqueuedCommand());
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
+  public void testTakeDownModifiedRing() throws IOException {
+    rg.setTargetVersion(1);
+
+    setUpRing(r0, v1, null, HostState.SERVING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // Hosts of r0 should have received go to idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+
+    // No commands should have been issued to rings
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
+  public void testAssignedModifiedRing() throws IOException {
+    rg.setTargetVersion(1);
+
+    setUpRing(r0, v1, null, HostState.IDLE);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v1, HostState.SERVING);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // v2 should have been assigned to r0
+    assertTrue(r0.isAssigned(v1));
 
     // No commands should have been issued to rings
     assertNull(r0h0.getLastEnqueuedCommand());

@@ -21,9 +21,14 @@ import com.rapleaf.hank.coordinator.Ring;
 
 import java.io.IOException;
 
-public interface PartitionAssigner {
+public class MockPartitionAssigner implements PartitionAssigner {
 
-  public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException;
+  @Override
+  public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
+    return false;
+  }
 
-  public void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException;
+  @Override
+  public void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+  }
 }

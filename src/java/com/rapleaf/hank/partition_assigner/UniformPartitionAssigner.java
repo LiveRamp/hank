@@ -4,15 +4,53 @@ import com.rapleaf.hank.coordinator.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class UniformPartitionAssigner implements PartitionAssigner {
 
   public UniformPartitionAssigner() throws IOException {
   }
 
+  /**
+   * Return true if each partition in the given domain group version is assigned to at least one host,
+   * and that assignments are balanced.
+   * Note: This does not take versions into consideration.
+   *
+   * @param ring
+   * @param domainGroupVersion
+   * @return
+   * @throws IOException
+   */
+  public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    // Check that each domain of the given domain group version is assigned to this ring
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      // Find all assigned partitions of that domain across hosts
+      Set<Integer> assignedPartitions = new HashSet<Integer>();
+      for (Host host : ring.getHosts()) {
+        HostDomain hostDomain = host.getHostDomain(domain);
+        if (hostDomain != null) {
+          for (HostDomainPartition partition : hostDomain.getPartitions()) {
+            // Ignore deletable partitions
+            if (!partition.isDeletable()) {
+              assignedPartitions.add(partition.getPartitionNumber());
+            }
+          }
+        }
+      }
+      // Check that all of that domain's partitions are assigned at least once. If not, return false.
+      if (assignedPartitions.size() != domain.getNumParts()) {
+        return false;
+      }
+    }
+    // Check that assignments are also balanced
+    return isBalanced(ring, domainGroupVersion);
+  }
+
   @Override
-  public void assign(DomainGroupVersion domainGroupVersion, Ring ring) throws IOException {
+  public void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
     Random random = new Random();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
@@ -24,30 +62,60 @@ public class UniformPartitionAssigner implements PartitionAssigner {
         }
       }
 
-      // make random assignments for any of the currently unassigned parts
-      for (Integer partNum : Rings.getUnassignedPartitions(ring, domain)) {
-        getMinHostDomain(ring, domain).addPartition(partNum);
+      // Make random assignments for any of the currently unassigned parts
+      for (Integer partNum : getUnassignedPartitions(ring, domain)) {
+        HostDomains.addOrUndeletePartition(getMinHostDomain(ring, domain), partNum);
       }
 
-      while (!assignmentsBalanced(ring, domain)) {
+      while (!isBalanced(ring, domain)) {
         HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
         HostDomain minHostDomain = getMinHostDomain(ring, domain);
 
-        // pick a random partition from the maxHost
+        // Pick a random partition from the maxHost
         ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
         partitions.addAll(maxHostDomain.getPartitions());
         final HostDomainPartition toMove = partitions.get(random.nextInt(partitions.size()));
 
-        // assign it to the min host. note that we assign it before we unassign it
+        // Assign it to the min host. note that we assign it before we unassign it
         // to ensure that if we fail at this point, we haven't left any parts
         // unassigned.
-        minHostDomain.addPartition(toMove.getPartitionNumber());
+        HostDomains.addOrUndeletePartition(minHostDomain, toMove.getPartitionNumber());
 
-        // unassign it from the max host
+        // Unassign it from the max host
         unassign(toMove);
       }
 
     }
+  }
+
+  /**
+   * Get the set of partition IDs that are not currently assigned to a host.
+   *
+   * @param ring
+   * @param domain
+   * @return
+   * @throws IOException
+   */
+  private static Set<Integer> getUnassignedPartitions(Ring ring, Domain domain) throws IOException {
+    Set<Integer> unassignedPartitions = new HashSet<Integer>();
+    for (int i = 0; i < domain.getNumParts(); i++) {
+      unassignedPartitions.add(i);
+    }
+
+    for (Host host : ring.getHosts()) {
+      HostDomain hostDomain = host.getHostDomain(domain);
+      if (hostDomain == null) {
+        continue;
+      }
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        // Ignore deletable partitions
+        if (!partition.isDeletable()) {
+          unassignedPartitions.remove(partition.getPartitionNumber());
+        }
+      }
+    }
+
+    return unassignedPartitions;
   }
 
   private void unassign(HostDomainPartition partition) throws IOException {
@@ -61,7 +129,17 @@ public class UniformPartitionAssigner implements PartitionAssigner {
     }
   }
 
-  private boolean assignmentsBalanced(Ring ring, Domain domain) throws IOException {
+  private boolean isBalanced(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+      Domain domain = dgvdv.getDomain();
+      if (!isBalanced(ring, domain)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private boolean isBalanced(Ring ring, Domain domain) throws IOException {
     HostDomain maxHostDomain = getMaxHostDomain(ring, domain);
     HostDomain minHostDomain = getMinHostDomain(ring, domain);
     int maxDistance = Math.abs(maxHostDomain.getPartitions().size()

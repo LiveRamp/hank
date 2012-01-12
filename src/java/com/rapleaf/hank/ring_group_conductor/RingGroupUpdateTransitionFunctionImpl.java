@@ -13,11 +13,11 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.ring_group_conductor;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -32,20 +32,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   private final PartitionAssigner partitionAssigner;
 
-  public RingGroupUpdateTransitionFunctionImpl() throws IOException {
-    partitionAssigner = new UniformPartitionAssigner();
-  }
-
-  /**
-   * Return true iff given domain group version is assigned to given ring.
-   *
-   * @param ring
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
-  protected boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
-    return Rings.isAssigned(ring, domainGroupVersion);
+  public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner) throws IOException {
+    this.partitionAssigner = partitionAssigner;
   }
 
   /**
@@ -104,10 +92,6 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     return Rings.isServable(ring);
   }
 
-  protected void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
-    partitionAssigner.assign(domainGroupVersion, ring);
-  }
-
   private void commandIdleHostsToServe(Ring ring) throws IOException {
     for (Host host : ring.getHosts()) {
       if (host.getState().equals(HostState.IDLE)) {
@@ -121,63 +105,64 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
 
     Set<Ring> ringsFullyServing = new TreeSet<Ring>();
-    List<Ring> ringsNotUpToDateOrServing = new ArrayList<Ring>();
+    List<Ring> ringsTransitioning = new ArrayList<Ring>();
 
     // TODO: this could be configurable
     int minNumRingsFullyServing = ringGroup.getRings().size() - 1;
 
     // Determine ring statuses (serving and / or up-to-date)
     for (Ring ring : ringGroup.getRings()) {
-      boolean isFullyServing = isFullyServing(ring);
+      boolean isAssigned = partitionAssigner.isAssigned(ring, targetVersion);
       boolean isUpToDate = isUpToDate(ring, targetVersion);
+      boolean isFullyServing = isFullyServing(ring);
       if (isFullyServing) {
         ringsFullyServing.add(ring);
       }
-      if (isFullyServing && isUpToDate) {
+      if (isAssigned && isFullyServing && isUpToDate) {
         // Nothing needs to be done with this ring
-        LOG.info("Ring " + ring.getRingNumber() + " is up-to-date and fully serving.");
+        LOG.info("Ring " + ring.getRingNumber() + " is assigned, up-to-date and fully serving.");
       } else {
-        ringsNotUpToDateOrServing.add(ring);
+        ringsTransitioning.add(ring);
       }
     }
 
-    // Take appropriate actions for rings that are not up-to-date or fully serving
-    for (Ring ring : ringsNotUpToDateOrServing) {
+    // Take appropriate actions for rings that are transitioning
+    for (Ring ring : ringsTransitioning) {
 
       if (ringsFullyServing.size() < minNumRingsFullyServing && isServable(ring)) {
 
         // Not enough rings are fully serving and the current ring is servable. Attempt to serve it.
 
         LOG.info("Ring " + ring.getRingNumber() + " is servable and only " + ringsFullyServing.size()
-            + " rings are fully serving. Commanding idle hosts to serve.");
+            + " rings are fully serving. Command idle hosts to serve.");
         commandIdleHostsToServe(ring);
       } else {
 
         // Enough rings are fully serving or the current ring is not servable
 
-        if (isUpToDate(ring, targetVersion)) {
+        if (partitionAssigner.isAssigned(ring, targetVersion)) {
 
-          // Ring is up-to-date but not fully serving.
-          // Tell all idle hosts to serve (if they don't have the serve command already)
-          LOG.info("Ring " + ring.getRingNumber() +
-              " is up-to-date but NOT fully serving. Commanding and waiting for idle hosts to serve.");
-          commandIdleHostsToServe(ring);
-        } else {
+          if (isUpToDate(ring, targetVersion)) {
 
-          // Ring is not even up-to-date
+            // Ring is assigned and up-to-date but not fully serving.
+            // Tell all idle hosts to serve (if they don't have the serve command already)
+            LOG.info("Ring " + ring.getRingNumber() +
+                " is assigned and up-to-date but NOT fully serving. Command and wait for idle hosts to serve.");
+            commandIdleHostsToServe(ring);
+          } else {
 
-          if (isAssigned(ring, targetVersion)) {
+            // Ring is assigned but not not up-to-date
 
-            // Ring is assigned target version but is not up-to-date
-
-            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() < (minNumRingsFullyServing + 1)) {
-              LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date"
+            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
+              // If ring is fully serving and we barely have enough fully serving rings, do nothing.
+              LOG.info("Ring " + ring.getRingNumber() + " is assigned and NOT up-to-date"
                   + " but only " + ringsFullyServing.size() + " rings are fully serving."
                   + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before updating.");
             } else {
-              // If the ring is not fully serving, or if it is but we have enough other rings serving, go idle and update
+              // If the ring is not fully serving, or if it is but we have enough other rings serving,
+              // go idle and update
               LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date."
-                  + " Commanding and waiting for serving hosts to go idle and idle hosts to update.");
+                  + " Command and wait for serving hosts to go idle and idle hosts to update.");
               // We are about to take actions and this ring will not be fully serving anymore (if it even was).
               // Remove it from the set in all cases (it might not be contained in the fully serving set).
               ringsFullyServing.remove(ring);
@@ -196,33 +181,34 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                 }
               }
             }
+          }
+        } else {
+
+          // Ring is not even assigned target version
+
+          LOG.info("Ring " + ring.getRingNumber() + " is NOT assigned target version.");
+          if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0) {
+            // If no host is serving in the ring, assign it
+            LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
+            partitionAssigner.assign(ring, targetVersion);
           } else {
-
-            // Ring is not even assigned target version
-
-            LOG.info("Ring " + ring.getRingNumber() + " is NOT up-to-date and is NOT assigned target version.");
-            if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0) {
-              // If no host is serving in the ring, assign it
-              LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
-              assign(ring, targetVersion);
+            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
+              // If ring is fully serving and we barely have enough fully serving rings, do nothing.
+              LOG.info("  Ring " + ring.getRingNumber()
+                  + " is fully serving but only " + ringsFullyServing.size() + " rings are fully serving."
+                  + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before assigning.");
             } else {
-              if (ringsFullyServing.contains(ring) && ringsFullyServing.size() < (minNumRingsFullyServing + 1)) {
-                LOG.info("  Ring " + ring.getRingNumber()
-                    + " is fully serving but only " + ringsFullyServing.size() + " rings are fully serving."
-                    + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before assigning.");
-              } else {
-                // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
-                // hosts to go idle.
-                LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
-                    + ". Commanding and waiting for them to go idle.");
-                // We are about to take actions and this ring will not be fully serving anymore (if it even was).
-                // Remove it from the set in all cases (it might not be contained in the fully serving set).
-                ringsFullyServing.remove(ring);
-                // Command hosts
-                for (Host host : ring.getHosts()) {
-                  if (host.getState().equals(HostState.SERVING)) {
-                    Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
-                  }
+              // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
+              // hosts to go idle.
+              LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
+                  + ". Commanding and waiting for them to go idle.");
+              // We are about to take actions and this ring will not be fully serving anymore (if it even was).
+              // Remove it from the set in all cases (it might not be contained in the fully serving set).
+              ringsFullyServing.remove(ring);
+              // Command hosts
+              for (Host host : ring.getHosts()) {
+                if (host.getState().equals(HostState.SERVING)) {
+                  Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
                 }
               }
             }

@@ -15,22 +15,15 @@
  */
 package com.rapleaf.hank.ring_group_conductor;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.config.RingGroupConductorConfigurator;
+import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
+import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import com.rapleaf.hank.config.RingGroupConductorConfigurator;
-import com.rapleaf.hank.config.yaml.YamlRingGroupConductorConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroups;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroupChangeListener;
-import com.rapleaf.hank.coordinator.RingGroups;
-import com.rapleaf.hank.util.CommandLineChecker;
+import java.io.IOException;
 
 public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
 
@@ -52,7 +45,7 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
-    this(configurator, new RingGroupUpdateTransitionFunctionImpl());
+    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new UniformPartitionAssigner()));
   }
 
   RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {

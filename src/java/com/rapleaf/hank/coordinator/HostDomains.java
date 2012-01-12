@@ -16,7 +16,27 @@
 
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
+
 public final class HostDomains {
 
-  private HostDomains() {}
+  private HostDomains() {
+  }
+
+  /**
+   *
+   * @param hostDomain
+   * @param partitionNumber
+   * @throws IOException
+   */
+  public static void addOrUndeletePartition(HostDomain hostDomain, int partitionNumber) throws IOException {
+    HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionNumber);
+    if (partition == null) {
+      hostDomain.addPartition(partitionNumber);
+    } else {
+      if (partition.isDeletable()) {
+        partition.setDeletable(false);
+      }
+    }
+  }
 }

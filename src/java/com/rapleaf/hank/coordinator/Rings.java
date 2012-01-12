@@ -79,33 +79,6 @@ public class Rings {
   }
 
   /**
-   * Get the set of partition IDs that are not currently assigned to a host.
-   *
-   * @param ring
-   * @param domain
-   * @return
-   * @throws IOException
-   */
-  public static Set<Integer> getUnassignedPartitions(Ring ring, Domain domain) throws IOException {
-    Set<Integer> unassignedParts = new HashSet<Integer>();
-    for (int i = 0; i < domain.getNumParts(); i++) {
-      unassignedParts.add(i);
-    }
-
-    for (Host hc : ring.getHosts()) {
-      HostDomain hdc = hc.getHostDomain(domain);
-      if (hdc == null) {
-        continue;
-      }
-      for (HostDomainPartition hdpc : hdc.getPartitions()) {
-        unassignedParts.remove(hdpc.getPartitionNumber());
-      }
-    }
-
-    return unassignedParts;
-  }
-
-  /**
    * Return true iff there is at least one assigned partition in the given ring,
    * and all partitions in the given ring have a current version that is not null (servable).
    *
@@ -126,37 +99,6 @@ public class Rings {
       }
     }
     return numPartitions != 0;
-  }
-
-  /**
-   * Return true if each partition in the given domain group version is assigned to at least one host
-   * Note: This does not take versions into consideration.
-   *
-   * @param ring
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
-  public static boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
-    // Check that each domain of the given domain group version is assigned to this ring
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
-      // Find all assigned partitions of that domain across hosts
-      Set<Integer> assignedPartitions = new HashSet<Integer>();
-      for (Host host : ring.getHosts()) {
-        HostDomain hostDomain = host.getHostDomain(domain);
-        if (hostDomain != null) {
-          for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            assignedPartitions.add(partition.getPartitionNumber());
-          }
-        }
-      }
-      // Check that all of that domain's partitions are assigned at least once. If not, return false.
-      if (assignedPartitions.size() != domain.getNumParts()) {
-        return false;
-      }
-    }
-    return true;
   }
 
   /**

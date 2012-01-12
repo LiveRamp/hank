@@ -208,27 +208,26 @@ public class TestAbstractRing extends BaseTestCase {
     }}, 0);
 
     // Test empty DomainGroupVersion
-    assertEquals(true, Rings.isAssigned(r, dgvEmpty));
     assertEquals(true, Rings.isUpToDate(r, dgvEmpty));
 
     // Test DomainGroupVersion with one domain
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, Rings.isAssigned(r, dgv1));
+    assertEquals(false, Rings.isUpToDate(r, dgv1));
     h1.setHostDomain(new LocalMockHostDomain(d1));
-    assertEquals(false, Rings.isAssigned(r, dgv1));
+    assertEquals(false, Rings.isUpToDate(r, dgv1));
     h1.setHostDomain(new LocalMockHostDomain(d1, 0));
-    assertEquals(true, Rings.isAssigned(r, dgv1));
+    assertEquals(true, Rings.isUpToDate(r, dgv1));
 
     // Test DomainGroupVersion with multiple domains
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, Rings.isAssigned(r, dgv2));
+    assertEquals(false, Rings.isUpToDate(r, dgv2));
     h1.setHostDomain(new LocalMockHostDomain(d1, 0));
     h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1));
-    assertEquals(false, Rings.isAssigned(r, dgv2));
+    assertEquals(false, Rings.isUpToDate(r, dgv2));
     h2.setHostDomain(new LocalMockHostDomain(d2, 0, 1, 2));
-    assertEquals(true, Rings.isAssigned(r, dgv2));
+    assertEquals(true, Rings.isUpToDate(r, dgv2));
     // Test dgv2_updated
     assertEquals(false, Rings.isUpToDate(r, dgv2_updated));
     Set<HostDomainPartition> h1d1_partitions = h1.getHostDomain(d1).getPartitions();
@@ -245,25 +244,25 @@ public class TestAbstractRing extends BaseTestCase {
     // Test DomainGroupVersion with one domain on multiple hosts
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0));
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h2.setHostDomain(new LocalMockHostDomain(d3, 1));
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 2));
-    assertEquals(true, Rings.isAssigned(r, dgv3));
+    assertEquals(true, Rings.isUpToDate(r, dgv3));
 
     // Test DomainGroupVersion with one domain on multiple hosts with repeated partitions
     h1.clearHostDomain();
     h2.clearHostDomain();
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0));
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
     h2.setHostDomain(new LocalMockHostDomain(d3, 1));
-    assertEquals(false, Rings.isAssigned(r, dgv3));
+    assertEquals(false, Rings.isUpToDate(r, dgv3));
     h1.setHostDomain(new LocalMockHostDomain(d3, 0, 1, 2));
     h2.setHostDomain(new LocalMockHostDomain(d3, 0, 1));
-    assertEquals(true, Rings.isAssigned(r, dgv3));
+    assertEquals(true, Rings.isUpToDate(r, dgv3));
   }
 }

@@ -35,7 +35,7 @@ public class WebUiServerTester extends ZkTestCase {
 
     DomainGroupVersion dgv = DomainGroups.getLatestVersion(dg1);
     for (Ring ring : rgAlpha.getRings()) {
-      partitionAssigner.assign(dgv, ring);
+      partitionAssigner.assign(ring, dgv);
     }
 
     // Ring ALPHA
@@ -61,7 +61,7 @@ public class WebUiServerTester extends ZkTestCase {
     // Ring BETA
     // Assign
     for (Ring ring : rgBeta.getRings()) {
-      partitionAssigner.assign(dgv, ring);
+      partitionAssigner.assign(ring, dgv);
     }
     rgBeta.setTargetVersion(1);
     rgBeta.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);

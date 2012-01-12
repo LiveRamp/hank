@@ -61,7 +61,7 @@ public class RingController extends Controller {
       version = rg.getDomainGroup().getVersionByNumber(versionNumber);
     }
     // Perform assignment
-    partitionAssigner.assign(version, ring);
+    partitionAssigner.assign(ring, version);
 
     resp.sendRedirect(String.format("/ring_partitions.jsp?g=%s&n=%d", rg.getName(), ringNum));
   }

@@ -182,7 +182,7 @@ public class TestUniformPartitionAssigner extends BaseTestCase {
     // Balance
     PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
 
-    partitionAssigner.assign(dgv, ringGroup.getRing(0));
+    partitionAssigner.assign(ringGroup.getRing(0), dgv);
 
     // Now balanced
     assertEquals(true, assignmentsBalanced(ring, domain));
