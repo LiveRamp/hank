@@ -1,7 +1,6 @@
 package com.rapleaf.hank.partition_assigner;
 
 import com.rapleaf.hank.coordinator.*;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,8 +9,6 @@ import java.util.Random;
 import java.util.Set;
 
 public class UniformPartitionAssigner implements PartitionAssigner {
-
-  private static Logger LOG = Logger.getLogger(UniformPartitionAssigner.class);
 
   public UniformPartitionAssigner() throws IOException {
   }
@@ -78,9 +75,6 @@ public class UniformPartitionAssigner implements PartitionAssigner {
         ArrayList<HostDomainPartition> partitions = new ArrayList<HostDomainPartition>();
         partitions.addAll(maxHostDomain.getPartitions());
         final HostDomainPartition toMove = partitions.get(random.nextInt(partitions.size()));
-
-        LOG.info("Domain " + domain.getName() + " is not balanced. Max: " + maxHostDomain.getPartitions().size()
-            + ", Min: " + minHostDomain.getPartitions().size() + ". Moving: " + toMove.getPartitionNumber());
 
         // Assign it to the min host. note that we assign it before we unassign it
         // to ensure that if we fail at this point, we haven't left any parts
