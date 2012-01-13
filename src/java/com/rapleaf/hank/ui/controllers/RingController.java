@@ -67,12 +67,12 @@ public class RingController extends Controller {
   }
 
   protected void doDeleteHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup rgc = coordinator.getRingGroup(req.getParameter("g"));
-    Ring ringConfig = rgc.getRing(Integer.parseInt(req.getParameter("n")));
-    ringConfig.removeHost(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    RingGroup ringGroup = coordinator.getRingGroup(req.getParameter("g"));
+    Ring ring = ringGroup.getRing(Integer.parseInt(req.getParameter("n")));
+    ring.removeHost(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
 
-    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", rgc.getName(),
-        ringConfig.getRingNumber()));
+    resp.sendRedirect(String.format("/ring.jsp?g=%s&n=%d", ringGroup.getName(),
+        ring.getRingNumber()));
   }
 
   private void doAddHost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
