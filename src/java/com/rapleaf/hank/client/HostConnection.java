@@ -138,7 +138,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       // Perform query
       HankResponse result = client.get(domainId, key);
       if (result.is_set_xception()) {
-        throw new IOException("Server failed to execute GET: " + result.get_xception().get_internal_error());
+        throw new IOException("Server failed to execute GET: " + result.get_xception());
       } else {
         return result;
       }
@@ -174,7 +174,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
         // Perform query
         HankBulkResponse result = client.getBulk(domainId, keys);
         if (result.is_set_xception()) {
-          throw new IOException("Server failed to execute GET BULK: " + result.get_xception().get_internal_error());
+          throw new IOException("Server failed to execute GET BULK: " + result.get_xception());
         } else {
           return result;
         }
