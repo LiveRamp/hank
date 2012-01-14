@@ -268,18 +268,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     </tr>
     <% } %>
 
-    <!-- Delete Ring Group form -->
-    <tr>
-    <td>Delete Ring Group:</td>
-    <td>
-    <form action="/ring_group/delete_ring_group" method=post>
-    <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-    <input type=submit value="Delete Ring Group"
-    onclick="return confirm('Are you sure you want to delete the ring group <%= ringGroup.getName() %>? This action cannot be undone.');"/>
-    </form>
-    </td>
-    </tr>
-
     </table>
 
   <h2>Rings</h2>

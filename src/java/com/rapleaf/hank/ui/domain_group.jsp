@@ -51,13 +51,6 @@ tr.not_included td {
 
 <h1>Domain Group <span class='currentItem'><%= domainGroup.getName() %></span></h1>
 
-<h2>Actions</h2>
-<form method=post action="/domain_group/delete">
-  <input type=hidden name="name" value="<%= domainGroup.getName() %>"/>
-  <input type=submit value="Delete this domain group"
-    onclick="return confirm('Are you sure you want to delete this domain group? This action cannot be undone.');"/>
-</form>
-
 <h2>Create New Version</h2>
 
 <form method="post" action="/domain_group/add_version">
@@ -131,8 +124,8 @@ tr.not_included td {
   %>
 
   </table>
-  <input type=submit value="Create"/>
-  <span style="color: red; font-weight:bold"> (This will trigger a data deploy for Ring Group Conductors in PROACTIVE mode.)</span>
+  <input type=submit value="Create New Version"/>
+  <span style="color: red; font-weight:bold"> (This will trigger a data deploy for Ring Group Conductors in <i>proactive</i> mode.)</span>
 </form>
 
 <h2>Existing Versions</h2>

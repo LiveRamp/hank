@@ -37,14 +37,6 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
 
   <h1>Domain Groups</h1>
 
-  <h2>Create New Domain Group</h2>
-
-  <form action="/domain_group/create" method=post onsubmit="return validateCreate();">
-    <input type=text id="name" name="name" size=50/> <input type=submit value="Create"/>
-  </form>
-
-  <h2>All Domain Groups</h2>
-
   <table class='table-blue-compact'>
     <tr>
       <th>Domain Group</th>

@@ -115,6 +115,7 @@ public class DomainController extends Controller {
 
   private void doDeleteDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     final Domain domain = coordinator.getDomain(req.getParameter("name"));
+    boolean isInUse = false;
     // check if this domain is in use anywhere
     for (RingGroup rg : coordinator.getRingGroups()) {
       if (rg.getTargetVersion() == null) {
@@ -124,12 +125,14 @@ public class DomainController extends Controller {
       DomainGroup dg = rg.getDomainGroup();
       DomainGroupVersion dgv = rg.getTargetVersion();
       if (DomainGroupVersions.containsDomain(dgv, domain)) {
-        resp.sendRedirect("/domain.jsp?n=" + req.getParameter("name") + "&used_in_dg=" + dg.getName());
-        return;
+        isInUse = true;
+        break;
       }
     }
 
-    coordinator.deleteDomain(domain.getName());
+    if (!isInUse) {
+      coordinator.deleteDomain(domain.getName());
+    }
     resp.sendRedirect("/domains.jsp");
   }
 

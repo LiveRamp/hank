@@ -31,6 +31,9 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     <%= coord %>
   </div>
 
+  <h2>Administration</h2>
+  <a href='admin.jsp'><div style='display: inline-block;'>Open administration panel</div></a>
+
   <h2>Version Information</h2>
   <div>
     Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
