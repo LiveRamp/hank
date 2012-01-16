@@ -101,7 +101,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       }
     }
     if (result == null) {
-      return false;
+      return true;
     } else {
       return result;
     }

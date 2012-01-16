@@ -187,8 +187,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           // Ring is not even assigned target version
 
           LOG.info("Ring " + ring.getRingNumber() + " is NOT assigned target version.");
-          if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0) {
-            // If no host is serving in the ring, assign it
+          if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0
+              && Rings.getHostsInState(ring, HostState.UPDATING).size() == 0) {
+            // If no host is serving or updating in the ring, assign it
             LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
             partitionAssigner.assign(ring, targetVersion);
           } else {
