@@ -237,7 +237,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         </option>
         <% } %>
       </select>
-      <input type="submit" value="Change Target"/>
+      <input type="submit" value="Change target"/>
     </form>
     </td>
     </tr>
