@@ -216,6 +216,31 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     <table class='table-blue-compact'>
 
+    <!-- Set Ring Group Conductor Mode form -->
+    <% if (ringGroup.isRingGroupConductorOnline()) { %>
+    <tr>
+    <td>Ring Group Conductor mode:</td>
+    <td>
+      <form action="/ring_group/set_ring_group_conductor_mode" method=post>
+      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+        <select name="mode">
+          <option value=""></option>
+          <option value="INACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.INACTIVE ? "disabled" : "" %>>
+          INACTIVE: do nothing</option>
+          <option value="ACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.ACTIVE ? "disabled" : "" %>>
+          ACTIVE: use target version</option>
+          <option value="PROACTIVE" <%= ringGroup.getRingGroupConductorMode()
+          == RingGroupConductorMode.PROACTIVE ? "disabled" : "" %>>
+          PROACTIVE: use most recent version</option>
+        </select>
+      <input type="submit" value="Change mode"/>
+      </form>
+    </td>
+    </tr>
+    <% } %>
+
     <!-- Set Target Version form -->
     <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
     <tr>
@@ -239,31 +264,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       </select>
       <input type="submit" value="Change target"/>
     </form>
-    </td>
-    </tr>
-    <% } %>
-
-    <!-- Set Ring Group Conductor Mode form -->
-    <% if (ringGroup.isRingGroupConductorOnline()) { %>
-    <tr>
-    <td>Ring Group Conductor mode:</td>
-    <td>
-      <form action="/ring_group/set_ring_group_conductor_mode" method=post>
-      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-        <select name="mode">
-          <option value=""></option>
-          <option value="INACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.INACTIVE ? "disabled" : "" %>>
-          INACTIVE: do nothing</option>
-          <option value="ACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.ACTIVE ? "disabled" : "" %>>
-          ACTIVE: use target version</option>
-          <option value="PROACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.PROACTIVE ? "disabled" : "" %>>
-          PROACTIVE: use most recent version</option>
-        </select>
-      <input type="submit" value="Change mode"/>
-      </form>
     </td>
     </tr>
     <% } %>
