@@ -44,13 +44,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
-  private final Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
+  private Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
-  private final Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
-      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
-  private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
+  private Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
       = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+  private Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
+      = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
 
+  private final Object cacheLock = new Object();
   private final Random random = new Random();
 
   /**
@@ -109,94 +110,105 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
-    loadCache(numConnectionsPerHost);
+    updateCache();
     ringGroup.setListener(this);
   }
 
-  private void loadCache(int numConnectionsPerHost) throws IOException, TException {
+  private void updateCache() throws IOException, TException {
     LOG.info("Loading Hank's smart client metadata cache and connections.");
-    clearCache();
-    // Preprocess the config to create skeleton domain -> part -> [hosts] map
-    DomainGroup domainGroup = ringGroup.getDomainGroup();
-    if (domainGroup == null) {
-      String errMsg = "Could not get domain group of ring group " + ringGroup;
-      LOG.error(errMsg);
-      throw new IOException(errMsg);
-    }
-    DomainGroupVersion domainGroupVersion = ringGroup.getTargetVersion();
-    if (domainGroupVersion == null) {
-      String errMsg = "Could not get target version of ring group " + ringGroup;
-      LOG.error(errMsg);
-      throw new IOException(errMsg);
-    }
 
-    // Build domainToPartitionToPartitionServerAdresses with empty address lists
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
-      Domain domain = domainVersion.getDomain();
-      HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
-      for (int i = 0; i < domain.getNumParts(); i++) {
-        partitionToAddress.put(i, new ArrayList<PartitionServerAddress>());
-      }
-      domainToPartitionToPartitionServerAddresses.put(domain.getId(), partitionToAddress);
-    }
+    // Create new empty cache
+    final Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool
+        = new HashMap<PartitionServerAddress, HostConnectionPool>();
+    final Map<Integer, Map<Integer, List<PartitionServerAddress>>> newDomainToPartitionToPartitionServerAddresses
+        = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+    final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool
+        = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
 
-    // Populate the skeleton, while also establishing connections to online hosts
-    for (Ring ring : ringGroup.getRings()) {
-      for (Host host : ring.getHosts()) {
-        for (HostDomain hd : host.getAssignedDomains()) {
-          Domain domain = hd.getDomain();
-          if (domain == null) {
-            throw new IOException(String.format("Could not load Domain from HostDomain %s", hd.toString()));
-          }
-          LOG.info("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
-          Map<Integer, List<PartitionServerAddress>> partToAddresses =
-              domainToPartitionToPartitionServerAddresses.get(domain.getId());
-          // Add this host to list of addresses only if this domain is in the domain group version
-          if (partToAddresses != null) {
-            for (HostDomainPartition hdcp : hd.getPartitions()) {
-              List<PartitionServerAddress> partList = partToAddresses.get(hdcp.getPartitionNumber());
-              partList.add(host.getAddress());
-            }
-          }
-        }
+    // Build new cache
+    buildNewCache(
+        newPartitionServerAddressToConnectionPool,
+        newDomainToPartitionToPartitionServerAddresses,
+        newDomainToPartitionToConnectionPool);
 
-        // Establish connection to hosts
-        LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
-            + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
-            + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
-            + ", query timeout = " + queryTimeoutMs + "ms"
-            + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
-        List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
-        for (int i = 0; i < numConnectionsPerHost; i++) {
-          hostConnections.add(new HostConnection(host,
-              tryLockConnectionTimeoutMs,
-              establishConnectionTimeoutMs,
-              queryTimeoutMs,
-              bulkQueryTimeoutMs));
-        }
-        partitionServerAddressToConnectionPool.put(host.getAddress(),
-            HostConnectionPool.createFromList(hostConnections));
-      }
-    }
-
-    // Build domainToPartitionToConnectionPool
-    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
-      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
-      for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
-        List<HostConnection> connections = new ArrayList<HostConnection>();
-        for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
-          connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
-        }
-        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
-      }
-      domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
+    // Switch old cache for new cache
+    synchronized (cacheLock) {
+      partitionServerAddressToConnectionPool = newPartitionServerAddressToConnectionPool;
+      domainToPartitionToPartitionServerAddresses = newDomainToPartitionToPartitionServerAddresses;
+      domainToPartitionToConnectionPool = newDomainToPartitionToConnectionPool;
     }
   }
 
-  private void clearCache() {
-    partitionServerAddressToConnectionPool.clear();
-    domainToPartitionToConnectionPool.clear();
-    domainToPartitionToPartitionServerAddresses.clear();
+  private void buildNewCache(
+      Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
+      Map<Integer, Map<Integer, List<PartitionServerAddress>>> newDomainToPartitionToPartitionServerAddresses,
+      Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool)
+      throws IOException, TException {
+
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+
+        // Build new domainToPartitionToPartitionServerAddresses
+        for (HostDomain hostDomain : host.getAssignedDomains()) {
+          Domain domain = hostDomain.getDomain();
+          if (domain == null) {
+            throw new IOException(String.format("Could not load Domain from HostDomain %s", hostDomain.toString()));
+          }
+          LOG.info("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
+          Map<Integer, List<PartitionServerAddress>> partitionToAdresses =
+              newDomainToPartitionToPartitionServerAddresses.get(domain.getId());
+          if (partitionToAdresses == null) {
+            partitionToAdresses = new HashMap<Integer, List<PartitionServerAddress>>();
+            newDomainToPartitionToPartitionServerAddresses.put(domain.getId(), partitionToAdresses);
+          }
+          for (HostDomainPartition partition : hostDomain.getPartitions()) {
+            List<PartitionServerAddress> partitionsList = partitionToAdresses.get(partition.getPartitionNumber());
+            if (partitionsList == null) {
+              partitionsList = new ArrayList<PartitionServerAddress>();
+              partitionToAdresses.put(partition.getPartitionNumber(), partitionsList);
+            }
+            partitionsList.add(host.getAddress());
+          }
+        }
+
+        // Build new partitionServerAddressToConnectionPool
+        // Reuse current connection pool to that host if one exists
+        HostConnectionPool hostConnectionPool = partitionServerAddressToConnectionPool.get(host.getAddress());
+        if (hostConnectionPool == null) {
+          // Establish new connections to host
+          LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
+              + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
+              + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
+              + ", query timeout = " + queryTimeoutMs + "ms"
+              + ", bulk query timeout = " + bulkQueryTimeoutMs + "ms");
+          List<HostConnection> hostConnections = new ArrayList<HostConnection>(numConnectionsPerHost);
+          for (int i = 0; i < numConnectionsPerHost; i++) {
+            hostConnections.add(new HostConnection(host,
+                tryLockConnectionTimeoutMs,
+                establishConnectionTimeoutMs,
+                queryTimeoutMs,
+                bulkQueryTimeoutMs));
+          }
+          hostConnectionPool = HostConnectionPool.createFromList(hostConnections);
+        }
+        newPartitionServerAddressToConnectionPool.put(host.getAddress(), hostConnectionPool);
+      }
+    }
+
+    // Build new domainToPartitionToConnectionPool
+    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry :
+        newDomainToPartitionToPartitionServerAddresses.entrySet()) {
+      Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
+      for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry :
+          domainToPartitionToAddressesEntry.getValue().entrySet()) {
+        List<HostConnection> connections = new ArrayList<HostConnection>();
+        for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
+          connections.addAll(newPartitionServerAddressToConnectionPool.get(address).getConnections());
+        }
+        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
+      }
+      newDomainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
+    }
   }
 
   @Override
@@ -209,7 +221,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
 
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
 
-    Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    Map<Integer, HostConnectionPool> partitionToConnectionPool;
+    synchronized (cacheLock) {
+      partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+    }
     if (partitionToConnectionPool == null) {
       String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName, domain.getId());
       LOG.error(errMsg);
@@ -240,7 +255,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
     }
 
     // Get partition to partition server addresses for given domain
-    Map<Integer, List<PartitionServerAddress>> partitionToPartitionServerAddresses = domainToPartitionToPartitionServerAddresses.get(domain.getId());
+    Map<Integer, List<PartitionServerAddress>> partitionToPartitionServerAddresses;
+    synchronized (cacheLock) {
+      partitionToPartitionServerAddresses = domainToPartitionToPartitionServerAddresses.get(domain.getId());
+    }
     if (partitionToPartitionServerAddresses == null) {
       String errMsg = String.format("Got a null set of partition to hosts pairs when looking for domain %s.", domain.getName());
       LOG.error(errMsg);
@@ -300,7 +318,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
       PartitionServerAddress partitionServerAddress = entry.getKey();
       BulkRequest bulkRequest = entry.getValue();
       // Find connection set
-      HostConnectionPool connectionPool = partitionServerAddressToConnectionPool.get(partitionServerAddress);
+
+      HostConnectionPool connectionPool;
+      synchronized (cacheLock) {
+        connectionPool = partitionServerAddressToConnectionPool.get(partitionServerAddress);
+      }
       Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionPool, allResponses));
       thread.start();
       requestThreads.add(thread);
