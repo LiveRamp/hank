@@ -1,3 +1,19 @@
+/**
+ *  Copyright 2011 Rapleaf
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package com.rapleaf.hank.zookeeper;
 
 import org.apache.log4j.Logger;
@@ -47,9 +63,14 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       }
       switch (event.getType()) {
         case NodeChildrenChanged:
+          boolean keysChanged = false;
           synchronized (notifyMutex) {
-            syncMap();
+            keysChanged = syncMap();
           }
+          if (keysChanged) {
+            fireListeners();
+          }
+          break;
       }
     }
   };
@@ -65,6 +86,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private final Object notifyMutex = new Object();
   private final ElementLoader<T> elementLoader;
   private final CompletionDetector completionDetector;
+  private final Set<WatchedMapListener<T>> listeners = new TreeSet<WatchedMapListener<T>>();
 
   private CompletionAwaiter awaiter = new CompletionAwaiter() {
     @Override
@@ -129,18 +151,27 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   private void ensureLoaded() {
     // this lock is important so that when changes start happening, we
     // won't run into any concurrency issues
+    boolean keysChanged = false;
     synchronized (notifyMutex) {
       // if the map is non-null, then it's already loaded and the watching
       // mechanism will take care of everything...
       if (!loaded) {
         // ...but if it's not loaded, we need to do the initial population.
-        syncMap();
+        keysChanged = syncMap();
         loaded = true;
       }
     }
+    if (keysChanged) {
+      fireListeners();
+    }
   }
 
-  private void syncMap() {
+  /**
+   * Return true iff the list of keys has changed
+   *
+   * @return
+   */
+  private boolean syncMap() {
     try {
       final List<String> childrenRelPaths = zk.getChildren(path, watcher);
       // Detect new children
@@ -171,10 +202,22 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
       for (String deletedKey : deletedKeys) {
         internalMap.remove(deletedKey);
       }
+
+      // Return true iff the list of keys has changed
+      return ((newChildrenRelPaths != null && newChildrenRelPaths.size() > 0) || deletedKeys.size() > 0);
     } catch (Exception e) {
       throw new RuntimeException("Exception trying to reload contents of " + path, e);
     }
   }
+
+  private void fireListeners() {
+    synchronized (listeners) {
+      for (WatchedMapListener<T> listener : listeners) {
+        listener.onWatchedMapChange(this);
+      }
+    }
+  }
+
 
   private static class DetectCompletionRunnable implements Runnable {
 
@@ -241,5 +284,17 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   @Override
   public T put(String key, T value) {
     return internalMap.put(key, value);
+  }
+
+  public void addListener(WatchedMapListener listener) {
+    synchronized (listeners) {
+      listeners.add(listener);
+    }
+  }
+
+  public void removeListener(WatchedMapListener listener) {
+    synchronized (listeners) {
+      listeners.remove(listener);
+    }
   }
 }
