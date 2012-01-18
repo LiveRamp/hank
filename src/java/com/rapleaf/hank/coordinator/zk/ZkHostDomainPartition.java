@@ -16,10 +16,8 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
-import com.rapleaf.hank.zookeeper.WatchedBoolean;
-import com.rapleaf.hank.zookeeper.WatchedInt;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.coordinator.DataLocationChangeListener;
+import com.rapleaf.hank.zookeeper.*;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -34,6 +32,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   private final WatchedInt currentDomainGroupVersion;
   private final WatchedBoolean deletable;
+  private final DataLocationChangeListener dataLocationChangeListener;
 
   private static boolean doUsePartitionWatches = true;
 
@@ -41,7 +40,10 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     doUsePartitionWatches = value;
   }
 
-  public static ZkHostDomainPartition create(ZooKeeperPlus zk, String domainPath, int partNum) throws IOException {
+  public static ZkHostDomainPartition create(ZooKeeperPlus zk,
+                                             String domainPath,
+                                             int partNum,
+                                             DataLocationChangeListener dataLocationChangeListener) throws IOException {
     try {
       String hdpPath = ZkPath.append(domainPath, Integer.toString(partNum));
       zk.create(hdpPath, null);
@@ -49,24 +51,36 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
       zk.create(ZkPath.append(hdpPath, DELETABLE_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
       zk.create(ZkPath.append(hdpPath, DotComplete.NODE_NAME), null);
 
-      return new ZkHostDomainPartition(zk, hdpPath);
+      return new ZkHostDomainPartition(zk, hdpPath, dataLocationChangeListener);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
-  public ZkHostDomainPartition(ZooKeeperPlus zk, String path)
+  public ZkHostDomainPartition(ZooKeeperPlus zk, String path, DataLocationChangeListener dataLocationChangeListener)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.partNum = Integer.parseInt(ZkPath.getFilename(path));
+    this.dataLocationChangeListener = dataLocationChangeListener;
 
     if (doUsePartitionWatches) {
       currentDomainGroupVersion = new WatchedInt(zk, ZkPath.append(path, CURRENT_VERSION_PATH_SEGMENT), true);
       deletable = new WatchedBoolean(zk, ZkPath.append(path, DELETABLE_PATH_SEGMENT), true);
+      deletable.addListener(new DeletableListener());
     } else {
       currentDomainGroupVersion = null;
       deletable = null;
+    }
+  }
+
+  private class DeletableListener implements WatchedNodeListener<Boolean> {
+
+    @Override
+    public void onWatchedNodeChange(Boolean value) {
+      if (dataLocationChangeListener != null) {
+        dataLocationChangeListener.onDataLocationChange();
+      }
     }
   }
 

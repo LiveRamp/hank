@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -32,6 +33,8 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private RingGroupConductorMode ringGroupConductorMode = null;
   private Collection<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
       = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
+  private Collection<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
+      = new TreeSet<RingGroupDataLocationChangeListener>();
 
   public MockRingGroup(DomainGroup dcg,
                        String name,
@@ -109,8 +112,15 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public void setListener(RingGroupChangeListener listener) {
+  public void addDataLocationChangeListener(RingGroupDataLocationChangeListener listener) {
+    ringGroupDataLocationChangeListeners.add(listener);
   }
+
+  @Override
+  public void removeDataLocationChangeListener(RingGroupDataLocationChangeListener listener) {
+    ringGroupDataLocationChangeListeners.remove(listener);
+  }
+
 
   @Override
   public Ring addRing(int ringNum) throws IOException {

@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class HankAsyncSmartClient implements RingGroupChangeListener {
+public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -137,7 +137,7 @@ public class HankAsyncSmartClient implements RingGroupChangeListener {
 
     // Load cache
     loadCache(numConnectionsPerHost);
-    ringGroup.setListener(this);
+    ringGroup.addDataLocationChangeListener(this);
   }
 
   public void get(String domainName,
@@ -279,8 +279,8 @@ public class HankAsyncSmartClient implements RingGroupChangeListener {
   }
 
   @Override
-  public void onRingGroupChange(RingGroup newRingGroup) {
-    LOG.debug("Smart client notified of ring group change");
+  public void onDataLocationChange(RingGroup ringGroup) {
+    LOG.debug("Smart client notified of ring group data location change");
   }
 
   public void stop() {

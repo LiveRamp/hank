@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-public class HankSmartClient implements HankSmartClientIface, RingGroupChangeListener {
+public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocationChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -111,7 +111,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     updateCache();
-    ringGroup.setListener(this);
+    ringGroup.addDataLocationChangeListener(this);
   }
 
   private void updateCache() throws IOException, TException {
@@ -346,8 +346,9 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupChangeLis
   }
 
   @Override
-  public void onRingGroupChange(RingGroup newRingGroup) {
-    LOG.debug("Smart client notified of ring group change");
+  public void onDataLocationChange(RingGroup ringGroup) {
+    LOG.debug("Smart client notified of data location change.");
+    // TODO: notify cache update thread
   }
 
   private static class BulkRequest {

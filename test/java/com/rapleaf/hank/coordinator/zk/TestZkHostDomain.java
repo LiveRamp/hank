@@ -25,7 +25,7 @@ public class TestZkHostDomain extends ZkTestCase {
 
   public void testIt() throws Exception {
     Domain d0 = new MockDomain("d0");
-    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), d0);
+    HostDomain hdc = ZkHostDomain.create(getZk(), getRoot(), d0, null);
     assertEquals(d0, hdc.getDomain());
     assertEquals(0, hdc.getPartitions().size());
     dumpZk();

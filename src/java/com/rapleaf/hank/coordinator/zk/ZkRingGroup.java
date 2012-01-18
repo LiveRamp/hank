@@ -23,14 +23,11 @@ import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class ZkRingGroup extends AbstractRingGroup {
 
@@ -40,7 +37,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
-  private final Map<String, ZkRing> ringsByNumber;
+  private final WatchedMap<ZkRing> ringsByNumber;
   private final String ringGroupPath;
   private final String targetVersionPath;
   private final String ringGroupConductorOnlinePath;
@@ -49,6 +46,8 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final WatchedInt targetVersion;
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
+  private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new TreeSet<RingGroupDataLocationChangeListener>();
+  private final DataLocationChangeListener dataLocationChangeListener = new LocalDataLocationChangeListener();
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
@@ -76,11 +75,12 @@ public class ZkRingGroup extends AbstractRingGroup {
       @Override
       public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (relPath.matches("ring-\\d+")) {
-          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, coordinator);
+          return new ZkRing(zk, ZkPath.append(basePath, relPath), ZkRingGroup.this, coordinator, dataLocationChangeListener);
         }
         return null;
       }
     });
+    ringsByNumber.addListener(new ZkRingGroup.RingsWatchedMapListener());
 
     targetVersionPath = ZkPath.append(ringGroupPath, TARGET_VERSION_PATH_SEGMENT);
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
@@ -90,55 +90,19 @@ public class ZkRingGroup extends AbstractRingGroup {
         zk, ringGroupConductorOnlinePath, false);
   }
 
-  private final class StateChangeListener implements Watcher {
-    private final RingGroupChangeListener listener;
-
-    public StateChangeListener(RingGroupChangeListener listener)
-        throws KeeperException, InterruptedException {
-      this.listener = listener;
-      reregister();
-    }
+  private class LocalDataLocationChangeListener implements DataLocationChangeListener {
 
     @Override
-    public void process(WatchedEvent event) {
-      switch (event.getType()) {
-        case NodeChildrenChanged:
-          // ring group was added OR current version was set for the first time
-          LOG.debug("NodeChildrenChanged fired");
-          fireListener();
-          break;
-
-        case NodeDataChanged:
-          // one of the versions was updated
-          LOG.debug("NodeDataChanged fired");
-          fireListener();
-          break;
-
-        case NodeDeleted:
-          // updatingToVersion was whacked
-          LOG.debug("NodeDeleted fired");
-          fireListener();
-          break;
-
-        default:
-          LOG.debug("Unexpected event type " + event.getType());
-      }
+    public void onDataLocationChange() {
+      fireDataLocationChangeListeners();
     }
+  }
 
-    private void fireListener() {
-      listener.onRingGroupChange(ZkRingGroup.this);
-      try {
-        reregister();
-      } catch (Exception e) {
-        LOG.error("Unexpected error registering watch!", e);
-      }
-    }
+  private class RingsWatchedMapListener implements WatchedMapListener<ZkRingGroup> {
 
-    private void reregister() throws KeeperException, InterruptedException {
-      zk.getChildren(ringGroupPath, this);
-      if (zk.exists(targetVersionPath, this) != null) {
-        zk.getData(targetVersionPath, this, new Stat());
-      }
+    @Override
+    public void onWatchedMapChange(WatchedMap<ZkRingGroup> watchedMap) {
+      fireDataLocationChangeListeners();
     }
   }
 
@@ -234,18 +198,9 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public void setListener(RingGroupChangeListener listener) throws IOException {
-    try {
-      new StateChangeListener(listener);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this);
+      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this, dataLocationChangeListener);
       ringsByNumber.put("ring-" + Integer.toString(rc.getRingNumber()), rc);
       return rc;
     } catch (Exception e) {
@@ -278,6 +233,28 @@ public class ZkRingGroup extends AbstractRingGroup {
       return true;
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void addDataLocationChangeListener(RingGroupDataLocationChangeListener listener) {
+    synchronized (dataLocationChangeListeners) {
+      dataLocationChangeListeners.add(listener);
+    }
+  }
+
+  @Override
+  public void removeDataLocationChangeListener(RingGroupDataLocationChangeListener listener) {
+    synchronized (dataLocationChangeListeners) {
+      dataLocationChangeListeners.remove(listener);
+    }
+  }
+
+  private void fireDataLocationChangeListeners() {
+    synchronized (dataLocationChangeListeners) {
+      for (RingGroupDataLocationChangeListener listener : dataLocationChangeListeners) {
+        listener.onDataLocationChange(this);
+      }
     }
   }
 }

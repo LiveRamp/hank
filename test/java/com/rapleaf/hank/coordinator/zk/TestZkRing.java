@@ -39,7 +39,7 @@ public class TestZkRing extends ZkTestCase {
   private final String ring_root = ZkPath.append(getRoot(), "ring-group-one/ring-1");
 
   public void testCreate() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
 
     assertEquals("ring number", 1, ring.getRingNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
@@ -47,10 +47,10 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testLoad() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
     ring.close();
 
-    ring = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null, coordinator);
+    ring = new ZkRing(getZk(), ZkPath.append(ring_group_root, "ring-1"), null, coordinator, null);
 
     assertEquals("ring number", 1, ring.getRingNumber());
     assertEquals("number of hosts", 0, ring.getHosts().size());
@@ -58,7 +58,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testHosts() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
     assertEquals(0, ring.getHosts().size());
 
     Host host = ring.addHost(LOCALHOST);
@@ -75,7 +75,7 @@ public class TestZkRing extends ZkTestCase {
     ring.close();
 
     // assure that hosts reload well, too
-    ring = new ZkRing(getZk(), ring_root, null, coordinator);
+    ring = new ZkRing(getZk(), ring_root, null, coordinator, null);
     assertEquals(1, ring.getHosts().size());
 
     assertEquals(Collections.singleton(host), ring.getHosts());
@@ -90,7 +90,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, null);
     Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1));
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
@@ -111,7 +111,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null);
+    ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, null);
     ring.delete();
     assertTrue(getZk().exists(ZkPath.append(getRoot(), "ring-group-one/ring-1"), null) == null);
   }

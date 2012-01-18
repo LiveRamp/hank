@@ -47,11 +47,13 @@ public class ZkHost extends AbstractHost {
   private final CommandQueueWatcher commandQueueWatcher;
   private final WatchedMap<ZkHostDomain> domains;
   private final WatchedMap<WatchedString> statistics;
+  private final DataLocationChangeListener dataLocationChangeListener;
 
   public static ZkHost create(ZooKeeperPlus zk,
                               Coordinator coordinator,
                               String root,
-                              PartitionServerAddress partitionServerAddress) throws KeeperException, InterruptedException {
+                              PartitionServerAddress partitionServerAddress,
+                              DataLocationChangeListener dataLocationChangeListener) throws KeeperException, InterruptedException {
     String hostPath = ZkPath.append(root, partitionServerAddress.toString());
     if (LOG.isTraceEnabled()) {
       LOG.trace("Creating host " + hostPath);
@@ -63,13 +65,17 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
 
     zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
-    return new ZkHost(zk, coordinator, hostPath);
+    return new ZkHost(zk, coordinator, hostPath, dataLocationChangeListener);
   }
 
-  public ZkHost(ZooKeeperPlus zk, final Coordinator coordinator, String hostPath) throws KeeperException, InterruptedException {
+  public ZkHost(ZooKeeperPlus zk,
+                final Coordinator coordinator,
+                String hostPath,
+                final DataLocationChangeListener dataLocationChangeListener) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.hostPath = hostPath;
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(hostPath));
+    this.dataLocationChangeListener = dataLocationChangeListener;
 
     if (coordinator == null) {
       throw new IllegalArgumentException("Cannot initialize a ZkHost with a null Coordinator.");
@@ -91,11 +97,12 @@ public class ZkHost extends AbstractHost {
               if (domain == null) {
                 throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
               }
-              return new ZkHostDomain(zk, basePath, domain);
+              return new ZkHostDomain(zk, basePath, domain, dataLocationChangeListener);
             }
             return null;
           }
         });
+    domains.addListener(new DomainsWatchedMapListener());
     statistics = new WatchedMap<WatchedString>(zk, ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT),
         new WatchedMap.ElementLoader<WatchedString>() {
           @Override
@@ -107,6 +114,16 @@ public class ZkHost extends AbstractHost {
             }
           }
         });
+  }
+
+  private class DomainsWatchedMapListener implements WatchedMapListener<ZkHostDomain> {
+
+    @Override
+    public void onWatchedMapChange(WatchedMap<ZkHostDomain> zkHostDomainWatchedMap) {
+      if (dataLocationChangeListener != null) {
+        dataLocationChangeListener.onDataLocationChange();
+      }
+    }
   }
 
   private class CommandQueueWatcher extends HankWatcher {
@@ -226,7 +243,7 @@ public class ZkHost extends AbstractHost {
     } catch (Exception e) {
       throw new IOException(e);
     }
-    ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain);
+    ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain, dataLocationChangeListener);
     domains.put(domain.getName(), hdc);
     return hdc;
   }

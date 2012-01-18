@@ -16,10 +16,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.DataLocationChangeListener;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.WatchedMapListener;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
@@ -35,20 +37,28 @@ public class ZkHostDomain extends AbstractHostDomain {
 
   private final WatchedMap<ZkHostDomainPartition> partitions;
   private final Domain domain;
+  private final DataLocationChangeListener dataLocationChangeListener;
 
-  public static ZkHostDomain create(ZooKeeperPlus zk, String partsRoot, Domain domain) throws IOException {
+  public static ZkHostDomain create(ZooKeeperPlus zk,
+                                    String partsRoot,
+                                    Domain domain,
+                                    DataLocationChangeListener dataLocationChangeListener) throws IOException {
     try {
       zk.create(ZkPath.append(partsRoot, domain.getName()), null);
-      return new ZkHostDomain(zk, partsRoot, domain);
+      return new ZkHostDomain(zk, partsRoot, domain, dataLocationChangeListener);
     } catch (Exception e) {
       throw new IOException(e);
     }
   }
 
-  public ZkHostDomain(ZooKeeperPlus zk, String partitionsRoot, Domain domain) throws KeeperException, InterruptedException {
+  public ZkHostDomain(ZooKeeperPlus zk,
+                      String partitionsRoot,
+                      Domain domain,
+                      final DataLocationChangeListener dataLocationChangeListener) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.domain = domain;
     this.root = ZkPath.append(partitionsRoot, domain.getName());
+    this.dataLocationChangeListener = dataLocationChangeListener;
     partitions = new WatchedMap<ZkHostDomainPartition>(zk, root,
         new ElementLoader<ZkHostDomainPartition>() {
           @Override
@@ -56,10 +66,21 @@ public class ZkHostDomain extends AbstractHostDomain {
             if (ZkPath.isHidden(relPath)) {
               return null;
             } else {
-              return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath));
+              return new ZkHostDomainPartition(zk, ZkPath.append(basePath, relPath), dataLocationChangeListener);
             }
           }
         }, new DotComplete());
+    partitions.addListener(new PartitionsWatchedMapListener());
+  }
+
+  private class PartitionsWatchedMapListener implements WatchedMapListener<ZkHostDomain> {
+
+    @Override
+    public void onWatchedMapChange(WatchedMap<ZkHostDomain> zkHostDomainWatchedMap) {
+      if (dataLocationChangeListener != null) {
+        dataLocationChangeListener.onDataLocationChange();
+      }
+    }
   }
 
   @Override
@@ -77,7 +98,7 @@ public class ZkHostDomain extends AbstractHostDomain {
     if (partitions.containsKey(Integer.toString(partNum))) {
       throw new IOException("Partition " + partNum + " is already assigned to host domain " + this);
     }
-    final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum);
+    final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum, dataLocationChangeListener);
     partitions.put(Integer.toString(partNum), part);
     return part;
   }

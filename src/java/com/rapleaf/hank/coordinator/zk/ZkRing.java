@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedMapListener;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
@@ -33,30 +34,34 @@ public class ZkRing extends AbstractRing {
   private static final String HOSTS_PATH_SEGMENT = "hosts";
 
   private final String ringPath;
-
   private final WatchedMap<Host> hosts;
-
   private final ZooKeeperPlus zk;
-
   private final Coordinator coordinator;
+  private final DataLocationChangeListener dataLocationChangeListener;
 
   public static ZkRing create(ZooKeeperPlus zk,
                               Coordinator coordinator,
                               String ringGroup,
                               int ringNum,
-                              RingGroup group) throws KeeperException, InterruptedException {
+                              RingGroup group,
+                              DataLocationChangeListener dataLocationChangeListener) throws KeeperException, InterruptedException {
     String ringPath = ZkPath.append(ringGroup, "ring-" + ringNum);
     zk.create(ringPath, null);
     zk.create(ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), null);
-    return new ZkRing(zk, ringPath, group, coordinator);
+    return new ZkRing(zk, ringPath, group, coordinator, dataLocationChangeListener);
   }
 
-  public ZkRing(ZooKeeperPlus zk, final String ringPath, RingGroup ringGroup, final Coordinator coordinator)
+  public ZkRing(ZooKeeperPlus zk,
+                final String ringPath,
+                RingGroup ringGroup,
+                final Coordinator coordinator,
+                final DataLocationChangeListener dataLocationChangeListener)
       throws InterruptedException, KeeperException {
     super(parseRingNum(ringPath), ringGroup);
     this.zk = zk;
     this.ringPath = ringPath;
     this.coordinator = coordinator;
+    this.dataLocationChangeListener = dataLocationChangeListener;
 
     if (coordinator == null) {
       throw new RuntimeException("Cannot initialize a ZkRing with a null Coordinator.");
@@ -64,9 +69,20 @@ public class ZkRing extends AbstractRing {
 
     hosts = new WatchedMap<Host>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<Host>() {
       public Host load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
-        return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath));
+        return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath), dataLocationChangeListener);
       }
     });
+    hosts.addListener(new ZkRing.HostsWatchedMapListener());
+  }
+
+  private class HostsWatchedMapListener implements WatchedMapListener<ZkHost> {
+
+    @Override
+    public void onWatchedMapChange(WatchedMap<ZkHost> zkHostWatchedMap) {
+      if (dataLocationChangeListener != null) {
+        dataLocationChangeListener.onDataLocationChange();
+      }
+    }
   }
 
   private static int parseRingNum(String ringPath) {
@@ -88,7 +104,7 @@ public class ZkRing extends AbstractRing {
   @Override
   public Host addHost(PartitionServerAddress address) throws IOException {
     try {
-      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address);
+      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener);
     } catch (Exception e) {
       throw new IOException(e);
     }

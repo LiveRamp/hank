@@ -13,6 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
@@ -82,7 +83,9 @@ public interface RingGroup extends Comparable<RingGroup> {
 
   public void setTargetVersion(int version) throws IOException;
 
-  public void setListener(RingGroupChangeListener listener) throws IOException;
+  public void addDataLocationChangeListener(RingGroupDataLocationChangeListener listener);
+
+  public void removeDataLocationChangeListener(RingGroupDataLocationChangeListener listener);
 
   public Ring addRing(int ringNum) throws IOException;
 

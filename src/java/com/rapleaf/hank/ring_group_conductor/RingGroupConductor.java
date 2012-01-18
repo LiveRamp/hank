@@ -25,7 +25,7 @@ import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 
-public class RingGroupConductor implements RingGroupChangeListener, DomainGroupChangeListener {
+public class RingGroupConductor {
 
   private static final Logger LOG = Logger.getLogger(RingGroupConductor.class);
 
@@ -35,7 +35,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
   private final Object lock = new Object();
 
   private RingGroup ringGroup;
-  private DomainGroup domainGroup;
 
   private final RingGroupUpdateTransitionFunction transFunc;
 
@@ -66,15 +65,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       // attempt to claim the ring group conductor title
       if (ringGroup.claimRingGroupConductor(configurator.getInitialMode())) {
         claimedRingGroupConductor = true;
-
-        // we are now *the* ring group conductor for this ring group.
-        domainGroup = ringGroup.getDomainGroup();
-
-        // set a watch on the ring group
-        ringGroup.setListener(this);
-
-        // set a watch on the domain group version
-        domainGroup.setListener(this);
 
         // loop until we're taken down
         stopping = false;
@@ -128,26 +118,6 @@ public class RingGroupConductor implements RingGroupChangeListener, DomainGroupC
       }
     }
     transFunc.manageTransitions(ringGroup);
-  }
-
-  @Override
-  public void onRingGroupChange(RingGroup newRingGroup) {
-    synchronized (lock) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Got an updated ring group version!");
-      }
-      ringGroup = newRingGroup;
-    }
-  }
-
-  @Override
-  public void onDomainGroupChange(DomainGroup newDomainGroup) {
-    synchronized (lock) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Got an updated domain group version: " + newDomainGroup + "!");
-      }
-      domainGroup = newDomainGroup;
-    }
   }
 
   private void releaseIfClaimed() throws IOException {

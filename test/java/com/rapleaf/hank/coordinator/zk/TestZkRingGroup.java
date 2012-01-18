@@ -83,27 +83,6 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getTargetVersionNumber());
   }
 
-  public void testListener() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
-    dg.createNewVersion(Collections.EMPTY_MAP);
-    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
-
-    MockRingGroupChangeListener listener = new MockRingGroupChangeListener();
-    rg.setListener(listener);
-    assertNull(listener.calledWith);
-    rg.setTargetVersion(2);
-    Thread.sleep(10);
-    assertNotNull(listener.calledWith);
-    assertEquals(Integer.valueOf(2), listener.calledWith.getTargetVersionNumber());
-
-    listener.calledWith = null;
-    Ring newRing = rg.addRing(1);
-    Thread.sleep(10);
-    assertNotNull(listener.calledWith);
-    assertEquals(1, listener.calledWith.getRings().size());
-    assertEquals(newRing.getRingNumber(), ((Ring) listener.calledWith.getRings().toArray()[0]).getRingNumber());
-  }
-
   public void testClaimRingGroupConductor() throws Exception {
     ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah", null);
     dg.createNewVersion(Collections.EMPTY_MAP);
@@ -127,7 +106,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   private void createRing(int ringNum) throws Exception {
-    Ring rc = ZkRing.create(getZk(), coordinator, ring_group, ringNum, null);
+    Ring rc = ZkRing.create(getZk(), coordinator, ring_group, ringNum, null, null);
     rc.addHost(new PartitionServerAddress("localhost", ringNum));
   }
 }
