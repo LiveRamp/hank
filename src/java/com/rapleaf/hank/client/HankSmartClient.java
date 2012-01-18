@@ -148,7 +148,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         : oldPartitionServerAddressToConnectionPool.entrySet()) {
       PartitionServerAddress address = entry.getKey();
       HostConnectionPool connections = entry.getValue();
-      // Only close connection that have not been reused
+      // Only close connections that have not been reused
       if (!partitionServerAddressToConnectionPool.containsKey(address)) {
         for (HostConnection connection : connections.getConnections()) {
           connection.disconnect();
