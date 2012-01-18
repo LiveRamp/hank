@@ -135,10 +135,25 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         newDomainToPartitionToConnectionPool);
 
     // Switch old cache for new cache
+    final Map<PartitionServerAddress, HostConnectionPool> oldPartitionServerAddressToConnectionPool
+        = partitionServerAddressToConnectionPool;
     synchronized (cacheLock) {
       partitionServerAddressToConnectionPool = newPartitionServerAddressToConnectionPool;
       domainToPartitionToPartitionServerAddresses = newDomainToPartitionToPartitionServerAddresses;
       domainToPartitionToConnectionPool = newDomainToPartitionToConnectionPool;
+    }
+
+    // Clean up old cache when new cache is in place
+    for (Map.Entry<PartitionServerAddress, HostConnectionPool> entry
+        : oldPartitionServerAddressToConnectionPool.entrySet()) {
+      PartitionServerAddress address = entry.getKey();
+      HostConnectionPool connections = entry.getValue();
+      // Only close connection that have not been reused
+      if (!partitionServerAddressToConnectionPool.containsKey(address)) {
+        for (HostConnection connection : connections.getConnections()) {
+          connection.disconnect();
+        }
+      }
     }
   }
 

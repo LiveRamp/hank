@@ -191,7 +191,7 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     }
   }
 
-  private void disconnect() {
+  public void disconnect() {
     if (transport != null) {
       transport.close();
     }
