@@ -36,18 +36,6 @@ public class TestZkRingGroup extends ZkTestCase {
     this.coordinator = new MockCoordinator();
   }
 
-  public final class MockRingGroupChangeListener implements RingGroupChangeListener {
-    public RingGroup calledWith;
-
-    @Override
-    public void onRingGroupChange(RingGroup newRingGroup) {
-      this.calledWith = newRingGroup;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-  }
-
   private final String ring_groups = ZkPath.append(getRoot(), "ring_groups");
   private final String ring_group = ZkPath.append(ring_groups, "myRingGroup");
   private final String dg_root = ZkPath.append(getRoot(), "domain_groups");

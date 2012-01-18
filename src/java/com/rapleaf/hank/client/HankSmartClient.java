@@ -53,6 +53,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   private final Object cacheLock = new Object();
   private final Random random = new Random();
+  private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
+  private final Thread cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
 
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
@@ -112,6 +114,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
+    cacheUpdaterThread.start();
   }
 
   private void updateCache() throws IOException, TException {
@@ -136,6 +139,34 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       partitionServerAddressToConnectionPool = newPartitionServerAddressToConnectionPool;
       domainToPartitionToPartitionServerAddresses = newDomainToPartitionToPartitionServerAddresses;
       domainToPartitionToConnectionPool = newDomainToPartitionToConnectionPool;
+    }
+  }
+
+  private class CacheUpdaterRunnable implements Runnable {
+
+    private volatile boolean stopping = false;
+
+    @Override
+    public void run() {
+      while (!stopping) {
+        // Sleep forever until interrupted (notified)
+        try {
+          Thread.sleep(Long.MAX_VALUE);
+        } catch (InterruptedException e) {
+          // In need of cache update
+        }
+        try {
+          updateCache();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        } catch (TException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+
+    public void stop() {
+      stopping = true;
     }
   }
 
@@ -343,12 +374,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   @Override
   public void stop() {
+    cacheUpdaterRunnable.stop();
   }
 
   @Override
   public void onDataLocationChange(RingGroup ringGroup) {
     LOG.debug("Smart client notified of data location change.");
-    // TODO: notify cache update thread
+    cacheUpdaterThread.interrupt();
   }
 
   private static class BulkRequest {

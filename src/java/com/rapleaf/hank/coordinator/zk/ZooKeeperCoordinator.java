@@ -37,7 +37,7 @@ import java.util.*;
  * implementation of ZooKeeperCoordinator will not respond to addition or
  * removal of domains, domain groups, ring groups, or hosts.
  */
-public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener, RingGroupChangeListener {
+public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener {
 
   private static final String KEY_DOMAIN_ID_COUNTER = ".domain_id_counter";
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
@@ -325,9 +325,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   public void onDomainGroupChange(DomainGroup newDomainGroup) {
     domainGroups.put(newDomainGroup.getName(), (ZkDomainGroup) newDomainGroup);
-  }
-
-  public void onRingGroupChange(RingGroup newRingGroup) {
   }
 
   public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
