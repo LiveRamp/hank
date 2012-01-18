@@ -157,12 +157,12 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         }
         try {
           updateCache();
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        } catch (TException e) {
-          throw new RuntimeException(e);
+        } catch (Exception e) {
+          // Log exception but do not rethrow since we don't want to exit the cache updater
+          LOG.error("Error while updating cache: ", e);
         }
       }
+      LOG.info("Cache Updater stopping.");
     }
 
     public void stop() {
