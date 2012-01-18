@@ -15,6 +15,8 @@
  */
 package com.rapleaf.hank.partitioner;
 
+import com.rapleaf.hank.util.Bytes;
+
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,15 +26,23 @@ public class MapPartitioner implements Partitioner {
 
   public MapPartitioner(Object... objects) {
     for (int i = 0; i < objects.length; i += 2) {
-      map.put((ByteBuffer)objects[i], (Integer)objects[i+1]);
+      map.put((ByteBuffer) objects[i], (Integer) objects[i + 1]);
     }
   }
 
   @Override
   public int partition(ByteBuffer key, int numPartitions) {
-    if (!(map.get(key) < numPartitions)) {
-      throw new RuntimeException("Partition " + map.get(key) + " falls out of the range. Number of partitions: " + numPartitions);
+    if (key == null) {
+      throw new RuntimeException("Given key is null.");
     }
-    return map.get(key);
+    Integer partition = map.get(key);
+    if (partition == null) {
+      throw new RuntimeException("Key not found in the supplied map: " + Bytes.bytesToHexString(key));
+    }
+    if (!(partition < numPartitions)) {
+      throw new RuntimeException("Partition " + map.get(key)
+          + " falls out of the range. Number of partitions: " + numPartitions);
+    }
+    return partition;
   }
 }

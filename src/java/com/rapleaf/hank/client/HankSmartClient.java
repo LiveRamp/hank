@@ -179,6 +179,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
 
+        LOG.info("Loading partition metadata for Host: " + host.getAddress());
+
         // Build new domainToPartitionToPartitionServerAddresses
         for (HostDomain hostDomain : host.getAssignedDomains()) {
           Domain domain = hostDomain.getDomain();

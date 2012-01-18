@@ -21,7 +21,8 @@ import java.nio.ByteBuffer;
 public final class Bytes {
   private static final String CHARSET = "utf-8";
 
-  private Bytes() {}
+  private Bytes() {
+  }
 
   public static int compareBytesUnsigned(byte[] a, int aOff, byte[] b, int bOff, int len) {
     if (len > a.length - aOff || len > b.length - bOff) {
@@ -54,18 +55,18 @@ public final class Bytes {
   }
 
   public static byte[] intToBytes(int value) {
-    return new byte[] {
-        (byte)(value >>> 24),
-        (byte)(value >>> 16),
-        (byte)(value >>> 8),
-        (byte)value};
+    return new byte[]{
+        (byte) (value >>> 24),
+        (byte) (value >>> 16),
+        (byte) (value >>> 8),
+        (byte) value};
   }
 
   public static int bytesToInt(byte[] b) {
     return (b[0] << 24)
-    + ((b[1] & 0xFF) << 16)
-    + ((b[2] & 0xFF) << 8)
-    + (b[3] & 0xFF);
+        + ((b[1] & 0xFF) << 16)
+        + ((b[2] & 0xFF) << 8)
+        + (b[3] & 0xFF);
   }
 
   public static String bytesToString(byte[] b) {
@@ -132,7 +133,7 @@ public final class Bytes {
     }
     byte[] result = new byte[hexString.length() / 2];
     for (int i = 0; i < hexString.length(); i += 2) {
-      result[i / 2] = (byte) Integer.valueOf(hexString.substring(i,i + 2), 16).intValue();
+      result[i / 2] = (byte) Integer.valueOf(hexString.substring(i, i + 2), 16).intValue();
     }
     return ByteBuffer.wrap(result);
   }

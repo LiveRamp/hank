@@ -111,10 +111,13 @@ public class TestHankSmartClient extends BaseTestCase {
   private static final ByteBuffer VALUE_1 = ByteBuffer.wrap(new byte[]{1});
   private static final ByteBuffer KEY_2 = ByteBuffer.wrap(new byte[]{2});
   private static final ByteBuffer VALUE_2 = ByteBuffer.wrap(new byte[]{2});
+  private static final ByteBuffer KEY_3 = ByteBuffer.wrap(new byte[]{3});
+  private static final ByteBuffer VALUE_3 = ByteBuffer.wrap(new byte[]{3});
 
   public void testIt() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;
+    int server3Port = 12347;
 
     // launch server 1
     final PartitionServer.Iface iface1 = new MockPartitionServerHandler(0, VALUE_1);
@@ -130,19 +133,35 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread thread2 = new Thread(new ServerRunnable(server2), "mock partition server thread 2");
     thread2.start();
 
+    // launch server 3;
+    final PartitionServer.Iface iface3 = new MockPartitionServerHandler(1, VALUE_3);
+    TNonblockingServerTransport transport3 = createPartitionServerTransport(server3Port);
+    TServer server3 = createPartitionServer(transport3, iface3);
+    Thread thread3 = new Thread(new ServerRunnable(server3), "mock partition server thread 3");
+    thread3.start();
+
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
         new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
+    final MockDomain newDomain = new MockDomain("new_domain", 1, 1,
+        new MapPartitioner(KEY_3, 0), null, null, null);
 
     final Host host1 = getHost(existentDomain, new PartitionServerAddress("localhost",
         server1Port), 0);
     final Host host2 = getHost(existentDomain, new PartitionServerAddress("localhost",
         server2Port), 1);
+    final Host host3 = getHost(newDomain, new PartitionServerAddress("localhost",
+        server3Port), 0);
+
+    final Set<Host> mockRingHosts = new HashSet<Host>() {{
+      add(host1);
+      add(host2);
+    }};
 
     final MockRing mockRing = new MockRing(null, null, 1) {
 
       @Override
       public Set<Host> getHosts() {
-        return new HashSet<Host>(Arrays.asList(host1, host2));
+        return mockRingHosts;
       }
     };
 
@@ -150,6 +169,7 @@ public class TestHankSmartClient extends BaseTestCase {
       private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
         {
           put(1, existentDomain);
+          put(2, newDomain);
         }
       };
 
@@ -192,6 +212,8 @@ public class TestHankSmartClient extends BaseTestCase {
       public Domain getDomain(String domainName) {
         if (domainName.equals("existent_domain")) {
           return existentDomain;
+        } else if (domainName.equals("new_domain")) {
+          return newDomain;
         } else {
           return null;
         }
@@ -201,17 +223,17 @@ public class TestHankSmartClient extends BaseTestCase {
     Thread.sleep(1000);
 
     try {
-      HankSmartClient c = new HankSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0, 0);
+      HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0, 0);
 
       // Test invalid get
-      assertEquals(HankResponse.xception(HankException.no_such_domain(true)), c.get("nonexistent_domain", null));
+      assertEquals(HankResponse.xception(HankException.no_such_domain(true)), client.get("nonexistent_domain", null));
 
       // Test get
-      assertEquals(HankResponse.value(VALUE_1), c.get("existent_domain", KEY_1));
-      assertEquals(HankResponse.value(VALUE_2), c.get("existent_domain", KEY_2));
+      assertEquals(HankResponse.value(VALUE_1), client.get("existent_domain", KEY_1));
+      assertEquals(HankResponse.value(VALUE_2), client.get("existent_domain", KEY_2));
 
       // Test invalid getBulk
-      assertEquals(HankBulkResponse.xception(HankException.no_such_domain(true)), c.getBulk("nonexistent_domain", null));
+      assertEquals(HankBulkResponse.xception(HankException.no_such_domain(true)), client.getBulk("nonexistent_domain", null));
 
       // Test getBulk
       HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<HankResponse>());
@@ -220,24 +242,43 @@ public class TestHankSmartClient extends BaseTestCase {
       List<ByteBuffer> bulkResquest1 = new ArrayList<ByteBuffer>();
       bulkResquest1.add(KEY_1);
       bulkResquest1.add(KEY_2);
-      assertEquals(bulkResponse1, c.getBulk("existent_domain", bulkResquest1));
+      assertEquals(bulkResponse1, client.getBulk("existent_domain", bulkResquest1));
 
       // Host state change
       host1.setState(HostState.OFFLINE);
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_1));
+          client.get("existent_domain", KEY_1));
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
 
       host2.setState(HostState.UPDATING);
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_1));
+          client.get("existent_domain", KEY_1));
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          c.get("existent_domain", KEY_2));
+          client.get("existent_domain", KEY_2));
 
       host1.setState(HostState.SERVING);
       host2.setState(HostState.SERVING);
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
+
+      // Test location changes
+
+      // Add new host that has new domain
+      mockRingHosts.add(host3);
+
+      // Should not be able to query new domain
+      assertTrue(client.get("new_domain", KEY_3).get_xception().is_set_internal_error());
+
+      // Notify client of data location change
+      client.onDataLocationChange(mockCoord.getRingGroup("myRingGroup"));
+
+      // Should be able to query new domain when the client has done updating its cache
+      while (!HankResponse.value(VALUE_3).equals(client.get("new_domain", KEY_3))) {
+        Thread.sleep(100);
+        LOG.info("Waiting for client to finish updating its cache. Response is still: "
+            + client.get("new_domain", KEY_3));
+      }
+      assertEquals(HankResponse.value(VALUE_3), client.get("new_domain", KEY_3));
 
 
       // TODO: Test not querying deletable partitions
@@ -247,8 +288,8 @@ public class TestHankSmartClient extends BaseTestCase {
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.FAILING);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.FAILING);
 
-      assertTrue(c.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
-      assertTrue(c.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
+      assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
+      assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
 
       /*
       // Simulate servers that throws an error
@@ -270,6 +311,7 @@ public class TestHankSmartClient extends BaseTestCase {
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
           c.get("existent_domain", KEY_2));
       */
+
     } finally {
       server1.stop();
       server2.stop();
