@@ -72,6 +72,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
 
   @Override
   public void updateTo(DomainVersion updatingToVersion) throws IOException {
+    ensureLocalPartitionRootExists();
     ensureCacheExists();
     try {
       DomainVersion currentVersion = detectCurrentVersion();
@@ -169,6 +170,16 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         LOG.info("Committing " + file.getAbsolutePath() + " to " + targetFile.getAbsolutePath());
         throw new IOException("Failed to rename source file: " + file.getAbsolutePath()
             + " to destination file: " + targetFile.getAbsolutePath());
+      }
+    }
+  }
+
+  public void ensureLocalPartitionRootExists() throws IOException {
+    // Create cache directory if it doesn't exist
+    File rootFile = new File(localPartitionRoot);
+    if (!rootFile.exists()) {
+      if (!rootFile.mkdirs()) {
+        throw new IOException("Failed to create local partition root directory: " + rootFile.getAbsolutePath());
       }
     }
   }
