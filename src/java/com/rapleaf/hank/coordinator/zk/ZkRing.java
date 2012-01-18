@@ -118,12 +118,10 @@ public class ZkRing extends AbstractRing {
 
   @Override
   public boolean removeHost(PartitionServerAddress address) throws IOException {
-    /*
     String addressStr = address.toString();
     if (hosts.remove(addressStr) == null) {
       return false;
     }
-    */
     try {
       String hostPath = ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, address.toString());
       if (zk.exists(hostPath, false) == null) {
@@ -131,7 +129,7 @@ public class ZkRing extends AbstractRing {
       }
       zk.delete(ZkPath.append(hostPath, DotComplete.NODE_NAME), -1);
       zk.deleteNodeRecursively(hostPath);
-
+      fireDataLocationChangeListener();
       return true;
     } catch (KeeperException e) {
       throw new IOException(e);
@@ -146,6 +144,12 @@ public class ZkRing extends AbstractRing {
       zk.deleteNodeRecursively(ringPath);
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  private void fireDataLocationChangeListener() {
+    if (dataLocationChangeListener != null) {
+      dataLocationChangeListener.onDataLocationChange();
     }
   }
 }
