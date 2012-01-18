@@ -202,6 +202,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     try {
       ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this, dataLocationChangeListener);
       ringsByNumber.put("ring-" + Integer.toString(rc.getRingNumber()), rc);
+      fireDataLocationChangeListeners();
       return rc;
     } catch (Exception e) {
       throw new IOException(e);

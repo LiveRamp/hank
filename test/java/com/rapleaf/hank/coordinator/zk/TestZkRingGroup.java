@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -28,12 +29,35 @@ public class TestZkRingGroup extends ZkTestCase {
 
   private Coordinator coordinator;
 
+  private class MockRingGroupDataLocationChangeListener implements RingGroupDataLocationChangeListener {
+
+    private boolean isCalled = false;
+
+    @Override
+    public void onDataLocationChange(RingGroup ringGroup) {
+      isCalled = true;
+    }
+
+    public void clear() {
+      isCalled = false;
+    }
+
+    public boolean isCalled() {
+      return isCalled;
+    }
+  }
+
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     create(dg_root);
     create(ring_groups);
-    this.coordinator = new MockCoordinator();
+    this.coordinator = new MockCoordinator() {
+      @Override
+      public Domain getDomain(String domainName) {
+        return new MockDomain(domainName);
+      }
+    };
   }
 
   private final String ring_groups = ZkPath.append(getRoot(), "ring_groups");
@@ -58,6 +82,47 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
 
     assertEquals("target version", Integer.valueOf(0), rg.getTargetVersionNumber());
+  }
+
+  public void testDataLocationChangeListeners() throws Exception {
+    create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
+    create(ZkPath.append(ring_group, ZkRingGroup.TARGET_VERSION_PATH_SEGMENT), Integer.toString(0));
+    createRing(1);
+    createRing(2);
+    createRing(3);
+
+    MockDomainGroup dg = new MockDomainGroup("myDomainGroup");
+    ZkRingGroup rg = new ZkRingGroup(getZk(), ring_group, dg, coordinator);
+
+    MockRingGroupDataLocationChangeListener dataLocationChangeListener = new MockRingGroupDataLocationChangeListener();
+
+    rg.addDataLocationChangeListener(dataLocationChangeListener);
+
+    assertFalse(dataLocationChangeListener.isCalled());
+
+    Host host = rg.getRing(1).addHost(new PartitionServerAddress("localhost", 42));
+    Thread.sleep(100);
+
+    assertTrue(dataLocationChangeListener.isCalled());
+    dataLocationChangeListener.clear();
+
+    HostDomain hostDomain = host.addDomain(new MockDomain("domain"));
+    Thread.sleep(100);
+
+    assertTrue(dataLocationChangeListener.isCalled());
+    dataLocationChangeListener.clear();
+
+    HostDomainPartition hostDomainPartition = hostDomain.addPartition(0);
+    Thread.sleep(100);
+
+    assertTrue(dataLocationChangeListener.isCalled());
+    dataLocationChangeListener.clear();
+
+    hostDomainPartition.setDeletable(true);
+    Thread.sleep(100);
+
+    assertTrue(dataLocationChangeListener.isCalled());
+    dataLocationChangeListener.clear();
   }
 
   public void testVersionStuff() throws Exception {

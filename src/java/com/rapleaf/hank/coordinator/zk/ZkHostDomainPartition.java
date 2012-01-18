@@ -78,9 +78,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
     @Override
     public void onWatchedNodeChange(Boolean value) {
-      if (dataLocationChangeListener != null) {
-        dataLocationChangeListener.onDataLocationChange();
-      }
+      fireDataLocationChangeListener();
     }
   }
 
@@ -152,5 +150,11 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
 
   public String getPath() {
     return path;
+  }
+
+  private void fireDataLocationChangeListener() {
+    if (dataLocationChangeListener != null) {
+      dataLocationChangeListener.onDataLocationChange();
+    }
   }
 }

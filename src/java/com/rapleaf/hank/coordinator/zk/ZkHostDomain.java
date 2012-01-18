@@ -77,9 +77,7 @@ public class ZkHostDomain extends AbstractHostDomain {
 
     @Override
     public void onWatchedMapChange(WatchedMap<ZkHostDomain> zkHostDomainWatchedMap) {
-      if (dataLocationChangeListener != null) {
-        dataLocationChangeListener.onDataLocationChange();
-      }
+      fireDataLocationChangeListener();
     }
   }
 
@@ -100,6 +98,7 @@ public class ZkHostDomain extends AbstractHostDomain {
     }
     final ZkHostDomainPartition part = ZkHostDomainPartition.create(zk, root, partNum, dataLocationChangeListener);
     partitions.put(Integer.toString(partNum), part);
+    fireDataLocationChangeListener();
     return part;
   }
 
@@ -111,6 +110,12 @@ public class ZkHostDomain extends AbstractHostDomain {
       throw new IOException(e);
     } catch (KeeperException e) {
       throw new IOException(e);
+    }
+  }
+
+  private void fireDataLocationChangeListener() {
+    if (dataLocationChangeListener != null) {
+      dataLocationChangeListener.onDataLocationChange();
     }
   }
 }

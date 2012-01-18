@@ -118,10 +118,12 @@ public class ZkRing extends AbstractRing {
 
   @Override
   public boolean removeHost(PartitionServerAddress address) throws IOException {
+    /*
     String addressStr = address.toString();
     if (hosts.remove(addressStr) == null) {
       return false;
     }
+    */
     try {
       String hostPath = ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, address.toString());
       if (zk.exists(hostPath, false) == null) {
