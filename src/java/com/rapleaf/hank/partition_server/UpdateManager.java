@@ -208,8 +208,6 @@ class UpdateManager implements IUpdateManager {
       if (hostDomain.getPartitions().size() == 0) {
         LOG.info("Garbage collection Host Domain " + hostDomain + " as it is not used anymore.");
         hostDomain.delete();
-      } else {
-        LOG.debug(hostDomain.getPartitions());
       }
     }
   }
