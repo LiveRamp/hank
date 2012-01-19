@@ -27,6 +27,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocationChangeListener {
 
@@ -54,7 +55,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final Object cacheLock = new Object();
   private final Random random = new Random();
   private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
-  private final Thread cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
 
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
@@ -114,6 +114,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
+    Thread cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
     cacheUpdaterThread.start();
   }
 
@@ -160,28 +161,43 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private class CacheUpdaterRunnable implements Runnable {
 
     private volatile boolean stopping = false;
+    private Semaphore semaphore = new Semaphore(0);
 
     @Override
     public void run() {
       while (!stopping) {
         // Sleep forever until interrupted (notified)
         try {
-          Thread.sleep(Long.MAX_VALUE);
+          // Acquire all available permits or wait if there are none
+          int availablePermits = semaphore.availablePermits();
+          if (availablePermits == 0) {
+            semaphore.acquire();
+          } else {
+            semaphore.acquire(availablePermits);
+          }
         } catch (InterruptedException e) {
-          // In need of cache update
+          // Stop immediately if interrupted
+          break;
         }
-        try {
-          updateCache();
-        } catch (Exception e) {
-          // Log exception but do not rethrow since we don't want to exit the cache updater
-          LOG.error("Error while updating cache: ", e);
+        if (!stopping) {
+          try {
+            updateCache();
+          } catch (Exception e) {
+            // Log exception but do not rethrow since we don't want to exit the cache updater
+            LOG.error("Error while updating cache: ", e);
+          }
         }
       }
       LOG.info("Cache Updater stopping.");
     }
 
+    public void wakeUp() {
+      semaphore.release();
+    }
+
     public void stop() {
       stopping = true;
+      semaphore.release();
     }
   }
 
@@ -397,7 +413,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   @Override
   public void onDataLocationChange(RingGroup ringGroup) {
     LOG.debug("Smart client notified of data location change.");
-    cacheUpdaterThread.interrupt();
+    cacheUpdaterRunnable.wakeUp();
   }
 
   private static class BulkRequest {
