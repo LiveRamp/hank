@@ -408,6 +408,17 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   @Override
   public void stop() {
     cacheUpdaterRunnable.stop();
+    disconnect();
+  }
+
+  private void disconnect() {
+    synchronized (cacheLock) {
+      for (HostConnectionPool hostConnectionPool : partitionServerAddressToConnectionPool.values()) {
+        for (HostConnection connection : hostConnectionPool.getConnections()) {
+          connection.disconnect();
+        }
+      }
+    }
   }
 
   @Override
