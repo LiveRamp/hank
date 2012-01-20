@@ -31,6 +31,4 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
   public boolean isDeletable() throws IOException;
 
   public void setDeletable(boolean deletable) throws IOException;
-
-  public void delete() throws IOException;
 }

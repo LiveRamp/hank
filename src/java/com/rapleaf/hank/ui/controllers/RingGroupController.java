@@ -66,8 +66,7 @@ public class RingGroupController extends Controller {
       throw new IOException("couldn't find any ring group called "
           + URLEnc.decode(encodedRingGroupName));
     }
-    final Ring ring = ringGroup.getRing(Integer.parseInt(req.getParameter("n")));
-    ring.delete();
+    ringGroup.removeRing(Integer.parseInt(req.getParameter("n")));
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 

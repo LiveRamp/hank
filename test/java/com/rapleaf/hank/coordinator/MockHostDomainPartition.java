@@ -22,7 +22,6 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   private final int partNum;
   private Integer currentDomainGroupVersion;
   private boolean deletable;
-  private boolean isDeleted;
 
   public MockHostDomainPartition(int partNum, int currentDomainGroupVersion) {
     this.partNum = partNum;
@@ -53,14 +52,5 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   @Override
   public void setDeletable(boolean deletable) throws IOException {
     this.deletable = deletable;
-  }
-
-  @Override
-  public void delete() throws IOException {
-    isDeleted = true;
-  }
-
-  public boolean isDeleted() {
-    return isDeleted;
   }
 }

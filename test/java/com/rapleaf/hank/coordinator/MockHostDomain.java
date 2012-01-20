@@ -3,12 +3,13 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class MockHostDomain extends AbstractHostDomain {
 
   protected final Domain domain;
   private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
-  private boolean deleted = false;
+  private Set<Integer> removedPartitions = new TreeSet<Integer>();
 
   public MockHostDomain(Domain domain, int... numberAndVersionPairs) {
     this.domain = domain;
@@ -25,8 +26,13 @@ public class MockHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public void delete() throws IOException {
-    deleted = true;
+  public boolean removePartition(int partNum) throws IOException {
+    removedPartitions.add(partNum);
+    return true;
+  }
+
+  public boolean isRemoved(int partitionNumber) {
+    return removedPartitions.contains(partitionNumber);
   }
 
   @Override
@@ -37,9 +43,5 @@ public class MockHostDomain extends AbstractHostDomain {
   @Override
   public Set<HostDomainPartition> getPartitions() throws IOException {
     return parts;
-  }
-
-  public boolean isDeleted() {
-    return deleted;
   }
 }

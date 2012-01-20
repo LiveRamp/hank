@@ -44,6 +44,11 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
+  public boolean removeHost(PartitionServerAddress address) {
+    return false;
+  }
+
+  @Override
   public Host getHostByAddress(PartitionServerAddress address) {
     for (Host host : hosts) {
       if (host.getAddress().equals(address)) {
@@ -51,15 +56,6 @@ public class MockRing extends AbstractRing {
       }
     }
     return null;
-  }
-
-  @Override
-  public boolean removeHost(PartitionServerAddress address) {
-    return false;
-  }
-
-  @Override
-  public void delete() throws IOException {
   }
 
   public boolean isAllCommanded(HostCommand command) {

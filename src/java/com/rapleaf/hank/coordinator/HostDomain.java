@@ -34,5 +34,5 @@ public interface HostDomain extends Comparable<HostDomain> {
 
   public HostDomainPartition addPartition(int partNum) throws IOException;
 
-  public void delete() throws IOException;
+  public boolean removePartition(int partNum) throws IOException;
 }

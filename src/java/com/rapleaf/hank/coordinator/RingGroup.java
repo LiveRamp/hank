@@ -89,6 +89,8 @@ public interface RingGroup extends Comparable<RingGroup> {
 
   public Ring addRing(int ringNum) throws IOException;
 
+  public boolean removeRing(int ringNum) throws IOException;
+
   public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);

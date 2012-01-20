@@ -34,6 +34,8 @@ public class MockHost extends AbstractHost {
       = new HashSet<WatchedNodeListener<HostState>>();
   private final Set<HostDomain> hostDomains = new HashSet<HostDomain>();
   private Map<String, String> statistics = new HashMap<String, String>();
+  private final Set<Domain> removedDomains = new HashSet<Domain>();
+
 
   public MockHost(PartitionServerAddress address) {
     this.address = address;
@@ -44,6 +46,17 @@ public class MockHost extends AbstractHost {
     HostDomain hostDomain = new MockHostDomain(domain);
     hostDomains.add(hostDomain);
     return hostDomain;
+  }
+
+  @Override
+  public boolean removeDomain(Domain domain) throws IOException {
+    removedDomains.add(domain);
+    HostDomain hostDomain = getHostDomain(domain);
+    return hostDomain != null && hostDomains.remove(hostDomain);
+  }
+
+  public boolean isRemoved(Domain domain) {
+    return removedDomains.contains(domain);
   }
 
   public MockHostDomain addMockDomain(Domain domain,

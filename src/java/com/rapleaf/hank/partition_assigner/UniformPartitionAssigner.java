@@ -134,14 +134,7 @@ public class UniformPartitionAssigner implements PartitionAssigner {
   }
 
   private void unassign(HostDomainPartition partition) throws IOException {
-    // if the current version is null, then it means this assignment was never
-    // acted upon. in that case, just delete it.
-    if (partition.getCurrentDomainGroupVersion() == null) {
-      partition.delete();
-    } else {
-      // otherwise, mark it to be deleted during the next update.
-      partition.setDeletable(true);
-    }
+    partition.setDeletable(true);
   }
 
   private boolean isBalanced(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {

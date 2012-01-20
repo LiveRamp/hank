@@ -103,8 +103,20 @@ public class ZkHostDomain extends AbstractHostDomain {
   }
 
   @Override
+  public boolean removePartition(int partNum) throws IOException {
+    ZkHostDomainPartition partition = partitions.remove(Integer.toString(partNum));
+    if (partition == null) {
+      return false;
+    } else {
+      partition.delete();
+      fireDataLocationChangeListener();
+      return true;
+    }
+  }
+
   public void delete() throws IOException {
     try {
+      zk.delete(ZkPath.append(root, DotComplete.NODE_NAME), -1);
       zk.deleteNodeRecursively(root);
     } catch (InterruptedException e) {
       throw new IOException(e);

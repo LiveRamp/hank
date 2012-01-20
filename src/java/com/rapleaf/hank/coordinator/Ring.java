@@ -47,9 +47,4 @@ public interface Ring extends Comparable<Ring> {
    * @throws IOException
    */
   public boolean removeHost(PartitionServerAddress address) throws IOException;
-
-  /**
-   * @throws IOException
-   */
-  public void delete() throws IOException;
 }

@@ -38,14 +38,16 @@ class UpdateManager implements IUpdateManager {
 
   private final class PartitionUpdateTask implements Runnable {
 
+    private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
     private final Queue<Throwable> exceptionQueue;
 
-    public PartitionUpdateTask(Domain domain,
+    public PartitionUpdateTask(HostDomain hostDomain,
                                HostDomainPartition partition,
                                Queue<Throwable> exceptionQueue) {
-      this.domain = domain;
+      this.hostDomain = hostDomain;
+      this.domain = hostDomain.getDomain();
       this.partition = partition;
       this.exceptionQueue = exceptionQueue;
     }
@@ -61,7 +63,7 @@ class UpdateManager implements IUpdateManager {
         // If unable to determine the version, this partition is deletable (the corresponding domain is not in the
         // target domain group version)
         if (partition.isDeletable() || targetDomainGroupVersionDomainVersion == null) {
-          deletePartition(domain, partition);
+          deletePartition(hostDomain, partition);
         } else {
           // Determine Domain Version
           DomainVersion targetDomainVersion =
@@ -186,9 +188,8 @@ class UpdateManager implements IUpdateManager {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Domain domain = hostDomain.getDomain();
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        partitionUpdateTasks.add(new PartitionUpdateTask(domain, partition, exceptionQueue));
+        partitionUpdateTasks.add(new PartitionUpdateTask(hostDomain, partition, exceptionQueue));
       }
     }
 
@@ -207,18 +208,18 @@ class UpdateManager implements IUpdateManager {
       // Host domain does not contain anymore partitions. Delete it
       if (hostDomain.getPartitions().size() == 0) {
         LOG.info("Garbage collection Host Domain " + hostDomain + " as it is not used anymore.");
-        hostDomain.delete();
+        host.removeDomain(hostDomain.getDomain());
       } else {
         LOG.debug(hostDomain.getPartitions());
       }
     }
   }
 
-  private void deletePartition(Domain domain,
+  private void deletePartition(HostDomain hostDomain,
                                HostDomainPartition partition) throws IOException {
-    LOG.info("Deleting Domain " + domain.getName() + " partition " + partition.getPartitionNumber());
-    Deleter deleter = domain.getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
+    LOG.info("Deleting Domain " + hostDomain.getDomain().getName() + " partition " + partition.getPartitionNumber());
+    Deleter deleter = hostDomain.getDomain().getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
     deleter.delete();
-    partition.delete();
+    hostDomain.removePartition(partition.getPartitionNumber());
   }
 }

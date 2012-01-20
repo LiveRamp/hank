@@ -144,7 +144,7 @@ public class TestUpdateManager extends BaseTestCase {
       return new MockHostDomainLocal(domain);
     }
 
-    private Host getMockHost(final HostDomain hostDomain) {
+    private MockHost getMockHost(final HostDomain hostDomain) {
       return new MockHost(new PartitionServerAddress("localhost", 1)) {
         @Override
         public HostDomain getHostDomain(Domain domain) {
@@ -213,7 +213,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
-    HostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
+    MockHostDomain mockHostDomain = fixtures.getMockHostDomain(mockDomain);
     Host mockHost = fixtures.getMockHost(mockHostDomain);
     DomainGroup mockDomainGroup = fixtures.getMockDomainGroup(mockDomain);
     Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);
@@ -233,7 +233,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     assertFalse("host domain contains the partition", fixtures.MOCK_DELETER.hasDeleted());
     assertFalse("host domain partition has not yet been deleted",
-        fixtures.PARTITION_FOR_DELETION.isDeleted());
+        mockHostDomain.isRemoved(fixtures.PARTITION_FOR_DELETION.getPartitionNumber()));
 
     // Test partition deletion
     fixtures.PARTITION_FOR_DELETION.setDeletable(true);
@@ -242,7 +242,7 @@ public class TestUpdateManager extends BaseTestCase {
     assertTrue("host domain does not contain the partition",
         fixtures.MOCK_DELETER.hasDeleted());
     assertTrue("host domain partition has been deleted",
-        fixtures.PARTITION_FOR_DELETION.isDeleted());
+        mockHostDomain.isRemoved(fixtures.PARTITION_FOR_DELETION.getPartitionNumber()));
   }
 
   public void testGarbageCollectDomain() throws Exception {
@@ -251,7 +251,7 @@ public class TestUpdateManager extends BaseTestCase {
     StorageEngine mockStorageEngine = fixtures.getMockStorageEngine(mockUpdater);
     Domain mockDomain = fixtures.getMockDomain(mockStorageEngine);
     Fixtures.MockHostDomainLocal mockHostDomain = fixtures.getMockHostDomain(mockDomain);
-    Host mockHost = fixtures.getMockHost(mockHostDomain);
+    MockHost mockHost = fixtures.getMockHost(mockHostDomain);
     // Empty domain group version
     DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
@@ -277,14 +277,14 @@ public class TestUpdateManager extends BaseTestCase {
         mockUpdater.isUpdated());
 
     assertTrue("the partition was deleted", fixtures.MOCK_DELETER.hasDeleted());
-    assertTrue("host domain partition has been deleted", fixtures.PARTITION_FOR_DELETION.isDeleted());
-    assertFalse("host domain has not been deleted", mockHostDomain.isDeleted());
+    assertTrue("host domain partition has been deleted", mockHostDomain.isRemoved(fixtures.PARTITION_FOR_DELETION.getPartitionNumber()));
+    assertFalse("host domain has not been deleted", mockHost.isRemoved(mockHostDomain.getDomain()));
 
     mockHostDomain.setEmptyMode(true);
 
     ud.update();
 
-    assertTrue("host domain has been deleted", mockHostDomain.isDeleted());
+    assertTrue("host domain has been deleted", mockHost.isRemoved(mockHostDomain.getDomain()));
   }
 
   public void testFailedUpdateTask() throws Exception {

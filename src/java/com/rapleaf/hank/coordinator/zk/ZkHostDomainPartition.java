@@ -137,9 +137,9 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
     }
   }
 
-  @Override
   public void delete() throws IOException {
     try {
+      zk.delete(ZkPath.append(path, DotComplete.NODE_NAME), -1);
       zk.deleteNodeRecursively(path);
     } catch (InterruptedException e) {
       throw new IOException(e);

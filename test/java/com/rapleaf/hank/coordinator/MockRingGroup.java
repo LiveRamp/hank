@@ -128,6 +128,11 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
+  public boolean removeRing(int ringNum) throws IOException {
+    return false;
+  }
+
+  @Override
   public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
     ringGroupConductorModeListeners.add(listener);
   }

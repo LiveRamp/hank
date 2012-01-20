@@ -37,7 +37,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
-  private final WatchedMap<ZkRing> ringsByNumber;
+  private final WatchedMap<ZkRing> rings;
   private final String ringGroupPath;
   private final String targetVersionPath;
   private final String ringGroupConductorOnlinePath;
@@ -71,7 +71,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     }
 
     ringGroupName = ZkPath.getFilename(ringGroupPath);
-    ringsByNumber = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
+    rings = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
       @Override
       public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (relPath.matches("ring-\\d+")) {
@@ -80,7 +80,7 @@ public class ZkRingGroup extends AbstractRingGroup {
         return null;
       }
     });
-    ringsByNumber.addListener(new ZkRingGroup.RingsWatchedMapListener());
+    rings.addListener(new ZkRingGroup.RingsWatchedMapListener());
 
     targetVersionPath = ZkPath.append(ringGroupPath, TARGET_VERSION_PATH_SEGMENT);
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
@@ -118,12 +118,12 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   @Override
   public Ring getRing(int ringNumber) {
-    return ringsByNumber.get("ring-" + ringNumber);
+    return rings.get("ring-" + ringNumber);
   }
 
   @Override
   public Ring getRingForHost(PartitionServerAddress hostAddress) {
-    for (Ring ring : ringsByNumber.values()) {
+    for (Ring ring : rings.values()) {
       if (ring.getHostByAddress(hostAddress) != null) {
         return ring;
       }
@@ -133,7 +133,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   @Override
   public Set<Ring> getRings() {
-    return new HashSet<Ring>(ringsByNumber.values());
+    return new HashSet<Ring>(rings.values());
   }
 
   @Override
@@ -200,12 +200,24 @@ public class ZkRingGroup extends AbstractRingGroup {
   @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
-      ZkRing rc = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this, dataLocationChangeListener);
-      ringsByNumber.put("ring-" + Integer.toString(rc.getRingNumber()), rc);
+      ZkRing ring = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this, dataLocationChangeListener);
+      rings.put("ring-" + Integer.toString(ring.getRingNumber()), ring);
       fireDataLocationChangeListeners();
-      return rc;
+      return ring;
     } catch (Exception e) {
       throw new IOException(e);
+    }
+  }
+
+  @Override
+  public boolean removeRing(int ringNum) throws IOException {
+    ZkRing ring = rings.remove("ring-" + Integer.toString(ringNum));
+    if (ring == null) {
+      return false;
+    } else {
+      ring.delete();
+      fireDataLocationChangeListeners();
+      return true;
     }
   }
 

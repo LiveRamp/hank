@@ -37,10 +37,6 @@ public class TestAbstractRing extends BaseTestCase {
     public boolean removeHost(PartitionServerAddress address) {
       return false;
     }
-
-    @Override
-    public void delete() throws IOException {
-    }
   }
 
   public void testCommandAll() throws IOException {

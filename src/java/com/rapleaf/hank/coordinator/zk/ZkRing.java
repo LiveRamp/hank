@@ -34,7 +34,7 @@ public class ZkRing extends AbstractRing {
   private static final String HOSTS_PATH_SEGMENT = "hosts";
 
   private final String ringPath;
-  private final WatchedMap<Host> hosts;
+  private final WatchedMap<ZkHost> hosts;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
   private final DataLocationChangeListener dataLocationChangeListener;
@@ -67,8 +67,8 @@ public class ZkRing extends AbstractRing {
       throw new RuntimeException("Cannot initialize a ZkRing with a null Coordinator.");
     }
 
-    hosts = new WatchedMap<Host>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<Host>() {
-      public Host load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
+    hosts = new WatchedMap<ZkHost>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<ZkHost>() {
+      public ZkHost load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
         return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath), dataLocationChangeListener);
       }
     });
@@ -110,35 +110,25 @@ public class ZkRing extends AbstractRing {
     }
   }
 
+  @Override
+  public boolean removeHost(PartitionServerAddress address) throws IOException {
+    String addressStr = address.toString();
+    ZkHost host = hosts.remove(addressStr);
+    if (host == null) {
+      return false;
+    } else {
+      host.delete();
+      fireDataLocationChangeListener();
+      return true;
+    }
+  }
+
   public void close() {
     for (Host host : getHosts()) {
       ((ZkHost) host).close();
     }
   }
 
-  @Override
-  public boolean removeHost(PartitionServerAddress address) throws IOException {
-    String addressStr = address.toString();
-    if (hosts.remove(addressStr) == null) {
-      return false;
-    }
-    try {
-      String hostPath = ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, address.toString());
-      if (zk.exists(hostPath, false) == null) {
-        return false;
-      }
-      zk.delete(ZkPath.append(hostPath, DotComplete.NODE_NAME), -1);
-      zk.deleteNodeRecursively(hostPath);
-      fireDataLocationChangeListener();
-      return true;
-    } catch (KeeperException e) {
-      throw new IOException(e);
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
   public void delete() throws IOException {
     try {
       zk.deleteNodeRecursively(ringPath);

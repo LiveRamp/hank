@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class ZkHost extends AbstractHost {
+
   private static final Logger LOG = Logger.getLogger(ZkHost.class);
 
   private static final String STATUS_PATH_SEGMENT = "status";
@@ -234,17 +235,25 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public HostDomain addDomain(Domain domain) throws IOException {
-    try {
-      if (domains.containsKey(domain.getName())) {
-        throw new IOException("Domain " + domain + " is already assigned to this host!");
-      }
-    } catch (Exception e) {
-      throw new IOException(e);
+    if (domains.containsKey(domain.getName())) {
+      throw new IOException("Domain " + domain + " is already assigned to this host!");
     }
     ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain, dataLocationChangeListener);
     domains.put(domain.getName(), hdc);
     fireDataLocationChangeListener();
     return hdc;
+  }
+
+  @Override
+  public boolean removeDomain(Domain domain) throws IOException {
+    ZkHostDomain hostDomain = domains.remove(domain.getName());
+    if (hostDomain == null) {
+      return false;
+    } else {
+      hostDomain.delete();
+      fireDataLocationChangeListener();
+      return true;
+    }
   }
 
   @Override
@@ -379,6 +388,17 @@ public class ZkHost extends AbstractHost {
     try {
       zk.deleteIfExists(path);
     } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  public void delete() throws IOException {
+    try {
+      zk.delete(ZkPath.append(hostPath, DotComplete.NODE_NAME), -1);
+      zk.deleteNodeRecursively(hostPath);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
       throw new IOException(e);
     }
   }
