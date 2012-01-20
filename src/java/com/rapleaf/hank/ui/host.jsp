@@ -169,6 +169,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
 
     <select name="command">
+      <option></option>
     <% for (HostCommand cmd : HostCommand.values()) {%>
       <option><%= cmd.name() %></option>
     <% } %>
@@ -188,6 +189,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
     Add a domain partition:<br/>
     <select name="domainId">
+      <option></option>
       <%
         if (targetDomainGroupVersion != null) {
           for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersions()) {
