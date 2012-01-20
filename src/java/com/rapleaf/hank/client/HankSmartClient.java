@@ -229,12 +229,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             newDomainToPartitionToPartitionServerAddresses.put(domain.getId(), partitionToAdresses);
           }
           for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            List<PartitionServerAddress> partitionsList = partitionToAdresses.get(partition.getPartitionNumber());
-            if (partitionsList == null) {
-              partitionsList = new ArrayList<PartitionServerAddress>();
-              partitionToAdresses.put(partition.getPartitionNumber(), partitionsList);
+            if (!partition.isDeletable()) {
+              List<PartitionServerAddress> partitionsList = partitionToAdresses.get(partition.getPartitionNumber());
+              if (partitionsList == null) {
+                partitionsList = new ArrayList<PartitionServerAddress>();
+                partitionToAdresses.put(partition.getPartitionNumber(), partitionsList);
+              }
+              partitionsList.add(host.getAddress());
             }
-            partitionsList.add(host.getAddress());
           }
         }
 
