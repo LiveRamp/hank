@@ -286,13 +286,13 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     return internalMap.put(key, value);
   }
 
-  public void addListener(WatchedMapListener listener) {
+  public void addListener(WatchedMapListener<T> listener) {
     synchronized (listeners) {
       listeners.add(listener);
     }
   }
 
-  public void removeListener(WatchedMapListener listener) {
+  public void removeListener(WatchedMapListener<T> listener) {
     synchronized (listeners) {
       listeners.remove(listener);
     }
