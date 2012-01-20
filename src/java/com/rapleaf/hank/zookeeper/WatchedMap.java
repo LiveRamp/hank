@@ -283,7 +283,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
 
   @Override
   public T put(String key, T value) {
-    return internalMap.put(key, value);
+    throw new UnsupportedOperationException("The put operation is not supported by WatchedMap.");
   }
 
   public void addListener(WatchedMapListener listener) {

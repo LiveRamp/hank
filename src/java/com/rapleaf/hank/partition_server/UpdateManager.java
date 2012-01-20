@@ -207,10 +207,8 @@ class UpdateManager implements IUpdateManager {
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       // Host domain does not contain anymore partitions. Delete it
       if (hostDomain.getPartitions().size() == 0) {
-        LOG.info("Garbage collection Host Domain " + hostDomain + " as it is not used anymore.");
+        LOG.info("Garbage collecting Host Domain " + hostDomain + " as it is not used anymore.");
         host.removeDomain(hostDomain.getDomain());
-      } else {
-        LOG.debug(hostDomain.getPartitions());
       }
     }
   }
