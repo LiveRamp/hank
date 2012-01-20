@@ -31,6 +31,8 @@ import java.util.concurrent.Semaphore;
 
 public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocationChangeListener {
 
+  private static final long CACHE_UPDATER_MINIMUM_WAIT_MS = 3 * 1000;
+
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
 
@@ -166,7 +168,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     @Override
     public void run() {
       while (!stopping) {
-        // Sleep forever until interrupted (notified)
         try {
           // Acquire all available permits or wait if there are none
           int availablePermits = semaphore.availablePermits();
@@ -182,6 +183,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         if (!stopping) {
           try {
             updateCache();
+            // Sleep for a given time period to avoid doing cache updates too frequently
+            Thread.sleep(CACHE_UPDATER_MINIMUM_WAIT_MS);
           } catch (Exception e) {
             // Log exception but do not rethrow since we don't want to exit the cache updater
             LOG.error("Error while updating cache: ", e);
