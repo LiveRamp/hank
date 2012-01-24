@@ -417,6 +417,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         Domain
         <br/>
         <select name="d">
+          <option value=""></option>
           <%
             for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersionsSorted()) {
           %>
