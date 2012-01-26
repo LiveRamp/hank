@@ -222,7 +222,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
-        mockRingGroup, mockRing);
+        mockRingGroup);
     ud.update();
     assertTrue("update() was called on the storage engine",
         mockUpdater.isUpdated());
@@ -269,7 +269,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
-        mockRingGroup, mockRing);
+        mockRingGroup);
 
     ud.update();
 
@@ -307,7 +307,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
-        mockRingGroup, mockRing);
+        mockRingGroup);
 
     try {
       ud.update();
@@ -332,7 +332,7 @@ public class TestUpdateManager extends BaseTestCase {
 
     UpdateManager ud = new UpdateManager(new MockPartitionServerConfigurator(1,
         null, "myRingGroup", "/local/data/dir"), mockHost,
-        mockRingGroup, mockRing);
+        mockRingGroup);
 
     try {
       // Interrupt to simulate update cancellation

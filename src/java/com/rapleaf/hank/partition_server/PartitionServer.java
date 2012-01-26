@@ -137,7 +137,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   }
 
   protected IUpdateManager getUpdateManager() throws IOException {
-    return new UpdateManager(configurator, host, ringGroup, ring);
+    return new UpdateManager(configurator, host, ringGroup);
   }
 
   @Override

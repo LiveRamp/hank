@@ -102,13 +102,11 @@ class UpdateManager implements IUpdateManager {
   private final PartitionServerConfigurator configurator;
   private final Host host;
   private final RingGroup ringGroup;
-  private final Ring ring;
 
-  public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroup, Ring ring) throws IOException {
+  public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroup) throws IOException {
     this.configurator = configurator;
     this.host = host;
     this.ringGroup = ringGroup;
-    this.ring = ring;
   }
 
   // When an Exception is thrown, the update has failed.
