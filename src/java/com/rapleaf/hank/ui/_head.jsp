@@ -95,8 +95,13 @@ var tooltip=function(){
   pos:function(e){
    var u = ie ? event.clientY + document.documentElement.scrollTop : e.pageY;
    var l = ie ? event.clientX + document.documentElement.scrollLeft : e.pageX;
-   tt.style.top = (u - h) + 'px';
-   tt.style.left = (l + left) + 'px';
+   var pos_top = (u - h);
+   if (pos_top < 0) {
+     pos_top = 0;
+   }
+   var pos_left = (l + left);
+   tt.style.top = pos_top + 'px';
+   tt.style.left = pos_left + 'px';
   },
   fade:function(d){
    var a = alpha;

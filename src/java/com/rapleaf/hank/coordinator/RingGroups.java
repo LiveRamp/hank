@@ -16,17 +16,11 @@
 
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import java.io.IOException;
+import java.util.*;
 
 public final class RingGroups {
 
@@ -98,6 +92,14 @@ public final class RingGroups {
     int result = 0;
     for (Ring ring : ringGroup.getRings()) {
       result += ring.getHosts().size();
+    }
+    return result;
+  }
+
+  public static Set<Host> getHosts(RingGroup ringGroup) {
+    TreeSet<Host> result = new TreeSet<Host>();
+    for (Ring ring : ringGroup.getRings()) {
+      result.addAll(ring.getHosts());
     }
     return result;
   }

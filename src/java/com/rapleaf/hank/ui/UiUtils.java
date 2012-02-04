@@ -1,15 +1,14 @@
 package com.rapleaf.hank.ui;
 
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 
 public class UiUtils {
@@ -32,6 +31,32 @@ public class UiUtils {
         return "host-offline";
       default:
         throw new RuntimeException("Unknown host state.");
+    }
+  }
+
+  public static String formatHostListTooltip(Ring ring,
+                                             Set<Host> hosts) throws IOException {
+    return formatHostListTooltip(ring.getRingGroup().getName() + " ring " + ring.getRingNumber(), hosts);
+  }
+
+  public static String formatHostListTooltip(RingGroup ringGroup,
+                                             Set<Host> hosts) throws IOException {
+    return formatHostListTooltip(ringGroup.getName(), hosts);
+  }
+
+  private static String formatHostListTooltip(String title,
+                                              Set<Host> hosts) throws IOException {
+    if (hosts.size() == 0) {
+      return "-";
+    } else {
+      TreeSet<Host> sortedHosts = new TreeSet<Host>(hosts);
+      StringBuilder content = new StringBuilder();
+      for (Host host : sortedHosts) {
+        content.append("<div class='" + hostStateToClass(host.getState()) + "'>");
+        content.append(host.getAddress().toString());
+        content.append("</div>");
+      }
+      return htmlTooltip(Integer.toString(hosts.size()), title, content.toString());
     }
   }
 

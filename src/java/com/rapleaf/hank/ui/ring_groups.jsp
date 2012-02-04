@@ -97,34 +97,37 @@
         <!-- Hosts State -->
 
         <%
-        int hostsTotal = RingGroups.getNumHosts(ringGroup);
-        int hostsServing = RingGroups.getHostsInState(ringGroup, HostState.SERVING).size();
-        int hostsUpdating = RingGroups.getHostsInState(ringGroup, HostState.UPDATING).size();
-        int hostsIdle = RingGroups.getHostsInState(ringGroup, HostState.IDLE).size();
-        int hostsOffline = RingGroups.getHostsInState(ringGroup, HostState.OFFLINE).size();
+        Set<Host> hostsAll = RingGroups.getHosts(ringGroup);
+        Set<Host> hostsServing = RingGroups.getHostsInState(ringGroup, HostState.SERVING);
+        Set<Host> hostsUpdating = RingGroups.getHostsInState(ringGroup, HostState.UPDATING);
+        Set<Host> hostsIdle = RingGroups.getHostsInState(ringGroup, HostState.IDLE);
+        Set<Host> hostsOffline = RingGroups.getHostsInState(ringGroup, HostState.OFFLINE);
         %>
 
-        <td class='host-total'><%= hostsTotal %></td>
-        <% if (hostsServing != 0 && hostsServing == hostsTotal) { %>
+        <td class='host-total'>
+        <%= UiUtils.formatHostListTooltip(ringGroup, hostsAll) %>
+        </td>
+        <% if (hostsServing.size() != 0 && hostsServing.size() == hostsAll.size()) { %>
           <td class='host-serving'>
-        <% } else if (hostsServing != 0) { %>
+        <% } else if (hostsServing.size() != 0) { %>
           <td class='host-serving-incomplete'>
         <% } else { %>
           <td class='centered'>
         <% } %>
-        <%= hostsServing != 0 ? Integer.toString(hostsServing) : "-" %></td>
-        <% if (hostsUpdating != 0) { %>
-          <td class='host-updating'><%= hostsUpdating %></td>
+        <%= UiUtils.formatHostListTooltip(ringGroup, hostsServing) %>
+        </td>
+        <% if (hostsUpdating.size() != 0) { %>
+          <td class='host-updating'><%= UiUtils.formatHostListTooltip(ringGroup, hostsUpdating) %></td>
         <% } else { %>
           <td class='centered'>-</td>
         <% } %>
-        <% if (hostsIdle != 0) { %>
-          <td class='host-idle'><%= hostsIdle %></td>
+        <% if (hostsIdle.size() != 0) { %>
+          <td class='host-idle'><%= UiUtils.formatHostListTooltip(ringGroup, hostsIdle) %></td>
         <% } else { %>
           <td class='centered'>-</td>
         <% } %>
-        <% if (hostsOffline != 0) { %>
-          <td class='host-offline'><%= hostsOffline %></td>
+        <% if (hostsOffline.size() != 0) { %>
+          <td class='host-offline'><%= UiUtils.formatHostListTooltip(ringGroup, hostsOffline) %></td>
         <% } else { %>
           <td class='centered'>-</td>
         <% } %>
