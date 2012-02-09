@@ -217,7 +217,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     <table class='table-blue-compact'>
 
     <!-- Set Ring Group Conductor Mode form -->
-    <% if (ringGroup.isRingGroupConductorOnline()) { %>
     <tr>
     <td>Ring Group Conductor mode:</td>
     <td>
@@ -225,21 +224,17 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
         <select name="mode">
           <option value=""></option>
-          <option value="INACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.INACTIVE ? "disabled" : "" %>>
+          <option value="INACTIVE">
           INACTIVE: do nothing</option>
-          <option value="ACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.ACTIVE ? "disabled" : "" %>>
+          <option value="ACTIVE">
           ACTIVE: use target version</option>
-          <option value="PROACTIVE" <%= ringGroup.getRingGroupConductorMode()
-          == RingGroupConductorMode.PROACTIVE ? "disabled" : "" %>>
+          <option value="PROACTIVE">
           PROACTIVE: use most recent version</option>
         </select>
       <input type="submit" value="Change mode"/>
       </form>
     </td>
     </tr>
-    <% } %>
 
     <!-- Set Target Version form -->
     <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
