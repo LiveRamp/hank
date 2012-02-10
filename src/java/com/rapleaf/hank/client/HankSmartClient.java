@@ -357,10 +357,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       return HankBulkResponse.xception(HankException.internal_error(errMsg));
     }
 
-    // Build requests for each partition server
+    // Build requests for each partition server list
 
-    Map<List<PartitionServerAddress>, BulkRequest> partitionServerTobulkRequest
-        = new HashMap<List<PartitionServerAddress>, BulkRequest>();
+    Map<List<PartitionServerAddress>, BulkRequest[]> partitionServerListTobulkRequestList
+        = new HashMap<List<PartitionServerAddress>, BulkRequest[]>();
 
     int keyIndex = 0;
     for (ByteBuffer key : keys) {
@@ -381,10 +381,22 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       }
 
       // Add this key to the bulk request object corresponding to the chosen partition server
-      if (!partitionServerTobulkRequest.containsKey(partitionServerAddressList)) {
-        partitionServerTobulkRequest.put(partitionServerAddressList, new BulkRequest());
+      if (!partitionServerListTobulkRequestList.containsKey(partitionServerAddressList)) {
+        // Create as many bulk requests as the number of hosts available in that list
+        int numAvailableHosts = partitionServerAddressListToConnectionPool.get(partitionServerAddressList).getNumAvailableHosts();
+        // If no hosts are available, create one bulk request anyway
+        if (numAvailableHosts == 0) {
+          numAvailableHosts = 1;
+        }
+        BulkRequest[] bulkRequestList = new BulkRequest[numAvailableHosts];
+        for (int i = 0; i < numAvailableHosts; ++i) {
+          bulkRequestList[i] = new BulkRequest();
+        }
+        partitionServerListTobulkRequestList.put(partitionServerAddressList, bulkRequestList);
       }
-      partitionServerTobulkRequest.get(partitionServerAddressList).addItem(key, keyIndex);
+      // Add this key to a random bulk request for the corresponding partition server list
+      BulkRequest[] bulkRequestList = partitionServerListTobulkRequestList.get(partitionServerAddressList);
+      bulkRequestList[random.nextInt(bulkRequestList.length)].addItem(key, keyIndex);
 
       // Update key index
       ++keyIndex;
@@ -402,19 +414,21 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
     // Create threads to execute requests
     // TODO: use asynchronous getBulk?
-    List<Thread> requestThreads = new ArrayList<Thread>(partitionServerTobulkRequest.keySet().size());
-    for (Map.Entry<List<PartitionServerAddress>, BulkRequest> entry : partitionServerTobulkRequest.entrySet()) {
+    List<Thread> requestThreads = new ArrayList<Thread>(partitionServerListTobulkRequestList.keySet().size());
+    for (Map.Entry<List<PartitionServerAddress>, BulkRequest[]> entry : partitionServerListTobulkRequestList.entrySet()) {
       List<PartitionServerAddress> partitionServerAddressList = entry.getKey();
-      BulkRequest bulkRequest = entry.getValue();
+      BulkRequest[] bulkRequestList = entry.getValue();
       // Find connection set
 
       HostConnectionPool connectionPool;
       synchronized (cacheLock) {
         connectionPool = partitionServerAddressListToConnectionPool.get(partitionServerAddressList);
       }
-      Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionPool, allResponses));
-      thread.start();
-      requestThreads.add(thread);
+      for (BulkRequest bulkRequest : bulkRequestList) {
+        Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionPool, allResponses));
+        thread.start();
+        requestThreads.add(thread);
+      }
     }
 
     // Wait for all threads

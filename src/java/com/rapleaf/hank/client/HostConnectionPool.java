@@ -129,6 +129,17 @@ public class HostConnectionPool {
     return connections;
   }
 
+  public int getNumAvailableHosts() {
+    int result = 0;
+    for (List<HostConnectionAndHostIndex> connections : hostToConnections) {
+      // A host is available if at least one connection to it is available
+      if (connections.size() > 0 && connections.get(0).hostConnection.isAvailable()) {
+        result += 1;
+      }
+    }
+    return result;
+  }
+
   // Return a connection to a host, initially skipping the previously used host
   private synchronized HostConnectionAndHostIndex getConnectionToUse() {
     HostConnectionAndHostIndex result = getConnectionToUse(globalPreviouslyUsedHostIndex);
