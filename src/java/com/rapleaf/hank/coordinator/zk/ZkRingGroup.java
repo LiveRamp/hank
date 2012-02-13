@@ -56,6 +56,7 @@ public class ZkRingGroup extends AbstractRingGroup {
     }
     zk.create(path, domainGroup.getName().getBytes());
     zk.create(ZkPath.append(path, TARGET_VERSION_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
     return new ZkRingGroup(zk, path, domainGroup, coordinator);
   }
 

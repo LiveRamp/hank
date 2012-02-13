@@ -16,11 +16,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperConnection;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ import java.util.*;
  * implementation of ZooKeeperCoordinator will not respond to addition or
  * removal of domains, domain groups, ring groups, or hosts.
  */
-public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator, DomainGroupChangeListener {
+public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordinator {
 
   private static final String KEY_DOMAIN_ID_COUNTER = ".domain_id_counter";
   private static final Logger LOG = Logger.getLogger(ZooKeeperCoordinator.class);
@@ -88,58 +89,19 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  private final class WatchForNewDomainGroups extends HankWatcher {
-    public WatchForNewDomainGroups()
-        throws KeeperException, InterruptedException {
-      super();
-    }
-
-    @Override
-    public void setWatch() throws KeeperException, InterruptedException {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Registering watch on " + domainGroupsRoot);
-      }
-      zk.getChildren(domainGroupsRoot, this);
-    }
-
-    @Override
-    public void realProcess(WatchedEvent event) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(getClass().getSimpleName() + " received notification! " + event);
-      }
-      switch (event.getType()) {
-        case NodeChildrenChanged:
-          // reload domain groups
-          try {
-            loadAllDomainGroups();
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-          break;
-        default:
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Skipped message with event type: " + event.getType());
-          }
-      }
-    }
-  }
-
   /**
    * We save our watchers so that we can reregister them in case of session
    * expiry.
    */
-  private Set<HankWatcher> myWatchers = new HashSet<HankWatcher>();
   private boolean isSessionExpired = false;
 
-  private final Map<String, ZkDomain> domainsByName = new HashMap<String, ZkDomain>();
-
-  private final Map<String, ZkDomainGroup> domainGroups = new HashMap<String, ZkDomainGroup>();
-  private final Map<String, ZkRingGroup> ringGroups = new HashMap<String, ZkRingGroup>();
+  private final WatchedMap<ZkDomain> domains;
+  private final WatchedMap<ZkDomainGroup> domainGroups;
+  private final WatchedMap<ZkRingGroup> ringGroups;
 
   private final String domainsRoot;
   private final String domainGroupsRoot;
   private final String ringGroupsRoot;
-  private WatchForNewDomainGroups watchForNewDomainGroups;
 
   /**
    * Blocks until the connection to the ZooKeeper service has been established.
@@ -172,27 +134,52 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.domainGroupsRoot = domainGroupsRoot;
     this.ringGroupsRoot = ringGroupsRoot;
 
-    LOG.info("Loading metadata for coordinator " + this);
-    loadAllDomains();
-    loadAllDomainGroups();
-    loadAllRingGroups();
-    LOG.info("Done loading metadata for coordinator " + this);
-    watchForNewDomainGroups = new WatchForNewDomainGroups();
-    myWatchers.add(watchForNewDomainGroups);
+    // Domains
+    domains = new WatchedMap<ZkDomain>(zk, domainsRoot, new WatchedMap.ElementLoader<ZkDomain>() {
+      @Override
+      public ZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (ZkPath.isHidden(relPath)) {
+          return null;
+        } else {
+          return new ZkDomain(zk, ZkPath.append(basePath, relPath));
+        }
+      }
+    }, new DotComplete());
+
+    // Domain Groups
+    domainGroups = new WatchedMap<ZkDomainGroup>(zk, domainGroupsRoot, new WatchedMap.ElementLoader<ZkDomainGroup>() {
+      @Override
+      public ZkDomainGroup load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (ZkPath.isHidden(relPath)) {
+          return null;
+        } else {
+          try {
+            return new ZkDomainGroup(zk, ZkPath.append(basePath, relPath), ZooKeeperCoordinator.this);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+    }, new DotComplete());
+
+    // Ring Groups
+    ringGroups = new WatchedMap<ZkRingGroup>(zk, ringGroupsRoot, new WatchedMap.ElementLoader<ZkRingGroup>() {
+      @Override
+      public ZkRingGroup load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        if (ZkPath.isHidden(relPath)) {
+          return null;
+        } else {
+          String ringGroupPath = ZkPath.append(basePath, relPath);
+          return new ZkRingGroup(zk, ringGroupPath,
+              domainGroups.get(new String(zk.getData(ringGroupPath, false, null))), ZooKeeperCoordinator.this);
+        }
+      }
+    }, new DotComplete());
   }
 
   @Override
   protected void onConnect() {
-    // if the session expired, then we need to reregister all of our
-    // StateChangeListeners
     if (isSessionExpired) {
-      for (HankWatcher watcher : myWatchers) {
-        try {
-          watcher.setWatch();
-        } catch (Exception e) {
-          LOG.error("Unable to reset watch " + watcher + " due to exception!", e);
-        }
-      }
       isSessionExpired = false;
     }
   }
@@ -203,7 +190,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public Domain getDomain(String domainName) {
-    return domainsByName.get(domainName);
+    return domains.get(domainName);
   }
 
   @Override
@@ -238,52 +225,8 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return ringGroups.get(ringGroupName);
   }
 
-  /**
-   * Completely reloads the config information stored in ZooKeeper into memory.
-   * Discards all existing config information.
-   *
-   * @throws InterruptedException
-   * @throws KeeperException
-   */
-  private void loadAllDomains() throws InterruptedException, KeeperException {
-    List<String> domainNames = zk.getChildrenNotHidden(domainsRoot, false);
-    for (String domainName : domainNames) {
-      LOG.info("Loading metadata for Domain " + domainName);
-      domainsByName.put(domainName, new ZkDomain(zk, ZkPath.append(domainsRoot, domainName)));
-    }
-  }
-
-  private void loadAllDomainGroups() throws InterruptedException, KeeperException, IOException {
-    List<String> domainGroupNameList = zk.getChildren(domainGroupsRoot, false);
-    synchronized (domainGroups) {
-      for (String domainGroupName : domainGroupNameList) {
-        LOG.info("Loading metadata for Domain Group " + domainGroupName);
-        String dgPath = ZkPath.append(domainGroupsRoot, domainGroupName);
-        boolean isComplete = ZkDomainGroup.isComplete(zk, dgPath);
-        if (isComplete) {
-          domainGroups.put(domainGroupName, new ZkDomainGroup(zk, dgPath, this));
-        } else {
-          if (LOG.isDebugEnabled()) {
-            LOG.debug("Not opening domain group " + dgPath
-                + " because it was incomplete.");
-          }
-        }
-      }
-    }
-  }
-
-  private void loadAllRingGroups() throws InterruptedException, KeeperException {
-    List<String> ringGroupNameList = zk.getChildren(ringGroupsRoot, false);
-    for (String ringGroupName : ringGroupNameList) {
-      LOG.info("Loading metadata for Ring Group " + ringGroupName);
-      String ringGroupPath = ZkPath.append(ringGroupsRoot, ringGroupName);
-      ZkDomainGroup dgc = domainGroups.get(new String(zk.getData(ringGroupPath, false, null)));
-      ringGroups.put(ringGroupName, new ZkRingGroup(zk, ringGroupPath, dgc, this));
-    }
-  }
-
   public Set<Domain> getDomains() {
-    return new HashSet<Domain>(domainsByName.values());
+    return new HashSet<Domain>(domains.values());
   }
 
   @Override
@@ -323,14 +266,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return groups;
   }
 
-  public void onDomainGroupChange(DomainGroup newDomainGroup) {
-    domainGroups.put(newDomainGroup.getName(), (ZkDomainGroup) newDomainGroup);
-  }
-
   public Domain addDomain(String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException {
     try {
-      ZkDomain domain = (ZkDomain) ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, getNextDomainId());
-      domainsByName.put(domainName, domain);
+      ZkDomain domain = ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName, getNextDomainId());
+      domains.put(domainName, domain);
       return domain;
     } catch (Exception e) {
       throw new IOException(e);
@@ -365,7 +304,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
     } else {
       try {
-        domainsByName.put(domainName, ZkDomain.update(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
+        domains.put(domainName, ZkDomain.update(zk, domainsRoot, domainName, numParts, storageEngineFactoryName, storageEngineOptions, partitionerName));
         return domain;
       } catch (Exception e) {
         throw new IOException(e);
@@ -397,7 +336,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public void close() {
-    watchForNewDomainGroups.cancel();
     try {
       zk.close();
     } catch (InterruptedException e) {
@@ -414,7 +352,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   public boolean deleteDomain(String domainName) throws IOException {
-    ZkDomain domain = domainsByName.remove(domainName);
+    ZkDomain domain = domains.remove(domainName);
 
     if (domain == null) {
       return false;

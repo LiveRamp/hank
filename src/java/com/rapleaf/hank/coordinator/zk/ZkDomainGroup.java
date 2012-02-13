@@ -24,7 +24,6 @@ import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 
 import java.io.IOException;
 import java.util.*;
@@ -138,10 +137,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
 
   public String getPath() {
     return dgPath;
-  }
-
-  public static boolean isComplete(ZooKeeper zk, String path) throws KeeperException, InterruptedException {
-    return zk.exists(ZkPath.append(path, DotComplete.NODE_NAME), false) != null;
   }
 
   public boolean delete() throws IOException {

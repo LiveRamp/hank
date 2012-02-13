@@ -286,6 +286,12 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     return internalMap.put(key, value);
   }
 
+  @Override
+  public T get(Object key) {
+    ensureLoaded();
+    return internalMap.get(key);
+  }
+
   public void addListener(WatchedMapListener listener) {
     synchronized (listeners) {
       listeners.add(listener);
