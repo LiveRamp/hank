@@ -251,7 +251,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public SortedSet<RingGroup> getRingGroupsSorted() {
-    return new TreeSet<RingGroup>(getRingGroups());
+    return new TreeSet<RingGroup>(ringGroups.values());
   }
 
   @Override
