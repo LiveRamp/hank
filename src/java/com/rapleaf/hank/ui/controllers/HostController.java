@@ -13,12 +13,6 @@ public class HostController extends Controller {
   public HostController(String name, Coordinator coordinator) {
     super(name);
     this.coordinator = coordinator;
-    actions.put("add_domain_part", new Action() {
-      @Override
-      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        doAddDomainPart(req, resp);
-      }
-    });
     actions.put("enqueue_command", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -80,20 +74,6 @@ public class HostController extends Controller {
     h.enqueueCommand(HostCommand.valueOf(req.getParameter("command")));
 
     redirectBack(resp, rg, r, h);
-  }
-
-  private void doAddDomainPart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-    RingGroup ringGroup = coordinator.getRingGroup(req.getParameter("g"));
-    Ring ring = ringGroup.getRing(Integer.parseInt(req.getParameter("n")));
-    Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    final Domain domain = coordinator.getDomain(req.getParameter("domainId"));
-    HostDomain hostDomain = host.getHostDomain(domain);
-    if (hostDomain == null) {
-      hostDomain = host.addDomain(domain);
-    }
-    HostDomains.addOrUndeletePartition(hostDomain, Integer.parseInt(req.getParameter("partNum")));
-
-    redirectBack(resp, ringGroup, ring, host);
   }
 
   private void doDeleteOrUndeletePartition(HttpServletRequest req, HttpServletResponse resp, boolean deletable) throws IOException {

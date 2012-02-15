@@ -249,9 +249,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
         dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
         for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
-        <option value="<%= domainGroupVersion.getVersionNumber() %>"
-        <%= ringGroup.getTargetVersionNumber() != null && ringGroup.getTargetVersionNumber()
-        .equals(domainGroupVersion.getVersionNumber()) ? "disabled='disabled'" : "" %>>
+        <option value="<%= domainGroupVersion.getVersionNumber() %>">
           <%= domainGroupVersion.getVersionNumber() %>
           (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
         </option>
@@ -266,7 +264,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     </table>
 
   <h2>Rings</h2>
-  <a href="/ring_group/add_ring?g=<%=URLEnc.encode(ringGroup.getName())%>">Add a new ring</a>
 
   <table class='table-blue ALL-RINGS'>
     <tr>
@@ -282,7 +279,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Hit Rate</th>
       <th>Up-to-date & Served</th>
       <th>(fully)</th>
-      <th></th>
     </tr>
 
     <%
@@ -389,31 +385,22 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <td></td>
           <td></td>
         <% } %>
-
-      <!-- Actions -->
-
-      <td>
-        <form action="/ring_group/delete_ring" method="post">
-          <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-          <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-          <input type="submit" value="delete" onclick="return confirm('Are you sure you want to delete this ring? This action cannot be undone!');" />
-        </form>
-      </td>
     </tr>
     <%
       }
     %>
   </table>
 
-    <h2>Query</h2>
+    <h2>Manual Query</h2>
     <% if (ringGroup.getTargetVersion() == null) { %>
       Query disabled because target version is empty.
     <% } else { %>
       <form action="/ring_group.jsp" method=post>
         <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
-
-        Domain
-        <br/>
+        <table>
+        <tr>
+        <td>Domain:</td>
+        <td>
         <select name="d">
           <option value=""></option>
           <%
@@ -424,17 +411,25 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           </option>
           <% } %>
         </select>
-        <br/>
-        Key
-        <br/>
-        <textarea rows=2 cols=30 name="k"><%= request.getParameter("k") == null ? "" : request.getParameter("k") %></textarea>
-        <br/>
-        in <select name="f">
+        </td>
+        </tr>
+        <tr>
+        <td>Key format:</td>
+        <td>
+        <select name="f">
           <option<%= request.getParameter("f") != null && request.getParameter("f").equals("string") ? " selected" : "" %>>string</option>
           <option<%= request.getParameter("f") != null && request.getParameter("f").equals("hex") ? " selected" : "" %>>hex</option>
         </select>
-        <br/>
-        <input type=submit value="Get"/>
+        </td>
+        </tr>
+        <tr>
+        <td>Key:</td>
+        <td>
+        <textarea rows=2 cols=30 name="k"><%= request.getParameter("k") == null ? "" : request.getParameter("k") %></textarea>
+        </td>
+        </tr>
+        </table>
+        <input type=submit value="Perform Manual Query"/>
 
         <%
         if (request.getParameter("k") != null) {

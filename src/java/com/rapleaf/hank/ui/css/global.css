@@ -1,18 +1,11 @@
-/*
- * Colors:
- *
- * original dark blue: #133C65 (rap)
- * [unused] original light blue: #2270B8 (leaf)
- * [unused] 4x lightened light blue: #61c1e8
- * 8x lightened light blue: #8cdbf3
- * dark green:
- * light green:
- */
-
-
 /* General styling */
-html, body {
+html {
   padding: 0;
+  margin: 0;
+}
+
+body {
+  padding: 0 0 50px 0;
   margin: 0;
 }
 

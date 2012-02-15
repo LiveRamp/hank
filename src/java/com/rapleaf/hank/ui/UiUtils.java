@@ -146,17 +146,21 @@ public class UiUtils {
 
   public static String formatPopulationStatistics(String title,
                                                   DoublePopulationStatisticsAggregator populationStatistics) {
-    double[] deciles = populationStatistics.computeDeciles();
-    StringBuilder tooltipContent = new StringBuilder();
+    if (populationStatistics == null) {
+      return "-";
+    } else {
+      double[] deciles = populationStatistics.computeDeciles();
+      StringBuilder tooltipContent = new StringBuilder();
 
-    tooltipContent.append("<table>");
-    addBar(tooltipContent, "min", populationStatistics.getMinimum(), populationStatistics.getMaximum(), "ms");
-    for (int i = 0; i < 9; ++i) {
-      addBar(tooltipContent, ((i + 1) * 10) + "%", deciles[i], populationStatistics.getMaximum(), "ms");
+      tooltipContent.append("<table>");
+      addBar(tooltipContent, "min", populationStatistics.getMinimum(), populationStatistics.getMaximum(), "ms");
+      for (int i = 0; i < 9; ++i) {
+        addBar(tooltipContent, ((i + 1) * 10) + "%", deciles[i], populationStatistics.getMaximum(), "ms");
+      }
+      addBar(tooltipContent, "max", populationStatistics.getMaximum(), populationStatistics.getMaximum(), "ms");
+      tooltipContent.append("</table>");
+
+      return htmlTooltip(populationStatistics.format(), title, tooltipContent.toString());
     }
-    addBar(tooltipContent, "max", populationStatistics.getMaximum(), populationStatistics.getMaximum(), "ms");
-    tooltipContent.append("</table>");
-
-    return htmlTooltip(populationStatistics.format(), title, tooltipContent.toString());
   }
 }

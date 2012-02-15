@@ -10,9 +10,7 @@
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
-
 RingGroup ringGroup = coord.getRingGroup(URLEnc.decode(request.getParameter("g")));
-
 Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 %>
 
@@ -21,7 +19,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>Ring <%=ring.getRingNumber()%> in group <%=ringGroup.getName()%></title>
-
   <jsp:include page="_head.jsp" />
 </head>
 <body>
@@ -140,24 +137,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
   %>
   </table>
 
-  <h2>Add New Host</h2>
-
-  <form action="/ring/add_host" method=post>
-    <input type=hidden name="rgName" value="<%=ringGroup.getName()%>"/>
-    <input type=hidden name="ringNum" value="<%=ring.getRingNumber()%>"/>
-    <table>
-      <tr>
-        <td>Host:</td>
-        <td><input type=text size=30 name="hostname"/></td>
-      </tr>
-      <tr>
-        <td>Port:</td>
-        <td><input type=text size=5 name="port" /></td>
-      </tr>
-    </table>
-    <input type=submit value="Add"/>
-  </form>
-
   <h2>Command All Hosts</h2>
 
   <form action="/ring/command_all" method=post>
@@ -185,7 +164,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Latency</th>
       <th>Hit Rate</th>
       <th>Up-to-date & Served</th>
-      <th>Actions</th>
     </tr>
     <%
       Collection<Host> hosts = ring.getHostsSorted();
@@ -199,7 +177,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       </td>
       <%
       UpdateProgress progress = null;
-      if (!Rings.isUpToDate(ring, targetDomainGroupVersion)) {
+      if (targetDomainGroupVersion != null && !Rings.isUpToDate(ring, targetDomainGroupVersion)) {
         progress = Hosts.computeUpdateProgress(host, targetDomainGroupVersion);
       }
       %>
@@ -251,17 +229,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <% } else { %>
           <td></td>
         <% } %>
-
-      <!-- Actions -->
-
-      <td>
-        <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">
-          <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-          <input type=hidden name="n" value="<%= ring.getRingNumber() %>"/>
-          <input type=hidden name="h" value="<%= host.getAddress() %>"/>
-          <a href="javascript:if (confirm('Are you sure you want to delete this host? This action cannot be undone!')) document.forms['remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>'].submit();">remove from ring</a>
-        </form>
-      </td>
     </tr>
     <%
         }

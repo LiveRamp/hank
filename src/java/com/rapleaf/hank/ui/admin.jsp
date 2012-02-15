@@ -97,20 +97,15 @@
     </table>
   </form>
 
-  <h2>Delete Ring Group</h2>
+  <h2>Manage Ring Groups</h2>
 
-  <form action="/ring_group/delete_ring_group" method=post>
-  <select name="g">
-    <option value=""></option>
-      <% for (RingGroup ringGroup : coord.getRingGroupsSorted()) { %>
-        <option value="<%= ringGroup.getName() %>"><%= ringGroup.getName() %></option>
-      <% } %>
-  </select>
-  <input type=submit value="Delete Ring Group"
-  onclick="return confirm('Are you sure you want to delete the selected ring group? This action cannot be undone.');"/>
-  </form>
+  <table>
+  <% for (RingGroup ringGroup : coord.getRingGroupsSorted()) { %>
+    <tr><td><a href="/admin_ring_group.jsp?g=<%= ringGroup.getName() %>"><%= ringGroup.getName() %></a></td></tr>
+  <% } %>
+  </table>
 
-<jsp:include page="_footer.jsp"/>
+  <jsp:include page="_footer.jsp"/>
 
 </body>
 </html>

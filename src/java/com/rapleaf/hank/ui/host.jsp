@@ -9,12 +9,10 @@
 <%@page import="java.text.SimpleDateFormat" %>
 
 <%
-Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
-
-RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
-
-Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("r")));
-Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(request.getParameter("h"))));
+  Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
+  RingGroup ringGroup = coord.getRingGroup(request.getParameter("g"));
+  Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("r")));
+  Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(request.getParameter("h"))));
 %>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -34,7 +32,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
     addAsyncReload(['HOST-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
     addAsyncReload(['PARTITIONS-STATE']);
-    addAsyncReload(['PARTITIONS-TABLE']);
   </script>
 
 <jsp:include page="_top_nav.jsp"/>
@@ -180,29 +177,7 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
 
 <!-- Domains and Partitions -->
 
-<div>
   <h2>Domains and Partitions</h2>
-  <form method="post" action="/host/add_domain_part">
-    <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-    <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-    <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-
-    Add a domain partition:<br/>
-    <select name="domainId">
-      <option></option>
-      <%
-        if (targetDomainGroupVersion != null) {
-          for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersions()) {
-          %>
-          <option value="<%=dgvdv.getDomain().getName()%>"><%=dgvdv.getDomain().getName()%></option>
-          <%
-          }
-        }
-      %>
-    </select>
-    Partition number:<input type=text size=4 name="partNum" />
-    <input type=submit value="Add"/>
-  </form>
 
   <div style="border: 1px solid #ddd; width: 200px">
     <table style="font-size: 8px">
@@ -271,43 +246,6 @@ Host host = ring.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req
   </div>
 
   <div style="clear:both"></div>
-
-  <table class="table-blue PARTITIONS-TABLE">
-    <tr><th>Domain</th><th>Partition Number</th><th>Current Version</th><th>Toggle Deletable</th></tr>
-  <%
-    for (HostDomain hdc : host.getAssignedDomainsSorted()) {
-      Domain domain = hdc.getDomain();
-      for (HostDomainPartition hdpc : hdc.getPartitionsSorted()) {
-    %>
-    <tr>
-      <td>
-      <% if (domain == null) { %>
-        Unknown Domain
-      <%  } else { %>
-        <%= domain.getName()%>
-      </td>
-      <td><%= hdpc.getPartitionNumber() %></td>
-      <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
-      <td>
-        <form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
-          <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>
-          <input type="hidden" name="n" value="<%= ring.getRingNumber() %>"/>
-          <input type="hidden" name="h" value="<%= host.getAddress() %>"/>
-          <input type="hidden" name="d" value="<%= hdc.getDomain().getName() %>"/>
-          <input type="hidden" name="p" value="<%= hdpc.getPartitionNumber() %>"/>
-          <input type="submit" value="<%= hdpc.isDeletable() ? "Undelete" : "Delete" %>"
-          <% if (!hdpc.isDeletable()) { %>
-            onclick="return confirm('Are you sure you want to mark this partition for deletion?');"
-          <% } %>
-          />
-        </form>
-      </td>
-    </tr>
-    <% } %>
-    <% } %>
-  <% } %>
-  </table>
-</div>
 
 <jsp:include page="_footer.jsp"/>
 
