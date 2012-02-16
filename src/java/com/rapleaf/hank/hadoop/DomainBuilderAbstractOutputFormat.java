@@ -53,7 +53,9 @@ public abstract class DomainBuilderAbstractOutputFormat
       throws IOException {
     String outputPath = getJobOutputPath(conf);
 
-    fs = FileSystem.get(new Configuration());
+    if (fs == null) {
+      fs = FileSystem.get(new Configuration());
+    }
 
     if (fs.exists(new Path(outputPath))) {
       throw new RuntimeException("Output path already exists: " + outputPath);
