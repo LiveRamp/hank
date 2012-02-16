@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.JobConf;
@@ -51,6 +52,9 @@ public abstract class DomainBuilderAbstractOutputFormat
   public void checkOutputSpecs(FileSystem fs, JobConf conf)
       throws IOException {
     String outputPath = getJobOutputPath(conf);
+
+    fs = FileSystem.get(new Configuration());
+
     if (fs.exists(new Path(outputPath))) {
       throw new RuntimeException("Output path already exists: " + outputPath);
     }
