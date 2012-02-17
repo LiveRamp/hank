@@ -67,9 +67,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     // Output
     conf.setOutputKeyClass(KeyAndPartitionWritable.class);
     conf.setOutputValueClass(ValueWritable.class);
-
-    // No map speculative execution because these tasks are hard on the disks
-    conf.setSpeculativeExecution(true);
   }
 
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
@@ -123,7 +120,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
             + " with storage engine: " + domain.getStorageEngine());
       }
       // Perform compaction
-      compactor.compact(domainVersionToCompact, new OutputCollectorWriter(partitionNumber, outputCollector));
+      compactor.compact(domainVersionToCompact, new OutputCollectorWriter(reporter, partitionNumber, outputCollector));
     }
 
     @Override

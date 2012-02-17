@@ -16,14 +16,13 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-
+import com.rapleaf.hank.coordinator.Domain;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
 
-import com.rapleaf.hank.coordinator.Domain;
+import java.io.IOException;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
@@ -38,6 +37,7 @@ public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPa
     KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domain, keyValue.getKey());
     ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
     outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
+    reporter.progress();
   }
 
   public void close() throws IOException {

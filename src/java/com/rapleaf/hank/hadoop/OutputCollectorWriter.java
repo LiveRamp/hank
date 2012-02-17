@@ -5,17 +5,21 @@ import com.rapleaf.hank.util.Bytes;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.Reporter;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class OutputCollectorWriter implements Writer {
 
+  private final Reporter reporter;
   private final OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector;
   private IntWritable partitionNumber;
 
-  public OutputCollectorWriter(IntWritable partitionNumber,
+  public OutputCollectorWriter(Reporter reporter,
+                               IntWritable partitionNumber,
                                OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector) {
+    this.reporter = reporter;
     this.outputCollector = outputCollector;
     this.partitionNumber = partitionNumber;
   }
@@ -28,6 +32,8 @@ public class OutputCollectorWriter implements Writer {
     outputCollector.collect(
         new KeyAndPartitionWritable(new BytesWritable(keyBytes), partitionNumber),
         new ValueWritable(new BytesWritable(valueBytes)));
+    // Report progress
+    reporter.progress();
   }
 
   @Override
