@@ -69,7 +69,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     conf.setOutputValueClass(ValueWritable.class);
 
     // No map speculative execution because these tasks are hard on the disks
-    conf.setSpeculativeExecution(false);
+    conf.setSpeculativeExecution(true);
   }
 
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
