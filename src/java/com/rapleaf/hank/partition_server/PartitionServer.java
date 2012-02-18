@@ -58,8 +58,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private final RingGroup ringGroup;
 
-  private final Ring ring;
-
   private Thread shutdownHook;
 
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
@@ -70,7 +68,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     if (ringGroup == null) {
       throw new RuntimeException("Could not get ring group: " + configurator.getRingGroupName());
     }
-    ring = ringGroup.getRingForHost(hostAddress);
+    Ring ring = ringGroup.getRingForHost(hostAddress);
     if (ring == null) {
       throw new RuntimeException("Could not get ring for host address: " + hostAddress
           + " in ring group " + ringGroup.getName());

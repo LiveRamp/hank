@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.partition_server.PartitionServerHandler;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import com.rapleaf.hank.partition_server.UpdateManager;
 
 import java.io.IOException;
 import java.util.Map;
@@ -151,5 +152,9 @@ public final class Hosts {
         !host.getCommandQueue().contains(command)) {
       host.enqueueCommand(command);
     }
+  }
+
+  public static long computeUpdateETA(Host host) {
+    return UpdateManager.getUpdateETA(host);
   }
 }

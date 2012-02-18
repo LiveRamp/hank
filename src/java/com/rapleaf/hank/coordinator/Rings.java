@@ -17,6 +17,7 @@
 package com.rapleaf.hank.coordinator;
 
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import com.rapleaf.hank.partition_server.UpdateManager;
 
 import java.io.IOException;
 import java.util.*;
@@ -182,5 +183,16 @@ public class Rings {
       }
     }
     return result;
+  }
+
+  public static long computeUpdateETA(Ring ring) {
+    long maxUpdateETA = -1;
+    for (Host host : ring.getHosts()) {
+      long hostUpdateETA = UpdateManager.getUpdateETA(host);
+      if (hostUpdateETA > maxUpdateETA) {
+        maxUpdateETA = hostUpdateETA;
+      }
+    }
+    return maxUpdateETA;
   }
 }

@@ -22,38 +22,144 @@ import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.*;
 
 /**
  * Manages the domain update process.
  */
-class UpdateManager implements IUpdateManager {
+public class UpdateManager implements IUpdateManager {
 
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
   private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
+  private static final String UPDATE_ETA_STATISTIC_KEY = "update_eta";
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
+
+  private final class PartitionUpdateTaskStatistics {
+
+    private final long startTimeMs;
+    private final long endTimeMs;
+
+    private PartitionUpdateTaskStatistics(long startTimeMs, long endTimeMs) {
+      this.startTimeMs = startTimeMs;
+      this.endTimeMs = endTimeMs;
+    }
+
+    public long getStartTimeMs() {
+      return startTimeMs;
+    }
+
+    public long getEndTimeMs() {
+      return endTimeMs;
+    }
+  }
+
+  private final class PartitionUpdateTaskStatisticsAggregator {
+
+    static private final int NUM_PARTITIONS_USED_FOR_PROJECTION_RATIO = 10;
+    static private final int MIN_NUM_PARTITIONS_USED_FOR_PROJECTION = 10;
+
+    private final Map<Domain, List<PartitionUpdateTaskStatistics>> domainToPartitionUpdateTaskStatistics
+        = new HashMap<Domain, List<PartitionUpdateTaskStatistics>>();
+    private final Map<Domain, Integer> domainToNumPartitionUpdateTasks = new HashMap<Domain, Integer>();
+
+    public synchronized void recordPartitionUpdateTaskStatistics(PartitionUpdateTask partitionUpdateTask,
+                                                                 PartitionUpdateTaskStatistics partitionUpdateTaskStatistics) {
+      List<PartitionUpdateTaskStatistics> partitionUpdateTaskStatisticsList
+          = domainToPartitionUpdateTaskStatistics.get(partitionUpdateTask.getDomain());
+      partitionUpdateTaskStatisticsList.add(partitionUpdateTaskStatistics);
+    }
+
+    public synchronized void register(PartitionUpdateTask partitionUpdateTask) {
+      Domain domain = partitionUpdateTask.getDomain();
+      // Initialize maps
+      domainToPartitionUpdateTaskStatistics.put(domain, new ArrayList<PartitionUpdateTaskStatistics>());
+      Integer numPartitionUpdateTasks = domainToNumPartitionUpdateTasks.get(domain);
+      if (numPartitionUpdateTasks == null) {
+        domainToNumPartitionUpdateTasks.put(domain, 1);
+      } else {
+        domainToNumPartitionUpdateTasks.put(domain, numPartitionUpdateTasks + 1);
+      }
+    }
+
+    /**
+     * @return ETA in seconds, a negative number if no ETA could be computed
+     */
+    public synchronized long computeETA() {
+      long maxDomainETA = -1;
+      // For each domain, compute the number of updated partitions per second
+      for (Map.Entry<Domain, List<PartitionUpdateTaskStatistics>> entry : domainToPartitionUpdateTaskStatistics.entrySet()) {
+        Domain domain = entry.getKey();
+        List<PartitionUpdateTaskStatistics> partitionUpdateTaskStatisticsList = entry.getValue();
+        // Only consider at a fixed number of partitions in the past
+        int numPartitionUpdateTasksForDomain = domainToNumPartitionUpdateTasks.get(domain);
+        int numPartitionsToConsider = numPartitionUpdateTasksForDomain / NUM_PARTITIONS_USED_FOR_PROJECTION_RATIO;
+        if (numPartitionsToConsider < MIN_NUM_PARTITIONS_USED_FOR_PROJECTION) {
+          numPartitionsToConsider = MIN_NUM_PARTITIONS_USED_FOR_PROJECTION;
+        }
+        numPartitionsToConsider = Math.min(numPartitionsToConsider, numPartitionUpdateTasksForDomain);
+        // Consider statistics
+        int firstIndex = Math.max(0, partitionUpdateTaskStatisticsList.size() - numPartitionsToConsider);
+        long minStartTimeMs = -1;
+        long maxEndTimeMs = -1;
+        // Compute time window for the chosen subset of partition update statistics
+        for (int i = firstIndex; i < partitionUpdateTaskStatisticsList.size(); ++i) {
+          long startTimeMs = partitionUpdateTaskStatisticsList.get(i).getStartTimeMs();
+          long endTimeMs = partitionUpdateTaskStatisticsList.get(i).getEndTimeMs();
+          if (minStartTimeMs < 0 || startTimeMs < minStartTimeMs) {
+            minStartTimeMs = startTimeMs;
+          }
+          if (maxEndTimeMs < 0 || endTimeMs > maxEndTimeMs) {
+            maxEndTimeMs = endTimeMs;
+          }
+        }
+        // Compute window statistics
+        long windowDurationMS = maxEndTimeMs - minStartTimeMs;
+        long numPartitionUpdateTasksFinishedInWindow = Math.min(partitionUpdateTaskStatisticsList.size(), numPartitionsToConsider);
+        if (windowDurationMS == 0 || numPartitionUpdateTasksFinishedInWindow == 0) {
+          return -1;
+        }
+        // Compute time taken by partition updates of this domain
+        double numSecondsPerPartitionUpdateTask = ((double) windowDurationMS / 1000.0d) / (double) numPartitionUpdateTasksFinishedInWindow;
+        // Compute ETA in seconds for this domain
+        long numRemainingPartitionUpdateTasksForDomain = numPartitionUpdateTasksForDomain - partitionUpdateTaskStatisticsList.size();
+        long domainETA = Math.round(numRemainingPartitionUpdateTasksForDomain * numSecondsPerPartitionUpdateTask);
+        if (domainETA > maxDomainETA) {
+          maxDomainETA = domainETA;
+        }
+      }
+      return maxDomainETA;
+    }
+  }
 
   private final class PartitionUpdateTask implements Runnable {
 
     private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
+    private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
     private final Queue<Throwable> exceptionQueue;
 
     public PartitionUpdateTask(HostDomain hostDomain,
                                HostDomainPartition partition,
+                               PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
                                Queue<Throwable> exceptionQueue) {
       this.hostDomain = hostDomain;
       this.domain = hostDomain.getDomain();
       this.partition = partition;
+      this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
       this.exceptionQueue = exceptionQueue;
+      // Register itself in the aggregator
+      partitionUpdateTaskStatisticsAggregator.register(this);
+    }
+
+    public Domain getDomain() {
+      return domain;
     }
 
     @Override
     public void run() {
+      long startTimeMs = System.currentTimeMillis();
       try {
         // Determine target version
         DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
@@ -95,6 +201,10 @@ class UpdateManager implements IUpdateManager {
         LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
             domain.getName(), partition.getPartitionNumber()), e);
         exceptionQueue.add(e);
+      } finally {
+        long endTimeMs = System.currentTimeMillis();
+        partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this,
+            new PartitionUpdateTaskStatistics(startTimeMs, endTimeMs));
       }
     }
   }
@@ -123,12 +233,12 @@ class UpdateManager implements IUpdateManager {
     };
 
     ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
-
+    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator
+        = new PartitionUpdateTaskStatisticsAggregator();
     Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
 
-    executePartitionUpdateTasks(executor, exceptionQueue);
-
     // Execute all tasks and wait for them to finish
+    executePartitionUpdateTasks(executor, partitionUpdateTaskStatisticsAggregator, exceptionQueue);
     IOException failedUpdateException = null;
     boolean keepWaiting = true;
     executor.shutdown();
@@ -143,6 +253,8 @@ class UpdateManager implements IUpdateManager {
         } else {
           // Timeout elapsed and current thread was not interrupted. Keep waiting.
         }
+        // Record update ETA
+        setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
       } catch (InterruptedException e) {
         // Received interruption (stop request).
         // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
@@ -182,12 +294,14 @@ class UpdateManager implements IUpdateManager {
   }
 
   private void executePartitionUpdateTasks(ExecutorService executor,
+                                           PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
                                            Queue<Throwable> exceptionQueue) throws IOException {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        partitionUpdateTasks.add(new PartitionUpdateTask(hostDomain, partition, exceptionQueue));
+        partitionUpdateTasks.add(new PartitionUpdateTask(hostDomain, partition,
+            partitionUpdateTaskStatisticsAggregator, exceptionQueue));
       }
     }
 
@@ -217,5 +331,25 @@ class UpdateManager implements IUpdateManager {
     Deleter deleter = hostDomain.getDomain().getStorageEngine().getDeleter(configurator, partition.getPartitionNumber());
     deleter.delete();
     hostDomain.removePartition(partition.getPartitionNumber());
+  }
+
+  public static void setUpdateETA(Host host, long updateETA) throws IOException {
+    host.setEphemeralStatistic(UPDATE_ETA_STATISTIC_KEY, Long.toString(updateETA));
+  }
+
+  public static long getUpdateETA(Host host) {
+    try {
+      if (host.getState() != HostState.UPDATING) {
+        return -1;
+      }
+      String etaString = host.getStatistic(UPDATE_ETA_STATISTIC_KEY);
+      if (etaString != null) {
+        return Long.parseLong(etaString);
+      } else {
+        return -1;
+      }
+    } catch (IOException e) {
+      return -1;
+    }
   }
 }

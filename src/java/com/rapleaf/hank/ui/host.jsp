@@ -54,6 +54,8 @@
     Hosts.computeRuntimeStatisticsForHost(runtimeStatistics);
 
   DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
+
+  long updateETA = Hosts.computeUpdateETA(host);
 %>
 
 <div>
@@ -65,6 +67,15 @@
       <%= host.getState() %>
       </td>
       </tr>
+
+      <% if (updateETA >= 0) { %>
+      <tr>
+      <td>Update ETA:</td>
+      <td>
+      <%= UiUtils.formatSecondsDuration(updateETA) %>
+      </td>
+      </tr>
+      <% } %>
 
       <tr>
       <td>Throughput:</td>
@@ -94,7 +105,7 @@
       <% if (upSince == null) { %>
         undefined
       <% } else { %>
-        Started <%= new SimpleDateFormat().format(new Date(upSince)) %> (online <%= (System.currentTimeMillis() - upSince) / 1000 %> seconds)
+        Started <%= new SimpleDateFormat().format(new Date(upSince)) %> (online for <%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
       <% } %>
       </td>
       </tr>

@@ -10,6 +10,7 @@ import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.rapleaf.hank.partition_server.PartitionServerHandler;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import com.rapleaf.hank.partition_server.UpdateManager;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
 
@@ -80,6 +81,8 @@ public class WebUiServerTester extends ZkTestCase {
           } else {
             // Set other hosts to still updating
             host.setState(HostState.UPDATING);
+            // Set fake ETA
+            UpdateManager.setUpdateETA(host, 3243 * ((host.getAddress().hashCode() % 3) + 1));
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
                 partition.setCurrentDomainGroupVersion(0);

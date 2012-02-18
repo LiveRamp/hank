@@ -45,10 +45,21 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       Rings.computeRuntimeStatisticsForRing(runtimeStatistics);
 
     DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
+
+    long updateETA = Rings.computeUpdateETA(ring);
   %>
 
   <h2>State</h2>
     <table class='table-blue-compact RING-STATE'>
+
+      <% if (updateETA >= 0) { %>
+      <tr>
+      <td>Update ETA:</td>
+      <td>
+      <%= UiUtils.formatSecondsDuration(updateETA) %>
+      </td>
+      </tr>
+      <% } %>
 
       <tr>
       <td>Throughput:</td>
@@ -169,6 +180,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       Collection<Host> hosts = ring.getHostsSorted();
       if (hosts != null) {
         for(Host host : hosts) {
+        long hostUpdateETA = Hosts.computeUpdateETA(host);
     %>
     <tr>
       <td><a href="/host.jsp?g=<%= ringGroup.getName() %>&r=<%= ring.getRingNumber() %>&h=<%= URLEnc.encode(host.getAddress().toString()) %>"><%= host.getAddress() %></a></td>
@@ -186,6 +198,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <td>
           <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% up-to-date
           (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
+          <% if (hostUpdateETA >= 0) { %>
+            ETA: <%= UiUtils.formatSecondsDuration(hostUpdateETA) %>
+          <% } %>
+
           <div class='progress-bar'>
             <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
           </div>

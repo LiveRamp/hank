@@ -163,4 +163,20 @@ public class UiUtils {
       return htmlTooltip(populationStatistics.format(), title, tooltipContent.toString());
     }
   }
+
+  public static String formatSecondsDuration(long secondsDuration) {
+    if (secondsDuration < 0) {
+      return "-";
+    } else {
+      long hours = secondsDuration / 3600;
+      long remainder = secondsDuration % 3600;
+      long minutes = remainder / 60;
+      long seconds = remainder % 60;
+
+      return ((hours < 10 ? "0" : "") + hours
+          + ":" + (minutes < 10 ? "0" : "") + minutes
+          + ":" + (seconds < 10 ? "0" : "") + seconds);
+
+    }
+  }
 }
