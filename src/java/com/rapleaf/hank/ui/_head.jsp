@@ -21,13 +21,16 @@ function performAsyncReload() {
   }
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == 4) {
-      if (xmlhttp.status == 200) {
-        var html = xmlhttp.responseText;
-        var tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        for (var i = 0; i < elementUniqClasses.length; i++) {
+      var tempDiv = document.createElement('div');
+      tempDiv.innerHTML = xmlhttp.responseText;
+      for (var i = 0; i < elementUniqClasses.length; i++) {
+        if (xmlhttp.status == 200) {
           document.getElementsByClassName(elementUniqClasses[i])[0].innerHTML
           = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].innerHTML;
+          document.getElementsByClassName(elementUniqClasses[i])[0].style.opacity
+          = tempDiv.getElementsByClassName(elementUniqClasses[i])[0].style.opacity;
+        } else {
+          document.getElementsByClassName(elementUniqClasses[i])[0].style.opacity = "0.2";
         }
       }
       initAsyncReload();
