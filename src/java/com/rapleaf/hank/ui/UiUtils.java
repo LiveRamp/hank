@@ -173,9 +173,9 @@ public class UiUtils {
       long minutes = remainder / 60;
       long seconds = remainder % 60;
 
-      return ((hours < 10 ? "0" : "") + hours
-          + ":" + (minutes < 10 ? "0" : "") + minutes
-          + ":" + (seconds < 10 ? "0" : "") + seconds);
+      return ((hours < 10 ? "0" : "") + hours + "h"
+          + (minutes < 10 ? "0" : "") + minutes + "m"
+          + (seconds < 10 ? "0" : "") + seconds) + "s";
 
     }
   }
