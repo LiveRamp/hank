@@ -233,7 +233,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         break;
       default:
         if (LOG.isDebugEnabled()) {
-          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
+          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
         }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
@@ -248,7 +248,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         break;
       default:
         if (LOG.isDebugEnabled()) {
-          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
+          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
         }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
@@ -263,7 +263,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         break;
       default:
         if (LOG.isDebugEnabled()) {
-          LOG.debug(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
+          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
         }
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
