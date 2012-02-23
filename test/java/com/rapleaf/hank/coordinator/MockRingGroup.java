@@ -143,6 +143,14 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
+  public void addTargetVersionListener(WatchedNodeListener<Integer> listener) {
+  }
+
+  @Override
+  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener) {
+  }
+
+  @Override
   public boolean isRingGroupConductorOnline() throws IOException {
     return ringGroupConductorMode != null;
   }

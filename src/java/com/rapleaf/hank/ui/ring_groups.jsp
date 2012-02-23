@@ -78,7 +78,7 @@
         %>
 
         <td class='centered'><%= targetDomainGroupVersion != null ?
-        UiUtils.formatDomainGroupVersionInfo(targetDomainGroupVersion,
+        UiUtils.formatDomainGroupVersionInfoTooltip(targetDomainGroupVersion,
         "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
         "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %></td>
 

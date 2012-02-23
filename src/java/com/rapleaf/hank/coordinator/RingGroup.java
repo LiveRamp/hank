@@ -94,4 +94,8 @@ public interface RingGroup extends Comparable<RingGroup> {
   public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
+
+  public void addTargetVersionListener(WatchedNodeListener<Integer> listener);
+
+  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener);
 }

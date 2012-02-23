@@ -119,9 +119,13 @@ public class UiUtils {
     return content.toString();
   }
 
-  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion, String text) throws IOException {
-    String title = domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
+  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion) {
+    return domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
         + " created on " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
+  }
+
+  public static String formatDomainGroupVersionInfoTooltip(DomainGroupVersion domainGroupVersion, String text) throws IOException {
+    String title = formatDomainGroupVersionInfo(domainGroupVersion);
     String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info", false);
     return htmlTooltip(text, title, content);
   }

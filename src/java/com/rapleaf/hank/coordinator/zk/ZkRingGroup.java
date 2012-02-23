@@ -233,6 +233,16 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
+  public void addTargetVersionListener(WatchedNodeListener<Integer> listener) {
+    targetVersion.addListener(listener);
+  }
+
+  @Override
+  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener) {
+    targetVersion.removeListener(listener);
+  }
+
+  @Override
   public boolean isRingGroupConductorOnline() throws IOException {
     try {
       return zk.exists(ringGroupConductorOnlinePath, false) != null;

@@ -162,6 +162,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   public synchronized void onWatchedNodeChange(HostCommand command) {
     // Do not process anything when stopping
     if (stopping) {
+      LOG.error("Ignoring command " + command + " because server is stopping.");
       return;
     }
     try {

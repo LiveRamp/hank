@@ -19,6 +19,7 @@ package com.rapleaf.hank.monitor;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
+import com.rapleaf.hank.monitor.notification.RingGroupTargetVersionNotification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
@@ -33,6 +34,7 @@ public class RingGroupMonitor {
   private final Notifier notifier;
   private Collection<RingMonitor> ringMonitors = new ArrayList<RingMonitor>();
   private final RingGroupConductorModeMonitor ringGroupConductorStatusMonitor;
+  private final TargetVersionMonitor targetVersionMonitor;
 
   private class RingGroupConductorModeMonitor implements WatchedNodeListener<RingGroupConductorMode> {
 
@@ -46,6 +48,14 @@ public class RingGroupMonitor {
     }
   }
 
+  private class TargetVersionMonitor implements WatchedNodeListener<Integer> {
+
+    @Override
+    public void onWatchedNodeChange(Integer targetVersion) {
+      notifier.notify(new RingGroupTargetVersionNotification(ringGroup, targetVersion));
+    }
+  }
+
   public RingGroupMonitor(RingGroup ringGroup,
                           Notifier notifier) throws IOException {
     this.notifier = notifier;
@@ -53,8 +63,11 @@ public class RingGroupMonitor {
     for (Ring ring : ringGroup.getRings()) {
       ringMonitors.add(new RingMonitor(ringGroup, ring, notifier));
     }
-    ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
+    this.ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
+    this.targetVersionMonitor = new TargetVersionMonitor();
+
     ringGroup.addRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
+    ringGroup.addTargetVersionListener(targetVersionMonitor);
   }
 
   public void stop() {
@@ -62,5 +75,6 @@ public class RingGroupMonitor {
       ringMonitor.stop();
     }
     ringGroup.removeRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
+    ringGroup.removeTargetVersionListener(targetVersionMonitor);
   }
 }
