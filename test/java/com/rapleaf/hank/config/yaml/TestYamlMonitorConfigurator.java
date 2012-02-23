@@ -2,7 +2,6 @@ package com.rapleaf.hank.config.yaml;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.monitor.notifier.MockNotifier;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 
@@ -42,10 +41,6 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     pw.println("    rg2:");
     pw.println("      - notifier2");
 
-    pw.println("coordinator:");
-    pw.println("  factory: " + MockCoordinator.Factory.class.getName());
-    pw.println("  options:");
-    pw.println("    blah: blah");
     pw.close();
 
     YamlMonitorConfigurator configurator = new YamlMonitorConfigurator(configPath);
