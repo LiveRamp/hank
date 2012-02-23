@@ -20,8 +20,10 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.monitor.notification.HostStateNotification;
 import com.rapleaf.hank.monitor.notifier.MockNotifier;
+import com.rapleaf.hank.monitor.notifier.Notifier;
 
 import java.io.IOException;
+import java.util.Collections;
 
 public class TestHostMonitor extends BaseTestCase {
 
@@ -38,7 +40,7 @@ public class TestHostMonitor extends BaseTestCase {
   }
 
   public void testMain() throws IOException {
-    HostMonitor monitor = new HostMonitor(mockRingGroup, mockRing, mockHost, mockNotifier);
+    HostMonitor monitor = new HostMonitor(mockRingGroup, mockRing, mockHost, Collections.singletonList((Notifier) mockNotifier));
 
     mockHost.setState(HostState.IDLE);
     assertEquals(1, mockNotifier.getNotifications().size());

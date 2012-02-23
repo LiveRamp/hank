@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
 import com.rapleaf.hank.monitor.notifier.MockNotifier;
+import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 
 import java.io.IOException;
@@ -39,7 +40,7 @@ public class TestRingGroupMonitor extends BaseTestCase {
   }
 
   public void testMain() throws IOException {
-    RingGroupMonitor monitor = new RingGroupMonitor(mockRingGroup, mockNotifier);
+    RingGroupMonitor monitor = new RingGroupMonitor(mockRingGroup, Collections.singletonList((Notifier) mockNotifier));
 
     mockRingGroup.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
     assertEquals(1, mockNotifier.getNotifications().size());
