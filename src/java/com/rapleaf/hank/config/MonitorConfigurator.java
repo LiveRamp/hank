@@ -16,13 +16,14 @@
 
 package com.rapleaf.hank.config;
 
-import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 
+import java.util.List;
+
 public interface MonitorConfigurator {
 
-  public Notifier getGlobalNotifier() throws InvalidConfigurationException;
+  public List<Notifier> getGlobalNotifiers() throws InvalidConfigurationException;
 
-  public Notifier getRingGroupNotifier(RingGroup ringGroup) throws InvalidConfigurationException;
+  public List<Notifier> getRingGroupNotifiers(RingGroup ringGroup) throws InvalidConfigurationException;
 }

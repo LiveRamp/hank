@@ -18,7 +18,7 @@ package com.rapleaf.hank.monitor.notifier;
 
 public interface Notifier {
 
-  public void notify(Notification notification);
+  public void doNotify(Notification notification);
 
   public void stop();
 }

@@ -21,6 +21,7 @@ import com.rapleaf.hank.config.MonitorConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.StringNotification;
+import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.util.LocalHostUtils;
 
@@ -33,31 +34,37 @@ import java.util.List;
 public class Monitor {
 
   private final Coordinator coordinator;
-  private final Notifier globalNotifier;
+  private final List<Notifier> globalNotifiers;
   private final List<Notifier> ringGroupNotifiers = new ArrayList<Notifier>();
   private final Collection<RingGroupMonitor> ringGroupMonitors = new ArrayList<RingGroupMonitor>();
   private Thread shutdownHook;
+
+  private void notifyGlobalNotifiers(Notification notification) {
+    for (Notifier notifier : globalNotifiers) {
+      notifier.doNotify(notification);
+    }
+  }
 
   public Monitor(Coordinator coordinator,
                  MonitorConfigurator configurator) throws IOException, InvalidConfigurationException {
     this.coordinator = coordinator;
 
-    globalNotifier = configurator.getGlobalNotifier();
+    globalNotifiers = configurator.getGlobalNotifiers();
     try {
-      globalNotifier.notify(new StringNotification("Hank monitor starting on " + LocalHostUtils.getHostName() + "."));
+      notifyGlobalNotifiers(new StringNotification("Hank monitor starting on " + LocalHostUtils.getHostName() + "."));
     } catch (UnknownHostException e) {
-      globalNotifier.notify(new StringNotification("Hank monitor starting on 'unknown host'."));
+      notifyGlobalNotifiers(new StringNotification("Hank monitor starting on 'unknown host'."));
     }
     addShutdownHook();
 
     for (RingGroup ringGroup : coordinator.getRingGroups()) {
-      Notifier notifier;
+      List<Notifier> notifiers;
       try {
-        notifier = configurator.getRingGroupNotifier(ringGroup);
-        ringGroupNotifiers.add(notifier);
-        ringGroupMonitors.add(new RingGroupMonitor(ringGroup, notifier));
+        notifiers = configurator.getRingGroupNotifiers(ringGroup);
+        ringGroupNotifiers.addAll(notifiers);
+        ringGroupMonitors.add(new RingGroupMonitor(ringGroup, notifiers));
       } catch (InvalidConfigurationException e) {
-        globalNotifier.notify(new StringNotification("Ignoring Ring Group " + ringGroup.getName()
+        notifyGlobalNotifiers(new StringNotification("Ignoring Ring Group " + ringGroup.getName()
             + " since the corresponding configuration was not found. It will not be monitored."));
       }
     }
@@ -67,7 +74,9 @@ public class Monitor {
     for (RingGroupMonitor ringGroupMonitor : ringGroupMonitors) {
       ringGroupMonitor.stop();
     }
-    globalNotifier.stop();
+    for (Notifier notifier : globalNotifiers) {
+      notifier.stop();
+    }
     for (Notifier notifier : ringGroupNotifiers) {
       notifier.stop();
     }
@@ -78,13 +87,11 @@ public class Monitor {
     shutdownHook = new Thread(new Runnable() {
       @Override
       public void run() {
-        if (globalNotifier != null) {
-          try {
-            globalNotifier.notify(new StringNotification("Hank monitor stopping on "
-                + LocalHostUtils.getHostName() + "."));
-          } catch (UnknownHostException e) {
-            globalNotifier.notify(new StringNotification("Hank monitor stopping on 'unknown host'."));
-          }
+        try {
+          notifyGlobalNotifiers(new StringNotification("Hank monitor stopping on "
+              + LocalHostUtils.getHostName() + "."));
+        } catch (UnknownHostException e) {
+          notifyGlobalNotifiers(new StringNotification("Hank monitor stopping on 'unknown host'."));
         }
         stop();
       }

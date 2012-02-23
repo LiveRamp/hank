@@ -21,34 +21,32 @@ import com.rapleaf.hank.coordinator.HostState;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.HostStateNotification;
+import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
+import java.util.List;
 
 public class HostMonitor {
 
   private final RingGroup ringGroup;
   private final Ring ring;
   private final Host host;
-  private final Notifier notifier;
+  private final List<Notifier> notifiers;
   private final WatchedNodeListener<HostState> hostStateListener;
 
   public HostMonitor(RingGroup ringGroup,
                      Ring ring,
                      Host host,
-                     Notifier notifier) throws IOException {
+                     List<Notifier> notifiers) throws IOException {
     this.ringGroup = ringGroup;
     this.ring = ring;
     this.host = host;
-    this.notifier = notifier;
+    this.notifiers = notifiers;
 
     hostStateListener = new HostStateMonitor();
     host.setStateChangeListener(hostStateListener);
-  }
-
-  public void stop() {
-    host.cancelStateChangeListener(hostStateListener);
   }
 
   private class HostStateMonitor implements WatchedNodeListener<HostState> {
@@ -58,7 +56,17 @@ public class HostMonitor {
       if (state == null) {
         state = HostState.OFFLINE;
       }
-      notifier.notify(new HostStateNotification(ringGroup, ring, host, state));
+      doNotify(new HostStateNotification(ringGroup, ring, host, state));
     }
+  }
+
+  private void doNotify(Notification notification) {
+    for (Notifier notifier : notifiers) {
+      notifier.doNotify(notification);
+    }
+  }
+
+  public void stop() {
+    host.cancelStateChangeListener(hostStateListener);
   }
 }

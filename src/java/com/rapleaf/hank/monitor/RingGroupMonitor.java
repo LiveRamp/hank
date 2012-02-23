@@ -20,6 +20,7 @@ import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
 import com.rapleaf.hank.monitor.notification.RingGroupTargetVersionNotification;
+import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
@@ -27,11 +28,12 @@ import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class RingGroupMonitor {
 
   private final RingGroup ringGroup;
-  private final Notifier notifier;
+  private final List<Notifier> notifiers;
   private Collection<RingMonitor> ringMonitors = new ArrayList<RingMonitor>();
   private final RingGroupConductorModeMonitor ringGroupConductorStatusMonitor;
   private final TargetVersionMonitor targetVersionMonitor;
@@ -44,7 +46,7 @@ public class RingGroupMonitor {
       if (mode == null) {
         mode = RingGroupConductorMode.OFFLINE;
       }
-      notifier.notify(new RingGroupConductorModeNotification(ringGroup, mode));
+      doNotify(new RingGroupConductorModeNotification(ringGroup, mode));
     }
   }
 
@@ -52,22 +54,28 @@ public class RingGroupMonitor {
 
     @Override
     public void onWatchedNodeChange(Integer targetVersion) {
-      notifier.notify(new RingGroupTargetVersionNotification(ringGroup, targetVersion));
+      doNotify(new RingGroupTargetVersionNotification(ringGroup, targetVersion));
     }
   }
 
   public RingGroupMonitor(RingGroup ringGroup,
-                          Notifier notifier) throws IOException {
-    this.notifier = notifier;
+                          List<Notifier> notifiers) throws IOException {
+    this.notifiers = notifiers;
     this.ringGroup = ringGroup;
     for (Ring ring : ringGroup.getRings()) {
-      ringMonitors.add(new RingMonitor(ringGroup, ring, notifier));
+      ringMonitors.add(new RingMonitor(ringGroup, ring, notifiers));
     }
     this.ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
     this.targetVersionMonitor = new TargetVersionMonitor();
 
     ringGroup.addRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
     ringGroup.addTargetVersionListener(targetVersionMonitor);
+  }
+
+  private void doNotify(Notification notification) {
+    for (Notifier notifier : notifiers) {
+      notifier.doNotify(notification);
+    }
   }
 
   public void stop() {

@@ -24,23 +24,24 @@ import com.rapleaf.hank.monitor.notifier.Notifier;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class RingMonitor {
 
   private final RingGroup ringGroup;
   private final Ring ring;
-  private final Notifier notifier;
+  private final List<Notifier> notifiers;
 
   private final Collection<HostMonitor> hostMonitors = new ArrayList<HostMonitor>();
 
   public RingMonitor(final RingGroup ringGroup,
                      final Ring ring,
-                     final Notifier notifier) throws IOException {
+                     final List<Notifier> notifiers) throws IOException {
     this.ringGroup = ringGroup;
     this.ring = ring;
-    this.notifier = notifier;
+    this.notifiers = notifiers;
     for (Host host : ring.getHosts()) {
-      hostMonitors.add(new HostMonitor(ringGroup, ring, host, notifier));
+      hostMonitors.add(new HostMonitor(ringGroup, ring, host, notifiers));
     }
   }
 

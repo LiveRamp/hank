@@ -23,24 +23,25 @@ import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.monitor.notifier.NotifierFactory;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class YamlMonitorConfigurator extends YamlConfigurator implements MonitorConfigurator {
 
   private static final String MONITOR_SECTION_KEY = "monitor";
   private static final String WEB_UI_URL_KEY = "web_ui_url";
-  private static final String GLOBAL_NOTIFIER_FACTORY_CLASS_KEY = "global_notifier_factory";
-  private static final String GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY = "global_notifier_configuration";
+  private static final String NOTIFIERS_CONFIGURATIONS_SECTION_KEY = "notifier_configurations";
+  private static final String GLOBAL_NOTIFIER_CONFIGURATIONS_KEY = "global_notifier_configurations";
+  private static final String RING_GROUP_NOTIFIERS_CONFIGURATIONS_SECTION_KEY = "ring_group_notifier_configurations";
+  private static final String NOTIFIER_FACTORY_CLASS_KEY = "factory";
+  private static final String NOTIFIER_CONFIGURATION_SECTION_KEY = "configuration";
 
-  private static final String RING_GROUP_NOTIFIERS_SECTION_KEY = "ring_group_notifiers";
-  private static final String RING_GROUP_NOTIFIER_FACTORY_CLASS_KEY = "factory";
-  private static final String RING_GROUP_NOTIFIER_CONFIGURATION_SECTION_KEY = "configuration";
 
-  private final Map<RingGroup, Notifier> notifiers = new HashMap<RingGroup, Notifier>();
-  private final Map<RingGroup, NotifierFactory> notifierFactories = new HashMap<RingGroup, NotifierFactory>();
-  private Notifier globalNotifier;
-  private NotifierFactory globalNotifierFactory;
+  private final Map<String, NotifierFactory> notifierConfigurationNameToNotifierFactory = new HashMap<String, NotifierFactory>();
+  private final Map<RingGroup, List<Notifier>> ringGroupToNotifiers = new HashMap<RingGroup, List<Notifier>>();
+  private List<Notifier> globalNotifiers;
 
   public YamlMonitorConfigurator(String configurationPath) throws FileNotFoundException, InvalidConfigurationException {
     super(configurationPath);
@@ -50,48 +51,65 @@ public class YamlMonitorConfigurator extends YamlConfigurator implements Monitor
   protected void validate() throws InvalidConfigurationException {
     getRequiredSection(MONITOR_SECTION_KEY);
     getRequiredString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY);
-    getRequiredString(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_FACTORY_CLASS_KEY);
-    getRequiredSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY);
-    getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY);
+    getRequiredSection(MONITOR_SECTION_KEY, NOTIFIERS_CONFIGURATIONS_SECTION_KEY);
+    getRequiredStringList(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATIONS_KEY);
+    getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_CONFIGURATIONS_SECTION_KEY);
   }
 
   @Override
-  public Notifier getGlobalNotifier() throws InvalidConfigurationException {
-    if (globalNotifier == null) {
-      if (globalNotifierFactory == null) {
-        globalNotifierFactory =
-            createNotifierFactory(getString(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_FACTORY_CLASS_KEY));
-      }
-      Map<String, Object> configuration = getSection(MONITOR_SECTION_KEY, GLOBAL_NOTIFIER_CONFIGURATION_SECTION_KEY);
-      globalNotifierFactory.validate(configuration);
-      globalNotifier = globalNotifierFactory.createNotifier(configuration, "Monitor",
-          getString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY));
+  public List<Notifier> getGlobalNotifiers() throws InvalidConfigurationException {
+    if (globalNotifiers == null) {
+      List<String> notifierConfigurationNames;
+      notifierConfigurationNames = getRequiredStringList(MONITOR_SECTION_KEY,
+          GLOBAL_NOTIFIER_CONFIGURATIONS_KEY);
+      globalNotifiers = createNotifiers(notifierConfigurationNames, "Monitor");
     }
-    return globalNotifier;
+    return globalNotifiers;
+
   }
 
   @Override
-  public Notifier getRingGroupNotifier(RingGroup ringGroup) throws InvalidConfigurationException {
-    Notifier notifier = notifiers.get(ringGroup);
-    if (notifier == null) {
-      NotifierFactory notifierFactory = notifierFactories.get(ringGroup);
-      if (notifierFactory == null) {
-        String notifierClassName = getRequiredString(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY,
-            ringGroup.getName(), RING_GROUP_NOTIFIER_FACTORY_CLASS_KEY);
-        notifierFactory = createNotifierFactory(notifierClassName);
-        notifierFactories.put(ringGroup, notifierFactory);
-      }
-      Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY, RING_GROUP_NOTIFIERS_SECTION_KEY,
-          ringGroup.getName(), RING_GROUP_NOTIFIER_CONFIGURATION_SECTION_KEY);
+  public List<Notifier> getRingGroupNotifiers(RingGroup ringGroup) throws InvalidConfigurationException {
+    List<Notifier> notifiers = ringGroupToNotifiers.get(ringGroup);
+    if (notifiers == null) {
+      List<String> notifierConfigurationNames;
+      notifierConfigurationNames = getRequiredStringList(MONITOR_SECTION_KEY,
+          RING_GROUP_NOTIFIERS_CONFIGURATIONS_SECTION_KEY, ringGroup.getName());
+      notifiers = createNotifiers(notifierConfigurationNames, ringGroup.getName());
+      ringGroupToNotifiers.put(ringGroup, notifiers);
+    }
+    return notifiers;
+  }
+
+  private List<Notifier> createNotifiers(List<String> notifierConfigurationNames, String notifierName) throws InvalidConfigurationException {
+    List<Notifier> notifiers = new ArrayList<Notifier>();
+    for (String notifierConfigurationName : notifierConfigurationNames) {
+      NotifierFactory notifierFactory = getNotifierFactory(notifierConfigurationName);
+      // Get configuration
+      Map<String, Object> configuration = getRequiredSection(MONITOR_SECTION_KEY,
+          NOTIFIERS_CONFIGURATIONS_SECTION_KEY,
+          notifierConfigurationName, NOTIFIER_CONFIGURATION_SECTION_KEY);
       notifierFactory.validate(configuration);
-      notifier = notifierFactory.createNotifier(configuration, ringGroup.getName(),
+      // Create notifier
+      Notifier notifier = notifierFactory.createNotifier(configuration, notifierName,
           getString(MONITOR_SECTION_KEY, WEB_UI_URL_KEY));
-      notifiers.put(ringGroup, notifier);
+      notifiers.add(notifier);
     }
-    return notifier;
+    return notifiers;
   }
 
-  private NotifierFactory createNotifierFactory(String notifierFactoryClassName) {
+  private NotifierFactory getNotifierFactory(String notifierConfigurationName) throws InvalidConfigurationException {
+    NotifierFactory notifierFactory = notifierConfigurationNameToNotifierFactory.get(notifierConfigurationName);
+    if (notifierFactory == null) {
+      notifierFactory = createNotifierFactory(notifierConfigurationName);
+      notifierConfigurationNameToNotifierFactory.put(notifierConfigurationName, notifierFactory);
+    }
+    return notifierFactory;
+  }
+
+  private NotifierFactory createNotifierFactory(String notifierConfigurationName) throws InvalidConfigurationException {
+    String notifierFactoryClassName = getRequiredString(MONITOR_SECTION_KEY, NOTIFIERS_CONFIGURATIONS_SECTION_KEY,
+        notifierConfigurationName, NOTIFIER_FACTORY_CLASS_KEY);
     Class notifierFactoryClass;
     NotifierFactory notifierFactory;
     try {

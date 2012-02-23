@@ -120,7 +120,7 @@ public class EmailSummaryNotifier implements Notifier {
   }
 
   @Override
-  public void notify(Notification notification) {
+  public void doNotify(Notification notification) {
     synchronized (notifications) {
       notifications.add(notification);
     }

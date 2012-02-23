@@ -34,7 +34,7 @@ public class MockNotifier implements Notifier {
   }
 
   @Override
-  public void notify(final Notification notification) {
+  public void doNotify(final Notification notification) {
     notifications.add(notification);
   }
 
