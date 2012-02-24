@@ -10,49 +10,31 @@ import java.util.Map;
 public class SQLNotifierFactory extends AbstractNotifierFactory implements NotifierFactory {
   private static Logger LOG = Logger.getLogger(SQLNotifierFactory.class);
 
-  private static final String SQL_CONFIGURATION_FACTORY = "sql_configuration_factory";
-  private static final String SQL_CONFIGURATION = "sql_configuration";
+  protected static final String DRIVER = "driver";
+  protected static final String CONNECTION_URL = "connection_url";
+  protected static final String USERNAME = "username";
+  protected static final String PASSWORD = "password";
+  protected static final String TARGET_VERSION_NOTIFICATIONS_TABLE = "target_version_notifications_table";
 
   @Override
   public void validate(Map<String, Object> configuration) throws InvalidConfigurationException {
-    getRequiredString(configuration, SQL_CONFIGURATION_FACTORY);
-    getRequiredString(configuration, SQL_CONFIGURATION);
+    getRequiredString(configuration, DRIVER);
+    getRequiredString(configuration, CONNECTION_URL);
+    getRequiredString(configuration, USERNAME);
+    getRequiredString(configuration, PASSWORD);
+    getRequiredString(configuration, TARGET_VERSION_NOTIFICATIONS_TABLE);
   }
 
   @Override
   public SQLNotifier createNotifier(Map<String, Object> configuration, String name, String webUiUrl) {
-    String factoryClassName = getString(configuration, SQL_CONFIGURATION_FACTORY);
-    ISQLNotifierConfigurationFactory configurationFactory = getConfigurationFactory(factoryClassName);
+    String driver = getString(configuration, DRIVER);
+    String connectionUrl = getString(configuration, CONNECTION_URL);
+    String username = getString(configuration, USERNAME);
+    String password = getString(configuration, PASSWORD);
+    String targetVersionNotificationsTable = getString(configuration, TARGET_VERSION_NOTIFICATIONS_TABLE);
 
-    try {
-      if (!(configuration.get(SQL_CONFIGURATION) instanceof Map)) {
-        throw new InvalidConfigurationException("Invalid configuration for SQL notifier");
-      }
-      configuration = (Map<String, Object>) configuration.get(SQL_CONFIGURATION);
-      configurationFactory.validate(configuration);
-      ISQLNotifierConfiguration notifierConfiguration = configurationFactory.createNotifierConfiguration(configuration);
-      if (notifierConfiguration == null) {
-        throw new InvalidConfigurationException("Invalid configuration for SQL notifier");
-      }
-      return new SQLNotifier(notifierConfiguration);
-    } catch (InvalidConfigurationException e) {
-      throw new RuntimeException("Failed to create sql notifier", e);
-    }
+    ISQLNotifierConfiguration notifierConfiguration = new SQLNotifierConfiguration(driver, connectionUrl, username, password, targetVersionNotificationsTable);
+    return new SQLNotifier(notifierConfiguration);
   }
 
-  private ISQLNotifierConfigurationFactory getConfigurationFactory(String factoryClassName) {
-    Class configurationFactoryClass;
-    ISQLNotifierConfigurationFactory configurationFactory;
-    try {
-      configurationFactoryClass = Class.forName(factoryClassName);
-      configurationFactory = (ISQLNotifierConfigurationFactory) configurationFactoryClass.newInstance();
-    } catch (ClassNotFoundException e) {
-      throw new RuntimeException("Failed to find notifier configuration factory class: " + factoryClassName, e);
-    } catch (InstantiationException e) {
-      throw new RuntimeException("Failed to instantiate notifier configuration factory.", e);
-    } catch (IllegalAccessException e) {
-      throw new RuntimeException("Failed to instantiate notifier configuration factory.", e);
-    }
-    return configurationFactory;
-  }
 }
