@@ -14,10 +14,13 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.monitor.notifier;
+package com.rapleaf.hank.monitor.notifier.email;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.monitor.notification.EmailNotificationFormatter;
+import com.rapleaf.hank.monitor.notifier.AbstractNotifierFactory;
+import com.rapleaf.hank.monitor.notifier.Notifier;
+import com.rapleaf.hank.monitor.notifier.NotifierFactory;
 
 import java.util.HashSet;
 import java.util.Map;

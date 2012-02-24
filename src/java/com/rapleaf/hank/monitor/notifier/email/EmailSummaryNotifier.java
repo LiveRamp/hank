@@ -14,9 +14,11 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.monitor.notifier;
+package com.rapleaf.hank.monitor.notifier.email;
 
 import com.rapleaf.hank.monitor.notification.NotificationFormatter;
+import com.rapleaf.hank.monitor.notifier.Notification;
+import com.rapleaf.hank.monitor.notifier.Notifier;
 import org.apache.log4j.Logger;
 
 import javax.mail.Message;

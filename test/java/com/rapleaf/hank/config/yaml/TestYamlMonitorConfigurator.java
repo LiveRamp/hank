@@ -2,7 +2,7 @@ package com.rapleaf.hank.config.yaml;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.monitor.notifier.MockNotifier;
+import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 
 import java.io.FileWriter;
@@ -21,12 +21,12 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     pw.println("  notifier_configurations:");
 
     pw.println("    notifier1:");
-    pw.println("      factory: com.rapleaf.hank.monitor.notifier.MockNotifierFactory");
+    pw.println("      factory: com.rapleaf.hank.monitor.notifier.mock.MockNotifierFactory");
     pw.println("      configuration:");
     pw.println("        b: b");
 
     pw.println("    notifier2:");
-    pw.println("      factory: com.rapleaf.hank.monitor.notifier.MockNotifierFactory");
+    pw.println("      factory: com.rapleaf.hank.monitor.notifier.mock.MockNotifierFactory");
     pw.println("      configuration:");
     pw.println("        c: c");
 

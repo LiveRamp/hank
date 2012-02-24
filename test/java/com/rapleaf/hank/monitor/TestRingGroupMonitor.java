@@ -21,7 +21,7 @@ import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
-import com.rapleaf.hank.monitor.notifier.MockNotifier;
+import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 

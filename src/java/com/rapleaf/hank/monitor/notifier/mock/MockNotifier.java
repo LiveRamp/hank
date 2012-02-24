@@ -14,7 +14,10 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.monitor.notifier;
+package com.rapleaf.hank.monitor.notifier.mock;
+
+import com.rapleaf.hank.monitor.notifier.Notification;
+import com.rapleaf.hank.monitor.notifier.Notifier;
 
 import java.util.ArrayList;
 import java.util.List;
