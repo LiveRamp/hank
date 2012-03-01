@@ -24,6 +24,7 @@ import com.rapleaf.hank.monitor.notification.StringNotification;
 import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.util.LocalHostUtils;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
@@ -32,6 +33,8 @@ import java.util.Collection;
 import java.util.List;
 
 public class Monitor {
+
+  private static final Logger LOG = Logger.getLogger(Monitor.class);
 
   private final Coordinator coordinator;
   private final List<Notifier> globalNotifiers;
@@ -64,8 +67,9 @@ public class Monitor {
         ringGroupNotifiers.addAll(notifiers);
         ringGroupMonitors.add(new RingGroupMonitor(ringGroup, notifiers));
       } catch (InvalidConfigurationException e) {
+        LOG.error("Invalid configuration for Ring Group " + ringGroup.getName(), e);
         notifyGlobalNotifiers(new StringNotification("Ignoring Ring Group " + ringGroup.getName()
-            + " since the corresponding configuration was not found. It will not be monitored."));
+            + " since the corresponding configuration was invalid. It will not be monitored."));
       }
     }
   }
