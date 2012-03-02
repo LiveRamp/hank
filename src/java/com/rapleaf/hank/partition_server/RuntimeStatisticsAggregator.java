@@ -16,7 +16,11 @@
 
 package com.rapleaf.hank.partition_server;
 
+import org.apache.log4j.Logger;
+
 public class RuntimeStatisticsAggregator {
+
+  private static Logger LOG = Logger.getLogger(RuntimeStatisticsAggregator.class);
 
   private double throughputTotal;
   private double responseDataThroughputTotal;
@@ -96,6 +100,7 @@ public class RuntimeStatisticsAggregator {
     String[] tokens = str.split(" ");
     // Detect mal-formatted statistics and exit early
     if (tokens.length != 17) {
+      LOG.error("Failed to parse runtime statistics aggregator with string: " + str);
       return new RuntimeStatisticsAggregator();
     }
     double throughputTotal = Double.parseDouble(tokens[0]);
