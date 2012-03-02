@@ -40,7 +40,10 @@ public class PartitionAccessor {
   private final HostDomainPartition partition;
   private final Reader reader;
   private final HankTimer windowTimer = new HankTimer();
-  private final AtomicLongCollection numRequestsAndHitsInWindow;
+  //0: num requests
+  //1: num hits
+  //2: responses data num bytes
+  private final AtomicLongCollection countersWindow;
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
     if (reader == null) {
@@ -49,8 +52,8 @@ public class PartitionAccessor {
     this.partition = partition;
     this.reader = reader;
     windowTimer.restart();
-    numRequestsAndHitsInWindow = new AtomicLongCollection(2);
-    numRequestsAndHitsInWindow.set(0, 0);
+    countersWindow = new AtomicLongCollection(3);
+    countersWindow.set(0, 0, 0);
   }
 
   public HostDomainPartition getHostDomainPartition() {
@@ -62,12 +65,12 @@ public class PartitionAccessor {
     LOG.trace("Partition GET");
     reader.get(key, result);
     if (result.isFound()) {
-      // Increment both num requests and num hits
-      numRequestsAndHitsInWindow.increment(1, 1);
+      // Increment both num requests and num hits and responses data num bytes
+      countersWindow.increment(1, 1, result.getBuffer().remaining());
       return HankResponse.value(result.getBuffer());
     } else {
       // Increment only num requests
-      numRequestsAndHitsInWindow.increment(1, 0);
+      countersWindow.increment(1, 0, 0);
       return NOT_FOUND;
     }
   }
@@ -77,14 +80,17 @@ public class PartitionAccessor {
     long windowDurationNanos = windowTimer.getDuration();
     windowTimer.restart();
     // Get atomic counters
-    long[] counters = numRequestsAndHitsInWindow.getAsArrayAndSet(0, 0);
+    long[] counters = countersWindow.getAsArrayAndSet(0, 0, 0);
     long numRequestsInWindow = counters[0];
     long numHitsInWindow = counters[1];
+    long responsesNumBytesInWindow = counters[2];
     double throughput = 0;
+    double responseDataThroughput = 0;
     if (windowDurationNanos != 0) {
       throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
+      responseDataThroughput = responsesNumBytesInWindow / (windowDurationNanos / 1000000000d);
     }
-    return new PartitionAccessorRuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput);
+    return new PartitionAccessorRuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput, responseDataThroughput);
   }
 
   public void shutDown() {

@@ -81,6 +81,7 @@
       <td>Throughput:</td>
       <td>
       <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps
+      (<%= UiUtils.formatDataThroughput(runtimeStatisticsForHost.getResponseDataThroughput()) %>)
       </td>
       </tr>
 
@@ -157,7 +158,9 @@
    %>
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
+      (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)
+      </td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + host.getAddress(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     </tr>

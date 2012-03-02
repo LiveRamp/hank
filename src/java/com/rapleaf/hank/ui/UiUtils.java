@@ -2,6 +2,7 @@ package com.rapleaf.hank.ui;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
+import org.apache.commons.io.FileUtils;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -199,7 +200,10 @@ public class UiUtils {
       result.append("s");
 
       return result.toString();
-
     }
+  }
+
+  public static String formatDataThroughput(double bytesThrougput) {
+    return FileUtils.byteCountToDisplaySize(Math.round(bytesThrougput)).toLowerCase() + "/s";
   }
 }

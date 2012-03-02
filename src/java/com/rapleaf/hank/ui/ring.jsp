@@ -65,6 +65,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td>Throughput:</td>
       <td>
       <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps
+      (<%= UiUtils.formatDataThroughput(runtimeStatisticsForRing.getResponseDataThroughput()) %>)
       </td>
       </tr>
 
@@ -139,7 +140,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
    %>
     <tr>
       <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps</td>
+      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
+      (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)</td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName() + " Ring " + ring.getRingNumber(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
     </tr>
@@ -219,7 +221,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           Rings.computeRuntimeStatisticsForHost(runtimeStatistics, host);
       %>
 
-      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps </td>
+      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps
+      (<%= UiUtils.formatDataThroughput(runtimeStatisticsForHost.getResponseDataThroughput()) %>)</td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency on " + host.getAddress(), runtimeStatisticsForHost.getGetRequestsPopulationStatistics()) %></td>
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>% </td>
 
