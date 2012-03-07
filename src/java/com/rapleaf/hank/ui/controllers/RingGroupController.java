@@ -105,7 +105,11 @@ public class RingGroupController extends Controller {
   protected void doSetRingGroupConductorMode(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     String encodedRingGroupName = req.getParameter("g");
     RingGroup ringGroup = coordinator.getRingGroup(URLEnc.decode(encodedRingGroupName));
-    ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
+    // Only change the mode if it's not OFFLINE
+    if (ringGroup.getRingGroupConductorMode() != null &&
+        ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.OFFLINE) {
+      ringGroup.setRingGroupConductorMode(RingGroupConductorMode.valueOf(URLEnc.decode(req.getParameter("mode"))));
+    }
     resp.sendRedirect("/ring_group.jsp?name=" + encodedRingGroupName);
   }
 
