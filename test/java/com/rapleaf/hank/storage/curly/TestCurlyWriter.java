@@ -15,16 +15,18 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
-
 import com.rapleaf.hank.storage.map.MapWriter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 public class TestCurlyWriter extends AbstractCurlyTestBase {
+
   public void testWrite() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
     MapWriter keyfileWriter = new MapWriter();
-    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3);
+    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1);
 
     writer.write(KEY1, VALUE1);
     writer.write(KEY2, VALUE2);
@@ -45,5 +47,31 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
 
     // verify that the record stream looks as expected
     assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE), ByteBuffer.wrap(s.toByteArray()));
+  }
+
+  public void testValueFolding() throws IOException {
+    ByteArrayOutputStream s = new ByteArrayOutputStream();
+    MapWriter keyfileWriter = new MapWriter();
+    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, 2);
+
+    writer.write(KEY1, VALUE1);
+    writer.write(KEY2, VALUE2);
+    writer.write(KEY3, VALUE1);
+    assertTrue(writer.getNumBytesWritten() > 0);
+    assertEquals(3, writer.getNumRecordsWritten());
+    writer.close();
+
+    // verify the keyfile looks as expected
+    assertTrue(keyfileWriter.entries.containsKey(KEY1));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0}), keyfileWriter.entries.get(KEY1));
+    assertTrue(keyfileWriter.entries.containsKey(KEY2));
+    assertEquals(ByteBuffer.wrap(new byte[]{5, 0, 0}), keyfileWriter.entries.get(KEY2));
+    assertTrue(keyfileWriter.entries.containsKey(KEY3));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0}), keyfileWriter.entries.get(KEY3));
+
+    assertFalse(keyfileWriter.entries.containsKey(KEY4));
+
+    // verify that the record stream looks as expected
+    assertEquals(ByteBuffer.wrap(EXPECTED_FOLDED_RECORD_FILE), ByteBuffer.wrap(s.toByteArray()));
   }
 }

@@ -15,9 +15,9 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.nio.ByteBuffer;
-
 import junit.framework.TestCase;
+
+import java.nio.ByteBuffer;
 
 public abstract class AbstractCurlyTestBase extends TestCase {
   protected static final ByteBuffer KEY1 = ByteBuffer.wrap(new byte[]{1, 2, 3, 4});
@@ -29,9 +29,14 @@ public abstract class AbstractCurlyTestBase extends TestCase {
 
   protected static final ByteBuffer KEY4 = ByteBuffer.wrap(new byte[]{9, 9, 9, 9});
 
-  protected static final byte[] EXPECTED_RECORD_FILE = new byte[] {
-    4, 4, 3, 2, 1,
-    4, 8, 7, 6, 5,
-    4, 12, 11, 10, 9
+  protected static final byte[] EXPECTED_RECORD_FILE = new byte[]{
+      4, 4, 3, 2, 1,
+      4, 8, 7, 6, 5,
+      4, 12, 11, 10, 9
+  };
+
+  protected static final byte[] EXPECTED_FOLDED_RECORD_FILE = new byte[]{
+      4, 4, 3, 2, 1,
+      4, 8, 7, 6, 5
   };
 }
