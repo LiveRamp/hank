@@ -390,6 +390,8 @@ public class Curly implements StorageEngine {
         + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
         + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
         + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
+        + ", valueFoldingCacheSize=" + valueFoldingCacheSize
         + "]";
   }
 

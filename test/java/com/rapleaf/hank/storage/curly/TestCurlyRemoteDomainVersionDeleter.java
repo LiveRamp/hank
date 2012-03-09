@@ -5,7 +5,10 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 
 import java.io.File;
@@ -20,7 +23,7 @@ public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
     final Curly storageEngine = new Curly(1, new Murmur64Hasher(), 100000, 1, 1000, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
         new MockDomain("domain", 0, 1, null, null, null, null),
-        0);
+        0, -1);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalDiskOutputStreamFactory(localDiskRoot), 0);
     writer.write(key, value);

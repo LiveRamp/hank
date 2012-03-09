@@ -298,10 +298,15 @@ public class Cueball implements StorageEngine {
   @Override
   public String toString() {
     return "Cueball [compressionCodecClass=" + compressionCodecClass
-        + ", domainName=" + domain.getName() + ", fileOpsFactory=" + fileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits + ", hasher=" + hasher
-        + ", keyHashSize=" + keyHashSize + ", remoteDomainRoot="
-        + remoteDomainRoot + ", valueSize=" + valueSize + "]";
+        + ", domainName=" + domain.getName()
+        + ", fileOpsFactory=" + fileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits
+        + ", hasher=" + hasher
+        + ", keyHashSize=" + keyHashSize
+        + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", valueSize=" + valueSize
+        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
+        + "]";
   }
 
   @Override
