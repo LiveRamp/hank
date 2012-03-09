@@ -6,11 +6,7 @@ import com.rapleaf.hank.monitor.notifier.Notifier;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
+import java.sql.*;
 
 public class SQLNotifier implements Notifier {
   private static Logger LOG = Logger.getLogger(SQLNotifier.class);
@@ -46,10 +42,12 @@ public class SQLNotifier implements Notifier {
 
   @Override
   public void stop() {
-    try {
-      connection.close();
-    } catch (SQLException e) {
-      LOG.warn("Cannot close database", e);
+    if (connection != null) {
+      try {
+        connection.close();
+      } catch (SQLException e) {
+        LOG.warn("Cannot close database", e);
+      }
     }
   }
 
