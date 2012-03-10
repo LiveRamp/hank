@@ -123,9 +123,9 @@ public abstract class DomainBuilderAbstractOutputFormat
     }
 
     private void setNewPartitionWriter(int partition) throws IOException {
-      LOG.info("Setting up new writer for partition " + partition);
       // First, close current writer
       closeCurrentWriterIfNeeded();
+      LOG.info("Setting up new writer for partition " + partition);
       // Check for existing partitions
       if (writtenPartitions.contains(partition)) {
         throw new RuntimeException("Partition " + partition
@@ -145,6 +145,7 @@ public abstract class DomainBuilderAbstractOutputFormat
         domainVersion.addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
             writer.getNumRecordsWritten());
         writer.close();
+        LOG.info("Closed current partition writer: " + writer.toString());
       }
     }
   }

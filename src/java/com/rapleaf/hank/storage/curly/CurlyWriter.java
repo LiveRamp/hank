@@ -29,10 +29,12 @@ public class CurlyWriter implements Writer {
 
   private static final int MURMUR_64_SEED = 1395834302;
 
+  private long currentRecordOffset;
+  private long numFoldedValues = 0;
+  private long numFoldedBytesApproximate = 0;
+
   private final Writer keyfileWriter;
   private final OutputStream recordFileStream;
-
-  private long currentRecordOffset;
   private final long maxOffset;
   private final ByteBuffer valueOffsetBuffer;
   private final byte[] valueLengthBuffer = new byte[5];
@@ -88,6 +90,8 @@ public class CurlyWriter implements Writer {
     if (cachedValueRecordEncodedOffset != null) {
       // Write cached offset in key file and nothing else needs to be done
       keyfileWriter.write(key, cachedValueRecordEncodedOffset);
+      numFoldedValues += 1;
+      numFoldedBytesApproximate += value.remaining();
     } else {
       EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array());
       // Write current offset in key file
@@ -115,5 +119,15 @@ public class CurlyWriter implements Writer {
   @Override
   public long getNumRecordsWritten() {
     return keyfileWriter.getNumRecordsWritten();
+  }
+
+  @Override
+  public String toString() {
+    return "CurlyWriter [keyFileWriter=" + keyfileWriter.toString()
+        + ", numRecordsWritten=" + getNumRecordsWritten()
+        + ", numBytesWritten=" + getNumBytesWritten()
+        + ", numFoldedValues=" + numFoldedValues
+        + ", numFoldedBytesApproximate=" + numFoldedBytesApproximate
+        + "]";
   }
 }

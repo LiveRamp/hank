@@ -51,8 +51,8 @@ public class CueballWriter implements Writer {
   private int uncompressedOffset = 0;
   private int numEntriesInBlock = 0;
 
-  private long bytesWritten = 0;
-  private long recordsWritten = 0;
+  private long numBytesWritten = 0;
+  private long numRecordsWritten = 0;
   private long maxUncompressedBlockSize;
   private long maxCompressedBlockSize;
 
@@ -113,7 +113,7 @@ public class CueballWriter implements Writer {
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
-    recordsWritten++;
+    numRecordsWritten++;
     // Save current key and key hash
     System.arraycopy(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     previousKey = Bytes.byteBufferDeepCopy(key, previousKey);
@@ -133,7 +133,7 @@ public class CueballWriter implements Writer {
       lastHashPrefix = thisPrefix;
 
       // record the start index of the next block
-      hashIndex[thisPrefix] = bytesWritten;
+      hashIndex[thisPrefix] = numBytesWritten;
     }
 
     // at this point, we're guaranteed to be ready to write to the buffer.
@@ -173,7 +173,7 @@ public class CueballWriter implements Writer {
     int compressedSize = compressionCodec.compress(uncompressedBuffer, 0, uncompressedOffset, compressedBuffer, 0);
     // write the compressed block to the data stream
     stream.write(compressedBuffer, 0, compressedSize);
-    bytesWritten += compressedSize;
+    numBytesWritten += compressedSize;
 
     // keep track of the max block sizes
     if (uncompressedOffset > maxUncompressedBlockSize) {
@@ -208,7 +208,7 @@ public class CueballWriter implements Writer {
 
     stream.write(footer);
 
-    bytesWritten += footer.length;
+    numBytesWritten += footer.length;
 
     // flush everything and close
     stream.flush();
@@ -217,11 +217,19 @@ public class CueballWriter implements Writer {
 
   @Override
   public long getNumBytesWritten() {
-    return bytesWritten;
+    return numBytesWritten;
   }
 
   @Override
   public long getNumRecordsWritten() {
-    return recordsWritten;
+    return numRecordsWritten;
+  }
+
+  @Override
+  public String toString() {
+    return "CurlyWriter ["
+        + ", numRecordsWritten=" + getNumRecordsWritten()
+        + ", numBytesWritten=" + getNumBytesWritten()
+        + "]";
   }
 }
