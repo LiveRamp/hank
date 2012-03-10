@@ -111,7 +111,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     int minNumRingsFullyServing = ringGroup.getRings().size() - 1;
 
     // Determine ring statuses (serving and / or up-to-date)
-    for (Ring ring : ringGroup.getRings()) {
+    for (Ring ring : ringGroup.getRingsSorted()) {
       boolean isAssigned = partitionAssigner.isAssigned(ring, targetVersion);
       boolean isUpToDate = isUpToDate(ring, targetVersion);
       boolean isFullyServing = isFullyServing(ring);
