@@ -144,8 +144,8 @@ public abstract class DomainBuilderAbstractOutputFormat
       if (writer != null) {
         domainVersion.addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
             writer.getNumRecordsWritten());
+        LOG.info("Closing current partition writer: " + writer.toString());
         writer.close();
-        LOG.info("Closed current partition writer: " + writer.toString());
       }
     }
   }
