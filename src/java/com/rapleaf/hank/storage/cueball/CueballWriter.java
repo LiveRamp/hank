@@ -228,7 +228,7 @@ public class CueballWriter implements Writer {
   @Override
   public String toString() {
     return "CurlyWriter ["
-        + ", numRecordsWritten=" + getNumRecordsWritten()
+        + "numRecordsWritten=" + getNumRecordsWritten()
         + ", numBytesWritten=" + getNumBytesWritten()
         + "]";
   }
