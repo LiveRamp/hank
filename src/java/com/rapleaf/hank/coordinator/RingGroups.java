@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 import org.apache.log4j.Logger;
 
@@ -172,5 +173,44 @@ public final class RingGroups {
       }
     }
     return result;
+  }
+
+  public static Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>>
+  computeFilesystemStatistics(RingGroup ringGroup) throws IOException {
+    Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> result =
+        new HashMap<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>>();
+    for (Ring ring : ringGroup.getRings()) {
+      result.put(ring, Rings.computeFilesystemStatistics(ring));
+    }
+    return result;
+  }
+
+  public static FilesystemStatisticsAggregator
+  computeFilesystemStatisticsForRingGroup(
+      Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> filesystemStatistics) {
+    FilesystemStatisticsAggregator result = new FilesystemStatisticsAggregator();
+    for (Map.Entry<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> entry1 : filesystemStatistics.entrySet()) {
+      for (Map.Entry<Host, Map<String, FilesystemStatisticsAggregator>> entry2 : entry1.getValue().entrySet()) {
+        Set<String> hostAndFilesystemRootsAdded = new HashSet<String>();
+        for (Map.Entry<String, FilesystemStatisticsAggregator> entry3 : entry2.getValue().entrySet()) {
+          String hostAndFilesystemRoot = entry2.getKey().getAddress().getHostName() + entry3.getKey();
+          if (!hostAndFilesystemRootsAdded.contains(hostAndFilesystemRoot)) {
+            hostAndFilesystemRootsAdded.add(hostAndFilesystemRoot);
+            result.add(entry3.getValue());
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  public static FilesystemStatisticsAggregator
+  computeFilesystemStatisticsForRing(
+      Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> filesystemStatistics, Ring ring) {
+    if (filesystemStatistics.containsKey(ring)) {
+      return Rings.computeFilesystemStatisticsForRing(filesystemStatistics.get(ring));
+    } else {
+      return new FilesystemStatisticsAggregator();
+    }
   }
 }

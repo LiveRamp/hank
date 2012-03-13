@@ -7,10 +7,7 @@ import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
-import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
-import com.rapleaf.hank.partition_server.PartitionServerHandler;
-import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
-import com.rapleaf.hank.partition_server.UpdateManager;
+import com.rapleaf.hank.partition_server.*;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
 
@@ -56,6 +53,10 @@ public class WebUiServerTester extends ZkTestCase {
           }
         }
         PartitionServerHandler.setRuntimeStatistics(host, runtimeStatistics);
+        Map<String, FilesystemStatisticsAggregator> filesystemStatistics = new HashMap<String, FilesystemStatisticsAggregator>();
+        filesystemStatistics.put("/", new FilesystemStatisticsAggregator(4 * (long) Math.pow(1020, 4), 1 * (long) Math.pow(1023, 4)));
+        filesystemStatistics.put("/data", new FilesystemStatisticsAggregator(6 * (long) Math.pow(1021, 4), 3 * (long) Math.pow(1020, 4)));
+        PartitionServerHandler.setFilesystemStatistics(host, filesystemStatistics);
       }
     }
 

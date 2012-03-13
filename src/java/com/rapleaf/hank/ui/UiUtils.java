@@ -2,10 +2,11 @@ package com.rapleaf.hank.ui;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
-import org.apache.commons.io.FileUtils;
+import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
 
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Set;
@@ -204,6 +205,39 @@ public class UiUtils {
   }
 
   public static String formatDataThroughput(double bytesThrougput) {
-    return FileUtils.byteCountToDisplaySize(Math.round(bytesThrougput)).toLowerCase() + "/s";
+    return formatNumBytes(Math.round(bytesThrougput)).toLowerCase() + "/s";
+  }
+
+  public static String formatFilesystemStatistics(FilesystemStatisticsAggregator filesystemStatistics) {
+    return
+        formatDouble(filesystemStatistics.getUsedPercentage()) + "% used, free: "
+            + UiUtils.formatNumBytes(filesystemStatistics.getUsableSpace())
+            + ", total: " + UiUtils.formatNumBytes(filesystemStatistics.getTotalSpace())
+        ;
+  }
+
+  public static String formatNumBytes(long numBytes) {
+    long kilo = 1 << 10;
+    long mega = kilo << 10;
+    long giga = mega << 10;
+    long tera = giga << 10;
+    long peta = tera << 10;
+    if (numBytes < kilo) {
+      return numBytes + " B";
+    } else if (numBytes < mega) {
+      return formatDouble((double) numBytes / kilo) + " KB";
+    } else if (numBytes < giga) {
+      return formatDouble((double) numBytes / mega) + " MB";
+    } else if (numBytes < tera) {
+      return formatDouble((double) numBytes / giga) + " GB";
+    } else if (numBytes < peta) {
+      return formatDouble((double) numBytes / tera) + " TB";
+    } else {
+      return formatDouble((double) numBytes / peta) + " PB";
+    }
+  }
+
+  public static String formatDouble(double value) {
+    return new DecimalFormat("#.##").format(value);
   }
 }

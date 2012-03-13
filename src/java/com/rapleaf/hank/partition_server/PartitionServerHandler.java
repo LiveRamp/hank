@@ -26,6 +26,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -39,6 +40,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
+  private final PartitionServerConfigurator configurator;
   private final Host host;
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -56,12 +58,16 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   private final UpdateStatisticsRunnable updateStatisticsRunnable;
   private final Thread updateStatisticsThread;
   private static final int UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
+  private static final int UPDATE_FILESYSTEM_STATISTICS_PERIOD_DEFAULT = 4;
   private static final String RUNTIME_STATISTICS_KEY = "runtime_statistics";
+  private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
   // The coordinator is supplied and not created from the configurator to allow caching
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator,
                                 Coordinator coordinator) throws IOException {
+    this.configurator = configurator;
+
     // Create the GET executor
     getBulkTaskExecutor = new ThreadPoolExecutor(
         configurator.getNumConcurrentGetBulkTasks(),
@@ -183,7 +189,8 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     }
 
     // Start the update statistics thread
-    updateStatisticsRunnable = new UpdateStatisticsRunnable(UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
+    updateStatisticsRunnable = new UpdateStatisticsRunnable(UPDATE_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT,
+        UPDATE_FILESYSTEM_STATISTICS_PERIOD_DEFAULT);
     updateStatisticsThread = new Thread(updateStatisticsRunnable, "Update Statistics");
     updateStatisticsThread.start();
   }
@@ -394,8 +401,77 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     host.setEphemeralStatistic(RUNTIME_STATISTICS_KEY, statistics.toString());
   }
 
-  private void deleteRuntimeStatistics() throws IOException {
+  private void deleteStatistics() throws IOException {
     host.deleteStatistic(RUNTIME_STATISTICS_KEY);
+    host.deleteStatistic(FILESYSTEM_STATISTICS_KEY);
+  }
+
+  public static Map<String, FilesystemStatisticsAggregator> getFilesystemStatistics(Host host) throws IOException {
+    String filesystemsStatistics = host.getStatistic(FILESYSTEM_STATISTICS_KEY);
+
+    if (filesystemsStatistics == null) {
+      return Collections.emptyMap();
+    } else {
+      TreeMap<String, FilesystemStatisticsAggregator> result = new TreeMap<String, FilesystemStatisticsAggregator>();
+      String[] filesystemStatistics = filesystemsStatistics.split("\n");
+      for (String statistics : filesystemStatistics) {
+        if (statistics.length() == 0) {
+          continue;
+        }
+        String[] tokens = statistics.split(" ");
+        String filesystemRoot = tokens[0];
+        long totalSpace = Long.parseLong(tokens[1]);
+        long usableSpace = Long.parseLong(tokens[2]);
+        result.put(filesystemRoot, new FilesystemStatisticsAggregator(totalSpace, usableSpace));
+      }
+      return result;
+    }
+  }
+
+  public static void setFilesystemStatistics(Host host,
+                                             Map<String, FilesystemStatisticsAggregator> filesystemsStatistics) throws IOException {
+    StringBuilder statistics = new StringBuilder();
+    for (Map.Entry<String, FilesystemStatisticsAggregator> entry : filesystemsStatistics.entrySet()) {
+      statistics.append(entry.getKey());
+      statistics.append(' ');
+      statistics.append(entry.getValue().toString());
+      statistics.append('\n');
+    }
+    host.setEphemeralStatistic(FILESYSTEM_STATISTICS_KEY, statistics.toString());
+  }
+
+  private Map<String, FilesystemStatisticsAggregator> getFilesystemStatistics() throws IOException {
+    Map<String, FilesystemStatisticsAggregator> result = new HashMap<String, FilesystemStatisticsAggregator>();
+    for (String filesystemRoot : getUsedFilesystemRoots()) {
+      File filesystemRootFile = new File(filesystemRoot);
+      result.put(filesystemRoot, new FilesystemStatisticsAggregator(filesystemRootFile.getTotalSpace(), filesystemRootFile.getUsableSpace()));
+    }
+    return result;
+  }
+
+  private Set<String> getUsedFilesystemRoots() throws IOException {
+    // Create set of system roots
+    Set<String> filesystemRoots = new HashSet<String>();
+    for (File root : File.listRoots()) {
+      filesystemRoots.add(root.getCanonicalPath());
+    }
+    // Determine set of used roots
+    Set<String> result = new HashSet<String>();
+    for (String dataDirectoryPath : configurator.getDataDirectories()) {
+      String dataDirectoryCanonicalPath = new File(dataDirectoryPath).getCanonicalPath();
+      String bestFilesystemRoot = null;
+      for (String filesystemRoot : filesystemRoots) {
+        if (dataDirectoryCanonicalPath.startsWith(filesystemRoot)
+            && (bestFilesystemRoot == null || bestFilesystemRoot.length() < filesystemRoot.length())) {
+          bestFilesystemRoot = filesystemRoot;
+        }
+      }
+      if (bestFilesystemRoot == null) {
+        throw new RuntimeException("Unable to determine filesystem root for directory: " + dataDirectoryCanonicalPath);
+      }
+      result.add(bestFilesystemRoot);
+    }
+    return result;
   }
 
   /**
@@ -404,14 +480,18 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   private class UpdateStatisticsRunnable implements Runnable {
 
     private final AtomicBoolean cancelled = new AtomicBoolean(false);
+    private long iteration = -1;
     private final int updateStatisticsThreadSleepTimeMS;
+    private final int filesystemStatisticsUpdatePeriod;
 
-    public UpdateStatisticsRunnable(int updateStatisticsThreadSleepTimeMS) {
+    public UpdateStatisticsRunnable(int updateStatisticsThreadSleepTimeMS, int filesystemStatisticsUpdatePeriod) {
       this.updateStatisticsThreadSleepTimeMS = updateStatisticsThreadSleepTimeMS;
+      this.filesystemStatisticsUpdatePeriod = filesystemStatisticsUpdatePeriod;
     }
 
     public void run() {
       while (true) {
+        ++iteration;
         Map<Domain, RuntimeStatisticsAggregator> runtimeStatisticsAggregators
             = new HashMap<Domain, RuntimeStatisticsAggregator>();
         // Compute aggregate partition runtime statistics
@@ -429,6 +509,9 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         // Set statistics
         try {
           setRuntimeStatistics(host, runtimeStatisticsAggregators);
+          if (iteration % filesystemStatisticsUpdatePeriod == 0) {
+            setFilesystemStatistics(host, getFilesystemStatistics());
+          }
         } catch (IOException e) {
           LOG.error("Failed to set runtime statistics", e);
         }
@@ -444,7 +527,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     private void cleanup() {
       try {
-        deleteRuntimeStatistics();
+        deleteStatistics();
       } catch (IOException e) {
         LOG.error("Error while deleting runtime statistics.", e);
         throw new RuntimeException(e);

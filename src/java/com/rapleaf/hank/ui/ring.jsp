@@ -44,6 +44,12 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     RuntimeStatisticsAggregator runtimeStatisticsForRing =
       Rings.computeRuntimeStatisticsForRing(runtimeStatistics);
 
+    Map<Host, Map<String, FilesystemStatisticsAggregator>> filesystemStatistics =
+      Rings.computeFilesystemStatistics(ring);
+
+    FilesystemStatisticsAggregator filesystemStatisticsForRing =
+      Rings.computeFilesystemStatisticsForRing(filesystemStatistics);
+
     DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
 
     long updateETA = Rings.computeUpdateETA(ring);
@@ -88,11 +94,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        ServingStatus uniquePartitionsServingStatus = null;
         if (targetDomainGroupVersion != null) {
           servingStatusAggregator = Rings.computeServingStatusAggregator(ring, targetDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>
@@ -108,18 +112,18 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           </td>
         </tr>
 
-        <tr>
-        <td>Up-to-date & Served (fully)</td>
-          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
-                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
-            <td class='centered complete'>
-          <% } else { %>
-            <td class='centered error'>
-          <% } %>
-          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
-          </td>
-        </tr>
         <% } %>
+
+        <tr>
+        <td>File System</td>
+        <td>
+          <%= UiUtils.formatFilesystemStatistics(filesystemStatisticsForRing) %>
+          <div class='progress-bar'>
+            <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForRing.getUsedPercentage()) %>%'></div>
+          </div>
+        </td>
+        </tr>
+
 
     </table>
 
@@ -177,6 +181,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Latency</th>
       <th>Hit Rate</th>
       <th>Up-to-date & Served</th>
+      <th>File System</th>
     </tr>
     <%
       Collection<Host> hosts = ring.getHostsSorted();
@@ -219,6 +224,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <%
         RuntimeStatisticsAggregator runtimeStatisticsForHost =
           Rings.computeRuntimeStatisticsForHost(runtimeStatistics, host);
+
+        FilesystemStatisticsAggregator filesystemStatisticsForHost =
+          Rings.computeFilesystemStatisticsForHost(filesystemStatistics, host);
       %>
 
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps
@@ -248,6 +256,15 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <% } else { %>
           <td></td>
         <% } %>
+
+      <!-- File system -->
+      <td>
+      <%= UiUtils.formatFilesystemStatistics(filesystemStatisticsForHost) %>
+      <div class='progress-bar'>
+        <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForHost.getUsedPercentage()) %>%'></div>
+      </div>
+      </td>
+
     </tr>
     <%
         }

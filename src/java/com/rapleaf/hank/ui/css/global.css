@@ -156,6 +156,13 @@ table.table-blue td,
   background-color: #8cdbf3;
 }
 
+.progress-bar-filler-used {
+  padding: 0;
+  margin: 0;
+  height: 4px;
+  background-color: #cc0404;
+}
+
 /* Hosts counts */
 .host-total {
   text-align: center;

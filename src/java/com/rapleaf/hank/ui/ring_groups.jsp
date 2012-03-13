@@ -59,7 +59,7 @@
       <th>Latency</th>
       <th>Hit rate</th>
       <th>Up-to-date & Served</th>
-      <th>(fully)</th>
+      <th>File System</th>
     </tr>
     <%
       for (RingGroup ringGroup : coord.getRingGroupsSorted()) {
@@ -139,6 +139,12 @@
           RingGroups.computeRuntimeStatistics(coord, ringGroup);
         RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
           RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
+
+        Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> filesystemStatistics =
+          RingGroups.computeFilesystemStatistics(ringGroup);
+
+        FilesystemStatisticsAggregator filesystemStatisticsForRingGroup =
+          RingGroups.computeFilesystemStatisticsForRingGroup(filesystemStatistics);
         %>
 
         <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps
@@ -151,11 +157,9 @@
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        ServingStatus uniquePartitionsServingStatus = null;
         if (targetDomainGroupVersion != null) {
           servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, targetDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
         <% if (servingStatusAggregator != null) { %>
@@ -167,18 +171,17 @@
           <% } %>
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
-          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
-                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
-            <td class='centered complete'>
-          <% } else { %>
-            <td class='centered error'>
-          <% } %>
-          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
-          </td>
         <% } else { %>
           <td></td>
-          <td></td>
         <% } %>
+
+      <!-- File system -->
+      <td>
+      <%= UiUtils.formatFilesystemStatistics(filesystemStatisticsForRingGroup) %>
+      <div class='progress-bar'>
+        <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForRingGroup.getUsedPercentage()) %>%'></div>
+      </div>
+      </td>
 
       </tr>
       <%

@@ -53,6 +53,12 @@
   RuntimeStatisticsAggregator runtimeStatisticsForHost =
     Hosts.computeRuntimeStatisticsForHost(runtimeStatistics);
 
+  Map<String, FilesystemStatisticsAggregator> filesystemStatistics =
+    Hosts.computeFilesystemStatistics(host);
+
+  FilesystemStatisticsAggregator filesystemStatisticsForHost =
+    Hosts.computeFilesystemStatisticsForHost(filesystemStatistics);
+
   DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
 
   long updateETA = Hosts.computeUpdateETA(host);
@@ -136,6 +142,20 @@
       </form>
       </td>
       </tr>
+
+
+      <% for (Map.Entry<String, FilesystemStatisticsAggregator> entry : filesystemStatistics.entrySet()) { %>
+        <tr>
+        <td><b><%= entry.getKey() %></b></td>
+        <td>
+          <%= UiUtils.formatFilesystemStatistics(entry.getValue()) %>
+          <div class='progress-bar'>
+            <div class='progress-bar-filler-used' style='width: <%= Math.round(entry.getValue().getUsedPercentage()) %>%'></div>
+          </div>
+        </td>
+        </tr>
+      <% } %>
+
     </table>
 
   <!-- Domain specific Runtime Statistics -->

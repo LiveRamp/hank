@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 import com.rapleaf.hank.partition_server.UpdateManager;
 
@@ -183,6 +184,42 @@ public class Rings {
       }
     }
     return result;
+  }
+
+  public static Map<Host, Map<String, FilesystemStatisticsAggregator>>
+  computeFilesystemStatistics(Ring ring) throws IOException {
+    Map<Host, Map<String, FilesystemStatisticsAggregator>> result =
+        new HashMap<Host, Map<String, FilesystemStatisticsAggregator>>();
+    for (Host host : ring.getHosts()) {
+      result.put(host, Hosts.computeFilesystemStatistics(host));
+    }
+    return result;
+  }
+
+  public static FilesystemStatisticsAggregator
+  computeFilesystemStatisticsForRing(Map<Host, Map<String, FilesystemStatisticsAggregator>> filesystemStatistics) {
+    FilesystemStatisticsAggregator result = new FilesystemStatisticsAggregator();
+    Set<String> hostAndFilesystemRootsAdded = new HashSet<String>();
+    for (Map.Entry<Host, Map<String, FilesystemStatisticsAggregator>> entry1 : filesystemStatistics.entrySet()) {
+      for (Map.Entry<String, FilesystemStatisticsAggregator> entry2 : entry1.getValue().entrySet()) {
+        String hostAndFilesystemRoot = entry1.getKey().getAddress().getHostName() + entry2.getKey();
+        if (!hostAndFilesystemRootsAdded.contains(hostAndFilesystemRoot)) {
+          hostAndFilesystemRootsAdded.add(hostAndFilesystemRoot);
+          result.add(entry2.getValue());
+        }
+      }
+    }
+    return result;
+  }
+
+  public static FilesystemStatisticsAggregator
+  computeFilesystemStatisticsForHost(Map<Host, Map<String, FilesystemStatisticsAggregator>> filesystemStatistics,
+                                     Host host) {
+    if (filesystemStatistics.containsKey(host)) {
+      return Hosts.computeFilesystemStatisticsForHost(filesystemStatistics.get(host));
+    } else {
+      return new FilesystemStatisticsAggregator();
+    }
   }
 
   public static long computeUpdateETA(Ring ring) {

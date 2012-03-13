@@ -51,6 +51,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     RuntimeStatisticsAggregator runtimeStatisticsForRingGroup =
       RingGroups.computeRuntimeStatisticsForRingGroup(runtimeStatistics);
 
+    Map<Ring, Map<Host, Map<String, FilesystemStatisticsAggregator>>> filesystemStatistics =
+      RingGroups.computeFilesystemStatistics(ringGroup);
+
+    FilesystemStatisticsAggregator filesystemStatisticsForRingGroup =
+      RingGroups.computeFilesystemStatisticsForRingGroup(filesystemStatistics);
+
     DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
   %>
 
@@ -121,13 +127,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        ServingStatus uniquePartitionsServingStatus = null;
         if (targetDomainGroupVersion != null) {
           servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, targetDomainGroupVersion);
           servingStatus = servingStatusAggregator.computeServingStatus();
-          uniquePartitionsServingStatus = servingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
+
         <% if (servingStatusAggregator != null) { %>
         <tr>
         <td>Up-to-date & Served</td>
@@ -140,19 +145,17 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
         </tr>
+        <% } %>
 
         <tr>
-        <td>Up-to-date & Served (fully)</td>
-          <% if (uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
-                 && uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == uniquePartitionsServingStatus.getNumPartitions()) { %>
-            <td class='centered complete'>
-          <% } else { %>
-            <td class='centered error'>
-          <% } %>
-          <%= uniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= uniquePartitionsServingStatus.getNumPartitions() %>
-          </td>
+        <td>File System</td>
+        <td>
+          <%= UiUtils.formatFilesystemStatistics(filesystemStatisticsForRingGroup) %>
+          <div class='progress-bar'>
+            <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForRingGroup.getUsedPercentage()) %>%'></div>
+          </div>
+        </td>
         </tr>
-        <% } %>
 
       </table>
 
@@ -280,7 +283,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Latency</th>
       <th>Hit Rate</th>
       <th>Up-to-date & Served</th>
-      <th>(fully)</th>
+      <th>File System</th>
     </tr>
 
     <%
@@ -352,6 +355,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <%
         RuntimeStatisticsAggregator runtimeStatisticsForRing =
           RingGroups.computeRuntimeStatisticsForRing(runtimeStatistics, ring);
+
+        FilesystemStatisticsAggregator filesystemStatisticsForRing =
+          RingGroups.computeFilesystemStatisticsForRing(filesystemStatistics, ring);
       %>
 
       <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps
@@ -364,11 +370,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <%
         ServingStatusAggregator ringServingStatusAggregator = null;
         ServingStatus ringServingStatus = null;
-        ServingStatus ringUniquePartitionsServingStatus = null;
         if (targetDomainGroupVersion != null) {
           ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, targetDomainGroupVersion);
           ringServingStatus = ringServingStatusAggregator.computeServingStatus();
-          ringUniquePartitionsServingStatus = ringServingStatusAggregator.computeUniquePartitionsServingStatus(targetDomainGroupVersion);
         }
         %>
         <% if (ringServingStatusAggregator != null) { %>
@@ -380,18 +384,18 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <% } %>
           <%= ringServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringServingStatus.getNumPartitions() %>
           </td>
-          <% if (ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() != 0
-                 && ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() == ringUniquePartitionsServingStatus.getNumPartitions()) { %>
-            <td class='centered complete'>
-          <% } else { %>
-            <td class='centered error'>
-          <% } %>
-          <%= ringUniquePartitionsServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringUniquePartitionsServingStatus.getNumPartitions() %>
-          </td>
         <% } else { %>
           <td></td>
-          <td></td>
         <% } %>
+
+      <!-- File system -->
+      <td>
+      <%= UiUtils.formatFilesystemStatistics(filesystemStatisticsForRing) %>
+      <div class='progress-bar'>
+        <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForRing.getUsedPercentage()) %>%'></div>
+      </div>
+      </td>
+
     </tr>
     <%
       }

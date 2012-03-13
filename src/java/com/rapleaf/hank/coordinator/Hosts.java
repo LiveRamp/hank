@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
 import com.rapleaf.hank.partition_server.PartitionServerHandler;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 import com.rapleaf.hank.partition_server.UpdateManager;
@@ -145,6 +146,19 @@ public final class Hosts {
     } else {
       return new RuntimeStatisticsAggregator();
     }
+  }
+
+  public static Map<String, FilesystemStatisticsAggregator> computeFilesystemStatistics(Host host) throws IOException {
+    return PartitionServerHandler.getFilesystemStatistics(host);
+  }
+
+  public static FilesystemStatisticsAggregator
+  computeFilesystemStatisticsForHost(Map<String, FilesystemStatisticsAggregator> filesystemStatistics) {
+    FilesystemStatisticsAggregator result = new FilesystemStatisticsAggregator();
+    for (Map.Entry<String, FilesystemStatisticsAggregator> entry : filesystemStatistics.entrySet()) {
+      result.add(entry.getValue());
+    }
+    return result;
   }
 
   public static void enqueueCommandIfNotPresent(Host host, HostCommand command) throws IOException {
