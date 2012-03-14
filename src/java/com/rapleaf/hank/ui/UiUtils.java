@@ -204,7 +204,7 @@ public class UiUtils {
   }
 
   public static String formatDataThroughput(double bytesThrougput) {
-    return formatNumBytes(Math.round(bytesThrougput)).toLowerCase() + "/s";
+    return formatNumBytes(Math.round(bytesThrougput)) + "/s";
   }
 
   public static String formatFilesystemStatistics(FilesystemStatisticsAggregator filesystemStatistics) {
