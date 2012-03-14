@@ -43,7 +43,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
-  private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 5 * 60 * 1000;
+  private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
   private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
   private final PartitionServerConfigurator configurator;
