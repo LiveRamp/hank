@@ -30,7 +30,9 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.*;
 
 import static com.rapleaf.hank.util.LocalHostUtils.getHostName;
 
@@ -41,6 +43,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
+  private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 5 * 60 * 1000;
+  private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
@@ -59,6 +63,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private final RingGroup ringGroup;
 
   private Thread shutdownHook;
+  private UpdateFilesystemStatisticsRunnable updateFilesystemStatisticsRunnable;
+  private Thread updateFilesystemStatisticsThread;
 
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
@@ -84,6 +90,11 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
     host.setCommandQueueChangeListener(this);
     host.setCurrentCommandChangeListener(this);
+
+    // Start the update filesystem statistics thread
+    updateFilesystemStatisticsRunnable = new UpdateFilesystemStatisticsRunnable();
+    updateFilesystemStatisticsThread = new Thread(updateFilesystemStatisticsRunnable, "Update Filesystem Statistics");
+    updateFilesystemStatisticsThread.start();
   }
 
   public void run() throws IOException, InterruptedException {
@@ -404,6 +415,102 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     return String.format("Ignoring command %s because it is incompatible with state %s.", command, state);
   }
 
+  public static Map<String, FilesystemStatisticsAggregator> getFilesystemStatistics(Host host) throws IOException {
+    String filesystemsStatistics = host.getStatistic(FILESYSTEM_STATISTICS_KEY);
+
+    if (filesystemsStatistics == null) {
+      return Collections.emptyMap();
+    } else {
+      TreeMap<String, FilesystemStatisticsAggregator> result = new TreeMap<String, FilesystemStatisticsAggregator>();
+      String[] filesystemStatistics = filesystemsStatistics.split("\n");
+      for (String statistics : filesystemStatistics) {
+        if (statistics.length() == 0) {
+          continue;
+        }
+        String[] tokens = statistics.split(" ");
+        String filesystemRoot = tokens[0];
+        long totalSpace = Long.parseLong(tokens[1]);
+        long usableSpace = Long.parseLong(tokens[2]);
+        result.put(filesystemRoot, new FilesystemStatisticsAggregator(totalSpace, usableSpace));
+      }
+      return result;
+    }
+  }
+
+  public static void setFilesystemStatistics(Host host,
+                                             Map<String, FilesystemStatisticsAggregator> filesystemsStatistics) throws IOException {
+    StringBuilder statistics = new StringBuilder();
+    for (Map.Entry<String, FilesystemStatisticsAggregator> entry : filesystemsStatistics.entrySet()) {
+      statistics.append(entry.getKey());
+      statistics.append(' ');
+      statistics.append(entry.getValue().toString());
+      statistics.append('\n');
+    }
+    host.setEphemeralStatistic(FILESYSTEM_STATISTICS_KEY, statistics.toString());
+  }
+
+  private Map<String, FilesystemStatisticsAggregator> getFilesystemStatistics() throws IOException {
+    Map<String, FilesystemStatisticsAggregator> result = new HashMap<String, FilesystemStatisticsAggregator>();
+    for (String filesystemRoot : getUsedFilesystemRoots()) {
+      File filesystemRootFile = new File(filesystemRoot);
+      result.put(filesystemRoot, new FilesystemStatisticsAggregator(filesystemRootFile.getTotalSpace(), filesystemRootFile.getUsableSpace()));
+    }
+    return result;
+  }
+
+  private Set<String> getUsedFilesystemRoots() throws IOException {
+    return configurator.getDataDirectories();
+    /*
+    // Create set of system roots
+    Set<String> filesystemRoots = new HashSet<String>();
+    for (File root : File.listRoots()) {
+      filesystemRoots.add(root.getCanonicalPath());
+    }
+    // Determine set of used roots
+    Set<String> result = new HashSet<String>();
+    for (String dataDirectoryPath : configurator.getDataDirectories()) {
+      String dataDirectoryCanonicalPath = new File(dataDirectoryPath).getCanonicalPath();
+      String bestFilesystemRoot = null;
+      for (String filesystemRoot : filesystemRoots) {
+        if (dataDirectoryCanonicalPath.startsWith(filesystemRoot)
+            && (bestFilesystemRoot == null || bestFilesystemRoot.length() < filesystemRoot.length())) {
+          bestFilesystemRoot = filesystemRoot;
+        }
+      }
+      if (bestFilesystemRoot == null) {
+        throw new RuntimeException("Unable to determine filesystem root for directory: " + dataDirectoryCanonicalPath);
+      }
+      result.add(bestFilesystemRoot);
+    }
+    return result;
+    */
+  }
+
+  /**
+   * This thread periodically updates statistics of the Host
+   */
+  private class UpdateFilesystemStatisticsRunnable extends UpdateStatisticsRunnable implements Runnable {
+
+    public UpdateFilesystemStatisticsRunnable() {
+      super(UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
+    }
+
+    @Override
+    public void runCore() throws IOException {
+      setFilesystemStatistics(host, getFilesystemStatistics(host));
+    }
+
+    @Override
+    protected void cleanup() {
+      try {
+        host.deleteStatistic(FILESYSTEM_STATISTICS_KEY);
+      } catch (IOException e) {
+        LOG.error("Error while deleting runtime statistics.", e);
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
   // Set the host to OFFLINE on VM shutdown
   private void addShutdownHook() {
     if (shutdownHook == null) {
@@ -413,6 +520,14 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
           try {
             if (host != null) {
               host.setState(HostState.OFFLINE);
+            }
+            // Stop update statistics
+            updateFilesystemStatisticsRunnable.cancel();
+            updateFilesystemStatisticsThread.interrupt();
+            try {
+              updateFilesystemStatisticsThread.join();
+            } catch (InterruptedException e) {
+              LOG.info("Interrupted while waiting for update filesystem statistics thread to terminate during shutdown.");
             }
           } catch (IOException e) {
             // When VM is exiting and we fail to set host to OFFLINE, swallow the exception
