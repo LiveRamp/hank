@@ -210,9 +210,9 @@ public class UiUtils {
 
   public static String formatFilesystemStatistics(FilesystemStatisticsAggregator filesystemStatistics) {
     return
-        formatDouble(filesystemStatistics.getUsedPercentage()) + "% used, free: "
-            + UiUtils.formatNumBytes(filesystemStatistics.getUsableSpace())
-            + ", total: " + UiUtils.formatNumBytes(filesystemStatistics.getTotalSpace())
+        formatDouble(filesystemStatistics.getUsedPercentage()) + "% used, "
+            + UiUtils.formatNumBytes(filesystemStatistics.getUsedSpace())
+            + "/" + UiUtils.formatNumBytes(filesystemStatistics.getTotalSpace())
         ;
   }
 

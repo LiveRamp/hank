@@ -47,7 +47,6 @@
   <table id='all-ring-groups' class='table-blue ALL-RING-GROUPS'>
     <tr>
       <th>Ring Group</th>
-      <th>Domain Group</th>
       <th>Target Version</th>
       <th></th>
       <th>Hosts</th>
@@ -65,8 +64,11 @@
       for (RingGroup ringGroup : coord.getRingGroupsSorted()) {
     %>
       <tr>
-        <td><a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a></td>
-        <td><a href="domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a></td>
+        <td class='centered'>
+        <a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a>
+        <br/>
+        (<%=ringGroup.getDomainGroup().getName()%>)
+        </td>
 
         <%
         DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
