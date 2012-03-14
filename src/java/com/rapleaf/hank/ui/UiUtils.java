@@ -82,7 +82,6 @@ public class UiUtils {
     content.append("<div class='tooltipBar' style='width: " + size + "px;'></div>");
     content.append("</td><td>");
     content.append(DoublePopulationStatisticsAggregator.formatDouble(value));
-    content.append(' ');
     content.append(unit);
     content.append("</td></tr>");
   }
