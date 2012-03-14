@@ -67,7 +67,7 @@
         <td class='centered'>
         <a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a>
         <br/>
-        (<%=ringGroup.getDomainGroup().getName()%>)
+        @ <%=ringGroup.getDomainGroup().getName()%>
         </td>
 
         <%
