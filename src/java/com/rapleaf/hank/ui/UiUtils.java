@@ -223,17 +223,17 @@ public class UiUtils {
     long tera = giga << 10;
     long peta = tera << 10;
     if (numBytes < kilo) {
-      return numBytes + " B";
+      return numBytes + "B";
     } else if (numBytes < mega) {
-      return formatDouble((double) numBytes / kilo) + " KB";
+      return formatDouble((double) numBytes / kilo) + "KB";
     } else if (numBytes < giga) {
-      return formatDouble((double) numBytes / mega) + " MB";
+      return formatDouble((double) numBytes / mega) + "MB";
     } else if (numBytes < tera) {
-      return formatDouble((double) numBytes / giga) + " GB";
+      return formatDouble((double) numBytes / giga) + "GB";
     } else if (numBytes < peta) {
-      return formatDouble((double) numBytes / tera) + " TB";
+      return formatDouble((double) numBytes / tera) + "TB";
     } else {
-      return formatDouble((double) numBytes / peta) + " PB";
+      return formatDouble((double) numBytes / peta) + "PB";
     }
   }
 
