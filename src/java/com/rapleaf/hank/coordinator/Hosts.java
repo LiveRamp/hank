@@ -16,10 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
-import com.rapleaf.hank.partition_server.PartitionServerHandler;
-import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
-import com.rapleaf.hank.partition_server.UpdateManager;
+import com.rapleaf.hank.partition_server.*;
 
 import java.io.IOException;
 import java.util.Map;
@@ -149,7 +146,7 @@ public final class Hosts {
   }
 
   public static Map<String, FilesystemStatisticsAggregator> computeFilesystemStatistics(Host host) throws IOException {
-    return PartitionServerHandler.getFilesystemStatistics(host);
+    return PartitionServer.getFilesystemStatistics(host);
   }
 
   public static FilesystemStatisticsAggregator

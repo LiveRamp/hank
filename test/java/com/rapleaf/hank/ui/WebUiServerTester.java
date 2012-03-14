@@ -56,7 +56,7 @@ public class WebUiServerTester extends ZkTestCase {
         Map<String, FilesystemStatisticsAggregator> filesystemStatistics = new HashMap<String, FilesystemStatisticsAggregator>();
         filesystemStatistics.put("/", new FilesystemStatisticsAggregator(4 * (long) Math.pow(1020, 4), 1 * (long) Math.pow(1023, 4)));
         filesystemStatistics.put("/data", new FilesystemStatisticsAggregator(6 * (long) Math.pow(1021, 4), 3 * (long) Math.pow(1020, 4)));
-        PartitionServerHandler.setFilesystemStatistics(host, filesystemStatistics);
+        PartitionServer.setFilesystemStatistics(host, filesystemStatistics);
       }
     }
 
