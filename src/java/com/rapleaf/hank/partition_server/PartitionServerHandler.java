@@ -455,6 +455,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     for (File root : File.listRoots()) {
       filesystemRoots.add(root.getCanonicalPath());
     }
+    LOG.info("FS Roots: " + filesystemRoots);
     // Determine set of used roots
     Set<String> result = new HashSet<String>();
     for (String dataDirectoryPath : configurator.getDataDirectories()) {
@@ -469,6 +470,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       if (bestFilesystemRoot == null) {
         throw new RuntimeException("Unable to determine filesystem root for directory: " + dataDirectoryCanonicalPath);
       }
+      LOG.info("Root for: " + dataDirectoryPath + " is: " + bestFilesystemRoot);
       result.add(bestFilesystemRoot);
     }
     return result;
