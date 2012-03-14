@@ -497,7 +497,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
     @Override
     public void runCore() throws IOException {
-      setFilesystemStatistics(host, getFilesystemStatistics(host));
+      setFilesystemStatistics(host, getFilesystemStatistics());
     }
 
     @Override
