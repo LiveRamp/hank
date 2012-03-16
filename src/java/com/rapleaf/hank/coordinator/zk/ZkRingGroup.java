@@ -27,7 +27,6 @@ import org.apache.zookeeper.KeeperException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class ZkRingGroup extends AbstractRingGroup {
 
@@ -46,7 +45,7 @@ public class ZkRingGroup extends AbstractRingGroup {
 
   private final WatchedInt targetVersion;
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
-  private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new TreeSet<RingGroupDataLocationChangeListener>();
+  private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
   private final DataLocationChangeListener dataLocationChangeListener = new LocalDataLocationChangeListener();
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
