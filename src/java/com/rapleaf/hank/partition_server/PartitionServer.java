@@ -151,8 +151,10 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   @Override
   public synchronized void onCommandQueueChange(Host host) {
+    LOG.info("Command queue changed.");
     // Do not process anything when we have not yet tried to process a command when starting up.
     if (!hasProcessedCommandOnStartup) {
+      LOG.info("Ignoring command queue change as commands have not yet been executed on startup.");
       return;
     }
     try {
@@ -161,7 +163,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         // When command queue changes, and current command is empty, move on to next command
         host.nextCommand();
       } else {
-        // A current command was already in place, we are still processing it. Do nothing.
+        // A current command was already in place, we are still executing it. Do nothing.
+        LOG.info("Ignoring command queue change as a command is currently being executed.");
       }
     } catch (IOException e) {
       LOG.error("Failed to move on to next command.", e);
@@ -171,6 +174,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   @Override
   public synchronized void onWatchedNodeChange(HostCommand command) {
+    LOG.info("Current command changed: " + command);
     // Do not process anything when stopping
     if (stopping) {
       LOG.error("Ignoring command " + command + " because server is stopping.");
