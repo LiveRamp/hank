@@ -73,7 +73,9 @@ public class UpdateManager implements IUpdateManager {
     public synchronized void register(PartitionUpdateTask partitionUpdateTask) {
       Domain domain = partitionUpdateTask.getDomain();
       // Initialize maps
-      domainToPartitionUpdateTaskStatistics.put(domain, new ArrayList<PartitionUpdateTaskStatistics>());
+      if (!domainToPartitionUpdateTaskStatistics.containsKey(domain)) {
+        domainToPartitionUpdateTaskStatistics.put(domain, new ArrayList<PartitionUpdateTaskStatistics>());
+      }
       Integer numPartitionUpdateTasks = domainToNumPartitionUpdateTasks.get(domain);
       if (numPartitionUpdateTasks == null) {
         domainToNumPartitionUpdateTasks.put(domain, 1);
