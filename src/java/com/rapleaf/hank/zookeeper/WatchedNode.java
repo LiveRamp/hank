@@ -31,8 +31,9 @@ public abstract class WatchedNode<T> {
   private static final Logger LOG = Logger.getLogger(WatchedNode.class);
 
   private T value;
-  private T previousValue = null;
+  private Long previousVersion = null;
   private final String nodePath;
+  private final Stat stat = new Stat();
   private final ZooKeeperPlus zk;
   private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
   private boolean cancelled = false;
@@ -52,6 +53,8 @@ public abstract class WatchedNode<T> {
               if (event.getType().equals(Event.EventType.NodeCreated)) {
                 watchForData();
               } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
+                // Previous version notified is null, and we will notify with null
+                previousVersion = null;
                 watchForCreation();
               } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
                 watchForData();
@@ -63,15 +66,17 @@ public abstract class WatchedNode<T> {
                 LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
               }
             }
-            // Notify of new value if either value XOR previous value is null, otherwise,
-            // only notify if values are different
-            if ((value != null ^ previousValue != null) ||
-                (value != null && previousValue != null && !value.equals(previousValue))) {
-              synchronized (listeners) {
-                for (WatchedNodeListener<T> listener : listeners) {
-                  listener.onWatchedNodeChange(value);
+            // Notify of new value if either we didn't notify of any value, or the node has changed
+            long currentVersion = stat.getCtime() + stat.getMtime();
+            if (previousVersion == null || !previousVersion.equals(currentVersion)) {
+              try {
+                synchronized (listeners) {
+                  for (WatchedNodeListener<T> listener : listeners) {
+                    listener.onWatchedNodeChange(value);
+                  }
                 }
-                previousValue = value;
+              } finally {
+                previousVersion = currentVersion;
               }
             }
           } else {
@@ -132,7 +137,7 @@ public abstract class WatchedNode<T> {
     if (LOG.isTraceEnabled()) {
       LOG.trace(String.format("Getting value for %s", nodePath));
     }
-    value = decode(zk.getData(nodePath, watcher, new Stat()));
+    value = decode(zk.getData(nodePath, watcher, stat));
   }
 
   protected abstract T decode(byte[] data);
