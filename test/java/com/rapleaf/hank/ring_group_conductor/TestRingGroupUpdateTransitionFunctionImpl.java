@@ -436,6 +436,29 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertNull(r2h1.getLastEnqueuedCommand());
   }
 
+  public void testProactivelyServeDateWhenHostUpdated() throws IOException {
+    rg.setTargetVersion(2);
+
+    setUpRing(r0, v1, v2, HostState.UPDATING);
+    setUpRing(r1, v1, v2, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    r0h0.setCurrentVersion(v2);
+    r0h0.setState(HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // r0h0 should have received serve data
+    assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
+
+    // No commands should have been issued to rings
+    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getLastEnqueuedCommand());
+    assertNull(r1h1.getLastEnqueuedCommand());
+    assertNull(r2h0.getLastEnqueuedCommand());
+    assertNull(r2h1.getLastEnqueuedCommand());
+  }
+
   public void testServeDataWhenUpdated() throws IOException {
     rg.setTargetVersion(2);
 
@@ -445,7 +468,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // Hosts of r0 should have received execute update
+    // Hosts of r0 should have received serve data
     assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
     assertEquals(HostCommand.SERVE_DATA, r0h1.getLastEnqueuedCommand());
 

@@ -162,14 +162,21 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               // If the ring is not fully serving, or if it is but we have enough other rings serving,
               // go idle and update
               LOG.info("Ring " + ring.getRingNumber() + " is assigned but NOT up-to-date."
-                  + " Command and wait for serving hosts to go idle and idle hosts to update.");
+                  + " Update.");
               // We are about to take actions and this ring will not be fully serving anymore (if it even was).
               // Remove it from the set in all cases (it might not be contained in the fully serving set).
               ringsFullyServing.remove(ring);
-              // Take appropriate action on hosts that are not up-to-date: idle hosts should update. Serving hosts
-              // should go idle.
               for (Host host : ring.getHosts()) {
-                if (!isUpToDate(host, targetVersion)) {
+                if (isUpToDate(host, targetVersion)) {
+                  // Take appropriate action on hosts that are up-to-date: idle hosts should serve
+                  switch (host.getState()) {
+                    case IDLE:
+                      Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+                      break;
+                  }
+                } else {
+                  // Take appropriate action on hosts that are not up-to-date: idle hosts should update. Serving hosts
+                  // should go idle.
                   switch (host.getState()) {
                     case IDLE:
                       Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
