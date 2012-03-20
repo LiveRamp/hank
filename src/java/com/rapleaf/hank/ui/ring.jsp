@@ -143,7 +143,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
        RuntimeStatisticsAggregator runtimeStatisticsForDomain = entry.getValue();
    %>
     <tr>
-      <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+      <td><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
       (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)</td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName() + " Ring " + ring.getRingNumber(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>

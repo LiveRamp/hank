@@ -177,7 +177,7 @@
        Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
    %>
     <tr>
-      <td class='centered'><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
+      <td><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
       <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
       (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)
       </td>
