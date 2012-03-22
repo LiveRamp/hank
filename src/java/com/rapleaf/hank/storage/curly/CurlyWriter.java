@@ -27,7 +27,9 @@ import java.nio.ByteBuffer;
 
 public class CurlyWriter implements Writer {
 
-  private static final int MURMUR_64_SEED = 1395834302;
+  private static final int VALUE_FOLDING_HASH_NUM_BYTES = 16;
+
+  private static final Murmur64Hasher murmur64Hasher = new Murmur64Hasher();
 
   private long currentRecordOffset;
   private long numFoldedValues = 0;
@@ -38,7 +40,7 @@ public class CurlyWriter implements Writer {
   private final long maxOffset;
   private final ByteBuffer valueOffsetBuffer;
   private final byte[] valueLengthBuffer = new byte[5];
-  private final LruHashMap<Long, ByteBuffer> hashedValueToEncodedRecordOffsetCache;
+  private final LruHashMap<ByteBuffer, ByteBuffer> hashedValueToEncodedRecordOffsetCache;
 
   public CurlyWriter(OutputStream recordfileStream,
                      Writer keyfileWriter,
@@ -53,7 +55,7 @@ public class CurlyWriter implements Writer {
 
     // Initialize LRU cache only when needed
     if (valueFoldingCacheSize > 0) {
-      hashedValueToEncodedRecordOffsetCache = new LruHashMap<Long, ByteBuffer>(valueFoldingCacheSize, valueFoldingCacheSize);
+      hashedValueToEncodedRecordOffsetCache = new LruHashMap<ByteBuffer, ByteBuffer>(valueFoldingCacheSize, valueFoldingCacheSize);
     } else {
       hashedValueToEncodedRecordOffsetCache = null;
     }
@@ -78,12 +80,11 @@ public class CurlyWriter implements Writer {
     }
 
     ByteBuffer cachedValueRecordEncodedOffset = null;
-    Long hashedValue = null;
+    ByteBuffer hashedValue = null;
 
     // Retrieve cached offset if possible
     if (hashedValueToEncodedRecordOffsetCache != null) {
-      hashedValue = Murmur64Hasher.murmurHash64(value.array(), value.arrayOffset() + value.position(),
-          value.remaining(), MURMUR_64_SEED);
+      hashedValue = computeHash(value);
       cachedValueRecordEncodedOffset = hashedValueToEncodedRecordOffsetCache.get(hashedValue);
     }
 
@@ -109,6 +110,13 @@ public class CurlyWriter implements Writer {
       // Advance record offset
       currentRecordOffset += valueLengthNumBytes + valueLength;
     }
+  }
+
+  private ByteBuffer computeHash(ByteBuffer value) {
+    // 128-bit murmur64 hash
+    byte[] hashBytes = new byte[VALUE_FOLDING_HASH_NUM_BYTES];
+    murmur64Hasher.hash(value, VALUE_FOLDING_HASH_NUM_BYTES, hashBytes);
+    return ByteBuffer.wrap(hashBytes);
   }
 
   @Override
