@@ -143,7 +143,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     } else {
       cacheCounters.increment(1, 0);
     }
-    if (cacheCounters.get(0) > 5000) {
+    if (cacheCounters.get(0) > 200) {
       long[] values = cacheCounters.getAsArrayAndSet(0, 0);
       synchronized (valueCache) {
         LOG.info("Requests found in cache (CURLY): " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + valueCache.size());
