@@ -18,7 +18,11 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.util.AtomicLongCollection;
+import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.LruHashMap;
+import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,10 +33,16 @@ import java.util.SortedSet;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
+  private static final int RECORD_FILE_CACHE_LIMIT = 50000;
+  private static final Logger LOG = Logger.getLogger(CurlyReader.class);
+
   private final Reader keyFileReader;
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
+  private final LruHashMap<Long, ByteBuffer> recordFileCache =
+      new LruHashMap<Long, ByteBuffer>(RECORD_FILE_CACHE_LIMIT, RECORD_FILE_CACHE_LIMIT);
+  private final AtomicLongCollection counters = new AtomicLongCollection(2);
 
   public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader)
       throws IOException {
@@ -60,6 +70,9 @@ public class CurlyReader implements Reader, ICurlyReader {
   // Note: the buffer in result must be at least readBufferSize long
   @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
+    if (loadRecordFromCache(recordFileOffset, result)) {
+      return;
+    }
     // Let's reset the buffer so we can do our read.
     result.getBuffer().rewind();
     // the buffer is already at least this big, so we'll extend it back out.
@@ -111,6 +124,32 @@ public class CurlyReader implements Reader, ICurlyReader {
     // the value should start at buffer.position() and go for recordSize
     // bytes, so limit it appropriately.
     result.getBuffer().limit(recordSize + result.getBuffer().position());
+    addRecordToCache(recordFileOffset, result);
+  }
+
+  private void addRecordToCache(long recordFileOffset, ReaderResult result) {
+    synchronized (recordFileCache) {
+      recordFileCache.put(recordFileOffset, Bytes.byteBufferDeepCopy(result.getBuffer()));
+    }
+  }
+
+  private boolean loadRecordFromCache(long recordFileOffset, ReaderResult result) {
+    ByteBuffer record;
+    synchronized (recordFileCache) {
+      record = recordFileCache.get(recordFileOffset);
+    }
+    if (record != null) {
+      counters.increment(1, 1);
+    } else {
+      counters.increment(1, 0);
+    }
+    if (counters.get(0) > 100) {
+      long[] values = counters.getAsArrayAndSet(0, 0);
+      synchronized (recordFileCache) {
+        LOG.info("Requests found in cache: " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + recordFileCache.size());
+      }
+    }
+    return false;
   }
 
   @Override

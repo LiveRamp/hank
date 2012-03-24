@@ -48,4 +48,14 @@ public class AtomicLongCollection {
     set(newValues);
     return result;
   }
+
+  synchronized public long[] getAsArray() {
+    long[] result = new long[values.length];
+    System.arraycopy(values, 0, result, 0, values.length);
+    return result;
+  }
+
+  synchronized public long get(int index) {
+    return values[index];
+  }
 }
