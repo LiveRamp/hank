@@ -19,7 +19,10 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.util.AtomicLongCollection;
 import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.LruHashMap;
+import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -28,6 +31,10 @@ import java.nio.channels.FileChannel;
 import java.util.SortedSet;
 
 public class CueballReader implements Reader {
+
+  private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
+  private static final int VALUE_CACHE_SIZE_LIMIT = 10000;
+  private static final Logger LOG = Logger.getLogger(CueballReader.class);
 
   private final Hasher hasher;
   private final int valueSize;
@@ -40,7 +47,9 @@ public class CueballReader implements Reader {
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
-  private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
+  private final LruHashMap<ByteBuffer, ByteBuffer> valueCache =
+      new LruHashMap<ByteBuffer, ByteBuffer>(VALUE_CACHE_SIZE_LIMIT, VALUE_CACHE_SIZE_LIMIT);
+  private final AtomicLongCollection cacheCounters = new AtomicLongCollection(2);
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
@@ -70,11 +79,16 @@ public class CueballReader implements Reader {
 
   @Override
   public void get(ByteBuffer key, ReaderResult result) throws IOException {
-    // We will read the compressed buffer and decompress it in the same buffer.
-    result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
-
     // Note: keyHash buffer might be larger than keyHashSize
     byte[] keyHash = computeKeyHash(key);
+    ByteBuffer keyHashByteBuffer = ByteBuffer.wrap(keyHash);
+
+    if (loadValueFromCache(keyHashByteBuffer, result)) {
+      return;
+    }
+
+    // We will read the compressed buffer and decompress it in the same buffer.
+    result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
     int hashPrefix = prefixer.getHashPrefix(keyHash, 0);
     long baseOffset = hashIndex[hashPrefix];
@@ -110,6 +124,7 @@ public class CueballReader implements Reader {
         result.found();
         buffer.limit(bufferOffset + valueSize);
         buffer.position(bufferOffset);
+        addValueToCache(keyHashByteBuffer, buffer);
       }
     }
   }
@@ -168,4 +183,30 @@ public class CueballReader implements Reader {
     hasher.hash(key, keyHashSize, keyHash);
     return keyHash;
   }
+
+  private void addValueToCache(ByteBuffer keyHash, ByteBuffer value) {
+    synchronized (valueCache) {
+      valueCache.put(keyHash, Bytes.byteBufferDeepCopy(value));
+    }
+  }
+
+  private boolean loadValueFromCache(ByteBuffer keyHash, ReaderResult result) {
+    ByteBuffer value;
+    synchronized (valueCache) {
+      value = valueCache.get(keyHash);
+    }
+    if (value != null) {
+      cacheCounters.increment(1, 1);
+    } else {
+      cacheCounters.increment(1, 0);
+    }
+    if (cacheCounters.get(0) > 5000) {
+      long[] values = cacheCounters.getAsArrayAndSet(0, 0);
+      synchronized (valueCache) {
+        LOG.info("Requests found in cache (CUEBALL): " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + valueCache.size());
+      }
+    }
+    return false;
+  }
+
 }

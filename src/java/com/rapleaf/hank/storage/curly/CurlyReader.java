@@ -33,16 +33,16 @@ import java.util.SortedSet;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
-  private static final int RECORD_FILE_CACHE_LIMIT = 50000;
+  private static final int VALUE_CACHE_SIZE_LIMIT = 10000;
   private static final Logger LOG = Logger.getLogger(CurlyReader.class);
 
   private final Reader keyFileReader;
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private final LruHashMap<Long, ByteBuffer> recordFileCache =
-      new LruHashMap<Long, ByteBuffer>(RECORD_FILE_CACHE_LIMIT, RECORD_FILE_CACHE_LIMIT);
-  private final AtomicLongCollection counters = new AtomicLongCollection(2);
+  private final LruHashMap<Long, ByteBuffer> valueCache =
+      new LruHashMap<Long, ByteBuffer>(VALUE_CACHE_SIZE_LIMIT, VALUE_CACHE_SIZE_LIMIT);
+  private final AtomicLongCollection cacheCounters = new AtomicLongCollection(2);
 
   public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader)
       throws IOException {
@@ -70,7 +70,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   // Note: the buffer in result must be at least readBufferSize long
   @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
-    if (loadRecordFromCache(recordFileOffset, result)) {
+    if (loadValueFromCache(recordFileOffset, result)) {
       return;
     }
     // Let's reset the buffer so we can do our read.
@@ -124,29 +124,29 @@ public class CurlyReader implements Reader, ICurlyReader {
     // the value should start at buffer.position() and go for recordSize
     // bytes, so limit it appropriately.
     result.getBuffer().limit(recordSize + result.getBuffer().position());
-    addRecordToCache(recordFileOffset, result);
+    addValueToCache(recordFileOffset, result.getBuffer());
   }
 
-  private void addRecordToCache(long recordFileOffset, ReaderResult result) {
-    synchronized (recordFileCache) {
-      recordFileCache.put(recordFileOffset, Bytes.byteBufferDeepCopy(result.getBuffer()));
+  private void addValueToCache(long recordFileOffset, ByteBuffer value) {
+    synchronized (valueCache) {
+      valueCache.put(recordFileOffset, Bytes.byteBufferDeepCopy(value));
     }
   }
 
-  private boolean loadRecordFromCache(long recordFileOffset, ReaderResult result) {
-    ByteBuffer record;
-    synchronized (recordFileCache) {
-      record = recordFileCache.get(recordFileOffset);
+  private boolean loadValueFromCache(long recordFileOffset, ReaderResult result) {
+    ByteBuffer value;
+    synchronized (valueCache) {
+      value = valueCache.get(recordFileOffset);
     }
-    if (record != null) {
-      counters.increment(1, 1);
+    if (value != null) {
+      cacheCounters.increment(1, 1);
     } else {
-      counters.increment(1, 0);
+      cacheCounters.increment(1, 0);
     }
-    if (counters.get(0) > 100) {
-      long[] values = counters.getAsArrayAndSet(0, 0);
-      synchronized (recordFileCache) {
-        LOG.info("Requests found in cache: " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + recordFileCache.size());
+    if (cacheCounters.get(0) > 5000) {
+      long[] values = cacheCounters.getAsArrayAndSet(0, 0);
+      synchronized (valueCache) {
+        LOG.info("Requests found in cache (CURLY): " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + valueCache.size());
       }
     }
     return false;
