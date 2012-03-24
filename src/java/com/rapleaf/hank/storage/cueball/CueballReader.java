@@ -186,7 +186,7 @@ public class CueballReader implements Reader {
 
   private void addValueToCache(ByteBuffer keyHash, ByteBuffer value) {
     synchronized (valueCache) {
-      valueCache.put(keyHash, Bytes.byteBufferDeepCopy(value));
+      valueCache.put(Bytes.byteBufferDeepCopy(keyHash), Bytes.byteBufferDeepCopy(value));
     }
   }
 
