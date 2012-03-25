@@ -45,7 +45,7 @@ public class CurlyWriter implements Writer {
   public CurlyWriter(OutputStream recordfileStream,
                      Writer keyfileWriter,
                      int offsetSize,
-                     int valueFoldingCacheSize) {
+                     int valueFoldingCacheCapacity) {
     this.recordFileStream = recordfileStream;
     this.keyfileWriter = keyfileWriter;
     this.maxOffset = 1L << (offsetSize * 8);
@@ -54,8 +54,8 @@ public class CurlyWriter implements Writer {
     valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize]);
 
     // Initialize LRU cache only when needed
-    if (valueFoldingCacheSize > 0) {
-      hashedValueToEncodedRecordOffsetCache = new LruHashMap<ByteBuffer, ByteBuffer>(valueFoldingCacheSize, valueFoldingCacheSize);
+    if (valueFoldingCacheCapacity > 0) {
+      hashedValueToEncodedRecordOffsetCache = new LruHashMap<ByteBuffer, ByteBuffer>(valueFoldingCacheCapacity, valueFoldingCacheCapacity);
     } else {
       hashedValueToEncodedRecordOffsetCache = null;
     }
