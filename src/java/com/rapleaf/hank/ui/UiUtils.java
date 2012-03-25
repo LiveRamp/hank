@@ -247,15 +247,15 @@ public class UiUtils {
     if (l1 == 0 && l2 == 0) {
       return "-";
     } else {
-      String l1Str = formatDouble(l1 * 100.0) + "%";
-      String l2Str = formatDouble(l2 * 100.0) + "%";
-      if (l1 != 0 && l2 != 0) {
-        return l1Str + " / " + l2Str;
-      } else if (l1 != 0) {
-        return l1Str;
-      } else {
-        return l2Str;
+      String l1Str = "-";
+      String l2Str = "-";
+      if (l1 != 0) {
+        l1Str = formatDouble(l1 * 100.0) + "%";
       }
+      if (l2 != 0) {
+        l2Str = formatDouble(l2 * 100.0) + "%";
+      }
+      return l1Str + " / " + l2Str;
     }
   }
 }
