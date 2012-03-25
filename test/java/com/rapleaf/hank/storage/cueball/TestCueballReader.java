@@ -33,7 +33,7 @@ public class TestCueballReader extends AbstractCueballTest {
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCompressionCodec());
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCompressionCodec(), 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
@@ -42,24 +42,49 @@ public class TestCueballReader extends AbstractCueballTest {
     reader.get(ByteBuffer.wrap(KEY1), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{1, 2, 1, 2, 1}), result.getBuffer());
+    result.clear();
 
     reader.get(ByteBuffer.wrap(KEY3), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{(byte) 0x8f, 1, 2, 1, 2}), result.getBuffer());
+    result.clear();
 
     reader.get(ByteBuffer.wrap(KEY1), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{1, 2, 1, 2, 1}), result.getBuffer());
+    result.clear();
 
     // non-existent key in occupied bucket 10
     reader.get(ByteBuffer.wrap(KEY4), result);
     assertFalse(result.isFound());
+    result.clear();
 
     reader.get(ByteBuffer.wrap(KEY2), result);
     assertTrue(result.isFound());
     assertEquals(ByteBuffer.wrap(new byte[]{2, 1, 2, 1, 2}), result.getBuffer());
+    result.clear();
 
     reader.get(ByteBuffer.wrap(KEY10), result);
     assertFalse(result.isFound());
+    result.clear();
+
+    // Test cache
+    reader.get(ByteBuffer.wrap(KEY2), result);
+    assertTrue(result.isFound());
+    result.clear();
+
+    reader.get(ByteBuffer.wrap(KEY1), result);
+    assertTrue(result.isFound());
+    assertEquals(ByteBuffer.wrap(new byte[]{1, 2, 1, 2, 1}), result.getBuffer());
+    assertEquals(false, result.getL1CacheHit());
+    assertEquals(false, result.getL2CacheHit());
+    result.clear();
+
+    reader.get(ByteBuffer.wrap(KEY1), result);
+    assertTrue(result.isFound());
+    assertEquals(ByteBuffer.wrap(new byte[]{1, 2, 1, 2, 1}), result.getBuffer());
+    assertEquals(true, result.getL1CacheHit());
+    assertEquals(false, result.getL2CacheHit());
+    result.clear();
   }
 }

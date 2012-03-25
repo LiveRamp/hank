@@ -3,6 +3,7 @@ package com.rapleaf.hank.ui;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
+import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -238,5 +239,23 @@ public class UiUtils {
 
   public static String formatDouble(double value) {
     return new DecimalFormat("#.##").format(value);
+  }
+
+  public static String formatCacheHits(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
+    double l1 = runtimeStatisticsAggregator.getL1CacheHitRate();
+    double l2 = runtimeStatisticsAggregator.getL2CacheHitRate();
+    if (l1 == 0 && l2 == 0) {
+      return "-";
+    } else {
+      String l1Str = formatDouble(l1 * 100.0) + "%";
+      String l2Str = formatDouble(l2 * 100.0) + "%";
+      if (l1 != 0 && l2 != 0) {
+        return l1Str + " / " + l2Str;
+      } else if (l1 != 0) {
+        return l1Str;
+      } else {
+        return l2Str;
+      }
+    }
   }
 }

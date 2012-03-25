@@ -86,7 +86,7 @@
       <tr>
       <td>Throughput:</td>
       <td>
-      <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getThroughput()) %> qps
+      <%= UiUtils.formatDouble(runtimeStatisticsForHost.getThroughput()) %> qps
       (<%= UiUtils.formatDataThroughput(runtimeStatisticsForHost.getResponseDataThroughput()) %>)
       </td>
       </tr>
@@ -101,7 +101,14 @@
       <tr>
       <td>Hit Rate:</td>
       <td>
-      <%= new DecimalFormat("#.##").format(runtimeStatisticsForHost.getHitRate() * 100) %>%
+      <%= UiUtils.formatDouble(runtimeStatisticsForHost.getHitRate() * 100) %>%
+      </td>
+      </tr>
+
+      <tr>
+      <td>Cache Hits:</td>
+      <td>
+      <%= UiUtils.formatCacheHits(runtimeStatisticsForHost) %>
       </td>
       </tr>
 
@@ -169,6 +176,7 @@
      <th>Throughput</th>
      <th>Latency</th>
      <th>Hit Rate</th>
+     <th>Cache Hits</th>
   </tr>
    <%
      for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersionsSorted()) {
@@ -178,11 +186,12 @@
    %>
     <tr>
       <td><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
-      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
+      <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForDomain.getThroughput()) %> qps
       (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)
       </td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + host.getAddress(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
-      <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+      <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+      <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForDomain) %></td>
     </tr>
   <%
     }

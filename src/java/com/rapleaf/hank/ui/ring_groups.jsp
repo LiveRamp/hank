@@ -57,6 +57,7 @@
       <th>Throughput</th>
       <th>Latency</th>
       <th>Hit rate</th>
+      <th>Cache Hits</th>
       <th>Up-to-date & Served</th>
       <th>File System</th>
     </tr>
@@ -86,7 +87,7 @@
 
         <% if (progress != null) { %>
         <td class='centered'>
-          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>%
+          <%= UiUtils.formatDouble(progress.getUpdateProgress() * 100) %>%
           (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
           <div class='progress-bar'>
             <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
@@ -149,10 +150,11 @@
           RingGroups.computeFilesystemStatisticsForRingGroup(filesystemStatistics);
         %>
 
-        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps
+        <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForRingGroup.getThroughput()) %> qps
         (<%= UiUtils.formatDataThroughput(runtimeStatisticsForRingGroup.getResponseDataThroughput()) %>)</td>
         <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency on " + ringGroup.getName(), runtimeStatisticsForRingGroup.getGetRequestsPopulationStatistics()) %></td>
-        <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
+        <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForRingGroup.getHitRate() * 100) %>% </td>
+        <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForRingGroup) %></td>
 
         <!-- Serving Status -->
 

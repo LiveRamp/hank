@@ -24,6 +24,8 @@ public class ReaderResult {
   private boolean isFound = false;
 
   private ByteBuffer buffer;
+  private boolean l1CacheHit = false;
+  private boolean l2CacheHit = false;
 
   public ReaderResult() {
   }
@@ -34,6 +36,8 @@ public class ReaderResult {
 
   public void clear() {
     isFound = false;
+    l1CacheHit = false;
+    l2CacheHit = false;
     if (buffer != null) {
       buffer.clear();
     }
@@ -59,6 +63,30 @@ public class ReaderResult {
 
   public ByteBuffer getBuffer() {
     return buffer;
+  }
+
+  public boolean getL1CacheHit() {
+    return l1CacheHit;
+  }
+
+  public void setL1CacheHit(boolean l1CacheHit) {
+    this.l1CacheHit = l1CacheHit;
+  }
+
+  public boolean getL2CacheHit() {
+    return l2CacheHit;
+  }
+
+  public void setL2CacheHit(boolean l2CacheHit) {
+    this.l2CacheHit = l2CacheHit;
+  }
+
+  public void deepCopyIntoResultBuffer(ByteBuffer value) {
+    requiresBufferSize(value.remaining());
+    buffer.rewind();
+    buffer.limit(value.remaining());
+    buffer.put(value.slice());
+    buffer.flip();
   }
 
   @Override

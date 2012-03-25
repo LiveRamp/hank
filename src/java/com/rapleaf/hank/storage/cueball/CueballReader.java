@@ -19,10 +19,8 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.util.AtomicLongCollection;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.LruHashMap;
-import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,8 +31,6 @@ import java.util.SortedSet;
 public class CueballReader implements Reader {
 
   private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
-  private static final int VALUE_CACHE_SIZE_LIMIT = 10000;
-  private static final Logger LOG = Logger.getLogger(CueballReader.class);
 
   private final Hasher hasher;
   private final int valueSize;
@@ -47,16 +43,15 @@ public class CueballReader implements Reader {
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
-  private final LruHashMap<ByteBuffer, ByteBuffer> valueCache =
-      new LruHashMap<ByteBuffer, ByteBuffer>(VALUE_CACHE_SIZE_LIMIT, VALUE_CACHE_SIZE_LIMIT);
-  private final AtomicLongCollection cacheCounters = new AtomicLongCollection(2);
+  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
                        Hasher hasher,
                        int valueSize,
                        int hashIndexBits,
-                       CompressionCodec compressionCodec) throws IOException {
+                       CompressionCodec compressionCodec,
+                       int cacheCapacity) throws IOException {
     SortedSet<CueballFilePath> bases = Cueball.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
       throw new IOException("Could not detect any Cueball base in " + partitionRoot);
@@ -75,6 +70,11 @@ public class CueballReader implements Reader {
     hashIndex = footer.getHashIndex();
     maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();
     maxCompressedBufferSize = footer.getMaxCompressedBufferSize();
+    if (cacheCapacity > 0) {
+      this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
+    } else {
+      this.cache = null;
+    }
   }
 
   @Override
@@ -82,13 +82,6 @@ public class CueballReader implements Reader {
     // Note: keyHash buffer might be larger than keyHashSize
     byte[] keyHash = computeKeyHash(key);
     ByteBuffer keyHashByteBuffer = ByteBuffer.wrap(keyHash);
-
-    if (loadValueFromCache(keyHashByteBuffer, result)) {
-      return;
-    }
-
-    // We will read the compressed buffer and decompress it in the same buffer.
-    result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
 
     int hashPrefix = prefixer.getHashPrefix(keyHash, 0);
     long baseOffset = hashIndex[hashPrefix];
@@ -98,6 +91,12 @@ public class CueballReader implements Reader {
 
     // baseOffset of -1 means that our hashPrefix doesn't map to any blocks
     if (baseOffset >= 0) {
+      // Attempt to load value from the cache
+      if (cache != null && loadValueFromCache(keyHashByteBuffer, result)) {
+        return;
+      }
+      // We will read the compressed buffer and decompress it in the same buffer.
+      result.requiresBufferSize(maxCompressedBufferSize + maxUncompressedBufferSize);
       // set up to read a chunk from the datafile
       ByteBuffer buffer = result.getBuffer();
       buffer.rewind();
@@ -124,7 +123,9 @@ public class CueballReader implements Reader {
         result.found();
         buffer.limit(bufferOffset + valueSize);
         buffer.position(bufferOffset);
-        addValueToCache(keyHashByteBuffer, buffer);
+        if (cache != null) {
+          addValueToCache(keyHashByteBuffer, buffer);
+        }
       }
     }
   }
@@ -185,28 +186,26 @@ public class CueballReader implements Reader {
   }
 
   private void addValueToCache(ByteBuffer keyHash, ByteBuffer value) {
-    synchronized (valueCache) {
-      valueCache.put(Bytes.byteBufferDeepCopy(keyHash), Bytes.byteBufferDeepCopy(value));
+    synchronized (cache) {
+      cache.put(Bytes.byteBufferDeepCopy(keyHash), Bytes.byteBufferDeepCopy(value));
     }
   }
 
+  // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer keyHash, ReaderResult result) {
     ByteBuffer value;
-    synchronized (valueCache) {
-      value = valueCache.get(keyHash);
+    synchronized (cache) {
+      value = cache.get(keyHash);
     }
     if (value != null) {
-      cacheCounters.increment(1, 1);
+      // Load cached value into result
+      result.deepCopyIntoResultBuffer(value);
+      result.found();
+      result.setL1CacheHit(true);
+      return true;
     } else {
-      cacheCounters.increment(1, 0);
+      return false;
     }
-    if (cacheCounters.get(0) > 200) {
-      long[] values = cacheCounters.getAsArrayAndSet(0, 0);
-      synchronized (valueCache) {
-        LOG.info("Requests found in cache (CUEBALL): " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + valueCache.size());
-      }
-    }
-    return false;
   }
 
 }

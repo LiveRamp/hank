@@ -21,7 +21,10 @@ import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.*;
+import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
+import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 
 import java.io.File;
@@ -37,7 +40,7 @@ public class TestCueballRemoteDomainVersionDeleter extends BaseTestCase {
     final Cueball storageEngine = new Cueball(1,
         new Murmur64Hasher(), 1, 1, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
-        new MockDomain("domain", 0, 1, null, null, null, null), 0);
+        new MockDomain("domain", 0, 1, null, null, null, null), 0, -1);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalDiskOutputStreamFactory(localDiskRoot), 0);
     writer.write(key, value);

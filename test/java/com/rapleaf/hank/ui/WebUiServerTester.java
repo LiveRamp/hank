@@ -45,7 +45,7 @@ public class WebUiServerTester extends ZkTestCase {
         host.setState(HostState.SERVING);
         for (HostDomain hd : host.getAssignedDomains()) {
           runtimeStatistics.put(hd.getDomain(),
-              new RuntimeStatisticsAggregator(14, 2500, 142, 100,
+              new RuntimeStatisticsAggregator(14, 2500, 142, 100, 15, 48,
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
                       new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250})));
           for (HostDomainPartition partition : hd.getPartitions()) {

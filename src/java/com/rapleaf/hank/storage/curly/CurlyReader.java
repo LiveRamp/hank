@@ -18,11 +18,9 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.util.AtomicLongCollection;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.LruHashMap;
-import org.apache.log4j.Logger;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,18 +31,13 @@ import java.util.SortedSet;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
-  private static final int VALUE_CACHE_SIZE_LIMIT = 10000;
-  private static final Logger LOG = Logger.getLogger(CurlyReader.class);
-
   private final Reader keyFileReader;
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private final LruHashMap<Long, ByteBuffer> valueCache =
-      new LruHashMap<Long, ByteBuffer>(VALUE_CACHE_SIZE_LIMIT, VALUE_CACHE_SIZE_LIMIT);
-  private final AtomicLongCollection cacheCounters = new AtomicLongCollection(2);
+  private final LruHashMap<Long, ByteBuffer> cache;
 
-  public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader)
+  public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader, int cacheCapacity)
       throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
@@ -55,22 +48,32 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
     this.versionNumber = latestBase.getVersion();
-
+    if (cacheCapacity > 0) {
+      this.cache = new LruHashMap<Long, ByteBuffer>(0, cacheCapacity);
+    } else {
+      this.cache = null;
+    }
   }
 
-  public CurlyReader(CurlyFilePath curlyFile, int recordFileReadBufferBytes, Reader keyFileReader)
+  public CurlyReader(CurlyFilePath curlyFile, int recordFileReadBufferBytes, Reader keyFileReader, int cacheCapacity)
       throws FileNotFoundException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
     this.versionNumber = curlyFile.getVersion();
+    if (cacheCapacity > 0) {
+      this.cache = new LruHashMap<Long, ByteBuffer>(0, cacheCapacity);
+    } else {
+      this.cache = null;
+    }
   }
 
 
   // Note: the buffer in result must be at least readBufferSize long
   @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
-    if (loadValueFromCache(recordFileOffset, result)) {
+    // Attempt to load value from the cache
+    if (cache != null && loadValueFromCache(recordFileOffset, result)) {
       return;
     }
     // Let's reset the buffer so we can do our read.
@@ -124,32 +127,9 @@ public class CurlyReader implements Reader, ICurlyReader {
     // the value should start at buffer.position() and go for recordSize
     // bytes, so limit it appropriately.
     result.getBuffer().limit(recordSize + result.getBuffer().position());
-    addValueToCache(recordFileOffset, result.getBuffer());
-  }
-
-  private void addValueToCache(long recordFileOffset, ByteBuffer value) {
-    synchronized (valueCache) {
-      valueCache.put(recordFileOffset, Bytes.byteBufferDeepCopy(value));
+    if (cache != null) {
+      addValueToCache(recordFileOffset, result.getBuffer());
     }
-  }
-
-  private boolean loadValueFromCache(long recordFileOffset, ReaderResult result) {
-    ByteBuffer value;
-    synchronized (valueCache) {
-      value = valueCache.get(recordFileOffset);
-    }
-    if (value != null) {
-      cacheCounters.increment(1, 1);
-    } else {
-      cacheCounters.increment(1, 0);
-    }
-    if (cacheCounters.get(0) > 200) {
-      long[] values = cacheCounters.getAsArrayAndSet(0, 0);
-      synchronized (valueCache) {
-        LOG.info("Requests found in cache (CURLY): " + values[1] + "/" + values[0] + "(" + ((double) values[1] / (double) values[0]) * 100 + ") cache size: " + valueCache.size());
-      }
-    }
-    return false;
   }
 
   @Override
@@ -172,6 +152,28 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  private void addValueToCache(long recordFileOffset, ByteBuffer value) {
+    synchronized (cache) {
+      cache.put(recordFileOffset, Bytes.byteBufferDeepCopy(value));
+    }
+  }
+
+  // Return true if managed to read the corresponding value from the cache and into result
+  private boolean loadValueFromCache(long recordFileOffset, ReaderResult result) {
+    ByteBuffer value;
+    synchronized (cache) {
+      value = cache.get(recordFileOffset);
+    }
+    if (value != null) {
+      result.deepCopyIntoResultBuffer(value);
+      result.found();
+      result.setL2CacheHit(true);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @Override

@@ -56,6 +56,7 @@ public class Cueball implements StorageEngine {
     public static final String HASHER_KEY = "hasher";
     public static final String COMPRESSION_CODEC = "compression_codec";
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
+    public static final String PARTITION_CACHE_CAPACITY = "partition_cache_capacity";
 
     private static final Set<String> REQUIRED_KEYS =
         new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
@@ -97,8 +98,14 @@ public class Cueball implements StorageEngine {
         }
       }
 
-      // num remote bases to keep
+      // Num remote bases to keep
       Integer numRemoteLeafVersionsToKeep = (Integer) options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
+
+      // Cache capacity
+      Integer partitionCacheCapacity = (Integer) options.get(PARTITION_CACHE_CAPACITY);
+      if (partitionCacheCapacity == null) {
+        partitionCacheCapacity = -1;
+      }
 
       return new Cueball((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
@@ -108,7 +115,8 @@ public class Cueball implements StorageEngine {
           fileOpsFactory,
           compressionCodecClass,
           domain,
-          numRemoteLeafVersionsToKeep);
+          numRemoteLeafVersionsToKeep,
+          partitionCacheCapacity);
     }
 
     @Override
@@ -145,6 +153,7 @@ public class Cueball implements StorageEngine {
   private final PartitionRemoteFileOpsFactory fileOpsFactory;
   private final ByteBuffer keyHashBuffer;
   private final int numRemoteLeafVersionsToKeep;
+  private final int partitionCacheCapacity;
 
   private final Class<? extends CompressionCodec> compressionCodecClass;
 
@@ -156,7 +165,8 @@ public class Cueball implements StorageEngine {
                  PartitionRemoteFileOpsFactory fileOpsFactory,
                  Class<? extends CompressionCodec> compressionCodecClass,
                  Domain domain,
-                 int numRemoteLeafVersionsToKeep) {
+                 int numRemoteLeafVersionsToKeep,
+                 int partitionCacheCapacity) {
     this.keyHashSize = keyHashSize;
     this.hasher = hasher;
     this.valueSize = valueSize;
@@ -167,11 +177,13 @@ public class Cueball implements StorageEngine {
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
+    this.partitionCacheCapacity = partitionCacheCapacity;
   }
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CueballReader(getLocalDir(configurator, partitionNumber), keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec());
+    return new CueballReader(getLocalDir(configurator, partitionNumber),
+        keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec(), partitionCacheCapacity);
   }
 
   private CompressionCodec getCompressionCodec() throws IOException {

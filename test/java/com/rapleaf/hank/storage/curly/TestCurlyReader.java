@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.ReaderResult;
+import com.rapleaf.hank.storage.map.MapReader;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-
-import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.storage.map.MapReader;
 
 public class TestCurlyReader extends AbstractCurlyTestBase {
   private static final String TMP_TEST_CURLY_READER = "/tmp/TestCurlyReader";
@@ -53,7 +53,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
         KEY5.array(), new byte[]{15, 0, 0}
     );
 
-    CurlyReader reader = new CurlyReader(TMP_TEST_CURLY_READER, 1024, keyfileReader);
+    CurlyReader reader = new CurlyReader(TMP_TEST_CURLY_READER, 1024, keyfileReader, 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());
@@ -63,21 +63,45 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     reader.get(KEY1, result);
     assertTrue(result.isFound());
     assertEquals(VALUE1, result.getBuffer());
+    result.clear();
 
     reader.get(KEY4, result);
     assertFalse(result.isFound());
+    result.clear();
 
     reader.get(KEY3, result);
     assertTrue(result.isFound());
     assertEquals(VALUE3, result.getBuffer());
+    result.clear();
 
     reader.get(KEY2, result);
     assertTrue(result.isFound());
     assertEquals(VALUE2, result.getBuffer());
+    result.clear();
 
     reader.get(KEY5, result);
     assertTrue(result.isFound());
     assertEquals(20 * 1024, result.getBuffer().remaining());
     assertEquals(ByteBuffer.wrap(TWENTYK_BLOB), result.getBuffer());
+    result.clear();
+
+    // Test cache
+    reader.get(KEY5, result);
+    assertTrue(result.isFound());
+    result.clear();
+
+    reader.get(KEY1, result);
+    assertTrue(result.isFound());
+    assertEquals(VALUE1, result.getBuffer());
+    assertEquals(false, result.getL1CacheHit());
+    assertEquals(false, result.getL2CacheHit());
+    result.clear();
+
+    reader.get(KEY1, result);
+    assertTrue(result.isFound());
+    assertEquals(VALUE1, result.getBuffer());
+    assertEquals(false, result.getL1CacheHit());
+    assertEquals(true, result.getL2CacheHit());
+    result.clear();
   }
 }

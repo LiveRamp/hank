@@ -103,7 +103,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Throughput:</td>
         <td>
-        <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getThroughput()) %> qps
+        <%= UiUtils.formatDouble(runtimeStatisticsForRingGroup.getThroughput()) %> qps
         (<%= UiUtils.formatDataThroughput(runtimeStatisticsForRingGroup.getResponseDataThroughput()) %>)
         </td>
         </tr>
@@ -118,7 +118,14 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Hit Rate:</td>
         <td>
-        <%= new DecimalFormat("#.##").format(runtimeStatisticsForRingGroup.getHitRate() * 100) %>%
+        <%= UiUtils.formatDouble(runtimeStatisticsForRingGroup.getHitRate() * 100) %>%
+        </td>
+        </tr>
+
+        <tr>
+        <td>Cache Hit Rate:</td>
+        <td>
+        <%= UiUtils.formatCacheHits(runtimeStatisticsForRingGroup) %>
         </td>
         </tr>
 
@@ -167,6 +174,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          <th>Throughput</th>
          <th>Latency</th>
          <th>Hit Rate</th>
+         <th>Cache Hits</th>
          <th>Version</th>
          <th>Closed On</th>
        </tr>
@@ -195,11 +203,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
          <tr>
            <td><a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a></td>
            <% if (runtimeStatisticsForDomain != null) { %>
-             <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getThroughput()) %> qps
+             <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForDomain.getThroughput()) %> qps
              (<%= UiUtils.formatDataThroughput(runtimeStatisticsForDomain.getResponseDataThroughput()) %>)</td>
              <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency for " + domain.getName() + " on " + ringGroup.getName(), runtimeStatisticsForDomain.getGetRequestsPopulationStatistics()) %></td>
-             <td class='centered'><%= new DecimalFormat("#.##").format(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+             <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForDomain.getHitRate() * 100) %>%</td>
+             <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForDomain) %></td>
            <% } else { %>
+             <td class='centered'>-</td>
              <td class='centered'>-</td>
              <td class='centered'>-</td>
              <td class='centered'>-</td>
@@ -282,6 +292,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <th>Throughput</th>
       <th>Latency</th>
       <th>Hit Rate</th>
+      <th>Cache Hits</th>
       <th>Up-to-date & Served</th>
       <th>File System</th>
     </tr>
@@ -302,7 +313,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <% if (progress != null) { %>
         <td>
-          <%= new DecimalFormat("#.##").format(progress.getUpdateProgress() * 100) %>% up-to-date
+          <%= UiUtils.formatDouble(progress.getUpdateProgress() * 100) %>% up-to-date
           (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
           <% if (ringUpdateETA >= 0) { %>
             ETA: <%= UiUtils.formatSecondsDuration(ringUpdateETA) %>
@@ -360,10 +371,11 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           RingGroups.computeFilesystemStatisticsForRing(filesystemStatistics, ring);
       %>
 
-      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getThroughput()) %> qps
+      <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForRing.getThroughput()) %> qps
       (<%= UiUtils.formatDataThroughput(runtimeStatisticsForRing.getResponseDataThroughput()) %>)</td>
       <td class='centered'><%= UiUtils.formatPopulationStatistics("Server-side latency on " + ringGroup.getName() + " Ring " + ring.getRingNumber(), runtimeStatisticsForRing.getGetRequestsPopulationStatistics()) %></td>
-      <td class='centered'> <%= new DecimalFormat("#.##").format(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
+      <td class='centered'><%= UiUtils.formatDouble(runtimeStatisticsForRing.getHitRate() * 100) %>% </td>
+      <td class='centered'><%= UiUtils.formatCacheHits(runtimeStatisticsForRing) %></td>
 
         <!-- Serving Status -->
 

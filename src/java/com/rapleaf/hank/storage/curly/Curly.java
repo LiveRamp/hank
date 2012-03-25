@@ -60,6 +60,8 @@ public class Curly implements StorageEngine {
     private static final String COMPRESSION_CODEC = "compression_codec";
     public static final String NUM_REMOTE_LEAF_VERSIONS_TO_KEEP = "num_remote_leaf_versions_to_keep";
     public static final String VALUE_FOLDING_CACHE_SIZE = "value_folding_cache_size";
+    public static final String KEY_FILE_PARTITION_CACHE_CAPACITY = "key_file_partition_cache_capacity";
+    public static final String RECORD_FILE_PARTITION_CACHE_CAPACITY = "record_file_partition_cache_capacity";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
@@ -102,6 +104,16 @@ public class Curly implements StorageEngine {
         valueFoldingCacheSize = -1;
       }
 
+      // Cache capacity
+      Integer keyFilePartitionCacheCapacity = (Integer) options.get(KEY_FILE_PARTITION_CACHE_CAPACITY);
+      if (keyFilePartitionCacheCapacity == null) {
+        keyFilePartitionCacheCapacity = -1;
+      }
+      Integer recordFilePartitionCacheCapacity = (Integer) options.get(RECORD_FILE_PARTITION_CACHE_CAPACITY);
+      if (recordFilePartitionCacheCapacity == null) {
+        recordFilePartitionCacheCapacity = -1;
+      }
+
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
@@ -112,7 +124,9 @@ public class Curly implements StorageEngine {
           compressionCodecClass,
           domain,
           numRemoteLeafVersionsToKeep,
-          valueFoldingCacheSize);
+          valueFoldingCacheSize,
+          keyFilePartitionCacheCapacity,
+          recordFilePartitionCacheCapacity);
     }
 
     @Override
@@ -175,6 +189,7 @@ public class Curly implements StorageEngine {
   }
 
   private final Domain domain;
+  private final int recordFilePartitionCacheCapacity;
 
   private final int offsetSize;
   private final int recordFileReadBufferBytes;
@@ -198,7 +213,9 @@ public class Curly implements StorageEngine {
                Class<? extends CompressionCodec> compressionCodecClass,
                Domain domain,
                int numRemoteLeafVersionsToKeep,
-               int valueFoldingCacheSize) {
+               int valueFoldingCacheSize,
+               int keyFilePartitionCacheCapacity,
+               int recordFilePartitionCacheCapacity) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
@@ -210,6 +227,7 @@ public class Curly implements StorageEngine {
         / Math.log(2)) / 8.0));
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.valueFoldingCacheSize = valueFoldingCacheSize;
+    this.recordFilePartitionCacheCapacity = recordFilePartitionCacheCapacity;
 
     this.cueballStorageEngine = new Cueball(keyHashSize,
         hasher,
@@ -218,12 +236,17 @@ public class Curly implements StorageEngine {
         remoteDomainRoot,
         fileOpsFactory,
         compressionCodecClass,
-        domain, numRemoteLeafVersionsToKeep);
+        domain,
+        numRemoteLeafVersionsToKeep,
+        keyFilePartitionCacheCapacity);
   }
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CurlyReader(getLocalDir(configurator, partitionNumber), recordFileReadBufferBytes, cueballStorageEngine.getReader(configurator, partitionNumber));
+    return new CurlyReader(getLocalDir(configurator, partitionNumber),
+        recordFileReadBufferBytes,
+        cueballStorageEngine.getReader(configurator, partitionNumber),
+        recordFilePartitionCacheCapacity);
   }
 
   @Override
@@ -300,7 +323,7 @@ public class Curly implements StorageEngine {
           @Override
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws FileNotFoundException {
             // Note: key file reader is null as it will *not* be used
-            return new CurlyReader(curlyFilePath, recordFileReadBufferBytes, null);
+            return new CurlyReader(curlyFilePath, recordFileReadBufferBytes, null, -1);
           }
         }
     );

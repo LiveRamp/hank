@@ -22,14 +22,20 @@ public class PartitionAccessorRuntimeStatistics {
   protected final long numHits;
   protected final double throughput;
   protected final double responseDataThroughput;
+  protected final long numL1CacheHits;
+  protected final long numL2CacheHits;
 
   public PartitionAccessorRuntimeStatistics(long numRequests,
                                             long numHits,
                                             double throughput,
-                                            double responseDataThroughput) {
+                                            double responseDataThroughput,
+                                            long numL1CacheHits,
+                                            long numL2CacheHits) {
     this.numRequests = numRequests;
     this.numHits = numHits;
     this.throughput = throughput;
     this.responseDataThroughput = responseDataThroughput;
+    this.numL1CacheHits = numL1CacheHits;
+    this.numL2CacheHits = numL2CacheHits;
   }
 }

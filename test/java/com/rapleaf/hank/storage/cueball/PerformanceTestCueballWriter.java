@@ -27,23 +27,23 @@ public class PerformanceTestCueballWriter {
 
     Cueball cueball = new Cueball(5,
         new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root",
-        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0);
+        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
     OutputStreamFactory localFs = new LocalDiskOutputStreamFactory(tmpDir) {
-//      @Override
-//      public OutputStream getOutputStream(int partNum, String name)
-//      throws IOException {
-//        return new GZIPOutputStream(super.getOutputStream(partNum, name));
-//      }
+      //      @Override
+      //      public OutputStream getOutputStream(int partNum, String name)
+      //      throws IOException {
+      //        return new GZIPOutputStream(super.getOutputStream(partNum, name));
+      //      }
     };
-//    OutputStreamFactory localFs = new OutputStreamFactory() {
-//      @Override
-//      public OutputStream getOutputStream(int partNum, String name) {
-//        return new OutputStream() {
-//          @Override
-//          public void write(int arg0) {}
-//        };
-//      }
-//    };
+    //    OutputStreamFactory localFs = new OutputStreamFactory() {
+    //      @Override
+    //      public OutputStream getOutputStream(int partNum, String name) {
+    //        return new OutputStream() {
+    //          @Override
+    //          public void write(int arg0) {}
+    //        };
+    //      }
+    //    };
     Writer writer = cueball.getWriter(new MockDomainVersion(1, 0L, null), localFs, 0);
 
     long start = System.currentTimeMillis();

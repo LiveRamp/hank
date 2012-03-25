@@ -43,6 +43,8 @@ public class PartitionAccessor {
   //0: num requests
   //1: num hits
   //2: responses data num bytes
+  //3: num L1 cache hits
+  //3: num L2 cache hits
   private final AtomicLongCollection countersWindow;
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
@@ -52,8 +54,8 @@ public class PartitionAccessor {
     this.partition = partition;
     this.reader = reader;
     windowTimer.restart();
-    countersWindow = new AtomicLongCollection(3);
-    countersWindow.set(0, 0, 0);
+    countersWindow = new AtomicLongCollection(5);
+    countersWindow.set(0, 0, 0, 0, 0);
   }
 
   public HostDomainPartition getHostDomainPartition() {
@@ -65,12 +67,15 @@ public class PartitionAccessor {
     LOG.trace("Partition GET");
     reader.get(key, result);
     if (result.isFound()) {
-      // Increment both num requests and num hits and responses data num bytes
-      countersWindow.increment(1, 1, result.getBuffer().remaining());
+      // Increment both num requests and num hits and responses data num bytes and cache hits
+      countersWindow.increment(1, 1,
+          result.getBuffer().remaining(),
+          result.getL1CacheHit() ? 1 : 0,
+          result.getL2CacheHit() ? 1 : 0);
       return HankResponse.value(result.getBuffer());
     } else {
       // Increment only num requests
-      countersWindow.increment(1, 0, 0);
+      countersWindow.increment(1, 0, 0, 0, 0);
       return NOT_FOUND;
     }
   }
@@ -84,13 +89,20 @@ public class PartitionAccessor {
     long numRequestsInWindow = counters[0];
     long numHitsInWindow = counters[1];
     long responsesNumBytesInWindow = counters[2];
+    long numL1CacheHitsInWindow = counters[3];
+    long numL2CacheHitsInWindow = counters[4];
     double throughput = 0;
     double responseDataThroughput = 0;
     if (windowDurationNanos != 0) {
       throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
       responseDataThroughput = responsesNumBytesInWindow / (windowDurationNanos / 1000000000d);
     }
-    return new PartitionAccessorRuntimeStatistics(numRequestsInWindow, numHitsInWindow, throughput, responseDataThroughput);
+    return new PartitionAccessorRuntimeStatistics(numRequestsInWindow,
+        numHitsInWindow,
+        throughput,
+        responseDataThroughput,
+        numL1CacheHitsInWindow,
+        numL2CacheHitsInWindow);
   }
 
   public void shutDown() {

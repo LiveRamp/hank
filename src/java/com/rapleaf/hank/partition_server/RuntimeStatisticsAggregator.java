@@ -26,6 +26,8 @@ public class RuntimeStatisticsAggregator {
   private double responseDataThroughputTotal;
   private long numRequestsTotal;
   private long numHitsTotal;
+  private long numL1CacheHitsTotal;
+  private long numL2CacheHitsTotal;
   private DoublePopulationStatisticsAggregator getRequestsPopulationStatistics;
 
   public RuntimeStatisticsAggregator() {
@@ -33,6 +35,8 @@ public class RuntimeStatisticsAggregator {
     responseDataThroughputTotal = 0;
     numRequestsTotal = 0;
     numHitsTotal = 0;
+    numL1CacheHitsTotal = 0;
+    numL2CacheHitsTotal = 0;
     getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator();
   }
 
@@ -40,11 +44,15 @@ public class RuntimeStatisticsAggregator {
                                      double responseDataThroughputTotal,
                                      long numRequestsTotal,
                                      long numHitsTotal,
+                                     long numL1CacheHitsTotal,
+                                     long numL2CacheHitsTotal,
                                      DoublePopulationStatisticsAggregator getRequestsPopulationStatistics) {
     this.throughputTotal = throughputTotal;
     this.responseDataThroughputTotal = responseDataThroughputTotal;
     this.numRequestsTotal = numRequestsTotal;
     this.numHitsTotal = numHitsTotal;
+    this.numL1CacheHitsTotal = numL1CacheHitsTotal;
+    this.numL2CacheHitsTotal = numL2CacheHitsTotal;
     this.getRequestsPopulationStatistics = getRequestsPopulationStatistics;
   }
 
@@ -53,6 +61,8 @@ public class RuntimeStatisticsAggregator {
     responseDataThroughputTotal += runtimeStatistics.responseDataThroughput;
     numRequestsTotal += runtimeStatistics.numRequests;
     numHitsTotal += runtimeStatistics.numHits;
+    numL1CacheHitsTotal += runtimeStatistics.numL1CacheHits;
+    numL2CacheHitsTotal += runtimeStatistics.numL2CacheHits;
   }
 
   public void add(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
@@ -60,6 +70,8 @@ public class RuntimeStatisticsAggregator {
     responseDataThroughputTotal += runtimeStatisticsAggregator.responseDataThroughputTotal;
     numRequestsTotal += runtimeStatisticsAggregator.numRequestsTotal;
     numHitsTotal += runtimeStatisticsAggregator.numHitsTotal;
+    numL1CacheHitsTotal += runtimeStatisticsAggregator.numL1CacheHitsTotal;
+    numL2CacheHitsTotal += runtimeStatisticsAggregator.numL2CacheHitsTotal;
     getRequestsPopulationStatistics.aggregate(runtimeStatisticsAggregator.getRequestsPopulationStatistics);
   }
 
@@ -83,6 +95,22 @@ public class RuntimeStatisticsAggregator {
     }
   }
 
+  public double getL1CacheHitRate() {
+    if (numHitsTotal == 0) {
+      return 0;
+    } else {
+      return (double) numL1CacheHitsTotal / (double) numHitsTotal;
+    }
+  }
+
+  public double getL2CacheHitRate() {
+    if (numHitsTotal == 0) {
+      return 0;
+    } else {
+      return (double) numL2CacheHitsTotal / (double) numHitsTotal;
+    }
+  }
+
   public DoublePopulationStatisticsAggregator getGetRequestsPopulationStatistics() {
     return getRequestsPopulationStatistics;
   }
@@ -92,6 +120,8 @@ public class RuntimeStatisticsAggregator {
         + " " + runtimeStatisticsAggregator.responseDataThroughputTotal
         + " " + runtimeStatisticsAggregator.numRequestsTotal
         + " " + runtimeStatisticsAggregator.numHitsTotal
+        + " " + runtimeStatisticsAggregator.numL1CacheHitsTotal
+        + " " + runtimeStatisticsAggregator.numL2CacheHitsTotal
         + " " + DoublePopulationStatisticsAggregator.toString(
         runtimeStatisticsAggregator.getRequestsPopulationStatistics);
   }
@@ -99,7 +129,7 @@ public class RuntimeStatisticsAggregator {
   public static RuntimeStatisticsAggregator parse(String str) {
     String[] tokens = str.split(" ");
     // Detect mal-formatted statistics and exit early
-    if (tokens.length != 17) {
+    if (tokens.length != 19) {
       LOG.error("Failed to parse runtime statistics aggregator with string: " + str);
       return new RuntimeStatisticsAggregator();
     }
@@ -107,21 +137,25 @@ public class RuntimeStatisticsAggregator {
     double responseDataThroughputTotal = Double.parseDouble(tokens[1]);
     long numRequestsTotal = Long.parseLong(tokens[2]);
     long numHitsTotal = Long.parseLong(tokens[3]);
+    long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
+    long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
     double[] deciles = new double[9];
     for (int i = 0; i < 9; ++i) {
-      deciles[i] = Double.parseDouble(tokens[8 + i]);
+      deciles[i] = Double.parseDouble(tokens[10 + i]);
     }
     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
-        Double.parseDouble(tokens[4]),
-        Double.parseDouble(tokens[5]),
-        Long.parseLong(tokens[6]),
+        Double.parseDouble(tokens[6]),
         Double.parseDouble(tokens[7]),
+        Long.parseLong(tokens[8]),
+        Double.parseDouble(tokens[9]),
         deciles);
     return new RuntimeStatisticsAggregator(
         throughputTotal,
         responseDataThroughputTotal,
         numRequestsTotal,
         numHitsTotal,
+        numL1CacheHitsTotal,
+        numL2CacheHitsTotal,
         getRequestsPopulationStatistics);
   }
 }

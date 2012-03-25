@@ -50,7 +50,7 @@ public class TestDomainGenerator {
       partitionedKeys.get(partitionNumber).add(hash);
     }
 
-    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", null, codecClass, null, 0);
+    final Cueball cueball = new Cueball(hashLength, h, valueLength, indexBits, "", null, codecClass, null, 0, -1);
 
     byte[] valueBytes = new byte[valueLength];
     for (Map.Entry<Integer, List<byte[]>> part : partitionedKeys.entrySet()) {
