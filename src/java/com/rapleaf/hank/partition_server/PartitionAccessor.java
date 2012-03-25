@@ -85,7 +85,7 @@ public class PartitionAccessor {
     long windowDurationNanos = windowTimer.getDuration();
     windowTimer.restart();
     // Get atomic counters
-    long[] counters = countersWindow.getAsArrayAndSet(0, 0, 0);
+    long[] counters = countersWindow.getAsArrayAndSet(0, 0, 0, 0, 0);
     long numRequestsInWindow = counters[0];
     long numHitsInWindow = counters[1];
     long responsesNumBytesInWindow = counters[2];
