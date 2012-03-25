@@ -44,7 +44,7 @@ public class PartitionAccessor {
   //1: num hits
   //2: responses data num bytes
   //3: num L1 cache hits
-  //3: num L2 cache hits
+  //4: num L2 cache hits
   private final AtomicLongCollection countersWindow;
 
   public PartitionAccessor(HostDomainPartition partition, Reader reader) {
