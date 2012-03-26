@@ -131,7 +131,7 @@ public class HankTimerAggregator {
     Arrays.sort(durations);
     // Compute deciles
     for (int i = 0; i < 9; ++i) {
-      deciles[i] = durations[(count / 10) * (i + 1)] / 1000000d;
+      deciles[i] = DoublePopulationStatisticsAggregator.getSortedPopulationDecile(durations, i + 1) / 1000000d;
     }
     // Build log string
     StringBuilder logStr = new StringBuilder();
