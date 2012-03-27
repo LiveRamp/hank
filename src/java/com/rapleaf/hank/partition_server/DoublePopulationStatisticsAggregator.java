@@ -44,10 +44,6 @@ public class DoublePopulationStatisticsAggregator {
                                               long numValues,
                                               double total,
                                               double[] deciles) {
-    if (numValues < 10 || deciles.length != 9) {
-      throw new RuntimeException("Invalid population statistics. numValues="
-          + numValues + ", deciles.length=" + deciles.length);
-    }
     this.minimum = minimum;
     this.maximum = maximum;
     this.numValues = numValues;
@@ -65,7 +61,7 @@ public class DoublePopulationStatisticsAggregator {
 
   public void aggregate(double minimum, double maximum, long numValues, double total, double[] deciles) {
     if (numValues < 10 || deciles.length != 9) {
-      throw new RuntimeException("Invalid population statistics. numValues="
+      throw new RuntimeException("Invalid population statistics to aggregate. numValues="
           + numValues + ", deciles.length=" + deciles.length);
     }
     if (numValues == 0) {
