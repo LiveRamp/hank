@@ -142,16 +142,22 @@ public class HostConnectionPool {
 
   // Return a connection to a host, initially skipping the previously used host
   private synchronized HostConnectionAndHostIndex getConnectionToUse() {
-    HostConnectionAndHostIndex result = getConnectionToUse(globalPreviouslyUsedHostIndex);
+    HostConnectionAndHostIndex result = getNextConnectionToUse(globalPreviouslyUsedHostIndex);
     if (result != null) {
       globalPreviouslyUsedHostIndex = result.hostIndex;
     }
     return result;
   }
 
+  // Attempt to find a connection for that key where it is likely to be in the cache if it was queried
+  // recently. (Globally random, but deterministic on the key.)
+  private HostConnectionAndHostIndex getConnectionToUseForKey(int keyHash) {
+    return getNextConnectionToUse(keyHash % hostToConnections.size());
+  }
+
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
   // a failure using a connection to it)
-  private synchronized HostConnectionAndHostIndex getConnectionToUse(int previouslyUsedHostIndex) {
+  private synchronized HostConnectionAndHostIndex getNextConnectionToUse(int previouslyUsedHostIndex) {
 
     // First, search for any unused (unlocked) connection
     for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
@@ -201,16 +207,20 @@ public class HostConnectionPool {
     }
   }
 
-  public HankResponse get(int domainId, ByteBuffer key, int maxNumTries) {
+  public HankResponse get(int domainId, ByteBuffer key, int maxNumTries, Integer keyHash) {
     HostConnectionAndHostIndex connectionAndHostIndex = null;
     int numTries = 0;
     while (true) {
       // Either get a connection to an arbitrary host, or get a connection skipping the
       // previous host used (since it failed)
       if (connectionAndHostIndex == null) {
-        connectionAndHostIndex = getConnectionToUse();
+        if (keyHash == null) {
+          connectionAndHostIndex = getConnectionToUse();
+        } else {
+          connectionAndHostIndex = getConnectionToUseForKey(keyHash);
+        }
       } else {
-        connectionAndHostIndex = getConnectionToUse(connectionAndHostIndex.hostIndex);
+        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex);
       }
       // If we couldn't find any available connection, return corresponding error response
       if (connectionAndHostIndex == null) {
@@ -249,7 +259,7 @@ public class HostConnectionPool {
       if (connectionAndHostIndex == null) {
         connectionAndHostIndex = getConnectionToUse();
       } else {
-        connectionAndHostIndex = getConnectionToUse(connectionAndHostIndex.hostIndex);
+        connectionAndHostIndex = getNextConnectionToUse(connectionAndHostIndex.hostIndex);
       }
       // If we couldn't find any available connection, return corresponding error response
       if (connectionAndHostIndex == null) {

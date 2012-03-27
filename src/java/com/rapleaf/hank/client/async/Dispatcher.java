@@ -66,6 +66,7 @@ public class Dispatcher implements Runnable {
 
     private final int domainId;
     private final ByteBuffer key;
+    private final Integer keyHash;
     private final HostConnectionPool hostConnectionPool;
     private final GetCallback resultHandler;
     private int tryCount;
@@ -75,10 +76,12 @@ public class Dispatcher implements Runnable {
 
     public GetTask(int domainId,
                    ByteBuffer key,
+                   Integer keyHash,
                    HostConnectionPool hostConnectionPool,
                    GetCallback resultHandler) {
       this.domainId = domainId;
       this.key = key;
+      this.keyHash = keyHash;
       this.hostConnectionPool = hostConnectionPool;
       this.resultHandler = resultHandler;
       this.tryCount = 0;
@@ -105,9 +108,13 @@ public class Dispatcher implements Runnable {
         doCompleted();
       } else {
         if (hostConnectionAndHostIndex == null) {
-          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+          if (keyHash == null) {
+            hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse();
+          } else {
+            hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUseForKey(keyHash);
+          }
         } else {
-          hostConnectionAndHostIndex = hostConnectionPool.findConnectionToUse(hostConnectionAndHostIndex.hostIndex);
+          hostConnectionAndHostIndex = hostConnectionPool.findNextConnectionToUse(hostConnectionAndHostIndex.hostIndex);
         }
 
         if (hostConnectionAndHostIndex == null) {

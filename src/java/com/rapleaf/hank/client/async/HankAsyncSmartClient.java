@@ -153,6 +153,7 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
 
     // Determine partition
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
+    int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
     // Find connection pool
     Map<Integer, HostConnectionPool> partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
@@ -179,7 +180,7 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
     }
 
     // Add task to select queue
-    dispatcher.addTask(dispatcher.new GetTask(domain.getId(), key, hostConnectionPool, resultHandler));
+    dispatcher.addTask(dispatcher.new GetTask(domain.getId(), key, keyHash, hostConnectionPool, resultHandler));
   }
 
   public void getBulk(String domainName,

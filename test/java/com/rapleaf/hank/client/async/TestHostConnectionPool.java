@@ -148,17 +148,17 @@ public class TestHostConnectionPool extends BaseTestCase {
     int queryTimeoutMs = 10;
     int bulkQueryTimeoutMs = 100;
     HostConnection connection1 = new HostConnection(mockHost1,
-            null,
-            asyncClientManager,
-            establishConnectionTimeoutMs,
-            queryTimeoutMs,
-            bulkQueryTimeoutMs);
+        null,
+        asyncClientManager,
+        establishConnectionTimeoutMs,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
     HostConnection connection2 = new HostConnection(mockHost2,
-            null,
-            asyncClientManager,
-            establishConnectionTimeoutMs,
-            queryTimeoutMs,
-            bulkQueryTimeoutMs);
+        null,
+        asyncClientManager,
+        establishConnectionTimeoutMs,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
     hostToConnectionsMap.put(mockHost1, Collections.singletonList(connection1));
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(connection2));
 
@@ -187,7 +187,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (previousHostConnection == null) {
         previousHostConnection = hostConnectionPool.findConnectionToUse();
       } else {
-        previousHostConnection = hostConnectionPool.findConnectionToUse(previousHostConnection.hostIndex);
+        previousHostConnection = hostConnectionPool.findNextConnectionToUse(previousHostConnection.hostIndex);
       }
       HostConnection hostConnection = previousHostConnection.hostConnection;
       counter.put(hostConnection, counter.get(hostConnection) + 1);
@@ -205,7 +205,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (previousHostConnection == null) {
         previousHostConnection = hostConnectionPool.findConnectionToUse();
       } else {
-        previousHostConnection = hostConnectionPool.findConnectionToUse(previousHostConnection.hostIndex);
+        previousHostConnection = hostConnectionPool.findNextConnectionToUse(previousHostConnection.hostIndex);
       }
       HostConnection hostConnection = previousHostConnection.hostConnection;
       counter.put(hostConnection, counter.get(hostConnection) + 1);
@@ -223,7 +223,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (previousHostConnection == null) {
         previousHostConnection = hostConnectionPool.findConnectionToUse();
       } else {
-        previousHostConnection = hostConnectionPool.findConnectionToUse(previousHostConnection.hostIndex);
+        previousHostConnection = hostConnectionPool.findNextConnectionToUse(previousHostConnection.hostIndex);
       }
       HostConnection hostConnection = previousHostConnection.hostConnection;
       counter.put(hostConnection, counter.get(hostConnection) + 1);
@@ -241,7 +241,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (previousHostConnection == null) {
         previousHostConnection = hostConnectionPool.findConnectionToUse();
       } else {
-        previousHostConnection = hostConnectionPool.findConnectionToUse(previousHostConnection.hostIndex);
+        previousHostConnection = hostConnectionPool.findNextConnectionToUse(previousHostConnection.hostIndex);
       }
       if (previousHostConnection == null || previousHostConnection.hostConnection == null) {
         continue;

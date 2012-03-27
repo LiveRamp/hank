@@ -173,7 +173,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     int numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1);
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -214,7 +214,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     int numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1);
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
       if (response.is_set_value()) {
         assertEquals(RESPONSE_1, response);
         ++numHits;
@@ -233,7 +233,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 2);
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 2, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -276,7 +276,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     iface1.clearCounts();
     iface2.clearCounts();
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1);
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
       LOG.trace("Num retries = 1, sequence index = " + i +
           " host 1 gets = " + iface1.numGets + ", host 2 gets = " + iface2.numGets);
       if (response.is_set_value()) {
@@ -298,7 +298,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     iface1.clearCounts();
     iface2.clearCounts();
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 2);
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 2, null);
       LOG.trace("Num retries = 2, sequence index = " + i +
           " host 1 gets = " + iface1.numGets + ", host 2 gets = " + iface2.numGets);
       assertEquals(RESPONSE_1, response);

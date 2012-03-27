@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class  HostConnectionPool {
+public class HostConnectionPool {
 
   private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
 
@@ -97,16 +97,22 @@ public class  HostConnectionPool {
 
   // Return a connection to a host, initially skipping the previously used host
   public HostConnectionAndHostIndex findConnectionToUse() {
-    HostConnectionAndHostIndex result = findConnectionToUse(globalPreviouslyUsedHostIndex);
+    HostConnectionAndHostIndex result = findNextConnectionToUse(globalPreviouslyUsedHostIndex);
     if (result != null) {
       globalPreviouslyUsedHostIndex = result.hostIndex;
     }
     return result;
   }
 
+  // Attempt to find a connection for that key where it is likely to be in the cache if it was queried
+  // recently. (Globally random, but deterministic on the key.)
+  public HostConnectionAndHostIndex findConnectionToUseForKey(int keyHash) {
+    return findNextConnectionToUse(keyHash % hostToConnections.size());
+  }
+
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
   // a failure using a connection to it)
-  public HostConnectionAndHostIndex findConnectionToUse(int previouslyUsedHostIndex) {
+  public HostConnectionAndHostIndex findNextConnectionToUse(int previouslyUsedHostIndex) {
 
     // Search for any unused connection
     int numHostsStandby = 0;

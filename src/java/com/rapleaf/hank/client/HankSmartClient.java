@@ -312,6 +312,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
 
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
+    int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
     Map<Integer, HostConnectionPool> partitionToConnectionPool;
     synchronized (cacheLock) {
@@ -333,7 +334,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
-    return hostConnectionPool.get(domain.getId(), key, queryMaxNumTries);
+    return hostConnectionPool.get(domain.getId(), key, queryMaxNumTries, keyHash);
   }
 
   @Override
