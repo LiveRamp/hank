@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-public class  HostConnectionPool {
+public class HostConnectionPool {
 
   private static Logger LOG = Logger.getLogger(HostConnectionPool.class);
 
@@ -30,7 +30,7 @@ public class  HostConnectionPool {
   private final Connector connector;
   private final HostConnectionAndHostIndex allConnectionsStandby = new HostConnectionAndHostIndex(null, -1);
 
-  private int globalPreviouslyUsedHostIndex;
+  private final int globalStartingHostIndex;
 
   static class HostConnectionAndHostIndex {
     HostConnection hostConnection;
@@ -64,9 +64,9 @@ public class  HostConnectionPool {
       hostToConnections.add(connections);
       ++hostIndex;
     }
-    // Previously used host is randomized so that different connection pools start querying
-    // different hosts.
-    globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
+    // Starting host is randomized so that different connection pools start querying
+    // different hosts on the first try.
+    globalStartingHostIndex = random.nextInt(hostToConnections.size());
     // Initialize connector
     this.connector = connector;
   }
@@ -95,13 +95,9 @@ public class  HostConnectionPool {
     return connections;
   }
 
-  // Return a connection to a host, initially skipping the previously used host
+  // Return a connection to the first host to try to use
   public HostConnectionAndHostIndex findConnectionToUse() {
-    HostConnectionAndHostIndex result = findConnectionToUse(globalPreviouslyUsedHostIndex);
-    if (result != null) {
-      globalPreviouslyUsedHostIndex = result.hostIndex;
-    }
-    return result;
+    return findConnectionToUse(globalStartingHostIndex);
   }
 
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
