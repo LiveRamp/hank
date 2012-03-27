@@ -44,6 +44,9 @@ public class DoublePopulationStatisticsAggregator {
                                               long numValues,
                                               double total,
                                               double[] deciles) {
+    if (deciles.length != 9) {
+      throw new RuntimeException("Invalid population statistics: num deciles =" + deciles.length);
+    }
     this.minimum = minimum;
     this.maximum = maximum;
     this.numValues = numValues;
