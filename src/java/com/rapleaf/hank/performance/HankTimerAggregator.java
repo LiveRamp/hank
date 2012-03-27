@@ -53,6 +53,7 @@ public class HankTimerAggregator {
     this.isActive = statsComputationWindow != 0;
     this.populationStatistics = null;
     this.previousPopulationStatistics = new DoublePopulationStatisticsAggregator();
+    this.durations = new long[statsComputationWindow];
     clear();
   }
 
@@ -116,7 +117,7 @@ public class HankTimerAggregator {
   }
 
   private void clear() {
-    durations = new long[statsComputationWindow];
+    // Durations doesn't need to be cleared
     count = 0;
     totalDuration = 0;
     statsComputationWindowStart = Long.MAX_VALUE;
