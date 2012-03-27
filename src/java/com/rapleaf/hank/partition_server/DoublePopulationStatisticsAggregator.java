@@ -67,9 +67,11 @@ public class DoublePopulationStatisticsAggregator {
       throw new RuntimeException("Invalid population statistics to aggregate. numValues="
           + numValues + ", deciles.length=" + deciles.length);
     }
-    if (numValues == 0) {
+    if (this.numValues == 0) {
       // Copy deciles directly
       System.arraycopy(deciles, 0, this.deciles, 0, 9);
+    } else if (numValues == 0) {
+      // Do nothing
     } else {
       aggregateDeciles(this.deciles, this.numValues, this.getMaximum(),
           deciles, numValues, maximum,
