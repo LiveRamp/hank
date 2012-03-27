@@ -86,7 +86,10 @@ public class DoublePopulationStatisticsAggregator {
     if (numValues == 0) {
       // Copy deciles directly
       System.arraycopy(other.deciles, 0, deciles, 0, 9);
+    } else if (other.numValues == 0) {
+      // Keep this deciles unchanged
     } else {
+      // Aggregate both deciles
       aggregateDeciles(this.deciles, this.numValues, this.getMaximum(),
           other.deciles, other.numValues, other.getMaximum(),
           this.deciles);
