@@ -67,8 +67,8 @@ public class HostConnectionPool {
   private ArrayList<List<HostConnectionAndHostIndex>> hostToConnections
       = new ArrayList<List<HostConnectionAndHostIndex>>();
 
-  private final int globalStartingHostIndex;
-  private final Random random = new Random();
+  private int globalPreviouslyUsedHostIndex;
+  private Random random = new Random();
 
   private static final HankResponse NO_CONNECTION_AVAILABLE_RESPONSE
       = HankResponse.xception(HankException.no_connection_available(true));
@@ -101,9 +101,9 @@ public class HostConnectionPool {
       hostToConnections.add(connections);
       ++hostIndex;
     }
-    // Starting host is randomized so that different connection pools start querying
-    // different hosts on the first try.
-    globalStartingHostIndex = random.nextInt(hostToConnections.size());
+    // Previously used host is randomized so that different connection pools start querying
+    // different hosts.
+    globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
   }
 
   static HostConnectionPool createFromList(Collection<HostConnection> connections) {
@@ -140,9 +140,13 @@ public class HostConnectionPool {
     return result;
   }
 
-  // Return a connection to the first host to try to use
-  private HostConnectionAndHostIndex getConnectionToUse() {
-    return getConnectionToUse(globalStartingHostIndex);
+  // Return a connection to a host, initially skipping the previously used host
+  private synchronized HostConnectionAndHostIndex getConnectionToUse() {
+    HostConnectionAndHostIndex result = getConnectionToUse(globalPreviouslyUsedHostIndex);
+    if (result != null) {
+      globalPreviouslyUsedHostIndex = result.hostIndex;
+    }
+    return result;
   }
 
   // Return a connection to an arbitrary host, initially skipping the supplied host (likely because there was
