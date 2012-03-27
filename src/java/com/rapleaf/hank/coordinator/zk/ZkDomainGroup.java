@@ -26,7 +26,9 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ZkDomainGroup extends AbstractDomainGroup {
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
@@ -61,11 +63,11 @@ public class ZkDomainGroup extends AbstractDomainGroup {
 
   private final String groupName;
   private final WatchedMap<ZkDomain> domainsById;
-  private final SortedMap<Integer, DomainGroupVersion> domainGroupVersions = new TreeMap<Integer, DomainGroupVersion>();
+  private final WatchedMap<ZkDomainGroupVersion> domainGroupVersions;
   private final String dgPath;
   private final ZooKeeperPlus zk;
 
-  public ZkDomainGroup(ZooKeeperPlus zk, String dgPath, Coordinator coordinator)
+  public ZkDomainGroup(ZooKeeperPlus zk, String dgPath, final Coordinator coordinator)
       throws InterruptedException, KeeperException, IOException {
     super(coordinator);
     this.zk = zk;
@@ -80,22 +82,13 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     };
     domainsById = new WatchedMap<ZkDomain>(zk, ZkPath.append(dgPath, "domains"), elementLoader);
 
-    // enumerate the versions subkey
-    loadVersions();
-  }
-
-  private SortedMap<Integer, DomainGroupVersion> loadVersions() throws KeeperException, InterruptedException, IOException {
-    SortedMap<Integer, DomainGroupVersion> dgcvs = new TreeMap<Integer, DomainGroupVersion>();
-
-    List<String> versions = zk.getChildren(ZkPath.append(dgPath, "versions"), false);
-    for (String version : versions) {
-      String versionPath = ZkPath.append(dgPath, "versions", version);
-      if (ZkDomainGroupVersion.isComplete(versionPath, zk)) {
-        ZkDomainGroupVersion ver = new ZkDomainGroupVersion(zk, getCoord(), versionPath, this);
-        dgcvs.put(ver.getVersionNumber(), ver);
-      }
-    }
-    return dgcvs;
+    domainGroupVersions = new WatchedMap<ZkDomainGroupVersion>(zk, ZkPath.append(dgPath, "versions"),
+        new ElementLoader<ZkDomainGroupVersion>() {
+          @Override
+          public ZkDomainGroupVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+            return new ZkDomainGroupVersion(zk, coordinator, ZkPath.append(basePath, relPath), ZkDomainGroup.this);
+          }
+        }, new DotComplete());
   }
 
   @Override
@@ -107,7 +100,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   public SortedSet<DomainGroupVersion> getVersions() throws IOException {
     TreeSet<DomainGroupVersion> s = new TreeSet<DomainGroupVersion>();
     try {
-      s.addAll(loadVersions().values());
+      s.addAll(domainGroupVersions.values());
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -126,10 +119,8 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   @Override
   public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException {
     try {
-      DomainGroupVersion version = ZkDomainGroupVersion.create(zk, getCoord(),
+      return ZkDomainGroupVersion.create(zk, getCoord(),
           ZkPath.append(dgPath, "versions"), domainNameToVersion, this);
-      domainGroupVersions.put(version.getVersionNumber(), version);
-      return version;
     } catch (Exception e) {
       throw new IOException(e);
     }

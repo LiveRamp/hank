@@ -47,7 +47,7 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
 
   @Override
   public String toString() {
-    return "ZkDomainConfigVersion [domain=" + domain
+    return "ZkDomainGroupVersionDomainVersion [domain=" + domain
         + ", versionNumber=" + version + "]";
   }
 

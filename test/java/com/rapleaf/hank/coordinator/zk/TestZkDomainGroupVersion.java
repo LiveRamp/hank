@@ -15,19 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.zookeeper.ZkPath;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestZkDomainGroupVersion extends ZkTestCase {
   public TestZkDomainGroupVersion() throws Exception {
@@ -71,7 +67,13 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     Coordinator coord = new MockCoordinator() {
       @Override
       public Domain getDomain(String domainName) {
-        return domain1;
+        if (domainName.equals("domain1")) {
+          return domain1;
+        } else if (domainName.equals("domain2")) {
+          return domain2;
+        } else {
+          throw new IllegalStateException("Unknown domain: " + domainName);
+        }
       }
     };
     ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(1), mockDomainGroup);
@@ -96,14 +98,6 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(4), mockDomainGroup);
     assertEquals(4, dgcv.getVersionNumber());
     assertEquals(2, dgcv.getDomainVersions().size());
-
-    try {
-      create(versionPath(5));
-      dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(5), mockDomainGroup);
-      fail("should have thrown an error");
-    } catch (IllegalStateException e) {
-      // success!
-    }
   }
 
   public void testCreateNewSequential() throws Exception {

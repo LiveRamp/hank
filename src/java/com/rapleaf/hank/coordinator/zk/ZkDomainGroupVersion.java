@@ -15,40 +15,32 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.coordinator.AbstractDomainGroupVersion;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private final DomainGroup domainGroup;
   private final int versionNumber;
-  private final HashSet<DomainGroupVersionDomainVersion> domainVersions;
+  private final WatchedMap<ZkDomainGroupVersionDomainVersion> domainVersions;
   private final long createdAt;
 
   public ZkDomainGroupVersion(ZooKeeperPlus zk,
-                              Coordinator coordinator,
+                              final Coordinator coordinator,
                               String versionPath,
                               DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
@@ -60,24 +52,25 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
 
     versionNumber = Integer.parseInt(m.group(1));
 
-    if (!isComplete(versionPath, zk)) {
-      throw new IllegalStateException(versionPath + " is not yet complete!");
-    }
-
     final Stat stat = zk.exists(versionPath, false);
     createdAt = stat.getCtime();
 
-    List<String> relativePaths = zk.getChildrenNotHidden(versionPath, false);
-    domainVersions = new HashSet<DomainGroupVersionDomainVersion>();
-    for (String domainName : relativePaths) {
-      domainVersions.add(new ZkDomainGroupVersionDomainVersion(zk, ZkPath.append(versionPath, domainName),
-          coordinator.getDomain(domainName)));
-    }
+    domainVersions = new WatchedMap<ZkDomainGroupVersionDomainVersion>(zk, versionPath,
+        new WatchedMap.ElementLoader<ZkDomainGroupVersionDomainVersion>() {
+          @Override
+          public ZkDomainGroupVersionDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+            if (ZkPath.isHidden(relPath)) {
+              return null;
+            } else {
+              return new ZkDomainGroupVersionDomainVersion(zk, ZkPath.append(basePath, relPath), coordinator.getDomain(relPath));
+            }
+          }
+        });
   }
 
   @Override
   public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
-    return Collections.unmodifiableSet(domainVersions);
+    return new TreeSet<DomainGroupVersionDomainVersion>(domainVersions.values());
   }
 
   @Override
@@ -88,10 +81,6 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   @Override
   public int getVersionNumber() {
     return versionNumber;
-  }
-
-  public static boolean isComplete(String versionPath, ZooKeeper zk) throws KeeperException, InterruptedException {
-    return zk.exists(ZkPath.append(versionPath, DotComplete.NODE_NAME), false) != null;
   }
 
   public static DomainGroupVersion create(ZooKeeperPlus zk,

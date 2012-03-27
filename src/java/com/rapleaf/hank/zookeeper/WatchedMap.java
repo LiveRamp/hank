@@ -22,6 +22,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -76,7 +77,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
   };
 
   public interface ElementLoader<T> {
-    public T load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException;
+    public T load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException;
   }
 
   private final ZooKeeperPlus zk;
