@@ -155,7 +155,7 @@ public class UiUtils {
     if (populationStatistics == null) {
       return "-";
     } else {
-      double[] deciles = populationStatistics.getDeciles();
+      double[] deciles = populationStatistics.computeDeciles();
       StringBuilder tooltipContent = new StringBuilder();
 
       tooltipContent.append("<table>");

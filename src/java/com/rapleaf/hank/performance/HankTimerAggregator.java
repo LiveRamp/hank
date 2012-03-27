@@ -26,18 +26,17 @@ public class HankTimerAggregator {
   private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
 
   private final String name;
-  private long[] durations;
+  private double[] durations;
   private int count;
   private final int statsComputationWindow;
   private final boolean isActive;
 
-  private long totalDuration;
   private long statsComputationWindowStart;
   private long statsComputationWindowEnd;
   private long statsComputationWindowDuration;
-  private Long minDuration;
-  private Long maxDuration;
-  double[] deciles = new double[9];
+  private double minDuration;
+  private double maxDuration;
+  private double totalDuration;
   private long totalUnderlyingCount;
   private DoublePopulationStatisticsAggregator populationStatistics;
   private DoublePopulationStatisticsAggregator previousPopulationStatistics;
@@ -53,7 +52,7 @@ public class HankTimerAggregator {
     this.isActive = statsComputationWindow != 0;
     this.populationStatistics = null;
     this.previousPopulationStatistics = new DoublePopulationStatisticsAggregator();
-    this.durations = new long[statsComputationWindow];
+    this.durations = new double[statsComputationWindow];
     clear();
   }
 
@@ -98,14 +97,15 @@ public class HankTimerAggregator {
       statsComputationWindowEnd = startTimeNanos + durationNanos;
     }
     // Compute statistics
-    totalDuration += durationNanos;
-    if (durationNanos < minDuration) {
-      minDuration = durationNanos;
+    double duration = durationNanos / 1000000d;
+    totalDuration += duration;
+    if (duration < minDuration) {
+      minDuration = duration;
     }
-    if (durationNanos > maxDuration) {
-      maxDuration = durationNanos;
+    if (duration > maxDuration) {
+      maxDuration = duration;
     }
-    durations[count - 1] = durationNanos;
+    durations[count - 1] = duration;
     totalUnderlyingCount += underlyingCount;
     // Dump stats if needed
     if (count == statsComputationWindow) {
@@ -122,18 +122,14 @@ public class HankTimerAggregator {
     totalDuration = 0;
     statsComputationWindowStart = Long.MAX_VALUE;
     statsComputationWindowEnd = Long.MIN_VALUE;
-    minDuration = Long.MAX_VALUE;
-    maxDuration = Long.MIN_VALUE;
+    minDuration = Double.MAX_VALUE;
+    maxDuration = Double.MIN_VALUE;
     totalUnderlyingCount = 0;
   }
 
   private void logStats() {
     // Sort durations
     Arrays.sort(durations);
-    // Compute deciles
-    for (int i = 0; i < 9; ++i) {
-      deciles[i] = DoublePopulationStatisticsAggregator.getSortedPopulationDecile(durations, i + 1) / 1000000d;
-    }
     // Build log string
     StringBuilder logStr = new StringBuilder();
     logStr.append("Statistics for Timer: ");
@@ -146,17 +142,20 @@ public class HankTimerAggregator {
     logStr.append(statsComputationWindowDuration / 1000000d);
     logStr.append("ms");
     logStr.append(", min duration: ");
-    logStr.append(minDuration / 1000000d);
+    logStr.append(minDuration);
     logStr.append("ms");
     logStr.append(", avg duration: ");
-    logStr.append((totalDuration / (double) count) / 1000000d);
+    logStr.append((totalDuration / (double) count));
     logStr.append("ms");
+    /*
     logStr.append(", median duration: ");
-    logStr.append(deciles[4] / 1000000d);
+    logStr.append(deciles[4]);
     logStr.append("ms");
+    */
     logStr.append(", max duration: ");
-    logStr.append(maxDuration / 1000000d);
+    logStr.append(maxDuration);
     logStr.append("ms");
+    /*
     for (int i = 0; i < 9; ++i) {
       logStr.append(", ");
       logStr.append((i + 1) * 10);
@@ -164,6 +163,7 @@ public class HankTimerAggregator {
       logStr.append((deciles[i]));
       logStr.append("ms");
     }
+    */
     logStr.append(", QPS: ");
     logStr.append(count / (statsComputationWindowDuration / 1000000000d));
     if (totalUnderlyingCount != count) {
@@ -175,6 +175,6 @@ public class HankTimerAggregator {
     if (populationStatistics == null) {
       populationStatistics = new DoublePopulationStatisticsAggregator();
     }
-    populationStatistics.aggregate(minDuration / 1000000d, maxDuration / 1000000d, count, totalDuration / 1000000d, deciles);
+    populationStatistics.aggregate(minDuration, maxDuration, count, totalDuration, durations);
   }
 }

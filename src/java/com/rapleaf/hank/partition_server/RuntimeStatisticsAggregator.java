@@ -129,7 +129,7 @@ public class RuntimeStatisticsAggregator {
   public static RuntimeStatisticsAggregator parse(String str) {
     String[] tokens = str.split(" ");
     // Detect mal-formatted statistics and exit early
-    if (tokens.length != 19) {
+    if (tokens.length < 10) {
       LOG.error("Failed to parse runtime statistics aggregator with string: " + str);
       return new RuntimeStatisticsAggregator();
     }
@@ -139,16 +139,17 @@ public class RuntimeStatisticsAggregator {
     long numHitsTotal = Long.parseLong(tokens[3]);
     long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
     long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
-    double[] deciles = new double[9];
-    for (int i = 0; i < 9; ++i) {
-      deciles[i] = Double.parseDouble(tokens[10 + i]);
+    int numRandomSample = tokens.length - 10;
+    double[] randomSample = new double[numRandomSample];
+    for (int i = 0; i < numRandomSample; ++i) {
+      randomSample[i] = Double.parseDouble(tokens[10 + i]);
     }
     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
         Double.parseDouble(tokens[6]),
         Double.parseDouble(tokens[7]),
         Long.parseLong(tokens[8]),
         Double.parseDouble(tokens[9]),
-        deciles);
+        randomSample);
     return new RuntimeStatisticsAggregator(
         throughputTotal,
         responseDataThroughputTotal,

@@ -18,8 +18,11 @@ package com.rapleaf.hank.partition_server;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Random;
 
 public class DoublePopulationStatisticsAggregator {
+
+  private static int POPULATION_RANDOM_SAMPLE_MAX_SIZE = 100;
 
   private static DecimalFormat format3 = new DecimalFormat("#.###");
   private static DecimalFormat format1 = new DecimalFormat("#.#");
@@ -29,29 +32,23 @@ public class DoublePopulationStatisticsAggregator {
   private double maximum;
   private long numValues;
   private double total;
-  private double[] deciles;
+  private final ReservoirSample reservoirSample = new ReservoirSample(POPULATION_RANDOM_SAMPLE_MAX_SIZE);
+  private final Random random = new Random();
 
   public DoublePopulationStatisticsAggregator() {
-    minimum = Double.MAX_VALUE;
-    maximum = Double.MIN_VALUE;
-    numValues = 0;
-    total = 0.0;
-    deciles = new double[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+    clear();
   }
 
   public DoublePopulationStatisticsAggregator(double minimum,
                                               double maximum,
                                               long numValues,
                                               double total,
-                                              double[] deciles) {
-    if (deciles.length != 9) {
-      throw new RuntimeException("Invalid population statistics: num deciles =" + deciles.length);
-    }
+                                              double[] randomSample) {
     this.minimum = minimum;
     this.maximum = maximum;
     this.numValues = numValues;
     this.total = total;
-    this.deciles = deciles;
+    this.reservoirSample.sample(randomSample, random);
   }
 
   public void clear() {
@@ -59,24 +56,10 @@ public class DoublePopulationStatisticsAggregator {
     maximum = Double.MIN_VALUE;
     numValues = 0;
     total = 0.0;
-    Arrays.fill(deciles, 0);
+    reservoirSample.clear();
   }
 
-  public void aggregate(double minimum, double maximum, long numValues, double total, double[] deciles) {
-    if (numValues < 10 || deciles.length != 9) {
-      throw new RuntimeException("Invalid population statistics to aggregate. numValues="
-          + numValues + ", deciles.length=" + deciles.length);
-    }
-    if (this.numValues == 0) {
-      // Copy deciles directly
-      System.arraycopy(deciles, 0, this.deciles, 0, 9);
-    } else if (numValues == 0) {
-      // Do nothing
-    } else {
-      aggregateDeciles(this.deciles, this.numValues, this.getMaximum(),
-          deciles, numValues, maximum,
-          this.deciles);
-    }
+  public void aggregate(double minimum, double maximum, long numValues, double total, double[] randomSample) {
     if (maximum > this.maximum) {
       this.maximum = maximum;
     }
@@ -85,20 +68,10 @@ public class DoublePopulationStatisticsAggregator {
     }
     this.numValues += numValues;
     this.total += total;
+    this.reservoirSample.sample(randomSample, random);
   }
 
   public void aggregate(DoublePopulationStatisticsAggregator other) {
-    if (numValues == 0) {
-      // Copy deciles directly
-      System.arraycopy(other.deciles, 0, deciles, 0, 9);
-    } else if (other.numValues == 0) {
-      // Keep this deciles unchanged
-    } else {
-      // Aggregate both deciles
-      aggregateDeciles(this.deciles, this.numValues, this.getMaximum(),
-          other.deciles, other.numValues, other.getMaximum(),
-          this.deciles);
-    }
     if (other.maximum > this.maximum) {
       this.maximum = other.maximum;
     }
@@ -107,54 +80,7 @@ public class DoublePopulationStatisticsAggregator {
     }
     this.numValues += other.numValues;
     this.total += other.total;
-  }
-
-  private static void aggregateDeciles(double[] decilesA, long numValuesA, double maximumA,
-                                       double[] decilesB, long numValuesB, double maximumB,
-                                       double[] outputDeciles) {
-    // Compute all deciles
-    ValueAndCount[] allDeciles = new ValueAndCount[2 * 10];
-    // Load all decile values and counts into one array
-    for (int i = 0; i < 9; ++i) {
-      allDeciles[i] = new ValueAndCount(decilesA[i], numValuesA);
-      allDeciles[i + 9] = new ValueAndCount(decilesB[i], numValuesB);
-    }
-
-    // Fake deciles to fill in voids
-    allDeciles[18] = new ValueAndCount(maximumA, numValuesA);
-    allDeciles[19] = new ValueAndCount(maximumB, numValuesB);
-
-    // Sort all deciles
-    Arrays.sort(allDeciles);
-
-    // Update deciles
-    final long numValuesCombined = 10 * (numValuesA + numValuesB);
-    long previousRank = 0;
-    int j = 0;
-    for (int i = 0; i < 9; ++i) {
-      final long decileRank = Math.round(getDecileRank(numValuesCombined, i + 1));
-      while (previousRank + allDeciles[j].count < decileRank) {
-        previousRank += allDeciles[j].count;
-        j += 1;
-      }
-
-      // j point to the current segment where the correct decile rank lies
-      if (j == 0) {
-        // For the first decile, consider all value to be equal (no interpolation)
-        outputDeciles[i] = allDeciles[j].value;
-      } else {
-        // Interpolate value for other deciles
-        outputDeciles[i] =
-            interpolateValueWithinValueAndCounts(allDeciles[j - 1].value,
-                allDeciles[j],
-                decileRank - previousRank);
-      }
-    }
-  }
-
-  public static double interpolateValueWithinValueAndCounts(double value, ValueAndCount segment, long indexInSegment) {
-    double remainder = (double) (indexInSegment + 1) / (double) segment.count;
-    return value + remainder * (segment.value - value);
+    this.reservoirSample.sample(other.reservoirSample, random);
   }
 
   public Double getMaximum() {
@@ -179,8 +105,18 @@ public class DoublePopulationStatisticsAggregator {
     }
   }
 
-  public double[] getDeciles() {
-    return deciles;
+  public double[] computeDeciles() {
+    double[] result = new double[9];
+    Arrays.fill(result, 0.0);
+    if (reservoirSample.getSize() > 0) {
+      // Sort valid reservoir values first
+      Arrays.sort(reservoirSample.getReservoir(), 0, reservoirSample.getSize());
+      // Compute deciles
+      for (int i = 0; i < 9; ++i) {
+        result[i] = getSortedPopulationDecile(reservoirSample.getReservoir(), i + 1, reservoirSample.getSize());
+      }
+    }
+    return result;
   }
 
   public static String toString(DoublePopulationStatisticsAggregator populationStatistics) {
@@ -192,9 +128,9 @@ public class DoublePopulationStatisticsAggregator {
     result.append(populationStatistics.numValues);
     result.append(' ');
     result.append(populationStatistics.total);
-    for (int i = 0; i < 9; ++i) {
+    for (int i = 0; i < populationStatistics.reservoirSample.getSize(); ++i) {
       result.append(' ');
-      result.append(populationStatistics.deciles[i]);
+      result.append(populationStatistics.reservoirSample.getReservoir()[i]);
     }
     return result.toString();
   }
@@ -210,10 +146,11 @@ public class DoublePopulationStatisticsAggregator {
   }
 
   public String format() {
+    double[] deciles = computeDeciles();
     StringBuilder result = new StringBuilder();
-    // Compute median on the fly
+    // Compute median
     double median = numValues == 0 ? 0 : deciles[4];
-    // Compute 90% percentile on the fly
+    // Compute 90% percentile
     double ninetiethPercentile = numValues == 0 ? 0 : deciles[8];
     result.append(formatDouble(getMean()));
     result.append(" / ");
@@ -224,48 +161,84 @@ public class DoublePopulationStatisticsAggregator {
     return result.toString();
   }
 
-  public static class ValueAndCount implements Comparable<ValueAndCount> {
+  public class ReservoirSample {
 
-    public final double value;
-    public final long count;
+    private final double[] reservoir;
+    private int size;
+    private int count;
 
-    public ValueAndCount(double value, long count) {
-      this.value = value;
-      this.count = count;
+    public ReservoirSample(int reservoirMaxSize) {
+      reservoir = new double[reservoirMaxSize];
+      clear();
     }
 
-    @Override
-    public int compareTo(DoublePopulationStatisticsAggregator.ValueAndCount other) {
-      return Double.compare(value, other.value);
+    public void sample(double[] values, Random random) {
+      for (double value : values) {
+        sample(value, random);
+      }
     }
 
-    @Override
-    public String toString() {
-      return value + "(" + count + ")";
+    public void sample(double value, Random random) {
+      if (count < reservoir.length) {
+        reservoir[size++] = value;
+      } else {
+        if (random.nextInt(count) < reservoir.length) {
+          reservoir[random.nextInt(reservoir.length)] = value;
+        }
+      }
+      ++count;
     }
+
+    public void sample(ReservoirSample other, Random random) {
+      for (int i = 0; i < other.getSize(); ++i) {
+        sample(other.getReservoir()[i], random);
+      }
+    }
+
+    public double[] getReservoir() {
+      return reservoir;
+    }
+
+    public int getSize() {
+      return size;
+    }
+
+    public void clear() {
+      size = 0;
+      count = 0;
+    }
+  }
+
+  public static double getSortedPopulationDecile(double[] population, int decile, int endIndex) {
+    return getInterpolatedValueAtIndex(population, getDecileIndex(endIndex, decile));
+  }
+
+  public static double getSortedPopulationDecile(long[] population, int decile, int endIndex) {
+    return getInterpolatedValueAtIndex(population, getDecileIndex(endIndex, decile));
   }
 
   public static double getSortedPopulationDecile(double[] population, int decile) {
-    return getInterpolatedValueAtIndex(population, getDecileRank(population.length, decile));
+    return getInterpolatedValueAtIndex(population, getDecileIndex(population.length, decile));
   }
 
   public static double getSortedPopulationDecile(long[] population, int decile) {
-    return getInterpolatedValueAtIndex(population, getDecileRank(population.length, decile));
+    return getInterpolatedValueAtIndex(population, getDecileIndex(population.length, decile));
   }
 
-  public static double getDecileRank(long size, int decile) {
+  public static double getDecileIndex(long size, int decile) {
     if (decile < 1 || decile > 9) {
       throw new RuntimeException("Invalid decile: " + decile);
     }
-    if (size < 10) {
-      throw new RuntimeException("Population is too small to compute deciles. Size: " + size);
-    }
-    return ((size / 10.0) * decile) - 1;
+    return ((size - 1) / 10.0) * decile;
   }
 
   public static double getInterpolatedValueAtIndex(double[] population, double rank) {
     double rankFloored = Math.floor(rank);
     double remainder = rank - rankFloored;
+
+    if (remainder == 0 || ((int) rankFloored) == population.length - 1) {
+      return population[(int) rankFloored];
+    }
 
     // Return interpolated value at index
     return population[(int) rankFloored] + (remainder * (population[(int) rankFloored + 1] - population[(int) rankFloored]));
@@ -274,6 +247,10 @@ public class DoublePopulationStatisticsAggregator {
   public static double getInterpolatedValueAtIndex(long[] population, double rank) {
     double rankFloored = Math.floor(rank);
     double remainder = rank - rankFloored;
+
+    if (remainder == 0 || ((int) rankFloored) == population.length - 1) {
+      return population[(int) rankFloored];
+    }
 
     // Return interpolated value at index
     return population[(int) rankFloored] + (remainder * (population[(int) rankFloored + 1] - population[(int) rankFloored]));
