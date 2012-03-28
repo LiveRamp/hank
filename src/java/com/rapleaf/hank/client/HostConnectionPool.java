@@ -310,6 +310,6 @@ public class HostConnectionPool {
   }
 
   public static Integer getHostListShuffleSeed(Integer domainId, Integer partitionId) {
-    return domainId * partitionId;
+    return (domainId + 1) * (partitionId + 1);
   }
 }
