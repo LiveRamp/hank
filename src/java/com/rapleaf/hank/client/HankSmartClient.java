@@ -305,12 +305,33 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   @Override
   public HankResponse get(String domainName, ByteBuffer key) {
+    // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
       LOG.error("No such Domain: " + domainName);
       return NO_SUCH_DOMAIN;
     }
+    return _get(domain, key);
+  }
 
+  // Simple getBulk that only loops through the keys and performs regular gets
+  @Override
+  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
+    // Get Domain
+    Domain domain = coordinator.getDomain(domainName);
+    if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
+      return NO_SUCH_DOMAIN_BULK;
+    }
+    // Build responses list
+    List<HankResponse> allResponses = new ArrayList<HankResponse>(keys.size());
+    for (ByteBuffer key : keys) {
+      allResponses.add(_get(domain, key));
+    }
+    return HankBulkResponse.responses(allResponses);
+  }
+
+  public HankResponse _get(Domain domain, ByteBuffer key) {
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
     int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
@@ -319,7 +340,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
     }
     if (partitionToConnectionPool == null) {
-      String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domainName, domain.getId());
+      String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId());
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
@@ -327,16 +348,18 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
     if (hostConnectionPool == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d", domainName, domain.getId(), partition);
+      String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition);
       LOG.error(errMsg);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
     if (LOG.isTraceEnabled()) {
-      LOG.trace("Looking in domain " + domainName + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
+      LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
     return hostConnectionPool.get(domain.getId(), key, queryMaxNumTries, keyHash);
   }
 
+  // The real getBulk is disabled for now, until we can make it more performant.
+  /*
   @Override
   public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
 
@@ -444,6 +467,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
     return HankBulkResponse.responses(allResponses);
   }
+  */
 
   @Override
   public void stop() {
