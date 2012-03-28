@@ -68,14 +68,15 @@ public class HostConnectionPool {
       = new ArrayList<List<HostConnectionAndHostIndex>>();
 
   private int globalPreviouslyUsedHostIndex;
-  private Random random = new Random();
+  private final Random random = new Random();
 
   private static final HankResponse NO_CONNECTION_AVAILABLE_RESPONSE
       = HankResponse.xception(HankException.no_connection_available(true));
   private static final HankBulkResponse NO_CONNECTION_AVAILABLE_BULK_RESPONSE
       = HankBulkResponse.xception(HankException.no_connection_available(true));
 
-  static class HostConnectionAndHostIndex {
+  static class HostConnectionAndHostIndex implements Comparable<HostConnectionAndHostIndex> {
+
     HostConnection hostConnection;
     int hostIndex;
 
@@ -84,16 +85,34 @@ public class HostConnectionPool {
       this.hostConnection = hostConnection;
       this.hostIndex = hostIndex;
     }
+
+    @Override
+    public int compareTo(HostConnectionAndHostIndex hostConnectionAndHostIndex) {
+      return hostConnection.getHost().compareTo(hostConnectionAndHostIndex.hostConnection.getHost());
+    }
   }
 
-  HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap) {
+  HostConnectionPool(Map<Host, List<HostConnection>> hostToConnectionsMap, Integer hostShuffleSeed) {
     if (hostToConnectionsMap.size() == 0) {
       throw new RuntimeException("HostConnectionPool must be initialized with a non empty collection of connections.");
     }
+
+    // Shuffle the list of hosts (tentatively in a deterministic fashion). This will ensure failing requests to a host fall back
+    // to different hosts across connection pools, but also that the order in which we try is consistent across
+    // connection pools for a given seed (partition id).
+    List<Host> shuffledHosts = new ArrayList<Host>(hostToConnectionsMap.keySet());
+    if (hostShuffleSeed != null) {
+      // Sort first to guarantee consistent shuffle for a given seed
+      Collections.sort(shuffledHosts);
+      Collections.shuffle(shuffledHosts, new Random(hostShuffleSeed));
+    } else {
+      Collections.shuffle(shuffledHosts);
+    }
+
     int hostIndex = 0;
-    for (Map.Entry<Host, List<HostConnection>> entry : hostToConnectionsMap.entrySet()) {
+    for (Host host : shuffledHosts) {
       List<HostConnectionAndHostIndex> connections = new ArrayList<HostConnectionAndHostIndex>();
-      for (HostConnection hostConnection : entry.getValue()) {
+      for (HostConnection hostConnection : hostToConnectionsMap.get(host)) {
         connections.add(new HostConnectionAndHostIndex(hostConnection, hostIndex));
       }
       // Shuffle list of connections for that host, so that different pools try connections in different orders
@@ -101,12 +120,13 @@ public class HostConnectionPool {
       hostToConnections.add(connections);
       ++hostIndex;
     }
+
     // Previously used host is randomized so that different connection pools start querying
     // different hosts.
     globalPreviouslyUsedHostIndex = random.nextInt(hostToConnections.size());
   }
 
-  static HostConnectionPool createFromList(Collection<HostConnection> connections) {
+  static HostConnectionPool createFromList(Collection<HostConnection> connections, Integer hostShuffleSeed) {
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
     for (HostConnection connection : connections) {
       List<HostConnection> connectionList = hostToConnectionsMap.get(connection.getHost());
@@ -116,7 +136,7 @@ public class HostConnectionPool {
       }
       connectionList.add(connection);
     }
-    return new HostConnectionPool(hostToConnectionsMap);
+    return new HostConnectionPool(hostToConnectionsMap, hostShuffleSeed);
   }
 
   Collection<HostConnection> getConnections() {
@@ -287,5 +307,9 @@ public class HostConnectionPool {
         }
       }
     }
+  }
+
+  public static Integer getHostListShuffleSeed(Integer domainId, Integer partitionId) {
+    return domainId * partitionId;
   }
 }

@@ -29,6 +29,8 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 
+import static com.rapleaf.hank.client.HostConnectionPool.getHostListShuffleSeed;
+
 public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocationChangeListener {
 
   private static final long CACHE_UPDATER_MINIMUM_WAIT_MS = 5 * 1000;
@@ -265,7 +267,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
                 queryTimeoutMs,
                 bulkQueryTimeoutMs));
           }
-          hostConnectionPool = HostConnectionPool.createFromList(hostConnections);
+          hostConnectionPool = HostConnectionPool.createFromList(hostConnections, null);
         }
         newPartitionServerAddressToConnectionPool.put(host.getAddress(), hostConnectionPool);
       }
@@ -274,6 +276,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Build new domainToPartitionToConnectionPool
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry :
         newDomainToPartitionToPartitionServerAddressList.entrySet()) {
+      Integer domainId = domainToPartitionToAddressesEntry.getKey();
       Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry :
           domainToPartitionToAddressesEntry.getValue().entrySet()) {
@@ -281,9 +284,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
           connections.addAll(newPartitionServerAddressToConnectionPool.get(address).getConnections());
         }
-        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(), HostConnectionPool.createFromList(connections));
+        Integer partitionId = partitionToAddressesEntry.getKey();
+        partitionToConnectionPool.put(partitionId,
+            HostConnectionPool.createFromList(connections, getHostListShuffleSeed(domainId, partitionId)));
       }
-      newDomainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
+      newDomainToPartitionToConnectionPool.put(domainId, partitionToConnectionPool);
     }
 
     // Build new partitionServerAddressListToConnectionPool
@@ -297,7 +302,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             connections.addAll(newPartitionServerAddressToConnectionPool.get(partitionServerAddress).getConnections());
           }
           newPartitionServerAddressListToConnectionPool.put(partitionServerAddressList,
-              HostConnectionPool.createFromList(connections));
+              HostConnectionPool.createFromList(connections, null));
         }
       }
     }

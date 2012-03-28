@@ -162,7 +162,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost1, Collections.singletonList(connection1));
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(connection2));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, connector);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, connector, null);
     HashMap<HostConnection, Integer> counter = new HashMap<HostConnection, Integer>();
 
     mockHost1.setState(HostState.SERVING);
@@ -251,6 +251,64 @@ public class TestHostConnectionPool extends BaseTestCase {
     }
     assertTrue("No connection request should be on this host since UPDATING", counter.get(connection1) == 0);
     assertTrue("No connection request should be on this host since UPDATING", counter.get(connection2) == 0);
+  }
+
+  public void testHostConnectionDeterministicShuffle() throws IOException, TException, InterruptedException {
+
+    MockIface iface1 = new Response1Iface();
+    MockIface iface2 = new Response1Iface();
+    TAsyncClientManager asyncClientManager = new TAsyncClientManager();
+    Connector connector = new Connector();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 10;
+    int bulkQueryTimeoutMs = 100;
+    HostConnection connection1 = new HostConnection(mockHost1,
+        null,
+        asyncClientManager,
+        establishConnectionTimeoutMs,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
+    HostConnection connection2 = new HostConnection(mockHost2,
+        null,
+        asyncClientManager,
+        establishConnectionTimeoutMs,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(connection1));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(connection2));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    new HostConnectionPool(hostToConnectionsMap, connector, null).findConnectionToUse();
+    new HostConnectionPool(hostToConnectionsMap, connector, null).findConnectionToUse();
+
+    assertTrue(connection1.isConnecting());
+    assertTrue(connection2.isConnecting());
+
+    connection1.attemptConnect();
+    connection2.attemptConnect();
+
+    assertTrue(connection1.isConnected());
+    assertTrue(connection2.isConnected());
+
+    for (int n = 0; n < 1024; ++n) {
+      HostConnectionPool hostConnectionPoolA = new HostConnectionPool(hostToConnectionsMap, connector, n);
+      HostConnectionPool hostConnectionPoolB = new HostConnectionPool(hostToConnectionsMap, connector, n);
+      for (int i = 0; i < 10; ++i) {
+        HostConnectionPool.HostConnectionAndHostIndex connectionA = hostConnectionPoolA.findConnectionToUseForKey(n);
+        HostConnectionPool.HostConnectionAndHostIndex connectionB = hostConnectionPoolB.findConnectionToUseForKey(n);
+        assertEquals("Both connection pools attempt to use the same connection",
+            connectionA.hostConnection.getHost(),
+            connectionB.hostConnection.getHost());
+      }
+    }
   }
 
   private static void stopPartitionServer(TestHostConnection.MockPartitionServer mockPartitionServer, Thread mockPartitionServerThread) throws InterruptedException {

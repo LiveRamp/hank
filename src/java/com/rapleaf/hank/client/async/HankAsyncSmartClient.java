@@ -37,6 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.rapleaf.hank.client.HostConnectionPool.getHostListShuffleSeed;
+
 public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
@@ -254,22 +256,24 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
               bulkQueryTimeoutMs));
         }
         partitionServerAddressToConnectionPool.put(host.getAddress(),
-            HostConnectionPool.createFromList(hostConnections, connector));
+            HostConnectionPool.createFromList(hostConnections, connector, null));
       }
     }
 
     // Build domainToPartitionToConnectionPool
     for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry : domainToPartitionToPartitionServerAddresses.entrySet()) {
       Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
+      Integer domainId = domainToPartitionToAddressesEntry.getKey();
       for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry : domainToPartitionToAddressesEntry.getValue().entrySet()) {
         List<HostConnection> connections = new ArrayList<HostConnection>();
         for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
           connections.addAll(partitionServerAddressToConnectionPool.get(address).getConnections());
         }
-        partitionToConnectionPool.put(partitionToAddressesEntry.getKey(),
-            HostConnectionPool.createFromList(connections, connector));
+        Integer partitionId = partitionToAddressesEntry.getKey();
+        partitionToConnectionPool.put(partitionId,
+            HostConnectionPool.createFromList(connections, connector, getHostListShuffleSeed(domainId, partitionId)));
       }
-      domainToPartitionToConnectionPool.put(domainToPartitionToAddressesEntry.getKey(), partitionToConnectionPool);
+      domainToPartitionToConnectionPool.put(domainId, partitionToConnectionPool);
     }
   }
 

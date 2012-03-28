@@ -165,7 +165,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -204,7 +204,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -264,7 +264,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
 
-    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap);
+    HostConnectionPool hostConnectionPool = new HostConnectionPool(hostToConnectionsMap, null);
 
     mockHost1.setState(HostState.SERVING);
     mockHost2.setState(HostState.SERVING);
@@ -315,6 +315,55 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
     assertEquals("Host 2 should have served all requests", 10, iface2.numGets);
     assertEquals("All keys should have been found", 10, numHits);
+  }
+
+  public void testDeterministicHostListShuffling() throws IOException, TException, InterruptedException {
+
+    MockIface iface1 = new Response1Iface();
+    MockIface iface2 = new Response1Iface();
+
+    startMockPartitionServerThread1(iface1, 1);
+    startMockPartitionServerThread2(iface2, 1);
+
+    Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
+
+    int tryLockTimeoutMs = 100;
+    int establishConnectionTimeoutMs = 100;
+    int queryTimeoutMs = 100;
+    int bulkQueryTimeoutMs = 100;
+
+    hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+    hostToConnectionsMap.put(mockHost2, Collections.singletonList(new HostConnection(mockHost2,
+        tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.SERVING);
+
+    for (int n = 0; n < 1024; ++n) {
+      int numHits = 0;
+      // Note: creating connection pools with a host shuffling seed
+      HostConnectionPool hostConnectionPoolA = new HostConnectionPool(hostToConnectionsMap, n);
+      HostConnectionPool hostConnectionPoolB = new HostConnectionPool(hostToConnectionsMap, n);
+
+      // Connection pools should try the same host first for a given key hash
+      final int keyHash = 42;
+      for (int i = 0; i < 10; ++i) {
+        HankResponse responseA = hostConnectionPoolA.get(0, KEY_1, 1, keyHash);
+        HankResponse responseB = hostConnectionPoolB.get(0, KEY_1, 1, keyHash);
+        assertEquals(RESPONSE_1, responseA);
+        assertEquals(RESPONSE_1, responseB);
+        if (responseA.is_set_value() && responseB.is_set_value()) {
+          numHits += 2;
+        }
+      }
+      assertNotSame("Gets should not be distributed accross hosts", iface1.numGets, iface2.numGets);
+      assertTrue("All gets should have been served by one host", (iface1.numGets == 20 && iface2.numGets == 0)
+          || (iface1.numGets == 0 && iface2.numGets == 20));
+      assertEquals("All keys should have been found", 20, numHits);
+      iface1.clearCounts();
+      iface2.clearCounts();
+    }
   }
 
   private static void stopPartitionServer(TestHostConnection.MockPartitionServer mockPartitionServer, Thread mockPartitionServerThread) throws InterruptedException {
