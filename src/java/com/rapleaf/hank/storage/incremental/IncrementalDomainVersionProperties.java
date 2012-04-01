@@ -100,7 +100,12 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
       if (parentVersionNumber == null) {
         return null;
       } else {
-        return domain.getVersionByNumber(parentVersionNumber);
+        DomainVersion result = domain.getVersionByNumber(parentVersionNumber);
+        if (result == null) {
+          throw new IOException("Failed to get parent Domain Version since specified parent version number ("
+              + parentVersionNumber + ") of Domain " + domain.getName() + " does not correspond to any version.");
+        }
+        return result;
       }
     }
   }
