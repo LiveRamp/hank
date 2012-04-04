@@ -43,6 +43,7 @@ public class CascadingDomainBuilder {
   private Pipe pipe;
   private final String keyFieldName;
   private final String valueFieldName;
+  private Integer partitionToBuild = null;
   private DomainVersion domainVersion = null;
 
   public CascadingDomainBuilder(DomainBuilderProperties properties,
@@ -94,6 +95,10 @@ public class CascadingDomainBuilder {
     }
   }
 
+  public void setPartitionToBuild(int partitionToBuild) {
+    this.partitionToBuild = partitionToBuild;
+  }
+
   // Build a single domain using one source
   public Flow build(Properties cascadingProperties,
                     Tap source) throws IOException {
@@ -110,7 +115,11 @@ public class CascadingDomainBuilder {
   private Flow build(Properties cascasdingProperties,
                      TapOrTapMap sources) throws IOException {
 
-    pipe = new DomainBuilderAssembly(properties.getDomainName(), pipe, keyFieldName, valueFieldName);
+    pipe = new DomainBuilderAssembly(properties.getDomainName(),
+        pipe,
+        keyFieldName,
+        valueFieldName,
+        partitionToBuild);
 
     // Open new version and check for success
     openNewVersion(domainVersionProperties);
@@ -173,7 +182,8 @@ public class CascadingDomainBuilder {
         domainBuilder.pipe = new DomainBuilderAssembly(domainBuilder.properties.getDomainName(),
             domainBuilder.pipe,
             domainBuilder.keyFieldName,
-            domainBuilder.valueFieldName);
+            domainBuilder.valueFieldName,
+            domainBuilder.partitionToBuild);
       }
 
       // Update properties

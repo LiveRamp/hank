@@ -17,9 +17,7 @@
 package com.rapleaf.hank.cascading;
 
 import cascading.flow.FlowProcess;
-import cascading.operation.BaseOperation;
-import cascading.operation.Function;
-import cascading.operation.FunctionCall;
+import cascading.operation.*;
 import cascading.pipe.Each;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
@@ -40,10 +38,19 @@ public class DomainBuilderAssembly extends SubAssembly {
   public static final String PARTITION_FIELD_NAME = "__hank_partition";
   private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
 
+
   public DomainBuilderAssembly(String domainName,
                                Pipe outputPipe,
                                String keyFieldName,
                                String valueFieldName) {
+    this(domainName, outputPipe, keyFieldName, valueFieldName, null);
+  }
+
+  public DomainBuilderAssembly(String domainName,
+                               Pipe outputPipe,
+                               String keyFieldName,
+                               String valueFieldName,
+                               Integer partitionToBuild) {
 
     // Add partition and comparable key fields
     outputPipe = new Each(outputPipe,
@@ -51,11 +58,31 @@ public class DomainBuilderAssembly extends SubAssembly {
         new AddPartitionAndComparableKeyFields(domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
+    if (partitionToBuild != null) {
+      outputPipe = new Each(outputPipe, new Fields(PARTITION_FIELD_NAME), new KeepPartitions(partitionToBuild));
+    }
+
     // Group by partition id and secondary sort on comparable key
     outputPipe = new GroupBy(outputPipe, new Fields(PARTITION_FIELD_NAME), new Fields(
         COMPARABLE_KEY_FIELD_NAME));
 
     setTails(outputPipe);
+  }
+
+  private static class KeepPartitions extends BaseOperation implements Filter {
+
+    private final int partitionToKeep;
+
+    KeepPartitions(int partitionToKeep) {
+      super(1);
+      this.partitionToKeep = partitionToKeep;
+    }
+
+    @Override
+    public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
+      Integer partition = ((IntWritable) filterCall.getArguments().get(0)).get();
+      return partition != partitionToKeep;
+    }
   }
 
   private static class AddPartitionAndComparableKeyFields extends BaseOperation<AddPartitionAndComparableKeyFields> implements Function<AddPartitionAndComparableKeyFields> {
