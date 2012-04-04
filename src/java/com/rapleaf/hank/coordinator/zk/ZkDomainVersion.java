@@ -24,7 +24,6 @@ import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 public class ZkDomainVersion extends AbstractDomainVersion {
@@ -36,7 +35,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   private final DomainVersionPropertiesSerialization domainVersionPropertiesFactory;
 
   private final WatchedBytes properties;
-  private final Map<String, ZkPartitionProperties> partitionProperties;
+  private final WatchedMap<ZkPartitionProperties> partitionProperties;
   private final WatchedBoolean defunct;
 
   public static ZkDomainVersion create(ZooKeeperPlus zk,
