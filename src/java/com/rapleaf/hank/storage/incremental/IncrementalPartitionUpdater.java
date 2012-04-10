@@ -219,7 +219,8 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         // If a version along the path is still open, abort
         if (!DomainVersions.isClosed(parentVersion)) {
           throw new IOException("Detected a domain version that is still open"
-              + " along the path from current version to version to update to:"
+              + " along the path from current version to version to update to: "
+              + " domain: " + domain
               + " open version: " + parentVersion
               + " current version: " + currentVersion
               + " updating to version: " + updatingToVersion);
