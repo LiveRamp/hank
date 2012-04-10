@@ -20,8 +20,6 @@ import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
@@ -36,7 +34,6 @@ public class CascadingDomainBuilder {
 
   private final static Logger LOG = Logger.getLogger(CascadingDomainBuilder.class);
 
-  private final Domain domain;
   private Tap outputTap = null;
   private final DomainBuilderProperties properties;
   private final DomainVersionProperties domainVersionProperties;
@@ -44,19 +41,13 @@ public class CascadingDomainBuilder {
   private final String keyFieldName;
   private final String valueFieldName;
   private Integer partitionToBuild = null;
-  private DomainVersion domainVersion = null;
+  private Integer domainVersionNumber = null;
 
   public CascadingDomainBuilder(DomainBuilderProperties properties,
                                 DomainVersionProperties domainVersionProperties,
                                 Pipe pipe,
                                 String keyFieldName,
                                 String valueFieldName) throws IOException {
-    // Load domain
-    this.domain = properties.getDomain();
-    // Fail if unable to load domain
-    if (domain == null) {
-      throw new IOException("Could not load domain for: " + properties);
-    }
     this.properties = properties;
     this.domainVersionProperties = domainVersionProperties;
     this.pipe = pipe;
@@ -64,35 +55,18 @@ public class CascadingDomainBuilder {
     this.valueFieldName = valueFieldName;
   }
 
-  public void openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
-    domainVersion = domain.openNewVersion(domainVersionProperties);
-    if (domainVersion == null) {
-      throw new IOException("Could not open a new version of domain " +
-          properties.getDomainName());
-    }
+  public void openNewVersion() throws IOException {
+    domainVersionNumber = properties.openVersion(domainVersionProperties);
     // Create Tap
-    outputTap = new DomainBuilderTap(keyFieldName, valueFieldName,
-        domainVersion.getVersionNumber(), properties);
-    LOG.info("Opened new version #" + domainVersion.getVersionNumber() +
-        " of domain " + properties.getDomainName());
+    outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, domainVersionNumber, properties);
   }
 
   public void cancelNewVersion() throws IOException {
-    if (domainVersion != null) {
-      LOG.info("Cancelling new version #" + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName());
-      domainVersion.cancel();
-      domainVersion = null;
-    }
+    properties.cancelVersion(domainVersionNumber);
   }
 
   public void closeNewVersion() throws IOException {
-    if (domainVersion != null) {
-      LOG.info("Closing new version #" + domainVersion.getVersionNumber() +
-          " of domain " + properties.getDomainName());
-      domainVersion.close();
-      domainVersion = null;
-    }
+    properties.closeVersion(domainVersionNumber);
   }
 
   public void setPartitionToBuild(int partitionToBuild) {
@@ -122,7 +96,7 @@ public class CascadingDomainBuilder {
         partitionToBuild);
 
     // Open new version and check for success
-    openNewVersion(domainVersionProperties);
+    openNewVersion();
 
     Flow flow = null;
     try {
@@ -140,7 +114,7 @@ public class CascadingDomainBuilder {
       DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
 
     } catch (Exception e) {
-      String exceptionMessage = "Failed at building version " + domainVersion.getVersionNumber() +
+      String exceptionMessage = "Failed at building version " + domainVersionNumber +
           " of domain " + properties.getDomainName() + ". Cancelling version.";
       // In case of failure, cancel this new version
       cancelNewVersion();
@@ -174,7 +148,7 @@ public class CascadingDomainBuilder {
     try {
       // Open new versions
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        domainBuilder.openNewVersion(domainBuilder.getDomainVersionProperties());
+        domainBuilder.openNewVersion();
       }
 
       // Create tails
@@ -189,7 +163,7 @@ public class CascadingDomainBuilder {
       // Update properties
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
         domainBuilder.properties.setCascadingProperties(cascadingProperties,
-            domainBuilder.domainVersion.getVersionNumber());
+            domainBuilder.domainVersionNumber);
       }
 
       // Construct tails array
@@ -219,8 +193,8 @@ public class CascadingDomainBuilder {
           jobName.append(", ");
         }
         CascadingDomainBuilder domainBuilder = domainBuilders[i];
-        jobName.append(domainBuilder.domain.getName()).append(" version ")
-            .append(domainBuilder.domainVersion.getVersionNumber());
+        jobName.append(domainBuilder.properties.getDomainName()).append(" version ")
+            .append(domainBuilder.domainVersionNumber);
       }
 
       // Build flow
@@ -229,7 +203,7 @@ public class CascadingDomainBuilder {
 
       // Set up jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        DomainBuilderOutputCommitter.setupJob(domainBuilder.domain.getName(), flow.getJobConf());
+        DomainBuilderOutputCommitter.setupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
       }
 
       // Complete flow
@@ -237,7 +211,7 @@ public class CascadingDomainBuilder {
 
       // Commit jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        DomainBuilderOutputCommitter.commitJob(domainBuilder.domain.getName(), flow.getJobConf());
+        DomainBuilderOutputCommitter.commitJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
       }
 
     } catch (Exception e) {
@@ -246,7 +220,7 @@ public class CascadingDomainBuilder {
         domainBuilder.cancelNewVersion();
         // Clean up jobs
         if (flow != null) {
-          DomainBuilderOutputCommitter.cleanupJob(domainBuilder.domain.getName(), flow.getJobConf());
+          DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
         }
       }
       e.printStackTrace();
@@ -256,7 +230,7 @@ public class CascadingDomainBuilder {
     for (CascadingDomainBuilder domainBuilder : domainBuilders) {
       domainBuilder.closeNewVersion();
       // Clean up jobs
-      DomainBuilderOutputCommitter.cleanupJob(domainBuilder.domain.getName(), flow.getJobConf());
+      DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
     }
     return flow;
   }
@@ -318,12 +292,12 @@ public class CascadingDomainBuilder {
 
   private String getFlowName() {
     return "HankCascadingDomainBuilder: " +
-        properties.getDomainName() + " version " + domainVersion.getVersionNumber();
+        properties.getDomainName() + " version " + domainVersionNumber;
   }
 
   private FlowConnector getFlowConnector(Properties cascadingProperties) {
     return new FlowConnector(properties.setCascadingProperties(cascadingProperties,
-        domainVersion.getVersionNumber()));
+        domainVersionNumber));
   }
 
   private Flow getFlow(Properties cascadingProperties,

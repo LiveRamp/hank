@@ -16,8 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputFormat;
@@ -41,11 +39,7 @@ public abstract class AbstractHadoopDomainBuilder {
   public void buildHankDomain(DomainBuilderProperties properties,
                               DomainVersionProperties newDomainVersionProperties) throws IOException {
     // Open new version and check for success
-    Domain domain = properties.getDomain();
-    DomainVersion domainVersion = domain.openNewVersion(newDomainVersionProperties);
-    if (domainVersion == null) {
-      throw new IOException("Could not open a new version of domain " + properties.getDomainName());
-    }
+    Integer domainVersionNumber = properties.openVersion(newDomainVersionProperties);
     // Try to build new version
     JobConf conf;
     if (baseConf == null) {
@@ -53,27 +47,27 @@ public abstract class AbstractHadoopDomainBuilder {
     } else {
       conf = new JobConf(baseConf);
     }
-    configureJobCommon(properties, domainVersion.getVersionNumber(), conf);
+    configureJobCommon(properties, domainVersionNumber, conf);
     configureJob(conf);
     try {
       // Set up job
-      DomainBuilderOutputCommitter.setupJob(domain.getName(), conf);
+      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), conf);
       // Run job
       JobClient.runJob(conf);
       // Commit job
-      DomainBuilderOutputCommitter.commitJob(domain.getName(), conf);
+      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), conf);
     } catch (Exception e) {
       // In case of failure, cancel this new version
-      domainVersion.cancel();
+      properties.cancelVersion(domainVersionNumber);
       // Clean up job
-      DomainBuilderOutputCommitter.cleanupJob(domain.getName(), conf);
-      throw new IOException("Failed at building version " + domainVersion.getVersionNumber()
+      DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), conf);
+      throw new IOException("Failed at building version " + domainVersionNumber
           + " of domain " + properties.getDomainName() + ". Cancelling version.", e);
     }
     // Close the new version
-    domainVersion.close();
+    properties.closeVersion(domainVersionNumber);
     // Clean up job
-    DomainBuilderOutputCommitter.cleanupJob(domain.getName(), conf);
+    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), conf);
   }
 
   private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, JobConf conf) {

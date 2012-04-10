@@ -16,7 +16,12 @@
 
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.RunWithCoordinator;
+import com.rapleaf.hank.coordinator.RunnableWithCoordinator;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
@@ -26,15 +31,31 @@ import java.io.IOException;
 
 public abstract class DomainBuilderMapper<K, V> implements Mapper<K, V, KeyAndPartitionWritableComparable, ValueWritable> {
 
-  private Domain domain;
+  private StorageEngine storageEngine;
+  private Partitioner partitioner;
+  private int numPartitions;
 
   public void configure(JobConf conf) {
-    domain = DomainBuilderProperties.getDomain(conf);
+    final String domainName = DomainBuilderProperties.getDomainName(conf);
+    try {
+      RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(conf), new RunnableWithCoordinator() {
+        @Override
+        public void run(Coordinator coordinator) throws IOException {
+          Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+          storageEngine = domain.getStorageEngine();
+          partitioner = domain.getPartitioner();
+          numPartitions = domain.getNumParts();
+        }
+      });
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load configuration.", e);
+    }
   }
 
   public final void map(K key, V value, OutputCollector<KeyAndPartitionWritableComparable, ValueWritable> outputCollector, Reporter reporter) throws IOException {
     KeyValuePair keyValue = buildHankKeyValue(key, value);
-    KeyAndPartitionWritableComparable hankKeyWritableComparable = new KeyAndPartitionWritableComparable(domain, keyValue.getKey());
+    KeyAndPartitionWritableComparable hankKeyWritableComparable =
+        new KeyAndPartitionWritableComparable(storageEngine, partitioner, numPartitions, keyValue.getKey());
     ValueWritable hankValueWritable = new ValueWritable(keyValue.getValue());
     outputCollector.collect(hankKeyWritableComparable, hankValueWritable);
     reporter.progress();

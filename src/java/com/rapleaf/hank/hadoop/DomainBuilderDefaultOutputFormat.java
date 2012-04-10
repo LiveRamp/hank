@@ -16,11 +16,11 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
 
 import java.io.IOException;
@@ -29,10 +29,9 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
 
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
 
-    protected DomainBuilderDefaultRecordWriter(Domain domain,
-                                               DomainVersion domainVersion,
-                                               OutputStreamFactory outputStreamFactory) {
-      super(domain, domainVersion, outputStreamFactory);
+    protected DomainBuilderDefaultRecordWriter(JobConf conf,
+                                               OutputStreamFactory outputStreamFactory) throws IOException {
+      super(conf, outputStreamFactory);
     }
 
     @Override
@@ -46,9 +45,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
 
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
-  getRecordWriter(Domain domain,
-                  DomainVersion domainVersion,
-                  OutputStreamFactory outputStreamFactory) {
-    return new DomainBuilderDefaultRecordWriter(domain, domainVersion, outputStreamFactory);
+  getRecordWriter(JobConf conf, OutputStreamFactory outputStreamFactory) throws IOException {
+    return new DomainBuilderDefaultRecordWriter(conf, outputStreamFactory);
   }
 }

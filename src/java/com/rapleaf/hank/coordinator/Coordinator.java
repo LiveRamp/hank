@@ -166,4 +166,11 @@ public interface Coordinator {
    * @throws IOException
    */
   public boolean deleteRingGroup(String ringGroupName) throws IOException;
+
+  /**
+   * Close ressource.
+   *
+   * @throws IOException
+   */
+  public void close() throws IOException;
 }

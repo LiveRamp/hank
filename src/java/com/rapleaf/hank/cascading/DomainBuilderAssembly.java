@@ -25,11 +25,17 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
+import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.RunWithCoordinator;
+import com.rapleaf.hank.coordinator.RunnableWithCoordinator;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
@@ -88,7 +94,9 @@ public class DomainBuilderAssembly extends SubAssembly {
   private static class AddPartitionAndComparableKeyFields extends BaseOperation<AddPartitionAndComparableKeyFields> implements Function<AddPartitionAndComparableKeyFields> {
 
     private static final long serialVersionUID = 1L;
-    transient private Domain domain;
+    transient private Integer domainNumParts;
+    transient private StorageEngine storageEngine;
+    transient private Partitioner partitioner;
     private String domainName;
 
     AddPartitionAndComparableKeyFields(String domainName, String partitionFieldName, String comparableKeyFieldName) {
@@ -97,15 +105,15 @@ public class DomainBuilderAssembly extends SubAssembly {
     }
 
     public void operate(FlowProcess flowProcess, FunctionCall<AddPartitionAndComparableKeyFields> call) {
-      // Load domain lazily
-      loadDomain(flowProcess);
+      // Load configuration lazily
+      loadConfiguration(flowProcess);
 
       // Compute partition and comparable key
       TupleEntry tupleEntry = call.getArguments();
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
-      IntWritable partition = new IntWritable(domain.getPartitioner().partition(keyByteBuffer, domain.getNumParts()));
-      ByteBuffer comparableKey = domain.getStorageEngine().getComparableKey(keyByteBuffer);
+      IntWritable partition = new IntWritable(partitioner.partition(keyByteBuffer, domainNumParts));
+      ByteBuffer comparableKey = storageEngine.getComparableKey(keyByteBuffer);
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
       System.arraycopy(comparableKey.array(), comparableKey.arrayOffset() + comparableKey.position(),
           comparableKeyBuffer, 0, comparableKey.remaining());
@@ -114,9 +122,22 @@ public class DomainBuilderAssembly extends SubAssembly {
       call.getOutputCollector().add(new Tuple(partition, comparableKeyBytesWritable));
     }
 
-    private void loadDomain(FlowProcess flowProcess) {
-      if (domain == null) {
-        domain = DomainBuilderProperties.getDomain(domainName, flowProcess);
+    private void loadConfiguration(FlowProcess flowProcess) {
+      if (storageEngine == null || partitioner == null) {
+        try {
+          RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(domainName, flowProcess),
+              new RunnableWithCoordinator() {
+                @Override
+                public void run(Coordinator coordinator) throws IOException {
+                  Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+                  domainNumParts = domain.getNumParts();
+                  storageEngine = domain.getStorageEngine();
+                  partitioner = domain.getPartitioner();
+                }
+              });
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to load configuration.", e);
+        }
       }
     }
   }

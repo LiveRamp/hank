@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.partitioner.Partitioner;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
@@ -40,9 +40,10 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
     this.partition = partition;
   }
 
-  public KeyAndPartitionWritable(Domain domain, BytesWritable key) {
+  public KeyAndPartitionWritable(Partitioner partitioner, int numPartitions, BytesWritable key) {
     this.key = key;
-    int partition = domain.getPartitioner().partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()), domain.getNumParts());
+    int partition = partitioner.partition(ByteBuffer.wrap(key.getBytes(), 0, key.getLength()),
+        numPartitions);
     this.partition = new IntWritable(partition);
   }
 

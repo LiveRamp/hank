@@ -335,12 +335,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-  public void close() {
+  @Override
+  public void close() throws IOException {
     try {
+      LOG.info("Closing ZooKeeperCoordinator.");
       zk.close();
     } catch (InterruptedException e) {
-      // TODO: uh oh!
-      LOG.warn("Interrupted while trying to close ZK connection!", e);
+      throw new IOException("Interrupted while trying to close ZooKeeper connection.", e);
     }
   }
 

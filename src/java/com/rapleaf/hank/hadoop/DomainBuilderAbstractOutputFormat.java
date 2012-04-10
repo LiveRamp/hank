@@ -16,8 +16,8 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.config.CoordinatorConfigurator;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
@@ -83,20 +83,36 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private Logger LOG = Logger.getLogger(DomainBuilderRecordWriter.class);
 
-    private final StorageEngine storageEngine;
-    private final DomainVersion domainVersion;
+    private final CoordinatorConfigurator configurator;
+    private final String domainName;
+    private final Integer domainVersionNumber;
     private final OutputStreamFactory outputStreamFactory;
+
+    private Domain domain;
+    private DomainVersion domainVersion;
+    private StorageEngine storageEngine;
 
     private Writer writer = null;
     private Integer writerPartition = null;
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
-    DomainBuilderRecordWriter(Domain domain,
-                              DomainVersion domainVersion,
-                              OutputStreamFactory outputStreamFactory) {
-      this.storageEngine = domain.getStorageEngine();
-      this.domainVersion = domainVersion;
+    DomainBuilderRecordWriter(JobConf conf,
+                              OutputStreamFactory outputStreamFactory) throws IOException {
+      // Load configuration items
+      this.configurator = DomainBuilderProperties.getConfigurator(conf);
+      this.domainName = DomainBuilderProperties.getDomainName(conf);
+      this.domainVersionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
       this.outputStreamFactory = outputStreamFactory;
+
+      RunWithCoordinator.run(configurator,
+          new RunnableWithCoordinator() {
+            @Override
+            public void run(Coordinator coordinator) throws IOException {
+              DomainBuilderRecordWriter.this.domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+              DomainBuilderRecordWriter.this.domainVersion = DomainBuilderProperties.getDomainVersion(coordinator, domainName, domainVersionNumber);
+              DomainBuilderRecordWriter.this.storageEngine = domain.getStorageEngine();
+            }
+          });
     }
 
     protected abstract Writer getWriter(StorageEngine storageEngine,
@@ -142,8 +158,17 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
-        domainVersion.addPartitionProperties(writerPartition, writer.getNumBytesWritten(),
-            writer.getNumRecordsWritten());
+        RunWithCoordinator.run(configurator, new RunnableWithCoordinator() {
+          @Override
+          public void run(Coordinator coordinator) throws IOException {
+            DomainVersion domainVersion = DomainBuilderProperties.getDomainVersion(coordinator,
+                domainName,
+                domainVersionNumber);
+            domainVersion.addPartitionProperties(writerPartition,
+                writer.getNumBytesWritten(),
+                writer.getNumRecordsWritten());
+          }
+        });
         LOG.info("Closing current partition writer: " + writer.toString());
         writer.close();
       }

@@ -44,6 +44,7 @@ public class MockCoordinator implements Coordinator {
     return options;
   }
 
+  @Override
   public Domain getDomain(String domainName) {
     return null;
   }
@@ -57,14 +58,17 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
   public DomainGroup getDomainGroup(String domainGroupName) {
     return null;
   }
 
+  @Override
   public RingGroup getRingGroup(String ringGroupName) {
     return null;
   }
 
+  @Override
   public Set<Domain> getDomains() {
     return null;
   }
@@ -74,6 +78,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
   public Set<DomainGroup> getDomainGroups() {
     return null;
   }
@@ -83,6 +88,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
   public Set<RingGroup> getRingGroups() {
     return null;
   }
@@ -100,6 +106,7 @@ public class MockCoordinator implements Coordinator {
     return options;
   }
 
+  @Override
   public Domain addDomain(String domainName, int numParts,
                           String storageEngineFactoryName,
                           String storageEngineOptions,
@@ -107,6 +114,7 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
   public Domain updateDomain(String domainName, int numParts,
                              String storageEngineFactoryName,
                              String storageEngineOptions,
@@ -114,25 +122,34 @@ public class MockCoordinator implements Coordinator {
     return null;
   }
 
+  @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     return null;
   }
 
+  @Override
   public boolean deleteDomainGroup(String name) throws IOException {
     return true;
   }
 
+  @Override
   public RingGroup addRingGroup(String ringGroupName,
                                 String domainGroupName) throws IOException {
     return null;
   }
 
+  @Override
   public boolean deleteDomain(String domainName) {
     return false;
   }
 
+  @Override
   public boolean deleteRingGroup(String ringGroupName) throws IOException {
     return false;
+  }
+
+  @Override
+  public void close() throws IOException {
   }
 
   @Override

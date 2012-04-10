@@ -16,7 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.OutputStreamFactory;
 import com.rapleaf.hank.storage.StorageEngine;
@@ -35,12 +34,8 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    String domainName = DomainBuilderProperties.getDomainName(conf);
-    Domain domain = DomainBuilderProperties.getDomain(conf);
-    int versionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
-    DomainVersion domainVersion = domain.getVersionByNumber(versionNumber);
     // Always return a no-op OutputStream
-    return new DomainBuilderRecordWriter(domain, domainVersion, new OutputStreamFactory() {
+    return new DomainBuilderRecordWriter(conf, new OutputStreamFactory() {
       public OutputStream getOutputStream(int partitionNumber, String name)
           throws IOException {
         return new OutputStream() {

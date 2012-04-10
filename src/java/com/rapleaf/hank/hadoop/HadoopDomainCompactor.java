@@ -21,9 +21,9 @@ import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.SimpleDataDirectoriesConfigurator;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.Compactor;
+import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
@@ -72,13 +72,13 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
       KeyAndPartitionWritable, ValueWritable> {
 
-    private Domain domain;
-    private File localTmpOutput;
+    //private Domain domain;
     private DomainVersion domainVersionToCompact;
+    private StorageEngine storageEngine;
+    private File localTmpOutput;
 
     @Override
     public void configure(JobConf conf) {
-      domain = DomainBuilderProperties.getDomain(conf);
       // Create unique local directory
       String uniqueString = UUID.randomUUID().toString();
       String localTmpOutputPath;
@@ -91,13 +91,23 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       if (localTmpOutput.exists() || !localTmpOutput.mkdirs()) {
         throw new RuntimeException("Failed to initialize local temporary output directory " + localTmpOutputPath);
       }
+      // Load configuration items
+      final String domainName = DomainBuilderProperties.getDomainName(conf);
+      final int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domainName, conf);
+
       // Determine version to compact
-      int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domain.getName(), conf);
       try {
-        domainVersionToCompact = domain.getVersionByNumber(versionNumberToCompact);
+        RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(conf), new RunnableWithCoordinator() {
+          @Override
+          public void run(Coordinator coordinator) throws IOException {
+            Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+            HadoopDomainCompactorMapper.this.storageEngine = domain.getStorageEngine();
+            HadoopDomainCompactorMapper.this.domainVersionToCompact =
+                DomainBuilderProperties.getDomainVersion(coordinator, domainName, versionNumberToCompact);
+          }
+        });
       } catch (IOException e) {
-        throw new RuntimeException("Failed to load Version " + versionNumberToCompact
-            + " of Domain " + domain.getName(), e);
+        throw new RuntimeException("Failed to load configuration.", e);
       }
     }
 
@@ -112,12 +122,10 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       // Get compacting updater
       DataDirectoriesConfigurator dataDirectoriesConfigurator =
           new SimpleDataDirectoriesConfigurator(localTmpOutput.getAbsolutePath());
-      Compactor compactor = domain.getStorageEngine()
-          .getCompactor(dataDirectoriesConfigurator,
-              partitionNumber.get());
+      Compactor compactor = storageEngine.getCompactor(dataDirectoriesConfigurator, partitionNumber.get());
       if (compactor == null) {
-        throw new RuntimeException("Failed to load compacting updater for domain " + domain.getName()
-            + " with storage engine: " + domain.getStorageEngine());
+        throw new RuntimeException("Failed to load compacting updater for domain " + domainName
+            + " with storage engine: " + storageEngine);
       }
       // Perform compaction
       compactor.compact(domainVersionToCompact, new OutputCollectorWriter(reporter, partitionNumber, outputCollector));
@@ -176,14 +184,21 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   private static class HadoopDomainCompactorInputFormat implements InputFormat<Text, IntWritable> {
 
-    private Domain domain;
+    private int domainNumParts;
 
     @Override
     public InputSplit[] getSplits(JobConf conf, int ignored) throws IOException {
-      Domain domain = getCachedDomain(conf);
-      InputSplit[] splits = new InputSplit[domain.getNumParts()];
-      for (int partition = 0; partition < domain.getNumParts(); ++partition) {
-        splits[partition] = new HadoopDomainCompactorInputSplit(domain.getName(), partition);
+      final String domainName = DomainBuilderProperties.getDomainName(conf);
+      RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(conf), new RunnableWithCoordinator() {
+        @Override
+        public void run(Coordinator coordinator) throws IOException {
+          Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+          domainNumParts = domain.getNumParts();
+        }
+      });
+      InputSplit[] splits = new InputSplit[domainNumParts];
+      for (int partition = 0; partition < domainNumParts; ++partition) {
+        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition);
       }
       return splits;
     }
@@ -194,13 +209,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
                                                            Reporter reporter) throws IOException {
       HadoopDomainCompactorInputSplit split = (HadoopDomainCompactorInputSplit) inputSplit;
       return new HadoopDomainCompactorRecordReader(split);
-    }
-
-    private Domain getCachedDomain(JobConf conf) {
-      if (domain == null) {
-        domain = DomainBuilderProperties.getDomain(conf);
-      }
-      return domain;
     }
   }
 

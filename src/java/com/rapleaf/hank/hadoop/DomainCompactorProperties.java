@@ -19,6 +19,8 @@ package com.rapleaf.hank.hadoop;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import org.apache.hadoop.mapred.JobConf;
 
+import java.io.IOException;
+
 public class DomainCompactorProperties extends DomainBuilderProperties {
 
   public static final String CONF_PARAM_HANK_VERSION_NUMBER_TO_COMPACT
@@ -28,7 +30,7 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
 
   public DomainCompactorProperties(String domainName,
                                    int versionToCompactNumber,
-                                   CoordinatorConfigurator configurator) {
+                                   CoordinatorConfigurator configurator) throws IOException {
     super(domainName, configurator, DomainCompactorOutputFormat.class);
     this.versionToCompactNumber = versionToCompactNumber;
   }

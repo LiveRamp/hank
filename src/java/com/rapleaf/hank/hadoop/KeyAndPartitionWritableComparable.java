@@ -1,15 +1,15 @@
 package com.rapleaf.hank.hadoop;
 
+import com.rapleaf.hank.partitioner.Partitioner;
+import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.util.Bytes;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.WritableComparable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.WritableComparable;
-
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.util.Bytes;
 
 public class KeyAndPartitionWritableComparable implements WritableComparable<KeyAndPartitionWritableComparable> {
 
@@ -21,9 +21,9 @@ public class KeyAndPartitionWritableComparable implements WritableComparable<Key
     comparableKey = null;
   }
 
-  public KeyAndPartitionWritableComparable(Domain domain, BytesWritable key) {
-    this.keyAndPartitionWritable = new KeyAndPartitionWritable(domain, key);
-    this.comparableKey = Bytes.byteBufferDeepCopy(domain.getStorageEngine().getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
+  public KeyAndPartitionWritableComparable(StorageEngine storageEngine, Partitioner partitioner, int numPartitions, BytesWritable key) {
+    this.keyAndPartitionWritable = new KeyAndPartitionWritable(partitioner, numPartitions, key);
+    this.comparableKey = Bytes.byteBufferDeepCopy(storageEngine.getComparableKey(ByteBuffer.wrap(key.getBytes(), 0, key.getLength())));
   }
 
   public KeyAndPartitionWritable getKeyAndPartitionWritable() {
