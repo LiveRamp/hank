@@ -92,7 +92,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   private Set<DomainVersion> detectCachedVersions(SortedSet<CueballFilePath> cachedFiles) throws IOException {
     Set<DomainVersion> cachedVersions = new HashSet<DomainVersion>();
     for (CueballFilePath file : cachedFiles) {
-      DomainVersion version = domain.getVersionByNumber(file.getVersion());
+      DomainVersion version = domain.getVersion(file.getVersion());
       if (version != null) {
         cachedVersions.add(version);
       }

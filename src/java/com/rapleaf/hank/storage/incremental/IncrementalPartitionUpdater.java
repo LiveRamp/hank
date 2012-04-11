@@ -259,7 +259,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   private DomainVersion detectCurrentVersion() throws IOException {
     Integer currentVersionNumber = detectCurrentVersionNumber();
     if (currentVersionNumber != null) {
-      return domain.getVersionByNumber(currentVersionNumber);
+      return domain.getVersion(currentVersionNumber);
     } else {
       return null;
     }

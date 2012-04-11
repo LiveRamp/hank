@@ -38,7 +38,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
   private final DomainVersion v2 = new MockDomainVersion(2, 0l, new IncrementalDomainVersionProperties.Delta(1));
   private final Domain domain = new MockDomain("domain") {
     @Override
-    public DomainVersion getVersionByNumber(int versionNumber) {
+    public DomainVersion getVersion(int versionNumber) {
       switch (versionNumber) {
         case 0:
           return v0;

@@ -107,6 +107,16 @@ public class MockDomain extends AbstractDomain {
   }
 
   @Override
+  public DomainVersion getVersion(int versionNumber) throws IOException {
+    return findVersion(getVersions(), versionNumber);
+  }
+
+  @Override
+  public DomainVersion getVersionShallow(int versionNumber) throws IOException {
+    return getVersion(versionNumber);
+  }
+
+  @Override
   public int getId() {
     return id;
   }

@@ -50,6 +50,11 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
+  public Domain getDomainShallow(String domainName) {
+    return getDomain(domainName);
+  }
+
+  @Override
   public Domain getDomainById(int domainId) {
     return null;
   }

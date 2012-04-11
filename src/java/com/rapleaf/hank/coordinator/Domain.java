@@ -58,5 +58,7 @@ public interface Domain extends Comparable<Domain> {
 
   public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException;
 
-  public DomainVersion getVersionByNumber(int versionNumber) throws IOException;
+  public DomainVersion getVersion(int versionNumber) throws IOException;
+
+  public DomainVersion getVersionShallow(int versionNumber) throws IOException;
 }

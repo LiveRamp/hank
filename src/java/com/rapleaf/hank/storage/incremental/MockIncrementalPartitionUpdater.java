@@ -19,8 +19,6 @@ package com.rapleaf.hank.storage.incremental;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
-import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -96,7 +94,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     if (domainVersion.getVersionNumber() == 0) {
       return null;
     } else {
-      return domain.getVersionByNumber(domainVersion.getVersionNumber() - 1);
+      return domain.getVersion(domainVersion.getVersionNumber() - 1);
     }
   }
 

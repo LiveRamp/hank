@@ -216,9 +216,14 @@ public class DomainBuilderProperties {
     return result;
   }
 
-  private class RemoteDomainRootGetter implements RunnableWithCoordinator {
+  private static class RemoteDomainRootGetter implements RunnableWithCoordinator {
 
+    private final String domainName;
     private String result;
+
+    public RemoteDomainRootGetter(String domainName) {
+      this.domainName = domainName;
+    }
 
     @Override
     public void run(Coordinator coordinator) throws IOException {
@@ -239,8 +244,14 @@ public class DomainBuilderProperties {
   }
 
   public String getRemoteDomainRoot() throws IOException {
-    RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter();
+    RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter(domainName);
     RunWithCoordinator.run(configurator, remoteDomainRootGetter);
+    return remoteDomainRootGetter.result;
+  }
+
+  public static String getRemoteDomainRoot(Coordinator coordinator, String domainName) throws IOException {
+    RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter(domainName);
+    remoteDomainRootGetter.run(coordinator);
     return remoteDomainRootGetter.result;
   }
 
@@ -277,7 +288,7 @@ public class DomainBuilderProperties {
   }
 
   public static Domain getDomain(Coordinator coordinator, String domainName) throws IOException {
-    Domain domain = coordinator.getDomain(domainName);
+    Domain domain = coordinator.getDomainShallow(domainName);
     // Fail if unable to load domain
     if (domain == null) {
       throw new IOException("Could not load Domain: " + domainName + " with coordinator: " + coordinator);
@@ -290,7 +301,7 @@ public class DomainBuilderProperties {
       return null;
     }
     Domain domain = getDomain(coordinator, domainName);
-    DomainVersion domainVersion = domain.getVersionByNumber(domainVersionNumber);
+    DomainVersion domainVersion = domain.getVersionShallow(domainVersionNumber);
     if (domainVersion == null) {
       throw new IOException("Could not get version " + domainVersionNumber + " of domain " + domainName
           + " with coordinator: " + coordinator);

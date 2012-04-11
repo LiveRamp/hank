@@ -194,6 +194,21 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   }
 
   @Override
+  public Domain getDomainShallow(String domainName) {
+    if (domains.isLoaded()) {
+      return getDomain(domainName);
+    } else {
+      try {
+        return new ZkDomain(zk, ZkPath.append(domainsRoot, domainName));
+      } catch (InterruptedException e) {
+        return null;
+      } catch (KeeperException e) {
+        return null;
+      }
+    }
+  }
+
+  @Override
   public Domain getDomainById(int domainId) {
     for (Domain domain : getDomains()) {
       if (domain.getId() == domainId) {

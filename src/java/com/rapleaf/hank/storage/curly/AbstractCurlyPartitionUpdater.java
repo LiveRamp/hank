@@ -120,7 +120,7 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     for (CurlyFilePath curlyCachedFile : curlyCachedFiles) {
       // Check that the corresponding Cueball version is also cached
       if (cachedCueballVersions.contains(curlyCachedFile.getVersion())) {
-        DomainVersion version = domain.getVersionByNumber(curlyCachedFile.getVersion());
+        DomainVersion version = domain.getVersion(curlyCachedFile.getVersion());
         if (version != null) {
           cachedVersions.add(version);
         }

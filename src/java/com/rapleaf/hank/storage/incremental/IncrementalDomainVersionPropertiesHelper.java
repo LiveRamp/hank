@@ -59,7 +59,7 @@ public class IncrementalDomainVersionPropertiesHelper {
     if (domain == null) {
       throw new RuntimeException("Given domain was not found: " + domainName);
     }
-    DomainVersion domainVersion = domain.getVersionByNumber(versionNumber);
+    DomainVersion domainVersion = domain.getVersion(versionNumber);
     if (domainVersion == null) {
       throw new RuntimeException("Given version was not found: " + domainName + " version " + versionNumber);
     }

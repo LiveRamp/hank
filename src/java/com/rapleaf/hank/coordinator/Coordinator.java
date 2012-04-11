@@ -68,6 +68,8 @@ public interface Coordinator {
    */
   public Domain getDomain(String domainName);
 
+  public Domain getDomainShallow(String domainName);
+
   public Domain getDomainById(int domainId);
 
   /**

@@ -46,17 +46,18 @@ public class ZkDomain extends AbstractDomain {
   private static final String KEY_VERSIONS = "versions";
   private static final String KEY_ID = "id";
 
-  private String name;
-  private int numParts;
-  private Partitioner partitioner;
-  private String storageEngineFactoryName;
-  private Map<String, Object> storageEngineOptions;
+  private final String name;
+  private final int numParts;
+  private final Partitioner partitioner;
+  private final String storageEngineFactoryName;
+  private final Map<String, Object> storageEngineOptions;
+  private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
 
   private StorageEngine storageEngine;
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
-  private final Map<String, ZkDomainVersion> versions;
+  private final WatchedMap<ZkDomainVersion> versions;
 
   private final int id;
 
@@ -97,8 +98,7 @@ public class ZkDomain extends AbstractDomain {
     this.storageEngineOptions =
         (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
     this.storageEngineFactoryName = zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
-    final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization =
-        getStorageEngine().getDomainVersionPropertiesSerialization();
+    domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
 
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
         new ElementLoader<ZkDomainVersion>() {
@@ -182,6 +182,26 @@ public class ZkDomain extends AbstractDomain {
   @Override
   public SortedSet<DomainVersion> getVersions() throws IOException {
     return new TreeSet<DomainVersion>(versions.values());
+  }
+
+  @Override
+  public DomainVersion getVersion(int versionNumber) throws IOException {
+    return findVersion(getVersions(), versionNumber);
+  }
+
+  @Override
+  public DomainVersion getVersionShallow(int versionNumber) throws IOException {
+    if (versions.isLoaded()) {
+      return findVersion(getVersions(), versionNumber);
+    } else {
+      try {
+        return new ZkDomainVersion(zk, ZkPath.append(domainPath, "version_" + versionNumber), domainVersionPropertiesSerialization);
+      } catch (InterruptedException e) {
+        return null;
+      } catch (KeeperException e) {
+        return null;
+      }
+    }
   }
 
   @Override

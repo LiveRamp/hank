@@ -254,7 +254,7 @@ public class HankApiServlet extends HttpServlet {
   private void addDomainVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
     try {
-      DomainVersion version = domain.getVersionByNumber(Integer.valueOf((String) requestData.get(Params.DOMAIN_VERSION)));
+      DomainVersion version = domain.getVersion(Integer.valueOf((String) requestData.get(Params.DOMAIN_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainVersionData(version));
     } catch (Exception ignored) {
     } // No data added, but no harm done

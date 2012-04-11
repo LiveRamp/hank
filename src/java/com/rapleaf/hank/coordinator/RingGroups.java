@@ -64,7 +64,7 @@ public final class RingGroups {
       if (domain == null) {
         return false;
       }
-      DomainVersion domainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersion());
       if (domainVersion == null
           || !DomainVersions.isClosed(domainVersion)
           || domainVersion.isDefunct()) {

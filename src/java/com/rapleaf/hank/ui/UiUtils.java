@@ -114,7 +114,7 @@ public class UiUtils {
       content.append("</td><td>");
       content.append(version.getVersion().toString());
       content.append("</td><td>");
-      content.append(formatDomainVersionClosedAt(version.getDomain().getVersionByNumber(version.getVersion())));
+      content.append(formatDomainVersionClosedAt(version.getDomain().getVersion(version.getVersion())));
       content.append("</td></tr>");
     }
     content.append("</table>");

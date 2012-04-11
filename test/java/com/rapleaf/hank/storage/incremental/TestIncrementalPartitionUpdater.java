@@ -48,7 +48,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     Domain domain = new MockDomain("domain") {
       @Override
-      public DomainVersion getVersionByNumber(int domainVersion) {
+      public DomainVersion getVersion(int domainVersion) {
         switch (domainVersion) {
           case 0:
             return v0;
@@ -121,7 +121,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     Domain domain = new MockDomain("domain") {
       @Override
-      public DomainVersion getVersionByNumber(int domainVersion) {
+      public DomainVersion getVersion(int domainVersion) {
         switch (domainVersion) {
           case 0:
             return v0;
@@ -171,7 +171,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     Domain domain = new MockDomain("domain") {
       @Override
-      public DomainVersion getVersionByNumber(int domainVersion) {
+      public DomainVersion getVersion(int domainVersion) {
         switch (domainVersion) {
           case 0:
             return v0;
@@ -259,7 +259,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     Domain domain = new MockDomain("domain") {
       @Override
-      public DomainVersion getVersionByNumber(int domainVersion) {
+      public DomainVersion getVersion(int domainVersion) {
         switch (domainVersion) {
           case 0:
             return v0;

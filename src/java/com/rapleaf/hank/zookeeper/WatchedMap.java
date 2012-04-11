@@ -126,6 +126,10 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     }
   }
 
+  public boolean isLoaded() {
+    return loaded;
+  }
+
   public ZooKeeperPlus getZk() {
     return zk;
   }

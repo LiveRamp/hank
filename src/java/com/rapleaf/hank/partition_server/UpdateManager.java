@@ -175,7 +175,7 @@ public class UpdateManager implements IUpdateManager {
         } else {
           // Determine Domain Version
           DomainVersion targetDomainVersion =
-              domain.getVersionByNumber(targetDomainGroupVersionDomainVersion.getVersion());
+              domain.getVersion(targetDomainGroupVersionDomainVersion.getVersion());
 
           // Skip partitions already up-to-date
           if (partition.getCurrentDomainGroupVersion() != null &&

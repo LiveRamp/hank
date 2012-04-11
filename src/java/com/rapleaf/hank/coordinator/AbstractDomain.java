@@ -17,12 +17,13 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Collection;
 
 public abstract class AbstractDomain implements Domain {
 
-  @Override
-  public DomainVersion getVersionByNumber(int versionNumber) throws IOException {
-    for (DomainVersion v : getVersions()) {
+  protected DomainVersion findVersion(Collection<DomainVersion> versions,
+                                      int versionNumber) throws IOException {
+    for (DomainVersion v : versions) {
       if (v != null && v.getVersionNumber() == versionNumber) {
         return v;
       }

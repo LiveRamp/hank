@@ -61,7 +61,7 @@ public class DomainController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        final DomainVersion domainVersion = domain.getVersion(Integer.parseInt(req.getParameter("ver")));
         domainVersion.setDefunct(true);
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
@@ -70,7 +70,7 @@ public class DomainController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        final DomainVersion domainVersion = domain.getVersion(Integer.parseInt(req.getParameter("ver")));
         domainVersion.setDefunct(false);
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
@@ -79,7 +79,7 @@ public class DomainController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
-        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        final DomainVersion domainVersion = domain.getVersion(Integer.parseInt(req.getParameter("ver")));
         domainVersion.close();
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
@@ -95,7 +95,7 @@ public class DomainController extends Controller {
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
         domain.getStorageEngine().getRemoteDomainVersionDeleter().deleteVersion(Integer.parseInt(req.getParameter("ver")));
-        final DomainVersion domainVersion = domain.getVersionByNumber(Integer.parseInt(req.getParameter("ver")));
+        final DomainVersion domainVersion = domain.getVersion(Integer.parseInt(req.getParameter("ver")));
         domainVersion.setDefunct(true);
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }

@@ -595,7 +595,7 @@ public class IntegrationTest extends ZkTestCase {
     new File(domainRoot).mkdirs();
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
       LOG.debug("Writing out part " + part.getKey() + " for domain " + domain.getName() + " to root " + domainRoot);
-      Writer writer = engine.getWriter(domain.getVersionByNumber(versionNumber),
+      Writer writer = engine.getWriter(domain.getVersion(versionNumber),
           new LocalDiskOutputStreamFactory(domainRoot), part.getKey());
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {

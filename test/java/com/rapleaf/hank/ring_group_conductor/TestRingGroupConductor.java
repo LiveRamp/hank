@@ -42,7 +42,7 @@ public class TestRingGroupConductor extends TestCase {
   public void testTriggersUpdates() throws Exception {
     final MockDomain domain = new MockDomain("domain") {
       @Override
-      public DomainVersion getVersionByNumber(int version) {
+      public DomainVersion getVersion(int version) {
         return new MockDomainVersion(0, 0l);
       }
     };

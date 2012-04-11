@@ -39,7 +39,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
   private final DomainVersion v2 = new MockDomainVersion(2, 0l);
   private final Domain domain = new MockDomain("domain") {
     @Override
-    public DomainVersion getVersionByNumber(int versionNumber) {
+    public DomainVersion getVersion(int versionNumber) {
       switch (versionNumber) {
         case 0:
           return v0;
