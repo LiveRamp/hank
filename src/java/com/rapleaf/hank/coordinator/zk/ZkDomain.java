@@ -100,14 +100,13 @@ public class ZkDomain extends AbstractDomain {
     final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization =
         getStorageEngine().getDomainVersionPropertiesSerialization();
 
-    final ElementLoader<ZkDomainVersion> elementLoader = new ElementLoader<ZkDomainVersion>() {
-      @Override
-      public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
-      }
-    };
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
-        elementLoader, new DotComplete());
+        new ElementLoader<ZkDomainVersion>() {
+          @Override
+          public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
+          }
+        }, new DotComplete());
 
     String partitionerClassName = zk.getString(ZkPath.append(domainPath, KEY_PARTITIONER));
     try {
