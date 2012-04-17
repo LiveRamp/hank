@@ -56,6 +56,11 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
       this.versionToCompact = versionToCompact;
       ++numCalls;
     }
+
+    @Override
+    public void closeCoordinatorOpportunistically(Coordinator coordinator) {
+      // No-op
+    }
   }
 
   private static class LocalMockCoordinatorConfigurator implements CoordinatorConfigurator {

@@ -19,13 +19,13 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.Compactor;
-import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
 import com.rapleaf.hank.storage.cueball.ICueballStreamBufferMergeSortFactory;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -51,7 +51,8 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
   }
 
   @Override
-  public void compact(DomainVersion versionToCompact, Writer writer) throws IOException {
+  public void compact(DomainVersion versionToCompact,
+                      Writer writer) throws IOException {
     this.writer = writer;
     this.updateTo(versionToCompact);
   }

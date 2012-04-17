@@ -76,6 +76,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private DomainVersion domainVersionToCompact;
     private StorageEngine storageEngine;
     private File localTmpOutput;
+    private Coordinator coordinator;
 
     @Override
     public void configure(JobConf conf) {
@@ -95,17 +96,15 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       final String domainName = DomainBuilderProperties.getDomainName(conf);
       final int versionNumberToCompact = DomainCompactorProperties.getVersionNumberToCompact(domainName, conf);
 
+      // Create Coordinator
+      coordinator = RunWithCoordinator.createCoordinator(DomainBuilderProperties.getConfigurator(conf));
+
       // Determine version to compact
       try {
-        RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(conf), new RunnableWithCoordinator() {
-          @Override
-          public void run(Coordinator coordinator) throws IOException {
-            Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
-            HadoopDomainCompactorMapper.this.storageEngine = domain.getStorageEngine();
-            HadoopDomainCompactorMapper.this.domainVersionToCompact =
-                DomainBuilderProperties.getDomainVersion(coordinator, domainName, versionNumberToCompact);
-          }
-        });
+        Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+        HadoopDomainCompactorMapper.this.storageEngine = domain.getStorageEngine();
+        HadoopDomainCompactorMapper.this.domainVersionToCompact =
+            DomainBuilderProperties.getDomainVersion(coordinator, domainName, versionNumberToCompact);
       } catch (IOException e) {
         throw new RuntimeException("Failed to load configuration.", e);
       }
@@ -127,6 +126,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         throw new RuntimeException("Failed to load compacting updater for domain " + domainName
             + " with storage engine: " + storageEngine);
       }
+      // Close coordinator when possible
+      compactor.closeCoordinatorOpportunistically(coordinator);
       // Perform compaction
       compactor.compact(domainVersionToCompact, new OutputCollectorWriter(reporter, partitionNumber, outputCollector));
     }
@@ -135,6 +136,9 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     public void close() throws IOException {
       LOG.info("Deleting local temporary directory " + localTmpOutput.getAbsolutePath());
       FileUtils.deleteDirectory(localTmpOutput);
+      if (coordinator != null) {
+        coordinator.close();
+      }
     }
   }
 

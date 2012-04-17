@@ -22,7 +22,7 @@ import java.io.IOException;
 
 public class RunWithCoordinator {
 
-  public static void run(CoordinatorConfigurator configurator, RunnableWithCoordinator runnableWithCoordinator) throws IOException {
+  public static Coordinator createCoordinator(CoordinatorConfigurator configurator) {
     if (configurator == null) {
       throw new RuntimeException("Provided Hank Configurator is null. Cannot create Coordinator.");
     }
@@ -30,11 +30,15 @@ public class RunWithCoordinator {
     if (coordinator == null) {
       throw new RuntimeException("A null Coordinator was returned by the provided Configurator: " + configurator);
     }
+    return coordinator;
+  }
+
+  public static void run(CoordinatorConfigurator configurator, RunnableWithCoordinator runnableWithCoordinator) throws IOException {
+    Coordinator coordinator = createCoordinator(configurator);
     try {
       runnableWithCoordinator.run(coordinator);
     } finally {
       coordinator.close();
     }
   }
-
 }

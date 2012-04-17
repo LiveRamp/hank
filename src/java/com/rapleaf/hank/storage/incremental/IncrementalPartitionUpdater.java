@@ -16,9 +16,7 @@
 
 package com.rapleaf.hank.storage.incremental;
 
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersions;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -30,7 +28,7 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.UUID;
 
-public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
+public abstract class IncrementalPartitionUpdater implements PartitionUpdater, CloseCoordinatorOpportunistically {
 
   private static final Logger LOG = Logger.getLogger(IncrementalPartitionUpdater.class);
 
@@ -41,6 +39,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
   protected final Domain domain;
   protected final String localPartitionRoot;
   protected final String localPartitionRootCache;
+  private Coordinator coordinatorToCloseOpportunistically;
 
   public IncrementalPartitionUpdater(Domain domain,
                                      String localPartitionRoot) throws IOException {
@@ -84,12 +83,20 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         return;
       }
       LOG.info("Using update plan " + updatePlan + " to update " + localPartitionRoot);
+      // At this point, we can close the Coordinator opportunistically if requested
+      closeCoordinatorOpportunistically();
       // Fetch and cache versions needed to update
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
       // Run update in a workspace
       runUpdate(currentVersion, updatingToVersion, updatePlan);
     } finally {
       cleanCachedVersions();
+    }
+  }
+
+  private void closeCoordinatorOpportunistically() throws IOException {
+    if (coordinatorToCloseOpportunistically != null) {
+      coordinatorToCloseOpportunistically.close();
     }
   }
 
@@ -296,5 +303,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater {
         FileUtils.deleteDirectory(file);
       }
     }
+  }
+
+  @Override
+  public void closeCoordinatorOpportunistically(Coordinator coordinator) {
+    this.coordinatorToCloseOpportunistically = coordinator;
   }
 }

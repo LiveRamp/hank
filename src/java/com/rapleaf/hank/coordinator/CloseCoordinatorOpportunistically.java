@@ -14,15 +14,10 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage;
+package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.coordinator.CloseCoordinatorOpportunistically;
-import com.rapleaf.hank.coordinator.DomainVersion;
+public interface CloseCoordinatorOpportunistically {
 
-import java.io.IOException;
+  public void closeCoordinatorOpportunistically(Coordinator coordinator);
 
-public interface Compactor extends CloseCoordinatorOpportunistically {
-
-  public void compact(DomainVersion versionToCompact,
-                      Writer writer) throws IOException;
 }
