@@ -101,11 +101,16 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertNull(rg.getTargetVersionNumber());
   }
 
-  public void testDeleteDomainConfig() throws Exception {
+  public void testDeleteDomain() throws Exception {
     assertNotNull(coord.getDomain("domain0"));
     assertTrue(coord.deleteDomain("domain0"));
     assertNull(coord.getDomain("domain0"));
     assertFalse(coord.deleteDomain("domain0"));
+  }
+
+  public void testGetDomainShallow() {
+    assertNotNull(coord.getDomainShallow("domain0"));
+    assertEquals(coord.getDomain("domain0"), coord.getDomainShallow("domain0"));
   }
 
   @Override

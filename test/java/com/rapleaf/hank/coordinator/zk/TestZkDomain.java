@@ -70,6 +70,10 @@ public class TestZkDomain extends ZkTestCase {
     assertNotNull(version);
     assertEquals(1, version.getVersionNumber());
     assertEquals(2, dc.getVersions().size());
+
+    // Test getVersionShallow
+    assertTrue(dc.getVersionShallow(0) != null);
+    assertEquals(dc.getVersion(0), dc.getVersionShallow(0));
   }
 
   public void testDelete() throws Exception {

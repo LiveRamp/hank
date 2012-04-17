@@ -166,7 +166,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
     }
   }
 
-  public String getPathSeg() {
+  public static String getPathName(int versionNumber) {
     return "version_" + versionNumber;
   }
 }

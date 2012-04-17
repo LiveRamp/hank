@@ -195,7 +195,9 @@ public class ZkDomain extends AbstractDomain {
       return findVersion(getVersions(), versionNumber);
     } else {
       try {
-        return new ZkDomainVersion(zk, ZkPath.append(domainPath, "version_" + versionNumber), domainVersionPropertiesSerialization);
+        return new ZkDomainVersion(zk,
+            ZkPath.append(domainPath, KEY_VERSIONS, ZkDomainVersion.getPathName(versionNumber)),
+            domainVersionPropertiesSerialization);
       } catch (InterruptedException e) {
         return null;
       } catch (KeeperException e) {
@@ -218,7 +220,7 @@ public class ZkDomain extends AbstractDomain {
     try {
       ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties,
           getStorageEngine().getDomainVersionPropertiesSerialization());
-      versions.put(newVersion.getPathSeg(), newVersion);
+      versions.put(ZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
       return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.
