@@ -16,8 +16,6 @@
 
 package com.rapleaf.hank.hadoop;
 
-import java.io.IOException;
-
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -25,6 +23,8 @@ import org.apache.hadoop.mapred.FileOutputCommitter;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.JobContext;
 import org.apache.log4j.Logger;
+
+import java.io.IOException;
 
 public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
@@ -68,9 +68,11 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
       if (partition.isDir()) {
         FileStatus[] partitionFiles = fs.listStatus(partition.getPath());
         for (FileStatus partitionFile : partitionFiles) {
-            Path sourcePath = partitionFile.getPath();
+          Path sourcePath = partitionFile.getPath();
           Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
-          LOG.info("Moving: " + sourcePath + " to: " + targetPath);
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Moving: " + sourcePath + " to: " + targetPath);
+          }
           if (!fs.mkdirs(targetPath.getParent())) {
             throw new IOException("Failed at creating directory " + targetPath.getParent());
           }
