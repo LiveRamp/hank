@@ -23,6 +23,7 @@ import cascading.tap.Tap;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.DomainVersionNumberAndNumPartitions;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class CascadingDomainBuilder {
   private final String valueFieldName;
   private Integer partitionToBuild = null;
   private Integer domainVersionNumber = null;
+  private Integer numPartitions = null;
 
   public CascadingDomainBuilder(DomainBuilderProperties properties,
                                 DomainVersionProperties domainVersionProperties,
@@ -56,7 +58,9 @@ public class CascadingDomainBuilder {
   }
 
   public void openNewVersion() throws IOException {
-    domainVersionNumber = properties.openVersion(domainVersionProperties);
+    DomainVersionNumberAndNumPartitions domainVersionNumberAndNumPartitions = properties.openVersion(domainVersionProperties);
+    domainVersionNumber = domainVersionNumberAndNumPartitions.getDomainVersionNumber();
+    numPartitions = domainVersionNumberAndNumPartitions.getNumPartitions();
     // Create Tap
     outputTap = new DomainBuilderTap(keyFieldName, valueFieldName, domainVersionNumber, properties);
   }

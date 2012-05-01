@@ -30,6 +30,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.RunWithCoordinator;
 import com.rapleaf.hank.coordinator.RunnableWithCoordinator;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
+import com.rapleaf.hank.hadoop.PartitionIntWritable;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import org.apache.hadoop.io.BytesWritable;
@@ -112,7 +113,7 @@ public class DomainBuilderAssembly extends SubAssembly {
       TupleEntry tupleEntry = call.getArguments();
       BytesWritable key = (BytesWritable) tupleEntry.get(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
-      IntWritable partition = new IntWritable(partitioner.partition(keyByteBuffer, domainNumParts));
+      PartitionIntWritable partition = new PartitionIntWritable(partitioner.partition(keyByteBuffer, domainNumParts));
       ByteBuffer comparableKey = storageEngine.getComparableKey(keyByteBuffer);
       byte[] comparableKeyBuffer = new byte[comparableKey.remaining()];
       System.arraycopy(comparableKey.array(), comparableKey.arrayOffset() + comparableKey.position(),

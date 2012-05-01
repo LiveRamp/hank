@@ -39,7 +39,9 @@ public abstract class AbstractHadoopDomainBuilder {
   public void buildHankDomain(DomainBuilderProperties properties,
                               DomainVersionProperties newDomainVersionProperties) throws IOException {
     // Open new version and check for success
-    Integer domainVersionNumber = properties.openVersion(newDomainVersionProperties);
+    DomainVersionNumberAndNumPartitions domainVersionNumberAndNumPartitions = properties.openVersion(newDomainVersionProperties);
+    Integer domainVersionNumber = domainVersionNumberAndNumPartitions.getDomainVersionNumber();
+    Integer numPartitions = domainVersionNumberAndNumPartitions.getNumPartitions();
     // Try to build new version
     JobConf conf;
     if (baseConf == null) {
@@ -47,7 +49,7 @@ public abstract class AbstractHadoopDomainBuilder {
     } else {
       conf = new JobConf(baseConf);
     }
-    configureJobCommon(properties, domainVersionNumber, conf);
+    configureJobCommon(properties, domainVersionNumber, numPartitions, conf);
     configureJob(conf);
     try {
       // Set up job
@@ -70,7 +72,7 @@ public abstract class AbstractHadoopDomainBuilder {
     DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), conf);
   }
 
-  private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, JobConf conf) {
+  private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, int numPartitions, JobConf conf) {
     // Hank specific configuration
     properties.setJobConfProperties(conf, versionNumber);
     // Output Committer
@@ -79,6 +81,8 @@ public abstract class AbstractHadoopDomainBuilder {
     FileOutputFormat.setOutputPath(conf, new Path(properties.getTmpOutputPath(versionNumber)));
     // Output format
     conf.setOutputFormat(properties.getOutputFormatClass());
+    // Num reduce tasks
+    conf.setNumReduceTasks(numPartitions);
   }
 
   protected abstract void configureJob(JobConf conf);

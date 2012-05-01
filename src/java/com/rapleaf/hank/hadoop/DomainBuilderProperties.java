@@ -96,7 +96,9 @@ public class DomainBuilderProperties {
   }
 
   // To configure cascading jobs
-  public Properties setCascadingProperties(Properties properties, int versionNumber) {
+  public Properties setCascadingProperties(Properties properties,
+                                           int versionNumber,
+                                           int numPartitions) {
 
     // Note: Domain name is set locally in DomainBuilderTap to deal with Cascading
     // jobs building multiple domains.
@@ -116,6 +118,16 @@ public class DomainBuilderProperties {
     properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
         Integer.toString(versionNumber));
+    // Number of reduce tasks is set to the maximum number of partitions to build for a single domain
+    // When moving to Cascading 2.0 we will be able to set the number of reduce tasks per step (for each domain)
+    Integer numPartitionsPrevious = 0;
+    String numPartitionsStr = properties.getProperty("mapred.reduce.tasks");
+    if (numPartitionsStr != null) {
+      numPartitionsPrevious = Integer.valueOf(numPartitionsStr);
+    }
+    if (numPartitions > numPartitionsPrevious) {
+      properties.setProperty("mapred.reduce.tasks", String.valueOf(numPartitions));
+    }
     return properties;
   }
 
@@ -255,7 +267,7 @@ public class DomainBuilderProperties {
     return remoteDomainRootGetter.result;
   }
 
-  public Integer openVersion(DomainVersionProperties domainVersionProperties) throws IOException {
+  public DomainVersionNumberAndNumPartitions openVersion(DomainVersionProperties domainVersionProperties) throws IOException {
     return openVersion(getConfigurator(), getDomainName(), domainVersionProperties);
   }
 
@@ -267,9 +279,9 @@ public class DomainBuilderProperties {
     closeVersion(getConfigurator(), getDomainName(), domainVersionNumber);
   }
 
-  public static Integer openVersion(CoordinatorConfigurator configurator,
-                                    String domainName,
-                                    DomainVersionProperties domainVersionProperties) throws IOException {
+  public static DomainVersionNumberAndNumPartitions openVersion(CoordinatorConfigurator configurator,
+                                                                String domainName,
+                                                                DomainVersionProperties domainVersionProperties) throws IOException {
     DomainVersionOpener domainVersionOpener = new DomainVersionOpener(domainName, domainVersionProperties);
     RunWithCoordinator.run(configurator, domainVersionOpener);
     return domainVersionOpener.result;
@@ -325,7 +337,7 @@ public class DomainBuilderProperties {
 
     private final String domainName;
     private final DomainVersionProperties domainVersionProperties;
-    private Integer result;
+    private DomainVersionNumberAndNumPartitions result;
 
     public DomainVersionOpener(String domainName,
                                DomainVersionProperties domainVersionProperties) {
@@ -341,7 +353,7 @@ public class DomainBuilderProperties {
         throw new IOException("Could not open a new version of domain " + domainName);
       } else {
         LOG.info("Opened new version #" + domainVersion.getVersionNumber() + " of domain: " + domainName);
-        result = domainVersion.getVersionNumber();
+        result = new DomainVersionNumberAndNumPartitions(domainVersion.getVersionNumber(), domain.getNumParts());
       }
     }
   }
