@@ -145,4 +145,12 @@ public class DomainBuilderAssembly extends SubAssembly {
       }
     }
   }
+
+  public static String getPartitionMarkersPipeName(String domainName) {
+    return PARTITION_MARKERS_PIPE_NAME_PREFIX + domainName;
+  }
+
+  public static String getSinkName(String domainName) {
+    return SINK_NAME_PREFIX + domainName;
+  }
 }
