@@ -16,13 +16,13 @@
 
 package com.rapleaf.hank.hadoop;
 
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.WritableComparable;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.WritableComparable;
 
 public class ValueWritable implements WritableComparable<ValueWritable> {
 
@@ -41,7 +41,11 @@ public class ValueWritable implements WritableComparable<ValueWritable> {
   }
 
   public ByteBuffer getAsByteBuffer() {
-    return ByteBuffer.wrap(value.getBytes(), 0, value.getLength());
+    if (value == null) {
+      return null;
+    } else {
+      return ByteBuffer.wrap(value.getBytes(), 0, value.getLength());
+    }
   }
 
   @Override
@@ -62,6 +66,6 @@ public class ValueWritable implements WritableComparable<ValueWritable> {
 
   @Override
   public String toString() {
-    return "<value: " + value.toString() + ">";
+    return "<value: " + (value == null ? "null" : value.toString()) + ">";
   }
 }

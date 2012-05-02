@@ -43,6 +43,7 @@ public abstract class DomainBuilderAbstractOutputFormat
   public static final String CONF_PARAM_HANK_OUTPUT_PATH = "com.rapleaf.hank.output.path";
   public static final String CONF_PARAM_HANK_TMP_OUTPUT_PATH = "com.rapleaf.hank.output.tmp_path";
   public static final String CONF_PARAM_HANK_VERSION_NUMBER = "com.rapleaf.hank.output.version_number";
+  public static final String CONF_PARAM_HANK_NUM_PARTITIONS = "com.rapleaf.hank.output.num_partitions";
 
   public static String createConfParamName(String domainName, String confParamName) {
     return domainName + "#" + confParamName;
@@ -134,8 +135,13 @@ public abstract class DomainBuilderAbstractOutputFormat
         // Set up new writer
         setNewPartitionWriter(partition);
       }
-      // Write record
-      writer.write(key.getKey(), value.getAsByteBuffer());
+      if (key.getKey() == null && value.getAsByteBuffer() == null) {
+        // Probably a marker tuple, skip it
+        LOG.info("Skipping empty tuple: key=" + key.toString() + ", value=" + value.toString());
+      } else {
+        // Write record
+        writer.write(key.getKey(), value.getAsByteBuffer());
+      }
     }
 
     private void setNewPartitionWriter(int partition) throws IOException {

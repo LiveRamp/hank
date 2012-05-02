@@ -30,7 +30,9 @@ public class PartitionIntWritable extends IntWritable {
 
   @Override
   public boolean equals(Object other) {
-    return Object.class == PartitionIntWritable.class && get() == ((PartitionIntWritable) other).get();
+    return other != null
+        && (PartitionIntWritable.class.equals(other.getClass()))
+        && (get() == ((PartitionIntWritable) other).get());
   }
 
   // Re-implementing hashCode in this way guarantees that the reduce partition computed for that object will be the same

@@ -48,7 +48,11 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
   }
 
   public ByteBuffer getKey() {
-    return ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
+    if (key == null) {
+      return null;
+    } else {
+      return ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
+    }
   }
 
   public int getPartition() {
@@ -71,7 +75,7 @@ public class KeyAndPartitionWritable implements WritableComparable<KeyAndPartiti
 
   @Override
   public String toString() {
-    return "<key: " + key.toString() + ", partition: " + partition.toString() + ">";
+    return "<key: " + (key == null ? "null" : key.toString()) + ", partition: " + partition.toString() + ">";
   }
 
   public void setKey(BytesWritable key) {

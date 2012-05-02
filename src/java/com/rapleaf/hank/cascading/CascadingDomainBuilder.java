@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.cascading;
 
+import cascading.cascade.Cascades;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.pipe.Pipe;
@@ -79,19 +80,14 @@ public class CascadingDomainBuilder {
 
   // Build a single domain using one source
   public Flow build(Properties cascadingProperties,
+                    String sourcePipeName,
                     Tap source) throws IOException {
-    return build(cascadingProperties, new TapOrTapMap(source));
+    return build(cascadingProperties, Cascades.tapsMap(sourcePipeName, source));
   }
 
   // Build a single domain
   public Flow build(Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(cascadingProperties, new TapOrTapMap(sources));
-  }
-
-  // Build a single domain
-  private Flow build(Properties cascasdingProperties,
-                     TapOrTapMap sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(),
         pipe,
@@ -106,7 +102,7 @@ public class CascadingDomainBuilder {
     try {
 
       // Build flow
-      flow = getFlow(cascasdingProperties, sources);
+      flow = getFlow(cascadingProperties, sources);
 
       // Set up job
       DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
@@ -167,7 +163,17 @@ public class CascadingDomainBuilder {
       // Update properties
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
         domainBuilder.properties.setCascadingProperties(cascadingProperties,
-            domainBuilder.domainVersionNumber);
+            domainBuilder.domainVersionNumber,
+            domainBuilder.numPartitions);
+      }
+
+      // Add partition marker sources
+      Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
+      for (CascadingDomainBuilder domainBuilder : domainBuilders) {
+        actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(domainBuilder.properties.getDomainName()),
+            new PartitionMarkerTap(domainBuilder.properties.getDomainName(),
+                domainBuilder.keyFieldName,
+                domainBuilder.valueFieldName));
       }
 
       // Construct tails array
@@ -185,7 +191,8 @@ public class CascadingDomainBuilder {
       Map<String, Tap> sinks = new HashMap<String, Tap>();
       // Add domain builder sinks
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        sinks.put(domainBuilder.properties.getDomainName(), domainBuilder.outputTap);
+        sinks.put(DomainBuilderAssembly.getSinkName(domainBuilder.properties.getDomainName()),
+            domainBuilder.outputTap);
       }
       // Add extra sinks
       sinks.putAll(otherSinks);
@@ -203,7 +210,7 @@ public class CascadingDomainBuilder {
 
       // Build flow
       flow = new FlowConnector(cascadingProperties)
-          .connect(jobName.toString(), sources, sinks, tails);
+          .connect(jobName.toString(), actualSources, sinks, tails);
 
       // Set up jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
@@ -245,19 +252,14 @@ public class CascadingDomainBuilder {
 
   // Build a single domain using a single source
   public Flow build(Map<Object, Object> cascadingProperties,
+                    String sourcePipeName,
                     Tap source) throws IOException {
-    return build(mapToProperties(cascadingProperties), source);
+    return build(mapToProperties(cascadingProperties), sourcePipeName, source);
   }
 
   // Build a single domain using a multiple sources
   public Flow build(Map<Object, Object> cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(mapToProperties(cascadingProperties), sources);
-  }
-
-  // Build a single domain
-  public Flow build(Map<Object, Object> cascadingProperties,
-                    TapOrTapMap sources) throws IOException {
     return build(mapToProperties(cascadingProperties), sources);
   }
 
@@ -301,15 +303,14 @@ public class CascadingDomainBuilder {
 
   private FlowConnector getFlowConnector(Properties cascadingProperties) {
     return new FlowConnector(properties.setCascadingProperties(cascadingProperties,
-        domainVersionNumber));
+        domainVersionNumber, numPartitions));
   }
 
   private Flow getFlow(Properties cascadingProperties,
-                       TapOrTapMap sources) {
-    if (sources.isTapMap()) {
-      return getFlowConnector(cascadingProperties).connect(getFlowName(), sources.getTapMap(), outputTap, pipe);
-    } else {
-      return getFlowConnector(cascadingProperties).connect(getFlowName(), sources.getTap(), outputTap, pipe);
-    }
+                       Map<String, Tap> sources) {
+    Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
+    actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
+        new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
+    return getFlowConnector(cascadingProperties).connect(getFlowName(), actualSources, outputTap, pipe);
   }
 }

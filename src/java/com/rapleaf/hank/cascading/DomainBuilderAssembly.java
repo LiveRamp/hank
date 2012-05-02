@@ -43,8 +43,9 @@ public class DomainBuilderAssembly extends SubAssembly {
 
   private static final long serialVersionUID = 1L;
   public static final String PARTITION_FIELD_NAME = "__hank_partition";
-  private static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparableKey";
-
+  public static final String COMPARABLE_KEY_FIELD_NAME = "__hank_comparable_key";
+  private static final String PARTITION_MARKERS_PIPE_NAME_PREFIX = "__hank_partition_markers_for_";
+  private static final String SINK_NAME_PREFIX = "__hank_sink_for_";
 
   public DomainBuilderAssembly(String domainName,
                                Pipe outputPipe,
@@ -59,6 +60,8 @@ public class DomainBuilderAssembly extends SubAssembly {
                                String valueFieldName,
                                Integer partitionToBuild) {
 
+    Pipe partitionMarkersPipe = new Pipe(getPartitionMarkersPipeName(domainName));
+
     // Add partition and comparable key fields
     outputPipe = new Each(outputPipe,
         new Fields(keyFieldName),
@@ -67,13 +70,13 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     if (partitionToBuild != null) {
       outputPipe = new Each(outputPipe, new Fields(PARTITION_FIELD_NAME), new KeepPartitions(partitionToBuild));
+      partitionMarkersPipe = new Each(partitionMarkersPipe, new Fields(PARTITION_FIELD_NAME), new KeepPartitions(partitionToBuild));
     }
 
     // Group by partition id and secondary sort on comparable key
-    outputPipe = new GroupBy(outputPipe, new Fields(PARTITION_FIELD_NAME), new Fields(
+    Pipe tail = new GroupBy(getSinkName(domainName), new Pipe[]{partitionMarkersPipe, outputPipe}, new Fields(PARTITION_FIELD_NAME), new Fields(
         COMPARABLE_KEY_FIELD_NAME));
-
-    setTails(outputPipe);
+    setTails(tail);
   }
 
   private static class KeepPartitions extends BaseOperation implements Filter {

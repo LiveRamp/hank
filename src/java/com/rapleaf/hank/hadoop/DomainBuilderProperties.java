@@ -118,6 +118,10 @@ public class DomainBuilderProperties {
     properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
         Integer.toString(versionNumber));
+    // Number of partitions
+    properties.setProperty(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),
+        DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_NUM_PARTITIONS),
+        Integer.toString(numPartitions));
     // Number of reduce tasks is set to the maximum number of partitions to build for a single domain
     // When moving to Cascading 2.0 we will be able to set the number of reduce tasks per step (for each domain)
     Integer numPartitionsPrevious = 0;
@@ -218,6 +222,12 @@ public class DomainBuilderProperties {
     return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
         DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_VERSION_NUMBER),
         "Hank version number", conf));
+  }
+
+  public static Integer getNumPartitions(String domainName, JobConf conf) {
+    return Integer.valueOf(getRequiredConfigurationItem(DomainBuilderAbstractOutputFormat.createConfParamName(domainName,
+        DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_NUM_PARTITIONS),
+        "Hank number of partitions", conf));
   }
 
   public static String getRequiredConfigurationItem(String key, String prettyName, JobConf conf) {

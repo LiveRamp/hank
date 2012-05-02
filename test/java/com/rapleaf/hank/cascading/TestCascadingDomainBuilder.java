@@ -48,6 +48,10 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   private final String INPUT_PATH_B = INPUT_DIR + "/" + DOMAIN_B_NAME;
   private final String OUTPUT_PATH_B = OUTPUT_DIR + "/" + DOMAIN_B_NAME;
 
+  private final String DOMAIN_C_NAME = "c";
+  private final String INPUT_PATH_C = INPUT_DIR + "/" + DOMAIN_C_NAME;
+  private final String OUTPUT_PATH_C = OUTPUT_DIR + "/" + DOMAIN_C_NAME;
+
   public TestCascadingDomainBuilder() throws IOException {
     super(TestCascadingDomainBuilder.class);
   }
@@ -86,6 +90,8 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         getTT("13", "v3"),
         getTT("11", "v1"),
         getTT("14", "v4"));
+    // C is empty
+    writeSequenceFile(INPUT_PATH_C, new Fields("key", "value"));
   }
 
   private Pipe getPipe(String name) {
@@ -111,7 +117,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_A_NAME + "/1/other"));
 
     new CascadingDomainBuilder(properties, null, pipe, "key", "value")
-        .build(new Properties(), inputTap);
+        .build(new Properties(), "pipe", inputTap);
 
     // Check output
     String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
@@ -133,16 +139,24 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     Tap inputTapB = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_B);
     Pipe pipeB = getPipe("b");
 
+    // C
+    DomainBuilderProperties propertiesC = new DomainBuilderProperties(DOMAIN_C_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(3), OUTPUT_PATH_C);
+    Tap inputTapC = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_C);
+    Pipe pipeC = getPipe("c");
+
     // Sources
     Map<String, Tap> sources = new HashMap<String, Tap>();
     sources.put("a", inputTapA);
     sources.put("b", inputTapB);
+    sources.put("c", inputTapC);
 
     // Build domains
     CascadingDomainBuilder domainA = new CascadingDomainBuilder(propertiesA, null, pipeA, "key", "value");
     CascadingDomainBuilder domainB = new CascadingDomainBuilder(propertiesB, null, pipeB, "key", "value");
+    CascadingDomainBuilder domainC = new CascadingDomainBuilder(propertiesC, null, pipeC, "key", "value");
     CascadingDomainBuilder.buildDomains(new Properties(),
-        sources, domainA, domainB);
+        sources, domainA, domainB, domainC);
 
     // Check A output
     String p0A = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
@@ -157,5 +171,34 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     assertEquals("12 v2\n", p0B);
     assertEquals("10 v0\n13 v3\n", p1B);
     assertEquals("11 v1\n14 v4\n", p2B);
+
+    // Check C output
+    String p0C = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_C, 0, "0.base"));
+    String p1C = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_C, 1, "0.base"));
+    String p2C = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_C, 2, "0.base"));
+    assertEquals("", p0C);
+    assertEquals("", p1C);
+    assertEquals("", p2C);
+  }
+
+  public void testEmptyVersion() throws IOException {
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_C_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_C);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_C);
+    Pipe pipe = getPipe("pipe");
+
+    // Simulate that another version is present
+    fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_C_NAME + "/0/other"));
+    fs.mkdirs(new Path(OUTPUT_DIR + "/" + DOMAIN_C_NAME + "/1/other"));
+
+    new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+        .build(new Properties(), "pipe", inputTap);
+
+    // Check output
+    String p1 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_C, 0, "0.base"));
+    String p2 = getContents(fs, HDFSOutputStreamFactory.getPath(OUTPUT_PATH_C, 1, "0.base"));
+    assertEquals("", p1);
+    assertEquals("", p2);
   }
 }
