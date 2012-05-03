@@ -272,6 +272,9 @@ public class DomainBuilderProperties {
   }
 
   public static String getRemoteDomainRoot(Coordinator coordinator, String domainName) throws IOException {
+    if (coordinator == null) {
+      throw new RuntimeException("A null Coordinator was provided.");
+    }
     RemoteDomainRootGetter remoteDomainRootGetter = new RemoteDomainRootGetter(domainName);
     remoteDomainRootGetter.run(coordinator);
     return remoteDomainRootGetter.result;
