@@ -40,7 +40,7 @@ public final class RingGroups {
   }
 
   public static void setTargetVersion(RingGroup ringGroup, int versionNumber) throws IOException {
-    DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersionByNumber(versionNumber);
+    DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersion(versionNumber);
     setTargetVersion(ringGroup, domainGroupVersion);
   }
 

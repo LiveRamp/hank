@@ -201,7 +201,7 @@ public class TestUpdateManager extends BaseTestCase {
         }
 
         @Override
-        public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+        public DomainGroupVersion getVersion(int versionNumber) throws IOException {
           return dgv;
         }
       };

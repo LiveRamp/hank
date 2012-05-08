@@ -109,7 +109,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       }
 
       @Override
-      public DomainGroupVersion getVersionByNumber(int version) {
+      public DomainGroupVersion getVersion(int version) {
         return new MockDomainGroupVersion(
             new HashSet<DomainGroupVersionDomainVersion>(
                 Arrays.asList(new MockDomainGroupVersionDomainVersion(

@@ -28,7 +28,7 @@ public abstract class AbstractRingGroup implements RingGroup {
     if (version != null) {
       DomainGroup domainGroup = getDomainGroup();
       if (domainGroup != null) {
-        return domainGroup.getVersionByNumber(version);
+        return domainGroup.getVersion(version);
       }
     }
     return null;

@@ -92,7 +92,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private static DomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
 
     @Override
-    public DomainGroupVersion getVersionByNumber(int versionNumber) {
+    public DomainGroupVersion getVersion(int versionNumber) {
       switch (versionNumber) {
         case 1:
           return v1;

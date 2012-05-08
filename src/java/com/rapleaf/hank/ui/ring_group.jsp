@@ -196,7 +196,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
            if (targetDomainGroupVersion != null) {
              DomainGroupVersionDomainVersion dgvdv = targetDomainGroupVersion.getDomainVersion(domain);
              if (dgvdv != null) {
-               targetDomainVersion = domain.getVersionByNumber(dgvdv.getVersion());
+               targetDomainVersion = domain.getVersion(dgvdv.getVersion());
              }
            }
        %>
