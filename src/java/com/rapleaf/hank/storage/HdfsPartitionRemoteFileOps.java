@@ -34,11 +34,11 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     }
   }
 
-  private final String partitionRoot;
-  private final Path partitionRootPath;
-  private final FileSystem fs;
-  private final String remoteFsUserName;
-  private final String remoteFsGroupName;
+  protected final String partitionRoot;
+  protected final Path partitionRootPath;
+  protected final FileSystem fs;
+  protected final String remoteFsUserName;
+  protected final String remoteFsGroupName;
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber,
@@ -70,6 +70,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
     Path source = new Path(getAbsolutePath(remoteSourceRelativePath));
     Path destination = new Path(localDestinationRoot + "/" + source.getName());
+    LOG.info("Copying remote file " + source + " to local file " + destination);
     fs.copyToLocalFile(source, destination);
   }
 
@@ -94,7 +95,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     return true;
   }
 
-  private String getAbsolutePath(String relativePath) {
+  protected String getAbsolutePath(String relativePath) {
     return partitionRoot + "/" + relativePath;
   }
 
