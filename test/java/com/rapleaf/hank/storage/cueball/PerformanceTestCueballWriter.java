@@ -3,9 +3,8 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
-import com.rapleaf.hank.storage.LocalPartitionFileStreamFactory;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
-import com.rapleaf.hank.storage.PartitionFileStreamFactory;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.FsUtils;
@@ -28,7 +27,7 @@ public class PerformanceTestCueballWriter {
     Cueball cueball = new Cueball(5,
         new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root",
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
-    PartitionFileStreamFactory localFs = new LocalPartitionFileStreamFactory(tmpDir);
+    PartitionRemoteFileOps localFs = new LocalPartitionRemoteFileOps(tmpDir, 0);
     Writer writer = cueball.getWriter(new MockDomainVersion(1, 0L, null), localFs, 0);
 
     long start = System.currentTimeMillis();

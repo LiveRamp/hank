@@ -17,14 +17,20 @@
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public interface PartitionRemoteFileOps {
 
+  public InputStream getInputStream(String remoteRelativePath) throws IOException;
+
+  public OutputStream getOutputStream(String remoteRelativePath) throws IOException;
+
   public boolean exists(String remoteRelativePath) throws IOException;
 
-  void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException;
+  public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException;
 
-  void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException;
+  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException;
 
   public boolean attemptDelete(String remoteRelativePath) throws IOException;
 }

@@ -195,10 +195,12 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(DomainVersion domainVersion, PartitionFileStreamFactory streamFactory, int partitionNumber) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
+                          int partitionNumber) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
-    return new CueballWriter(streamFactory.getOutputStream(partitionNumber,
-        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
+    return new CueballWriter(partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
+        domainVersionProperties.isBase())),
         keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
   }
 
@@ -219,7 +221,7 @@ public class Cueball implements StorageEngine {
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
+        fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -236,12 +238,12 @@ public class Cueball implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   PartitionFileStreamFactory streamFactory,
+                                   PartitionRemoteFileOps partitionRemoteFileOps,
                                    int partitionNumber) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     // Note: We use the identity hasher since keys coming in are already hashed keys
-    return new CueballWriter(streamFactory.getOutputStream(partitionNumber,
-        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
+    return new CueballWriter(partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
+        domainVersionProperties.isBase())),
         keyHashSize,
         new IdentityHasher(),
         valueSize,

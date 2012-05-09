@@ -34,7 +34,6 @@ import com.rapleaf.hank.partition_server.PartitionServer;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductor;
-import com.rapleaf.hank.storage.LocalPartitionFileStreamFactory;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
@@ -596,7 +595,7 @@ public class IntegrationTest extends ZkTestCase {
     for (Map.Entry<Integer, SortedMap<ByteBuffer, ByteBuffer>> part : sortedAndPartitioned.entrySet()) {
       LOG.debug("Writing out part " + part.getKey() + " for domain " + domain.getName() + " to root " + domainRoot);
       Writer writer = engine.getWriter(domain.getVersion(versionNumber),
-          new LocalPartitionFileStreamFactory(domainRoot), part.getKey());
+          new LocalPartitionRemoteFileOps(domainRoot, part.getKey()), part.getKey());
       final SortedMap<ByteBuffer, ByteBuffer> partPairs = part.getValue();
       for (Map.Entry<ByteBuffer, ByteBuffer> pair : partPairs.entrySet()) {
         LOG.trace(String.format("writing %s -> %s", Bytes.bytesToHexString(pair.getKey()), Bytes.bytesToHexString(pair.getValue())));

@@ -17,7 +17,8 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.PartitionFileStreamFactory;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.JobConf;
@@ -30,22 +31,27 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
 
     protected DomainBuilderDefaultRecordWriter(JobConf conf,
-                                               PartitionFileStreamFactory streamFactory) throws IOException {
-      super(conf, streamFactory);
+                                               PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
+                                               String outputPath) throws IOException {
+      super(conf, partitionRemoteFileOpsFactory, outputPath);
     }
 
     @Override
     protected Writer getWriter(StorageEngine storageEngine,
                                DomainVersion domainVersion,
-                               PartitionFileStreamFactory streamFactory,
+                               PartitionRemoteFileOps partitionRemoteFileOps,
                                int partitionNumber) throws IOException {
-      return storageEngine.getWriter(domainVersion, streamFactory, partitionNumber);
+      return storageEngine.getWriter(domainVersion, partitionRemoteFileOps, partitionNumber);
     }
   }
 
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
-  getRecordWriter(JobConf conf, PartitionFileStreamFactory streamFactory) throws IOException {
-    return new DomainBuilderDefaultRecordWriter(conf, streamFactory);
+  getRecordWriter(JobConf conf,
+                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
+                  String outputPath) throws IOException {
+    return new DomainBuilderDefaultRecordWriter(conf,
+        partitionRemoteFileOpsFactory,
+        outputPath);
   }
 }

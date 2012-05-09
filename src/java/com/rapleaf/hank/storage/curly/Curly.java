@@ -251,20 +251,20 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getWriter(DomainVersion domainVersion,
-                          PartitionFileStreamFactory streamFactory,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber) throws IOException {
-    Writer cueballWriter = cueballStorageEngine.getWriter(domainVersion, streamFactory, partitionNumber);
-    return getWriter(domainVersion, streamFactory, partitionNumber, cueballWriter);
+    Writer cueballWriter = cueballStorageEngine.getWriter(domainVersion, partitionRemoteFileOps, partitionNumber);
+    return getWriter(domainVersion, partitionRemoteFileOps, partitionNumber, cueballWriter);
   }
 
   // Helper
   private Writer getWriter(DomainVersion domainVersion,
-                           PartitionFileStreamFactory streamFactory,
+                           PartitionRemoteFileOps partitionRemoteFileOps,
                            int partitionNumber,
                            Writer keyFileWriter) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
-    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber,
-        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase()));
+    OutputStream outputStream = partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
+        domainVersionProperties.isBase()));
     return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity);
   }
 
@@ -306,16 +306,16 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   PartitionFileStreamFactory streamFactory,
+                                   PartitionRemoteFileOps fileOps,
                                    int partitionNumber) throws IOException {
-    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, streamFactory, partitionNumber);
-    return getWriter(domainVersion, streamFactory, partitionNumber, cueballWriter);
+    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, fileOps, partitionNumber);
+    return getWriter(domainVersion, fileOps, partitionNumber, cueballWriter);
   }
 
   private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
+        fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
         new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetSize, hashIndexBits, getCompressionCodec(), null),
@@ -331,7 +331,7 @@ public class Curly implements StorageEngine {
 
   private CurlyFastPartitionUpdater getFastPartitionUpdater(String localDir, int partNum) throws IOException {
     return new CurlyFastPartitionUpdater(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
+        fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partNum),
         new CurlyMerger(),
         new CueballMerger(),
         keyHashSize,

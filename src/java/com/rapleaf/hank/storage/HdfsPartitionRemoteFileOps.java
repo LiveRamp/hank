@@ -22,14 +22,17 @@ import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
 
   public static class Factory implements PartitionRemoteFileOpsFactory {
+
     @Override
-    public PartitionRemoteFileOps getFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
       return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
     }
   }
@@ -62,13 +65,23 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
+  public InputStream getInputStream(String remoteRelativePath) throws IOException {
+    return fs.open(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+  }
+
+  @Override
+  public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
+    return fs.create(new Path(getAbsoluteRemotePath(remoteRelativePath)), false);
+  }
+
+  @Override
   public boolean exists(String remoteRelativePath) throws IOException {
-    return fs.exists(new Path(getAbsolutePath(remoteRelativePath)));
+    return fs.exists(new Path(getAbsoluteRemotePath(remoteRelativePath)));
   }
 
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
-    Path source = new Path(getAbsolutePath(remoteSourceRelativePath));
+    Path source = new Path(getAbsoluteRemotePath(remoteSourceRelativePath));
     Path destination = new Path(localDestinationRoot + "/" + source.getName());
     LOG.info("Copying remote file " + source + " to local file " + destination);
     fs.copyToLocalFile(source, destination);
@@ -77,7 +90,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
     Path source = new Path(localSourcePath);
-    Path destination = new Path(getAbsolutePath(remoteDestinationRelativePath));
+    Path destination = new Path(getAbsoluteRemotePath(remoteDestinationRelativePath));
     LOG.info("Copying local file " + source + " to remote file " + destination);
     fs.copyFromLocalFile(source, destination);
     if (remoteFsUserName != null || remoteFsGroupName != null) {
@@ -90,13 +103,17 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      fs.delete(new Path(getAbsolutePath(remoteRelativePath)), true);
+      fs.delete(new Path(getAbsoluteRemotePath(remoteRelativePath)), true);
     }
     return true;
   }
 
-  protected String getAbsolutePath(String relativePath) {
+  protected String getAbsoluteRemotePath(String relativePath) {
     return partitionRoot + "/" + relativePath;
+  }
+
+  public static String getAbsoluteRemotePath(String remoteDomainRoot, int partitionNumber, String relativePath) throws IOException {
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber).getAbsoluteRemotePath(relativePath);
   }
 
   @Override

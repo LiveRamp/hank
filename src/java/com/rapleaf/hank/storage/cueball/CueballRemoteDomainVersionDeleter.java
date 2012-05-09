@@ -24,7 +24,7 @@ public class CueballRemoteDomainVersionDeleter implements RemoteDomainVersionDel
   @Override
   public void deleteVersion(int versionNumber) throws IOException {
     for (int partition = 0; partition < domain.getNumParts(); ++partition) {
-      PartitionRemoteFileOps fileOps = fileOpsFactory.getFileOps(remoteDomainRoot, partition);
+      PartitionRemoteFileOps fileOps = fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partition);
       fileOps.attemptDelete(Cueball.getName(versionNumber, true));
       fileOps.attemptDelete(Cueball.getName(versionNumber, false));
     }

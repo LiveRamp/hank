@@ -65,14 +65,14 @@ public class ConstantStorageEngine implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   PartitionFileStreamFactory streamFactory,
+                                   PartitionRemoteFileOps partitionRemoteFileOps,
                                    int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
   @Override
   public Writer getWriter(DomainVersion domainVersion,
-                          PartitionFileStreamFactory streamFactory,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }

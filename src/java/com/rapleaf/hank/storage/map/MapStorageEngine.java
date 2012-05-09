@@ -17,7 +17,7 @@
 package com.rapleaf.hank.storage.map;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.PartitionFileStreamFactory;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
@@ -61,7 +61,7 @@ public class MapStorageEngine extends MockStorageEngine {
 
   @Override
   public Writer getWriter(DomainVersion domainVersion,
-                          PartitionFileStreamFactory streamFactory,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber) throws IOException {
     if (!partitions.containsKey(domainName)) {
       partitions.put(domainName, new HashMap<Integer, Map<ByteBuffer, ByteBuffer>>());
