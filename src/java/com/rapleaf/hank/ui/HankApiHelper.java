@@ -3,6 +3,7 @@ package com.rapleaf.hank.ui;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
@@ -17,6 +18,8 @@ import com.rapleaf.hank.coordinator.Hosts;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.coordinator.RingGroups;
+import com.rapleaf.hank.coordinator.ServingStatus;
 
 /**
  * This class does all the logic for the HankApiServlet.
@@ -64,6 +67,7 @@ public class HankApiHelper {
   public static class DomainGroupData {
     public String name;
     public Map<Integer, DomainGroupVersionData> versionsMap;
+    public Map<String, RingGroupData> ringGroupsMap;
 
     public Map<String, Object> asMap() {
       Map<String, Object> map = new HashMap<String, Object>();
@@ -111,6 +115,8 @@ public class HankApiHelper {
     public Integer targetVersion;
     public boolean isRingGroupConductorOnline;
     public String domainGroupName;
+    public int numPartitions;
+    public int numPartitionsServedAndUpToDate;
     public Map<Integer, RingData> ringsMap;
 
     public Map<String, Object> asMap() {
@@ -155,6 +161,10 @@ public class HankApiHelper {
     data.isRingGroupConductorOnline = ringGroup.isRingGroupConductorOnline();
     data.domainGroupName = ringGroup.getDomainGroup().getName();
 
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    data.numPartitions = servingStatus.getNumPartitions();
+    data.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
+
     Map<Integer, RingData> ringsMap = new HashMap<Integer, RingData>();
     for (Ring ring : ringGroup.getRings()) {
       ringsMap.put(ring.getRingNumber(), getRingData(ring));
@@ -191,6 +201,15 @@ public class HankApiHelper {
       versionsMap.put(v.getVersionNumber(), getDomainGroupVersionData(v));
     }
     data.versionsMap = versionsMap;
+
+    Map<String, RingGroupData> ringGroupsMap = new HashMap<String, RingGroupData>();
+    Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
+    for (RingGroup ringGroup : ringGroups) {
+      RingGroupData rgData = getRingGroupData(ringGroup);
+      ringGroupsMap.put(rgData.name, rgData);
+    }
+
+    data.ringGroupsMap = ringGroupsMap;
     return data;
   }
 
