@@ -114,12 +114,17 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     File destination = new File(localDestinationRoot + "/" + new Path(remoteSourceRelativePath).getName());
     LOG.info("Copying remote file " + source + " to local file " + destination);
     InputStream inputStream = getInputStream(remoteSourceRelativePath);
+    FileOutputStream fileOutputStream = new FileOutputStream(destination);
+    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
     // Use copyLarge (over 2GB)
     try {
-      IOUtils.copyLarge(inputStream,
-          new BufferedOutputStream(new FileOutputStream(destination)));
+      IOUtils.copyLarge(inputStream, bufferedOutputStream);
+      bufferedOutputStream.flush();
+      fileOutputStream.flush();
     } finally {
       inputStream.close();
+      bufferedOutputStream.close();
+      fileOutputStream.close();
     }
   }
 
