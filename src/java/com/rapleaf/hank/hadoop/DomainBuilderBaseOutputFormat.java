@@ -37,6 +37,6 @@ public abstract class DomainBuilderBaseOutputFormat extends DomainBuilderAbstrac
     // Implicitly relies on the FileOutputCommitter to move files to the job output directory
     String outputPath = getTaskAttemptOutputPath(conf);
     // Build RecordWriter with the Domain
-    return getRecordWriter(conf, new HDFSOutputStreamFactory(fs, outputPath));
+    return getRecordWriter(conf, new HdfsOOutputStreamFactory(fs, outputPath));
   }
 }
