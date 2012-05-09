@@ -23,12 +23,12 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class HdfsOOutputStreamFactory implements OutputStreamFactory {
+public class HdfsOutputStreamFactory implements OutputStreamFactory {
 
   private FileSystem fs;
   private String outputPath;
 
-  HdfsOOutputStreamFactory(FileSystem fs, String outputPath) {
+  HdfsOutputStreamFactory(FileSystem fs, String outputPath) {
     this.fs = fs;
     this.outputPath = outputPath;
   }

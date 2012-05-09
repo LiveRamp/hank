@@ -59,8 +59,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
             IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_A), null);
-    String p1 = getContents(fs, HdfsOOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
-    String p2 = getContents(fs, HdfsOOutputStreamFactory.getPath(OUTPUT_PATH_A, 1, "0.base"));
+    String p1 = getContents(fs, HdfsOutputStreamFactory.getPath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsOutputStreamFactory.getPath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }
@@ -69,8 +69,8 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     new HadoopDomainBuilder(INPUT_PATH_B, TextInputFormat.class, TestMapper.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_B_NAME,
             IntStringKeyStorageEngineCoordinator.getConfigurator(2), OUTPUT_PATH_B), null);
-    String p1 = getContents(fs, HdfsOOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));
-    String p2 = getContents(fs, HdfsOOutputStreamFactory.getPath(OUTPUT_PATH_B, 1, "0.base"));
+    String p1 = getContents(fs, HdfsOutputStreamFactory.getPath(OUTPUT_PATH_B, 0, "0.base"));
+    String p2 = getContents(fs, HdfsOutputStreamFactory.getPath(OUTPUT_PATH_B, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }
