@@ -26,7 +26,11 @@ import com.rapleaf.hank.coordinator.ServingStatus;
  */
 public class HankApiHelper {
 
-  public static class DomainVersionData {
+  public interface HankApiData {
+    public Map<String, Object> asMap();
+  }
+
+  public static class DomainVersionData implements HankApiData {
     public int versionNumber;
     public long totalNumBytes;
     public long totalNumRecords;
@@ -45,7 +49,7 @@ public class HankApiHelper {
     }
   }
 
-  public static class DomainData {
+  public static class DomainData implements HankApiData {
     public String name;
     public int numPartitions;
     public Map<Integer, DomainVersionData> versionsMap;
@@ -54,17 +58,12 @@ public class HankApiHelper {
       Map<String, Object> map = new HashMap<String, Object>();
       map.put("name", name);
       map.put("num_partitions", numPartitions);
-
-      Map<String, Object> vMap = new HashMap<String, Object>();
-      for (Map.Entry<Integer, DomainVersionData> entry : versionsMap.entrySet()) {
-        vMap.put(String.valueOf(entry.getKey()), entry.getValue().asMap());
-      }
-      map.put("versions", vMap);
+      map.put("versions", generify(versionsMap));
       return map;
     }
   }
 
-  public static class DomainGroupData {
+  public static class DomainGroupData implements HankApiData {
     public String name;
     public Map<Integer, DomainGroupVersionData> versionsMap;
     public Map<String, RingGroupData> ringGroupsMap;
@@ -72,16 +71,12 @@ public class HankApiHelper {
     public Map<String, Object> asMap() {
       Map<String, Object> map = new HashMap<String, Object>();
       map.put("name", name);
-      Map<String, Object> vMap = new HashMap<String, Object>();
-      for (Map.Entry<Integer, DomainGroupVersionData> entry : versionsMap.entrySet()) {
-        vMap.put(String.valueOf(entry.getKey()), entry.getValue().asMap());
-      }
-      map.put("versions", vMap);
+      map.put("versions", generify(versionsMap));
       return map;
     }
   }
 
-  public static class DomainGroupVersionData {
+  public static class DomainGroupVersionData implements HankApiData {
     public int version;
     public Map<String, Integer> domainVersions;
 
@@ -93,19 +88,14 @@ public class HankApiHelper {
     }
   }
 
-  public static class RingData {
+  public static class RingData implements HankApiData {
     public int ringNumber;
     public Map<String, HostData> hostsMap;
 
     public Map<String, Object> asMap() {
       Map<String, Object> map = new HashMap<String, Object>();
       map.put("ring_number", ringNumber);
-
-      Map<String, Object> hMap = new HashMap<String, Object>();
-      for (Map.Entry<String, HostData> entry : hostsMap.entrySet()) {
-        hMap.put(entry.getKey(), entry.getValue().asMap());
-      }
-      map.put("hosts", hMap);
+      map.put("hosts", generify(hostsMap));
       return map;
     }
   }
@@ -125,11 +115,7 @@ public class HankApiHelper {
       if (targetVersion != null) map.put("target_version", targetVersion);
       map.put("is_ring_group_conductor_online", isRingGroupConductorOnline);
       map.put("domain_group", domainGroupName);
-      Map<String, Object> vMap = new HashMap<String, Object>();
-      for (Map.Entry<Integer, RingData> entry : ringsMap.entrySet()) {
-        vMap.put(String.valueOf(entry.getKey()), entry.getValue().asMap());
-      }
-      map.put("rings", vMap);
+      map.put("rings", generify(ringsMap));
       return map;
     }
   }
@@ -152,6 +138,15 @@ public class HankApiHelper {
 
   public HankApiHelper(Coordinator coordinator) {
     this.coordinator = coordinator;
+  }
+
+  private static Map<String, Object> generify(Map map) {
+    Map<String, Object> gMap = new HashMap<String, Object>();
+    for (Object obj : map.entrySet()) {
+      Map.Entry entry = (Map.Entry) obj;
+      gMap.put(String.valueOf(entry.getKey()), ((HankApiData) entry.getValue()).asMap());
+    }
+    return gMap;
   }
 
   protected RingGroupData getRingGroupData(RingGroup ringGroup) throws IOException {
