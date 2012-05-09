@@ -16,14 +16,17 @@
 
 package com.rapleaf.hank.storage;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.compress.BZip2Codec;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.GzipCodec;
+import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
@@ -33,45 +36,75 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
     @Override
     public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, null);
     }
   }
 
-  protected final String partitionRoot;
-  protected final Path partitionRootPath;
-  protected final FileSystem fs;
-  protected final String remoteFsUserName;
-  protected final String remoteFsGroupName;
+  public static class GzipFactory implements PartitionRemoteFileOpsFactory {
+
+    @Override
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new GzipCodec());
+    }
+  }
+
+  public static class SnappyFactory implements PartitionRemoteFileOpsFactory {
+
+    @Override
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new SnappyCodec());
+    }
+  }
+
+  public static class Bzip2Factory implements PartitionRemoteFileOpsFactory {
+
+    @Override
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new BZip2Codec());
+    }
+  }
+
+  private final String partitionRoot;
+  private final FileSystem fs;
+  private final CompressionCodec compressionCodec;
+
+  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
+                                    int partitionNumber) throws IOException {
+    this(remoteDomainRoot, partitionNumber, null);
+  }
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber,
-                                    String remoteFsUserName,
-                                    String remoteFsGroupName) throws IOException {
+                                    CompressionCodec compressionCodec) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
-    this.partitionRootPath = new Path(partitionRoot);
+    Path partitionRootPath = new Path(partitionRoot);
     this.fs = FileSystem.get(new Configuration());
     if (!partitionRootPath.isAbsolute()) {
       throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
           + " with a non absolute remote partition root: "
           + partitionRoot);
     }
-    this.remoteFsUserName = remoteFsUserName;
-    this.remoteFsGroupName = remoteFsGroupName;
-  }
-
-  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
-                                    int partitionNumber) throws IOException {
-    this(remoteDomainRoot, partitionNumber, null, null);
+    this.compressionCodec = compressionCodec;
   }
 
   @Override
   public InputStream getInputStream(String remoteRelativePath) throws IOException {
-    return fs.open(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+    InputStream inputStream = fs.open(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+    if (compressionCodec == null) {
+      return inputStream;
+    } else {
+      return compressionCodec.createInputStream(inputStream);
+    }
   }
 
   @Override
   public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
-    return fs.create(new Path(getAbsoluteRemotePath(remoteRelativePath)), false);
+    OutputStream outputStream = fs.create(new Path(getAbsoluteRemotePath(remoteRelativePath)), false);
+    if (compressionCodec == null) {
+      return outputStream;
+    } else {
+      return compressionCodec.createOutputStream(outputStream);
+    }
   }
 
   @Override
@@ -82,9 +115,16 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
     Path source = new Path(getAbsoluteRemotePath(remoteSourceRelativePath));
-    Path destination = new Path(localDestinationRoot + "/" + source.getName());
+    File destination = new File(localDestinationRoot + "/" + new Path(remoteSourceRelativePath).getName());
     LOG.info("Copying remote file " + source + " to local file " + destination);
-    fs.copyToLocalFile(source, destination);
+    InputStream inputStream = getInputStream(remoteSourceRelativePath);
+    // Use copyLarge (over 2GB)
+    try {
+      IOUtils.copyLarge(inputStream,
+          new BufferedOutputStream(new FileOutputStream(destination)));
+    } finally {
+      inputStream.close();
+    }
   }
 
   @Override
@@ -96,10 +136,23 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   protected String getAbsoluteRemotePath(String relativePath) {
-    return partitionRoot + "/" + relativePath;
+    if (compressionCodec == null) {
+      return partitionRoot + "/" + relativePath;
+    } else {
+      return partitionRoot + "/" + relativePath + "." + compressionCodec.getDefaultExtension();
+    }
   }
 
-  public static String getAbsoluteRemotePath(String remoteDomainRoot, int partitionNumber, String relativePath) throws IOException {
+  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+                                             int partitionNumber,
+                                             String relativePath,
+                                             CompressionCodec compressionCodec) throws IOException {
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, compressionCodec).getAbsoluteRemotePath(relativePath);
+  }
+
+  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+                                             int partitionNumber,
+                                             String relativePath) throws IOException {
     return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber).getAbsoluteRemotePath(relativePath);
   }
 
