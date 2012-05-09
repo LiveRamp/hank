@@ -71,6 +71,11 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return new HdfsPartitionRemoteFileOps.Factory();
+  }
+
+  @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     return null;
   }

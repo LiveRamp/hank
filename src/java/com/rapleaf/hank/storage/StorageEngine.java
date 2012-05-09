@@ -50,6 +50,8 @@ public interface StorageEngine {
 
   public ByteBuffer getComparableKey(ByteBuffer key);
 
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory();
+
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
 
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;

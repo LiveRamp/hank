@@ -19,7 +19,6 @@ package com.rapleaf.hank.hadoop;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.conf.Configuration;
@@ -88,7 +87,6 @@ public abstract class DomainBuilderAbstractOutputFormat
     private final CoordinatorConfigurator configurator;
     private final String domainName;
     private final Integer domainVersionNumber;
-    private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
     private final String outputPath;
 
     private Domain domain;
@@ -100,13 +98,11 @@ public abstract class DomainBuilderAbstractOutputFormat
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(JobConf conf,
-                              PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                               String outputPath) throws IOException {
       // Load configuration items
       this.configurator = DomainBuilderProperties.getConfigurator(conf);
       this.domainName = DomainBuilderProperties.getDomainName(conf);
       this.domainVersionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
-      this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
       this.outputPath = outputPath;
 
       RunWithCoordinator.run(configurator,
@@ -160,7 +156,7 @@ public abstract class DomainBuilderAbstractOutputFormat
       // Set up new writer
       writer = getWriter(storageEngine,
           domainVersion,
-          partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(outputPath, partitionNumber),
+          storageEngine.getPartitionRemoteFileOpsFactory().getPartitionRemoteFileOps(outputPath, partitionNumber),
           partitionNumber);
       writerPartition = partitionNumber;
       writtenPartitions.add(partitionNumber);

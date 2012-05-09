@@ -89,6 +89,11 @@ public class ConstantStorageEngine implements StorageEngine {
   }
 
   @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return null;
+  }
+
+  @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     throw new UnsupportedOperationException();
   }

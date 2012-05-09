@@ -17,7 +17,9 @@
 package com.rapleaf.hank.storage.map;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.NoOpPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
@@ -75,5 +77,10 @@ public class MapStorageEngine extends MockStorageEngine {
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
     return key;
+  }
+
+  @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return new NoOpPartitionRemoteFileOps.Factory();
   }
 }

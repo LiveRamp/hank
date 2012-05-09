@@ -17,7 +17,6 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.NoOpPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
@@ -35,7 +34,7 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
     // Use a no-op partition file ops
-    return new DomainBuilderRecordWriter(conf, new NoOpPartitionRemoteFileOps.Factory(), null) {
+    return new DomainBuilderRecordWriter(conf, null) {
       @Override
       protected Writer getWriter(StorageEngine storageEngine,
                                  DomainVersion domainVersion,

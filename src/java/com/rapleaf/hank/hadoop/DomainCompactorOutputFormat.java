@@ -31,9 +31,8 @@ public class DomainCompactorOutputFormat extends DomainBuilderBaseOutputFormat {
   private static class DomainCompactorRecordWriter extends DomainBuilderRecordWriter {
 
     DomainCompactorRecordWriter(JobConf conf,
-                                PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                                 String outputPath) throws IOException {
-      super(conf, partitionRemoteFileOpsFactory, outputPath);
+      super(conf, outputPath);
     }
 
     @Override
@@ -48,8 +47,7 @@ public class DomainCompactorOutputFormat extends DomainBuilderBaseOutputFormat {
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(JobConf conf,
-                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                   String outputPath) throws IOException {
-    return new DomainCompactorRecordWriter(conf, partitionRemoteFileOpsFactory, outputPath);
+    return new DomainCompactorRecordWriter(conf, outputPath);
   }
 }

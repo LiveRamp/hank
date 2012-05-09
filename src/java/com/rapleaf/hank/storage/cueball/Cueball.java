@@ -150,7 +150,7 @@ public class Cueball implements StorageEngine {
   private final int valueSize;
   private final int hashIndexBits;
   private final String remoteDomainRoot;
-  private final PartitionRemoteFileOpsFactory fileOpsFactory;
+  private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final ByteBuffer keyHashBuffer;
   private final int numRemoteLeafVersionsToKeep;
   private final int partitionCacheCapacity;
@@ -162,7 +162,7 @@ public class Cueball implements StorageEngine {
                  int valueSize,
                  int hashIndexBits,
                  String remoteDomainRoot,
-                 PartitionRemoteFileOpsFactory fileOpsFactory,
+                 PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                  Class<? extends CompressionCodec> compressionCodecClass,
                  Domain domain,
                  int numRemoteLeafVersionsToKeep,
@@ -172,7 +172,7 @@ public class Cueball implements StorageEngine {
     this.valueSize = valueSize;
     this.hashIndexBits = hashIndexBits;
     this.remoteDomainRoot = remoteDomainRoot;
-    this.fileOpsFactory = fileOpsFactory;
+    this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
     this.keyHashBuffer = ByteBuffer.allocate(keyHashSize);
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
@@ -221,7 +221,7 @@ public class Cueball implements StorageEngine {
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
+        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -255,6 +255,11 @@ public class Cueball implements StorageEngine {
   public ByteBuffer getComparableKey(ByteBuffer key) {
     hasher.hash(key, keyHashSize, keyHashBuffer.array());
     return keyHashBuffer;
+  }
+
+  @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return partitionRemoteFileOpsFactory;
   }
 
   @Override
@@ -315,7 +320,7 @@ public class Cueball implements StorageEngine {
   public String toString() {
     return "Cueball [compressionCodecClass=" + compressionCodecClass
         + ", domainName=" + domain.getName()
-        + ", fileOpsFactory=" + fileOpsFactory
+        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
         + ", hashIndexBits=" + hashIndexBits
         + ", hasher=" + hasher
         + ", keyHashSize=" + keyHashSize
@@ -327,7 +332,7 @@ public class Cueball implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
   }
 
   @Override

@@ -18,7 +18,6 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.mapred.JobConf;
@@ -31,9 +30,8 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
   private static class DomainBuilderDefaultRecordWriter extends DomainBuilderRecordWriter {
 
     protected DomainBuilderDefaultRecordWriter(JobConf conf,
-                                               PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                                                String outputPath) throws IOException {
-      super(conf, partitionRemoteFileOpsFactory, outputPath);
+      super(conf, outputPath);
     }
 
     @Override
@@ -48,10 +46,7 @@ public class DomainBuilderDefaultOutputFormat extends DomainBuilderBaseOutputFor
   @Override
   protected RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(JobConf conf,
-                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                   String outputPath) throws IOException {
-    return new DomainBuilderDefaultRecordWriter(conf,
-        partitionRemoteFileOpsFactory,
-        outputPath);
+    return new DomainBuilderDefaultRecordWriter(conf, outputPath);
   }
 }

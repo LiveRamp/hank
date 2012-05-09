@@ -35,6 +35,11 @@ public class Echo implements StorageEngine {
   }
 
   @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return null;
+  }
+
+  @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     return new EchoReader(partitionNumber);
   }
