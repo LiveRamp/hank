@@ -66,12 +66,41 @@ public class HankApiHelper {
   public static class DomainGroupData implements HankApiData {
     public String name;
     public Map<Integer, DomainGroupVersionData> versionsMap;
-    public Map<String, RingGroupData> ringGroupsMap;
 
     public Map<String, Object> asMap() {
       Map<String, Object> map = new HashMap<String, Object>();
       map.put("name", name);
       map.put("versions", generify(versionsMap));
+      return map;
+    }
+  }
+
+  public static class DomainGroupDeployStatus implements HankApiData {
+    public String domainGroupName;
+    public Map<String, DomainGroupDeployStatusForRingGroup> ringGroupsMap;
+
+    @Override
+    public Map<String, Object> asMap() {
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put("domain_group_name", domainGroupName);
+      map.put("ring_groups", generify(ringGroupsMap));
+      return map;
+    }
+  }
+
+  public static class DomainGroupDeployStatusForRingGroup implements HankApiData {
+    public String ringGroupName;
+    public Integer targetGroupVersion;
+    public int numPartitions;
+    public int numPartitionsServedAndUpToDate;
+
+    @Override
+    public Map<String, Object> asMap() {
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put("ring_group_name", ringGroupName);
+      if (targetGroupVersion != null) map.put("target_group_version", targetGroupVersion);
+      map.put("num_partitions", numPartitions);
+      map.put("num_partitions_served_and_up_to_date", numPartitionsServedAndUpToDate);
       return map;
     }
   }
@@ -115,6 +144,8 @@ public class HankApiHelper {
       if (targetVersion != null) map.put("target_version", targetVersion);
       map.put("is_ring_group_conductor_online", isRingGroupConductorOnline);
       map.put("domain_group", domainGroupName);
+      map.put("num_partitions", numPartitions);
+      map.put("num_partitions_served_and_up_to_date", numPartitionsServedAndUpToDate);
       map.put("rings", generify(ringsMap));
       return map;
     }
@@ -197,14 +228,6 @@ public class HankApiHelper {
     }
     data.versionsMap = versionsMap;
 
-    Map<String, RingGroupData> ringGroupsMap = new HashMap<String, RingGroupData>();
-    Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
-    for (RingGroup ringGroup : ringGroups) {
-      RingGroupData rgData = getRingGroupData(ringGroup);
-      ringGroupsMap.put(rgData.name, rgData);
-    }
-
-    data.ringGroupsMap = ringGroupsMap;
     return data;
   }
 
@@ -218,6 +241,29 @@ public class HankApiHelper {
     }
     data.domainVersions = versionsMap;
     return data;
+  }
+
+  protected DomainGroupDeployStatus getDomainGroupDeployStatus(DomainGroup domainGroup) throws IOException {
+    DomainGroupDeployStatus status = new DomainGroupDeployStatus();
+    status.domainGroupName = domainGroup.getName();
+
+    Map<String, DomainGroupDeployStatusForRingGroup> ringGroupsMap = new HashMap<String, DomainGroupDeployStatusForRingGroup>();
+    Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
+    for (RingGroup ringGroup : ringGroups) {
+      ringGroupsMap.put(ringGroup.getName(), getDomainGroupDeployStatusForRingGroup(ringGroup));
+    }
+    status.ringGroupsMap = ringGroupsMap;
+    return status;
+  }
+
+  protected DomainGroupDeployStatusForRingGroup getDomainGroupDeployStatusForRingGroup(RingGroup ringGroup) throws IOException {
+    DomainGroupDeployStatusForRingGroup status = new DomainGroupDeployStatusForRingGroup();
+    status.ringGroupName = ringGroup.getName();
+    status.targetGroupVersion = ringGroup.getTargetVersionNumber();
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    status.numPartitions = servingStatus.getNumPartitions();
+    status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
+    return status;
   }
 
   protected DomainVersionData getDomainVersionData(DomainVersion version) throws IOException {

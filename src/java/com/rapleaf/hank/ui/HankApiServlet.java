@@ -203,14 +203,7 @@ public class HankApiServlet extends HttpServlet {
   private void addDomainGroupDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN_GROUP));
     if (domainGroup != null) {
-      HankApiHelper.DomainGroupData data = apiHelper.getDomainGroupData(domainGroup);
-      for (HankApiHelper.RingGroupData ringGroup : data.ringGroupsMap.values()) {
-        Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-        ringGroupMap.put("target_version", ringGroup.targetVersion);
-        ringGroupMap.put("num_partitions", ringGroup.numPartitions);
-        ringGroupMap.put("num_partitions_served_and_up_to_date", ringGroup.numPartitionsServedAndUpToDate);
-        responseData.put(ringGroup.name, ringGroupMap);
-      }
+      responseData.put(domainGroup.getName(), apiHelper.getDomainGroupDeployStatus(domainGroup).asMap());
     }
   }
 
