@@ -69,13 +69,6 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
-    File source = new File(localSourcePath);
-    File destination = new File(getAbsoluteRemotePath(remoteDestinationRelativePath));
-    FileUtils.copyFile(source, destination);
-  }
-
-  @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
       return new File(getAbsoluteRemotePath(remoteRelativePath)).delete();

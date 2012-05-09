@@ -88,19 +88,6 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
-    Path source = new Path(localSourcePath);
-    Path destination = new Path(getAbsoluteRemotePath(remoteDestinationRelativePath));
-    LOG.info("Copying local file " + source + " to remote file " + destination);
-    fs.copyFromLocalFile(source, destination);
-    if (remoteFsUserName != null || remoteFsGroupName != null) {
-      LOG.info("Changing owner of " + destination + " to " + remoteFsUserName + "," + remoteFsGroupName);
-      fs.setOwner(destination, remoteFsUserName, remoteFsGroupName);
-      fs.setOwner(partitionRootPath, remoteFsUserName, remoteFsGroupName);
-    }
-  }
-
-  @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
       fs.delete(new Path(getAbsoluteRemotePath(remoteRelativePath)), true);

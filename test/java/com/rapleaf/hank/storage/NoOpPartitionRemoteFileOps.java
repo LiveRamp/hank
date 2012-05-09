@@ -46,11 +46,6 @@ public class NoOpPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
-  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
-    // No-op
-  }
-
-  @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     return false;
   }
