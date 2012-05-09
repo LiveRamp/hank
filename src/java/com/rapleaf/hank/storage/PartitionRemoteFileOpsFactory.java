@@ -22,6 +22,5 @@ import java.io.IOException;
  */
 public interface PartitionRemoteFileOpsFactory {
 
-  public PartitionRemoteFileOps getFileOps(String remoteDomainRoot,
-                                           int partitionNumber) throws IOException;
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteRoot, int partitionNumber) throws IOException;
 }

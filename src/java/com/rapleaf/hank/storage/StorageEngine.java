@@ -32,7 +32,7 @@ public interface StorageEngine {
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
   public Writer getWriter(DomainVersion domainVersion,
-                          OutputStreamFactory streamFactory,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber)
       throws IOException;
 
@@ -43,12 +43,14 @@ public interface StorageEngine {
                                 int partitionNumber) throws IOException;
 
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   OutputStreamFactory outputStreamFactory,
+                                   PartitionRemoteFileOps partitionRemoteFileOps,
                                    int partitionNumber) throws IOException;
 
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
   public ByteBuffer getComparableKey(ByteBuffer key);
+
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory();
 
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException;
 

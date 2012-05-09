@@ -16,87 +16,154 @@
 
 package com.rapleaf.hank.storage;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
 
+  public static enum CompressionCodec {
+    GZIP
+  }
+
   public static class Factory implements PartitionRemoteFileOpsFactory {
+
     @Override
-    public PartitionRemoteFileOps getFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, null);
     }
   }
 
-  protected final String partitionRoot;
-  protected final Path partitionRootPath;
-  protected final FileSystem fs;
-  protected final String remoteFsUserName;
-  protected final String remoteFsGroupName;
+  public static class GzipFactory implements PartitionRemoteFileOpsFactory {
+
+    @Override
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, CompressionCodec.GZIP);
+    }
+  }
+
+  private final String partitionRoot;
+  private final FileSystem fs;
+  private final CompressionCodec compressionCodec;
+
+  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
+                                    int partitionNumber) throws IOException {
+    this(remoteDomainRoot, partitionNumber, null);
+  }
 
   public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
                                     int partitionNumber,
-                                    String remoteFsUserName,
-                                    String remoteFsGroupName) throws IOException {
+                                    CompressionCodec compressionCodec) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
-    this.partitionRootPath = new Path(partitionRoot);
+    Path partitionRootPath = new Path(partitionRoot);
     this.fs = FileSystem.get(new Configuration());
     if (!partitionRootPath.isAbsolute()) {
       throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
           + " with a non absolute remote partition root: "
           + partitionRoot);
     }
-    this.remoteFsUserName = remoteFsUserName;
-    this.remoteFsGroupName = remoteFsGroupName;
+    this.compressionCodec = compressionCodec;
   }
 
-  public HdfsPartitionRemoteFileOps(String remoteDomainRoot,
-                                    int partitionNumber) throws IOException {
-    this(remoteDomainRoot, partitionNumber, null, null);
+  @Override
+  public InputStream getInputStream(String remoteRelativePath) throws IOException {
+    InputStream inputStream = fs.open(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+    if (compressionCodec == null) {
+      return inputStream;
+    } else {
+      switch (compressionCodec) {
+        case GZIP:
+          return new GZIPInputStream(inputStream);
+        default:
+          throw new RuntimeException("Compression codec not supported: " + compressionCodec);
+      }
+    }
+  }
+
+  @Override
+  public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
+    OutputStream outputStream = fs.create(new Path(getAbsoluteRemotePath(remoteRelativePath)), false);
+    if (compressionCodec == null) {
+      return outputStream;
+    } else {
+      switch (compressionCodec) {
+        case GZIP:
+          return new GZIPOutputStream(outputStream);
+        default:
+          throw new RuntimeException("Compression codec not supported: " + compressionCodec);
+      }
+    }
   }
 
   @Override
   public boolean exists(String remoteRelativePath) throws IOException {
-    return fs.exists(new Path(getAbsolutePath(remoteRelativePath)));
+    return fs.exists(new Path(getAbsoluteRemotePath(remoteRelativePath)));
   }
 
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
-    Path source = new Path(getAbsolutePath(remoteSourceRelativePath));
-    Path destination = new Path(localDestinationRoot + "/" + source.getName());
+    Path source = new Path(getAbsoluteRemotePath(remoteSourceRelativePath));
+    File destination = new File(localDestinationRoot + "/" + new Path(remoteSourceRelativePath).getName());
     LOG.info("Copying remote file " + source + " to local file " + destination);
-    fs.copyToLocalFile(source, destination);
-  }
-
-  @Override
-  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
-    Path source = new Path(localSourcePath);
-    Path destination = new Path(getAbsolutePath(remoteDestinationRelativePath));
-    LOG.info("Copying local file " + source + " to remote file " + destination);
-    fs.copyFromLocalFile(source, destination);
-    if (remoteFsUserName != null || remoteFsGroupName != null) {
-      LOG.info("Changing owner of " + destination + " to " + remoteFsUserName + "," + remoteFsGroupName);
-      fs.setOwner(destination, remoteFsUserName, remoteFsGroupName);
-      fs.setOwner(partitionRootPath, remoteFsUserName, remoteFsGroupName);
+    InputStream inputStream = getInputStream(remoteSourceRelativePath);
+    FileOutputStream fileOutputStream = new FileOutputStream(destination);
+    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+    // Use copyLarge (over 2GB)
+    try {
+      IOUtils.copyLarge(inputStream, bufferedOutputStream);
+      bufferedOutputStream.flush();
+      fileOutputStream.flush();
+    } finally {
+      inputStream.close();
+      bufferedOutputStream.close();
+      fileOutputStream.close();
     }
   }
 
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      fs.delete(new Path(getAbsolutePath(remoteRelativePath)), true);
+      fs.delete(new Path(getAbsoluteRemotePath(remoteRelativePath)), true);
     }
     return true;
   }
 
-  protected String getAbsolutePath(String relativePath) {
-    return partitionRoot + "/" + relativePath;
+  protected String getAbsoluteRemotePath(String relativePath) {
+    if (compressionCodec == null) {
+      return partitionRoot + "/" + relativePath;
+    } else {
+      return partitionRoot + "/" + relativePath + "." + getCompressionCodecExtension(compressionCodec);
+    }
+  }
+
+  private static String getCompressionCodecExtension(CompressionCodec compressionCodec) {
+    switch (compressionCodec) {
+      case GZIP:
+        return "gz";
+      default:
+        throw new RuntimeException("Compression codec not supported: " + compressionCodec);
+    }
+  }
+
+  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+                                             int partitionNumber,
+                                             String relativePath,
+                                             CompressionCodec compressionCodec) throws IOException {
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, compressionCodec).getAbsoluteRemotePath(relativePath);
+  }
+
+  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+                                             int partitionNumber,
+                                             String relativePath) throws IOException {
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber).getAbsoluteRemotePath(relativePath);
   }
 
   @Override

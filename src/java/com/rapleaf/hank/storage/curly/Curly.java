@@ -197,7 +197,7 @@ public class Curly implements StorageEngine {
   private final Cueball cueballStorageEngine;
   private final String remoteDomainRoot;
   private final int keyHashSize;
-  private final PartitionRemoteFileOpsFactory fileOpsFactory;
+  private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final int hashIndexBits;
   private final Class<? extends CompressionCodec> compressionCodecClass;
   private final int numRemoteLeafVersionsToKeep;
@@ -209,7 +209,7 @@ public class Curly implements StorageEngine {
                int hashIndexBits,
                int recordFileReadBufferBytes,
                String remoteDomainRoot,
-               PartitionRemoteFileOpsFactory fileOpsFactory,
+               PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
                Class<? extends CompressionCodec> compressionCodecClass,
                Domain domain,
                int numRemoteLeafVersionsToKeep,
@@ -220,7 +220,7 @@ public class Curly implements StorageEngine {
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
-    this.fileOpsFactory = fileOpsFactory;
+    this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
     this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
@@ -234,7 +234,7 @@ public class Curly implements StorageEngine {
         offsetSize,
         hashIndexBits,
         remoteDomainRoot,
-        fileOpsFactory,
+        partitionRemoteFileOpsFactory,
         compressionCodecClass,
         domain,
         numRemoteLeafVersionsToKeep,
@@ -251,20 +251,20 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getWriter(DomainVersion domainVersion,
-                          OutputStreamFactory streamFactory,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
                           int partitionNumber) throws IOException {
-    Writer cueballWriter = cueballStorageEngine.getWriter(domainVersion, streamFactory, partitionNumber);
-    return getWriter(domainVersion, streamFactory, partitionNumber, cueballWriter);
+    Writer cueballWriter = cueballStorageEngine.getWriter(domainVersion, partitionRemoteFileOps, partitionNumber);
+    return getWriter(domainVersion, partitionRemoteFileOps, partitionNumber, cueballWriter);
   }
 
   // Helper
   private Writer getWriter(DomainVersion domainVersion,
-                           OutputStreamFactory outputStreamFactory,
+                           PartitionRemoteFileOps partitionRemoteFileOps,
                            int partitionNumber,
                            Writer keyFileWriter) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
-    OutputStream outputStream = outputStreamFactory.getOutputStream(partitionNumber,
-        getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase()));
+    OutputStream outputStream = partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
+        domainVersionProperties.isBase()));
     return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity);
   }
 
@@ -306,16 +306,16 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   OutputStreamFactory outputStreamFactory,
+                                   PartitionRemoteFileOps fileOps,
                                    int partitionNumber) throws IOException {
-    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, outputStreamFactory, partitionNumber);
-    return getWriter(domainVersion, outputStreamFactory, partitionNumber, cueballWriter);
+    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, fileOps, partitionNumber);
+    return getWriter(domainVersion, fileOps, partitionNumber, cueballWriter);
   }
 
   private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partitionNumber),
+        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
         new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetSize, hashIndexBits, getCompressionCodec(), null),
@@ -331,7 +331,7 @@ public class Curly implements StorageEngine {
 
   private CurlyFastPartitionUpdater getFastPartitionUpdater(String localDir, int partNum) throws IOException {
     return new CurlyFastPartitionUpdater(domain,
-        fileOpsFactory.getFileOps(remoteDomainRoot, partNum),
+        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partNum),
         new CurlyMerger(),
         new CueballMerger(),
         keyHashSize,
@@ -359,6 +359,11 @@ public class Curly implements StorageEngine {
   @Override
   public ByteBuffer getComparableKey(ByteBuffer key) {
     return cueballStorageEngine.getComparableKey(key);
+  }
+
+  @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return partitionRemoteFileOpsFactory;
   }
 
   private String getLocalDir(DataDirectoriesConfigurator configurator, int partNum) {
@@ -409,7 +414,7 @@ public class Curly implements StorageEngine {
   public String toString() {
     return "Curly [compressionCodecClass=" + compressionCodecClass
         + ", cueballStorageEngine=" + cueballStorageEngine + ", domainName="
-        + domain.getName() + ", fileOpsFactory=" + fileOpsFactory
+        + domain.getName() + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
         + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
         + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
         + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
@@ -420,7 +425,7 @@ public class Curly implements StorageEngine {
 
   @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
-    return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, fileOpsFactory);
+    return new CurlyRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
   }
 
   @Override

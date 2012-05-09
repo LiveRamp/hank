@@ -17,7 +17,7 @@
 package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.fs.FileSystem;
@@ -26,7 +26,6 @@ import org.apache.hadoop.mapred.RecordWriter;
 import org.apache.hadoop.util.Progressable;
 
 import java.io.IOException;
-import java.io.OutputStream;
 
 // This class is intended to be used for testing. It does not output anything but
 // still forwards key,value pairs to the underlying Writer from the Domain.
@@ -34,23 +33,14 @@ public class DomainBuilderEmptyOutputFormat extends DomainBuilderAbstractOutputF
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable) throws IOException {
-    // Always return a no-op OutputStream
-    return new DomainBuilderRecordWriter(conf, new OutputStreamFactory() {
-      public OutputStream getOutputStream(int partitionNumber, String name)
-          throws IOException {
-        return new OutputStream() {
-          @Override
-          public void write(int x) throws IOException {
-          }
-        };
-      }
-    }) {
+    // Use a no-op partition file ops
+    return new DomainBuilderRecordWriter(conf, null) {
       @Override
       protected Writer getWriter(StorageEngine storageEngine,
                                  DomainVersion domainVersion,
-                                 OutputStreamFactory outputStreamFactory,
+                                 PartitionRemoteFileOps partitionRemoteFileOps,
                                  int partitionNumber) throws IOException {
-        return storageEngine.getWriter(domainVersion, outputStreamFactory, partitionNumber);
+        return storageEngine.getWriter(domainVersion, partitionRemoteFileOps, partitionNumber);
       }
     };
   }

@@ -35,12 +35,19 @@ public class Echo implements StorageEngine {
   }
 
   @Override
+  public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
+    return null;
+  }
+
+  @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     return new EchoReader(partitionNumber);
   }
 
   @Override
-  public Writer getWriter(DomainVersion domainVersion, OutputStreamFactory streamFactory, int partitionNumber) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion,
+                          PartitionRemoteFileOps partitionRemoteFileOps,
+                          int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 
@@ -56,7 +63,9 @@ public class Echo implements StorageEngine {
   }
 
   @Override
-  public Writer getCompactorWriter(DomainVersion domainVersion, OutputStreamFactory outputStreamFactory, int partitionNumber) throws IOException {
+  public Writer getCompactorWriter(DomainVersion domainVersion,
+                                   PartitionRemoteFileOps partitionRemoteFileOps,
+                                   int partitionNumber) throws IOException {
     throw new UnsupportedOperationException();
   }
 

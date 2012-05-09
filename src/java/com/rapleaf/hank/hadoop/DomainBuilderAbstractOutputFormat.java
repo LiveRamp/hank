@@ -18,7 +18,7 @@ package com.rapleaf.hank.hadoop;
 
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import org.apache.hadoop.conf.Configuration;
@@ -87,7 +87,7 @@ public abstract class DomainBuilderAbstractOutputFormat
     private final CoordinatorConfigurator configurator;
     private final String domainName;
     private final Integer domainVersionNumber;
-    private final OutputStreamFactory outputStreamFactory;
+    private final String outputPath;
 
     private Domain domain;
     private DomainVersion domainVersion;
@@ -98,12 +98,12 @@ public abstract class DomainBuilderAbstractOutputFormat
     protected final Set<Integer> writtenPartitions = new HashSet<Integer>();
 
     DomainBuilderRecordWriter(JobConf conf,
-                              OutputStreamFactory outputStreamFactory) throws IOException {
+                              String outputPath) throws IOException {
       // Load configuration items
       this.configurator = DomainBuilderProperties.getConfigurator(conf);
       this.domainName = DomainBuilderProperties.getDomainName(conf);
       this.domainVersionNumber = DomainBuilderProperties.getVersionNumber(domainName, conf);
-      this.outputStreamFactory = outputStreamFactory;
+      this.outputPath = outputPath;
 
       RunWithCoordinator.run(configurator,
           new RunnableWithCoordinator() {
@@ -118,7 +118,7 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     protected abstract Writer getWriter(StorageEngine storageEngine,
                                         DomainVersion domainVersion,
-                                        OutputStreamFactory outputStreamFactory,
+                                        PartitionRemoteFileOps partitionRemoteFileOps,
                                         int partitionNumber) throws IOException;
 
     @Override
@@ -144,22 +144,22 @@ public abstract class DomainBuilderAbstractOutputFormat
       }
     }
 
-    private void setNewPartitionWriter(int partition) throws IOException {
+    private void setNewPartitionWriter(int partitionNumber) throws IOException {
       // First, close current writer
       closeCurrentWriterIfNeeded();
-      LOG.info("Setting up new writer for partition " + partition);
+      LOG.info("Setting up new writer for partition " + partitionNumber);
       // Check for existing partitions
-      if (writtenPartitions.contains(partition)) {
-        throw new RuntimeException("Partition " + partition
+      if (writtenPartitions.contains(partitionNumber)) {
+        throw new RuntimeException("Partition " + partitionNumber
             + " has already been written.");
       }
       // Set up new writer
       writer = getWriter(storageEngine,
           domainVersion,
-          outputStreamFactory,
-          partition);
-      writerPartition = partition;
-      writtenPartitions.add(partition);
+          storageEngine.getPartitionRemoteFileOpsFactory().getPartitionRemoteFileOps(outputPath, partitionNumber),
+          partitionNumber);
+      writerPartition = partitionNumber;
+      writtenPartitions.add(partitionNumber);
     }
 
     private void closeCurrentWriterIfNeeded() throws IOException {

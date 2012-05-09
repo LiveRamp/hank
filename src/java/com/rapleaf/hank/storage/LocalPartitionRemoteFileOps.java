@@ -18,15 +18,15 @@ package com.rapleaf.hank.storage;
 
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   public static class Factory implements PartitionRemoteFileOpsFactory {
+
     @Override
-    public PartitionRemoteFileOps getFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new LocalPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
+    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteRoot, int partitionNumber) throws IOException {
+      return new LocalPartitionRemoteFileOps(remoteRoot, partitionNumber);
     }
   }
 
@@ -43,35 +43,42 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   }
 
   @Override
+  public InputStream getInputStream(String remoteRelativePath) throws IOException {
+    String path = getAbsoluteRemotePath(remoteRelativePath);
+    new File(new File(path).getParent()).mkdirs();
+    return new FileInputStream(path);
+  }
+
+  @Override
+  public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
+    String path = getAbsoluteRemotePath(remoteRelativePath);
+    new File(new File(path).getParent()).mkdirs();
+    return new FileOutputStream(path);
+  }
+
+  @Override
   public boolean exists(String remoteRelativePath) throws IOException {
-    return new File(getAbsolutePath(remoteRelativePath)).exists();
+    return new File(getAbsoluteRemotePath(remoteRelativePath)).exists();
   }
 
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
-    File source = new File(getAbsolutePath(remoteSourceRelativePath));
+    File source = new File(getAbsoluteRemotePath(remoteSourceRelativePath));
     File destination = new File(localDestinationRoot + "/" + source.getName());
-    FileUtils.copyFile(source, destination);
-  }
-
-  @Override
-  public void copyToRemoteRoot(String localSourcePath, String remoteDestinationRelativePath) throws IOException {
-    File source = new File(localSourcePath);
-    File destination = new File(getAbsolutePath(remoteDestinationRelativePath));
     FileUtils.copyFile(source, destination);
   }
 
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      return new File(getAbsolutePath(remoteRelativePath)).delete();
+      return new File(getAbsoluteRemotePath(remoteRelativePath)).delete();
     } else {
       return false;
     }
   }
 
-  private String getAbsolutePath(String relativeFilePath) {
-    return partitionRoot + "/" + relativeFilePath;
+  private String getAbsoluteRemotePath(String remoteRelativePath) {
+    return partitionRoot + "/" + remoteRelativePath;
   }
 
   @Override

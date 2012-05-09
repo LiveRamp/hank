@@ -1,9 +1,9 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionRemoteFileOpsFactory;
+import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
 import com.rapleaf.hank.storage.cueball.Cueball;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class CurlyRemoteDomainVersionDeleter implements RemoteDomainVersionDelet
   @Override
   public void deleteVersion(int versionNumber) throws IOException {
     for (int partition = 0; partition < domain.getNumParts(); ++partition) {
-      PartitionRemoteFileOps fileOps = fileOpsFactory.getFileOps(remoteDomainRoot, partition);
+      PartitionRemoteFileOps fileOps = fileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partition);
       fileOps.attemptDelete(Cueball.getName(versionNumber, true));
       fileOps.attemptDelete(Cueball.getName(versionNumber, false));
 
