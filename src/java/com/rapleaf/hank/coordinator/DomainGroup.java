@@ -34,7 +34,7 @@ public interface DomainGroup extends Comparable<DomainGroup> {
    */
   public SortedSet<DomainGroupVersion> getVersions() throws IOException;
 
-  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException;
+  public DomainGroupVersion getVersion(int versionNumber) throws IOException;
 
   public void setListener(DomainGroupChangeListener listener);
 

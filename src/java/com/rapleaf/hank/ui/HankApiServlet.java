@@ -234,7 +234,7 @@ public class HankApiServlet extends HttpServlet {
 
   private void addDomainVersionToRingGroupMap(String key, Domain domain, DomainGroup domainGroup, Map<String, Object> ringGroupMap, Integer domainGroupVersion) throws IOException {
     if (domainGroupVersion != null) {
-      int domainVersion = domainGroup.getVersionByNumber(domainGroupVersion).getDomainVersion(domain).getVersion();
+      int domainVersion = domainGroup.getVersion(domainGroupVersion).getDomainVersion(domain).getVersion();
       ringGroupMap.put(key, domainVersion);
     }
   }
@@ -322,7 +322,7 @@ public class HankApiServlet extends HttpServlet {
   private void addDomainGroupVersionDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
     try {
-      DomainGroupVersion version = domainGroup.getVersionByNumber(Integer.valueOf((String) requestData.get(Params.DOMAIN_GROUP_VERSION)));
+      DomainGroupVersion version = domainGroup.getVersion(Integer.valueOf((String) requestData.get(Params.DOMAIN_GROUP_VERSION)));
       responseData.put(String.valueOf(version.getVersionNumber()), getDomainGroupVersionData(version));
     } catch (Exception ignored) {
     } // No data added, but no harm done

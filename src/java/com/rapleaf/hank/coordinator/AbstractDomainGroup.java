@@ -26,7 +26,7 @@ public abstract class AbstractDomainGroup implements DomainGroup {
   }
 
   @Override
-  public DomainGroupVersion getVersionByNumber(int versionNumber) throws IOException {
+  public DomainGroupVersion getVersion(int versionNumber) throws IOException {
     for (DomainGroupVersion domainGroupVersion : getVersions()) {
       if (domainGroupVersion.getVersionNumber() == versionNumber) {
         return domainGroupVersion;

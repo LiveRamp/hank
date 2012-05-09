@@ -151,7 +151,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
       }
 
       @Override
-      public DomainGroupVersion getVersionByNumber(int versionNumber) {
+      public DomainGroupVersion getVersion(int versionNumber) {
         assertEquals(0, versionNumber);
         return dgv;
       }

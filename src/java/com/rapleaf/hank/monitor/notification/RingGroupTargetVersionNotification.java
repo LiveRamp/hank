@@ -39,7 +39,7 @@ public class RingGroupTargetVersionNotification extends AbstractNotification imp
   }
 
   public DomainGroupVersion getTargetVersion() throws IOException {
-    return ringGroup.getDomainGroup().getVersionByNumber(targetVersion);
+    return ringGroup.getDomainGroup().getVersion(targetVersion);
   }
 
   @Override
