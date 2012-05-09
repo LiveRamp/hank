@@ -75,6 +75,36 @@ public class HankApiHelper {
     }
   }
 
+  public static class DomainDeployStatus implements HankApiData {
+    public String domainName;
+    public Map<String, DomainDeployStatusForRingGroup> ringGroupsMap;
+
+    @Override
+    public Map<String, Object> asMap() {
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put("domain_name", domainName);
+      map.put("ring_groups", generify(ringGroupsMap));
+      return map;
+    }
+  }
+
+  public static class DomainDeployStatusForRingGroup implements HankApiData {
+    public String ringGroupName;
+    public Integer targetDomainVersion;
+    public int numPartitions;
+    public int numPartitionsServedAndUpToDate;
+
+    @Override
+    public Map<String, Object> asMap() {
+      Map<String, Object> map = new HashMap<String, Object>();
+      map.put("ring_group_name", ringGroupName);
+      if (targetDomainVersion != null) map.put("target_domain_version", targetDomainVersion);
+      map.put("num_partitions", numPartitions);
+      map.put("num_partitions_served_and_up_to_date", numPartitionsServedAndUpToDate);
+      return map;
+    }
+  }
+
   public static class DomainGroupDeployStatus implements HankApiData {
     public String domainGroupName;
     public Map<String, DomainGroupDeployStatusForRingGroup> ringGroupsMap;
@@ -253,6 +283,36 @@ public class HankApiHelper {
       ringGroupsMap.put(ringGroup.getName(), getDomainGroupDeployStatusForRingGroup(ringGroup));
     }
     status.ringGroupsMap = ringGroupsMap;
+    return status;
+  }
+
+  protected DomainDeployStatus getDomainDeployStatus(Domain domain) throws IOException {
+    DomainDeployStatus status = new DomainDeployStatus();
+    status.domainName = domain.getName();
+
+    Map<String, DomainDeployStatusForRingGroup> ringGroupsMap = new HashMap<String, DomainDeployStatusForRingGroup>();
+    Set<DomainGroupVersion> domainGroupVersions = coordinator.getDomainGroupVersionsForDomain(domain);
+    for (DomainGroupVersion domainGroupVersion : domainGroupVersions) {
+      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroupVersion.getDomainGroup());
+
+      for (RingGroup ringGroup : ringGroups) {
+        ringGroupsMap.put(ringGroup.getName(), getDomainDeployStatusForRingGroup(domainGroupVersion, domain, ringGroup));
+      }
+
+    }
+    status.ringGroupsMap = ringGroupsMap;
+    return status;
+  }
+
+  private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroupVersion domainGroupVersion, Domain domain, RingGroup ringGroup) throws IOException {
+    DomainDeployStatusForRingGroup status = new DomainDeployStatusForRingGroup();
+    Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
+    int domainVersion = domainGroupVersion.getDomainGroup().getVersion(targetDomainGroupVersion).getDomainVersion(domain).getVersion();
+    status.ringGroupName = ringGroup.getName();
+    status.targetDomainVersion = domainVersion;
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    status.numPartitions = servingStatus.getNumPartitions();
+    status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
     return status;
   }
 

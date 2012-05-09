@@ -178,25 +178,7 @@ public class HankApiServlet extends HttpServlet {
   private void addDomainDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     Domain domain = coordinator.getDomain((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN));
     if (domain != null) {
-      Set<DomainGroupVersion> domainGroupVersions = coordinator.getDomainGroupVersionsForDomain(domain);
-      for (DomainGroupVersion domainGroupVersion : domainGroupVersions) {
-        Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroupVersion.getDomainGroup());
-
-        for (RingGroup ringGroup : ringGroups) {
-          Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-          Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
-          addDomainVersionToRingGroupMap("target_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, targetDomainGroupVersion);
-
-          responseData.put(ringGroup.getName(), ringGroupMap);
-        }
-      }
-    }
-  }
-
-  private void addDomainVersionToRingGroupMap(String key, Domain domain, DomainGroup domainGroup, Map<String, Object> ringGroupMap, Integer domainGroupVersion) throws IOException {
-    if (domainGroupVersion != null) {
-      int domainVersion = domainGroup.getVersion(domainGroupVersion).getDomainVersion(domain).getVersion();
-      ringGroupMap.put(key, domainVersion);
+      responseData.put(domain.getName(), apiHelper.getDomainDeployStatus(domain).asMap());
     }
   }
 
