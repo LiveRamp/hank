@@ -20,17 +20,19 @@ import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.compress.BZip2Codec;
-import org.apache.hadoop.io.compress.CompressionCodec;
-import org.apache.hadoop.io.compress.GzipCodec;
-import org.apache.hadoop.io.compress.SnappyCodec;
 import org.apache.log4j.Logger;
 
 import java.io.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   private static Logger LOG = Logger.getLogger(HdfsPartitionRemoteFileOps.class);
+
+  public static enum CompressionCodec {
+    GZIP
+  }
 
   public static class Factory implements PartitionRemoteFileOpsFactory {
 
@@ -44,23 +46,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
     @Override
     public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new GzipCodec());
-    }
-  }
-
-  public static class SnappyFactory implements PartitionRemoteFileOpsFactory {
-
-    @Override
-    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new SnappyCodec());
-    }
-  }
-
-  public static class Bzip2Factory implements PartitionRemoteFileOpsFactory {
-
-    @Override
-    public PartitionRemoteFileOps getPartitionRemoteFileOps(String remoteDomainRoot, int partitionNumber) throws IOException {
-      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, new BZip2Codec());
+      return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, CompressionCodec.GZIP);
     }
   }
 
@@ -93,7 +79,12 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     if (compressionCodec == null) {
       return inputStream;
     } else {
-      return compressionCodec.createInputStream(inputStream);
+      switch (compressionCodec) {
+        case GZIP:
+          return new GZIPInputStream(inputStream);
+        default:
+          throw new RuntimeException("Compression codec not supported: " + compressionCodec);
+      }
     }
   }
 
@@ -103,7 +94,12 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     if (compressionCodec == null) {
       return outputStream;
     } else {
-      return compressionCodec.createOutputStream(outputStream);
+      switch (compressionCodec) {
+        case GZIP:
+          return new GZIPOutputStream(outputStream);
+        default:
+          throw new RuntimeException("Compression codec not supported: " + compressionCodec);
+      }
     }
   }
 
@@ -139,7 +135,16 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     if (compressionCodec == null) {
       return partitionRoot + "/" + relativePath;
     } else {
-      return partitionRoot + "/" + relativePath + "." + compressionCodec.getDefaultExtension();
+      return partitionRoot + "/" + relativePath + "." + getCompressionCodecExtension(compressionCodec);
+    }
+  }
+
+  private static String getCompressionCodecExtension(CompressionCodec compressionCodec) {
+    switch (compressionCodec) {
+      case GZIP:
+        return "gz";
+      default:
+        throw new RuntimeException("Compression codec not supported: " + compressionCodec);
     }
   }
 
