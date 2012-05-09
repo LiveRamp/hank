@@ -15,22 +15,30 @@
  */
 package com.rapleaf.hank.storage;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 
-public class LocalDiskOutputStreamFactory implements OutputStreamFactory {
+public class LocalPartitionFileStreamFactory implements PartitionFileStreamFactory {
   private final String basePath;
 
-  public LocalDiskOutputStreamFactory(String basePath) {
+  public LocalPartitionFileStreamFactory(String basePath) {
     this.basePath = basePath;
   }
 
   @Override
+  public InputStream getInputStream(int partitionNumber, String name) throws IOException {
+    String path = getPath(partitionNumber, name);
+    new File(new File(path).getParent()).mkdirs();
+    return new FileInputStream(path);
+  }
+
+  @Override
   public OutputStream getOutputStream(int partitionNumber, String name) throws IOException {
-    String fullPath = basePath + "/" + partitionNumber + "/" + name;
-    new File(new File(fullPath).getParent()).mkdirs();
-    return new FileOutputStream(fullPath);
+    String path = getPath(partitionNumber, name);
+    new File(new File(path).getParent()).mkdirs();
+    return new FileOutputStream(path);
+  }
+
+  private String getPath(int partitionNumber, String name) {
+    return basePath + "/" + partitionNumber + "/" + name;
   }
 }

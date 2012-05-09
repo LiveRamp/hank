@@ -32,7 +32,7 @@ public interface StorageEngine {
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;
 
   public Writer getWriter(DomainVersion domainVersion,
-                          OutputStreamFactory streamFactory,
+                          PartitionFileStreamFactory streamFactory,
                           int partitionNumber)
       throws IOException;
 
@@ -43,7 +43,7 @@ public interface StorageEngine {
                                 int partitionNumber) throws IOException;
 
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   OutputStreamFactory outputStreamFactory,
+                                   PartitionFileStreamFactory streamFactory,
                                    int partitionNumber) throws IOException;
 
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException;

@@ -4,7 +4,7 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.LocalDiskOutputStreamFactory;
+import com.rapleaf.hank.storage.LocalPartitionFileStreamFactory;
 import com.rapleaf.hank.util.Bytes;
 
 import java.nio.ByteBuffer;
@@ -61,7 +61,7 @@ public class TestDomainGenerator {
         }
       });
       final CueballWriter writer = (CueballWriter) cueball.getWriter(new MockDomainVersion(0, 0L),
-          new LocalDiskOutputStreamFactory(outputPath), part.getKey());
+          new LocalPartitionFileStreamFactory(outputPath), part.getKey());
       for (int i = 0; i < part.getValue().size(); i++) {
         r.nextBytes(valueBytes);
         writer.writeHash(ByteBuffer.wrap(part.getValue().get(i)), ByteBuffer.wrap(valueBytes));

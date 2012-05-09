@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.hadoop;
 
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.PartitionFileStreamFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.RecordWriter;
@@ -29,7 +29,7 @@ public abstract class DomainBuilderBaseOutputFormat extends DomainBuilderAbstrac
 
   protected abstract RecordWriter<KeyAndPartitionWritable, ValueWritable>
   getRecordWriter(JobConf conf,
-                  OutputStreamFactory outputStreamFactory) throws IOException;
+                  PartitionFileStreamFactory streamFactory) throws IOException;
 
   public RecordWriter<KeyAndPartitionWritable, ValueWritable> getRecordWriter(
       FileSystem fs, JobConf conf, String name, Progressable progressable)
@@ -37,6 +37,6 @@ public abstract class DomainBuilderBaseOutputFormat extends DomainBuilderAbstrac
     // Implicitly relies on the FileOutputCommitter to move files to the job output directory
     String outputPath = getTaskAttemptOutputPath(conf);
     // Build RecordWriter with the Domain
-    return getRecordWriter(conf, new HdfsOutputStreamFactory(fs, outputPath));
+    return getRecordWriter(conf, new HdfsPartitionFileStreamFactory(fs, outputPath));
   }
 }

@@ -27,9 +27,9 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
-import com.rapleaf.hank.storage.OutputStreamFactory;
+import com.rapleaf.hank.storage.PartitionFileStreamFactory;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
 
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
     protected final OutputStream outputStream;
 
     IntStringKeyWriter(DomainVersion domainVersion,
-                       OutputStreamFactory streamFactory,
+                       PartitionFileStreamFactory streamFactory,
                        int partNum) throws IOException {
       IncrementalDomainVersionProperties domainVersionProperties =
           (IncrementalDomainVersionProperties) domainVersion.getProperties();
@@ -99,7 +99,7 @@ public class IntStringKeyStorageEngineCoordinator extends MockCoordinator {
   private static class IntStringKeyStorageEngine extends MockStorageEngine {
     @Override
     public Writer getWriter(DomainVersion domainVersion,
-                            OutputStreamFactory streamFactory,
+                            PartitionFileStreamFactory streamFactory,
                             int partitionNumber) throws IOException {
       return new IntStringKeyWriter(domainVersion, streamFactory, partitionNumber);
     }

@@ -251,7 +251,7 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getWriter(DomainVersion domainVersion,
-                          OutputStreamFactory streamFactory,
+                          PartitionFileStreamFactory streamFactory,
                           int partitionNumber) throws IOException {
     Writer cueballWriter = cueballStorageEngine.getWriter(domainVersion, streamFactory, partitionNumber);
     return getWriter(domainVersion, streamFactory, partitionNumber, cueballWriter);
@@ -259,11 +259,11 @@ public class Curly implements StorageEngine {
 
   // Helper
   private Writer getWriter(DomainVersion domainVersion,
-                           OutputStreamFactory outputStreamFactory,
+                           PartitionFileStreamFactory streamFactory,
                            int partitionNumber,
                            Writer keyFileWriter) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
-    OutputStream outputStream = outputStreamFactory.getOutputStream(partitionNumber,
+    OutputStream outputStream = streamFactory.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase()));
     return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity);
   }
@@ -306,10 +306,10 @@ public class Curly implements StorageEngine {
 
   @Override
   public Writer getCompactorWriter(DomainVersion domainVersion,
-                                   OutputStreamFactory outputStreamFactory,
+                                   PartitionFileStreamFactory streamFactory,
                                    int partitionNumber) throws IOException {
-    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, outputStreamFactory, partitionNumber);
-    return getWriter(domainVersion, outputStreamFactory, partitionNumber, cueballWriter);
+    Writer cueballWriter = cueballStorageEngine.getCompactorWriter(domainVersion, streamFactory, partitionNumber);
+    return getWriter(domainVersion, streamFactory, partitionNumber, cueballWriter);
   }
 
   private Compactor getCompactor(String localDir,

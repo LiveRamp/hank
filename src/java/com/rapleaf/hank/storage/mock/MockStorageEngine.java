@@ -35,7 +35,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(DomainVersion domainVersion, OutputStreamFactory streamFactory, int partitionNumber) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion, PartitionFileStreamFactory streamFactory, int partitionNumber) throws IOException {
     return null;
   }
 
@@ -51,7 +51,7 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
-  public Writer getCompactorWriter(DomainVersion domainVersion, OutputStreamFactory outputStreamFactory, int partitionNumber) throws IOException {
+  public Writer getCompactorWriter(DomainVersion domainVersion, PartitionFileStreamFactory streamFactory, int partitionNumber) throws IOException {
     return null;
   }
 

@@ -13,15 +13,16 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.storage;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- * Factory for getting output streams. Hides filesystem implementation for use
- * in different environments.
- */
-public interface OutputStreamFactory {
+public interface PartitionFileStreamFactory {
+
+  public InputStream getInputStream(int partitionNumber, String name) throws IOException;
+
   public OutputStream getOutputStream(int partitionNumber, String name) throws IOException;
 }

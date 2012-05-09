@@ -195,9 +195,9 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getWriter(DomainVersion domainVersion, OutputStreamFactory outputStream, int partitionNumber) throws IOException {
+  public Writer getWriter(DomainVersion domainVersion, PartitionFileStreamFactory streamFactory, int partitionNumber) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
-    return new CueballWriter(outputStream.getOutputStream(partitionNumber,
+    return new CueballWriter(streamFactory.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
         keyHashSize, hasher, valueSize, getCompressionCodec(), hashIndexBits);
   }
@@ -235,10 +235,12 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
-  public Writer getCompactorWriter(DomainVersion domainVersion, OutputStreamFactory outputStreamFactory, int partitionNumber) throws IOException {
+  public Writer getCompactorWriter(DomainVersion domainVersion,
+                                   PartitionFileStreamFactory streamFactory,
+                                   int partitionNumber) throws IOException {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     // Note: We use the identity hasher since keys coming in are already hashed keys
-    return new CueballWriter(outputStreamFactory.getOutputStream(partitionNumber,
+    return new CueballWriter(streamFactory.getOutputStream(partitionNumber,
         getName(domainVersion.getVersionNumber(), domainVersionProperties.isBase())),
         keyHashSize,
         new IdentityHasher(),
