@@ -8,8 +8,6 @@ import java.util.Set;
 
 import org.apache.hadoop.thirdparty.guava.common.base.CaseFormat;
 
-import com.rapleaf.hank.config.ClientConfigurator;
-import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroup;
@@ -37,10 +35,11 @@ public class HankApiHelper {
       Map<String, Object> map = new HashMap<String, Object>();
       for (Field field : getClass().getFields()) {
         try {
+          String name = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName());
           if (field.getType() == Map.class) {
-            map.put(field.getName(), generify((Map) field.get(this)));
+            map.put(name, generify((Map) field.get(this)));
           } else {
-            map.put(CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, field.getName()), field.get(this));
+            map.put(name, field.get(this));
           }
         } catch (IllegalAccessException e) {
           e.printStackTrace();
