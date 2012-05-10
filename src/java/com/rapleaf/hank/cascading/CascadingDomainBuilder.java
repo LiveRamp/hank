@@ -246,6 +246,10 @@ public class CascadingDomainBuilder {
     return flow;
   }
 
+  public Integer getDomainVersionNumber() {
+    return domainVersionNumber;
+  }
+
   private DomainVersionProperties getDomainVersionProperties() {
     return domainVersionProperties;
   }

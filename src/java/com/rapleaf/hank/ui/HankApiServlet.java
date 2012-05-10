@@ -56,9 +56,11 @@ public class HankApiServlet extends HttpServlet {
   static final String JSON_FORMAT = "application/json;charset=utf-8";
 
   private final Coordinator coordinator;
+  private final HankApiHelper apiHelper;
 
   public HankApiServlet(Coordinator coordinator) {
     this.coordinator = coordinator;
+    this.apiHelper = new HankApiHelper(coordinator);
   }
 
   @Override
@@ -155,99 +157,35 @@ public class HankApiServlet extends HttpServlet {
 
   private void addAllRingGroupsDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     for (RingGroup ringGroup : coordinator.getRingGroups()) {
-      responseData.put(ringGroup.getName(), getRingGroupData(ringGroup));
+      responseData.put(ringGroup.getName(), apiHelper.getRingGroupData(ringGroup).asMap());
     }
   }
 
   private void addRingGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     RingGroup ringGroup = coordinator.getRingGroup((String) requestData.get(Params.RING_GROUP));
     if (ringGroup != null) {
-      responseData.put(ringGroup.getName(), getRingGroupData(ringGroup));
+      responseData.put(ringGroup.getName(), apiHelper.getRingGroupData(ringGroup).asMap());
     }
-  }
-
-  private Map<String, Object> getRingGroupData(RingGroup ringGroup) throws IOException {
-    Map<String, Object> ringGroupData = new HashMap<String, Object>();
-    ringGroupData.put("name", ringGroup.getName());
-    ringGroupData.put("target_version", ringGroup.getTargetVersionNumber());
-    ringGroupData.put("is_ring_group_conductor_online", ringGroup.isRingGroupConductorOnline());
-    ringGroupData.put("domain_group", ringGroup.getDomainGroup().getName());
-    ringGroupData.put("rings", getRingsMap(ringGroup.getRings()));
-    return ringGroupData;
-  }
-
-  private Map<String, Object> getRingsMap(Collection<Ring> rings) throws IOException {
-    Map<String, Object> ringsMap = new HashMap<String, Object>();
-    for (Ring ring : rings) {
-      ringsMap.put(String.valueOf(ring.getRingNumber()), getRingData(ring));
-    }
-    return ringsMap;
-  }
-
-  private Map<String, Object> getRingData(Ring ring) throws IOException {
-    Map<String, Object> ringData = new HashMap<String, Object>();
-    ringData.put("ring_number", ring.getRingNumber());
-    ringData.put("hosts", getHostsMap(ring.getHosts()));
-    return ringData;
-  }
-
-  private Map<String, Object> getHostsMap(Collection<Host> hosts) throws IOException {
-    Map<String, Object> ringsMap = new HashMap<String, Object>();
-    for (Host host : hosts) {
-      ringsMap.put(String.valueOf(host.getAddress()), getHostData(host));
-    }
-    return ringsMap;
-  }
-
-  private Map<String, Object> getHostData(Host host) throws IOException {
-    Map<String, Object> hostData = new HashMap<String, Object>();
-    hostData.put("address", host.getAddress());
-    hostData.put("status", host.getState().name());
-    hostData.put("is_online", Hosts.isOnline(host));
-    return hostData;
   }
 
   private void addDomainDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
-    Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
-    if (domain != null) {
-      responseData.put(domain.getName(), getDomainData(domain));
+    HankApiHelper.DomainData data = apiHelper.getDomainData((String) requestData.get(Params.DOMAIN));
+    if (data != null) {
+      responseData.put(data.name, data.asMap());
     }
   }
 
   private void addDomainDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     Domain domain = coordinator.getDomain((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN));
     if (domain != null) {
-      Set<DomainGroupVersion> domainGroupVersions = coordinator.getDomainGroupVersionsForDomain(domain);
-      for (DomainGroupVersion domainGroupVersion : domainGroupVersions) {
-        Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroupVersion.getDomainGroup());
-
-        for (RingGroup ringGroup : ringGroups) {
-          Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-          Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
-          addDomainVersionToRingGroupMap("target_version", domain, domainGroupVersion.getDomainGroup(), ringGroupMap, targetDomainGroupVersion);
-
-          responseData.put(ringGroup.getName(), ringGroupMap);
-        }
-      }
-    }
-  }
-
-  private void addDomainVersionToRingGroupMap(String key, Domain domain, DomainGroup domainGroup, Map<String, Object> ringGroupMap, Integer domainGroupVersion) throws IOException {
-    if (domainGroupVersion != null) {
-      int domainVersion = domainGroup.getVersion(domainGroupVersion).getDomainVersion(domain).getVersion();
-      ringGroupMap.put(key, domainVersion);
+      responseData.put(domain.getName(), apiHelper.getDomainDeployStatus(domain).asMap());
     }
   }
 
   private void addDomainGroupDeployStatusToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DEPLOY_STATUS_FOR_DOMAIN_GROUP));
     if (domainGroup != null) {
-      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroup);
-      for (RingGroup ringGroup : ringGroups) {
-        Map<String, Object> ringGroupMap = new HashMap<String, Object>();
-        ringGroupMap.put("target_version", ringGroup.getTargetVersionNumber());
-        responseData.put(ringGroup.getName(), ringGroupMap);
-      }
+      responseData.put(domainGroup.getName(), apiHelper.getDomainGroupDeployStatus(domainGroup).asMap());
     }
   }
 
@@ -255,67 +193,16 @@ public class HankApiServlet extends HttpServlet {
     Domain domain = coordinator.getDomain((String) requestData.get(Params.DOMAIN));
     try {
       DomainVersion version = domain.getVersion(Integer.valueOf((String) requestData.get(Params.DOMAIN_VERSION)));
-      responseData.put(String.valueOf(version.getVersionNumber()), getDomainVersionData(version));
+      responseData.put(String.valueOf(version.getVersionNumber()), apiHelper.getDomainVersionData(version).asMap());
     } catch (Exception ignored) {
     } // No data added, but no harm done
-  }
-
-  private Map<String, Object> getDomainData(Domain domain) throws IOException {
-    Map<String, Object> domainData = new HashMap<String, Object>();
-    domainData.put("name", domain.getName());
-    domainData.put("num_partitions", domain.getNumParts());
-    domainData.put("versions", getDomainVersionsMap(domain.getVersions()));
-    return domainData;
-  }
-
-  private Map<String, Object> getDomainVersionsMap(Collection<DomainVersion> domainVersions) throws IOException {
-    Map<String, Object> versionsMap = new HashMap<String, Object>();
-    for (DomainVersion v : domainVersions) {
-      versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainVersionData(v));
-    }
-    return versionsMap;
-  }
-
-  private Map<String, Object> getDomainVersionData(DomainVersion version) throws IOException {
-    Map<String, Object> versionData = new HashMap<String, Object>();
-    versionData.put("version_number", version.getVersionNumber());
-    versionData.put("total_num_bytes", DomainVersions.getTotalNumBytes(version));
-    versionData.put("total_num_records", DomainVersions.getTotalNumRecords(version));
-    versionData.put("is_closed", DomainVersions.isClosed(version));
-    versionData.put("closed_at", version.getClosedAt());
-
-    return versionData;
-  }
-
-  private Map<String, Object> getDomainGroupVersionData(DomainGroupVersion version) throws IOException {
-    Map<String, Object> versionData = new HashMap<String, Object>();
-    versionData.put("version_number", version.getVersionNumber());
-    versionData.put("domain_versions", getDomainGroupVersionDomainVersionsMap(version.getDomainVersions()));
-
-    return versionData;
-  }
-
-  private Map<String, Object> getDomainGroupVersionDomainVersionsMap(Collection<DomainGroupVersionDomainVersion> versions) throws IOException {
-    Map<String, Object> versionsMap = new HashMap<String, Object>();
-    for (DomainGroupVersionDomainVersion v : versions) {
-      versionsMap.put(v.getDomain().getName(), v.getVersion());
-    }
-    return versionsMap;
   }
 
   private void addDomainGroupDataToResponse(Map<String, Object> requestData, Map<String, Object> responseData) throws IOException {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
     if (domainGroup != null) {
-      Map<String, Object> groupData = new HashMap<String, Object>();
-      groupData.put("name", domainGroup.getName());
-
-      Map<String, Object> versionsMap = new HashMap<String, Object>();
-      for (DomainGroupVersion v : domainGroup.getVersions()) {
-        versionsMap.put(String.valueOf(v.getVersionNumber()), getDomainGroupVersionData(v));
-      }
-      groupData.put("versions", versionsMap);
-
-      responseData.put(domainGroup.getName(), groupData);
+      HankApiHelper.DomainGroupData data = apiHelper.getDomainGroupData(domainGroup);
+      responseData.put(domainGroup.getName(), data.asMap());
     }
   }
 
@@ -323,7 +210,7 @@ public class HankApiServlet extends HttpServlet {
     DomainGroup domainGroup = coordinator.getDomainGroup((String) requestData.get(Params.DOMAIN_GROUP));
     try {
       DomainGroupVersion version = domainGroup.getVersion(Integer.valueOf((String) requestData.get(Params.DOMAIN_GROUP_VERSION)));
-      responseData.put(String.valueOf(version.getVersionNumber()), getDomainGroupVersionData(version));
+      responseData.put(String.valueOf(version.getVersionNumber()), apiHelper.getDomainGroupVersionData(version).asMap());
     } catch (Exception ignored) {
     } // No data added, but no harm done
   }
