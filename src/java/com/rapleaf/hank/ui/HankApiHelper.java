@@ -215,22 +215,18 @@ public class HankApiHelper {
     status.domainName = domain.getName();
 
     Map<String, DomainDeployStatusForRingGroup> ringGroupsMap = new HashMap<String, DomainDeployStatusForRingGroup>();
-    Set<DomainGroupVersion> domainGroupVersions = coordinator.getDomainGroupVersionsForDomain(domain);
-    for (DomainGroupVersion domainGroupVersion : domainGroupVersions) {
-      Set<RingGroup> ringGroups = coordinator.getRingGroupsForDomainGroup(domainGroupVersion.getDomainGroup());
-
-      for (RingGroup ringGroup : ringGroups) {
-        ringGroupsMap.put(ringGroup.getName(), getDomainDeployStatusForRingGroup(domainGroupVersion, domain, ringGroup));
+    for (RingGroup ringGroup : coordinator.getRingGroups()) {
+      DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
+      if (targetVersion != null && targetVersion.getDomainVersion(domain) != null) {
+        ringGroupsMap.put(ringGroup.getName(), getDomainDeployStatusForRingGroup(targetVersion, domain, ringGroup));
       }
     }
     status.ringGroupsMap = ringGroupsMap;
     return status;
   }
 
-  private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroupVersion domainGroupVersion, Domain domain, RingGroup ringGroup) throws IOException {
+  private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroupVersion targetVersion, Domain domain, RingGroup ringGroup) throws IOException {
     DomainDeployStatusForRingGroup status = new DomainDeployStatusForRingGroup();
-    Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
-    DomainGroupVersion targetVersion = targetDomainGroupVersion == null ? null : domainGroupVersion.getDomainGroup().getVersion(targetDomainGroupVersion);
     status.ringGroupName = ringGroup.getName();
     if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain) == null ? null : targetVersion.getDomainVersion(domain).getVersion();
     ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();

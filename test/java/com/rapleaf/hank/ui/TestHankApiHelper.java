@@ -71,7 +71,6 @@ public class TestHankApiHelper extends ZkTestCase {
   public void testGetDeployStatusForDomain() throws Exception {
     HankApiHelper.DomainDeployStatus status = helper.getDomainDeployStatus(coordinator.getDomain("domain0"));
     assertEquals("domain0", status.domainName);
-    assertEquals(2, status.ringGroupsMap.size());
   }
 
   public void testGetDeployStatusForDomainGroup() throws Exception {
