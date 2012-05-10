@@ -159,7 +159,7 @@ public class HankApiHelper {
     }
   }
 
-  public static class RingGroupData {
+  public static class RingGroupData implements HankApiData {
     public String name;
     public Integer targetVersion;
     public boolean isRingGroupConductorOnline;
@@ -181,7 +181,7 @@ public class HankApiHelper {
     }
   }
 
-  public static class HostData {
+  public static class HostData implements HankApiData {
     public PartitionServerAddress address;
     public HostState state;
     public boolean isOnline;
@@ -308,7 +308,7 @@ public class HankApiHelper {
     Integer targetDomainGroupVersion = ringGroup.getTargetVersionNumber();
     DomainGroupVersion targetVersion = targetDomainGroupVersion == null ? null : domainGroupVersion.getDomainGroup().getVersion(targetDomainGroupVersion);
     status.ringGroupName = ringGroup.getName();
-    if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain).getVersion();
+    if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain) == null ? null : targetVersion.getDomainVersion(domain).getVersion();
     ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
     status.numPartitions = servingStatus.getNumPartitions();
     status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
