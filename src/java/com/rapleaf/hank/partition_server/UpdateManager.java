@@ -134,7 +134,7 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
-  private final class PartitionUpdateTask implements Runnable {
+  private final class PartitionUpdateTask implements Runnable, Comparable<PartitionUpdateTask> {
 
     private final HostDomain hostDomain;
     private final Domain domain;
@@ -207,6 +207,17 @@ public class UpdateManager implements IUpdateManager {
         long endTimeMs = System.currentTimeMillis();
         partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this,
             new PartitionUpdateTaskStatistics(startTimeMs, endTimeMs));
+      }
+    }
+
+    @Override
+    public int compareTo(PartitionUpdateTask other) {
+      if (partition.getPartitionNumber() < other.partition.getPartitionNumber()) {
+        return -1;
+      } else if (partition.getPartitionNumber() > other.partition.getPartitionNumber()) {
+        return 1;
+      } else {
+        return 0;
       }
     }
   }
@@ -307,8 +318,8 @@ public class UpdateManager implements IUpdateManager {
       }
     }
 
-    // Randomize task ordering so that it updates all domains more or less concurrently
-    Collections.shuffle(partitionUpdateTasks);
+    // Sort update tasks per partition id, so that we update domains concurrently but in order of partition number
+    Collections.sort(partitionUpdateTasks);
 
     // Execute tasks
     for (PartitionUpdateTask updateTask : partitionUpdateTasks) {
