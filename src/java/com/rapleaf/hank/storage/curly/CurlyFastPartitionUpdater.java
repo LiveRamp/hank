@@ -19,10 +19,10 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -72,23 +72,11 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     CurlyFilePath newCurlyBasePath =
         new CurlyFilePath(updateWorkRoot + "/" + Curly.getName(updatingToVersion.getVersionNumber(), true));
 
-    // Determine files from versions
+    // Determine base file from version
     CurlyFilePath curlyBase = getCurlyFilePathForVersion(updatePlan.getBase(), currentVersion, true);
-    List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
-    for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
-      // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(partitionRemoteFileOps, curlyDeltaVersion)) {
-        curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
-      } else {
-        LOG.error("Skipping empty version: " + curlyDeltaVersion.getVersionNumber() + " in " + partitionRemoteFileOps);
-      }
-    }
 
-    // Check that all required files are available
+    // Check that base file is available
     CueballPartitionUpdater.checkRequiredFileExists(curlyBase.getPath());
-    for (CurlyFilePath curlyDelta : curlyDeltas) {
-      CueballPartitionUpdater.checkRequiredFileExists(curlyDelta.getPath());
-    }
 
     // Move the Curly base to the final destination, overwriting it
     File newCurlyBaseFile = new File(newCurlyBasePath.getPath());
@@ -101,8 +89,14 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
       throw new IOException("Failed to move Curly base " + curlyBase.getPath() + " to " + newCurlyBasePath);
     }
 
-    // Merge the Curly files
-    long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltas);
+    // Determine delta files from versions
+    List<String> curlyDeltaRemoteFiles = new ArrayList<String>();
+    for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
+      curlyDeltaRemoteFiles.add(Curly.getName(curlyDeltaVersion));
+    }
+
+    // Merge the Curly delta files into the base
+    long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltaRemoteFiles, partitionRemoteFileOps);
 
     // Run Cueball update
     CueballPartitionUpdater.runUpdateCore(partitionRemoteFileOps,

@@ -410,6 +410,10 @@ public class Curly implements StorageEngine {
     return s + ".curly";
   }
 
+  public static String getName(DomainVersion domainVersion) throws IOException {
+    return getName(domainVersion.getVersionNumber(), IncrementalDomainVersionProperties.isBase(domainVersion));
+  }
+
   @Override
   public String toString() {
     return "Curly [compressionCodecClass=" + compressionCodecClass

@@ -18,13 +18,13 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
-import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
-import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import com.rapleaf.hank.storage.cueball.ValueTransformer;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.util.EncodingHelper;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -88,14 +88,6 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
-  public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
-                                       DomainVersion domainVersion) throws IOException {
-    return !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))
-        && !partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))
-        && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), true))
-        && !partitionRemoteFileOps.exists(Curly.getName(domainVersion.getVersionNumber(), false));
-  }
-
   @Override
   protected Set<DomainVersion> detectCachedBasesCore() throws IOException {
     return detectCachedVersions(Cueball.getBases(localPartitionRootCache),
@@ -137,33 +129,25 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
 
   @Override
   protected void fetchVersion(DomainVersion version, String fetchRoot) throws IOException {
-    // Determine if version is a base or delta
-    // TODO: use version's metadata to determine if it's a base or a delta
-    Boolean isBase = null;
-    if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), true))
-        && partitionRemoteFileOps.exists(Curly.getName(version.getVersionNumber(), true))) {
-      isBase = true;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(version.getVersionNumber(), false))
-        && partitionRemoteFileOps.exists(Curly.getName(version.getVersionNumber(), false))) {
-      isBase = false;
+    // Fetch Cueball version.
+    fetchCueballVersion(version, fetchRoot);
+    // If this is the base, we also need to fetch the Curly file. Otherwise,
+    // the Curly fetching is done on the fly during the update.
+    if (IncrementalDomainVersionProperties.isBase(version)) {
+      fetchCurlyVersion(version, fetchRoot);
     }
-    if (isBase == null) {
-      // If unable to determine if it's a base or delta, do not fetch anything
-      LOG.error("Unable to determine if version " + version.getVersionNumber()
-          + " is a base or a delta in " + partitionRemoteFileOps);
-      return;
-    }
-    // Fetch version files
-    String cueballFileToFetch = Cueball.getName(version.getVersionNumber(), isBase);
-    String curlyFileToFetch = Curly.getName(version.getVersionNumber(), isBase);
-    if (partitionRemoteFileOps.exists(cueballFileToFetch)) {
-      LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + cueballFileToFetch + " to " + fetchRoot);
-      partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
-    }
-    if (partitionRemoteFileOps.exists(curlyFileToFetch)) {
-      LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + curlyFileToFetch + " to " + fetchRoot);
-      partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
-    }
+  }
+
+  private void fetchCueballVersion(DomainVersion version, String fetchRoot) throws IOException {
+    String cueballFileToFetch = Cueball.getName(version);
+    LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + cueballFileToFetch + " to " + fetchRoot);
+    partitionRemoteFileOps.copyToLocalRoot(cueballFileToFetch, fetchRoot);
+  }
+
+  private void fetchCurlyVersion(DomainVersion version, String fetchRoot) throws IOException {
+    String curlyFileToFetch = Curly.getName(version);
+    LOG.info("Fetching from " + partitionRemoteFileOps + " for file " + curlyFileToFetch + " to " + fetchRoot);
+    partitionRemoteFileOps.copyToLocalRoot(curlyFileToFetch, fetchRoot);
   }
 
   @Override

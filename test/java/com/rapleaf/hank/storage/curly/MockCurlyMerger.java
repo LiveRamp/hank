@@ -16,18 +16,22 @@
 
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+
 import java.io.IOException;
 import java.util.List;
 
 public class MockCurlyMerger implements ICurlyMerger {
 
   public CurlyFilePath latestBase;
-  public List<CurlyFilePath> deltas;
+  public List<String> deltaRemoteFiles;
 
   @Override
-  public long[] merge(CurlyFilePath latestBase, List<CurlyFilePath> deltas) throws IOException {
+  public long[] merge(CurlyFilePath latestBase,
+                      List<String> deltaRemoteFiles,
+                      PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
     this.latestBase = latestBase;
-    this.deltas = deltas;
+    this.deltaRemoteFiles = deltaRemoteFiles;
     return null;
   }
 }

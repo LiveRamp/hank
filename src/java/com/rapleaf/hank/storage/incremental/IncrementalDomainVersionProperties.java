@@ -91,6 +91,14 @@ public class IncrementalDomainVersionProperties implements DomainVersionProperti
     return getParentVersionNumber() == null;
   }
 
+  public static boolean isBase(DomainVersion domainVersion) throws IOException {
+    IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) domainVersion.getProperties();
+    if (properties == null) {
+      throw new RuntimeException("Given Domain Version properties are null.");
+    }
+    return properties.isBase();
+  }
+
   public static DomainVersion getParentDomainVersion(Domain domain, DomainVersion version) throws IOException {
     IncrementalDomainVersionProperties properties = (IncrementalDomainVersionProperties) version.getProperties();
     if (properties == null) {

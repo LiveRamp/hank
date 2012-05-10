@@ -19,10 +19,10 @@ package com.rapleaf.hank.storage.cueball;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
-import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -108,26 +108,9 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
 
   @Override
   protected void fetchVersion(DomainVersion domainVersion, String fetchRoot) throws IOException {
-    // Determine if version is a base or delta
-    // TODO: use version's metadata to determine if it's a base or a delta
-    Boolean isBase = null;
-    if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), true))) {
-      isBase = true;
-    } else if (partitionRemoteFileOps.exists(Cueball.getName(domainVersion.getVersionNumber(), false))) {
-      isBase = false;
-    }
-    if (isBase == null) {
-      // If unable to determine if it's a base or delta, do not fetch anything
-      LOG.error("Unable to determine if version " + domainVersion.getVersionNumber()
-          + " is a base or a delta in " + partitionRemoteFileOps);
-      return;
-    }
-    // Fetch version files
-    String fileToFetch = Cueball.getName(domainVersion.getVersionNumber(), isBase);
-    if (partitionRemoteFileOps.exists(fileToFetch)) {
-      LOG.info("Fetching from " + partitionRemoteFileOps + " file " + fileToFetch + " to " + fetchRoot);
-      partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
-    }
+    String fileToFetch = Cueball.getName(domainVersion);
+    LOG.info("Fetching from " + partitionRemoteFileOps + " file " + fileToFetch + " to " + fetchRoot);
+    partitionRemoteFileOps.copyToLocalRoot(fileToFetch, fetchRoot);
   }
 
   @Override
@@ -173,13 +156,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         localPartitionRoot, localPartitionRootCache, true);
     List<CueballFilePath> deltas = new ArrayList<CueballFilePath>();
     for (DomainVersion delta : updatePlan.getDeltasOrdered()) {
-      // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(partitionRemoteFileOps, delta)) {
-        deltas.add(getCueballFilePathForVersion(delta, currentVersion,
-            localPartitionRoot, localPartitionRootCache, false));
-      } else {
-        LOG.error("Skipping empty version: " + delta.getVersionNumber() + " in " + partitionRemoteFileOps);
-      }
+      deltas.add(getCueballFilePathForVersion(delta, currentVersion,
+          localPartitionRoot, localPartitionRootCache, false));
     }
 
     // Check that all required files are available

@@ -16,12 +16,15 @@
 
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+
 import java.io.IOException;
 import java.util.List;
 
 public interface ICurlyMerger {
 
   public long[] merge(final CurlyFilePath latestBase,
-                      final List<CurlyFilePath> deltas)
+                      final List<String> deltaRemoteFiles,
+                      final PartitionRemoteFileOps partitionRemoteFileOps)
       throws IOException;
 }

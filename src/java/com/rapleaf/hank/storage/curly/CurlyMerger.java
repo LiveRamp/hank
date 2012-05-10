@@ -15,45 +15,48 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileChannel;
+import com.rapleaf.hank.storage.PartitionRemoteFileOps;
+import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
+
+import java.io.*;
 import java.util.List;
 
 public class CurlyMerger implements ICurlyMerger {
 
-  private static final long TRANSFER_SIZE = 32 * 1024;
+  private static final Logger LOG = Logger.getLogger(CurlyMerger.class);
 
   public long[] merge(final CurlyFilePath base,
-                      final List<CurlyFilePath> deltas) throws IOException {
-    long[] offsetAdjustments = new long[deltas.size() + 1];
+                      final List<String> deltaRemoteFiles,
+                      final PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
+    long[] offsetAdjustments = new long[deltaRemoteFiles.size() + 1];
     offsetAdjustments[0] = 0;
 
-    FileChannel baseChannel = new RandomAccessFile(base.getPath(), "rw").getChannel();
-    long baseLength = baseChannel.size();
-    long totalOffset = baseLength;
-    baseChannel.position(baseLength);
-
-    int i = 1;
-    for (CurlyFilePath delta : deltas) {
-      offsetAdjustments[i] = totalOffset;
-
-      FileChannel deltaChannel = new FileInputStream(delta.getPath()).getChannel();
-      long bytesToRead = deltaChannel.size();
-      totalOffset += bytesToRead;
-
-      long total = 0;
-      while (total < bytesToRead) {
-        total += deltaChannel.transferTo(total, TRANSFER_SIZE, baseChannel);
+    // Open the base in append mode
+    File baseFile = new File(base.getPath());
+    FileOutputStream baseFileOutputStream = new FileOutputStream(baseFile, true);
+    OutputStream baseOutputStream = new BufferedOutputStream(baseFileOutputStream);
+    try {
+      // Loop over deltas and append them to the base in order, keeping track of offset adjustments
+      long totalOffset = baseFile.length();
+      int i = 1;
+      for (String deltaRemoteFile : deltaRemoteFiles) {
+        offsetAdjustments[i] = totalOffset;
+        InputStream deltaRemoteInputStream = partitionRemoteFileOps.getInputStream(deltaRemoteFile);
+        try {
+          LOG.info("Merging remote file " + deltaRemoteFile + " into file " + base.getPath());
+          long bytesCopied = IOUtils.copyLarge(deltaRemoteInputStream, baseOutputStream);
+          totalOffset += bytesCopied;
+        } finally {
+          deltaRemoteInputStream.close();
+        }
+        i++;
       }
-
-      deltaChannel.close();
-
-      i++;
+    } finally {
+      // Close base streams
+      baseOutputStream.close();
+      baseFileOutputStream.close();
     }
-    baseChannel.close();
-
     return offsetAdjustments;
   }
 }

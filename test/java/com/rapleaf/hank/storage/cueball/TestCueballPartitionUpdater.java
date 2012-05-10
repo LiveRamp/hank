@@ -144,10 +144,10 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     new File(fetchRoot).mkdir();
 
     // Fetch delta
-    makeRemoteFile("0/00000.delta.cueball");
-    updater.fetchVersion(v0, fetchRoot);
-    deleteRemoteFile("0/00000.delta.cueball");
-    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.cueball"));
+    makeRemoteFile("0/00002.delta.cueball");
+    updater.fetchVersion(v2, fetchRoot);
+    deleteRemoteFile("0/00002.delta.cueball");
+    assertTrue(existsLocalFile(fetchRootName + "/00002.delta.cueball"));
 
     // Fetch base
     makeRemoteFile("0/00000.base.cueball");

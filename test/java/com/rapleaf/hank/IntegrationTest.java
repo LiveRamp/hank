@@ -395,8 +395,8 @@ public class IntegrationTest extends ZkTestCase {
 
     // push a new version of one of the domains
     Map<ByteBuffer, ByteBuffer> domain1Delta = new HashMap<ByteBuffer, ByteBuffer>();
-    domain1Delta.put(bb(4), bb(6, 6));
-    domain1Delta.put(bb(5), bb(5, 5));
+    domain1Delta.put(bb(4), bb(41, 41));
+    domain1Delta.put(bb(7), bb(42, 42));
 
     writeOut(coordinator.getDomain("domain1"), domain1Delta, 1, DOMAIN_1_DATAFILES);
 
@@ -426,11 +426,12 @@ public class IntegrationTest extends ZkTestCase {
 
     assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
-    assertEquals(HankResponse.value(bb(6, 6)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.value(bb(41, 41)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2, 2)), dumbClient.get("domain1", bb(3)));
     assertEquals(HankResponse.value(bb(3, 3)), dumbClient.get("domain1", bb(2)));
     assertEquals(HankResponse.value(bb(4, 4)), dumbClient.get("domain1", bb(1)));
-    assertEquals(HankResponse.value(bb(5, 5)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.value(bb(8, 4)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.value(bb(42, 42)), dumbClient.get("domain1", bb(7)));
 
     assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
@@ -447,11 +448,11 @@ public class IntegrationTest extends ZkTestCase {
 
     assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
-    assertEquals(HankResponse.value(bb(6, 6)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.value(bb(41, 41)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2, 2)), dumbClient.get("domain1", bb(3)));
     assertEquals(HankResponse.value(bb(3, 3)), dumbClient.get("domain1", bb(2)));
     assertEquals(HankResponse.value(bb(4, 4)), dumbClient.get("domain1", bb(1)));
-    assertEquals(HankResponse.value(bb(5, 5)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.value(bb(8, 4)), dumbClient.get("domain1", bb(5)));
 
     assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
@@ -499,11 +500,11 @@ public class IntegrationTest extends ZkTestCase {
 
     assertEquals(HankResponse.not_found(true), dumbClient.get("domain0", bb(99)));
 
-    assertEquals(HankResponse.value(bb(6, 6)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.value(bb(41, 41)), dumbClient.get("domain1", bb(4)));
     assertEquals(HankResponse.value(bb(2, 2)), dumbClient.get("domain1", bb(3)));
     assertEquals(HankResponse.value(bb(3, 3)), dumbClient.get("domain1", bb(2)));
     assertEquals(HankResponse.value(bb(4, 4)), dumbClient.get("domain1", bb(1)));
-    assertEquals(HankResponse.value(bb(5, 5)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.value(bb(8, 4)), dumbClient.get("domain1", bb(5)));
 
     assertEquals(HankResponse.xception(HankException.no_such_domain(true)), dumbClient.get("domain2", bb(1)));
 
@@ -569,6 +570,7 @@ public class IntegrationTest extends ZkTestCase {
   private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, String domainRoot) throws IOException {
     // Create new version
     domain.openNewVersion(new IncrementalDomainVersionProperties(versionNumber == 0 ? null : versionNumber - 1)).close();
+    LOG.debug("Writing out new version " + versionNumber + " of domain " + domain.getName() + " to root " + domainRoot);
     assertEquals(versionNumber, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     // partition keys and values
     Map<Integer, SortedMap<ByteBuffer, ByteBuffer>> sortedAndPartitioned = new HashMap<Integer, SortedMap<ByteBuffer, ByteBuffer>>();

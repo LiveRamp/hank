@@ -169,13 +169,14 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     new File(fetchRoot).mkdir();
 
     // Fetch delta
-    makeRemoteFile("0/00000.delta.cueball");
-    makeRemoteFile("0/00000.delta.curly");
-    updater.fetchVersion(v0, fetchRoot);
-    deleteRemoteFile("0/00000.delta.cueball");
-    deleteRemoteFile("0/00000.delta.curly");
-    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.cueball"));
-    assertTrue(existsLocalFile(fetchRootName + "/00000.delta.curly"));
+    makeRemoteFile("0/00002.delta.cueball");
+    makeRemoteFile("0/00002.delta.curly");
+    updater.fetchVersion(v2, fetchRoot);
+    deleteRemoteFile("0/00002.delta.cueball");
+    deleteRemoteFile("0/00002.delta.curly");
+    assertTrue(existsLocalFile(fetchRootName + "/00002.delta.cueball"));
+    // Curly delta should not be fetched
+    assertFalse(existsLocalFile(fetchRootName + "/00002.delta.curly"));
 
     // Fetch base
     makeRemoteFile("0/00000.base.cueball");
@@ -184,6 +185,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     deleteRemoteFile("0/00000.base.cueball");
     deleteRemoteFile("0/00000.base.curly");
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
+    // Curly delta should be fetched
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 

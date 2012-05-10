@@ -316,6 +316,10 @@ public class Cueball implements StorageEngine {
     return s + ".cueball";
   }
 
+  public static String getName(DomainVersion domainVersion) throws IOException {
+    return getName(domainVersion.getVersionNumber(), IncrementalDomainVersionProperties.isBase(domainVersion));
+  }
+
   @Override
   public String toString() {
     return "Cueball [compressionCodecClass=" + compressionCodecClass

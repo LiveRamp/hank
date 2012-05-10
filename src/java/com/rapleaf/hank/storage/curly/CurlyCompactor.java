@@ -69,10 +69,7 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
     CurlyFilePath curlyBasePath = getCurlyFilePathForVersion(updatePlan.getBase(), currentVersion, true);
     List<CurlyFilePath> curlyDeltas = new ArrayList<CurlyFilePath>();
     for (DomainVersion curlyDeltaVersion : updatePlan.getDeltasOrdered()) {
-      // Only add to the delta list if the version is not empty
-      if (!isEmptyVersion(partitionRemoteFileOps, curlyDeltaVersion)) {
-        curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
-      }
+      curlyDeltas.add(getCurlyFilePathForVersion(curlyDeltaVersion, currentVersion, false));
     }
 
     // Check that all required files are available
