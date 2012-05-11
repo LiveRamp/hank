@@ -223,8 +223,7 @@ public class Curly implements StorageEngine {
     this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
     this.compressionCodecClass = compressionCodecClass;
     this.domain = domain;
-    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize)
-        / Math.log(2)) / 8.0));
+    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.valueFoldingCacheCapacity = valueFoldingCacheCapacity;
     this.recordFilePartitionCacheCapacity = recordFilePartitionCacheCapacity;
