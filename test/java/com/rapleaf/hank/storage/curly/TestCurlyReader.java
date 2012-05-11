@@ -53,7 +53,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
         KEY5.array(), new byte[]{15, 0, 0}
     );
 
-    CurlyReader reader = new CurlyReader(TMP_TEST_CURLY_READER, 1024, keyfileReader, 1);
+    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());

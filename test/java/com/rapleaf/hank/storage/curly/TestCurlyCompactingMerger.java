@@ -6,6 +6,7 @@ import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
 import com.rapleaf.hank.storage.map.MapWriter;
 import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.EncodingHelper;
 import org.apache.commons.lang.NotImplementedException;
 
 import java.io.FileOutputStream;
@@ -83,7 +84,8 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
 
         return new ICurlyReader() {
           @Override
-          public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
+          public void readRecord(ByteBuffer location, ReaderResult result) throws IOException {
+            long recordFileOffset = EncodingHelper.decodeLittleEndianVarInt(location);
             System.err.println("Reading record at offset " + recordFileOffset + " of " + curlyFilePath.getPath());
             switch (curlyFilePath.getVersion()) {
               case 0:

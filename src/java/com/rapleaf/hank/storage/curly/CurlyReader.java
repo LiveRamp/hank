@@ -21,13 +21,13 @@ import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.LruHashMap;
+import org.apache.commons.io.IOUtils;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
+import java.util.zip.GZIPInputStream;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
@@ -36,37 +36,39 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final FileChannel recordFile;
   private final int versionNumber;
   private final LruHashMap<Long, ByteBuffer> cache;
+  private final BlockCompressionCodec blockCompressionCodec;
+  private final int offsetNumBytes;
+  private final int offsetInBlockNumBytes;
 
-  public CurlyReader(String partitionRoot,
-                     int recordFileReadBufferBytes,
-                     Reader keyFileReader,
-                     int cacheCapacity)
-      throws IOException {
+  public static CurlyFilePath getLatestBase(String partitionRoot) throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
       throw new IOException("Could not detect any Curly base in " + partitionRoot);
     }
-    CurlyFilePath latestBase = bases.last();
-    this.recordFile = new FileInputStream(latestBase.getPath()).getChannel();
-    this.keyFileReader = keyFileReader;
-    this.readBufferSize = recordFileReadBufferBytes;
-    this.versionNumber = latestBase.getVersion();
-    if (cacheCapacity > 0) {
-      this.cache = new LruHashMap<Long, ByteBuffer>(0, cacheCapacity);
-    } else {
-      this.cache = null;
-    }
+    return bases.last();
   }
 
   public CurlyReader(CurlyFilePath curlyFile,
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
-                     int cacheCapacity)
-      throws FileNotFoundException {
+                     int cacheCapacity) throws FileNotFoundException {
+    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1);
+  }
+
+  public CurlyReader(CurlyFilePath curlyFile,
+                     int recordFileReadBufferBytes,
+                     Reader keyFileReader,
+                     int cacheCapacity,
+                     BlockCompressionCodec blockCompressionCodec,
+                     int offsetNumBytes,
+                     int offsetInBlockNumBytes) throws FileNotFoundException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
     this.versionNumber = curlyFile.getVersion();
+    this.blockCompressionCodec = blockCompressionCodec;
+    this.offsetNumBytes = offsetNumBytes;
+    this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     if (cacheCapacity > 0) {
       this.cache = new LruHashMap<Long, ByteBuffer>(0, cacheCapacity);
     } else {
@@ -74,9 +76,56 @@ public class CurlyReader implements Reader, ICurlyReader {
     }
   }
 
+  @Override
+  // Note: the buffer in result must be at least readBufferSize long
+  public void readRecord(ByteBuffer location, ReaderResult result) throws IOException {
+    if (blockCompressionCodec == null) {
+      // When not using block compression, location just contains an offset. Decode it.
+      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);
+      // Directly read record into result
+      readRecordAtOffset(recordFileOffset, result);
+    } else {
+      // When using block compression, location contains the block's offset and an offset in the block. Decode them.
+      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
+          location.arrayOffset() + location.position(), offsetNumBytes);
+      long offsetInBlock = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
+          location.arrayOffset() + location.position() + offsetNumBytes, offsetInBlockNumBytes);
+      // Read in the compressed block into the result
+      readRecordAtOffset(recordFileOffset, result);
+      // Decompress the block
+      InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
+          result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
+      // Build an InputStream corresponding to the compression codec
+      InputStream decompressedBlockInputStream;
+      switch (blockCompressionCodec) {
+        case GZIP:
+          decompressedBlockInputStream = new GZIPInputStream(blockInputStream);
+          break;
+        case SLOW_IDENTITY:
+          decompressedBlockInputStream = new BufferedInputStream(blockInputStream);
+          break;
+        default:
+          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+      }
+      // Decompress into the specialized result buffer
+      IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
+      ByteBuffer decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
+      // Position ourselves at the beginning of the actual value
+      decompressedBlockByteBuffer.position((int) offsetInBlock);
+      // Determine result value size
+      int valueSize = EncodingHelper.decodeLittleEndianVarInt(decompressedBlockByteBuffer);
+      // We can exactly wrap our value
+      ByteBuffer value = ByteBuffer.wrap(decompressedBlockByteBuffer.array(),
+          decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(), valueSize);
+      // Copy decompressed result into final result buffer
+      result.getBuffer().rewind();
+      result.requiresBufferSize(valueSize);
+      Bytes.byteBufferDeepCopy(value, result.getBuffer());
+      result.getBuffer().flip();
+    }
+  }
 
   // Note: the buffer in result must be at least readBufferSize long
-  @Override
   public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
     // Attempt to load value from the cache
     if (cache != null && loadValueFromCache(recordFileOffset, result)) {
@@ -149,13 +198,12 @@ public class CurlyReader implements Reader, ICurlyReader {
 
     // if the key is found, then we are prepared to do the second lookup.
     if (result.isFound()) {
-      // the result buffer contains the offset in the record file. decode it.
-      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(result.getBuffer());
       // now we know where to look
-      readRecordAtOffset(recordFileOffset, result);
+      readRecord(result.getBuffer(), result);
     }
   }
 
+  @Override
   public Integer getVersionNumber() {
     return versionNumber;
   }

@@ -14,15 +14,30 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage.curly;
+package com.rapleaf.hank.util;
 
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.ReaderResult;
-
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-public interface ICurlyReader extends Reader {
+public class UnsafeByteArrayOutputStream extends ByteArrayOutputStream {
 
-  public void readRecord(ByteBuffer location, ReaderResult result) throws IOException;
+  public UnsafeByteArrayOutputStream() {
+    super();
+  }
+
+  public UnsafeByteArrayOutputStream(int size) {
+    super(size);
+  }
+
+  public byte[] array() {
+    return this.buf;
+  }
+
+  public int count() {
+    return this.count;
+  }
+
+  public ByteBuffer getByteBuffer() {
+    return ByteBuffer.wrap(this.buf, 0, this.count);
+  }
 }

@@ -212,7 +212,7 @@ public class Curly implements StorageEngine {
   private final Domain domain;
   private final int recordFilePartitionCacheCapacity;
 
-  private final int offsetSize;
+  private final int offsetNumBytes;
   private final int recordFileReadBufferBytes;
 
   private final Cueball cueballStorageEngine;
@@ -257,11 +257,11 @@ public class Curly implements StorageEngine {
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
 
-    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
+    this.offsetNumBytes = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
 
     // Determine size of values in Cueball. If we are using block compression in Curly,
     // the offsets stored in Cueball are appended with the offset in the block.
-    int cueballValueNumBytes = offsetSize;
+    int cueballValueNumBytes = offsetNumBytes;
     if (blockCompressionCodec != null) {
       cueballValueNumBytes += offsetInBlockNumBytes;
     }
@@ -280,10 +280,13 @@ public class Curly implements StorageEngine {
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CurlyReader(getLocalDir(configurator, partitionNumber),
+    return new CurlyReader(CurlyReader.getLatestBase(getLocalDir(configurator, partitionNumber)),
         recordFileReadBufferBytes,
         cueballStorageEngine.getReader(configurator, partitionNumber),
-        recordFilePartitionCacheCapacity);
+        recordFilePartitionCacheCapacity,
+        blockCompressionCodec,
+        offsetNumBytes,
+        offsetInBlockNumBytes);
   }
 
   @Override
@@ -302,7 +305,7 @@ public class Curly implements StorageEngine {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     OutputStream outputStream = partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
         domainVersionProperties.isBase()));
-    return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity,
+    return new CurlyWriter(outputStream, keyFileWriter, offsetNumBytes, valueFoldingCacheCapacity,
         blockCompressionCodec, compressedBlockSizeThreshold, offsetInBlockNumBytes);
   }
 
@@ -356,12 +359,13 @@ public class Curly implements StorageEngine {
         partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
-        new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetSize, hashIndexBits, getCompressionCodec(), null),
+        new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetNumBytes, hashIndexBits, getCompressionCodec(), null),
         new ICurlyReaderFactory() {
           @Override
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws FileNotFoundException {
             // Note: key file reader is null as it will *not* be used
-            return new CurlyReader(curlyFilePath, recordFileReadBufferBytes, null, -1);
+            return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
+                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes);
           }
         }
     );
@@ -373,7 +377,7 @@ public class Curly implements StorageEngine {
         new CurlyMerger(),
         new CueballMerger(),
         keyHashSize,
-        offsetSize,
+        offsetNumBytes,
         hashIndexBits,
         getCompressionCodec(),
         localDir);
@@ -460,7 +464,7 @@ public class Curly implements StorageEngine {
         + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
         + ", hashIndexBits=" + hashIndexBits
         + ", keyHashSize=" + keyHashSize
-        + ", offsetSize=" + offsetSize
+        + ", offsetSize=" + offsetNumBytes
         + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
         + ", remoteDomainRoot=" + remoteDomainRoot
         + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep

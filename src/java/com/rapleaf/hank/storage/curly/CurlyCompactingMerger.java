@@ -20,7 +20,6 @@ import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
-import com.rapleaf.hank.util.EncodingHelper;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -55,7 +54,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       recordFileReaders[curlyReaderIndex++] = curlyReaderFactory.getInstance(curlyDelta);
     }
 
-    ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes);
+    ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes, null);
 
     while (true) {
       KeyHashAndValueAndStreamIndex keyHashValuePair =
@@ -67,13 +66,10 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       // The actual hash of the next key to write
       ByteBuffer keyHash = keyHashValuePair.keyHash;
 
-      // Decode record offset
-      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(keyHashValuePair.value);
-
       // Determine next value to write from corresponding Curly delta
       ICurlyReader recordFileReader = recordFileReaders[keyHashValuePair.streamIndex];
       // Read Curly record
-      recordFileReader.readRecordAtOffset(recordFileOffset, readerResult);
+      recordFileReader.readRecord(keyHashValuePair.value, readerResult);
       ByteBuffer value = readerResult.getBuffer();
 
       // Append key hash and value to the compacted file
