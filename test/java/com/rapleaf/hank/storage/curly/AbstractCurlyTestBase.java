@@ -35,6 +35,13 @@ public abstract class AbstractCurlyTestBase extends TestCase {
       4, 12, 11, 10, 9
   };
 
+  protected static final byte[] EXPECTED_RECORD_FILE_BLOCK_COMPRESSED = new byte[]{
+      15, // block size
+      4, 4, 3, 2, 1,
+      4, 8, 7, 6, 5,
+      4, 12, 11, 10, 9
+  };
+
   protected static final byte[] EXPECTED_FOLDED_RECORD_FILE = new byte[]{
       4, 4, 3, 2, 1,
       4, 8, 7, 6, 5

@@ -21,9 +21,11 @@ import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.LruHashMap;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.zip.GZIPOutputStream;
 
 public class CurlyWriter implements Writer {
 
@@ -31,27 +33,56 @@ public class CurlyWriter implements Writer {
 
   private static final Murmur64Hasher murmur64Hasher = new Murmur64Hasher();
 
+  public static enum BlockCompressionCodec {
+    GZIP,
+    IDENTITY
+  }
+
   private long currentRecordOffset;
   private long numFoldedValues = 0;
   private long numFoldedBytesApproximate = 0;
 
   private final Writer keyfileWriter;
   private final OutputStream recordFileStream;
+  private final int offsetSize;
   private final long maxOffset;
   private final ByteBuffer valueOffsetBuffer;
   private final byte[] valueLengthBuffer = new byte[5];
+
+  // Compression
+  private final BlockCompressionCodec blockCompressionCodec;
+  private final ByteArrayOutputStream compressedBlockOutputStream;
+  private final OutputStream compressionOutputStream;
+  private final int compressedBlockSizeThreshold;
+  private final int offsetInBlockSize;
+  private int offsetInCompressedBlock = 0;
+
+  // Cache
   private final LruHashMap<ByteBuffer, ByteBuffer> hashedValueToEncodedRecordOffsetCache;
+
 
   public CurlyWriter(OutputStream recordfileStream,
                      Writer keyfileWriter,
                      int offsetSize,
-                     int valueFoldingCacheCapacity) {
+                     int valueFoldingCacheCapacity) throws IOException {
+    this(recordfileStream, keyfileWriter, offsetSize, valueFoldingCacheCapacity, null, 0, 0);
+  }
+
+  public CurlyWriter(OutputStream recordfileStream,
+                     Writer keyfileWriter,
+                     int offsetSize,
+                     int valueFoldingCacheCapacity,
+                     BlockCompressionCodec blockCompressionCodec,
+                     int compressedBlockSizeThreshold,
+                     int offsetInBlockSize) throws IOException {
     this.recordFileStream = recordfileStream;
     this.keyfileWriter = keyfileWriter;
+    this.blockCompressionCodec = blockCompressionCodec;
+    this.offsetSize = offsetSize;
     this.maxOffset = 1L << (offsetSize * 8);
     this.currentRecordOffset = 0;
-
-    valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize]);
+    this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
+    this.offsetInBlockSize = offsetInBlockSize;
 
     // Initialize LRU cache only when needed
     if (valueFoldingCacheCapacity > 0) {
@@ -59,10 +90,34 @@ public class CurlyWriter implements Writer {
     } else {
       hashedValueToEncodedRecordOffsetCache = null;
     }
+
+    if (blockCompressionCodec == null) {
+      // No block compression
+      valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize]);
+      compressedBlockOutputStream = null;
+      compressionOutputStream = null;
+    } else {
+      // Initialize block compression
+      valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize + offsetInBlockSize]);
+      compressedBlockOutputStream = new ByteArrayOutputStream();
+      switch (blockCompressionCodec) {
+        case GZIP:
+          compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
+          break;
+        case IDENTITY:
+          compressionOutputStream = compressedBlockOutputStream;
+          break;
+        default:
+          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+      }
+    }
   }
 
   @Override
   public void close() throws IOException {
+    if (blockCompressionCodec != null) {
+      flushCompressedBlock();
+    }
     recordFileStream.flush();
     recordFileStream.close();
     keyfileWriter.close();
@@ -94,22 +149,67 @@ public class CurlyWriter implements Writer {
       numFoldedValues += 1;
       numFoldedBytesApproximate += value.remaining();
     } else {
-      EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array());
-      // Write current offset in key file
-      keyfileWriter.write(key, valueOffsetBuffer);
-      // Value was not found in cache. Cache current value encoded offset buffer if needed
-      if (hashedValueToEncodedRecordOffsetCache != null) {
-        hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
+      if (blockCompressionCodec == null) {
+        //
+        // Uncompressed mode
+        //
+        EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array());
+        // Write current offset in key file
+        keyfileWriter.write(key, valueOffsetBuffer);
+        // Value was not found in cache. Cache current value encoded offset buffer if needed
+        if (hashedValueToEncodedRecordOffsetCache != null) {
+          hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
+        }
+        // Encode value size and write it
+        int valueLength = value.remaining();
+        int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(valueLength, valueLengthBuffer);
+        recordFileStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
+        currentRecordOffset += valueLengthNumBytes;
+        // Write value
+        recordFileStream.write(value.array(), value.arrayOffset() + value.position(), valueLength);
+        currentRecordOffset += valueLength;
+      } else {
+        //
+        // Block compression mode
+        //
+
+        // Flush the compressed block if needed
+        if (compressedBlockOutputStream.size() >= compressedBlockSizeThreshold) {
+          flushCompressedBlock();
+        }
+
+        // Encode value size and write it to compressed block
+        int valueLength = value.remaining();
+        int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(valueLength, valueLengthBuffer);
+        compressionOutputStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
+        // Write value to compressed block
+        compressionOutputStream.write(value.array(), value.arrayOffset() + value.position(), valueLength);
+        // Create the offset and index buffer corresponding to this value
+        EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array(), 0, offsetSize);
+        EncodingHelper.encodeLittleEndianFixedWidthLong(offsetInCompressedBlock, valueOffsetBuffer.array(), offsetSize, offsetInBlockSize);
+        // Write to key file
+        keyfileWriter.write(key, valueOffsetBuffer);
+        // Value was not found in cache. Cache current value encoded offset buffer if needed
+        if (hashedValueToEncodedRecordOffsetCache != null) {
+          hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
+        }
+        // Increment the offset
+        offsetInCompressedBlock += valueLengthNumBytes + valueLength;
       }
-      int valueLength = value.remaining();
-      int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(valueLength, valueLengthBuffer);
-      // Write var int representing value length
-      recordFileStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
-      // Write value
-      recordFileStream.write(value.array(), value.arrayOffset() + value.position(), valueLength);
-      // Advance record offset
-      currentRecordOffset += valueLengthNumBytes + valueLength;
     }
+  }
+
+  private void flushCompressedBlock() throws IOException {
+    // Encode compressed block size and write it to record stream
+    int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(compressedBlockOutputStream.size(), valueLengthBuffer);
+    recordFileStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
+    currentRecordOffset += valueLengthNumBytes;
+    // Write compressed block to record stream
+    compressedBlockOutputStream.writeTo(recordFileStream);
+    currentRecordOffset += compressedBlockOutputStream.size();
+    // Finally, reset the compressed block buffer and the index in the compressed block
+    compressedBlockOutputStream.reset();
+    offsetInCompressedBlock = 0;
   }
 
   private ByteBuffer computeHash(ByteBuffer value) {
