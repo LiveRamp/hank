@@ -20,7 +20,8 @@ import java.nio.ByteBuffer;
 public final class EncodingHelper {
   public static final int MAX_VARINT_SIZE = 5;
 
-  private EncodingHelper() {}
+  private EncodingHelper() {
+  }
 
   public static void encodeLittleEndianFixedWidthLong(long l, byte[] array) {
     encodeLittleEndianFixedWidthLong(l, array, 0, array.length);
@@ -28,8 +29,11 @@ public final class EncodingHelper {
 
   public static void encodeLittleEndianFixedWidthLong(long l, byte[] array, int off, int len) {
     for (int i = off; i < off + len; i++) {
-      array[i] = (byte)(l & 0xff);
+      array[i] = (byte) (l & 0xff);
       l >>= 8;
+    }
+    if (l != 0) {
+      throw new RuntimeException("Supplied buffer was not large enough to encode supplied value.");
     }
   }
 
@@ -55,7 +59,7 @@ public final class EncodingHelper {
     }
     int i = 0;
     while (n > 0) {
-      byte b = (byte)(n & 0x7f);
+      byte b = (byte) (n & 0x7f);
       n >>= 7;
       if (n > 0) {
         b |= 0x80;
