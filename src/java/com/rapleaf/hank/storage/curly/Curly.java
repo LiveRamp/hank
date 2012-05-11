@@ -455,13 +455,19 @@ public class Curly implements StorageEngine {
   @Override
   public String toString() {
     return "Curly [compressionCodecClass=" + keyFileCompressionCodecClass
-        + ", cueballStorageEngine=" + cueballStorageEngine + ", domainName="
-        + domain.getName() + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
-        + ", offsetSize=" + offsetSize + ", recordFileReadBufferBytes="
-        + recordFileReadBufferBytes + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", cueballStorageEngine=" + cueballStorageEngine
+        + ", domainName=" + domain.getName()
+        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits
+        + ", keyHashSize=" + keyHashSize
+        + ", offsetSize=" + offsetSize
+        + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
+        + ", remoteDomainRoot=" + remoteDomainRoot
         + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
         + ", valueFoldingCacheSize=" + valueFoldingCacheCapacity
+        + ", blockCompressionCodec=" + blockCompressionCodec
+        + ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold
+        + ", offsetInBlockNumBytes=" + offsetInBlockNumBytes
         + "]";
   }
 
