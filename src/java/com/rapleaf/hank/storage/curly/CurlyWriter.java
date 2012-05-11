@@ -49,7 +49,7 @@ public class CurlyWriter implements Writer {
   private final ByteArrayOutputStream compressedBlockOutputStream;
   private final OutputStream compressionOutputStream;
   private final int compressedBlockSizeThreshold;
-  private final int offsetInBlockSize;
+  private final int offsetInBlockNumBytes;
   private int offsetInCompressedBlock = 0;
 
   // Cache
@@ -69,7 +69,7 @@ public class CurlyWriter implements Writer {
                      int valueFoldingCacheCapacity,
                      BlockCompressionCodec blockCompressionCodec,
                      int compressedBlockSizeThreshold,
-                     int offsetInBlockSize) throws IOException {
+                     int offsetInBlockNumBytes) throws IOException {
     this.recordFileStream = recordfileStream;
     this.keyfileWriter = keyfileWriter;
     this.blockCompressionCodec = blockCompressionCodec;
@@ -77,7 +77,7 @@ public class CurlyWriter implements Writer {
     this.maxOffset = 1L << (offsetSize * 8);
     this.currentRecordOffset = 0;
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
-    this.offsetInBlockSize = offsetInBlockSize;
+    this.offsetInBlockNumBytes = offsetInBlockNumBytes;
 
     // Initialize LRU cache only when needed
     if (valueFoldingCacheCapacity > 0) {
@@ -93,13 +93,13 @@ public class CurlyWriter implements Writer {
       compressionOutputStream = null;
     } else {
       // Initialize block compression
-      valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize + offsetInBlockSize]);
+      valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetSize + offsetInBlockNumBytes]);
       compressedBlockOutputStream = new ByteArrayOutputStream();
       switch (blockCompressionCodec) {
         case GZIP:
           compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
           break;
-        case IDENTITY:
+        case SLOW_IDENTITY:
           compressionOutputStream = compressedBlockOutputStream;
           break;
         default:
@@ -181,7 +181,7 @@ public class CurlyWriter implements Writer {
         compressionOutputStream.write(value.array(), value.arrayOffset() + value.position(), valueLength);
         // Create the offset and index buffer corresponding to this value
         EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array(), 0, offsetSize);
-        EncodingHelper.encodeLittleEndianFixedWidthLong(offsetInCompressedBlock, valueOffsetBuffer.array(), offsetSize, offsetInBlockSize);
+        EncodingHelper.encodeLittleEndianFixedWidthLong(offsetInCompressedBlock, valueOffsetBuffer.array(), offsetSize, offsetInBlockNumBytes);
         // Write to key file
         keyfileWriter.write(key, valueOffsetBuffer);
         // Value was not found in cache. Cache current value encoded offset buffer if needed

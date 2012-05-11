@@ -37,7 +37,10 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int versionNumber;
   private final LruHashMap<Long, ByteBuffer> cache;
 
-  public CurlyReader(String partitionRoot, int recordFileReadBufferBytes, Reader keyFileReader, int cacheCapacity)
+  public CurlyReader(String partitionRoot,
+                     int recordFileReadBufferBytes,
+                     Reader keyFileReader,
+                     int cacheCapacity)
       throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
@@ -55,7 +58,10 @@ public class CurlyReader implements Reader, ICurlyReader {
     }
   }
 
-  public CurlyReader(CurlyFilePath curlyFile, int recordFileReadBufferBytes, Reader keyFileReader, int cacheCapacity)
+  public CurlyReader(CurlyFilePath curlyFile,
+                     int recordFileReadBufferBytes,
+                     Reader keyFileReader,
+                     int cacheCapacity)
       throws FileNotFoundException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;

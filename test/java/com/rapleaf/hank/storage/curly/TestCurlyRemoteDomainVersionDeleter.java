@@ -22,7 +22,7 @@ public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
     final Curly storageEngine = new Curly(1, new Murmur64Hasher(), 100000, 1, 1000, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class,
         new MockDomain("domain", 0, 1, null, null, null, null),
-        0, -1, -1, -1);
+        0, -1, -1, -1, null, -1, -1);
     Writer writer = storageEngine.getWriter(new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalPartitionRemoteFileOps(localDiskRoot, 0), 0);
     writer.write(key, value);

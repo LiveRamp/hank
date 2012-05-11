@@ -62,6 +62,9 @@ public class Curly implements StorageEngine {
     public static final String VALUE_FOLDING_CACHE_CAPACITY = "value_folding_cache_capacity";
     public static final String KEY_FILE_PARTITION_CACHE_CAPACITY = "key_file_partition_cache_capacity";
     public static final String RECORD_FILE_PARTITION_CACHE_CAPACITY = "record_file_partition_cache_capacity";
+    private static final String BLOCK_COMPRESSION_CODEC = "block_compression_codec";
+    private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
+    private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
@@ -114,6 +117,21 @@ public class Curly implements StorageEngine {
         recordFilePartitionCacheCapacity = -1;
       }
 
+      // Block compression
+      BlockCompressionCodec blockCompressionCodec = null;
+      String blockCompressionCodecStr = (String) options.get(BLOCK_COMPRESSION_CODEC);
+      if (blockCompressionCodecStr != null) {
+        blockCompressionCodec = BlockCompressionCodec.valueOf(blockCompressionCodecStr);
+      }
+      Integer compressedBlockSizeThreshold = (Integer) options.get(COMPRESSED_BLOCK_SIZE_THRESHOLD);
+      if (compressedBlockSizeThreshold == null) {
+        compressedBlockSizeThreshold = -1;
+      }
+      Integer offsetInBlockNumBytes = (Integer) options.get(OFFSET_IN_BLOCK_NUM_BYTES);
+      if (offsetInBlockNumBytes == null) {
+        offsetInBlockNumBytes = -1;
+      }
+
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
@@ -126,7 +144,10 @@ public class Curly implements StorageEngine {
           numRemoteLeafVersionsToKeep,
           valueFoldingCacheCapacity,
           keyFilePartitionCacheCapacity,
-          recordFilePartitionCacheCapacity);
+          recordFilePartitionCacheCapacity,
+          blockCompressionCodec,
+          compressedBlockSizeThreshold,
+          offsetInBlockNumBytes);
     }
 
     @Override
@@ -199,9 +220,12 @@ public class Curly implements StorageEngine {
   private final int keyHashSize;
   private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final int hashIndexBits;
-  private final Class<? extends CompressionCodec> compressionCodecClass;
+  private final Class<? extends CompressionCodec> keyFileCompressionCodecClass;
   private final int numRemoteLeafVersionsToKeep;
   private final int valueFoldingCacheCapacity;
+  private final BlockCompressionCodec blockCompressionCodec;
+  private final int compressedBlockSizeThreshold;
+  private final int offsetInBlockNumBytes;
 
   public Curly(int keyHashSize,
                Hasher hasher,
@@ -210,31 +234,45 @@ public class Curly implements StorageEngine {
                int recordFileReadBufferBytes,
                String remoteDomainRoot,
                PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
-               Class<? extends CompressionCodec> compressionCodecClass,
+               Class<? extends CompressionCodec> keyFileCompressionCodecClass,
                Domain domain,
                int numRemoteLeafVersionsToKeep,
                int valueFoldingCacheCapacity,
                int keyFilePartitionCacheCapacity,
-               int recordFilePartitionCacheCapacity) {
+               int recordFilePartitionCacheCapacity,
+               BlockCompressionCodec blockCompressionCodec,
+               int compressedBlockSizeThreshold,
+               int offsetInBlockNumBytes) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
     this.remoteDomainRoot = remoteDomainRoot;
     this.partitionRemoteFileOpsFactory = partitionRemoteFileOpsFactory;
-    this.compressionCodecClass = compressionCodecClass;
+    this.keyFileCompressionCodecClass = keyFileCompressionCodecClass;
     this.domain = domain;
-    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.valueFoldingCacheCapacity = valueFoldingCacheCapacity;
     this.recordFilePartitionCacheCapacity = recordFilePartitionCacheCapacity;
+    this.blockCompressionCodec = blockCompressionCodec;
+    this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
+    this.offsetInBlockNumBytes = offsetInBlockNumBytes;
+
+    this.offsetSize = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
+
+    // Determine size of values in Cueball. If we are using block compression in Curly,
+    // the offsets stored in Cueball are appended with the offset in the block.
+    int cueballValueNumBytes = offsetSize;
+    if (blockCompressionCodec != null) {
+      cueballValueNumBytes += offsetInBlockNumBytes;
+    }
 
     this.cueballStorageEngine = new Cueball(keyHashSize,
         hasher,
-        offsetSize,
+        cueballValueNumBytes,
         hashIndexBits,
         remoteDomainRoot,
         partitionRemoteFileOpsFactory,
-        compressionCodecClass,
+        keyFileCompressionCodecClass,
         domain,
         numRemoteLeafVersionsToKeep,
         keyFilePartitionCacheCapacity);
@@ -264,7 +302,8 @@ public class Curly implements StorageEngine {
     IncrementalDomainVersionProperties domainVersionProperties = getDomainVersionProperties(domainVersion);
     OutputStream outputStream = partitionRemoteFileOps.getOutputStream(getName(domainVersion.getVersionNumber(),
         domainVersionProperties.isBase()));
-    return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity);
+    return new CurlyWriter(outputStream, keyFileWriter, offsetSize, valueFoldingCacheCapacity,
+        blockCompressionCodec, compressedBlockSizeThreshold, offsetInBlockNumBytes);
   }
 
   private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
@@ -342,7 +381,7 @@ public class Curly implements StorageEngine {
 
   private CompressionCodec getCompressionCodec() throws IOException {
     try {
-      return compressionCodecClass.newInstance();
+      return keyFileCompressionCodecClass.newInstance();
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -415,7 +454,7 @@ public class Curly implements StorageEngine {
 
   @Override
   public String toString() {
-    return "Curly [compressionCodecClass=" + compressionCodecClass
+    return "Curly [compressionCodecClass=" + keyFileCompressionCodecClass
         + ", cueballStorageEngine=" + cueballStorageEngine + ", domainName="
         + domain.getName() + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
         + ", hashIndexBits=" + hashIndexBits + ", keyHashSize=" + keyHashSize
