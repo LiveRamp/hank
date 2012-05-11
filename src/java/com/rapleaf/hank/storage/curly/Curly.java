@@ -121,7 +121,7 @@ public class Curly implements StorageEngine {
       BlockCompressionCodec blockCompressionCodec = null;
       String blockCompressionCodecStr = (String) options.get(BLOCK_COMPRESSION_CODEC);
       if (blockCompressionCodecStr != null) {
-        blockCompressionCodec = BlockCompressionCodec.valueOf(blockCompressionCodecStr);
+        blockCompressionCodec = BlockCompressionCodec.valueOf(blockCompressionCodecStr.toUpperCase());
       }
       Integer compressedBlockSizeThreshold = (Integer) options.get(COMPRESSED_BLOCK_SIZE_THRESHOLD);
       if (compressedBlockSizeThreshold == null) {
