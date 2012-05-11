@@ -33,11 +33,6 @@ public class CurlyWriter implements Writer {
 
   private static final Murmur64Hasher murmur64Hasher = new Murmur64Hasher();
 
-  public static enum BlockCompressionCodec {
-    GZIP,
-    IDENTITY
-  }
-
   private long currentRecordOffset;
   private long numFoldedValues = 0;
   private long numFoldedBytesApproximate = 0;

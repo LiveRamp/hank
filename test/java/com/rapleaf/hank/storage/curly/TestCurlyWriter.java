@@ -78,7 +78,7 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
   public void testBlockCompression() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
     MapWriter keyfileWriter = new MapWriter();
-    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, CurlyWriter.BlockCompressionCodec.IDENTITY, 1024, 2);
+    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, BlockCompressionCodec.IDENTITY, 1024, 2);
 
     writer.write(KEY1, VALUE1);
     writer.write(KEY2, VALUE2);
