@@ -165,7 +165,17 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           throw new IOException(msg, e);
         }
 
-        Reader reader = engine.getReader(configurator, partition.getPartitionNumber());
+        Reader reader;
+        try {
+          reader = engine.getReader(configurator, partition.getPartitionNumber());
+        } catch (IOException e) {
+          // Something went wrong when loading this partition's Reader. Set it deletable and re-throw.
+          partition.setDeletable(true);
+          final String msg = String.format("Could not load Reader for partition #%d of domain %s because of an exception.",
+              partition.getPartitionNumber(), domain.getName());
+          LOG.error(msg);
+          throw new IOException(msg, e);
+        }
         // Check that Reader's version number and current domain group version number match
         if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
