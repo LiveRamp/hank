@@ -231,6 +231,9 @@ public class CurlyWriter implements Writer {
         + ", numBytesWritten=" + getNumBytesWritten()
         + ", numFoldedValues=" + numFoldedValues
         + ", numFoldedBytesApproximate=" + numFoldedBytesApproximate
+        + ", blockCompressionCodec=" + blockCompressionCodec
+        + ", compressedBlockSizeThreshold=" + compressedBlockSizeThreshold
+        + ", offsetInBlockNumBytes=" + offsetInBlockNumBytes
         + "]";
   }
 }
