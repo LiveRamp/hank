@@ -33,7 +33,8 @@ public final class EncodingHelper {
       array[i] = (byte) (l & 0xff);
       l >>= 8;
     }
-    if (l != 0) {
+    // We should have wrapped around and filled l with the sign bit
+    if (l != 0 && l != -1) {
       throw new RuntimeException("Supplied buffer (size=" + len + ") is not large enough to encode supplied value: " + value);
     }
   }
