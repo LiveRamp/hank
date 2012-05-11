@@ -27,13 +27,14 @@ public final class EncodingHelper {
     encodeLittleEndianFixedWidthLong(l, array, 0, array.length);
   }
 
-  public static void encodeLittleEndianFixedWidthLong(long l, byte[] array, int off, int len) {
+  public static void encodeLittleEndianFixedWidthLong(long value, byte[] array, int off, int len) {
+    long l = value;
     for (int i = off; i < off + len; i++) {
       array[i] = (byte) (l & 0xff);
       l >>= 8;
     }
     if (l != 0) {
-      throw new RuntimeException("Supplied buffer was not large enough to encode supplied value.");
+      throw new RuntimeException("Supplied buffer (size=" + len + ") is not large enough to encode supplied value: " + value);
     }
   }
 
