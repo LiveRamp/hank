@@ -164,6 +164,8 @@ public abstract class DomainBuilderAbstractOutputFormat
 
     private void closeCurrentWriterIfNeeded() throws IOException {
       if (writer != null) {
+        LOG.info("Closing current partition writer: " + writer.toString());
+        writer.close();
         RunWithCoordinator.run(configurator, new RunnableWithCoordinator() {
           @Override
           public void run(Coordinator coordinator) throws IOException {
@@ -175,8 +177,6 @@ public abstract class DomainBuilderAbstractOutputFormat
                 writer.getNumRecordsWritten());
           }
         });
-        LOG.info("Closing current partition writer: " + writer.toString());
-        writer.close();
       }
     }
   }
