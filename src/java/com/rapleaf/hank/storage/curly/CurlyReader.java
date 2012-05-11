@@ -120,7 +120,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       // Copy decompressed result into final result buffer
       result.getBuffer().rewind();
       result.requiresBufferSize(valueSize);
-      Bytes.byteBufferDeepCopy(value, result.getBuffer());
+      result.getBuffer().put(value);
       result.getBuffer().flip();
     }
   }
