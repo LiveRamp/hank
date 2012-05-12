@@ -92,6 +92,7 @@ public class CurlyReader implements Reader, ICurlyReader {
           location.arrayOffset() + location.position() + offsetNumBytes, offsetInBlockNumBytes);
       // Read in the compressed block into the result
       readRecordAtOffset(recordFileOffset, result);
+
       // Decompress the block
       InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
           result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
@@ -110,13 +111,16 @@ public class CurlyReader implements Reader, ICurlyReader {
       // Decompress into the specialized result buffer
       IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
       ByteBuffer decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
+
       // Position ourselves at the beginning of the actual value
       decompressedBlockByteBuffer.position((int) offsetInBlock);
       // Determine result value size
       int valueSize = EncodingHelper.decodeLittleEndianVarInt(decompressedBlockByteBuffer);
+
       // We can exactly wrap our value
       ByteBuffer value = ByteBuffer.wrap(decompressedBlockByteBuffer.array(),
           decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(), valueSize);
+
       // Copy decompressed result into final result buffer
       result.getBuffer().rewind();
       result.requiresBufferSize(valueSize);

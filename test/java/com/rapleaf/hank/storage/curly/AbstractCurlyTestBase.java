@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 import java.nio.ByteBuffer;
 
 public abstract class AbstractCurlyTestBase extends TestCase {
+
   protected static final ByteBuffer KEY1 = ByteBuffer.wrap(new byte[]{1, 2, 3, 4});
   protected static final ByteBuffer VALUE1 = ByteBuffer.wrap(new byte[]{4, 3, 2, 1});
   protected static final ByteBuffer KEY2 = ByteBuffer.wrap(new byte[]{5, 6, 7, 8});
@@ -42,8 +43,20 @@ public abstract class AbstractCurlyTestBase extends TestCase {
       4, 12, 11, 10, 9
   };
 
+  protected static final byte[] EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP = new byte[]{
+      35, // block size
+      0x1f, (byte) 0x8b, 0x08, 0, 0, 0, 0, 0, 0, 0, 0x63, 0x61, 0x61, 0x66, 0x62, 0x64, (byte) 0xe1, 0x60,
+      0x67, 0x63, 0x65, (byte) 0xe1, (byte) 0xe1, (byte) 0xe6, (byte) 0xe2, 0x04, 0x00, 0x4b, (byte) 0xcd, (byte) 0xa7, 0x6f, 0x0f, 0, 0, 0
+  };
+
   protected static final byte[] EXPECTED_FOLDED_RECORD_FILE = new byte[]{
       4, 4, 3, 2, 1,
       4, 8, 7, 6, 5
   };
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    System.out.println("-----------------");
+  }
 }

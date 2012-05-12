@@ -21,6 +21,7 @@ import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.LruHashMap;
 
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,11 +47,11 @@ public class CurlyWriter implements Writer {
 
   // Compression
   private final BlockCompressionCodec blockCompressionCodec;
-  private final ByteArrayOutputStream compressedBlockOutputStream;
-  private final OutputStream compressionOutputStream;
+  private ByteArrayOutputStream compressedBlockOutputStream;
+  private OutputStream compressionOutputStream;
   private final int compressedBlockSizeThreshold;
   private final int offsetInBlockNumBytes;
-  private int offsetInCompressedBlock = 0;
+  private int offsetInDecompressedBlock = 0;
 
   // Cache
   private final LruHashMap<ByteBuffer, ByteBuffer> hashedValueToEncodedRecordOffsetCache;
@@ -94,16 +95,7 @@ public class CurlyWriter implements Writer {
       // Initialize block compression
       valueOffsetBuffer = ByteBuffer.wrap(new byte[offsetNumBytes + offsetInBlockNumBytes]);
       compressedBlockOutputStream = new ByteArrayOutputStream();
-      switch (blockCompressionCodec) {
-        case GZIP:
-          compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
-          break;
-        case SLOW_IDENTITY:
-          compressionOutputStream = compressedBlockOutputStream;
-          break;
-        default:
-          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-      }
+      compressionOutputStream = null;
     }
   }
 
@@ -171,6 +163,10 @@ public class CurlyWriter implements Writer {
         if (compressedBlockOutputStream.size() >= compressedBlockSizeThreshold) {
           flushCompressedBlock();
         }
+        // Create a new compression output stream if needed (either this is the first value or we just flushed)
+        if (compressionOutputStream == null) {
+          initStreams();
+        }
 
         // Encode value size and write it to compressed block
         int valueLength = value.remaining();
@@ -178,9 +174,11 @@ public class CurlyWriter implements Writer {
         compressionOutputStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
         // Write value to compressed block
         compressionOutputStream.write(value.array(), value.arrayOffset() + value.position(), valueLength);
+        // Flush compression output stream so that its content is immediately in the output stream and we can check the size
+        compressionOutputStream.flush();
         // Create the offset and index buffer corresponding to this value
         EncodingHelper.encodeLittleEndianFixedWidthLong(currentRecordOffset, valueOffsetBuffer.array(), 0, offsetNumBytes);
-        EncodingHelper.encodeLittleEndianFixedWidthLong(offsetInCompressedBlock, valueOffsetBuffer.array(), offsetNumBytes, offsetInBlockNumBytes);
+        EncodingHelper.encodeLittleEndianFixedWidthLong(offsetInDecompressedBlock, valueOffsetBuffer.array(), offsetNumBytes, offsetInBlockNumBytes);
         // Write to key file
         keyfileWriter.write(key, valueOffsetBuffer);
         // Value was not found in cache. Cache current value encoded offset buffer if needed
@@ -188,22 +186,41 @@ public class CurlyWriter implements Writer {
           hashedValueToEncodedRecordOffsetCache.put(hashedValue, Bytes.byteBufferDeepCopy(valueOffsetBuffer));
         }
         // Increment the offset
-        offsetInCompressedBlock += valueLengthNumBytes + valueLength;
+        offsetInDecompressedBlock += valueLengthNumBytes + valueLength;
       }
     }
   }
 
-  private void flushCompressedBlock() throws IOException {
-    // Encode compressed block size and write it to record stream
-    int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(compressedBlockOutputStream.size(), valueLengthBuffer);
-    recordFileStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
-    currentRecordOffset += valueLengthNumBytes;
-    // Write compressed block to record stream
-    compressedBlockOutputStream.writeTo(recordFileStream);
-    currentRecordOffset += compressedBlockOutputStream.size();
-    // Finally, reset the compressed block buffer and the index in the compressed block
+  private void initStreams() throws IOException {
+    // Reset the byte array output stream and the offset in it
     compressedBlockOutputStream.reset();
-    offsetInCompressedBlock = 0;
+    offsetInDecompressedBlock = 0;
+    // Initialize new compression stream
+    switch (blockCompressionCodec) {
+      case GZIP:
+        compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
+        break;
+      case SLOW_IDENTITY:
+        compressionOutputStream = new BufferedOutputStream(compressedBlockOutputStream);
+        break;
+      default:
+        throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+    }
+  }
+
+  private void flushCompressedBlock() throws IOException {
+    if (compressionOutputStream != null) {
+      // First, close compression output stream so that they write all data
+      compressionOutputStream.close();
+      compressionOutputStream = null;
+      // Encode compressed block size and write it to record stream
+      int valueLengthNumBytes = EncodingHelper.encodeLittleEndianVarInt(compressedBlockOutputStream.size(), valueLengthBuffer);
+      recordFileStream.write(valueLengthBuffer, 0, valueLengthNumBytes);
+      currentRecordOffset += valueLengthNumBytes;
+      // Write compressed block to record stream
+      compressedBlockOutputStream.writeTo(recordFileStream);
+      currentRecordOffset += compressedBlockOutputStream.size();
+    }
   }
 
   private ByteBuffer computeHash(ByteBuffer value) {
