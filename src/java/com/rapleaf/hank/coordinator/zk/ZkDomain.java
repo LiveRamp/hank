@@ -24,6 +24,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import com.rapleaf.hank.zookeeper.WatchedString;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
@@ -49,8 +50,8 @@ public class ZkDomain extends AbstractDomain {
   private final String name;
   private final int numParts;
   private final Partitioner partitioner;
-  private final String storageEngineFactoryName;
-  private final Map<String, Object> storageEngineOptions;
+  private final WatchedString storageEngineFactoryName;
+  private final WatchedString storageEngineOptions;
   private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
 
   private StorageEngine storageEngine;
@@ -95,9 +96,8 @@ public class ZkDomain extends AbstractDomain {
     this.id = zk.getInt(ZkPath.append(domainPath, KEY_ID));
     this.name = ZkPath.getFilename(domainPath);
     this.numParts = zk.getInt(ZkPath.append(domainPath, KEY_NUM_PARTS));
-    this.storageEngineOptions =
-        (Map<String, Object>) new Yaml().load(zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS)));
-    this.storageEngineFactoryName = zk.getString(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
+    this.storageEngineOptions = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), true);
+    this.storageEngineFactoryName = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), true);
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
 
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
@@ -137,8 +137,8 @@ public class ZkDomain extends AbstractDomain {
       return storageEngine;
     }
     try {
-      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(storageEngineFactoryName).newInstance();
-      return storageEngine = factory.getStorageEngine(storageEngineOptions, this);
+      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(getStorageEngineFactoryName()).newInstance();
+      return storageEngine = factory.getStorageEngine(getStorageEngineOptions(), this);
     } catch (Exception e) {
       throw new RuntimeException("Could not instantiate storage engine from factory "
           + storageEngineFactoryName, e);
@@ -146,11 +146,11 @@ public class ZkDomain extends AbstractDomain {
   }
 
   public String getStorageEngineFactoryName() {
-    return storageEngineFactoryName;
+    return storageEngineFactoryName.get();
   }
 
   public Map<String, Object> getStorageEngineOptions() {
-    return storageEngineOptions;
+    return (Map<String, Object>) new Yaml().load(storageEngineOptions.get());
   }
 
   public String getPath() {
@@ -159,7 +159,7 @@ public class ZkDomain extends AbstractDomain {
 
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
     try {
-      return (Class<? extends StorageEngineFactory>) Class.forName(storageEngineFactoryName);
+      return (Class<? extends StorageEngineFactory>) Class.forName(getStorageEngineFactoryName());
     } catch (ClassNotFoundException e) {
       throw new RuntimeException(e);
     }
