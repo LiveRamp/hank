@@ -85,6 +85,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     result.clear();
 
     // Test cache
+
     reader.get(KEY5, result);
     assertTrue(result.isFound());
     result.clear();

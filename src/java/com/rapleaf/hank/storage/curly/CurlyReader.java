@@ -35,7 +35,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private final LruHashMap<Long, ByteBuffer> cache;
+  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
   private final BlockCompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
@@ -70,7 +70,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     if (cacheCapacity > 0) {
-      this.cache = new LruHashMap<Long, ByteBuffer>(0, cacheCapacity);
+      this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
     } else {
       this.cache = null;
     }
@@ -79,6 +79,12 @@ public class CurlyReader implements Reader, ICurlyReader {
   @Override
   // Note: the buffer in result must be at least readBufferSize long
   public void readRecord(ByteBuffer location, ReaderResult result) throws IOException {
+    // Attempt to load value from the cache
+    if (cache != null && loadValueFromCache(location, result)) {
+      return;
+    }
+    // Deep copy the location if caching is activated
+    ByteBuffer locationDeepCopy = cache != null ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);
@@ -122,19 +128,19 @@ public class CurlyReader implements Reader, ICurlyReader {
           decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(), valueSize);
 
       // Copy decompressed result into final result buffer
-      result.getBuffer().rewind();
       result.requiresBufferSize(valueSize);
+      result.getBuffer().clear();
       result.getBuffer().put(value);
       result.getBuffer().flip();
+    }
+    // Store result in cache if needed
+    if (cache != null) {
+      addValueToCache(locationDeepCopy, result.getBuffer());
     }
   }
 
   // Note: the buffer in result must be at least readBufferSize long
-  public void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
-    // Attempt to load value from the cache
-    if (cache != null && loadValueFromCache(recordFileOffset, result)) {
-      return;
-    }
+  private void readRecordAtOffset(long recordFileOffset, ReaderResult result) throws IOException {
     // Let's reset the buffer so we can do our read.
     result.getBuffer().rewind();
     // the buffer is already at least this big, so we'll extend it back out.
@@ -186,9 +192,6 @@ public class CurlyReader implements Reader, ICurlyReader {
     // the value should start at buffer.position() and go for recordSize
     // bytes, so limit it appropriately.
     result.getBuffer().limit(recordSize + result.getBuffer().position());
-    if (cache != null) {
-      addValueToCache(recordFileOffset, result.getBuffer());
-    }
   }
 
   @Override
@@ -212,17 +215,18 @@ public class CurlyReader implements Reader, ICurlyReader {
     return versionNumber;
   }
 
-  private void addValueToCache(long recordFileOffset, ByteBuffer value) {
+  // Note: location should already be a deep copy that won't get modified
+  private void addValueToCache(ByteBuffer location, ByteBuffer value) {
     synchronized (cache) {
-      cache.put(recordFileOffset, Bytes.byteBufferDeepCopy(value));
+      cache.put(location, Bytes.byteBufferDeepCopy(value));
     }
   }
 
   // Return true if managed to read the corresponding value from the cache and into result
-  private boolean loadValueFromCache(long recordFileOffset, ReaderResult result) {
+  private boolean loadValueFromCache(ByteBuffer location, ReaderResult result) {
     ByteBuffer value;
     synchronized (cache) {
-      value = cache.get(recordFileOffset);
+      value = cache.get(location);
     }
     if (value != null) {
       result.deepCopyIntoResultBuffer(value);

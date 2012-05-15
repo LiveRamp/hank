@@ -102,8 +102,7 @@ public class ReaderResult {
 
   public void deepCopyIntoResultBuffer(ByteBuffer value) {
     requiresBufferSize(value.remaining());
-    buffer.rewind();
-    buffer.limit(value.remaining());
+    buffer.clear();
     buffer.put(value.slice());
     buffer.flip();
   }
