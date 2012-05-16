@@ -114,6 +114,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     domainAccessors = new DomainAccessor[maxDomainId + 1];
 
     // Loop over the domains and get set up
+    List<Exception> exceptions = new ArrayList<Exception>();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
@@ -169,25 +170,33 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         try {
           reader = engine.getReader(configurator, partition.getPartitionNumber());
         } catch (IOException e) {
-          // Something went wrong when loading this partition's Reader. Set it deletable and re-throw.
+          // Something went wrong when loading this partition's Reader. Set it deletable and signal failure.
           partition.setDeletable(true);
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because of an exception.",
               partition.getPartitionNumber(), domain.getName());
           LOG.error(msg);
-          throw new IOException(msg, e);
+          exceptions.add(new IOException(msg, e));
+          continue;
         }
         // Check that Reader's version number and current domain group version number match
         if (reader.getVersionNumber() != null && !reader.getVersionNumber().equals(domainGroupVersionDomainVersionNumber)) {
+          // Something went wrong when loading this partition's Reader. Set it deletable and signal failure.
+          partition.setDeletable(true);
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because version numbers reported by the Reader (%d) and by metadata (%d) differ.",
               partition.getPartitionNumber(), domain.getName(), reader.getVersionNumber(), domainGroupVersionDomainVersionNumber);
           LOG.error(msg);
-          throw new IOException(msg);
+          exceptions.add(new IOException(msg));
+          continue;
         }
         if (LOG.isDebugEnabled()) {
           LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
               partition.getPartitionNumber(), domain.getName()));
         }
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
+      }
+      // If there was a failure, abort
+      if (!exceptions.isEmpty()) {
+        throw new IOException("Failed to load Readers. Encountered " + exceptions.size() + " exceptions.");
       }
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner(),
