@@ -27,7 +27,7 @@ import org.apache.thrift.TException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 
 import static com.rapleaf.hank.client.HostConnectionPool.getHostListShuffleSeed;
 
@@ -37,6 +37,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
+
+  private static final long GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME = 1;
+  private static final TimeUnit GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
+  private static final long GET_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
+  private static final TimeUnit GET_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
 
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
@@ -49,6 +54,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
+  private final ThreadPoolExecutor getTaskExecutor;
+
+  // Cache
+
   private Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
   private Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddressList
@@ -59,7 +68,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       new HashMap<List<PartitionServerAddress>, HostConnectionPool>();
 
   private final Object cacheLock = new Object();
-  private final Random random = new Random();
   private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
 
   /**
@@ -118,6 +126,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
+    // Initialize get task executor (0 core threads and unbounded max threads)
+    this.getTaskExecutor = new ThreadPoolExecutor(
+        0, Integer.MAX_VALUE,
+        GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME,
+        GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
+        new LinkedBlockingQueue<Runnable>(),
+        new GetTaskThreadFactory());
+    // Initialize cache and cache updater
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
     Thread cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
@@ -308,6 +324,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
   }
 
+  // Synchronous get
   @Override
   public HankResponse get(String domainName, ByteBuffer key) {
     // Get Domain
@@ -319,7 +336,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     return _get(domain, key);
   }
 
-  // Simple getBulk that only loops through the keys and performs regular gets
+  // Synchronous getBulk
   @Override
   public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
     // Get Domain
@@ -328,12 +345,37 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       LOG.error("No such Domain: " + domainName);
       return NO_SUCH_DOMAIN_BULK;
     }
+    // Execute futures
+    List<FutureGet> futureGets = new ArrayList<FutureGet>(keys.size());
+    for (ByteBuffer key : keys) {
+      futureGets.add(_futureGet(domain, key));
+    }
     // Build responses list
     List<HankResponse> allResponses = new ArrayList<HankResponse>(keys.size());
-    for (ByteBuffer key : keys) {
-      allResponses.add(_get(domain, key));
+    for (FutureGet futureGet : futureGets) {
+      allResponses.add(futureGet.getResponse());
     }
     return HankBulkResponse.responses(allResponses);
+  }
+
+  // Asynchronous get
+  @Override
+  public FutureGet futureGet(String domainName, ByteBuffer key) throws TException {
+    // Get Domain
+    Domain domain = this.coordinator.getDomain(domainName);
+    if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
+      FutureGet noSuchDomainFutureGet = new FutureGet(new StaticGetTaskRunnable(NO_SUCH_DOMAIN));
+      noSuchDomainFutureGet.run();
+      return noSuchDomainFutureGet;
+    }
+    return _futureGet(domain, key);
+  }
+
+  public FutureGet _futureGet(Domain domain, ByteBuffer key) {
+    FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
+    getTaskExecutor.execute(futureGet);
+    return futureGet;
   }
 
   public HankResponse _get(Domain domain, ByteBuffer key) {
@@ -476,8 +518,22 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   @Override
   public void stop() {
+    stopGetTaskExecutor();
     cacheUpdaterRunnable.stop();
     disconnect();
+  }
+
+  private void stopGetTaskExecutor() {
+    // Shut down GET tasks
+    getTaskExecutor.shutdown();
+    try {
+      while (!getTaskExecutor.awaitTermination(GET_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE,
+          GET_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT)) {
+        LOG.debug("Waiting for termination of GET task executor during shutdown.");
+      }
+    } catch (InterruptedException e) {
+      LOG.debug("Interrupted while waiting for termination of GET task executor during shutdown.");
+    }
   }
 
   private void disconnect() {
@@ -563,6 +619,54 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       } else {
         throw new RuntimeException("Unknown bulk response type.");
       }
+    }
+  }
+
+  private class StaticGetTaskRunnable implements GetTaskRunnableIface {
+
+    private final HankResponse response;
+
+    private StaticGetTaskRunnable(HankResponse response) {
+      this.response = response;
+    }
+
+    @Override
+    public HankResponse getResponse() {
+      return response;
+    }
+
+    @Override
+    public void run() {
+      // No-op
+    }
+  }
+
+  private class GetTaskRunnable implements GetTaskRunnableIface {
+
+    private final Domain domain;
+    private final ByteBuffer key;
+    private HankResponse response = null;
+
+    private GetTaskRunnable(Domain domain, ByteBuffer key) {
+      this.domain = domain;
+      this.key = key;
+    }
+
+    @Override
+    public void run() {
+      response = _get(domain, key);
+    }
+
+    public HankResponse getResponse() {
+      return response;
+    }
+  }
+
+  private static class GetTaskThreadFactory implements ThreadFactory {
+
+    @Override
+    public Thread newThread(Runnable runnable) {
+      return new Thread(runnable, "GetTaskThread");
     }
   }
 }

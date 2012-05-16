@@ -1,5 +1,6 @@
 package com.rapleaf.hank.client.sync;
 
+import com.rapleaf.hank.client.FutureGet;
 import com.rapleaf.hank.client.GetBulkCallback;
 import com.rapleaf.hank.client.GetCallback;
 import com.rapleaf.hank.client.HankSmartClientIface;
@@ -9,6 +10,7 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -110,6 +112,11 @@ public class HankSyncSmartClient implements HankSmartClientIface {
     } catch (InterruptedException e) {
       return INTERRUPTED_GET_BULK;
     }
+  }
+
+  @Override
+  public FutureGet futureGet(String domainName, ByteBuffer key) throws TException {
+    throw new NotImplementedException();
   }
 
   @Override
