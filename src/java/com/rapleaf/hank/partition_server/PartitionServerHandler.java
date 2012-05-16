@@ -174,7 +174,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           partition.setDeletable(true);
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because of an exception.",
               partition.getPartitionNumber(), domain.getName());
-          LOG.error(msg);
+          LOG.error(msg, e);
           exceptions.add(new IOException(msg, e));
           continue;
         }
