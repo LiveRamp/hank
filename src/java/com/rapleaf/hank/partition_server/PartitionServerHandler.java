@@ -194,15 +194,14 @@ public class PartitionServerHandler implements IfaceWithShutdown {
         }
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
       }
-      // If there was a failure, abort
-      if (!exceptions.isEmpty()) {
-        throw new IOException("Failed to load Readers. Encountered " + exceptions.size() + " exceptions.");
-      }
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner(),
           configurator.getGetTimerAggregatorWindow());
     }
-
+    // If there was a failure, abort
+    if (!exceptions.isEmpty()) {
+      throw new IOException("Failed to load Readers. Encountered " + exceptions.size() + " exceptions.");
+    }
     // Start the update runtime statistics thread
     updateRuntimeStatisticsRunnable = new UpdateRuntimeStatisticsRunnable();
     updateRuntimeStatisticsThread = new Thread(updateRuntimeStatisticsRunnable, "Update Runtime Statistics");
