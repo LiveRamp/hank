@@ -64,6 +64,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
     private static enum Mode {
       NORMAL,
+      HUNDRED_MS_LATENCY,
       HANGING,
       FAILING,
       THROWING_ERROR
@@ -95,6 +96,13 @@ public class TestHankSmartClient extends BaseTestCase {
 
     private void applyMode() {
       switch (mode) {
+        case HUNDRED_MS_LATENCY:
+          try {
+            Thread.sleep(100);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+          break;
         case HANGING:
           // Simulating hanging
           while (true) {
@@ -243,6 +251,37 @@ public class TestHankSmartClient extends BaseTestCase {
       bulkResquest1.add(KEY_1);
       bulkResquest1.add(KEY_2);
       assertEquals(bulkResponse1, client.getBulk("existent_domain", bulkResquest1));
+
+      // Test getBulk speed
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HUNDRED_MS_LATENCY);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HUNDRED_MS_LATENCY);
+
+      List<ByteBuffer> bulkResquest2 = new ArrayList<ByteBuffer>();
+      for (int i = 0; i < 100; ++i) {
+        if (i % 2 == 0) {
+          bulkResquest2.add(KEY_1);
+        } else {
+          bulkResquest2.add(KEY_2);
+        }
+      }
+      long startTime = System.currentTimeMillis();
+      HankBulkResponse bulkResponse2 = client.getBulk("existent_domain", bulkResquest2);
+      long duration = System.currentTimeMillis() - startTime;
+      System.out.println("Bulk request took " + duration + " ms");
+      for (int i = 0; i < 100; ++i) {
+        if (i % 2 == 0) {
+          assertEquals(HankResponse.value(VALUE_1), bulkResponse2.get_responses().get(i));
+        } else {
+          assertEquals(HankResponse.value(VALUE_2), bulkResponse2.get_responses().get(i));
+        }
+      }
+      // Duration of bulk request should be less than duration of requests serialized plus 10%
+      // (server latency is 100ms and single-threaded)
+      assertTrue(duration < ((100 / 2) * 100) * 1.10);
+
+      // Go back to normal serving mode
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.NORMAL);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.NORMAL);
 
       // Host state change
       host1.setState(HostState.OFFLINE);

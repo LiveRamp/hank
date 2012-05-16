@@ -126,12 +126,15 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
-    // Initialize get task executor (0 core threads and unbounded max threads)
+    // Initialize get task executor with 0 core threads and an unbounded maximum number of threads.
+    // The queue is a synchronous queue so that we create new threads even though there might be more
+    // than number of core threads threads running
     this.getTaskExecutor = new ThreadPoolExecutor(
-        0, Integer.MAX_VALUE,
+        0,
+        Integer.MAX_VALUE,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
-        new LinkedBlockingQueue<Runnable>(),
+        new SynchronousQueue<Runnable>(),
         new GetTaskThreadFactory());
     // Initialize cache and cache updater
     updateCache();
