@@ -160,7 +160,11 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
 
   // Move all files in sourceRoot to destinationRoot. Directories are ignored.
   protected void commitFiles(File sourceRoot, String destinationRoot) throws IOException {
-    for (File file : sourceRoot.listFiles()) {
+    File[] files = sourceRoot.listFiles();
+    if (files == null) {
+      throw new IOException("Failed to commit files from " + sourceRoot + " to " + destinationRoot + " since source is not a valid directory.");
+    }
+    for (File file : files) {
       // Skip non files
       if (!file.isFile()) {
         continue;
