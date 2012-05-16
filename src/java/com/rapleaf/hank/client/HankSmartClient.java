@@ -372,13 +372,13 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     return _concurrentGet(domain, key);
   }
 
-  public FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
+  private FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);
     return futureGet;
   }
 
-  public HankResponse _get(Domain domain, ByteBuffer key) {
+  private HankResponse _get(Domain domain, ByteBuffer key) {
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
     int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
