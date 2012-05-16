@@ -348,7 +348,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Execute futures
     List<FutureGet> futureGets = new ArrayList<FutureGet>(keys.size());
     for (ByteBuffer key : keys) {
-      futureGets.add(_futureGet(domain, key));
+      futureGets.add(_concurrentGet(domain, key));
     }
     // Build responses list
     List<HankResponse> allResponses = new ArrayList<HankResponse>(keys.size());
@@ -360,7 +360,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   // Asynchronous get
   @Override
-  public FutureGet futureGet(String domainName, ByteBuffer key) throws TException {
+  public FutureGet concurrentGet(String domainName, ByteBuffer key) throws TException {
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
@@ -369,10 +369,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       noSuchDomainFutureGet.run();
       return noSuchDomainFutureGet;
     }
-    return _futureGet(domain, key);
+    return _concurrentGet(domain, key);
   }
 
-  public FutureGet _futureGet(Domain domain, ByteBuffer key) {
+  public FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);
     return futureGet;

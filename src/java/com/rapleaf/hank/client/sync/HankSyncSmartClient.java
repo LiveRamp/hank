@@ -115,7 +115,7 @@ public class HankSyncSmartClient implements HankSmartClientIface {
   }
 
   @Override
-  public FutureGet futureGet(String domainName, ByteBuffer key) throws TException {
+  public FutureGet concurrentGet(String domainName, ByteBuffer key) throws TException {
     throw new NotImplementedException();
   }
 

@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 
 public interface HankSmartClientIface extends SmartClient.Iface {
 
-  public FutureGet futureGet(String domainName, ByteBuffer key) throws TException;
+  public FutureGet concurrentGet(String domainName, ByteBuffer key) throws TException;
 
   public abstract void stop();
 
