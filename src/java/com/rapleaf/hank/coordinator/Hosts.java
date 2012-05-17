@@ -128,11 +128,7 @@ public final class Hosts {
 
   public static RuntimeStatisticsAggregator
   computeRuntimeStatisticsForHost(Map<Domain, RuntimeStatisticsAggregator> runtimeStatistics) {
-    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
-    for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry : runtimeStatistics.entrySet()) {
-      result.add(entry.getValue());
-    }
-    return result;
+    return RuntimeStatisticsAggregator.combine(runtimeStatistics.values());
   }
 
   public static RuntimeStatisticsAggregator

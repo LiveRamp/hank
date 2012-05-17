@@ -135,15 +135,15 @@ public final class RingGroups {
   public static RuntimeStatisticsAggregator
   computeRuntimeStatisticsForRingGroup(
       Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics) {
-    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+    List<RuntimeStatisticsAggregator> runtimeStatisticsAggregators = new ArrayList<RuntimeStatisticsAggregator>();
     for (Map.Entry<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> entry1 : runtimeStatistics.entrySet()) {
       for (Map.Entry<Host, Map<Domain, RuntimeStatisticsAggregator>> entry2 : entry1.getValue().entrySet()) {
         for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry3 : entry2.getValue().entrySet()) {
-          result.add(entry3.getValue());
+          runtimeStatisticsAggregators.add(entry3.getValue());
         }
       }
     }
-    return result;
+    return RuntimeStatisticsAggregator.combine(runtimeStatisticsAggregators);
   }
 
   public static RuntimeStatisticsAggregator
@@ -159,18 +159,24 @@ public final class RingGroups {
   public static SortedMap<Domain, RuntimeStatisticsAggregator>
   computeRuntimeStatisticsForDomains(
       Map<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> runtimeStatistics) {
-    SortedMap<Domain, RuntimeStatisticsAggregator> result = new TreeMap<Domain, RuntimeStatisticsAggregator>();
+    // Build lists of aggregators
+    Map<Domain, List<RuntimeStatisticsAggregator>> runtimeStatisticsAggregators = new HashMap<Domain, List<RuntimeStatisticsAggregator>>();
     for (Map.Entry<Ring, Map<Host, Map<Domain, RuntimeStatisticsAggregator>>> entry1 : runtimeStatistics.entrySet()) {
       for (Map.Entry<Host, Map<Domain, RuntimeStatisticsAggregator>> entry2 : entry1.getValue().entrySet()) {
         for (Map.Entry<Domain, RuntimeStatisticsAggregator> entry3 : entry2.getValue().entrySet()) {
-          RuntimeStatisticsAggregator aggregator = result.get(entry3.getKey());
-          if (aggregator == null) {
-            aggregator = new RuntimeStatisticsAggregator();
-            result.put(entry3.getKey(), aggregator);
+          List<RuntimeStatisticsAggregator> aggregators = runtimeStatisticsAggregators.get(entry3.getKey());
+          if (aggregators == null) {
+            aggregators = new ArrayList<RuntimeStatisticsAggregator>();
+            runtimeStatisticsAggregators.put(entry3.getKey(), aggregators);
           }
-          aggregator.add(entry3.getValue());
+          aggregators.add(entry3.getValue());
         }
       }
+    }
+    // Build result
+    SortedMap<Domain, RuntimeStatisticsAggregator> result = new TreeMap<Domain, RuntimeStatisticsAggregator>();
+    for (Map.Entry<Domain, List<RuntimeStatisticsAggregator>> entry : runtimeStatisticsAggregators.entrySet()) {
+      result.put(entry.getKey(), RuntimeStatisticsAggregator.combine(entry.getValue()));
     }
     return result;
   }

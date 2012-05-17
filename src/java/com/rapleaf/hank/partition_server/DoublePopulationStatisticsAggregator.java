@@ -18,6 +18,7 @@ package com.rapleaf.hank.partition_server;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Random;
 
 public class DoublePopulationStatisticsAggregator {
@@ -59,7 +60,7 @@ public class DoublePopulationStatisticsAggregator {
     reservoirSample.clear();
   }
 
-  public void aggregate(double minimum, double maximum, long numValues, double total, double[] randomSample) {
+  public void aggregate(double minimum, double maximum, long numValues, double total, double[] values) {
     if (maximum > this.maximum) {
       this.maximum = maximum;
     }
@@ -68,19 +69,37 @@ public class DoublePopulationStatisticsAggregator {
     }
     this.numValues += numValues;
     this.total += total;
-    this.reservoirSample.sample(randomSample, random);
+    this.reservoirSample.sample(values, random);
   }
 
-  public void aggregate(DoublePopulationStatisticsAggregator other) {
-    if (other.maximum > this.maximum) {
-      this.maximum = other.maximum;
+  public static DoublePopulationStatisticsAggregator
+  combine(Collection<DoublePopulationStatisticsAggregator> aggregators) {
+    Random random = new Random();
+    DoublePopulationStatisticsAggregator result = new DoublePopulationStatisticsAggregator();
+    for (DoublePopulationStatisticsAggregator aggregator : aggregators) {
+      if (aggregator.maximum > result.maximum) {
+        result.maximum = aggregator.maximum;
+      }
+      if (aggregator.minimum < result.minimum) {
+        result.minimum = aggregator.minimum;
+      }
+      result.numValues += aggregator.numValues;
+      result.total += aggregator.total;
     }
-    if (other.minimum < this.minimum) {
-      this.minimum = other.minimum;
+    // Now we can create a stream of values based on a
+    // random sample of the aggregators reservoirs but
+    // with the number of values in their streams a weight
+    // and reservoir sample that. This assumes that all given reservoirs
+    // have the same size.
+    for (DoublePopulationStatisticsAggregator aggregator : aggregators) {
+      double ratio = (double) aggregator.numValues / (double) result.numValues;
+      for (double value : aggregator.reservoirSample.getReservoir()) {
+        if ((Math.abs(random.nextDouble()) / Double.MAX_VALUE) < ratio) {
+          result.reservoirSample.sample(value, random);
+        }
+      }
     }
-    this.numValues += other.numValues;
-    this.total += other.total;
-    this.reservoirSample.sample(other.reservoirSample, random);
+    return result;
   }
 
   public Double getMaximum() {

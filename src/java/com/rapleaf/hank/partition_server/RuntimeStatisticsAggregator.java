@@ -18,6 +18,10 @@ package com.rapleaf.hank.partition_server;
 
 import org.apache.log4j.Logger;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class RuntimeStatisticsAggregator {
 
   private static Logger LOG = Logger.getLogger(RuntimeStatisticsAggregator.class);
@@ -65,14 +69,21 @@ public class RuntimeStatisticsAggregator {
     numL2CacheHitsTotal += runtimeStatistics.numL2CacheHits;
   }
 
-  public void add(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
-    throughputTotal += runtimeStatisticsAggregator.throughputTotal;
-    responseDataThroughputTotal += runtimeStatisticsAggregator.responseDataThroughputTotal;
-    numRequestsTotal += runtimeStatisticsAggregator.numRequestsTotal;
-    numHitsTotal += runtimeStatisticsAggregator.numHitsTotal;
-    numL1CacheHitsTotal += runtimeStatisticsAggregator.numL1CacheHitsTotal;
-    numL2CacheHitsTotal += runtimeStatisticsAggregator.numL2CacheHitsTotal;
-    getRequestsPopulationStatistics.aggregate(runtimeStatisticsAggregator.getRequestsPopulationStatistics);
+  public static RuntimeStatisticsAggregator combine(Collection<RuntimeStatisticsAggregator> runtimeStatisticsAggregators) {
+    RuntimeStatisticsAggregator result = new RuntimeStatisticsAggregator();
+    List<DoublePopulationStatisticsAggregator> doublePopulationStatisticsAggregators
+        = new ArrayList<DoublePopulationStatisticsAggregator>(runtimeStatisticsAggregators.size());
+    for (RuntimeStatisticsAggregator runtimeStatisticsAggregator : runtimeStatisticsAggregators) {
+      result.throughputTotal += runtimeStatisticsAggregator.throughputTotal;
+      result.responseDataThroughputTotal += runtimeStatisticsAggregator.responseDataThroughputTotal;
+      result.numRequestsTotal += runtimeStatisticsAggregator.numRequestsTotal;
+      result.numHitsTotal += runtimeStatisticsAggregator.numHitsTotal;
+      result.numL1CacheHitsTotal += runtimeStatisticsAggregator.numL1CacheHitsTotal;
+      result.numL2CacheHitsTotal += runtimeStatisticsAggregator.numL2CacheHitsTotal;
+      doublePopulationStatisticsAggregators.add(runtimeStatisticsAggregator.getRequestsPopulationStatistics);
+    }
+    result.getRequestsPopulationStatistics = DoublePopulationStatisticsAggregator.combine(doublePopulationStatisticsAggregators);
+    return result;
   }
 
   public void setGetRequestsPopulationStatistics(DoublePopulationStatisticsAggregator populationStatistics) {
