@@ -193,7 +193,7 @@ public class UpdateManager implements IUpdateManager {
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
           storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion);
 
-          // Record update suceess
+          // Record update success
           partition.setCurrentDomainGroupVersion(targetDomainGroupVersion.getVersionNumber());
           LOG.info(String.format(
               "Completed partition update of domain %s partition %d to version %d.",

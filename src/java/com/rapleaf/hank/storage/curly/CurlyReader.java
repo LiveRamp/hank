@@ -51,7 +51,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   public CurlyReader(CurlyFilePath curlyFile,
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
-                     int cacheCapacity) throws FileNotFoundException {
+                     int cacheCapacity) throws IOException {
     this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1);
   }
 
@@ -61,7 +61,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int cacheCapacity,
                      BlockCompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
-                     int offsetInBlockNumBytes) throws FileNotFoundException {
+                     int offsetInBlockNumBytes) throws IOException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
@@ -73,6 +73,12 @@ public class CurlyReader implements Reader, ICurlyReader {
       this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
     } else {
       this.cache = null;
+    }
+    // Check that key file is at the same version
+    if (keyFileReader.getVersionNumber() == null ||
+        !keyFileReader.getVersionNumber().equals(versionNumber)) {
+      throw new IOException("Curly Reader version (" + versionNumber
+          + ") does not match the provided key file Reader version (" + keyFileReader.getVersionNumber() + ")");
     }
   }
 

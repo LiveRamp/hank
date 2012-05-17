@@ -16,9 +16,9 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 public interface ICurlyReaderFactory {
 
-  public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws FileNotFoundException;
+  public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException;
 }
