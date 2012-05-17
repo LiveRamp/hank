@@ -40,7 +40,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void setCurrentDomainGroupVersion(int version) {
+  public void setCurrentDomainGroupVersion(Integer version) {
     currentDomainGroupVersion = version;
   }
 

@@ -316,6 +316,10 @@ public class TestUpdateManager extends BaseTestCase {
     } catch (IOException e) {
       // Correct behavior
     }
+    // All updates have failed, so all versions should be set to null
+    for (HostDomainPartition partition : mockHostDomain.getPartitions()) {
+      assertEquals(null, partition.getCurrentDomainGroupVersion());
+    }
   }
 
   public void testInterruptedUpdateTask() throws Exception {

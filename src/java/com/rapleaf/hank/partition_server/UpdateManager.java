@@ -186,6 +186,10 @@ public class UpdateManager implements IUpdateManager {
             return;
           }
 
+          // Mark the beginning of the update by first unsetting the partition's current version number.
+          // That way, if the update fails, we will have to update it again, and won't be able to serve it.
+          partition.setCurrentDomainGroupVersion(null);
+
           // Perform update
           StorageEngine storageEngine = domain.getStorageEngine();
           LOG.info(String.format(

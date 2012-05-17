@@ -129,7 +129,7 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void setCurrentDomainGroupVersion(int version) throws IOException {
+  public void setCurrentDomainGroupVersion(Integer version) throws IOException {
     try {
       currentDomainGroupVersion.set(version);
     } catch (Exception e) {
