@@ -26,8 +26,10 @@ import java.util.TreeMap;
 public class MapReader implements Reader {
 
   private final Map<ByteBuffer, byte[]> map;
+  private final Integer versionNumber;
 
-  public MapReader(byte[]... keysAndValues) {
+  public MapReader(Integer versionNumber, byte[]... keysAndValues) {
+    this.versionNumber = versionNumber;
     if (keysAndValues.length % 2 != 0) {
       throw new IllegalArgumentException("You must pass an even number of byte[]s to this constructor");
     }
@@ -55,7 +57,7 @@ public class MapReader implements Reader {
 
   @Override
   public Integer getVersionNumber() {
-    return null;
+    return versionNumber;
   }
 
   @Override

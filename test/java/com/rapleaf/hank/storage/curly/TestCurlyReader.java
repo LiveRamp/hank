@@ -45,7 +45,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     s.flush();
     s.close();
 
-    MapReader keyfileReader = new MapReader(
+    MapReader keyfileReader = new MapReader(0,
         KEY1.array(), new byte[]{0, 0, 0},
         KEY2.array(), new byte[]{5, 0, 0},
         KEY3.array(), new byte[]{10, 0, 0},
@@ -112,7 +112,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     s.flush();
     s.close();
 
-    MapReader keyfileReader = new MapReader(
+    MapReader keyfileReader = new MapReader(0,
         KEY1.array(), new byte[]{0, 0, 0, 0, 0},
         KEY2.array(), new byte[]{0, 0, 0, 5, 0},
         KEY3.array(), new byte[]{0, 0, 0, 10, 0}
@@ -150,7 +150,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     s.flush();
     s.close();
 
-    MapReader keyfileReader = new MapReader(
+    MapReader keyfileReader = new MapReader(0,
         KEY1.array(), new byte[]{0, 0, 0, 0, 0},
         KEY2.array(), new byte[]{0, 0, 0, 5, 0},
         KEY3.array(), new byte[]{0, 0, 0, 10, 0}
