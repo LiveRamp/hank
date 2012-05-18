@@ -45,7 +45,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private static final long GET_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
 
-  private static final int UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
+  private static final int UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
   private static final int UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS = 3;
   private static final long UPDATE_RUNTIME_STATISTICS_MEASUREMENT_SLEEP_TIME_MS = 1000;
 
