@@ -725,7 +725,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       }
       // Output results
       for (Map.Entry<PartitionServerAddress, ConnectionLoad> entry : partitionServerToConnectionLoad.entrySet()) {
-        ConnectionLoad connectionLoad = entry.getValue();
+        ConnectionLoad totalConnectionLoad = entry.getValue();
+        ConnectionLoad connectionLoad = new ConnectionLoad(
+            (int) ((double) totalConnectionLoad.getNumConnections() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
+            (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
         LOG.info("Load on connections to " + entry.getKey() + ": " + UiUtils.formatDouble(connectionLoad.getLoad())
             + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
       }
