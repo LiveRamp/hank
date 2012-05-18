@@ -538,6 +538,12 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     stopGetTaskExecutor();
     cacheUpdaterRunnable.stop();
     updateRuntimeStatisticsRunnable.cancel();
+    updateRuntimeStatisticsThread.interrupt();
+    try {
+      updateRuntimeStatisticsThread.join();
+    } catch (InterruptedException e) {
+      LOG.info("Interrupted while waiting for update runtime statistics thread to terminate during shutdown.");
+    }
     disconnect();
   }
 
