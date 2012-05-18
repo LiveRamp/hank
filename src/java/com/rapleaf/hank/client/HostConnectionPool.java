@@ -312,4 +312,19 @@ public class HostConnectionPool {
   public static Integer getHostListShuffleSeed(Integer domainId, Integer partitionId) {
     return (domainId + 1) * (partitionId + 1);
   }
+
+  // Compute the ratio of used (locked) connections over the total number of connections
+  public ConnectionLoad getConnectionLoad() {
+    int numLockedConnections = 0;
+    int numConnections = 0;
+    for (List<HostConnectionAndHostIndex> hostConnectionAndHostIndexes : hostToConnections) {
+      for (HostConnectionAndHostIndex hostConnectionAndHostIndex : hostConnectionAndHostIndexes) {
+        if (hostConnectionAndHostIndex.hostConnection.isLocked()) {
+          numLockedConnections += 1;
+        }
+        numConnections += 1;
+      }
+    }
+    return new ConnectionLoad(numConnections, numLockedConnections);
+  }
 }

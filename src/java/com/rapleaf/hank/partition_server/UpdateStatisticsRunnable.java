@@ -44,7 +44,7 @@ public abstract class UpdateStatisticsRunnable implements Runnable {
       try {
         runCore();
       } catch (IOException e) {
-        LOG.error("Failed to set statistics", e);
+        LOG.error("Failed to update statistics", e);
       }
       if (cancelled.get()) {
         cleanup();

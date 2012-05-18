@@ -20,6 +20,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.partition_server.UpdateStatisticsRunnable;
+import com.rapleaf.hank.ui.UiUtils;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
@@ -43,6 +45,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private static final long GET_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
 
+  private static final int UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 60000;
+  private static final int UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS = 3;
+  private static final long UPDATE_RUNTIME_STATISTICS_MEASUREMENT_SLEEP_TIME_MS = 1000;
+
   private static final Logger LOG = Logger.getLogger(HankSmartClient.class);
 
   private final RingGroup ringGroup;
@@ -55,6 +61,9 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final int bulkQueryTimeoutMs;
 
   private final ThreadPoolExecutor getTaskExecutor;
+
+  private final UpdateRuntimeStatisticsRunnable updateRuntimeStatisticsRunnable;
+  private final Thread updateRuntimeStatisticsThread;
 
   // Cache
 
@@ -136,6 +145,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
         new SynchronousQueue<Runnable>(),
         new GetTaskThreadFactory());
+    // Initialize Load statistics runner
+    updateRuntimeStatisticsRunnable = new UpdateRuntimeStatisticsRunnable();
+    updateRuntimeStatisticsThread = new Thread(updateRuntimeStatisticsRunnable, "Update Load Statistics");
+    updateRuntimeStatisticsThread.start();
+
     // Initialize cache and cache updater
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
@@ -523,6 +537,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   public void stop() {
     stopGetTaskExecutor();
     cacheUpdaterRunnable.stop();
+    updateRuntimeStatisticsRunnable.cancel();
     disconnect();
   }
 
@@ -670,6 +685,49 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     @Override
     public Thread newThread(Runnable runnable) {
       return new Thread(runnable, "GetTaskThread");
+    }
+  }
+
+  private class UpdateRuntimeStatisticsRunnable extends UpdateStatisticsRunnable implements Runnable {
+
+    private final Map<PartitionServerAddress, ConnectionLoad> partitionServerToConnectionLoad;
+
+    public UpdateRuntimeStatisticsRunnable() {
+      super(UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
+      partitionServerToConnectionLoad = new HashMap<PartitionServerAddress, ConnectionLoad>();
+    }
+
+    @Override
+    public void runCore() throws IOException {
+      partitionServerToConnectionLoad.clear();
+      for (int i = 0; i < UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS; ++i) {
+        for (Map.Entry<PartitionServerAddress, HostConnectionPool> entry
+            : partitionServerAddressToConnectionPool.entrySet()) {
+          ConnectionLoad currentConnectionLoad = entry.getValue().getConnectionLoad();
+          ConnectionLoad totalConnectionLoad = partitionServerToConnectionLoad.get(entry.getKey());
+          if (totalConnectionLoad == null) {
+            totalConnectionLoad = new ConnectionLoad();
+          }
+          totalConnectionLoad.aggregate(currentConnectionLoad);
+          partitionServerToConnectionLoad.put(entry.getKey(), totalConnectionLoad);
+        }
+        try {
+          Thread.sleep(UPDATE_RUNTIME_STATISTICS_MEASUREMENT_SLEEP_TIME_MS);
+        } catch (InterruptedException e) {
+          cancel();
+        }
+      }
+      // Output results
+      for (Map.Entry<PartitionServerAddress, ConnectionLoad> entry : partitionServerToConnectionLoad.entrySet()) {
+        ConnectionLoad connectionLoad = entry.getValue();
+        LOG.info("Load on connections to " + entry.getKey() + ": " + UiUtils.formatDouble(connectionLoad.getLoad())
+            + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
+      }
+    }
+
+    @Override
+    protected void cleanup() {
+      // No-op
     }
   }
 }

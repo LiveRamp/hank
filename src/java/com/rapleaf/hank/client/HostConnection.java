@@ -259,4 +259,8 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       }
     }
   }
+
+  public boolean isLocked() {
+    return lock.isLocked();
+  }
 }
