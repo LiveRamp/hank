@@ -16,6 +16,8 @@ public interface HankSmartClientIface extends SmartClient.Iface {
 
   public FutureGet concurrentGet(String domainName, ByteBuffer key) throws TException;
 
+  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> key) throws TException;
+
   public abstract void stop();
 
 }

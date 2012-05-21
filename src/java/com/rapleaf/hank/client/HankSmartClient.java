@@ -389,6 +389,27 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     return _concurrentGet(domain, key);
   }
 
+  // Asynchronous get
+  @Override
+  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> keys) throws TException {
+    List<FutureGet> result = new ArrayList<FutureGet>(keys.size());
+    // Get Domain
+    Domain domain = this.coordinator.getDomain(domainName);
+    if (domain == null) {
+      LOG.error("No such Domain: " + domainName);
+      FutureGet noSuchDomainFutureGet = new FutureGet(new StaticGetTaskRunnable(NO_SUCH_DOMAIN));
+      noSuchDomainFutureGet.run();
+      for (ByteBuffer key : keys) {
+        result.add(noSuchDomainFutureGet);
+      }
+      return result;
+    }
+    for (ByteBuffer key : keys) {
+      result.add(_concurrentGet(domain, key));
+    }
+    return result;
+  }
+
   private FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);

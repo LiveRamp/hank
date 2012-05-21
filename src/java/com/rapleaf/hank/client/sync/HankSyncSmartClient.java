@@ -120,6 +120,11 @@ public class HankSyncSmartClient implements HankSmartClientIface {
   }
 
   @Override
+  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> key) throws TException {
+    throw new NotImplementedException();
+  }
+
+  @Override
   public void stop() {
     asyncSmartClient.stop();
   }
