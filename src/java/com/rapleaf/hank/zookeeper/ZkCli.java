@@ -19,14 +19,25 @@ package com.rapleaf.hank.zookeeper;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.zookeeper.KeeperException;
 
+import java.util.List;
+
 public class ZkCli extends ZooKeeperConnection {
 
   public ZkCli(String connectString) throws InterruptedException {
     super(connectString);
   }
 
+  private int countDescendants(String node) throws InterruptedException, KeeperException {
+    List<String> children = zk.getChildren(node, false);
+    int count = 0;
+    for (String child : children) {
+      count += countDescendants(child);
+    }
+    return 1 + count;
+  }
+
   public static void main(String[] args) throws InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[] {"connect_string", "[set|null|rmr]", "arguments..."}, ZkCli.class);
+    CommandLineChecker.check(args, new String[]{"connect_string", "[set|null|rmr]", "arguments..."}, ZkCli.class);
     String connectString = args[0];
     String command = args[1];
     String argument = args[2];
@@ -43,9 +54,12 @@ public class ZkCli extends ZooKeeperConnection {
     } else if (command.equals("null")) {
       System.out.println("Setting node to null: " + argument);
       zkCli.zk.setData(argument, null, -1);
+    } else if (command.equals("count")) {
+      System.out.println("Counting the number of descendants in: " + argument);
+      int count = zkCli.countDescendants(argument);
+      System.out.println("Result: " + count);
     } else {
       System.err.println("Unknown command: " + command);
     }
   }
-
 }
