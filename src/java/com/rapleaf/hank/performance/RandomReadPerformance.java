@@ -31,8 +31,7 @@ public class RandomReadPerformance {
 
   private static final Logger LOG = Logger.getLogger(RandomReadPerformance.class);
 
-  private static final int RANDOM_BYTES_BUFFER_SIZE = 32 * (1 << 10);
-  private static final int NUM_TEST_FILE_RANDOM_BYTES_BUFFERS = 32 * (1 << 10);
+  private static final int RANDOM_READ_BUFFER_SIZE = 32 * (1 << 10);
   private static final int NUM_RANDOM_READS = 8 << 10;
   private static final int NUM_RANDOM_READ_THREADS = 8;
   private static final int GET_TIMER_AGGREGATOR_WINDOW = NUM_RANDOM_READS;
@@ -63,7 +62,7 @@ public class RandomReadPerformance {
     long totalDuration = System.currentTimeMillis() - startTime;
     LOG.info("Total duration: " + totalDuration + " ms");
     LOG.info("Total throughput: " + ((double) totalRandomReads / (totalDuration / 1000.0)) + " random reads per second");
-    LOG.info("Total throughput: " + UiUtils.formatNumBytes((long) ((totalRandomReads * RANDOM_BYTES_BUFFER_SIZE) / (totalDuration / 1000.0))) + "/s");
+    LOG.info("Total throughput: " + UiUtils.formatNumBytes((long) ((totalRandomReads * RANDOM_READ_BUFFER_SIZE) / (totalDuration / 1000.0))) + "/s");
   }
 
   private static class RandomReadsRunnable implements Runnable {
@@ -85,14 +84,14 @@ public class RandomReadPerformance {
       try {
         Random random = new Random();
         // Perform random reads
-        byte[] readBufferArray = new byte[RANDOM_BYTES_BUFFER_SIZE];
+        byte[] readBufferArray = new byte[RANDOM_READ_BUFFER_SIZE];
         ByteBuffer readBuffer = ByteBuffer.wrap(readBufferArray);
         for (int i = 0; i < NUM_RANDOM_READS; ++i) {
           readBuffer.clear();
           HankTimer timer = new HankTimer();
-          long randomPosition = Math.abs(random.nextLong()) % (NUM_TEST_FILE_RANDOM_BYTES_BUFFERS);
-          testChannels[i % testChannels.length]
-              .position(randomPosition)
+          FileChannel testChannel = testChannels[i % testChannels.length];
+          long randomPosition = Math.abs(random.nextLong()) % (testChannel.size() - RANDOM_READ_BUFFER_SIZE);
+          testChannel.position(randomPosition)
               .read(readBuffer);
           timerAggregator.add(timer);
         }
