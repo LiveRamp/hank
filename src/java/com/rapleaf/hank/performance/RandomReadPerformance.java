@@ -17,10 +17,12 @@
 package com.rapleaf.hank.performance;
 
 import com.rapleaf.hank.ui.UiUtils;
-import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Random;
@@ -29,7 +31,6 @@ public class RandomReadPerformance {
 
   private static final Logger LOG = Logger.getLogger(RandomReadPerformance.class);
 
-  private static final int NUM_TEST_FILES = 16;
   private static final int RANDOM_BYTES_BUFFER_SIZE = 32 * (1 << 10);
   private static final int NUM_TEST_FILE_RANDOM_BYTES_BUFFERS = 32 * (1 << 10);
   private static final int NUM_RANDOM_READS = 8 << 10;
@@ -37,21 +38,13 @@ public class RandomReadPerformance {
   private static final int GET_TIMER_AGGREGATOR_WINDOW = NUM_RANDOM_READS;
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    CommandLineChecker.check(args, new String[]{"work_directory"}, RandomReadPerformance.class);
-    Random random = new Random();
     long totalRandomReads = NUM_RANDOM_READS * NUM_RANDOM_READ_THREADS;
 
-    String workDirectory = args[0];
-    File workDirectoryFile = new File(workDirectory);
-    if (workDirectoryFile.exists()) {
-      throw new IOException("Work directory already exists: " + workDirectoryFile.getAbsolutePath());
+    File[] testFiles = new File[args.length];
+    for (int i = 0; i < args.length; ++i) {
+      testFiles[i] = new File(args[i]);
+      LOG.info("Using test file: " + testFiles[i].getAbsolutePath());
     }
-    if (!workDirectoryFile.mkdirs()) {
-      throw new IOException("Failed to create directory: " + workDirectoryFile.getAbsolutePath());
-    }
-
-    // Create test files
-    File[] testFiles = createTestFiles(workDirectoryFile, random);
 
     Thread[] threads = new Thread[NUM_RANDOM_READ_THREADS];
     for (int i = 0; i < NUM_RANDOM_READ_THREADS; ++i) {
@@ -73,28 +66,6 @@ public class RandomReadPerformance {
     LOG.info("Total throughput: " + UiUtils.formatNumBytes((long) ((totalRandomReads * RANDOM_BYTES_BUFFER_SIZE) / (totalDuration / 1000.0))) + "/s");
   }
 
-  private static File[] createTestFiles(File workDirectoryFile, Random random) throws IOException {
-    byte[] randomBytes = new byte[RANDOM_BYTES_BUFFER_SIZE];
-    File[] testFiles = new File[NUM_TEST_FILES];
-    for (int i = 0; i < NUM_TEST_FILES; ++i) {
-      File testFile = new File(workDirectoryFile, "hank_random_read_performance_file_" + i);
-      testFiles[i] = testFile;
-      if (!testFile.createNewFile()) {
-        throw new IOException("Failed to create new file: " + testFile.getAbsolutePath());
-      }
-      LOG.info("Creating file " + testFile.getAbsolutePath() + " with random bytes (" +
-          UiUtils.formatNumBytes(NUM_TEST_FILE_RANDOM_BYTES_BUFFERS * RANDOM_BYTES_BUFFER_SIZE) + ")");
-      OutputStream testFileOutputStream = new BufferedOutputStream(new FileOutputStream(testFile));
-      // Write random bytes
-      for (int j = 0; j < NUM_TEST_FILE_RANDOM_BYTES_BUFFERS; ++j) {
-        random.nextBytes(randomBytes);
-        testFileOutputStream.write(randomBytes);
-      }
-      testFileOutputStream.close();
-    }
-    return testFiles;
-  }
-
   private static class RandomReadsRunnable implements Runnable {
 
     private final FileChannel[] testChannels;
@@ -102,8 +73,8 @@ public class RandomReadPerformance {
 
     public RandomReadsRunnable(File[] testFiles) throws FileNotFoundException {
       // Open file channels
-      testChannels = new FileChannel[NUM_TEST_FILES];
-      for (int i = 0; i < NUM_TEST_FILES; ++i) {
+      testChannels = new FileChannel[testFiles.length];
+      for (int i = 0; i < testFiles.length; ++i) {
         testChannels[i] = new FileInputStream(testFiles[i]).getChannel();
       }
       timerAggregator = new HankTimerAggregator("Random reads", GET_TIMER_AGGREGATOR_WINDOW);
@@ -120,7 +91,7 @@ public class RandomReadPerformance {
           readBuffer.clear();
           HankTimer timer = new HankTimer();
           long randomPosition = Math.abs(random.nextLong()) % (NUM_TEST_FILE_RANDOM_BYTES_BUFFERS);
-          testChannels[i % NUM_TEST_FILES]
+          testChannels[i % testChannels.length]
               .position(randomPosition)
               .read(readBuffer);
           timerAggregator.add(timer);
