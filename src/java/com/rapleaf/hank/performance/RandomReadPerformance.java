@@ -50,7 +50,9 @@ public class RandomReadPerformance {
       threads[i] = new Thread(new RandomReadsRunnable(testFiles));
     }
 
-    LOG.info("Calculating time taken to perform " + totalRandomReads + " random reads in " + NUM_RANDOM_READ_THREADS + " threads (" + NUM_RANDOM_READS + " random reads each)");
+    LOG.info("Calculating time taken to perform " + totalRandomReads
+        + " random " + UiUtils.formatNumBytes(RANDOM_READ_BUFFER_SIZE) + " reads in "
+        + NUM_RANDOM_READ_THREADS + " threads (" + NUM_RANDOM_READS + " random reads each)");
 
     long startTime = System.currentTimeMillis();
     for (Thread thread : threads) {
