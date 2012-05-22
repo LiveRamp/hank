@@ -31,7 +31,7 @@ public class ZkCli extends ZooKeeperConnection {
     List<String> children = zk.getChildren(node, false);
     int count = 0;
     for (String child : children) {
-      count += countDescendants(child);
+      count += countDescendants(ZkPath.append(node, child));
     }
     return 1 + count;
   }
