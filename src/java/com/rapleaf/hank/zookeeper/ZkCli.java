@@ -58,6 +58,11 @@ public class ZkCli extends ZooKeeperConnection {
       System.out.println("Counting the number of descendants in: " + argument);
       int count = zkCli.countDescendants(argument);
       System.out.println("Result: " + count);
+    } else if (command.equals("ls")) {
+      List<String> children = zkCli.zk.getChildren(argument, false);
+      for (String child : children) {
+        System.out.println(ZkPath.append(argument, child));
+      }
     } else {
       System.err.println("Unknown command: " + command);
     }
