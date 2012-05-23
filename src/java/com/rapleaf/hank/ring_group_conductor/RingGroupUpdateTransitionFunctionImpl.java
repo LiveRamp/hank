@@ -103,6 +103,11 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
   @Override
   public void manageTransitions(RingGroup ringGroup) throws IOException {
     DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
+    if (targetVersion == null) {
+      // Nothing to do
+      LOG.info("Target version not found. Nothing to do.");
+      return;
+    }
 
     Set<Ring> ringsFullyServing = new TreeSet<Ring>();
     List<Ring> ringsTransitioning = new ArrayList<Ring>();
