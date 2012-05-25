@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class MockHankSmartClient implements HankSmartClientIface {
 
-  Map<String, Map<ByteBuffer, HankResponse>> storage = new HashMap<String, Map<ByteBuffer, HankResponse>>();
+  private Map<String, Map<ByteBuffer, HankResponse>> storage = new HashMap<String, Map<ByteBuffer, HankResponse>>();
 
   public MockHankSmartClient() {
   }
