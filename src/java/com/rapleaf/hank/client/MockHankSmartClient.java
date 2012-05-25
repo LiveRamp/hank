@@ -1,6 +1,7 @@
 package com.rapleaf.hank.client;
 
 import com.rapleaf.hank.generated.HankBulkResponse;
+import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.util.Bytes;
 import org.apache.commons.lang.NotImplementedException;
@@ -24,12 +25,12 @@ public class MockHankSmartClient implements HankSmartClientIface {
     Map<ByteBuffer, HankResponse> domain;
     domain = storage.get(domainName);
     if (domain == null) {
-      return new HankResponse(HankResponse._Fields.NOT_FOUND, "Could not find domain '" + domainName + "'");
+      return HankResponse.xception(HankException.internal_error("Could not find domain '" + domainName + "'"));
     }
     HankResponse result = domain.get(key);
     if (result == null) {
-      return new HankResponse(HankResponse._Fields.NOT_FOUND, "Could not find key '" + Bytes.bytesToHexString(key)
-          + "' in domain '" + domainName + "'");
+      return HankResponse.xception(HankException.internal_error("Could not find key '" + Bytes.bytesToHexString(key)
+          + "' in domain '" + domainName + "'"));
     }
     return result;
   }
