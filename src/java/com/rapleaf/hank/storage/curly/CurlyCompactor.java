@@ -58,6 +58,12 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
   }
 
   @Override
+  protected boolean shouldFetchCurlyVersion(DomainVersion version) throws IOException {
+    // The CurlyCompactor needs all versions of curly
+    return true;
+  }
+
+  @Override
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,

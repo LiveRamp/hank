@@ -62,6 +62,11 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         localPartitionRoot) {
       @Override
+      protected boolean shouldFetchCurlyVersion(DomainVersion version) throws IOException {
+        return true;
+      }
+
+      @Override
       protected void runUpdateCore(DomainVersion currentVersion,
                                    DomainVersion updatingToVersion,
                                    IncrementalUpdatePlan updatePlan,
@@ -175,8 +180,8 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     deleteRemoteFile("0/00002.delta.cueball");
     deleteRemoteFile("0/00002.delta.curly");
     assertTrue(existsLocalFile(fetchRootName + "/00002.delta.cueball"));
-    // Curly delta should not be fetched
-    assertFalse(existsLocalFile(fetchRootName + "/00002.delta.curly"));
+    // Curly delta should be fetched
+    assertTrue(existsLocalFile(fetchRootName + "/00002.delta.curly"));
 
     // Fetch base
     makeRemoteFile("0/00000.base.cueball");

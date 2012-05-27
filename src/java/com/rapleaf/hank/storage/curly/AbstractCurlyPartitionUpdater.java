@@ -127,13 +127,13 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     FileUtils.deleteDirectory(new File(localPartitionRootCache));
   }
 
+  protected abstract boolean shouldFetchCurlyVersion(DomainVersion version) throws IOException;
+
   @Override
   protected void fetchVersion(DomainVersion version, String fetchRoot) throws IOException {
     // Fetch Cueball version.
     fetchCueballVersion(version, fetchRoot);
-    // If this is the base, we also need to fetch the Curly file. Otherwise,
-    // the Curly fetching is done on the fly during the update.
-    if (IncrementalDomainVersionProperties.isBase(version)) {
+    if (shouldFetchCurlyVersion(version)) {
       fetchCurlyVersion(version, fetchRoot);
     }
   }

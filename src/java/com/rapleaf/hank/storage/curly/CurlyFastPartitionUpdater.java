@@ -22,6 +22,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import org.apache.log4j.Logger;
 
@@ -59,6 +60,13 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     this.compressionCodec = compressionCodec;
     this.curlyMerger = curlyMerger;
     this.cueballMerger = cueballMerger;
+  }
+
+  @Override
+  protected boolean shouldFetchCurlyVersion(DomainVersion version) throws IOException {
+    // If this is the base, we also need to fetch the Curly file. Otherwise,
+    // the Curly fetching is done on the fly during the update.
+    return IncrementalDomainVersionProperties.isBase(version);
   }
 
   @Override
