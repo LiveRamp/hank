@@ -84,4 +84,8 @@ public class MockHankSmartClient implements HankSmartClientIface {
   public void put(String domain, byte[] key, byte[] value) {
     put(domain, key, HankResponse.value(value));
   }
+
+  public void clear() {
+    storage.clear();
+  }
 }
