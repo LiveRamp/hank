@@ -26,6 +26,7 @@ import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.KeeperException;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,9 +48,9 @@ public class TestZkDomainGroup extends ZkTestCase {
 
   public void testLoad() throws Exception {
     final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 0);
+        Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 1);
+        Murmur64Partitioner.class.getName(), 1, Collections.<String>emptyList());
 
     Coordinator coord = new MockCoordinator() {
       @Override
@@ -128,7 +129,8 @@ public class TestZkDomainGroup extends ZkTestCase {
         ConstantStorageEngine.Factory.class.getName(),
         "---\n",
         ConstantPartitioner.class.getName(),
-        0);
+        0,
+        Collections.<String>emptyList());
   }
 
   @Override

@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -40,7 +41,8 @@ public interface Coordinator {
                           int numParts,
                           String storageEngineFactoryName,
                           String storageEngineOptions,
-                          String partitionerName) throws IOException;
+                          String partitionerName,
+                          List<String> requiredPartitionServerFlags) throws IOException;
 
   /**
    * Update a domain's properties
@@ -51,7 +53,8 @@ public interface Coordinator {
                              int numParts,
                              String storageEngineFactoryName,
                              String storageEngineOptions,
-                             String partitionerName) throws IOException;
+                             String partitionerName,
+                             List<String> requiredPartitionServerFlags) throws IOException;
 
   /**
    * Get the set of known Domains.

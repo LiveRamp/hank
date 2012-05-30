@@ -56,6 +56,8 @@ public interface Host extends Comparable<Host> {
    */
   public Long getUpSince() throws IOException;
 
+  //public List<String> getFlags() throws IOException;
+
   /**
    * The listener will be notified when host state changes.
    *

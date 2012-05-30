@@ -15,10 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.AbstractDomain;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersionProperties;
-import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
@@ -32,6 +29,7 @@ import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -40,12 +38,13 @@ public class ZkDomain extends AbstractDomain {
 
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
+  private static final String KEY_ID = "id";
   private static final String KEY_NUM_PARTS = "num_parts";
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
   private static final String KEY_VERSIONS = "versions";
-  private static final String KEY_ID = "id";
+  private static final String KEY_REQUIRED_PARTITION_SERVER_FLAGS = "required_partition_server_flags";
 
   private final String name;
   private final int numParts;
@@ -53,6 +52,7 @@ public class ZkDomain extends AbstractDomain {
   private final WatchedString storageEngineFactoryName;
   private final WatchedString storageEngineOptions;
   private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
+  private final WatchedString requiredPartitionServerFlags;
 
   private StorageEngine storageEngine;
   private final String domainPath;
@@ -62,7 +62,15 @@ public class ZkDomain extends AbstractDomain {
 
   private final int id;
 
-  public static ZkDomain create(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName, int id) throws KeeperException, InterruptedException {
+  public static ZkDomain create(ZooKeeperPlus zk,
+                                String domainsRoot,
+                                String domainName,
+                                int numParts,
+                                String storageEngineFactoryName,
+                                String storageEngineOptions,
+                                String partitionerName,
+                                int id,
+                                List<String> requiredPartitionServerFlags) throws KeeperException, InterruptedException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     zk.create(domainPath, null);
     zk.create(ZkPath.append(domainPath, KEY_ID), (Integer.toString(id)).getBytes());
@@ -71,22 +79,33 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
+    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS), Domains.joinPartitionServerFlags(requiredPartitionServerFlags).getBytes());
     zk.create(ZkPath.append(domainPath, DotComplete.NODE_NAME), null);
     return new ZkDomain(zk, domainPath);
   }
 
-  public static ZkDomain update(ZooKeeperPlus zk, String domainsRoot, String domainName, int numParts, String storageEngineFactoryName, String storageEngineOptions, String partitionerName) throws IOException, InterruptedException, KeeperException {
+  public static ZkDomain update(ZooKeeperPlus zk,
+                                String domainsRoot,
+                                String domainName,
+                                int numParts,
+                                String storageEngineFactoryName,
+                                String storageEngineOptions,
+                                String partitionerName,
+                                List<String> requiredPartitionServerFlags) throws IOException, InterruptedException, KeeperException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     // Delete nodes
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_NUM_PARTS));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_PARTITIONER));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS));
     // Re create nodes
     zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS),
+        Domains.joinPartitionServerFlags(requiredPartitionServerFlags).getBytes());
     return new ZkDomain(zk, domainPath);
   }
 
@@ -99,6 +118,7 @@ public class ZkDomain extends AbstractDomain {
     this.storageEngineOptions = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), true);
     this.storageEngineFactoryName = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), true);
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
+    this.requiredPartitionServerFlags = new WatchedString(zk, ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS), true);
 
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
         new ElementLoader<ZkDomainVersion>() {
@@ -129,6 +149,11 @@ public class ZkDomain extends AbstractDomain {
   @Override
   public Partitioner getPartitioner() {
     return partitioner;
+  }
+
+  @Override
+  public List<String> getRequiredPartitionServerFlags() {
+    return Domains.splitPartitionServerFlags(requiredPartitionServerFlags.get());
   }
 
   @Override

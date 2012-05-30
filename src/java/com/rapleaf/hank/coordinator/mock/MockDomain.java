@@ -23,9 +23,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MockDomain extends AbstractDomain {
 
@@ -70,6 +68,11 @@ public class MockDomain extends AbstractDomain {
   @Override
   public Partitioner getPartitioner() {
     return part;
+  }
+
+  @Override
+  public List<String> getRequiredPartitionServerFlags() {
+    return Collections.emptyList();
   }
 
   @Override

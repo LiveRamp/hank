@@ -27,6 +27,7 @@
 
 <h1>Domain <span class='currentItem'><%= domain.getName() %></span></h1>
 
+<form action="/domain/update" method=post>
 <table>
   <tr>
     <td>ID:</td>
@@ -48,6 +49,16 @@
       <%= domain.getPartitioner().getClass().getName() %>
     </td>
   </tr>
+
+  <tr>
+    <td>
+      Required Partition Server Flags:
+    </td>
+    <td>
+      <input type=text name="requiredPartitionServerFlags" size=50 value="<%= Domains.joinPartitionServerFlags(domain.getRequiredPartitionServerFlags()) %>"/>
+    </td>
+  </tr>
+
   <tr>
     <td>
       Storage engine factory:
@@ -56,12 +67,12 @@
       <%= domain.getStorageEngineFactoryClass().getName() %>
     </td>
   </tr>
+
   <tr valign=top>
     <td>
       Storage engine factory options:
     </td>
     <td>
-      <form action="/domain/update" method=post>
         <input type=hidden name="name" value="<%= domain.getName() %>"/>
         <%
         DumperOptions opts = new DumperOptions();
@@ -74,12 +85,17 @@
           : new Yaml(opts).dump(domain.getStorageEngineOptions())
           %>
         </textarea>
-        <br/>
-        <input type=submit value="Save modified storage engine options"/>
-      </form>
     </td>
   </tr>
+  <tr>
+  <td></td>
+  <td>
+    <input type=submit value="Save updated configuration"/>
+  </td>
+  </tr>
+
 </table>
+</form>
 
 <h2>Versions</h2>
 

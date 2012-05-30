@@ -4,15 +4,13 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.rapleaf.hank.partition_server.FilesystemStatisticsAggregator;
 import com.rapleaf.hank.partition_server.RuntimeStatisticsAggregator;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 
 public class UiUtils {
 
@@ -257,5 +255,9 @@ public class UiUtils {
       }
       return l1Str + " / " + l2Str;
     }
+  }
+
+  public static String join(List<String> input, String separator) {
+    return StringUtils.join(input, separator);
   }
 }

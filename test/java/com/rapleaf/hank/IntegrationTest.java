@@ -210,7 +210,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
     pw.println("num_remote_leaf_versions_to_keep: 0");
     pw.close();
-    coordinator.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
+    coordinator.addDomain("domain0", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
 
     sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -224,7 +224,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
     pw.println("num_remote_leaf_versions_to_keep: 0");
     pw.close();
-    coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName());
+    coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
 
     // create empty versions of each domain
 

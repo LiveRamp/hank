@@ -20,6 +20,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
@@ -46,6 +47,8 @@ public interface Domain extends Comparable<Domain> {
   public Map<String, Object> getStorageEngineOptions();
 
   public Partitioner getPartitioner();
+
+  public List<String> getRequiredPartitionServerFlags();
 
   /**
    * Returns the set of DomainVersionConfigs for this Domain in version-numbered

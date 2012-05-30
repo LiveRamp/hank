@@ -22,6 +22,7 @@ import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,7 +46,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   }
 
   public void testAddDomain() throws Exception {
-    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
+    coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.<String>emptyList());
     Domain domain = coord.getDomain("myDomain");
     assertEquals(1, domain.getId());
     assertNotNull(domain);
@@ -54,7 +55,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertTrue(domain.getStorageEngine() instanceof ConstantStorageEngine);
     assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);
 
-    coord.addDomain("myDomain2", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName());
+    coord.addDomain("myDomain2", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.<String>emptyList());
     domain = coord.getDomain("myDomain2");
     assertEquals(2, domain.getId());
     assertNotNull(domain);
@@ -121,7 +122,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     create(domain_groups_root);
     create(ring_groups_root);
 
-    ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0);
+    ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0, Collections.<String>emptyList());
 
     ZkDomainGroup dgc = ZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup", null);
     Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();

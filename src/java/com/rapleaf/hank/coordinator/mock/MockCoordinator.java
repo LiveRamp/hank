@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.mock;
 import com.rapleaf.hank.coordinator.*;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
@@ -115,7 +116,8 @@ public class MockCoordinator implements Coordinator {
   public Domain addDomain(String domainName, int numParts,
                           String storageEngineFactoryName,
                           String storageEngineOptions,
-                          String partitionerName) {
+                          String partitionerName,
+                          List<String> requiredPartitionServerFlags) {
     return null;
   }
 
@@ -123,7 +125,8 @@ public class MockCoordinator implements Coordinator {
   public Domain updateDomain(String domainName, int numParts,
                              String storageEngineFactoryName,
                              String storageEngineOptions,
-                             String partitionerName) {
+                             String partitionerName,
+                             List<String> requiredPartitionServerFlags) {
     return null;
   }
 

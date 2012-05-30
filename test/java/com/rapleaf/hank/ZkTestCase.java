@@ -39,6 +39,7 @@ import java.io.*;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -267,11 +268,11 @@ public class ZkTestCase extends BaseTestCase {
 
     String d0Conf = "---\n  blah: blah\n  moreblah: blahblah";
 
-    final Domain d0 = coord.addDomain("domain0", 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName());
+    final Domain d0 = coord.addDomain("domain0", 32, Echo.Factory.class.getName(), d0Conf, Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     DomainVersion ver = d0.openNewVersion(null);
     ver.close();
     ver = d0.openNewVersion(null);
-    final Domain d1 = coord.addDomain("domain1", 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName());
+    final Domain d1 = coord.addDomain("domain1", 32, Echo.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
     ver = d1.openNewVersion(null);
     dumpZk();
     ver.close();

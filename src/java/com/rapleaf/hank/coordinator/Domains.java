@@ -20,13 +20,11 @@ import com.rapleaf.hank.storage.RemoteDomainCleaner;
 import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.util.ReverseComparator;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public final class Domains {
 
@@ -94,5 +92,22 @@ public final class Domains {
       cleaner.deleteOldVersions(deleter);
     }
     LOG.info("Done cleaning all Domains");
+  }
+
+  public static String joinPartitionServerFlags(List<String> flags) {
+    List<String> results = new ArrayList<String>();
+    for (String flag : flags) {
+      results.add(StringUtils.trim(flag));
+    }
+    return StringUtils.join(results.toArray(), ",");
+  }
+
+  public static List<String> splitPartitionServerFlags(String flags) {
+    String[] flagArray = StringUtils.split(flags, ",");
+    List<String> results = new ArrayList<String>(flagArray.length);
+    for (String flag : flagArray) {
+      results.add(StringUtils.trim(flag));
+    }
+    return results;
   }
 }
