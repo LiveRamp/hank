@@ -173,6 +173,15 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
+  public List<String> getFlags() throws IOException {
+    return Collections.emptyList();
+  }
+
+  @Override
+  public void setFlags(List<String> flags) throws IOException {
+  }
+
+  @Override
   public void setEphemeralStatistic(String key, String value) throws IOException {
     statistics.put(key, value);
   }

@@ -163,6 +163,13 @@
         </tr>
       <% } %>
 
+      <tr>
+      <td>Host Flags:</td>
+      <td>
+        <%= Domains.joinPartitionServerFlags(host.getFlags()) %>
+      </td>
+      </tr>
+
     </table>
 
   <!-- Domain specific Runtime Statistics -->

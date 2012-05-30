@@ -43,6 +43,12 @@ public class HostController extends Controller {
         doDiscardCurrentCommand(req, resp);
       }
     });
+    actions.put("update", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doUpdate(req, resp);
+      }
+    });
   }
 
   protected void doDiscardCurrentCommand(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -84,6 +90,15 @@ public class HostController extends Controller {
     HostDomainPartition hdp = hd.getPartitionByNumber(Integer.parseInt(req.getParameter("p")));
     hdp.setDeletable(deletable);
 
+    redirectBack(resp, rg, r, h);
+  }
+
+  private void doUpdate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+    String hostFlags = req.getParameter("hostFlags");
+    h.setFlags(Domains.splitPartitionServerFlags(hostFlags));
     redirectBack(resp, rg, r, h);
   }
 

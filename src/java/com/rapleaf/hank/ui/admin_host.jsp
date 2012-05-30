@@ -32,6 +32,27 @@
   &gt; <span class='currentItem'><%= host.getAddress() %></span>
 </h1>
 
+  <h2>Update Configuration</h2>
+
+  <form action="/host/update" method=post>
+  <table>
+    <tr>
+      <td>
+        Host Flags:
+      </td>
+      <td>
+        <input type=text name="hostFlags" size=50 value="<%= Domains.joinPartitionServerFlags(host.getFlags()) %>"/>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td>
+        <input type=submit value="Save updated configuration"/>
+      </td>
+    </tr>
+  </table>
+  <form>
+
   <h2>Delete Host</h2>
 
     <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">

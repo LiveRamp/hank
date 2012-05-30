@@ -36,6 +36,7 @@ public class ZkHost extends AbstractHost {
   private static final String COMMAND_QUEUE_PATH_SEGMENT = "command_queue";
   private static final String CURRENT_COMMAND_PATH_SEGMENT = "current_command";
   private static final String STATISTICS_PATH_SEGMENT = "statistics";
+  private static final String FLAGS_PATH_SEGMENT = "flags";
 
   private final ZooKeeperPlus zk;
   private final String hostPath;
@@ -48,6 +49,7 @@ public class ZkHost extends AbstractHost {
   private final CommandQueueWatcher commandQueueWatcher;
   private final WatchedMap<ZkHostDomain> domains;
   private final WatchedMap<WatchedString> statistics;
+  private final WatchedString flags;
   private final DataLocationChangeListener dataLocationChangeListener;
 
   public static ZkHost create(ZooKeeperPlus zk,
@@ -64,6 +66,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, FLAGS_PATH_SEGMENT), null);
 
     zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
     return new ZkHost(zk, coordinator, hostPath, dataLocationChangeListener);
@@ -115,6 +118,7 @@ public class ZkHost extends AbstractHost {
             }
           }
         });
+    flags = new WatchedString(zk, ZkPath.append(hostPath, FLAGS_PATH_SEGMENT), true);
   }
 
   private class DomainsWatchedMapListener implements WatchedMapListener<ZkHostDomain> {
@@ -357,6 +361,25 @@ public class ZkHost extends AbstractHost {
       } else {
         return stat.getCtime();
       }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public List<String> getFlags() throws IOException {
+    String flagsStr = flags.get();
+    if (flagsStr == null) {
+      return Collections.emptyList();
+    } else {
+      return Domains.splitPartitionServerFlags(flagsStr);
+    }
+  }
+
+  @Override
+  public void setFlags(List<String> newFlags) throws IOException {
+    try {
+      flags.set(Domains.joinPartitionServerFlags(newFlags));
     } catch (Exception e) {
       throw new IOException(e);
     }

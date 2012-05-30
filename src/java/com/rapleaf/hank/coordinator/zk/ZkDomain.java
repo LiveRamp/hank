@@ -29,10 +29,7 @@ import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 public class ZkDomain extends AbstractDomain {
 
@@ -153,7 +150,12 @@ public class ZkDomain extends AbstractDomain {
 
   @Override
   public List<String> getRequiredPartitionServerFlags() {
-    return Domains.splitPartitionServerFlags(requiredPartitionServerFlags.get());
+    String requiredPartitionsServerFlagsStr = requiredPartitionServerFlags.get();
+    if (requiredPartitionsServerFlagsStr == null) {
+      return Collections.emptyList();
+    } else {
+      return Domains.splitPartitionServerFlags(requiredPartitionsServerFlagsStr);
+    }
   }
 
   @Override
