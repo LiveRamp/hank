@@ -282,13 +282,13 @@ public class IntegrationTest extends ZkTestCase {
 
     // add ring 1
     final Ring rg1r1 = rg1.addRing(1);
-    Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"));
-    Host r1h2 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"));
+    Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"), Collections.<String>emptyList());
+    Host r1h2 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"), Collections.<String>emptyList());
 
     // add ring 2
     final Ring rg1r2 = rg1.addRing(2);
-    Host r2h1 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"));
-    Host r2h2 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"));
+    Host r2h1 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"), Collections.<String>emptyList());
+    Host r2h2 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"), Collections.<String>emptyList());
 
     // Add domains
     // Domain0

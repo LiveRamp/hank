@@ -287,10 +287,10 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
                           String storageEngineFactoryName,
                           String storageEngineOptions,
                           String partitionerName,
-                          List<String> requiredPartitionServerFlags) throws IOException {
+                          List<String> requiredHostFlags) throws IOException {
     try {
       ZkDomain domain = ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName,
-          storageEngineOptions, partitionerName, getNextDomainId(), requiredPartitionServerFlags);
+          storageEngineOptions, partitionerName, getNextDomainId(), requiredHostFlags);
       domains.put(domainName, domain);
       return domain;
     } catch (Exception e) {
@@ -320,20 +320,20 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
-@Override
+  @Override
   public Domain updateDomain(String domainName,
                              int numParts,
                              String storageEngineFactoryName,
                              String storageEngineOptions,
                              String partitionerName,
-                             List<String> requiredPartitionServerFlags) throws IOException {
+                             List<String> requiredHostFlags) throws IOException {
     ZkDomain domain = (ZkDomain) getDomain(domainName);
     if (domain == null) {
       throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
     } else {
       try {
         domains.put(domainName, ZkDomain.update(zk, domainsRoot, domainName, numParts,
-            storageEngineFactoryName, storageEngineOptions, partitionerName, requiredPartitionServerFlags));
+            storageEngineFactoryName, storageEngineOptions, partitionerName, requiredHostFlags));
         return domain;
       } catch (Exception e) {
         throw new IOException(e);

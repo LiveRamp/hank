@@ -56,7 +56,8 @@ public class ZkHost extends AbstractHost {
                               Coordinator coordinator,
                               String root,
                               PartitionServerAddress partitionServerAddress,
-                              DataLocationChangeListener dataLocationChangeListener) throws KeeperException, InterruptedException {
+                              DataLocationChangeListener dataLocationChangeListener,
+                              List<String> flags) throws KeeperException, InterruptedException {
     String hostPath = ZkPath.append(root, partitionServerAddress.toString());
     if (LOG.isTraceEnabled()) {
       LOG.trace("Creating host " + hostPath);
@@ -66,7 +67,7 @@ public class ZkHost extends AbstractHost {
     zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
     zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
-    zk.create(ZkPath.append(hostPath, FLAGS_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(hostPath, FLAGS_PATH_SEGMENT), Hosts.joinHostFlags(flags).getBytes());
 
     zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
     return new ZkHost(zk, coordinator, hostPath, dataLocationChangeListener);
@@ -372,14 +373,14 @@ public class ZkHost extends AbstractHost {
     if (flagsStr == null) {
       return Collections.emptyList();
     } else {
-      return Domains.splitPartitionServerFlags(flagsStr);
+      return Hosts.splitHostFlags(flagsStr);
     }
   }
 
   @Override
   public void setFlags(List<String> newFlags) throws IOException {
     try {
-      flags.set(Domains.joinPartitionServerFlags(newFlags));
+      flags.set(Hosts.joinHostFlags(newFlags));
     } catch (Exception e) {
       throw new IOException(e);
     }

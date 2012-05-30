@@ -100,7 +100,7 @@ public class TestZkRingGroup extends ZkTestCase {
 
     assertFalse(dataLocationChangeListener.isCalled());
 
-    Host host = rg.getRing(1).addHost(new PartitionServerAddress("localhost", 42));
+    Host host = rg.getRing(1).addHost(new PartitionServerAddress("localhost", 42), Collections.<String>emptyList());
     Thread.sleep(100);
 
     assertTrue(dataLocationChangeListener.isCalled());
@@ -160,6 +160,6 @@ public class TestZkRingGroup extends ZkTestCase {
 
   private void createRing(int ringNum) throws Exception {
     Ring rc = ZkRing.create(getZk(), coordinator, ring_group, ringNum, null, null);
-    rc.addHost(new PartitionServerAddress("localhost", ringNum));
+    rc.addHost(new PartitionServerAddress("localhost", ringNum), Collections.<String>emptyList());
   }
 }

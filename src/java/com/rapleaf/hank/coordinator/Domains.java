@@ -94,20 +94,4 @@ public final class Domains {
     LOG.info("Done cleaning all Domains");
   }
 
-  public static String joinPartitionServerFlags(List<String> flags) {
-    List<String> results = new ArrayList<String>();
-    for (String flag : flags) {
-      results.add(StringUtils.trim(flag));
-    }
-    return StringUtils.join(results.toArray(), ",");
-  }
-
-  public static List<String> splitPartitionServerFlags(String flags) {
-    String[] flagArray = StringUtils.split(flags, ",");
-    List<String> results = new ArrayList<String>(flagArray.length);
-    for (String flag : flagArray) {
-      results.add(StringUtils.trim(flag));
-    }
-    return results;
-  }
 }

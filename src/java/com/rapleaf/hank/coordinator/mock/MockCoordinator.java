@@ -117,7 +117,7 @@ public class MockCoordinator implements Coordinator {
                           String storageEngineFactoryName,
                           String storageEngineOptions,
                           String partitionerName,
-                          List<String> requiredPartitionServerFlags) {
+                          List<String> requiredHostFlags) {
     return null;
   }
 
@@ -126,7 +126,7 @@ public class MockCoordinator implements Coordinator {
                              String storageEngineFactoryName,
                              String storageEngineOptions,
                              String partitionerName,
-                             List<String> requiredPartitionServerFlags) {
+                             List<String> requiredHostFlags) {
     return null;
   }
 

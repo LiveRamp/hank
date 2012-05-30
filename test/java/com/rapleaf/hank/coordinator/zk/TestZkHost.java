@@ -28,7 +28,7 @@ public class TestZkHost extends ZkTestCase {
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
 
   public void testCreateAndLoad() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(ADDRESS, c.getAddress());
     assertEquals(0, c.getCommandQueue().size());
     assertNull(c.getCurrentCommand());
@@ -44,7 +44,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testStateChangeListener() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     MockHostStateChangeListener mockListener = new MockHostStateChangeListener();
     c.setStateChangeListener(mockListener);
 
@@ -65,7 +65,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testSetState() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost host = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(Hosts.isOnline(host));
 
@@ -82,7 +82,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testCommandQueue() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(Collections.EMPTY_LIST, c.getCommandQueue());
     assertNull(c.getCurrentCommand());
 
@@ -108,7 +108,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testCommandQueueListener() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     MockHostCommandQueueChangeListener l2 = new MockHostCommandQueueChangeListener();
     c.setCommandQueueChangeListener(l2);
     MockHostStateChangeListener l1 = new MockHostStateChangeListener();
@@ -162,7 +162,7 @@ public class TestZkHost extends ZkTestCase {
   private static final Domain d0 = new MockDomain("d0");
 
   public void testDomains() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(0, c.getAssignedDomains().size());
 
     c.addDomain(d0);
@@ -172,7 +172,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testDuplicateDomainAdd() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     c.addDomain(d0);
     try {
       c.addDomain(d0);
@@ -183,7 +183,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testUptime() throws Exception {
-    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null);
+    ZkHost c = ZkHost.create(getZk(), new MockCoordinator(), getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertNull(c.getUpSince());
     final long currentTimeMillis = System.currentTimeMillis();
     c.setState(HostState.IDLE);

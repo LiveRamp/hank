@@ -41,7 +41,7 @@
         Host Flags:
       </td>
       <td>
-        <input type=text name="hostFlags" size=50 value="<%= Domains.joinPartitionServerFlags(host.getFlags()) %>"/>
+        <input type=text name="hostFlags" size=50 value="<%= Hosts.joinHostFlags(host.getFlags()) %>"/>
       </td>
     </tr>
     <tr>

@@ -61,7 +61,7 @@ public class TestZkRing extends ZkTestCase {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
     assertEquals(0, ring.getHosts().size());
 
-    Host host = ring.addHost(LOCALHOST);
+    Host host = ring.addHost(LOCALHOST, Collections.<String>emptyList());
     assertEquals(LOCALHOST, host.getAddress());
     for (int i = 0; i < 20; i++) {
       if (!ring.getHosts().isEmpty()) {
@@ -91,13 +91,13 @@ public class TestZkRing extends ZkTestCase {
 
   public void testListenersPreservedWhenHostAdded() throws Exception {
     ZkRing ring = ZkRing.create(getZk(), coordinator, ZkPath.append(getRoot(), "ring-group-one"), 1, null, null);
-    Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1));
+    Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1), Collections.<String>emptyList());
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
     MockHostStateChangeListener l2 = new MockHostStateChangeListener();
     h1.setStateChangeListener(l2);
 
-    ring.addHost(new PartitionServerAddress("localhost", 2));
+    ring.addHost(new PartitionServerAddress("localhost", 2), Collections.<String>emptyList());
 
     h1.setState(HostState.UPDATING);
     synchronized (l2) {

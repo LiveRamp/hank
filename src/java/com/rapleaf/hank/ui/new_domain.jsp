@@ -89,8 +89,8 @@ List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageE
     </tr>
 
     <tr>
-      <td>Required Partition Server Flags</td>
-      <td><input type=text name="requiredPartitionServerFlags" size=50 /></td>
+      <td>Required Host Flags</td>
+      <td><input type=text name="requiredHostFlags" size=50 /></td>
     </tr>
 
     <tr>

@@ -166,7 +166,7 @@
       <tr>
       <td>Host Flags:</td>
       <td>
-        <%= Domains.joinPartitionServerFlags(host.getFlags()) %>
+        <%= Hosts.joinHostFlags(host.getFlags()) %>
       </td>
       </tr>
 

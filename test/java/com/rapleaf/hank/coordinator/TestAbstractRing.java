@@ -4,10 +4,7 @@ import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
@@ -19,7 +16,8 @@ public class TestAbstractRing extends BaseTestCase {
     }
 
     @Override
-    public Host addHost(PartitionServerAddress address) throws IOException {
+    public Host addHost(PartitionServerAddress address,
+                        List<String> flags) throws IOException {
       return null;
     }
 

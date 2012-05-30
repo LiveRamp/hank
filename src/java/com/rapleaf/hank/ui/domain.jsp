@@ -52,10 +52,10 @@
 
   <tr>
     <td>
-      Required Partition Server Flags:
+      Required Host Flags:
     </td>
     <td>
-      <input type=text name="requiredPartitionServerFlags" size=50 value="<%= Domains.joinPartitionServerFlags(domain.getRequiredPartitionServerFlags()) %>"/>
+      <input type=text name="requiredHostFlags" size=50 value="<%= Hosts.joinHostFlags(domain.getRequiredHostFlags()) %>"/>
     </td>
   </tr>
 

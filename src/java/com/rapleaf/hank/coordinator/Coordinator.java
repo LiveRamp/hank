@@ -42,7 +42,7 @@ public interface Coordinator {
                           String storageEngineFactoryName,
                           String storageEngineOptions,
                           String partitionerName,
-                          List<String> requiredPartitionServerFlags) throws IOException;
+                          List<String> requiredHostFlags) throws IOException;
 
   /**
    * Update a domain's properties
@@ -54,7 +54,7 @@ public interface Coordinator {
                              String storageEngineFactoryName,
                              String storageEngineOptions,
                              String partitionerName,
-                             List<String> requiredPartitionServerFlags) throws IOException;
+                             List<String> requiredHostFlags) throws IOException;
 
   /**
    * Get the set of known Domains.

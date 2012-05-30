@@ -52,6 +52,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <td>Port:</td>
         <td><input type=text size=5 name="port" /></td>
       </tr>
+      <tr>
+        <td>Host Flags:</td>
+        <td><input type=text size=50 name="hostFlags" /></td>
+      </tr>
     </table>
     <input type=submit value="Add New Host"/>
   </form>

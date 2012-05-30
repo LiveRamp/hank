@@ -41,7 +41,7 @@ public class ZkDomain extends AbstractDomain {
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
   private static final String KEY_VERSIONS = "versions";
-  private static final String KEY_REQUIRED_PARTITION_SERVER_FLAGS = "required_partition_server_flags";
+  private static final String KEY_REQUIRED_HOST_FLAGS = "required_host_flags";
 
   private final String name;
   private final int numParts;
@@ -49,7 +49,7 @@ public class ZkDomain extends AbstractDomain {
   private final WatchedString storageEngineFactoryName;
   private final WatchedString storageEngineOptions;
   private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
-  private final WatchedString requiredPartitionServerFlags;
+  private final WatchedString requiredHostFlags;
 
   private StorageEngine storageEngine;
   private final String domainPath;
@@ -67,7 +67,7 @@ public class ZkDomain extends AbstractDomain {
                                 String storageEngineOptions,
                                 String partitionerName,
                                 int id,
-                                List<String> requiredPartitionServerFlags) throws KeeperException, InterruptedException {
+                                List<String> requiredHostFlags) throws KeeperException, InterruptedException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     zk.create(domainPath, null);
     zk.create(ZkPath.append(domainPath, KEY_ID), (Integer.toString(id)).getBytes());
@@ -76,7 +76,7 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
-    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS), Domains.joinPartitionServerFlags(requiredPartitionServerFlags).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), Hosts.joinHostFlags(requiredHostFlags).getBytes());
     zk.create(ZkPath.append(domainPath, DotComplete.NODE_NAME), null);
     return new ZkDomain(zk, domainPath);
   }
@@ -88,21 +88,20 @@ public class ZkDomain extends AbstractDomain {
                                 String storageEngineFactoryName,
                                 String storageEngineOptions,
                                 String partitionerName,
-                                List<String> requiredPartitionServerFlags) throws IOException, InterruptedException, KeeperException {
+                                List<String> requiredHostFlags) throws IOException, InterruptedException, KeeperException {
     String domainPath = ZkPath.append(domainsRoot, domainName);
     // Delete nodes
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_NUM_PARTS));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS));
     zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_PARTITIONER));
-    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS));
+    zk.deleteNodeRecursively(ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS));
     // Re create nodes
     zk.create(ZkPath.append(domainPath, KEY_NUM_PARTS), (Integer.toString(numParts)).getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
-    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS),
-        Domains.joinPartitionServerFlags(requiredPartitionServerFlags).getBytes());
+    zk.create(ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), Hosts.joinHostFlags(requiredHostFlags).getBytes());
     return new ZkDomain(zk, domainPath);
   }
 
@@ -115,7 +114,7 @@ public class ZkDomain extends AbstractDomain {
     this.storageEngineOptions = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), true);
     this.storageEngineFactoryName = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), true);
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
-    this.requiredPartitionServerFlags = new WatchedString(zk, ZkPath.append(domainPath, KEY_REQUIRED_PARTITION_SERVER_FLAGS), true);
+    this.requiredHostFlags = new WatchedString(zk, ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), true);
 
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
         new ElementLoader<ZkDomainVersion>() {
@@ -149,12 +148,12 @@ public class ZkDomain extends AbstractDomain {
   }
 
   @Override
-  public List<String> getRequiredPartitionServerFlags() {
-    String requiredPartitionsServerFlagsStr = requiredPartitionServerFlags.get();
-    if (requiredPartitionsServerFlagsStr == null) {
+  public List<String> getRequiredHostFlags() {
+    String requiredHostFlagsStr = requiredHostFlags.get();
+    if (requiredHostFlagsStr == null) {
       return Collections.emptyList();
     } else {
-      return Domains.splitPartitionServerFlags(requiredPartitionsServerFlagsStr);
+      return Hosts.splitHostFlags(requiredHostFlagsStr);
     }
   }
 

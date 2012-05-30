@@ -41,14 +41,14 @@ public class DomainController extends Controller {
         }
 
         String storageEngineOptions = req.getParameter("storageEngineOptions");
-        final String requiredPartitionServerFlags = req.getParameter("requiredPartitionServerFlags");
+        final String requiredHostFlags = req.getParameter("requiredHostFlags");
 
         String partitionerName = req.getParameter("partitionerSelect");
         if (partitionerName.equals("__other__")) {
           partitionerName = req.getParameter("partitionerOther");
         }
         DomainController.this.coordinator.addDomain(domainName, numParts, storageEngineFactoryName,
-            storageEngineOptions, partitionerName, Domains.splitPartitionServerFlags(requiredPartitionServerFlags));
+            storageEngineOptions, partitionerName, Hosts.splitHostFlags(requiredHostFlags));
         redirect("/domains.jsp", resp);
       }
     });
@@ -140,7 +140,7 @@ public class DomainController extends Controller {
   private void doUpdateDomain(HttpServletRequest req, HttpServletResponse resp) throws IOException {
     final String domainName = req.getParameter("name");
     final String storageEngineOptions = req.getParameter("storageEngineOptions");
-    final String requiredPartitionServerFlags = req.getParameter("requiredPartitionServerFlags");
+    final String requiredHostFlags = req.getParameter("requiredHostFlags");
     final Domain domain = coordinator.getDomain(domainName);
     if (domain == null) {
       throw new IOException("Could not get Domain '" + domainName + "' from Configurator.");
@@ -150,7 +150,7 @@ public class DomainController extends Controller {
           domain.getStorageEngineFactoryClass().getName(),
           storageEngineOptions,
           domain.getPartitioner().getClass().getName(),
-          Domains.splitPartitionServerFlags(requiredPartitionServerFlags));
+          Hosts.splitHostFlags(requiredHostFlags));
     }
     resp.sendRedirect("/domains.jsp");
   }

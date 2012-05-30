@@ -71,7 +71,7 @@ public class MockDomain extends AbstractDomain {
   }
 
   @Override
-  public List<String> getRequiredPartitionServerFlags() {
+  public List<String> getRequiredHostFlags() {
     return Collections.emptyList();
   }
 

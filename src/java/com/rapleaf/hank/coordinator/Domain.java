@@ -48,7 +48,7 @@ public interface Domain extends Comparable<Domain> {
 
   public Partitioner getPartitioner();
 
-  public List<String> getRequiredPartitionServerFlags();
+  public List<String> getRequiredHostFlags();
 
   /**
    * Returns the set of DomainVersionConfigs for this Domain in version-numbered

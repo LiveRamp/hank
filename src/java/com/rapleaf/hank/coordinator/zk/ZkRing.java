@@ -24,6 +24,7 @@ import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -102,9 +103,10 @@ public class ZkRing extends AbstractRing {
   }
 
   @Override
-  public Host addHost(PartitionServerAddress address) throws IOException {
+  public Host addHost(PartitionServerAddress address,
+                      List<String> flags) throws IOException {
     try {
-      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener);
+      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener, flags);
     } catch (Exception e) {
       throw new IOException(e);
     }

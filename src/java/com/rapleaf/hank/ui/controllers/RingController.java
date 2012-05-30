@@ -50,8 +50,9 @@ public class RingController extends Controller {
     int ringNum = Integer.parseInt(req.getParameter("ringNum"));
     String hostname = req.getParameter("hostname");
     int portNum = Integer.parseInt(req.getParameter("port"));
+    String flagsStr = req.getParameter("hostFlags");
     coordinator.getRingGroup(rgName).getRing(ringNum).addHost(
-        new PartitionServerAddress(hostname, portNum));
+        new PartitionServerAddress(hostname, portNum), Hosts.splitHostFlags(flagsStr));
     resp.sendRedirect("/ring.jsp?g=" + rgName + "&n=" + ringNum);
   }
 

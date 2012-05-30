@@ -17,6 +17,7 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MockRing extends AbstractRing {
@@ -39,7 +40,8 @@ public class MockRing extends AbstractRing {
   }
 
   @Override
-  public Host addHost(PartitionServerAddress address) throws IOException {
+  public Host addHost(PartitionServerAddress address,
+                      List<String> flags) throws IOException {
     return null;
   }
 

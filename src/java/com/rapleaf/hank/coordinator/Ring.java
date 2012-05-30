@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -36,7 +37,7 @@ public interface Ring extends Comparable<Ring> {
 
   public Host getHostByAddress(PartitionServerAddress address);
 
-  public Host addHost(PartitionServerAddress address) throws IOException;
+  public Host addHost(PartitionServerAddress address, List<String> hostFlags) throws IOException;
 
   /**
    * Remove a host from this ring. Returns true if the host was removed, false
