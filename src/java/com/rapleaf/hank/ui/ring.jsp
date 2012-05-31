@@ -192,6 +192,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <th>Cache Hits</th>
       <th>Up-to-date & Served</th>
       <th>File System</th>
+      <th>Flags</th>
     </tr>
     <%
       Collection<Host> hosts = ring.getHostsSorted();
@@ -274,6 +275,11 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <div class='progress-bar'>
         <div class='progress-bar-filler-used' style='width: <%= Math.round(filesystemStatisticsForHost.getUsedPercentage()) %>%'></div>
       </div>
+      </td>
+
+      <!-- Flags -->
+      <td>
+      <%= Hosts.joinHostFlags(host.getFlags()) %>
       </td>
 
     </tr>
