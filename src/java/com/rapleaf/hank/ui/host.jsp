@@ -262,7 +262,9 @@
     <div>Unknown Domain</div>
   <% } else { %>
   <div class="part_assignment_visualization">
-    <div><%= domain.getName() %> (<%= hdc.getPartitions().size() %>/<%= domain.getNumParts() %> partitions)</div>
+    <div><%= domain.getName() %>
+    <br/>
+    (<%= hdc.getPartitions().size() %>/<%= domain.getNumParts() %> partitions)</div>
     <div>
       <table cellspacing=1 cellpadding=0>
       <%

@@ -335,6 +335,7 @@ public class UpdateManager implements IUpdateManager {
     // Delete deletable domains and partitions
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       // Host domain does not contain anymore partitions. Delete it
+      LOG.info("Host Domain " + hostDomain + " is assigned " + hostDomain.getPartitions().size() + " partitions.");
       if (hostDomain.getPartitions().size() == 0) {
         LOG.info("Garbage collecting Host Domain " + hostDomain + " as it is not used anymore.");
         host.removeDomain(hostDomain.getDomain());
