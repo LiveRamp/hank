@@ -5,8 +5,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.SmartClient.Iface;
+import com.rapleaf.hank.partition_assigner.ModPartitionAssigner;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
-import com.rapleaf.hank.partition_assigner.UniformPartitionAssigner;
 import com.rapleaf.hank.partition_server.*;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
@@ -26,7 +26,7 @@ public class WebUiServerTester extends ZkTestCase {
     DomainGroup dg2 = coordinator.getDomainGroup("Group_2");
 
     // Assign
-    PartitionAssigner partitionAssigner = new UniformPartitionAssigner();
+    PartitionAssigner partitionAssigner = new ModPartitionAssigner();
     RingGroup rgAlpha = coordinator.getRingGroup("RG_Alpha");
     RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");
