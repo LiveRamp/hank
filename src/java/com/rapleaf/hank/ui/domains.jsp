@@ -25,6 +25,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <table class='table-blue'>
     <tr>
       <th>Domain</th>
+      <th>Required Host Flags</th>
       <th>ID</th>
       <th>Partitioner</th>
       <th>Number of Partitions</th>
@@ -35,6 +36,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     %>
       <tr>
         <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>
+        <td><%= Hosts.joinHostFlags(domain.getRequiredHostFlags()) %></td>
         <td><%= domain.getId() %></td>
         <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
         <td class='centered'><%= domain.getNumParts() %></td>
