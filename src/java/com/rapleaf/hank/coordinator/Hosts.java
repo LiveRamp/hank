@@ -27,6 +27,8 @@ import java.util.Map;
 
 public final class Hosts {
 
+  public static final String ALL_FLAGS_EXPRESSION = "*";
+
   private Hosts() {
   }
 

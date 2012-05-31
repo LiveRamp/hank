@@ -37,7 +37,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
       // Determine what hosts can serve this domain
       SortedSet<Host> validHosts = new TreeSet<Host>();
       for (Host host : ring.getHosts()) {
-        if (host.getFlags().containsAll(domain.getRequiredHostFlags())) {
+        if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
           // Host has all required flags
           validHosts.add(host);
         }
