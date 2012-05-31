@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -173,6 +174,7 @@ public final class Hosts {
     for (String flag : flags) {
       results.add(StringUtils.trim(flag));
     }
+    Collections.sort(results);
     return StringUtils.join(results.toArray(), ",");
   }
 
@@ -182,6 +184,7 @@ public final class Hosts {
     for (String flag : flagArray) {
       results.add(StringUtils.trim(flag));
     }
+    Collections.sort(results);
     return results;
   }
 }
