@@ -17,38 +17,63 @@
 package com.rapleaf.hank.partition_assigner;
 
 import com.rapleaf.hank.coordinator.*;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
 public abstract class AbstractMappingPartitionAssigner implements PartitionAssigner {
 
-  abstract protected Host getHostResponsibleForPartition(Ring ring, int partitionNumber);
+  private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
+
+  abstract protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber);
 
   private Map<Host, Map<Domain, Set<Integer>>>
-  getHostToDomainToPartitionsMapping(Ring ring, DomainGroupVersion domainGroupVersion) {
+  getHostToDomainToPartitionsMapping(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
     Map<Host, Map<Domain, Set<Integer>>> result = new TreeMap<Host, Map<Domain, Set<Integer>>>();
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
-        Host host = getHostResponsibleForPartition(ring, partitionNumber);
 
-        Map<Domain, Set<Integer>> domainToPartitionsMappings = result.get(host);
-        if (domainToPartitionsMappings == null) {
-          domainToPartitionsMappings = new TreeMap<Domain, Set<Integer>>();
-          result.put(host, domainToPartitionsMappings);
+      // Determine what hosts can serve this domain
+      SortedSet<Host> validHosts = new TreeSet<Host>();
+      for (Host host : ring.getHosts()) {
+        if (host.getFlags().containsAll(domain.getRequiredHostFlags())) {
+          // Host has all required flags
+          validHosts.add(host);
         }
-
-        Set<Integer> partitionsMapping = domainToPartitionsMappings.get(domain);
-        if (partitionsMapping == null) {
-          partitionsMapping = new TreeSet<Integer>();
-          domainToPartitionsMappings.put(domain, partitionsMapping);
+      }
+      // Check if there are valid hosts
+      if (validHosts.isEmpty()) {
+        LOG.error("Unable to assign Domain " + domain.getName()
+            + " to Ring " + ring.toString()
+            + " since no Host in the Ring satisfies the flags required by " + domain.getName());
+        // Return error
+        return null;
+      } else {
+        for (int partitionNumber = 0; partitionNumber < domain.getNumParts(); ++partitionNumber) {
+          // Find a host for this partition
+          Host host = getHostResponsibleForPartition(validHosts, partitionNumber);
+          if (host == null) {
+            LOG.error("Unable to assign Partition #" + partitionNumber
+                + " of Domain " + domain.getName()
+                + " to Ring " + ring.toString()
+                + " since no valid Host was found.");
+            return null;
+          } else {
+            // Record the assignment mapping
+            Map<Domain, Set<Integer>> domainToPartitionsMappings = result.get(host);
+            if (domainToPartitionsMappings == null) {
+              domainToPartitionsMappings = new TreeMap<Domain, Set<Integer>>();
+              result.put(host, domainToPartitionsMappings);
+            }
+            Set<Integer> partitionsMapping = domainToPartitionsMappings.get(domain);
+            if (partitionsMapping == null) {
+              partitionsMapping = new TreeSet<Integer>();
+              domainToPartitionsMappings.put(domain, partitionsMapping);
+            }
+            partitionsMapping.add(partitionNumber);
+          }
         }
-
-        partitionsMapping.add(partitionNumber);
       }
     }
     return result;
@@ -59,6 +84,10 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
         = getHostToDomainToPartitionsMapping(ring, domainGroupVersion);
+    if (hostToDomainToPartitionsMappings == null) {
+      // Error
+      return false;
+    }
     // Check required mapping is exactly satisfied
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
@@ -106,6 +135,10 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
         = getHostToDomainToPartitionsMapping(ring, domainGroupVersion);
+    if (hostToDomainToPartitionsMappings == null) {
+      // Error
+      return;
+    }
     // Apply required mappings and delete extra mappings
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();

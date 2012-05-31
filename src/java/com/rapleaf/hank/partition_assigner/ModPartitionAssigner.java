@@ -17,21 +17,19 @@
 package com.rapleaf.hank.partition_assigner;
 
 import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.Ring;
 
 import java.util.SortedSet;
 
 public class ModPartitionAssigner extends AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   @Override
-  protected Host getHostResponsibleForPartition(Ring ring, int partitionNumber) {
-    SortedSet<Host> hostsSorted = ring.getHostsSorted();
+  protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber) {
     // If there are no hosts, simply return null
-    if (hostsSorted.size() == 0) {
+    if (validHostsSorted.size() == 0) {
       return null;
     }
-    int hostIndex = partitionNumber % hostsSorted.size();
-    for (Host host : hostsSorted) {
+    int hostIndex = partitionNumber % validHostsSorted.size();
+    for (Host host : validHostsSorted) {
       if (hostIndex-- == 0) {
         return host;
       }
