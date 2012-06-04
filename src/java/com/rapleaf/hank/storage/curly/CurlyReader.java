@@ -75,7 +75,8 @@ public class CurlyReader implements Reader, ICurlyReader {
       this.cache = null;
     }
     // Check that key file is at the same version
-    if (keyFileReader.getVersionNumber() != null &&
+    if (keyFileReader != null &&
+        keyFileReader.getVersionNumber() != null &&
         !keyFileReader.getVersionNumber().equals(versionNumber)) {
       throw new IOException("Curly Reader version (" + versionNumber
           + ") does not match the provided key file Reader version (" + keyFileReader.getVersionNumber() + ")");
