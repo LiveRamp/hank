@@ -99,7 +99,9 @@ public class DomainController extends Controller {
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
         for (DomainVersion domainVersion : domain.getVersions()) {
-          domain.deleteVersion(domainVersion.getVersionNumber());
+          if (domainVersion.isDefunct()) {
+            domain.deleteVersion(domainVersion.getVersionNumber());
+          }
         }
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
