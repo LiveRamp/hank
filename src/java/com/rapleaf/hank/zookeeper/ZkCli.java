@@ -37,7 +37,7 @@ public class ZkCli extends ZooKeeperConnection {
   }
 
   public static void main(String[] args) throws InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[]{"connect_string", "[set|null|rmr]", "arguments..."}, ZkCli.class);
+    CommandLineChecker.check(args, new String[]{"connect_string", "[set|null|rmr|count|ls]", "arguments..."}, ZkCli.class);
     String connectString = args[0];
     String command = args[1];
     String argument = args[2];
