@@ -140,6 +140,9 @@ public class UiUtils {
   }
 
   public static String formatDomainVersionClosedAt(DomainVersion domainVersion) throws IOException {
+    if (domainVersion == null) {
+      return "?";
+    }
     Long closedAt = domainVersion.getClosedAt();
     if (closedAt == null) {
       return "-";
