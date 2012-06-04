@@ -64,4 +64,6 @@ public interface Domain extends Comparable<Domain> {
   public DomainVersion getVersion(int versionNumber) throws IOException;
 
   public DomainVersion getVersionShallow(int versionNumber) throws IOException;
+
+  public boolean deleteVersion(int versionNumber) throws IOException;
 }

@@ -120,6 +120,11 @@ public class MockDomain extends AbstractDomain {
   }
 
   @Override
+  public boolean deleteVersion(int versionNumber) throws IOException {
+    return false;
+  }
+
+  @Override
   public int getId() {
     return id;
   }

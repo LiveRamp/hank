@@ -169,4 +169,18 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   public static String getPathName(int versionNumber) {
     return "version_" + versionNumber;
   }
+
+  public boolean delete() throws IOException {
+    try {
+      // first, delete the completion marker so everyone knows it's gone
+      zk.delete(ZkPath.append(path, DotComplete.NODE_NAME), -1);
+
+      // delete the rest
+      zk.deleteNodeRecursively(path);
+
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }

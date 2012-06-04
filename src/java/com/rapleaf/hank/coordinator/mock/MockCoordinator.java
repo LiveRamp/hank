@@ -152,6 +152,11 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
+  public boolean deleteDomainVersion(String domainName, int versionNumber) throws IOException {
+    return false;
+  }
+
+  @Override
   public boolean deleteRingGroup(String ringGroupName) throws IOException {
     return false;
   }

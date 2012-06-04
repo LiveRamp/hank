@@ -233,6 +233,17 @@ public class ZkDomain extends AbstractDomain {
   }
 
   @Override
+  public boolean deleteVersion(int versionNumber) throws IOException {
+    ZkDomainVersion domainVersion = versions.remove(ZkDomainVersion.getPathName(versionNumber));
+    if (domainVersion == null) {
+      return false;
+    } else {
+      domainVersion.delete();
+      return true;
+    }
+  }
+
+  @Override
   public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
     Integer nextVerNum;
 

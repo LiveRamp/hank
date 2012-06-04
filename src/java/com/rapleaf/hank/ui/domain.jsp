@@ -152,6 +152,12 @@
         <input type=submit value="Unmark defunct"
           onclick="return confirm('Are you sure you want to mark version <%= version.getVersionNumber() %> NOT defunct? Subsequent data deploys will use this version.');"/>
       </form>
+      <form action="/domain/delete_version" method="post">
+        <input type=hidden name="n" value="<%= domain.getName() %>" />
+        <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
+        <input type=submit value="Delete metadata"
+          onclick="return confirm('Are you sure you want to delete metadata of version <%= version.getVersionNumber() %>? This action cannot be undone!');"/>
+      </form>
       <% } %>
 
       <% if (!DomainVersions.isClosed(version)) { %>
@@ -168,7 +174,7 @@
         <input type=hidden name="n" value="<%= domain.getName() %>" />
         <input type=hidden name="ver" value="<%= version.getVersionNumber() %>" />
         <input type=submit value="Delete from remote storage"
-          onclick="return confirm('Are you sure you want to delete version <%= version.getVersionNumber() %> from remote storage? This action cannot be undone!');"/>
+          onclick="return confirm('Are you sure you want to delete data of version <%= version.getVersionNumber() %> from remote storage? This action cannot be undone!');"/>
       </form>
       <% } %>
     </td>

@@ -189,6 +189,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     isSessionExpired = true;
   }
 
+  @Override
   public Domain getDomain(String domainName) {
     return domains.get(domainName);
   }
@@ -232,14 +233,17 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domainGroupVersions;
   }
 
+  @Override
   public DomainGroup getDomainGroup(String domainGroupName) {
     return domainGroups.get(domainGroupName);
   }
 
+  @Override
   public RingGroup getRingGroup(String ringGroupName) {
     return ringGroups.get(ringGroupName);
   }
 
+  @Override
   public Set<Domain> getDomains() {
     return new HashSet<Domain>(domains.values());
   }
@@ -249,6 +253,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return new TreeSet<Domain>(getDomains());
   }
 
+  @Override
   public Set<DomainGroup> getDomainGroups() {
     synchronized (domainGroups) {
       return new HashSet<DomainGroup>(domainGroups.values());
@@ -260,6 +265,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return new TreeSet<DomainGroup>(getDomainGroups());
   }
 
+  @Override
   public Set<RingGroup> getRingGroups() {
     return new HashSet<RingGroup>(ringGroups.values());
   }
@@ -341,6 +347,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     }
   }
 
+  @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
       ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, this);
@@ -381,6 +388,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
         + domainGroupsRoot + ", ringGroupsRoot=" + ringGroupsRoot + "]";
   }
 
+  @Override
   public boolean deleteDomain(String domainName) throws IOException {
     ZkDomain domain = domains.remove(domainName);
 
@@ -396,6 +404,16 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domain.delete();
   }
 
+  @Override
+  public boolean deleteDomainVersion(String domainName, int versionNumber) throws IOException {
+    Domain domain = getDomain(domainName);
+    if (domain == null) {
+      return false;
+    }
+    return domain.deleteVersion(versionNumber);
+  }
+
+  @Override
   public boolean deleteDomainGroup(String domainGroupName) throws IOException {
     ZkDomainGroup domainGroup = domainGroups.remove(domainGroupName);
     if (domainGroup == null) {
@@ -404,6 +422,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     return domainGroup.delete();
   }
 
+  @Override
   public boolean deleteRingGroup(String ringGroupName) throws IOException {
     ZkRingGroup ringGroup = ringGroups.remove(ringGroupName);
     if (ringGroup == null) {

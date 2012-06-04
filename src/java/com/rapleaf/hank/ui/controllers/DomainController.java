@@ -85,6 +85,15 @@ public class DomainController extends Controller {
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
+    actions.put("delete_version", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        final Integer domainVersion = Integer.parseInt(req.getParameter("ver"));
+        domain.deleteVersion(domainVersion);
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
     actions.put("update", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {

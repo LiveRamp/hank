@@ -86,6 +86,8 @@ public interface Coordinator {
    */
   public boolean deleteDomain(String domainName) throws IOException;
 
+  public boolean deleteDomainVersion(String domainName, int versionNumber) throws IOException;
+
   //
   // DomainGroups
   //
