@@ -182,6 +182,12 @@
   <% } %>
 </table>
 
+<form action="/domain/delete_all_defunct_versions" method="post">
+  <input type=hidden name="n" value="<%= domain.getName() %>" />
+  <input type=submit value="Delete metadata of all defunct versions"
+    onclick="return confirm('Are you sure you want to delete metadata of all defunct versions? This action cannot be undone!');"/>
+</form>
+
 <jsp:include page="_footer.jsp"/>
 
 </body>

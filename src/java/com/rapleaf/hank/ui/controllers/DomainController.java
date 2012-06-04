@@ -94,6 +94,16 @@ public class DomainController extends Controller {
         redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
       }
     });
+    actions.put("delete_all_defunct_versions", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Domain domain = DomainController.this.coordinator.getDomain(req.getParameter("n"));
+        for (DomainVersion domainVersion : domain.getVersions()) {
+          domain.deleteVersion(domainVersion.getVersionNumber());
+        }
+        redirect("/domain.jsp?n=" + req.getParameter("n"), resp);
+      }
+    });
     actions.put("update", new Action() {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
