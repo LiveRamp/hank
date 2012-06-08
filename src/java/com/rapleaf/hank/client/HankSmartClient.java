@@ -750,8 +750,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         ConnectionLoad connectionLoad = new ConnectionLoad(
             (int) ((double) totalConnectionLoad.getNumConnections() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
             (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
-        LOG.info("Load on connections to " + entry.getKey() + ": " + UiUtils.formatDouble(connectionLoad.getLoad())
-            + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
+        // Only display if load is non zero
+        if (connectionLoad.getLoad() > 0) {
+          LOG.info("Load on connections to " + entry.getKey() + ": " + UiUtils.formatDouble(connectionLoad.getLoad())
+              + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
+        }
       }
     }
 
