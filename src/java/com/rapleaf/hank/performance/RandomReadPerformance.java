@@ -34,7 +34,6 @@ public class RandomReadPerformance {
   private static final int RANDOM_READ_BUFFER_SIZE = 32 * (1 << 10);
   private static final int NUM_RANDOM_READS = 8 << 10;
   private static final int NUM_RANDOM_READ_THREADS = 8;
-  private static final int GET_TIMER_AGGREGATOR_WINDOW = NUM_RANDOM_READS;
 
   public static void main(String[] args) throws IOException, InterruptedException {
     long totalRandomReads = NUM_RANDOM_READS * NUM_RANDOM_READ_THREADS;
@@ -78,7 +77,7 @@ public class RandomReadPerformance {
       for (int i = 0; i < testFiles.length; ++i) {
         testChannels[i] = new FileInputStream(testFiles[i]).getChannel();
       }
-      timerAggregator = new HankTimerAggregator("Random reads", GET_TIMER_AGGREGATOR_WINDOW);
+      timerAggregator = new HankTimerAggregator("Random reads", 1);
     }
 
     @Override
@@ -88,15 +87,15 @@ public class RandomReadPerformance {
         // Perform random reads
         byte[] readBufferArray = new byte[RANDOM_READ_BUFFER_SIZE];
         ByteBuffer readBuffer = ByteBuffer.wrap(readBufferArray);
+        HankTimer timer = timerAggregator.getTimer();
         for (int i = 0; i < NUM_RANDOM_READS; ++i) {
           readBuffer.clear();
-          HankTimer timer = new HankTimer();
           FileChannel testChannel = testChannels[i % testChannels.length];
           long randomPosition = Math.abs(random.nextLong()) % (testChannel.size() - RANDOM_READ_BUFFER_SIZE);
           testChannel.position(randomPosition)
               .read(readBuffer);
-          timerAggregator.add(timer);
         }
+        timerAggregator.add(timer, NUM_RANDOM_READS);
         // Close file channels
         for (FileChannel testChannel : testChannels) {
           testChannel.close();
