@@ -147,6 +147,11 @@ public class HankTimerAggregator {
     logStr.append(", avg duration: ");
     logStr.append((totalDuration / (double) count));
     logStr.append("ms");
+    if (totalUnderlyingCount != count) {
+      logStr.append(", underlying avg duration: ");
+      logStr.append((totalDuration / (double) totalUnderlyingCount));
+      logStr.append("ms");
+    }
     /*
     logStr.append(", median duration: ");
     logStr.append(deciles[4]);
