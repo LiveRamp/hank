@@ -41,9 +41,9 @@ public class RandomReadPerformance {
     int randomReadBufferSize = Integer.valueOf(args[0]);
     long totalRandomReads = NUM_RANDOM_READS * NUM_RANDOM_READ_THREADS;
 
-    File[] testFiles = new File[args.length];
-    for (int i = 0; i < args.length; ++i) {
-      testFiles[i] = new File(args[i]);
+    File[] testFiles = new File[args.length - 1];
+    for (int i = 1; i < args.length; ++i) {
+      testFiles[i - 1] = new File(args[i]);
       LOG.info("Using test file: " + testFiles[i].getAbsolutePath());
     }
 
