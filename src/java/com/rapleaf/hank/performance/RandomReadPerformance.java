@@ -17,7 +17,6 @@
 package com.rapleaf.hank.performance;
 
 import com.rapleaf.hank.ui.UiUtils;
-import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -36,8 +35,6 @@ public class RandomReadPerformance {
   private static final int NUM_RANDOM_READ_THREADS = 8;
 
   public static void main(String[] args) throws IOException, InterruptedException {
-    CommandLineChecker.check(args, new String[]{"random read buffer size"}, RandomReadPerformance.class);
-
     int randomReadBufferSize = Integer.valueOf(args[0]);
     long totalRandomReads = NUM_RANDOM_READS * NUM_RANDOM_READ_THREADS;
 
