@@ -33,15 +33,16 @@ public class RandomReadPerformance {
 
   private static final int NUM_RANDOM_READS = 8 << 10;
   private static final int NUM_RANDOM_READ_THREADS = 8;
+  private static final int NUM_OPTIONS = 1;
 
   public static void main(String[] args) throws IOException, InterruptedException {
     int randomReadBufferSize = Integer.valueOf(args[0]);
     long totalRandomReads = NUM_RANDOM_READS * NUM_RANDOM_READ_THREADS;
 
-    File[] testFiles = new File[args.length - 1];
-    for (int i = 1; i < args.length; ++i) {
-      testFiles[i - 1] = new File(args[i]);
-      LOG.info("Using test file: " + testFiles[i].getAbsolutePath());
+    File[] testFiles = new File[args.length - NUM_OPTIONS];
+    for (int i = NUM_OPTIONS; i < args.length; ++i) {
+      testFiles[i - NUM_OPTIONS] = new File(args[i]);
+      LOG.info("Using test file: " + testFiles[i - NUM_OPTIONS].getAbsolutePath());
     }
 
     Thread[] threads = new Thread[NUM_RANDOM_READ_THREADS];
