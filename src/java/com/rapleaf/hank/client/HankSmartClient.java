@@ -702,6 +702,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       response = _get(domain, key);
     }
 
+    @Override
     public HankResponse getResponse() {
       return response;
     }
