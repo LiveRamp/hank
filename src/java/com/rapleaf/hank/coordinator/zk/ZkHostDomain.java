@@ -116,7 +116,6 @@ public class ZkHostDomain extends AbstractHostDomain {
 
   public void delete() throws IOException {
     try {
-      zk.delete(ZkPath.append(root, DotComplete.NODE_NAME), -1);
       zk.deleteNodeRecursively(root);
     } catch (InterruptedException e) {
       throw new IOException(e);
