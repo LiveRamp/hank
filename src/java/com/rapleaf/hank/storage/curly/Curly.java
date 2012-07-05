@@ -464,7 +464,7 @@ public class Curly implements StorageEngine {
         + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
         + ", hashIndexBits=" + hashIndexBits
         + ", keyHashSize=" + keyHashSize
-        + ", offsetSize=" + offsetNumBytes
+        + ", offsetNumBytes=" + offsetNumBytes
         + ", recordFileReadBufferBytes=" + recordFileReadBufferBytes
         + ", remoteDomainRoot=" + remoteDomainRoot
         + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep

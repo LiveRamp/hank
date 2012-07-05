@@ -50,10 +50,10 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
 
   public static final class OffsetTransformer implements ValueTransformer {
     private final long[] offsetAdjustments;
-    private final int offsetSize;
+    private final int offsetNumBytes;
 
-    public OffsetTransformer(int offsetSize, long[] offsetAdjustments) {
-      this.offsetSize = offsetSize;
+    public OffsetTransformer(int offsetNumBytes, long[] offsetAdjustments) {
+      this.offsetNumBytes = offsetNumBytes;
       this.offsetAdjustments = offsetAdjustments;
     }
 
@@ -61,9 +61,9 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     public void transform(byte[] buf, int valueOff, int relIndex) {
       long adjustment = offsetAdjustments[relIndex];
       if (adjustment != 0) {
-        long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(buf, valueOff, offsetSize);
+        long offset = EncodingHelper.decodeLittleEndianFixedWidthLong(buf, valueOff, offsetNumBytes);
         offset += adjustment;
-        EncodingHelper.encodeLittleEndianFixedWidthLong(offset, buf, valueOff, offsetSize);
+        EncodingHelper.encodeLittleEndianFixedWidthLong(offset, buf, valueOff, offsetNumBytes);
       }
     }
   }

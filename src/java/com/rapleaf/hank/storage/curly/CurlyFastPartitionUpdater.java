@@ -36,7 +36,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
   private static final Logger LOG = Logger.getLogger(CurlyFastPartitionUpdater.class);
 
   private final int keyHashSize;
-  private final int offsetSize;
+  private final int offsetNumBytes;
   private final int hashIndexBits;
   private final CompressionCodec compressionCodec;
   private final ICurlyMerger curlyMerger;
@@ -47,7 +47,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
                                    ICurlyMerger curlyMerger,
                                    ICueballMerger cueballMerger,
                                    int keyHashSize,
-                                   int offsetSize,
+                                   int offsetNumBytes,
                                    int hashIndexBits,
                                    CompressionCodec compressionCodec,
                                    String localPartitionRoot) throws IOException {
@@ -55,7 +55,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         partitionRemoteFileOps,
         localPartitionRoot);
     this.keyHashSize = keyHashSize;
-    this.offsetSize = offsetSize;
+    this.offsetNumBytes = offsetNumBytes;
     this.hashIndexBits = hashIndexBits;
     this.compressionCodec = compressionCodec;
     this.curlyMerger = curlyMerger;
@@ -116,9 +116,9 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         localPartitionRootCache,
         cueballMerger,
         keyHashSize,
-        offsetSize,
+        offsetNumBytes,
         hashIndexBits,
         compressionCodec,
-        new OffsetTransformer(offsetSize, offsetAdjustments));
+        new OffsetTransformer(offsetNumBytes, offsetAdjustments));
   }
 }

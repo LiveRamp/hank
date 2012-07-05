@@ -60,7 +60,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
     super.setUp();
 
     int keyHashSize = 12;
-    int offsetSize = 5;
+    int offsetNumBytes = 5;
     int hashIndexBits = 1;
     MockCueballMerger cueballMerger = new MockCueballMerger();
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
@@ -70,7 +70,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
         curlyMerger,
         cueballMerger,
         keyHashSize,
-        offsetSize,
+        offsetNumBytes,
         hashIndexBits,
         compressionCodec,
         localPartitionRoot);
