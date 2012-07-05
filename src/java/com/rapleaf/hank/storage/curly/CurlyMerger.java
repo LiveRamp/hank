@@ -26,6 +26,7 @@ public class CurlyMerger implements ICurlyMerger {
 
   private static final Logger LOG = Logger.getLogger(CurlyMerger.class);
 
+  @Override
   public long[] merge(final CurlyFilePath base,
                       final List<String> deltaRemoteFiles,
                       final PartitionRemoteFileOps partitionRemoteFileOps) throws IOException {
