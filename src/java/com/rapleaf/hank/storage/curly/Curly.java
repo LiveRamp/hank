@@ -378,6 +378,7 @@ public class Curly implements StorageEngine {
         new CueballMerger(),
         keyHashSize,
         offsetNumBytes,
+        offsetInBlockNumBytes,
         hashIndexBits,
         getCompressionCodec(),
         localDir);
