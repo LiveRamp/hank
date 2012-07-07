@@ -71,6 +71,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
         cueballMerger,
         keyHashSize,
         offsetNumBytes,
+        0,
         hashIndexBits,
         compressionCodec,
         localPartitionRoot);
