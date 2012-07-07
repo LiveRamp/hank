@@ -58,7 +58,11 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         localPartitionRoot);
     this.keyHashSize = keyHashSize;
     this.offsetNumBytes = offsetNumBytes;
-    this.valueSize = offsetNumBytes + offsetInBlockNumBytes;
+    if (offsetInBlockNumBytes > 0) {
+      this.valueSize = offsetNumBytes + offsetInBlockNumBytes;
+    } else {
+      this.valueSize = offsetNumBytes;
+    }
     this.hashIndexBits = hashIndexBits;
     this.compressionCodec = compressionCodec;
     this.curlyMerger = curlyMerger;
