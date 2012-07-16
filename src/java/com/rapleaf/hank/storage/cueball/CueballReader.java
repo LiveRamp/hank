@@ -137,6 +137,9 @@ public class CueballReader implements Reader {
   @Override
   public void close() throws IOException {
     channel.close();
+    if (cache != null) {
+      cache.clear();
+    }
   }
 
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {

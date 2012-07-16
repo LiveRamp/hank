@@ -253,5 +253,8 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (keyFileReader != null) {
       keyFileReader.close();
     }
+    if (cache != null) {
+      cache.clear();
+    }
   }
 }
