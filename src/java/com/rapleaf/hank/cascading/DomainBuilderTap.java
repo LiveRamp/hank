@@ -22,6 +22,7 @@ import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
 import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
+import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.hadoop.*;
 import org.apache.hadoop.io.BytesWritable;
@@ -77,7 +78,7 @@ public class DomainBuilderTap extends Hfs {
     private final String valueFieldName;
 
     public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
-      super(new Fields(keyFieldName, valueFieldName), new Fields(partitionFieldName, keyFieldName, valueFieldName));
+      super(new Fields(partitionFieldName, keyFieldName, valueFieldName), new Fields(keyFieldName, valueFieldName));
       this.partitionFieldName = partitionFieldName;
       this.keyFieldName = keyFieldName;
       this.valueFieldName = valueFieldName;
@@ -90,6 +91,7 @@ public class DomainBuilderTap extends Hfs {
 
     @Override
     public void sinkConfInit(FlowProcess<JobConf> jobConfFlowProcess, Tap<JobConf, RecordReader, OutputCollector> jobConfRecordReaderOutputCollectorTap, JobConf entries) {
+      System.out.println("HERP DERP I'M A TAP");
     }
 
     @Override
@@ -100,6 +102,9 @@ public class DomainBuilderTap extends Hfs {
     @Override
     public void sink(FlowProcess<JobConf> jobConfFlowProcess, SinkCall<Void, OutputCollector> sinkCall) throws IOException {
       TupleEntry tupleEntry = sinkCall.getOutgoingEntry();
+
+      System.out.println("DOMAIN BUILDER TAP: "+tupleEntry);
+
       IntWritable partition = new IntWritable(tupleEntry.getInteger(partitionFieldName));
       BytesWritable key = (BytesWritable) tupleEntry.getObject(keyFieldName);
       BytesWritable value = (BytesWritable) tupleEntry.getObject(valueFieldName);

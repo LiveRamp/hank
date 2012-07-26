@@ -21,8 +21,6 @@ import cascading.scheme.Scheme;
 import cascading.scheme.SinkCall;
 import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
-import cascading.tap.hadoop.io.HadoopTupleEntrySchemeIterator;
-import cascading.tap.hadoop.io.RecordReaderIterator;
 import cascading.tuple.*;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import org.apache.hadoop.fs.Path;
@@ -34,7 +32,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class PartitionMarkerTap extends Tap<JobConf, RecordReader, OutputCollector> {
+public class PartitionMarkerTap extends Tap {
 
   private final String domainName;
 
@@ -49,31 +47,32 @@ public class PartitionMarkerTap extends Tap<JobConf, RecordReader, OutputCollect
   }
 
   @Override
-  public TupleEntryIterator openForRead(FlowProcess<JobConf> jobConfFlowProcess, RecordReader recordReader) throws IOException {
-    return new TupleEntrySchemeIterator(jobConfFlowProcess, new PartitionMarkerScheme("key", "value"), new RecordReaderIterator(recordReader));
+  public TupleEntryIterator openForRead(FlowProcess flowProcess, Object o) throws IOException {
+    return null;
   }
 
   @Override
-  public TupleEntryCollector openForWrite(FlowProcess<JobConf> jobConfFlowProcess, OutputCollector outputCollector) throws IOException {
-    throw new RuntimeException("PartitionMarkerTap cannot be used as a sink.");  }
+  public TupleEntryCollector openForWrite(FlowProcess flowProcess, Object o) throws IOException {
+    throw new RuntimeException("PartitionMarkerTap cannot be used as a sink.");
+  }
 
   @Override
-  public boolean createResource(JobConf entries) throws IOException {
+  public boolean createResource(Object o) throws IOException {
     return true;
   }
 
   @Override
-  public boolean deleteResource(JobConf entries) throws IOException {
+  public boolean deleteResource(Object o) throws IOException {
     return true;
   }
 
   @Override
-  public boolean resourceExists(JobConf entries) throws IOException {
+  public boolean resourceExists(Object o) throws IOException {
     return false;
   }
 
   @Override
-  public long getModifiedTime(JobConf entries) throws IOException {
+  public long getModifiedTime(Object o) throws IOException {
     return 0;
   }
 
@@ -164,6 +163,8 @@ public class PartitionMarkerTap extends Tap<JobConf, RecordReader, OutputCollect
 
       Tuple tuple = sourceCall.getIncomingEntry().getTuple();
       IntWritable partition = (IntWritable) sourceCall.getInput().createKey();
+
+      System.out.println("PARTITION MARKER TAP: "+tuple);
 
       boolean result = sourceCall.getInput().next(partition, null);
       if(!result){
