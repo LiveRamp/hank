@@ -20,6 +20,7 @@ import cascading.cascade.Cascades;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
 import cascading.flow.hadoop.HadoopFlowConnector;
+import cascading.flow.stream.SinkStage;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
@@ -89,11 +90,11 @@ public class CascadingDomainBuilder {
 
   public Flow build(Properties cascadingProperties,
                     Map<String, Tap> sources) throws IOException {
-    return build(getDefaultFlowConnector(cascadingProperties), sources);
+    return build(new HadoopFlowConnectorFactory(cascadingProperties), sources);
   }
 
   // Build a single domain
-  protected Flow build(FlowConnector flowConenctor,
+  public Flow build(FlowConnectorFactory flowConnectorFactory,
                     Map<String, Tap> sources) throws IOException {
 
     pipe = new DomainBuilderAssembly(properties.getDomainName(),
@@ -109,7 +110,7 @@ public class CascadingDomainBuilder {
     try {
 
       // Build flow
-      flow = getFlow(flowConenctor, sources);
+      flow = getFlow(flowConnectorFactory, sources);
 
       // Set up job
       DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getConfig());
@@ -317,16 +318,11 @@ public class CascadingDomainBuilder {
         properties.getDomainName() + " version " + domainVersionNumber;
   }
 
-  private HadoopFlowConnector getDefaultFlowConnector(Properties cascadingProperties) {
-    return new HadoopFlowConnector(properties.setCascadingProperties(cascadingProperties,
-        domainVersionNumber, numPartitions));
-  }
-
-  private Flow<JobConf> getFlow(FlowConnector flowConnector,
+  private Flow<JobConf> getFlow(FlowConnectorFactory flowConnectorFactory,
                        Map<String, Tap> sources) {
     Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
     actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
         new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
-    return flowConnector.connect(getFlowName(), actualSources, outputTap, pipe);
+    return flowConnectorFactory.create(getProperties()).connect(getFlowName(), actualSources, outputTap, pipe);
   }
 }
