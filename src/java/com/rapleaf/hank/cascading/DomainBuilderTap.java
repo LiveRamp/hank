@@ -15,17 +15,20 @@
  */
 package com.rapleaf.hank.cascading;
 
+import cascading.flow.FlowProcess;
 import cascading.scheme.Scheme;
-import cascading.tap.Hfs;
+import cascading.scheme.SinkCall;
+import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
+import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
-import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
 import com.rapleaf.hank.hadoop.*;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.RecordReader;
 
 import java.io.IOException;
 
@@ -46,9 +49,8 @@ public class DomainBuilderTap extends Hfs {
     this.outputFormatClass = properties.getOutputFormatClass();
   }
 
-  @Override
-  public void sinkInit(JobConf conf) throws IOException {
-    super.sinkInit(conf);
+  public void sinkConfInit(FlowProcess<JobConf> process, JobConf conf){
+    super.sinkConfInit(process, conf);
     // Output Format
     conf.setOutputFormat(this.outputFormatClass);
     // Output Committer
@@ -63,11 +65,11 @@ public class DomainBuilderTap extends Hfs {
   }
 
   @Override
-  public void sourceInit(JobConf conf) {
+  public void sourceConfInit(FlowProcess process, JobConf conf){
     throw new RuntimeException("DomainBuilderTap cannot be used as a source");
   }
 
-  private static class DomainBuilderScheme extends Scheme {
+  private static class DomainBuilderScheme extends Scheme<JobConf, RecordReader, OutputCollector, Object[], Void> {
 
     private static final long serialVersionUID = 1L;
     private final String partitionFieldName;
@@ -75,34 +77,35 @@ public class DomainBuilderTap extends Hfs {
     private final String valueFieldName;
 
     public DomainBuilderScheme(String partitionFieldName, String keyFieldName, String valueFieldName) {
-      super(new Fields(partitionFieldName, keyFieldName, valueFieldName), new Fields(keyFieldName, valueFieldName));
+      super(new Fields(keyFieldName, valueFieldName), new Fields(partitionFieldName, keyFieldName, valueFieldName));
       this.partitionFieldName = partitionFieldName;
       this.keyFieldName = keyFieldName;
       this.valueFieldName = valueFieldName;
     }
 
     @Override
-    public void sink(TupleEntry tupleEntry, OutputCollector outputCollector) throws IOException {
+    public void sourceConfInit(FlowProcess<JobConf> jobConfFlowProcess, Tap<JobConf, RecordReader, OutputCollector> jobConfRecordReaderOutputCollectorTap, JobConf entries) {
+      throw new RuntimeException("DomainBuilderScheme cannot be used as a source.");
+    }
+
+    @Override
+    public void sinkConfInit(FlowProcess<JobConf> jobConfFlowProcess, Tap<JobConf, RecordReader, OutputCollector> jobConfRecordReaderOutputCollectorTap, JobConf entries) {
+    }
+
+    @Override
+    public boolean source(FlowProcess<JobConf> jobConfFlowProcess, SourceCall<Object[], RecordReader> recordReaderSourceCall) throws IOException {
+      throw new RuntimeException("DomainBuilderScheme cannot be used as a source.");
+    }
+
+    @Override
+    public void sink(FlowProcess<JobConf> jobConfFlowProcess, SinkCall<Void, OutputCollector> sinkCall) throws IOException {
+      TupleEntry tupleEntry = sinkCall.getOutgoingEntry();
       IntWritable partition = new IntWritable(tupleEntry.getInteger(partitionFieldName));
-      BytesWritable key = (BytesWritable) tupleEntry.get(keyFieldName);
-      BytesWritable value = (BytesWritable) tupleEntry.get(valueFieldName);
+      BytesWritable key = (BytesWritable) tupleEntry.getObject(keyFieldName);
+      BytesWritable value = (BytesWritable) tupleEntry.getObject(valueFieldName);
       KeyAndPartitionWritable keyAndPartitionWritable = new KeyAndPartitionWritable(key, partition);
       ValueWritable valueWritable = new ValueWritable(value);
-      outputCollector.collect(keyAndPartitionWritable, valueWritable);
-    }
-
-    @Override
-    public void sinkInit(Tap tap, JobConf conf) throws IOException {
-    }
-
-    @Override
-    public Tuple source(Object key, Object value) {
-      throw new RuntimeException("DomainBuilderScheme cannot be used as a source.");
-    }
-
-    @Override
-    public void sourceInit(Tap tap, JobConf jobConf) throws IOException {
-      throw new RuntimeException("DomainBuilderScheme cannot be used as a source.");
+      sinkCall.getOutput().collect(keyAndPartitionWritable, valueWritable);
     }
   }
 }

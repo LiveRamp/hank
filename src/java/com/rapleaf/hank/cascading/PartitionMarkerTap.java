@@ -16,8 +16,13 @@
 
 package com.rapleaf.hank.cascading;
 
+import cascading.flow.FlowProcess;
 import cascading.scheme.Scheme;
+import cascading.scheme.SinkCall;
+import cascading.scheme.SourceCall;
 import cascading.tap.Tap;
+import cascading.tap.hadoop.io.HadoopTupleEntrySchemeIterator;
+import cascading.tap.hadoop.io.RecordReaderIterator;
 import cascading.tuple.*;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import org.apache.hadoop.fs.Path;
@@ -29,7 +34,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
-public class PartitionMarkerTap extends Tap {
+public class PartitionMarkerTap extends Tap<JobConf, RecordReader, OutputCollector> {
 
   private final String domainName;
 
@@ -39,37 +44,36 @@ public class PartitionMarkerTap extends Tap {
   }
 
   @Override
-  public Path getPath() {
-    return new Path("__hank_partition_markers_for_" + domainName);
+  public String getIdentifier() {
+    return "__hank_partition_markers_for_" + domainName;
   }
 
   @Override
-  public TupleEntryIterator openForRead(JobConf conf) throws IOException {
-    return null;
+  public TupleEntryIterator openForRead(FlowProcess<JobConf> jobConfFlowProcess, RecordReader recordReader) throws IOException {
+    return new TupleEntrySchemeIterator(jobConfFlowProcess, new PartitionMarkerScheme("key", "value"), new RecordReaderIterator(recordReader));
   }
 
   @Override
-  public TupleEntryCollector openForWrite(JobConf conf) throws IOException {
-    throw new RuntimeException("PartitionMarkerTap cannot be used as a sink.");
-  }
+  public TupleEntryCollector openForWrite(FlowProcess<JobConf> jobConfFlowProcess, OutputCollector outputCollector) throws IOException {
+    throw new RuntimeException("PartitionMarkerTap cannot be used as a sink.");  }
 
   @Override
-  public boolean makeDirs(JobConf conf) throws IOException {
+  public boolean createResource(JobConf entries) throws IOException {
     return true;
   }
 
   @Override
-  public boolean deletePath(JobConf conf) throws IOException {
+  public boolean deleteResource(JobConf entries) throws IOException {
     return true;
   }
 
   @Override
-  public boolean pathExists(JobConf conf) throws IOException {
+  public boolean resourceExists(JobConf entries) throws IOException {
     return false;
   }
 
   @Override
-  public long getPathModified(JobConf conf) throws IOException {
+  public long getModifiedTime(JobConf entries) throws IOException {
     return 0;
   }
 
@@ -136,7 +140,7 @@ public class PartitionMarkerTap extends Tap {
     }
   }
 
-  private static class PartitionMarkerScheme extends Scheme {
+  private static class PartitionMarkerScheme extends Scheme<JobConf, RecordReader, OutputCollector, Object[], Void> {
 
     public PartitionMarkerScheme(String keyFieldName, String valueFieldName) {
       super(new Fields(keyFieldName,
@@ -146,23 +150,36 @@ public class PartitionMarkerTap extends Tap {
     }
 
     @Override
-    public void sourceInit(Tap tap, JobConf conf) throws IOException {
-      conf.setInputFormat(PartitionMarkerInputFormat.class);
+    public void sourceConfInit(FlowProcess<JobConf> jobConfFlowProcess, Tap<JobConf, RecordReader, OutputCollector> jobConfOutputCollectorTap, JobConf entries) {
+      entries.setInputFormat(PartitionMarkerInputFormat.class);
     }
 
     @Override
-    public void sinkInit(Tap tap, JobConf conf) throws IOException {
+    public void sinkConfInit(FlowProcess<JobConf> jobConfFlowProcess, Tap<JobConf, RecordReader, OutputCollector> jobConfOutputCollectorTap, JobConf entries) {
       throw new RuntimeException("PartitionMarkerScheme cannot be used as a sink.");
     }
 
     @Override
-    public Tuple source(Object key, Object value) {
-      IntWritable partition = (IntWritable) key;
-      return new Tuple(null, null, partition, null);
+    public boolean source(FlowProcess<JobConf> jobConfFlowProcess, SourceCall<Object[], RecordReader> sourceCall) throws IOException {
+
+      Tuple tuple = sourceCall.getIncomingEntry().getTuple();
+      IntWritable partition = (IntWritable) sourceCall.getInput().createKey();
+
+      boolean result = sourceCall.getInput().next(partition, null);
+      if(!result){
+        return false;
+      }
+
+      tuple.set(0, null);
+      tuple.set(1, null);
+      tuple.set(2, partition);
+      tuple.set(3, null);
+
+      return true;
     }
 
     @Override
-    public void sink(TupleEntry tupleEntry, OutputCollector outputCollector) throws IOException {
+    public void sink(FlowProcess<JobConf> jobConfFlowProcess, SinkCall<Void, OutputCollector> outputCollectorSinkCall) throws IOException {
       throw new RuntimeException("PartitionMarkerScheme cannot be used as a sink.");
     }
   }

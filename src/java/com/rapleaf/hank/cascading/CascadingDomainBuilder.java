@@ -19,12 +19,14 @@ package com.rapleaf.hank.cascading;
 import cascading.cascade.Cascades;
 import cascading.flow.Flow;
 import cascading.flow.FlowConnector;
+import cascading.flow.hadoop.HadoopFlowConnector;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.hadoop.DomainBuilderOutputCommitter;
 import com.rapleaf.hank.hadoop.DomainBuilderProperties;
 import com.rapleaf.hank.hadoop.DomainVersionNumberAndNumPartitions;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -98,20 +100,20 @@ public class CascadingDomainBuilder {
     // Open new version and check for success
     openNewVersion();
 
-    Flow flow = null;
+    Flow<JobConf> flow = null;
     try {
 
       // Build flow
       flow = getFlow(cascadingProperties, sources);
 
       // Set up job
-      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getJobConf());
+      DomainBuilderOutputCommitter.setupJob(properties.getDomainName(), flow.getConfig());
 
       // Complete flow
       flow.complete();
 
       // Commit job
-      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getJobConf());
+      DomainBuilderOutputCommitter.commitJob(properties.getDomainName(), flow.getConfig());
 
     } catch (Exception e) {
       String exceptionMessage = "Failed at building version " + domainVersionNumber +
@@ -120,7 +122,7 @@ public class CascadingDomainBuilder {
       cancelNewVersion();
       // Clean up job
       if (flow != null) {
-        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+        DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getConfig());
       }
       e.printStackTrace();
       throw new IOException(exceptionMessage, e);
@@ -128,7 +130,7 @@ public class CascadingDomainBuilder {
     // Close the new version
     closeNewVersion();
     // Clean up job
-    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getJobConf());
+    DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), flow.getConfig());
     return flow;
   }
 
@@ -144,7 +146,7 @@ public class CascadingDomainBuilder {
       LOG.info("Building domain with " + domainBuilder.toString());
     }
 
-    Flow flow = null;
+    Flow<JobConf> flow = null;
     try {
       // Open new versions
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
@@ -209,12 +211,12 @@ public class CascadingDomainBuilder {
       }
 
       // Build flow
-      flow = new FlowConnector(cascadingProperties)
+      flow = new HadoopFlowConnector(cascadingProperties)
           .connect(jobName.toString(), actualSources, sinks, tails);
 
       // Set up jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        DomainBuilderOutputCommitter.setupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
+        DomainBuilderOutputCommitter.setupJob(domainBuilder.properties.getDomainName(), flow.getConfig());
       }
 
       // Complete flow
@@ -222,7 +224,7 @@ public class CascadingDomainBuilder {
 
       // Commit jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        DomainBuilderOutputCommitter.commitJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
+        DomainBuilderOutputCommitter.commitJob(domainBuilder.properties.getDomainName(), flow.getConfig());
       }
 
     } catch (Exception e) {
@@ -231,7 +233,7 @@ public class CascadingDomainBuilder {
         domainBuilder.cancelNewVersion();
         // Clean up jobs
         if (flow != null) {
-          DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
+          DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getConfig());
         }
       }
       e.printStackTrace();
@@ -241,7 +243,7 @@ public class CascadingDomainBuilder {
     for (CascadingDomainBuilder domainBuilder : domainBuilders) {
       domainBuilder.closeNewVersion();
       // Clean up jobs
-      DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getJobConf());
+      DomainBuilderOutputCommitter.cleanupJob(domainBuilder.properties.getDomainName(), flow.getConfig());
     }
     return flow;
   }
@@ -305,12 +307,12 @@ public class CascadingDomainBuilder {
         properties.getDomainName() + " version " + domainVersionNumber;
   }
 
-  private FlowConnector getFlowConnector(Properties cascadingProperties) {
-    return new FlowConnector(properties.setCascadingProperties(cascadingProperties,
+  private HadoopFlowConnector getFlowConnector(Properties cascadingProperties) {
+    return new HadoopFlowConnector(properties.setCascadingProperties(cascadingProperties,
         domainVersionNumber, numPartitions));
   }
 
-  private Flow getFlow(Properties cascadingProperties,
+  private Flow<JobConf> getFlow(Properties cascadingProperties,
                        Map<String, Tap> sources) {
     Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
     actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),

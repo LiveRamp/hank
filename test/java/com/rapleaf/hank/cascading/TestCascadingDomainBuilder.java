@@ -16,12 +16,13 @@
 
 package com.rapleaf.hank.cascading;
 
+import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
 import cascading.pipe.Pipe;
-import cascading.scheme.SequenceFile;
-import cascading.tap.Hfs;
+import cascading.scheme.hadoop.SequenceFile;
 import cascading.tap.Tap;
+import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
@@ -68,7 +69,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
 
   private void writeSequenceFile(String path, Fields fields, Tuple... tuples) throws IOException {
     Tap tap = new Hfs(new SequenceFile(fields), path);
-    TupleEntryCollector coll = tap.openForWrite(new JobConf());
+    TupleEntryCollector coll = tap.openForWrite(new HadoopFlowProcess(new JobConf()));
     for (Tuple t : tuples) {
       coll.add(t);
     }
