@@ -56,7 +56,9 @@ public class HostMonitor {
       if (state == null) {
         state = HostState.OFFLINE;
       }
-      doNotify(new HostStateNotification(ringGroup, ring, host, state));
+      if (state == HostState.OFFLINE) {
+        doNotify(new HostStateNotification(ringGroup, ring, host, state));
+      }
     }
   }
 
