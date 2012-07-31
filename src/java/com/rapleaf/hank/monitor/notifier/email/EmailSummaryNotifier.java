@@ -39,6 +39,7 @@ public class EmailSummaryNotifier implements Notifier {
   private static final int EMAIL_SUMMARY_FREQUENCY = 60 * 1000; // 1 minute in ms
 
   private final String name;
+  private final String emailFrom;
   private final Set<String> emailTargets;
   private final Properties emailSessionProperties = new Properties();
   private final Thread notifierThread;
@@ -47,10 +48,12 @@ public class EmailSummaryNotifier implements Notifier {
   private final List<Notification> notifications = new ArrayList<Notification>();
 
   public EmailSummaryNotifier(String name,
+                              String emailFrom,
                               Set<String> emailTargets,
                               String smtpHost,
                               NotificationFormatter notificationFormatter) {
     this.name = name;
+    this.emailFrom = emailFrom;
     this.emailTargets = emailTargets;
     this.emailSessionProperties.put("mail.smtp.host", smtpHost);
     this.notificationFormatter = notificationFormatter;
@@ -61,7 +64,7 @@ public class EmailSummaryNotifier implements Notifier {
           notifySummary();
           try {
             Thread.sleep(EMAIL_SUMMARY_FREQUENCY);
-            // Interrup to stop the notification loop
+            // Interrupt to stop the notification loop
           } catch (InterruptedException e) {
             // Notify what is left before stopping
             notifySummary();
@@ -111,6 +114,7 @@ public class EmailSummaryNotifier implements Notifier {
     Message message = new MimeMessage(session);
     try {
       message.setSubject("Hank monitor: " + name);
+      message.setFrom(new InternetAddress(emailFrom));
       for (String emailTarget : emailTargets) {
         message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailTarget));
       }

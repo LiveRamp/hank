@@ -27,6 +27,7 @@ import java.util.Map;
 
 public class EmailSummaryNotifierFactory extends AbstractNotifierFactory implements NotifierFactory {
 
+  private static final String EMAIL_NOTIFICATION_FROM_KEY = "email_notification_from";
   private static final String EMAIL_NOTIFICATION_TARGETS_KEY = "email_notification_targets";
   private static final String SMTP_HOST_KEY = "smtp_host";
 
@@ -40,12 +41,14 @@ public class EmailSummaryNotifierFactory extends AbstractNotifierFactory impleme
   public Notifier createNotifier(Map<String, Object> configuration,
                                  String name,
                                  String webUiUrl) {
+    String emailNotificationFrom = getString(configuration, EMAIL_NOTIFICATION_FROM_KEY);
     HashSet<String> emailNotificationTargets = new HashSet<String>();
     String[] emailNotificationTargetsTokens = getString(configuration, EMAIL_NOTIFICATION_TARGETS_KEY).split(",");
     for (String emailNotificationTarget : emailNotificationTargetsTokens) {
       emailNotificationTargets.add(emailNotificationTarget.trim());
     }
-    return new EmailSummaryNotifier(name, emailNotificationTargets,
+    return new EmailSummaryNotifier(name, emailNotificationFrom,
+        emailNotificationTargets,
         getString(configuration, SMTP_HOST_KEY),
         new EmailNotificationFormatter(webUiUrl));
   }
