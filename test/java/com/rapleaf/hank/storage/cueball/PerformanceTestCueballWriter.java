@@ -25,7 +25,7 @@ public class PerformanceTestCueballWriter {
     new File(tmpDir).mkdirs();
 
     Cueball cueball = new Cueball(5,
-        new Murmur64Hasher(), VALUE_SIZE, 6, "/tmp/remote_domains_root",
+        new Murmur64Hasher(), VALUE_SIZE, 6, args[1],
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
     PartitionRemoteFileOps localFs = new LocalPartitionRemoteFileOps(tmpDir, 0);
     Writer writer = cueball.getWriter(new MockDomainVersion(1, 0L, null), localFs, 0);
