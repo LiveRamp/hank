@@ -19,7 +19,7 @@ public class PerformanceTestCueballWriter {
 
   public static void main(String[] args) throws Exception {
     int numRecords = 3000000;
-    String tmpDir = "/Users/bryanduxbury/hank_test_data";
+    String tmpDir = args[0];
 
     FsUtils.rmrf(tmpDir);
     new File(tmpDir).mkdirs();
