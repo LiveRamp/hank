@@ -260,6 +260,14 @@ public class TestHankSmartClient extends BaseTestCase {
         // Good
       }
 
+      // Test get with empty key
+      try {
+        client.get("existent_domain", ByteBuffer.wrap(new byte[0]));
+        fail("Should throw an exception.");
+      } catch (EmptyKeyException e) {
+        // Good
+      }
+
       // Test get bulk with null keys
       try {
         List<ByteBuffer> bulkRequest = new ArrayList<ByteBuffer>();
@@ -268,6 +276,17 @@ public class TestHankSmartClient extends BaseTestCase {
         client.getBulk("existent_domain", bulkRequest);
         fail("Should throw an exception.");
       } catch (NullKeyException e) {
+        // Good
+      }
+
+      // Test get bulk with empty keys
+      try {
+        List<ByteBuffer> bulkRequest = new ArrayList<ByteBuffer>();
+        bulkRequest.add(KEY_1);
+        bulkRequest.add(ByteBuffer.wrap(new byte[0]));
+        client.getBulk("existent_domain", bulkRequest);
+        fail("Should throw an exception.");
+      } catch (EmptyKeyException e) {
         // Good
       }
 

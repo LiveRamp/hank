@@ -415,6 +415,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     if (key == null) {
       throw new NullKeyException();
     }
+    // Check for empty keys
+    if (key.remaining() == 0) {
+      throw new EmptyKeyException();
+    }
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);
     return futureGet;
@@ -424,6 +428,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Check for null keys
     if (key == null) {
       throw new NullKeyException();
+    }
+    // Check for empty keys
+    if (key.remaining() == 0) {
+      throw new EmptyKeyException();
     }
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
     int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
