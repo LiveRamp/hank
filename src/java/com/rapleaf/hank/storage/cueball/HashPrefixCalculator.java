@@ -8,12 +8,17 @@ public final class HashPrefixCalculator {
   }
 
   public final int getHashPrefix(final byte[] chunkBytes, int off) {
-    int lim = off + (numBits / 8);
+    final int bitsFromLastByte = numBits % 8;
+    final int numFullBytes = off + (numBits / 8);
+
     int prefix = 0;
-    for (; off < lim; off++) {
+    for (; off < numFullBytes; off++) {
       prefix = (prefix << 8) | (chunkBytes[off] & 0xff);
     }
-    final int bitsFromLastByte = numBits % 8;
-    return (prefix << bitsFromLastByte) | (((chunkBytes[off] & 0xff) >> (8-bitsFromLastByte)));
+    if (bitsFromLastByte == 0) {
+      return prefix;
+    } else {
+      return (prefix << bitsFromLastByte) | (((chunkBytes[off] & 0xff) >> (8 - bitsFromLastByte)));
+    }
   }
 }
