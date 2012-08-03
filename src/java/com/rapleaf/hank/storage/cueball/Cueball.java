@@ -178,6 +178,10 @@ public class Cueball implements StorageEngine {
     this.domain = domain;
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.partitionCacheCapacity = partitionCacheCapacity;
+    // Sanity check
+    if (hashIndexBits > 32) {
+      throw new RuntimeException("hashIndexBits is much too large (" + hashIndexBits + ")");
+    }
   }
 
   @Override
