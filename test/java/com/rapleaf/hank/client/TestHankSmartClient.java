@@ -247,10 +247,29 @@ public class TestHankSmartClient extends BaseTestCase {
       HankBulkResponse bulkResponse1 = HankBulkResponse.responses(new ArrayList<HankResponse>());
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
       bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
-      List<ByteBuffer> bulkResquest1 = new ArrayList<ByteBuffer>();
-      bulkResquest1.add(KEY_1);
-      bulkResquest1.add(KEY_2);
-      assertEquals(bulkResponse1, client.getBulk("existent_domain", bulkResquest1));
+      List<ByteBuffer> bulkRequest1 = new ArrayList<ByteBuffer>();
+      bulkRequest1.add(KEY_1);
+      bulkRequest1.add(KEY_2);
+      assertEquals(bulkResponse1, client.getBulk("existent_domain", bulkRequest1));
+
+      // Test get with null key
+      try {
+        client.get("existent_domain", null);
+        fail("Should throw an exception.");
+      } catch (NullKeyException e) {
+        // Good
+      }
+
+      // Test get bulk with null keys
+      try {
+        List<ByteBuffer> bulkRequest = new ArrayList<ByteBuffer>();
+        bulkRequest.add(KEY_1);
+        bulkRequest.add(null);
+        client.getBulk("existent_domain", bulkRequest);
+        fail("Should throw an exception.");
+      } catch (NullKeyException e) {
+        // Good
+      }
 
       // Test getBulk speed
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HUNDRED_MS_LATENCY);

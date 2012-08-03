@@ -411,12 +411,20 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   private FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
+    // Check for null keys
+    if (key == null) {
+      throw new NullKeyException();
+    }
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);
     return futureGet;
   }
 
   private HankResponse _get(Domain domain, ByteBuffer key) {
+    // Check for null keys
+    if (key == null) {
+      throw new NullKeyException();
+    }
     int partition = domain.getPartitioner().partition(key, domain.getNumParts());
     int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
