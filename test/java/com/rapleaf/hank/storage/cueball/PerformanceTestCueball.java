@@ -16,13 +16,15 @@
 
 package com.rapleaf.hank.storage.cueball;
 
+import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
+import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.FsUtils;
 
@@ -31,50 +33,97 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class PerformanceTestCueball {
+public class PerformanceTestCueball extends BaseTestCase {
 
   private static final int VALUE_SIZE = 16;
   private static final int KEY_SIZE = 20;
+  private static final int KEY_HASH_SIZE = KEY_SIZE;
+  private static final int HASH_INDEX_BITS = 16;
+  private static final int NUM_RECORDS_PER_BLOCK = 1000;
 
-  public static void performanceTestCueballWriter(String tmpDir) throws IOException {
-    int numRecords = 3000000;
+  public void testPerformanceCueballWriter() throws IOException {
+
+    // Fill in all indexable blocks
+    long numRecords = (1 << HASH_INDEX_BITS) * NUM_RECORDS_PER_BLOCK;
+
+    String tmpDir = localTmpDir + "/_testPerformanceCueballWriter";
 
     FsUtils.rmrf(tmpDir);
     new File(tmpDir).mkdirs();
 
-    Cueball cueball = new Cueball(5,
-        new Murmur64Hasher(), VALUE_SIZE, 6, tmpDir + "/remote_domain_root",
+    Cueball cueball = new Cueball(
+        KEY_HASH_SIZE, new KeyHasher(HASH_INDEX_BITS), VALUE_SIZE, HASH_INDEX_BITS, tmpDir + "/remote_domain_root",
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
     PartitionRemoteFileOps localFs = new LocalPartitionRemoteFileOps(tmpDir, 0);
-    Writer writer = cueball.getWriter(new MockDomainVersion(1, 0L, null), localFs, 0);
+    Writer writer = cueball.getWriter(
+        new MockDomainVersion(0, 0L, new IncrementalDomainVersionProperties.Base()), localFs, 0);
 
     HankTimer timer = new HankTimer();
-    for (int i = 0; i < numRecords; i++) {
+    for (long i = 0; i < numRecords; ++i) {
       writer.write(key(i, KEY_SIZE), value(i, VALUE_SIZE));
     }
     writer.close();
-    double elapsedMs = timer.getDuration() / 1000000.0;
 
-    System.out.println("Test took " + elapsedMs + "ms.");
+    double elapsedMs = timer.getDurationMs();
     double elapsedSecs = elapsedMs / 1000.0;
+    long totalBytes = numRecords * (KEY_SIZE + VALUE_SIZE);
+    long totalMegaBytes = (totalBytes / 1024 / 1024);
+    System.out.println("Test took " + elapsedMs + "ms, wrote " + numRecords + " records totalling " + totalMegaBytes + "MB");
     System.out.println(String.format("Throughput: %.2f writes/sec", numRecords / elapsedSecs));
-    int totalBytes = numRecords * (KEY_SIZE + VALUE_SIZE);
-    System.out.println(String.format("Throughput: %.2f MB/sec", totalBytes / 1024 / 1024 / elapsedSecs));
+    System.out.println(String.format("Throughput: %.2f MB/sec", totalMegaBytes / elapsedSecs));
   }
 
-  public static void main(String[] args) throws IOException {
-    performanceTestCueballWriter(args[0]);
+
+  public void testPerformanceCueballMerger() throws IOException {
   }
 
-  private static ByteBuffer key(int keyNum, int len) {
-    byte[] k = new byte[len];
-    EncodingHelper.encodeLittleEndianFixedWidthLong(keyNum, k);
-    return ByteBuffer.wrap(k);
+  private static ByteBuffer key(long key, int keySize) {
+    byte[] keyBytes = new byte[keySize];
+    EncodingHelper.encodeLittleEndianFixedWidthLong(key, keyBytes);
+    return ByteBuffer.wrap(keyBytes);
   }
 
-  private static ByteBuffer value(int i, int j) {
-    byte[] v = new byte[j];
-    Arrays.fill(v, (byte) i);
+  private static ByteBuffer value(long value, int valueSize) {
+    byte[] v = new byte[valueSize];
+    Arrays.fill(v, (byte) value);
     return ByteBuffer.wrap(v);
+  }
+
+  // Hash function designed to read in longs and output hashes that conserve
+  // the same ordering and satisfy the hash index
+  private static class KeyHasher implements Hasher {
+
+    private final int hashIndexBits;
+
+    public KeyHasher(int hashIndexBits) {
+      this.hashIndexBits = hashIndexBits;
+    }
+
+    @Override
+    public void hash(ByteBuffer keyBytes, int keySize, byte[] hashBytes) {
+
+      long key = EncodingHelper.decodeLittleEndianFixedWidthLong(keyBytes);
+
+      if (hashIndexBits % 8 != 0) {
+        throw new RuntimeException("hashIndexBits must be a multiple of 8");
+      }
+
+      long keyBlock = key / NUM_RECORDS_PER_BLOCK;
+      long keyIndex = key % NUM_RECORDS_PER_BLOCK;
+      byte[] keyHashBytes = new byte[keySize];
+
+      // Note: this is valid because hashIndexBits must be a multiple of 8
+      int hashIndexBytes = hashIndexBits / 8;
+
+      // Encode bytes for key block
+      EncodingHelper.encodeLittleEndianFixedWidthLong(keyBlock, keyHashBytes, keyHashBytes.length - hashIndexBytes, hashIndexBytes);
+
+      // Encode bytes for key index in block
+      EncodingHelper.encodeLittleEndianFixedWidthLong(keyIndex, keyHashBytes, 0, keyHashBytes.length - hashIndexBytes);
+
+      for (int i = 0; i < keyHashBytes.length; ++i) {
+        hashBytes[i] = (byte) (0xff & keyHashBytes[keyHashBytes.length - 1 - i]);
+      }
+    }
   }
 }
