@@ -35,4 +35,8 @@ public class HankTimer {
   public long getDuration() {
     return Math.abs(startTime - System.nanoTime()); // Since nanoTime can return negative values
   }
+
+  public long getDurationMs() {
+    return getDuration() / 1000000;
+  }
 }
