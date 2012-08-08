@@ -14,17 +14,18 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage.cueball;
+package com.rapleaf.hank.performance;
 
-import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
 import com.rapleaf.hank.storage.Writer;
+import com.rapleaf.hank.storage.cueball.Cueball;
+import com.rapleaf.hank.storage.cueball.CueballFilePath;
+import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.EncodingHelper;
 
@@ -33,7 +34,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class PerformanceTestCueball extends BaseTestCase {
+public class PerformanceTestCueball {
 
   private static final int VALUE_SIZE = 16;
   private static final int KEY_SIZE = 20;
@@ -41,20 +42,20 @@ public class PerformanceTestCueball extends BaseTestCase {
   private static final int HASH_INDEX_BITS = 16;
   private static final int NUM_RECORDS_PER_BLOCK = 1000;
 
-  private Cueball getCueball() {
+  private static Cueball getCueball(String localTmpDir) {
     return new Cueball(
         KEY_HASH_SIZE, new KeyHasher(HASH_INDEX_BITS), VALUE_SIZE, HASH_INDEX_BITS, localTmpDir + "/remote_domain_root",
         new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
   }
 
-  private long getNumTotalRecords() {
+  private static long getNumTotalRecords() {
     return (1 << HASH_INDEX_BITS) * NUM_RECORDS_PER_BLOCK;
   }
 
-  public void testPerformanceCueballWriter() throws IOException {
+  public static void testPerformanceCueballWriter(String localTmpDir) throws IOException {
     // Fill in all indexable blocks
     long numRecords = getNumTotalRecords();
-    Writer writer = getCueball().getWriter(
+    Writer writer = getCueball(localTmpDir).getWriter(
         new MockDomainVersion(0, 0L, new IncrementalDomainVersionProperties.Base()),
         new LocalPartitionRemoteFileOps(localTmpDir, 0), 0);
     HankTimer timer = new HankTimer();
@@ -71,14 +72,14 @@ public class PerformanceTestCueball extends BaseTestCase {
     System.out.println(String.format("Throughput: %.2f MB/sec", totalMegaBytes / elapsedSecs));
   }
 
-  public void testPerformanceCueballMerger() throws IOException {
+  public static void testPerformanceCueballMerger(String localTmpDir) throws IOException {
     DomainVersion baseVersion = new MockDomainVersion(0, 0L, new IncrementalDomainVersionProperties.Base());
     DomainVersion deltaVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Delta(0));
     DomainVersion newBaseVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base());
     PartitionRemoteFileOps partitionRemoteFileOps = new LocalPartitionRemoteFileOps(localTmpDir, 0);
     long numRecords = getNumTotalRecords();
     int deltaFrequency = 1000000; // num records in delta = numRecords / deltaFrequency
-    Cueball cueball = getCueball();
+    Cueball cueball = getCueball(localTmpDir);
     // Create base
     Writer baseWriter = cueball.getWriter(
         baseVersion,
@@ -162,5 +163,10 @@ public class PerformanceTestCueball extends BaseTestCase {
         hashBytes[i] = (byte) (0xff & keyHashBytes[keyHashBytes.length - 1 - i]);
       }
     }
+  }
+
+  public static void main(String[] args) throws IOException {
+    testPerformanceCueballWriter("/tmp/" + args[0]);
+    testPerformanceCueballMerger("/tmp/" + args[0]);
   }
 }
