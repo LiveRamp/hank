@@ -98,18 +98,26 @@ public class CueballWriter implements Writer {
     // Compare with previous key hash
     int previousKeyHashComparision = Bytes.compareBytesUnsigned(keyHashBytes, 0, previousKeyHashBytes, 0, keyHashSize);
     // Check that there is not a key hash collision
-    if (0 == previousKeyHashComparision) {
+    if (previousKey != null && 0 == previousKeyHashComparision) {
       throw new IOException("Collision: two consecutive keys have the same hash value."
           + "\nKey: "
           + Bytes.bytesToHexString(key)
           + "\nPrevious key: "
-          + (previousKey == null ? "null" : Bytes.bytesToHexString(previousKey))
+          + Bytes.bytesToHexString(previousKey)
           + "\nHash: "
           + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes)));
     }
     // Check key hash ordering
     if (0 > previousKeyHashComparision) {
-      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash (comparableKey) value, but a decreasing sequence was detected.");
+      throw new IOException("Key ordering is incorrect. They should be ordered by increasing hash (comparableKey) value, but a decreasing sequence was detected."
+          + "\nKey: "
+          + Bytes.bytesToHexString(key)
+          + "\nHash: "
+          + Bytes.bytesToHexString(ByteBuffer.wrap(keyHashBytes))
+          + "\nPrevious key: "
+          + Bytes.bytesToHexString(previousKey)
+          + "\nPrevious Hash: "
+          + Bytes.bytesToHexString(ByteBuffer.wrap(previousKeyHashBytes)));
     }
     // Write hash
     writeHash(ByteBuffer.wrap(keyHashBytes), value);
