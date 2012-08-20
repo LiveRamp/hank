@@ -226,6 +226,7 @@ public class Curly implements StorageEngine {
   private final BlockCompressionCodec blockCompressionCodec;
   private final int compressedBlockSizeThreshold;
   private final int offsetInBlockNumBytes;
+  private final int cueballValueNumBytes;
 
   public Curly(int keyHashSize,
                Hasher hasher,
@@ -261,9 +262,10 @@ public class Curly implements StorageEngine {
 
     // Determine size of values in Cueball. If we are using block compression in Curly,
     // the offsets stored in Cueball are appended with the offset in the block.
-    int cueballValueNumBytes = offsetNumBytes;
-    if (blockCompressionCodec != null) {
-      cueballValueNumBytes += offsetInBlockNumBytes;
+    if (blockCompressionCodec == null) {
+      this.cueballValueNumBytes = offsetNumBytes;
+    } else {
+      this.cueballValueNumBytes = offsetNumBytes + offsetInBlockNumBytes;
     }
 
     this.cueballStorageEngine = new Cueball(keyHashSize,
@@ -359,7 +361,7 @@ public class Curly implements StorageEngine {
         partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
-        new CueballStreamBufferMergeSort.Factory(keyHashSize, offsetNumBytes, hashIndexBits, getCompressionCodec(), null),
+        new CueballStreamBufferMergeSort.Factory(keyHashSize, cueballValueNumBytes, hashIndexBits, getCompressionCodec(), null),
         new ICurlyReaderFactory() {
           @Override
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
