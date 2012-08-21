@@ -76,6 +76,9 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       // Note: we are directly writing the key hash instead of the key. The underlying
       // key file writer should be aware of that and not attempt to hash the key again.
       recordFileWriter.write(keyHash, value);
+
+      // Clear the result buffer
+      readerResult.clear();
     }
 
     // Close Curly writer
