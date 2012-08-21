@@ -25,6 +25,7 @@ import java.util.List;
 
 public final class CueballMerger implements ICueballMerger {
 
+  @Override
   public void merge(final CueballFilePath base,
                     final List<CueballFilePath> deltas,
                     final String newBasePath,
