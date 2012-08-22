@@ -39,6 +39,10 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final BlockCompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
+  // Last decompressed block cache
+  private final boolean cacheLastDecompressedBlock;
+  private ByteBuffer lastDecompressedBlock;
+  private long lastDecompressedBlockOffset = -1;
 
   public static CurlyFilePath getLatestBase(String partitionRoot) throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
@@ -52,7 +56,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
                      int cacheCapacity) throws IOException {
-    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1);
+    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1, false);
   }
 
   public CurlyReader(CurlyFilePath curlyFile,
@@ -61,7 +65,8 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int cacheCapacity,
                      BlockCompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
-                     int offsetInBlockNumBytes) throws IOException {
+                     int offsetInBlockNumBytes,
+                     boolean cacheLastDecompressedBlock) throws IOException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
@@ -69,6 +74,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.blockCompressionCodec = blockCompressionCodec;
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
+    this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
     if (cacheCapacity > 0) {
       this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
     } else {
@@ -80,6 +86,9 @@ public class CurlyReader implements Reader, ICurlyReader {
         !keyFileReader.getVersionNumber().equals(versionNumber)) {
       throw new IOException("Curly Reader version (" + versionNumber
           + ") does not match the provided key file Reader version (" + keyFileReader.getVersionNumber() + ")");
+    }
+    if (cacheLastDecompressedBlock) {
+      lastDecompressedBlock = ByteBuffer.allocate(1);
     }
   }
 
@@ -99,31 +108,42 @@ public class CurlyReader implements Reader, ICurlyReader {
       readRecordAtOffset(recordFileOffset, result);
     } else {
       // When using block compression, location contains the block's offset and an offset in the block. Decode them.
-      long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
+      long recordFileBlockOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
           location.arrayOffset() + location.position(), offsetNumBytes);
       long offsetInBlock = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
           location.arrayOffset() + location.position() + offsetNumBytes, offsetInBlockNumBytes);
-      // Read in the compressed block into the result
-      readRecordAtOffset(recordFileOffset, result);
 
-      // Decompress the block
-      InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
-          result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
-      // Build an InputStream corresponding to the compression codec
-      InputStream decompressedBlockInputStream;
-      switch (blockCompressionCodec) {
-        case GZIP:
-          decompressedBlockInputStream = new GZIPInputStream(blockInputStream);
-          break;
-        case SLOW_IDENTITY:
-          decompressedBlockInputStream = new BufferedInputStream(blockInputStream);
-          break;
-        default:
-          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+      ByteBuffer decompressedBlockByteBuffer;
+      if (cacheLastDecompressedBlock && lastDecompressedBlockOffset == recordFileBlockOffset) {
+        // This block has been decompressed just before, reuse it
+        decompressedBlockByteBuffer = lastDecompressedBlock;
+      } else {
+        // Read in the compressed block into the result
+        readRecordAtOffset(recordFileBlockOffset, result);
+        // Decompress the block
+        InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
+            result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
+        // Build an InputStream corresponding to the compression codec
+        InputStream decompressedBlockInputStream;
+        switch (blockCompressionCodec) {
+          case GZIP:
+            decompressedBlockInputStream = new GZIPInputStream(blockInputStream);
+            break;
+          case SLOW_IDENTITY:
+            decompressedBlockInputStream = new BufferedInputStream(blockInputStream);
+            break;
+          default:
+            throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+        }
+        // Decompress into the specialized result buffer
+        IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
+        decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
+        // Cache the decompressed block if requested
+        if (cacheLastDecompressedBlock) {
+          lastDecompressedBlockOffset = recordFileBlockOffset;
+          lastDecompressedBlock = Bytes.byteBufferDeepCopy(decompressedBlockByteBuffer, lastDecompressedBlock);
+        }
       }
-      // Decompress into the specialized result buffer
-      IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
-      ByteBuffer decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
 
       // Position ourselves at the beginning of the actual value
       decompressedBlockByteBuffer.position((int) offsetInBlock);

@@ -288,7 +288,8 @@ public class Curly implements StorageEngine {
         recordFilePartitionCacheCapacity,
         blockCompressionCodec,
         offsetNumBytes,
-        offsetInBlockNumBytes);
+        offsetInBlockNumBytes,
+        false);
   }
 
   @Override
@@ -367,7 +368,7 @@ public class Curly implements StorageEngine {
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes);
+                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
           }
         }
     );
