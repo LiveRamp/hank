@@ -137,6 +137,7 @@ public class CurlyReader implements Reader, ICurlyReader {
         }
         // Decompress into the specialized result buffer
         IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
+        decompressedBlockInputStream.close();
         decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
         // Cache the decompressed block if requested
         if (cacheLastDecompressedBlock) {
