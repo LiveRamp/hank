@@ -39,10 +39,8 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final BlockCompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
-  // Last decompressed block cache
-  private final boolean cacheLastDecompressedBlock;
-  private ByteBuffer lastDecompressedBlock;
-  private long lastDecompressedBlockOffset = -1;
+  // Decompressed block cache
+  private final LruHashMap<Long, ByteBuffer> decompressedBlockCache;
 
   public static CurlyFilePath getLatestBase(String partitionRoot) throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
@@ -56,7 +54,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
                      int cacheCapacity) throws IOException {
-    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1, false);
+    this(curlyFile, recordFileReadBufferBytes, keyFileReader, cacheCapacity, null, -1, -1, -1);
   }
 
   public CurlyReader(CurlyFilePath curlyFile,
@@ -66,7 +64,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      BlockCompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
                      int offsetInBlockNumBytes,
-                     boolean cacheLastDecompressedBlock) throws IOException {
+                     int decompressedBlockCacheCapacity) throws IOException {
     this.recordFile = new FileInputStream(curlyFile.getPath()).getChannel();
     this.keyFileReader = keyFileReader;
     this.readBufferSize = recordFileReadBufferBytes;
@@ -74,7 +72,6 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.blockCompressionCodec = blockCompressionCodec;
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
-    this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
     if (cacheCapacity > 0) {
       this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
     } else {
@@ -87,8 +84,10 @@ public class CurlyReader implements Reader, ICurlyReader {
       throw new IOException("Curly Reader version (" + versionNumber
           + ") does not match the provided key file Reader version (" + keyFileReader.getVersionNumber() + ")");
     }
-    if (cacheLastDecompressedBlock) {
-      lastDecompressedBlock = ByteBuffer.allocate(1);
+    if (decompressedBlockCacheCapacity > 0) {
+      this.decompressedBlockCache = new LruHashMap<Long, ByteBuffer>(0, decompressedBlockCacheCapacity);
+    } else {
+      this.decompressedBlockCache = null;
     }
   }
 
@@ -113,12 +112,13 @@ public class CurlyReader implements Reader, ICurlyReader {
       long offsetInBlock = EncodingHelper.decodeLittleEndianFixedWidthLong(location.array(),
           location.arrayOffset() + location.position() + offsetNumBytes, offsetInBlockNumBytes);
 
-      ByteBuffer decompressedBlockByteBuffer;
-      if (cacheLastDecompressedBlock && lastDecompressedBlockOffset == recordFileBlockOffset) {
-        // This block has been decompressed just before, reuse it
-        decompressedBlockByteBuffer = lastDecompressedBlock;
-      } else {
-        // Read in the compressed block into the result
+      ByteBuffer decompressedBlockByteBuffer = null;
+      if (decompressedBlockCache != null) {
+        // Try to load this block from the decompressed block cache
+        decompressedBlockByteBuffer = decompressedBlockCache.get(recordFileBlockOffset);
+      }
+      if (decompressedBlockByteBuffer == null) {
+        // Not found in cache, read in the compressed block into the result
         readRecordAtOffset(recordFileBlockOffset, result);
         // Decompress the block
         InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
@@ -140,9 +140,8 @@ public class CurlyReader implements Reader, ICurlyReader {
         decompressedBlockInputStream.close();
         decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
         // Cache the decompressed block if requested
-        if (cacheLastDecompressedBlock) {
-          lastDecompressedBlockOffset = recordFileBlockOffset;
-          lastDecompressedBlock = Bytes.byteBufferDeepCopy(decompressedBlockByteBuffer, lastDecompressedBlock);
+        if (decompressedBlockCache != null) {
+          decompressedBlockCache.put(recordFileBlockOffset, Bytes.byteBufferDeepCopy(decompressedBlockByteBuffer));
         }
       }
 
