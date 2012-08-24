@@ -297,9 +297,7 @@ public class Curly implements StorageEngine {
         recordFilePartitionCacheCapacity,
         blockCompressionCodec,
         offsetNumBytes,
-        offsetInBlockNumBytes,
-        // Caching whole decompressed block does not make sense in the case of a regular (random reads) reader.
-        -1);
+        offsetInBlockNumBytes);
   }
 
   @Override
@@ -378,7 +376,7 @@ public class Curly implements StorageEngine {
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, compactorDecompressedBlockCacheCapacity);
+                null, recordFilePartitionCacheCapacity, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes);
           }
         }
     );
