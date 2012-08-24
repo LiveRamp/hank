@@ -65,7 +65,6 @@ public class Curly implements StorageEngine {
     private static final String BLOCK_COMPRESSION_CODEC = "block_compression_codec";
     private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
     private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
-    private static final String COMPACTOR_DECOMPRESSED_BLOCK_CACHE_CAPACITY = "compactor_decompressed_block_cache_capacity";
 
     private static final Set<String> REQUIRED_KEYS = new HashSet<String>(Arrays.asList(REMOTE_DOMAIN_ROOT_KEY,
         RECORD_FILE_READ_BUFFER_BYTES_KEY, HASH_INDEX_BITS_KEY, MAX_ALLOWED_PART_SIZE_KEY, KEY_HASH_SIZE_KEY,
@@ -132,10 +131,6 @@ public class Curly implements StorageEngine {
       if (offsetInBlockNumBytes == null) {
         offsetInBlockNumBytes = -1;
       }
-      Integer compactorDecompressedBlockCacheCapacity = (Integer) options.get(COMPACTOR_DECOMPRESSED_BLOCK_CACHE_CAPACITY);
-      if (compactorDecompressedBlockCacheCapacity == null) {
-        compactorDecompressedBlockCacheCapacity = -1;
-      }
 
       return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
           hasher,
@@ -152,8 +147,7 @@ public class Curly implements StorageEngine {
           recordFilePartitionCacheCapacity,
           blockCompressionCodec,
           compressedBlockSizeThreshold,
-          offsetInBlockNumBytes,
-          compactorDecompressedBlockCacheCapacity);
+          offsetInBlockNumBytes);
     }
 
     @Override
@@ -232,7 +226,6 @@ public class Curly implements StorageEngine {
   private final BlockCompressionCodec blockCompressionCodec;
   private final int compressedBlockSizeThreshold;
   private final int offsetInBlockNumBytes;
-  private final int compactorDecompressedBlockCacheCapacity;
   private final int cueballValueNumBytes;
 
   public Curly(int keyHashSize,
@@ -250,8 +243,7 @@ public class Curly implements StorageEngine {
                int recordFilePartitionCacheCapacity,
                BlockCompressionCodec blockCompressionCodec,
                int compressedBlockSizeThreshold,
-               int offsetInBlockNumBytes,
-               int compactorDecompressedBlockCacheCapacity) {
+               int offsetInBlockNumBytes) {
     this.keyHashSize = keyHashSize;
     this.hashIndexBits = hashIndexBits;
     this.recordFileReadBufferBytes = recordFileReadBufferBytes;
@@ -265,7 +257,6 @@ public class Curly implements StorageEngine {
     this.blockCompressionCodec = blockCompressionCodec;
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
-    this.compactorDecompressedBlockCacheCapacity = compactorDecompressedBlockCacheCapacity;
 
     this.offsetNumBytes = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
 
@@ -298,8 +289,7 @@ public class Curly implements StorageEngine {
         blockCompressionCodec,
         offsetNumBytes,
         offsetInBlockNumBytes,
-        // Caching whole decompressed block does not make sense in the case of a regular (random reads) reader.
-        -1);
+        false);
   }
 
   @Override
@@ -378,7 +368,7 @@ public class Curly implements StorageEngine {
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, compactorDecompressedBlockCacheCapacity);
+                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
           }
         }
     );
