@@ -367,8 +367,12 @@ public class Curly implements StorageEngine {
           @Override
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
+            // Note: we are using the value of valueFoldingCacheCapacity for the reader cache capacity. The idea
+            // is that there is more RAM available during compaction (less compactors per machine than partitions
+            // per machine when serving) and that we want the compaction reader to have the same good cache behavior as
+            // when the partition was written.
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, -1, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
+                null, valueFoldingCacheCapacity, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
           }
         }
     );
