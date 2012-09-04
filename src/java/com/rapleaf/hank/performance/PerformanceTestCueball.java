@@ -72,10 +72,9 @@ public class PerformanceTestCueball {
     System.out.println(String.format("Throughput: %.2f MB/sec", totalMegaBytes / elapsedSecs));
   }
 
-  public static void testPerformanceCueballMerger(String localTmpDir) throws IOException {
-    DomainVersion baseVersion = new MockDomainVersion(0, 0L, new IncrementalDomainVersionProperties.Base());
-    DomainVersion deltaVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Delta(0));
-    DomainVersion newBaseVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base());
+  private static void prepareTestPerformanceCueballMerger(String localTmpDir,
+                                                          DomainVersion baseVersion,
+                                                          DomainVersion deltaVersion) throws IOException {
     PartitionRemoteFileOps partitionRemoteFileOps = new LocalPartitionRemoteFileOps(localTmpDir, 0);
     long numRecords = getNumTotalRecords();
     int deltaFrequency = 1000000; // num records in delta = numRecords / deltaFrequency
@@ -100,7 +99,12 @@ public class PerformanceTestCueball {
       }
     }
     deltaWriter.close();
-    // Merge
+  }
+
+  private static void doTestPerformanceCueballMerger(String localTmpDir,
+                                                     DomainVersion baseVersion,
+                                                     DomainVersion deltaVersion,
+                                                     DomainVersion newBaseVersion) throws IOException {
     HankTimer timer = new HankTimer();
     new CueballMerger().merge(
         new CueballFilePath(localTmpDir + "/0/" + Cueball.getName(baseVersion)),
@@ -113,6 +117,14 @@ public class PerformanceTestCueball {
         new NoCompressionCodec());
     double elapsedS = timer.getDurationMs() / 1000.0;
     System.out.println("Merge done in " + elapsedS + " seconds");
+  }
+
+  public static void testPerformanceCueballMerger(String localTmpDir) throws IOException {
+    DomainVersion baseVersion = new MockDomainVersion(0, 0L, new IncrementalDomainVersionProperties.Base());
+    DomainVersion deltaVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Delta(0));
+    DomainVersion newBaseVersion = new MockDomainVersion(1, 0L, new IncrementalDomainVersionProperties.Base());
+    prepareTestPerformanceCueballMerger(localTmpDir, baseVersion, deltaVersion);
+    doTestPerformanceCueballMerger(localTmpDir, baseVersion, deltaVersion, newBaseVersion);
   }
 
   private static ByteBuffer key(long key, int keySize) {
