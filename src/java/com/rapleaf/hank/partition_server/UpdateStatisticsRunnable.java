@@ -34,30 +34,26 @@ public abstract class UpdateStatisticsRunnable implements Runnable {
 
   abstract protected void runCore() throws IOException;
 
+  @Override
   public void run() {
-    while (true) {
-      if (cancelled.get()) {
-        cleanup();
-        return;
-      }
+    while (!cancelled.get()) {
       // Run
       try {
         runCore();
       } catch (IOException e) {
         LOG.error("Failed to update statistics", e);
       }
-      if (cancelled.get()) {
-        cleanup();
-        return;
-      }
-      // Sleep a given interval. Interrupt the thread to stop it while it is sleeping
-      try {
-        Thread.sleep(updateStatisticsThreadSleepTimeMS);
-      } catch (InterruptedException e) {
-        cleanup();
-        return;
+      // Sleep a given interval if not cancelled. Interrupt the thread to stop it while it is sleeping
+      if (!cancelled.get()) {
+        try {
+          Thread.sleep(updateStatisticsThreadSleepTimeMS);
+        } catch (InterruptedException e) {
+          cancelled.set(true);
+        }
       }
     }
+    // Finally, clean up
+    cleanup();
   }
 
   abstract protected void cleanup();

@@ -78,6 +78,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   private final Object cacheLock = new Object();
   private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
+  private final Thread cacheUpdaterThread;
 
   /**
    * Create a new HankSmartClient that uses the supplied coordinator and works
@@ -153,7 +154,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Initialize cache and cache updater
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
-    Thread cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
+    cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
     cacheUpdaterThread.start();
   }
 
@@ -219,7 +220,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           }
         } catch (InterruptedException e) {
           // Stop immediately if interrupted
-          break;
+          stopping = true;
         }
         if (!stopping) {
           try {
@@ -239,9 +240,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       semaphore.release();
     }
 
-    public void stop() {
+    public void cancel() {
       stopping = true;
-      semaphore.release();
     }
   }
 
@@ -573,13 +573,15 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   @Override
   public void stop() {
     stopGetTaskExecutor();
-    cacheUpdaterRunnable.stop();
+    cacheUpdaterRunnable.cancel();
+    cacheUpdaterThread.interrupt();
     updateRuntimeStatisticsRunnable.cancel();
     updateRuntimeStatisticsThread.interrupt();
     try {
+      cacheUpdaterThread.join();
       updateRuntimeStatisticsThread.join();
     } catch (InterruptedException e) {
-      LOG.info("Interrupted while waiting for update runtime statistics thread to terminate during shutdown.");
+      LOG.info("Interrupted while waiting for updater threads to terminate during shutdown.");
     }
     disconnect();
   }
