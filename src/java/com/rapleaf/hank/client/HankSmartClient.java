@@ -149,12 +149,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Initialize Load statistics runner
     updateRuntimeStatisticsRunnable = new UpdateRuntimeStatisticsRunnable();
     updateRuntimeStatisticsThread = new Thread(updateRuntimeStatisticsRunnable, "Update Load Statistics");
+    updateRuntimeStatisticsThread.setDaemon(true);
     updateRuntimeStatisticsThread.start();
 
     // Initialize cache and cache updater
     updateCache();
     ringGroup.addDataLocationChangeListener(this);
     cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
+    cacheUpdaterThread.setDaemon(true);
     cacheUpdaterThread.start();
   }
 
@@ -730,7 +732,9 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
     @Override
     public Thread newThread(Runnable runnable) {
-      return new Thread(runnable, "GetTaskThread");
+      Thread result = new Thread(runnable, "GetTaskThread");
+      result.setDaemon(true);
+      return result;
     }
   }
 
