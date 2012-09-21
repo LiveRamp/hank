@@ -206,6 +206,9 @@ table.table-blue td,
 .partition_updating {
   background-color: #8cdbf3;
 }
+.partition_deletable {
+  background-color: #f5a700;
+}
 .defunct-version {
   color: #bbbbbb;
 }

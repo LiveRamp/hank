@@ -243,6 +243,10 @@
         <td>Assigned, no version deployed</td>
       </tr>
       <tr>
+        <td class="partition_deletable" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
+        <td>Assigned, deletable</td>
+      </tr>
+      <tr>
         <td class="partition_updating" style="width:6px; height: 6px; font-size:0px">&nbsp;</td>
         <td>Assigned, some version deployed, update pending</td>
       </tr>
@@ -272,7 +276,9 @@
         String className = "partition_unassigned";
         HostDomainPartition hdp = hdc.getPartitionByNumber(i);
         if (hdp != null) {
-          if (hdp.getCurrentDomainGroupVersion() == null) {
+          if (hdp.isDeletable()) {
+            className = "partition_deletable";
+          } else if (hdp.getCurrentDomainGroupVersion() == null) {
             className = "partition_undeployed";
           } else if (targetDomainGroupVersion != null &&
                      hdp.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
