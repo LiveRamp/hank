@@ -40,17 +40,17 @@ public final class FsUtils {
     }
   }
 
-  public static Set<String> getMatchingPaths(String regex, String... dirs) {
+  public static Set<String> getMatchingPaths(String regex, String... dirs) throws IOException {
     Set<String> matches = new HashSet<String>();
     for (String dir : dirs) {
       File local = new File(dir);
       if (!local.isDirectory()) {
-        throw new RuntimeException(dir + " does not exist or is not a directory!");
+        throw new IOException(dir + " does not exist or is not a directory!");
       }
       String[] filesInLocal = local.list();
 
       if (filesInLocal == null) {
-        throw new RuntimeException(dir + " does not exist or is not a directory!");
+        throw new IOException(dir + " does not exist or is not a directory!");
       }
 
       for (String file : filesInLocal) {

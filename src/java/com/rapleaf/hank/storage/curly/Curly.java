@@ -432,7 +432,7 @@ public class Curly implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  public static SortedSet<CurlyFilePath> getBases(String... dirs) {
+  public static SortedSet<CurlyFilePath> getBases(String... dirs) throws IOException {
     SortedSet<CurlyFilePath> result = new TreeSet<CurlyFilePath>();
     Set<String> paths = FsUtils.getMatchingPaths(BASE_REGEX, dirs);
     for (String path : paths) {
@@ -441,7 +441,7 @@ public class Curly implements StorageEngine {
     return result;
   }
 
-  public static SortedSet<CurlyFilePath> getDeltas(String... dirs) {
+  public static SortedSet<CurlyFilePath> getDeltas(String... dirs) throws IOException {
     SortedSet<CurlyFilePath> result = new TreeSet<CurlyFilePath>();
     Set<String> paths = FsUtils.getMatchingPaths(DELTA_REGEX, dirs);
     for (String path : paths) {

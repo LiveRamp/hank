@@ -276,7 +276,7 @@ public class Cueball implements StorageEngine {
     return String.format("%05d", versionNumber);
   }
 
-  public static SortedSet<CueballFilePath> getBases(String... dirs) {
+  public static SortedSet<CueballFilePath> getBases(String... dirs) throws IOException {
     SortedSet<CueballFilePath> result = new TreeSet<CueballFilePath>();
     Set<String> paths = FsUtils.getMatchingPaths(BASE_REGEX, dirs);
     for (String path : paths) {
@@ -285,7 +285,7 @@ public class Cueball implements StorageEngine {
     return result;
   }
 
-  public static SortedSet<CueballFilePath> getDeltas(String... dirs) {
+  public static SortedSet<CueballFilePath> getDeltas(String... dirs) throws IOException {
     SortedSet<CueballFilePath> result = new TreeSet<CueballFilePath>();
     Set<String> paths = FsUtils.getMatchingPaths(DELTA_REGEX, dirs);
     for (String path : paths) {
