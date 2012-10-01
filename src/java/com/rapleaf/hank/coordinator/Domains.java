@@ -16,11 +16,13 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.config.InvalidConfigurationException;
+import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.storage.RemoteDomainCleaner;
 import com.rapleaf.hank.storage.RemoteDomainVersionDeleter;
 import com.rapleaf.hank.storage.StorageEngine;
+import com.rapleaf.hank.util.CommandLineChecker;
 import com.rapleaf.hank.util.ReverseComparator;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -75,7 +77,6 @@ public final class Domains {
   }
 
   public static void cleanDomains(Collection<Domain> domains) throws IOException {
-    LOG.info("Cleaning all Domains");
     for (Domain domain : domains) {
       StorageEngine storageEngine = domain.getStorageEngine();
       RemoteDomainCleaner cleaner = storageEngine.getRemoteDomainCleaner();
@@ -91,7 +92,22 @@ public final class Domains {
       LOG.info("Cleaning Domain " + domain.getName());
       cleaner.deleteOldVersions(deleter);
     }
-    LOG.info("Done cleaning all Domains");
   }
 
+  public static void main(String[] args) throws IOException, InvalidConfigurationException {
+    CommandLineChecker.check(args, new String[]{"configuration", "action", "domain"},
+        Domains.class);
+
+    String configurationPath = args[0];
+    String action = args[1];
+    String domainName = args[2];
+
+    Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
+    if (action.equals("clean")) {
+      Domains.cleanDomains(Collections.singletonList(coordinator.getDomain(domainName)));
+    } else {
+      System.err.println("Unknown action: " + action);
+      System.exit(1);
+    }
+  }
 }

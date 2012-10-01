@@ -93,8 +93,12 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
     for (DomainVersion version : sortedVersions) {
       LOG.info("Deleting Version " + version.getVersionNumber() + " of Domain " + domain.getName());
       //TODO: not attempt to delete already deleted versions
+      // Set defunct
       version.setDefunct(true);
+      // Delete remote data
       remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
+      // Delete metadata
+      domain.deleteVersion(version.getVersionNumber());
     }
   }
 }
