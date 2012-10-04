@@ -45,14 +45,18 @@ public abstract class WatchedNode<T> {
         if (event.getState() == KeeperState.SyncConnected) {
           // If connected update data and notify listeners
           try {
-            if (event.getType().equals(Event.EventType.NodeCreated)) {
-              watchForData();
-            } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
-              // Previous version notified is null, and we will notify with null
-              previousVersion = null;
-              watchForCreation();
-            } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
-              watchForData();
+            switch (event.getType()) {
+              case NodeCreated:
+                watchForData();
+                break;
+              case NodeDeleted:
+                // Previous version notified is null, and we will notify with null
+                previousVersion = null;
+                watchForCreation();
+                break;
+              case NodeDataChanged:
+                watchForData();
+                break;
             }
           } catch (KeeperException e) {
             LOG.error("Exception while trying to update our cached value for " + nodePath, e);
