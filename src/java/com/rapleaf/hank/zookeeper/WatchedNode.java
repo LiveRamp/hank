@@ -41,49 +41,43 @@ public abstract class WatchedNode<T> {
   private final Watcher watcher = new Watcher() {
     @Override
     public void process(WatchedEvent event) {
-      // this lock is important so that when changes start happening, we
-      // won't run into any concurrency issues
-
-      synchronized (WatchedNode.this) {
-
-        if (!cancelled) {
-          if (event.getState() == KeeperState.SyncConnected) {
-            // If connected update data and notify listeners
+      if (!cancelled) {
+        if (event.getState() == KeeperState.SyncConnected) {
+          // If connected update data and notify listeners
+          try {
+            if (event.getType().equals(Event.EventType.NodeCreated)) {
+              watchForData();
+            } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
+              // Previous version notified is null, and we will notify with null
+              previousVersion = null;
+              watchForCreation();
+            } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
+              watchForData();
+            }
+          } catch (KeeperException e) {
+            LOG.error("Exception while trying to update our cached value for " + nodePath, e);
+          } catch (InterruptedException e) {
+            if (LOG.isTraceEnabled()) {
+              LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
+            }
+          }
+          // Notify of new value if either we didn't notify of any value, or the node has changed
+          long currentVersion = stat.getCtime() + stat.getMtime();
+          if (previousVersion == null || !previousVersion.equals(currentVersion)) {
             try {
-              if (event.getType().equals(Event.EventType.NodeCreated)) {
-                watchForData();
-              } else if (event.getType().equals(Event.EventType.NodeDeleted)) {
-                // Previous version notified is null, and we will notify with null
-                previousVersion = null;
-                watchForCreation();
-              } else if (event.getType().equals(Event.EventType.NodeDataChanged)) {
-                watchForData();
-              }
-            } catch (KeeperException e) {
-              LOG.error("Exception while trying to update our cached value for " + nodePath, e);
-            } catch (InterruptedException e) {
-              if (LOG.isTraceEnabled()) {
-                LOG.trace("Interrupted while trying to update our cached value for " + nodePath, e);
-              }
-            }
-            // Notify of new value if either we didn't notify of any value, or the node has changed
-            long currentVersion = stat.getCtime() + stat.getMtime();
-            if (previousVersion == null || !previousVersion.equals(currentVersion)) {
-              try {
-                synchronized (listeners) {
-                  for (WatchedNodeListener<T> listener : listeners) {
-                    listener.onWatchedNodeChange(value);
-                  }
+              synchronized (listeners) {
+                for (WatchedNodeListener<T> listener : listeners) {
+                  listener.onWatchedNodeChange(value);
                 }
-              } finally {
-                previousVersion = currentVersion;
               }
+            } finally {
+              previousVersion = currentVersion;
             }
-          } else {
-            // Not sync connected, do nothing
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Not sync connected anymore for watched node " + nodePath);
-            }
+          }
+        } else {
+          // Not sync connected, do nothing
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Not sync connected anymore for watched node " + nodePath);
           }
         }
       }
