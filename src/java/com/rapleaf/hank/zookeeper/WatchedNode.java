@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.zookeeper;
 
+import com.rapleaf.hank.util.ExponentialBackoff;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
@@ -33,7 +34,7 @@ public abstract class WatchedNode<T> {
   private T value;
   private Long previousVersion = null;
   private final String nodePath;
-  private final Stat stat = new Stat();
+  private Stat stat = new Stat();
   private final ZooKeeperPlus zk;
   private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
   private boolean cancelled = false;
@@ -127,7 +128,10 @@ public abstract class WatchedNode<T> {
   }
 
   private void watchForCreation() throws InterruptedException, KeeperException {
-    value = null;
+    synchronized (this) {
+      value = null;
+      stat = new Stat();
+    }
     zk.exists(nodePath, watcher);
   }
 
@@ -135,7 +139,9 @@ public abstract class WatchedNode<T> {
     if (LOG.isTraceEnabled()) {
       LOG.trace(String.format("Getting value for %s", nodePath));
     }
-    value = decode(zk.getData(nodePath, watcher, stat));
+    synchronized (this) {
+      value = decode(zk.getData(nodePath, watcher, stat));
+    }
   }
 
   protected abstract T decode(byte[] data);
@@ -148,10 +154,28 @@ public abstract class WatchedNode<T> {
     zk.setData(nodePath, encode(v), -1);
   }
 
+  public void update(WatchedNodeUpdater<T> updater) throws InterruptedException, KeeperException {
+    ExponentialBackoff backoff = new ExponentialBackoff();
+    while (true) {
+      try {
+        synchronized (this) {
+          zk.setData(nodePath, encode(updater.update(value)), stat.getVersion());
+        }
+      } catch (KeeperException.BadVersionException e) {
+        // If we did not update from the latest version, backoff and retry.
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Did not have latest version to update node " + nodePath + ". Backing off for " + backoff.getBackoffMs() + " ms");
+        }
+        backoff.backoff();
+        continue;
+      }
+      break;
+    }
+  }
+
   public void cancelWatch() {
     cancelled = true;
   }
 
   protected abstract byte[] encode(T v);
-
 }

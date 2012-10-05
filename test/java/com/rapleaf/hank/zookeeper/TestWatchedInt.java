@@ -6,6 +6,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 public class TestWatchedInt extends ZkTestCase {
+
   public void testIt() throws Exception {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
@@ -28,6 +29,31 @@ public class TestWatchedInt extends ZkTestCase {
     Thread.sleep(100);
     assertEquals(Integer.valueOf(22), wi2.get());
     assertEquals(Integer.valueOf(22), wi.get());
+  }
+
+  public void testUpdate() throws InterruptedException, KeeperException {
+    final ZooKeeperPlus zk = getZk();
+    final String nodePath = ZkPath.append(getRoot(), "watchedNode");
+    zk.create(nodePath, "0".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    final WatchedInt wi = new WatchedInt(zk, nodePath, true);
+    assertEquals(Integer.valueOf(0), wi.get());
+
+    WatchedNodeUpdater<Integer> incrementer = new WatchedNodeUpdater<Integer>() {
+      @Override
+      public Integer update(Integer currentValue) {
+        if (currentValue == null) {
+          return 0;
+        } else {
+          return currentValue + 1;
+        }
+      }
+    };
+    int finalValue = 64;
+    for (int i = 0; i < finalValue; ++i) {
+      wi.update(incrementer);
+    }
+    Thread.sleep(100);
+    assertEquals(Integer.valueOf(finalValue), wi.get());
   }
 
   public void testWaitForCreation() throws InterruptedException, KeeperException {
