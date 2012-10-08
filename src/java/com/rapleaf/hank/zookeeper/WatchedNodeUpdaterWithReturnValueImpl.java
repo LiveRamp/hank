@@ -16,10 +16,16 @@
 
 package com.rapleaf.hank.zookeeper;
 
-interface WatchedNodeUpdater<T> {
+public abstract class WatchedNodeUpdaterWithReturnValueImpl<V, R> implements WatchedNodeUpdaterWithReturnValue<V, R> {
 
-  // Note: update() should not modify its argument
-  public T update(T current);
+  private R returnValue;
+
+  protected void setReturnValue(R returnValue) {
+    this.returnValue = returnValue;
+  }
+
+  @Override
+  public R getReturnValue() {
+    return returnValue;
+  }
 }
-
-

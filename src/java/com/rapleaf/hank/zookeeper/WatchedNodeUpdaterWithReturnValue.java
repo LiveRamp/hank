@@ -16,10 +16,7 @@
 
 package com.rapleaf.hank.zookeeper;
 
-interface WatchedNodeUpdater<T> {
+interface WatchedNodeUpdaterWithReturnValue<T, R> extends WatchedNodeUpdater<T> {
 
-  // Note: update() should not modify its argument
-  public T update(T current);
+  public R getReturnValue();
 }
-
-
