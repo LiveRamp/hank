@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.zookeeper;
 
-interface WatchedNodeUpdater<T> {
+public interface WatchedNodeUpdater<T> {
 
   // Note: update() should not modify its argument
   public T update(T current);
