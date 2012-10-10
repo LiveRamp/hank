@@ -27,33 +27,39 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
 
   protected final TDeserializer deserializer = new TDeserializer(new TCompactProtocol.Factory());
   protected final TSerializer serializer = new TSerializer(new TCompactProtocol.Factory());
-  private final T emptyBase;
 
   public WatchedThriftNode(final ZooKeeperPlus zk,
                            final String nodePath,
                            boolean waitForCreation,
-                           T emptyBase) throws KeeperException, InterruptedException {
-    super(zk, nodePath, waitForCreation);
-    this.emptyBase = emptyBase;
+                           T emptyValue) throws KeeperException, InterruptedException {
+    super(zk, nodePath, waitForCreation, emptyValue);
   }
 
   @Override
   protected T decode(byte[] data) {
-    T result = (T) emptyBase.deepCopy();
-    try {
-      deserializer.deserialize(result, data);
-    } catch (TException e) {
-      throw new RuntimeException(e);
+    if (data == null) {
+      return null;
+    } else {
+      T result = (T) emptyValue.deepCopy();
+      try {
+        deserializer.deserialize(result, data);
+      } catch (TException e) {
+        throw new RuntimeException(e);
+      }
+      return result;
     }
-    return result;
   }
 
   @Override
   protected byte[] encode(T v) {
-    try {
-      return serializer.serialize(v);
-    } catch (TException e) {
-      throw new RuntimeException(e);
+    if (v == null) {
+      return null;
+    } else {
+      try {
+        return serializer.serialize(v);
+      } catch (TException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 }
