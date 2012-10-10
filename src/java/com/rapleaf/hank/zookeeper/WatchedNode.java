@@ -39,6 +39,8 @@ public abstract class WatchedNode<T> {
   private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
   private boolean cancelled = false;
 
+  protected final T emptyValue;
+
   private final Watcher watcher = new Watcher() {
     @Override
     public void process(WatchedEvent event) {
@@ -98,10 +100,11 @@ public abstract class WatchedNode<T> {
    * @throws KeeperException
    * @throws InterruptedException
    */
-  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation)
+  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation, T emptyValue)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
+    this.emptyValue = emptyValue;
     // Immediately try to load the data, if it fails, then optionally wait
     try {
       watchForData();
@@ -113,6 +116,11 @@ public abstract class WatchedNode<T> {
         watchForCreation();
       }
     }
+  }
+
+  public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
+      throws InterruptedException, KeeperException {
+    this(zk, nodePath, waitForCreation, null);
   }
 
   public void addListener(WatchedNodeListener<T> listener) {
