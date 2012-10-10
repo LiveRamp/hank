@@ -40,7 +40,7 @@ public class ZkDomain extends AbstractDomain {
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
-  private static final String KEY_VERSIONS = "versions";
+  protected static final String KEY_VERSIONS = "versions";
   private static final String KEY_REQUIRED_HOST_FLAGS = "required_host_flags";
 
   private final String name;

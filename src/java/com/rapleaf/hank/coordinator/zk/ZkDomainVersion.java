@@ -44,7 +44,7 @@ public class ZkDomainVersion extends AbstractDomainVersion {
                                        DomainVersionProperties domainVersionProperties,
                                        DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws KeeperException, InterruptedException, IOException {
-    String versionPath = ZkPath.append(domainPath, "versions", "version_" + versionNumber);
+    String versionPath = ZkPath.append(domainPath, ZkDomain.KEY_VERSIONS, getPathName(versionNumber));
     if (domainVersionProperties != null) {
       if (domainVersionPropertiesSerialization == null) {
         throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
