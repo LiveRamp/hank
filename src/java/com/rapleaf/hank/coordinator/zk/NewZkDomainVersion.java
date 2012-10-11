@@ -38,7 +38,7 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
-  private final DomainVersionPropertiesSerialization domainVersionPropertiesFactory;
+  private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
 
   public static NewZkDomainVersion create(ZooKeeperPlus zk,
                                           String domainPath,
@@ -46,9 +46,6 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
                                           DomainVersionProperties domainVersionProperties,
                                           DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException, IOException {
-    if (domainVersionProperties != null && domainVersionPropertiesSerialization == null) {
-      throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
-    }
     String versionPath = ZkPath.append(domainPath, ZkDomain.NEW_VERSIONS_PATH, getPathName(versionNumber));
     zk.create(versionPath, null);
     NewZkDomainVersion result = new NewZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization);
@@ -56,11 +53,11 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
     return result;
   }
 
-  public NewZkDomainVersion(ZooKeeperPlus zk, String path, DomainVersionPropertiesSerialization domainVersionPropertiesFactory)
+  public NewZkDomainVersion(ZooKeeperPlus zk, String path, DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
-    this.domainVersionPropertiesFactory = domainVersionPropertiesFactory;
+    this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
     metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, new DomainVersionMetadata());
   }
@@ -171,12 +168,15 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
     if (serializedProperties == null) {
       return null;
     } else {
-      return domainVersionPropertiesFactory.deserializeProperties(serializedProperties);
+      return domainVersionPropertiesSerialization.deserializeProperties(serializedProperties);
     }
   }
 
   @Override
   public void setProperties(final DomainVersionProperties properties) throws IOException {
+    if (properties != null && domainVersionPropertiesSerialization == null) {
+      throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
+    }
     try {
       metadata.update(new WatchedNodeUpdater<DomainVersionMetadata>() {
         @Override
@@ -186,7 +186,7 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
             result.set_properties((byte[]) null);
           } else {
             try {
-              result.set_properties(domainVersionPropertiesFactory.serializeProperties(properties));
+              result.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
