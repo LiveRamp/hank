@@ -27,10 +27,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class NewZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
 
@@ -47,19 +44,26 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
                                           DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException, IOException {
     String versionPath = ZkPath.append(domainPath, ZkDomain.NEW_VERSIONS_PATH, getPathName(versionNumber));
-    zk.create(versionPath, null);
-    NewZkDomainVersion result = new NewZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization);
+    NewZkDomainVersion result = new NewZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization, true);
     result.setProperties(domainVersionProperties);
     return result;
   }
 
-  public NewZkDomainVersion(ZooKeeperPlus zk, String path, DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
+  public NewZkDomainVersion(ZooKeeperPlus zk, String path,
+                            DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
+      throws InterruptedException, KeeperException {
+    this(zk, path, domainVersionPropertiesSerialization, false);
+  }
+
+  public NewZkDomainVersion(ZooKeeperPlus zk, String path,
+                            DomainVersionPropertiesSerialization domainVersionPropertiesSerialization,
+                            boolean create)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
-    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, new DomainVersionMetadata());
+    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create, new DomainVersionMetadata());
   }
 
   @Override
@@ -69,10 +73,11 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
 
   @Override
   public Long getClosedAt() throws IOException {
-    if (metadata.get().is_set_closed_at()) {
-      return metadata.get().get_closed_at();
-    } else {
+    long result = metadata.get().get_closed_at();
+    if (result <= 0) {
       return null;
+    } else {
+      return result;
     }
   }
 
@@ -112,7 +117,12 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
 
   @Override
   public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
-    return metadata.get().get_partitions_metadata().values();
+    Map<Integer, PartitionMetadata> result = metadata.get().get_partitions_metadata();
+    if (result == null) {
+      return Collections.emptyList();
+    } else {
+      return result.values();
+    }
   }
 
   @Override
