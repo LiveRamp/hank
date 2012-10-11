@@ -69,4 +69,21 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
       }
     }
   }
+
+  public abstract class Updater implements WatchedNodeUpdater<T> {
+
+    @Override
+    public T update(T current) {
+      T copy;
+      if (current == null) {
+        copy = (T) initialValue.deepCopy();
+      } else {
+        copy = (T) current.deepCopy();
+      }
+      updateCopy(copy);
+      return copy;
+    }
+
+    public abstract void updateCopy(T currentCopy);
+  }
 }
