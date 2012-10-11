@@ -25,14 +25,15 @@ import org.apache.zookeeper.KeeperException;
 
 public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
 
-  protected final TDeserializer deserializer = new TDeserializer(new TCompactProtocol.Factory());
-  protected final TSerializer serializer = new TSerializer(new TCompactProtocol.Factory());
+  protected TDeserializer deserializer;
+  protected TSerializer serializer;
 
   public WatchedThriftNode(final ZooKeeperPlus zk,
                            final String nodePath,
                            boolean waitForCreation,
+                           boolean create,
                            T emptyValue) throws KeeperException, InterruptedException {
-    super(zk, nodePath, waitForCreation, emptyValue);
+    super(zk, nodePath, waitForCreation, create, emptyValue);
   }
 
   @Override
@@ -40,7 +41,10 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     if (data == null) {
       return null;
     } else {
-      T result = (T) emptyValue.deepCopy();
+      if (deserializer == null) {
+        deserializer = new TDeserializer(new TCompactProtocol.Factory());
+      }
+      T result = (T) initialValue.deepCopy();
       try {
         deserializer.deserialize(result, data);
       } catch (TException e) {
@@ -55,6 +59,9 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     if (v == null) {
       return null;
     } else {
+      if (serializer == null) {
+        serializer = new TSerializer(new TCompactProtocol.Factory());
+      }
       try {
         return serializer.serialize(v);
       } catch (TException e) {
