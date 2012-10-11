@@ -22,11 +22,13 @@ import com.rapleaf.hank.generated.PartitionMetadata;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class NewZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
 
@@ -105,11 +107,6 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
         throw new IOException(e);
       }
     }
-  }
-
-  @Override
-  public Set<PartitionProperties> getPartitionProperties() throws IOException {
-    throw new NotImplementedException();
   }
 
   @Override

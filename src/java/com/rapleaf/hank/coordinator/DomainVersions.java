@@ -16,6 +16,8 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.generated.PartitionMetadata;
+
 import java.io.IOException;
 
 public final class DomainVersions {
@@ -28,16 +30,16 @@ public final class DomainVersions {
 
   public static long getTotalNumBytes(DomainVersion domainVersion) throws IOException {
     long total = 0;
-    for (PartitionProperties pi : domainVersion.getPartitionProperties()) {
-      total += pi.getNumBytes();
+    for (PartitionMetadata pm : domainVersion.getPartitionsMetadata()) {
+      total += pm.get_num_bytes();
     }
     return total;
   }
 
   public static long getTotalNumRecords(DomainVersion domainVersion) throws IOException {
     long total = 0;
-    for (PartitionProperties pi : domainVersion.getPartitionProperties()) {
-      total += pi.getNumRecords();
+    for (PartitionMetadata pm : domainVersion.getPartitionsMetadata()) {
+      total += pm.get_num_records();
     }
     return total;
   }

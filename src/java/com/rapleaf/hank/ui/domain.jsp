@@ -130,7 +130,7 @@
       <%   } %>
       <%= UiUtils.formatDomainVersionClosedAt(version) %>
       <% } else { %>
-      Open - <%= version.getPartitionProperties().size() %>/<%= domain.getNumParts() %> complete
+      Open - <%= version.getPartitionsMetadata().size() %>/<%= domain.getNumParts() %> complete
       <% } %>
     </td>
     <td><%= FileUtils.byteCountToDisplaySize(DomainVersions.getTotalNumBytes(version)) %></td>
