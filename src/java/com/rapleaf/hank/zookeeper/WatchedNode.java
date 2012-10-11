@@ -33,13 +33,13 @@ public abstract class WatchedNode<T> {
 
   private T value;
   private Long previousVersion = null;
-  private final String nodePath;
+  protected final String nodePath;
   private Stat stat = new Stat();
-  private final ZooKeeperPlus zk;
+  protected final ZooKeeperPlus zk;
   private final Set<WatchedNodeListener<T>> listeners = new HashSet<WatchedNodeListener<T>>();
   private boolean cancelled = false;
 
-  protected final T emptyValue;
+  protected final T initialValue;
 
   private final Watcher watcher = new Watcher() {
     @Override
@@ -100,15 +100,18 @@ public abstract class WatchedNode<T> {
    * @throws KeeperException
    * @throws InterruptedException
    */
-  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation, T emptyValue)
+  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation, boolean create, T initialValue)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
-    this.emptyValue = emptyValue;
+    this.initialValue = initialValue;
     // Immediately try to load the data, if it fails, then optionally wait
     try {
       watchForData();
     } catch (KeeperException.NoNodeException e) {
+      if (create) {
+        zk.create(nodePath, encode(initialValue));
+      }
       if (waitForCreation) {
         NodeCreationBarrier.block(zk, nodePath);
         watchForData();
@@ -118,10 +121,19 @@ public abstract class WatchedNode<T> {
     }
   }
 
+  public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation, boolean create)
+      throws InterruptedException, KeeperException {
+    this(zk, nodePath, waitForCreation, create, null);
+  }
+
   public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
       throws InterruptedException, KeeperException {
-    this(zk, nodePath, waitForCreation, null);
+    this(zk, nodePath, waitForCreation, false, null);
   }
+
+  protected abstract T decode(byte[] data);
+
+  protected abstract byte[] encode(T v);
 
   public void addListener(WatchedNodeListener<T> listener) {
     synchronized (listeners) {
@@ -151,8 +163,6 @@ public abstract class WatchedNode<T> {
       value = decode(zk.getData(nodePath, watcher, stat));
     }
   }
-
-  protected abstract T decode(byte[] data);
 
   public T get() {
     return value;
@@ -185,5 +195,7 @@ public abstract class WatchedNode<T> {
     cancelled = true;
   }
 
-  protected abstract byte[] encode(T v);
+  public void create() throws InterruptedException, KeeperException {
+    zk.create(nodePath, encode(initialValue));
+  }
 }
