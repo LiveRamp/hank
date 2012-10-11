@@ -1,6 +1,9 @@
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.generated.PartitionMetadata;
+
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 public interface DomainVersion extends Comparable<DomainVersion> {
@@ -28,6 +31,8 @@ public interface DomainVersion extends Comparable<DomainVersion> {
   public void cancel() throws IOException;
 
   public Set<PartitionProperties> getPartitionProperties() throws IOException;
+
+  public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException;
 
   public void addPartitionProperties(int partNum, long numBytes, long numRecords) throws IOException;
 

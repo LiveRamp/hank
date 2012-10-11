@@ -17,16 +17,19 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.PartitionMetadata;
 import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ZkDomainVersion extends AbstractDomainVersion {
+public class ZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
 
   private static final String DEFUNCT_PATH_SEGMENT = "defunct";
   private final int versionNumber;
@@ -105,6 +108,11 @@ public class ZkDomainVersion extends AbstractDomainVersion {
   @Override
   public Set<PartitionProperties> getPartitionProperties() throws IOException {
     return new HashSet<PartitionProperties>(partitionProperties.values());
+  }
+
+  @Override
+  public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
+    throw new NotImplementedException();
   }
 
   @Override

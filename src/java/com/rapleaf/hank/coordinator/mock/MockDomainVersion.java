@@ -18,8 +18,11 @@ package com.rapleaf.hank.coordinator.mock;
 import com.rapleaf.hank.coordinator.AbstractDomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
 import com.rapleaf.hank.coordinator.PartitionProperties;
+import com.rapleaf.hank.generated.PartitionMetadata;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Set;
 
 public class MockDomainVersion extends AbstractDomainVersion {
@@ -58,6 +61,11 @@ public class MockDomainVersion extends AbstractDomainVersion {
 
   public Set<PartitionProperties> getPartitionProperties() {
     return null;
+  }
+
+  @Override
+  public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
+    throw new NotImplementedException();
   }
 
   @Override

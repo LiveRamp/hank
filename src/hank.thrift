@@ -45,3 +45,15 @@ service SmartClient {
   HankResponse get(1:string domain_name, 2:binary key);
   HankBulkResponse getBulk(1:string domain_name, 2:list<binary> keys);
 }
+
+struct PartitionMetadata {
+  1: i64 num_bytes;
+  2: i64 num_records;
+}
+
+struct DomainVersionMetadata {
+  1: binary properties;
+  2: map<i32, PartitionMetadata> partitions_metadata;
+  3: bool defunct;
+  4: i64 closed_at;
+}
