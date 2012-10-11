@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 Rapleaf
+ *  Copyright 2012 Rapleaf
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,197 +16,199 @@
 
 package com.rapleaf.hank.coordinator.zk;
 
-public class ZkDomainVersion /*extends AbstractDomainVersion implements DomainVersion*/ {
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.DomainVersionMetadata;
+import com.rapleaf.hank.generated.PartitionMetadata;
+import com.rapleaf.hank.zookeeper.WatchedThriftNode;
+import com.rapleaf.hank.zookeeper.ZkPath;
+import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.KeeperException;
 
-  //  private static final String DEFUNCT_PATH_SEGMENT = "defunct";
-  //  private final int versionNumber;
-  //  private final ZooKeeperPlus zk;
-  //  private final String path;
-  //  private final DomainVersionPropertiesSerialization domainVersionPropertiesFactory;
-  //
-  //  private final WatchedBytes properties;
-  //  private final WatchedMap<ZkPartitionProperties> partitionProperties;
-  //  private final WatchedBoolean defunct;
-  //
-  //  public static ZkDomainVersion create(ZooKeeperPlus zk,
-  //                                       String domainPath,
-  //                                       int versionNumber,
-  //                                       DomainVersionProperties domainVersionProperties,
-  //                                       DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
-  //      throws KeeperException, InterruptedException, IOException {
-  //    String versionPath = ZkPath.append(domainPath, ZkDomain.KEY_VERSIONS, getPathName(versionNumber));
-  //    if (domainVersionProperties != null) {
-  //      if (domainVersionPropertiesSerialization == null) {
-  //        throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
-  //      }
-  //      zk.create(versionPath, domainVersionPropertiesSerialization.serializeProperties(domainVersionProperties));
-  //    } else {
-  //      zk.create(versionPath, null);
-  //    }
-  //    zk.create(ZkPath.append(versionPath, "parts"), null);
-  //    zk.create(ZkPath.append(versionPath, DEFUNCT_PATH_SEGMENT), Boolean.FALSE.toString().getBytes());
-  //    zk.create(ZkPath.append(versionPath, DotComplete.NODE_NAME), null);
-  //    return new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization);
-  //  }
-  //
-  //  public ZkDomainVersion(ZooKeeperPlus zk, String path, DomainVersionPropertiesSerialization domainVersionPropertiesFactory)
-  //      throws KeeperException, InterruptedException {
-  //    this.zk = zk;
-  //    this.path = path;
-  //    this.domainVersionPropertiesFactory = domainVersionPropertiesFactory;
-  //    String last = ZkPath.getFilename(path);
-  //    String[] toks = last.split("_");
-  //    this.versionNumber = Integer.parseInt(toks[1]);
-  //    properties = new WatchedBytes(zk, path, true);
-  //    partitionProperties = new WatchedMap<ZkPartitionProperties>(zk, ZkPath.append(path, "parts"), new ElementLoader<ZkPartitionProperties>() {
-  //      @Override
-  //      public ZkPartitionProperties load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-  //        return new ZkPartitionProperties(zk, ZkPath.append(basePath, relPath));
-  //      }
-  //    }, new DotComplete());
-  //    defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT), true);
-  //  }
-  //
-  //  public NewZkDomainVersion migrate(String domainPath) throws IOException, InterruptedException, KeeperException {
-  //    String versionsPath = domainPath + "/v";
-  //    if (null == zk.exists(versionsPath, false)) {
-  //      zk.create(versionsPath, null);
-  //    }
-  //    NewZkDomainVersion result = NewZkDomainVersion.create(zk, domainPath, getVersionNumber(), getProperties(), domainVersionPropertiesFactory);
-  //
-  //    result.metadata.update(result.metadata.new Updater() {
-  //      @Override
-  //      public void updateCopy(DomainVersionMetadata currentCopy) {
-  //        try {
-  //          currentCopy.set_closed_at(getClosedAt());
-  //          currentCopy.set_defunct(isDefunct());
-  //          Map<Integer, PartitionMetadata> partitionsMetadata = new HashMap<Integer, PartitionMetadata>();
-  //          for (Map.Entry<String, ZkPartitionProperties> entry : partitionProperties.entrySet()) {
-  //            String key = entry.getKey();
-  //            ZkPartitionProperties zkPartitionProperties = entry.getValue();
-  //
-  //            PartitionMetadata pm = new PartitionMetadata(zkPartitionProperties.getNumBytes(), zkPartitionProperties.getNumRecords());
-  //
-  //            partitionsMetadata.put(Integer.valueOf(key.split("-")[1]), pm);
-  //          }
-  //          currentCopy.set_partitions_metadata(partitionsMetadata);
-  //        } catch (IOException e) {
-  //          throw new RuntimeException(e);
-  //        }
-  //      }
-  //    });
-  //    return result;
-  //  }
-  //
-  //  @Override
-  //  public Long getClosedAt() throws IOException {
-  //    try {
-  //      Stat stat = zk.exists(ZkPath.append(path, "closed"), false);
-  //      return stat == null ? null : stat.getCtime();
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public int getVersionNumber() {
-  //    return versionNumber;
-  //  }
-  //
-  //  @Override
-  //  public void addPartitionProperties(int partNum, long numBytes, long numRecords) throws IOException {
-  //    try {
-  //      final ZkPartitionProperties p = ZkPartitionProperties.create(zk, ZkPath.append(path, "parts"), partNum, numBytes, numRecords);
-  //      partitionProperties.put(ZkPartitionProperties.nodeName(partNum), p);
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public Set<PartitionProperties> getPartitionProperties() throws IOException {
-  //    return new HashSet<PartitionProperties>(partitionProperties.values());
-  //  }
-  //
-  //  @Override
-  //  public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
-  //    throw new NotImplementedException();
-  //  }
-  //
-  //  @Override
-  //  public void cancel() throws IOException {
-  //    if (!DomainVersions.isClosed(this)) {
-  //      try {
-  //        zk.deleteNodeRecursively(path);
-  //      } catch (Exception e) {
-  //        throw new IOException(e);
-  //      }
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public void close() throws IOException {
-  //    try {
-  //      zk.create(ZkPath.append(path, "closed"), null);
-  //    } catch (Exception e) {
-  //      throw new IOException("Failed to close Domain Version", e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public boolean isDefunct() throws IOException {
-  //    return defunct.get();
-  //  }
-  //
-  //  @Override
-  //  public void setDefunct(boolean isDefunct) throws IOException {
-  //    try {
-  //      defunct.set(isDefunct);
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public DomainVersionProperties getProperties() throws IOException {
-  //    byte[] serializedProperties = properties.get();
-  //    if (serializedProperties == null) {
-  //      return null;
-  //    } else {
-  //      return domainVersionPropertiesFactory.deserializeProperties(serializedProperties);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public void setProperties(DomainVersionProperties properties) throws IOException {
-  //    try {
-  //      if (properties == null) {
-  //        this.properties.set(null);
-  //      } else {
-  //        this.properties.set(domainVersionPropertiesFactory.serializeProperties(properties));
-  //      }
-  //    } catch (KeeperException e) {
-  //      throw new IOException("Failed to set Domain Version Properties", e);
-  //    } catch (InterruptedException e) {
-  //      throw new IOException("Failed to set Domain Version Properties", e);
-  //    }
-  //  }
-  //
-  //  public static String getPathName(int versionNumber) {
-  //    return "version_" + versionNumber;
-  //  }
-  //
-  //  public boolean delete() throws IOException {
-  //    try {
-  //      // first, delete the completion marker so everyone knows it's gone
-  //      zk.delete(ZkPath.append(path, DotComplete.NODE_NAME), -1);
-  //
-  //      // delete the rest
-  //      zk.deleteNodeRecursively(path);
-  //
-  //      return true;
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
+import java.io.IOException;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
+
+  final WatchedThriftNode<DomainVersionMetadata> metadata;
+  private final int versionNumber;
+  private final ZooKeeperPlus zk;
+  private final String path;
+  private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
+
+  public static ZkDomainVersion create(ZooKeeperPlus zk,
+                                          String domainPath,
+                                          int versionNumber,
+                                          DomainVersionProperties domainVersionProperties,
+                                          DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
+      throws InterruptedException, KeeperException, IOException {
+    String versionPath = ZkPath.append(domainPath, ZkDomain.VERSIONS_PATH, getPathName(versionNumber));
+    ZkDomainVersion result = new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization, true);
+    result.setProperties(domainVersionProperties);
+    return result;
+  }
+
+  public ZkDomainVersion(ZooKeeperPlus zk, String path,
+                         DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
+      throws InterruptedException, KeeperException {
+    this(zk, path, domainVersionPropertiesSerialization, false);
+  }
+
+  public ZkDomainVersion(ZooKeeperPlus zk, String path,
+                         DomainVersionPropertiesSerialization domainVersionPropertiesSerialization,
+                         boolean create)
+      throws KeeperException, InterruptedException {
+    this.zk = zk;
+    this.path = path;
+    this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
+    this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
+    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create, new DomainVersionMetadata());
+  }
+
+  @Override
+  public int getVersionNumber() {
+    return versionNumber;
+  }
+
+  @Override
+  public Long getClosedAt() throws IOException {
+    long result = metadata.get().get_closed_at();
+    if (result <= 0) {
+      return null;
+    } else {
+      return result;
+    }
+  }
+
+  @Override
+  public void close() throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          currentCopy.set_closed_at(System.currentTimeMillis());
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void cancel() throws IOException {
+    if (!DomainVersions.isClosed(this)) {
+      try {
+        zk.deleteNodeRecursively(path);
+      } catch (Exception e) {
+        throw new IOException(e);
+      }
+    }
+  }
+
+  @Override
+  public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
+    Map<Integer, PartitionMetadata> result = metadata.get().get_partitions_metadata();
+    if (result == null) {
+      return Collections.emptyList();
+    } else {
+      return result.values();
+    }
+  }
+
+  @Override
+  public void addPartitionProperties(final int partNum,
+                                     final long numBytes,
+                                     final long numRecords) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          Map<Integer, PartitionMetadata> partitionsMetadata = currentCopy.get_partitions_metadata();
+          if (partitionsMetadata == null) {
+            currentCopy.set_partitions_metadata(new HashMap<Integer, PartitionMetadata>());
+          }
+          currentCopy.get_partitions_metadata().put(partNum, new PartitionMetadata(numBytes, numRecords));
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public boolean isDefunct() throws IOException {
+    return metadata.get().is_defunct();
+  }
+
+  @Override
+  public void setDefunct(final boolean isDefunct) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          currentCopy.set_defunct(isDefunct);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
+  public DomainVersionProperties getProperties() throws IOException {
+    byte[] serializedProperties = metadata.get().get_properties();
+    if (serializedProperties == null) {
+      return null;
+    } else {
+      return domainVersionPropertiesSerialization.deserializeProperties(serializedProperties);
+    }
+  }
+
+  @Override
+  public void setProperties(final DomainVersionProperties properties) throws IOException {
+    if (properties != null && domainVersionPropertiesSerialization == null) {
+      throw new RuntimeException("Cannot set properties when the given properties serialization is null.");
+    }
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          if (properties == null) {
+            currentCopy.set_properties((byte[]) null);
+          } else {
+            try {
+              currentCopy.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  public static String getPathName(int versionNumber) {
+    return Integer.toString(versionNumber);
+  }
+
+  public boolean delete() throws IOException {
+    try {
+      zk.delete(path, -1);
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }
