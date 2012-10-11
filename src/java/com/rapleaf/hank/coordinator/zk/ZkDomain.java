@@ -78,6 +78,9 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
     zk.create(ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), Hosts.joinHostFlags(requiredHostFlags).getBytes());
+
+    zk.create(ZkPath.append(domainPath, NEW_VERSIONS_PATH), null);
+
     zk.create(ZkPath.append(domainPath, DotComplete.NODE_NAME), null);
     return new ZkDomain(zk, domainPath);
   }

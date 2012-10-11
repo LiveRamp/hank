@@ -17,6 +17,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.DomainVersionMetadata;
 import com.rapleaf.hank.generated.PartitionMetadata;
 import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
@@ -25,9 +26,7 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class ZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
 
@@ -81,7 +80,34 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
   }
 
   public NewZkDomainVersion migrate(String domainPath) throws IOException, InterruptedException, KeeperException {
-    return NewZkDomainVersion.create(zk, domainPath, getVersionNumber(), getProperties(), domainVersionPropertiesFactory);
+    String versionsPath = domainPath + "/v";
+    if (null == zk.exists(versionsPath, false)) {
+      zk.create(versionsPath, null);
+    }
+    NewZkDomainVersion result = NewZkDomainVersion.create(zk, domainPath, getVersionNumber(), getProperties(), domainVersionPropertiesFactory);
+
+    result.metadata.update(result.metadata.new Updater() {
+      @Override
+      public void updateCopy(DomainVersionMetadata currentCopy) {
+        try {
+          currentCopy.set_closed_at(getClosedAt());
+          currentCopy.set_defunct(isDefunct());
+          Map<Integer, PartitionMetadata> partitionsMetadata = new HashMap<Integer, PartitionMetadata>();
+          for (Map.Entry<String, ZkPartitionProperties> entry : partitionProperties.entrySet()) {
+            String key = entry.getKey();
+            ZkPartitionProperties zkPartitionProperties = entry.getValue();
+
+            PartitionMetadata pm = new PartitionMetadata(zkPartitionProperties.getNumBytes(), zkPartitionProperties.getNumRecords());
+
+            partitionsMetadata.put(Integer.valueOf(key.split("-")[1]), pm);
+          }
+          currentCopy.set_partitions_metadata(partitionsMetadata);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    return result;
   }
 
   @Override

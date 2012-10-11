@@ -30,7 +30,7 @@ import java.util.*;
 
 public class NewZkDomainVersion extends AbstractDomainVersion implements DomainVersion {
 
-  private final WatchedThriftNode<DomainVersionMetadata> metadata;
+  final WatchedThriftNode<DomainVersionMetadata> metadata;
   private final int versionNumber;
   private final ZooKeeperPlus zk;
   private final String path;
