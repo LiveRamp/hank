@@ -178,7 +178,7 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
   @Override
   public void setProperties(final DomainVersionProperties properties) throws IOException {
     if (properties != null && domainVersionPropertiesSerialization == null) {
-      throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
+      throw new RuntimeException("Cannot set properties when the given properties serialization is null.");
     }
     try {
       metadata.update(metadata.new Updater() {
