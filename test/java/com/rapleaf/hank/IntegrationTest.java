@@ -567,9 +567,10 @@ public class IntegrationTest extends ZkTestCase {
     partitionServerThreads.get(a).join();
   }
 
-  private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, String domainRoot) throws IOException {
+  private void writeOut(final Domain domain, Map<ByteBuffer, ByteBuffer> dataItems, int versionNumber, String domainRoot) throws IOException, InterruptedException {
     // Create new version
     domain.openNewVersion(new IncrementalDomainVersionProperties(versionNumber == 0 ? null : versionNumber - 1)).close();
+    Thread.sleep(100);
     LOG.debug("Writing out new version " + versionNumber + " of domain " + domain.getName() + " to root " + domainRoot);
     assertEquals(versionNumber, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     // partition keys and values
