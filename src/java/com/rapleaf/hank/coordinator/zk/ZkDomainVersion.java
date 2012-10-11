@@ -80,6 +80,10 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
     defunct = new WatchedBoolean(zk, ZkPath.append(path, DEFUNCT_PATH_SEGMENT), true);
   }
 
+  public NewZkDomainVersion migrate(String domainPath) throws IOException, InterruptedException, KeeperException {
+    return NewZkDomainVersion.create(zk, domainPath, getVersionNumber(), getProperties(), domainVersionPropertiesFactory);
+  }
+
   @Override
   public Long getClosedAt() throws IOException {
     try {
