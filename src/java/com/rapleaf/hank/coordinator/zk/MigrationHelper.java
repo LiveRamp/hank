@@ -22,7 +22,6 @@ import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.util.CommandLineChecker;
-import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 
@@ -44,10 +43,10 @@ public class MigrationHelper {
       LOG.info("Migrating domain " + domain.getName());
       for (DomainVersion domainVersion : domain.getVersions()) {
         LOG.info("  version " + domainVersion.getVersionNumber());
-        ZkDomainVersion zkDomainVersion = (ZkDomainVersion) domainVersion;
-        String domainPath = ZkPath.append("/hank/domains", domain.getName());
-        NewZkDomainVersion result = zkDomainVersion.migrate(domainPath);
-        LOG.info(result.toString());
+        //        ZkDomainVersion zkDomainVersion = (ZkDomainVersion) domainVersion;
+        //        String domainPath = ZkPath.append("/hank/domains", domain.getName());
+        //        NewZkDomainVersion result = zkDomainVersion.migrate(domainPath);
+        //        LOG.info(result.toString());
       }
     }
   }

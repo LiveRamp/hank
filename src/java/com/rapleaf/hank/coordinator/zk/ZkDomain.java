@@ -40,7 +40,7 @@ public class ZkDomain extends AbstractDomain {
   private static final String KEY_STORAGE_ENGINE_FACTORY = "storage_engine_factory_class";
   private static final String KEY_STORAGE_ENGINE_OPTIONS = "storage_engine_options";
   private static final String KEY_PARTITIONER = "partitioner_class";
-  protected static final String KEY_VERSIONS = "versions";
+  // protected static final String KEY_VERSIONS = "versions";
   protected static final String NEW_VERSIONS_PATH = "v";
   private static final String KEY_REQUIRED_HOST_FLAGS = "required_host_flags";
 
@@ -56,7 +56,7 @@ public class ZkDomain extends AbstractDomain {
   private final String domainPath;
   private final ZooKeeperPlus zk;
 
-  private final WatchedMap<ZkDomainVersion> versions;
+  private final WatchedMap<NewZkDomainVersion> versions;
 
   private final int id;
 
@@ -76,7 +76,7 @@ public class ZkDomain extends AbstractDomain {
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), storageEngineFactoryName.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), storageEngineOptions.getBytes());
     zk.create(ZkPath.append(domainPath, KEY_PARTITIONER), partitionerName.getBytes());
-    zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
+    //zk.create(ZkPath.append(domainPath, KEY_VERSIONS), null);
     zk.create(ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), Hosts.joinHostFlags(requiredHostFlags).getBytes());
 
     zk.create(ZkPath.append(domainPath, NEW_VERSIONS_PATH), null);
@@ -120,13 +120,13 @@ public class ZkDomain extends AbstractDomain {
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
     this.requiredHostFlags = new WatchedString(zk, ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), true);
 
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, KEY_VERSIONS),
-        new ElementLoader<ZkDomainVersion>() {
+    this.versions = new WatchedMap<NewZkDomainVersion>(zk, ZkPath.append(domainPath, NEW_VERSIONS_PATH),
+        new ElementLoader<NewZkDomainVersion>() {
           @Override
-          public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
+          public NewZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            return new NewZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
           }
-        }, new DotComplete());
+        });
 
     String partitionerClassName = zk.getString(ZkPath.append(domainPath, KEY_PARTITIONER));
     try {
@@ -225,8 +225,8 @@ public class ZkDomain extends AbstractDomain {
       return findVersion(getVersions(), versionNumber);
     } else {
       try {
-        return new ZkDomainVersion(zk,
-            ZkPath.append(domainPath, KEY_VERSIONS, ZkDomainVersion.getPathName(versionNumber)),
+        return new NewZkDomainVersion(zk,
+            ZkPath.append(domainPath, NEW_VERSIONS_PATH, NewZkDomainVersion.getPathName(versionNumber)),
             domainVersionPropertiesSerialization);
       } catch (InterruptedException e) {
         return null;
@@ -238,7 +238,7 @@ public class ZkDomain extends AbstractDomain {
 
   @Override
   public boolean deleteVersion(int versionNumber) throws IOException {
-    ZkDomainVersion domainVersion = versions.remove(ZkDomainVersion.getPathName(versionNumber));
+    NewZkDomainVersion domainVersion = versions.remove(NewZkDomainVersion.getPathName(versionNumber));
     if (domainVersion == null) {
       return false;
     } else {
@@ -259,9 +259,9 @@ public class ZkDomain extends AbstractDomain {
     }
 
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties,
+      NewZkDomainVersion newVersion = NewZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties,
           getStorageEngine().getDomainVersionPropertiesSerialization());
-      versions.put(ZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
+      versions.put(NewZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
       return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.

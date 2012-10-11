@@ -205,4 +205,13 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
   public static String getPathName(int versionNumber) {
     return Integer.toString(versionNumber);
   }
+
+  public boolean delete() throws IOException {
+    try {
+      zk.delete(path, -1);
+      return true;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
+  }
 }
