@@ -19,7 +19,6 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.DomainVersionMetadata;
 import com.rapleaf.hank.generated.PartitionMetadata;
-import com.rapleaf.hank.zookeeper.WatchedNodeUpdater;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -84,12 +83,10 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
   @Override
   public void close() throws IOException {
     try {
-      metadata.update(new WatchedNodeUpdater<DomainVersionMetadata>() {
+      metadata.update(metadata.new Updater() {
         @Override
-        public DomainVersionMetadata update(DomainVersionMetadata current) {
-          DomainVersionMetadata result = new DomainVersionMetadata(current);
-          result.set_closed_at(System.currentTimeMillis());
-          return result;
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          currentCopy.set_closed_at(System.currentTimeMillis());
         }
       });
     } catch (InterruptedException e) {
@@ -130,16 +127,14 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
                                      final long numBytes,
                                      final long numRecords) throws IOException {
     try {
-      metadata.update(new WatchedNodeUpdater<DomainVersionMetadata>() {
+      metadata.update(metadata.new Updater() {
         @Override
-        public DomainVersionMetadata update(DomainVersionMetadata current) {
-          DomainVersionMetadata result = new DomainVersionMetadata(current);
-          Map<Integer, PartitionMetadata> partitionsMetadata = result.get_partitions_metadata();
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          Map<Integer, PartitionMetadata> partitionsMetadata = currentCopy.get_partitions_metadata();
           if (partitionsMetadata == null) {
-            result.set_partitions_metadata(new HashMap<Integer, PartitionMetadata>());
+            currentCopy.set_partitions_metadata(new HashMap<Integer, PartitionMetadata>());
           }
-          result.get_partitions_metadata().put(partNum, new PartitionMetadata(numBytes, numRecords));
-          return result;
+          currentCopy.get_partitions_metadata().put(partNum, new PartitionMetadata(numBytes, numRecords));
         }
       });
     } catch (InterruptedException e) {
@@ -157,12 +152,10 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
   @Override
   public void setDefunct(final boolean isDefunct) throws IOException {
     try {
-      metadata.update(new WatchedNodeUpdater<DomainVersionMetadata>() {
+      metadata.update(metadata.new Updater() {
         @Override
-        public DomainVersionMetadata update(DomainVersionMetadata current) {
-          DomainVersionMetadata result = new DomainVersionMetadata(current);
-          result.set_defunct(isDefunct);
-          return result;
+        public void updateCopy(DomainVersionMetadata currentCopy) {
+          currentCopy.set_defunct(isDefunct);
         }
       });
     } catch (InterruptedException e) {
@@ -188,20 +181,18 @@ public class NewZkDomainVersion extends AbstractDomainVersion implements DomainV
       throw new RuntimeException("Failed to create a domain version that has non empty properties when the given properties serialization is null.");
     }
     try {
-      metadata.update(new WatchedNodeUpdater<DomainVersionMetadata>() {
+      metadata.update(metadata.new Updater() {
         @Override
-        public DomainVersionMetadata update(DomainVersionMetadata current) {
-          DomainVersionMetadata result = new DomainVersionMetadata(current);
+        public void updateCopy(DomainVersionMetadata currentCopy) {
           if (properties == null) {
-            result.set_properties((byte[]) null);
+            currentCopy.set_properties((byte[]) null);
           } else {
             try {
-              result.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
+              currentCopy.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
             } catch (IOException e) {
               throw new RuntimeException(e);
             }
           }
-          return result;
         }
       });
     } catch (InterruptedException e) {
