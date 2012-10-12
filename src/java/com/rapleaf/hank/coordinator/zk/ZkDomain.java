@@ -16,14 +16,12 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.DomainMetadata;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
-import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import com.rapleaf.hank.zookeeper.WatchedString;
-import com.rapleaf.hank.zookeeper.ZkPath;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
@@ -52,7 +50,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   private final WatchedString requiredHostFlags;
 
   private StorageEngine storageEngine;
-  private final String domainPath;
+  private final String path;
   private final ZooKeeperPlus zk;
 
   private final WatchedMap<ZkDomainVersion> versions;
@@ -107,18 +105,18 @@ public class ZkDomain extends AbstractDomain implements Domain {
     return new ZkDomain(zk, domainPath);
   }
 
-  public ZkDomain(ZooKeeperPlus zk, String domainPath) throws KeeperException, InterruptedException {
+  public ZkDomain(ZooKeeperPlus zk, String path) throws KeeperException, InterruptedException {
     this.zk = zk;
-    this.domainPath = domainPath;
-    this.id = zk.getInt(ZkPath.append(domainPath, KEY_ID));
-    this.name = ZkPath.getFilename(domainPath);
-    this.numParts = zk.getInt(ZkPath.append(domainPath, KEY_NUM_PARTS));
-    this.storageEngineOptions = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_OPTIONS), true);
-    this.storageEngineFactoryName = new WatchedString(zk, ZkPath.append(domainPath, KEY_STORAGE_ENGINE_FACTORY), true);
+    this.path = path;
+    this.id = zk.getInt(ZkPath.append(path, KEY_ID));
+    this.name = ZkPath.getFilename(path);
+    this.numParts = zk.getInt(ZkPath.append(path, KEY_NUM_PARTS));
+    this.storageEngineOptions = new WatchedString(zk, ZkPath.append(path, KEY_STORAGE_ENGINE_OPTIONS), true);
+    this.storageEngineFactoryName = new WatchedString(zk, ZkPath.append(path, KEY_STORAGE_ENGINE_FACTORY), true);
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
-    this.requiredHostFlags = new WatchedString(zk, ZkPath.append(domainPath, KEY_REQUIRED_HOST_FLAGS), true);
+    this.requiredHostFlags = new WatchedString(zk, ZkPath.append(path, KEY_REQUIRED_HOST_FLAGS), true);
 
-    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(domainPath, VERSIONS_PATH),
+    this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
         new ElementLoader<ZkDomainVersion>() {
           @Override
           public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
@@ -126,7 +124,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
           }
         });
 
-    String partitionerClassName = zk.getString(ZkPath.append(domainPath, KEY_PARTITIONER));
+    String partitionerClassName = zk.getString(ZkPath.append(path, KEY_PARTITIONER));
     try {
       partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
     } catch (Exception e) {
@@ -182,7 +180,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   }
 
   public String getPath() {
-    return domainPath;
+    return path;
   }
 
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
@@ -196,10 +194,10 @@ public class ZkDomain extends AbstractDomain implements Domain {
   public boolean delete() throws IOException {
     try {
       // first, delete the completion marker so everyone knows it's gone
-      zk.delete(ZkPath.append(domainPath, DotComplete.NODE_NAME), -1);
+      zk.delete(ZkPath.append(path, DotComplete.NODE_NAME), -1);
 
       // delete the rest
-      zk.deleteNodeRecursively(domainPath);
+      zk.deleteNodeRecursively(path);
 
       return true;
     } catch (Exception e) {
@@ -224,7 +222,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
     } else {
       try {
         return new ZkDomainVersion(zk,
-            ZkPath.append(domainPath, VERSIONS_PATH, ZkDomainVersion.getPathName(versionNumber)),
+            ZkPath.append(path, VERSIONS_PATH, ZkDomainVersion.getPathName(versionNumber)),
             domainVersionPropertiesSerialization);
       } catch (InterruptedException e) {
         return null;
@@ -257,20 +255,20 @@ public class ZkDomain extends AbstractDomain implements Domain {
     }
 
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, domainPath, nextVerNum, domainVersionProperties,
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, path, nextVerNum, domainVersionProperties,
           getStorageEngine().getDomainVersionPropertiesSerialization());
       versions.put(ZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
       return newVersion;
     } catch (Exception e) {
       // pretty good chance that someone beat us to the punch.
-      LOG.warn("Got an exception when trying to open a version for domain " + domainPath, e);
+      LOG.warn("Got an exception when trying to open a version for domain " + path, e);
       throw new IOException(e);
     }
   }
 
   @Override
   public String toString() {
-    return "ZkDomain [domainPath=" + domainPath + ", id=" + getId() + ", name=" + name + ", numParts=" + numParts
+    return "ZkDomain [domainPath=" + path + ", id=" + getId() + ", name=" + name + ", numParts=" + numParts
         + ", partitioner=" + partitioner + ", storageEngine=" + storageEngine
         + ", storageEngineFactoryName=" + storageEngineFactoryName + ", storageEngineOptions="
         + storageEngineOptions + "]";
@@ -280,7 +278,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((domainPath == null) ? 0 : domainPath.hashCode());
+    result = prime * result + ((path == null) ? 0 : path.hashCode());
     result = prime * result + ((name == null) ? 0 : name.hashCode());
     return result;
   }
@@ -297,11 +295,11 @@ public class ZkDomain extends AbstractDomain implements Domain {
       return false;
     }
     ZkDomain other = (ZkDomain) obj;
-    if (domainPath == null) {
-      if (other.domainPath != null) {
+    if (path == null) {
+      if (other.path != null) {
         return false;
       }
-    } else if (!domainPath.equals(other.domainPath)) {
+    } else if (!path.equals(other.path)) {
       return false;
     }
     if (name == null) {
@@ -317,5 +315,14 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public int getId() {
     return id;
+  }
+
+  public NewZkDomain migrate() throws InterruptedException, KeeperException {
+    DomainMetadata metadata = new DomainMetadata(getId(), getNumParts(), getStorageEngineFactoryName(),
+        storageEngineOptions.get(), zk.getString(ZkPath.append(path, KEY_PARTITIONER)), requiredHostFlags.get());
+    WatchedThriftNode<DomainMetadata> node = new WatchedThriftNode<DomainMetadata>(zk, path, true,
+        false, null, new DomainMetadata());
+    node.set(metadata);
+    return new NewZkDomain(zk, path, false, null);
   }
 }
