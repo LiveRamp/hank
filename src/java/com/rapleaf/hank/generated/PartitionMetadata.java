@@ -111,9 +111,9 @@ public class PartitionMetadata implements org.apache.thrift.TBase<PartitionMetad
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NUM_BYTES, new org.apache.thrift.meta_data.FieldMetaData("num_bytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NUM_BYTES, new org.apache.thrift.meta_data.FieldMetaData("num_bytes", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.NUM_RECORDS, new org.apache.thrift.meta_data.FieldMetaData("num_records", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NUM_RECORDS, new org.apache.thrift.meta_data.FieldMetaData("num_records", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(PartitionMetadata.class, metaDataMap);
@@ -361,6 +361,8 @@ public class PartitionMetadata implements org.apache.thrift.TBase<PartitionMetad
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
+    // alas, we cannot check 'num_bytes' because it's a primitive and you chose the non-beans generator.
+    // alas, we cannot check 'num_records' because it's a primitive and you chose the non-beans generator.
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -423,6 +425,12 @@ public class PartitionMetadata implements org.apache.thrift.TBase<PartitionMetad
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
+      if (!struct.is_set_num_bytes()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'num_bytes' was not found in serialized data! Struct: " + toString());
+      }
+      if (!struct.is_set_num_records()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'num_records' was not found in serialized data! Struct: " + toString());
+      }
       struct.validate();
     }
 
@@ -453,34 +461,17 @@ public class PartitionMetadata implements org.apache.thrift.TBase<PartitionMetad
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, PartitionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      BitSet optionals = new BitSet();
-      if (struct.is_set_num_bytes()) {
-        optionals.set(0);
-      }
-      if (struct.is_set_num_records()) {
-        optionals.set(1);
-      }
-      oprot.writeBitSet(optionals, 2);
-      if (struct.is_set_num_bytes()) {
-        oprot.writeI64(struct.num_bytes);
-      }
-      if (struct.is_set_num_records()) {
-        oprot.writeI64(struct.num_records);
-      }
+      oprot.writeI64(struct.num_bytes);
+      oprot.writeI64(struct.num_records);
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, PartitionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
-      if (incoming.get(0)) {
-        struct.num_bytes = iprot.readI64();
-        struct.set_num_bytes_isSet(true);
-      }
-      if (incoming.get(1)) {
-        struct.num_records = iprot.readI64();
-        struct.set_num_records_isSet(true);
-      }
+      struct.num_bytes = iprot.readI64();
+      struct.set_num_bytes_isSet(true);
+      struct.num_records = iprot.readI64();
+      struct.set_num_records_isSet(true);
     }
   }
 

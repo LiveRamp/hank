@@ -32,8 +32,9 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
                            final String nodePath,
                            boolean waitForCreation,
                            boolean create,
+                           T initialValue,
                            T emptyValue) throws KeeperException, InterruptedException {
-    super(zk, nodePath, waitForCreation, create, emptyValue);
+    super(zk, nodePath, waitForCreation, create, initialValue, emptyValue);
   }
 
   @Override
@@ -44,7 +45,7 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
       if (deserializer == null) {
         deserializer = new TDeserializer(new TCompactProtocol.Factory());
       }
-      T result = (T) initialValue.deepCopy();
+      T result = (T) emptyValue.deepCopy();
       try {
         deserializer.deserialize(result, data);
       } catch (TException e) {
@@ -76,7 +77,7 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     public T update(T current) {
       T copy;
       if (current == null) {
-        copy = (T) initialValue.deepCopy();
+        copy = (T) emptyValue.deepCopy();
       } else {
         copy = (T) current.deepCopy();
       }

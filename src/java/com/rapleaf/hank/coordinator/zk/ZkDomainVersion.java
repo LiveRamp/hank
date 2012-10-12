@@ -39,10 +39,10 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
   private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
 
   public static ZkDomainVersion create(ZooKeeperPlus zk,
-                                          String domainPath,
-                                          int versionNumber,
-                                          DomainVersionProperties domainVersionProperties,
-                                          DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
+                                       String domainPath,
+                                       int versionNumber,
+                                       DomainVersionProperties domainVersionProperties,
+                                       DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException, IOException {
     String versionPath = ZkPath.append(domainPath, ZkDomain.VERSIONS_PATH, getPathName(versionNumber));
     ZkDomainVersion result = new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization, true);
@@ -64,7 +64,8 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
     this.path = path;
     this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
-    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create, new DomainVersionMetadata());
+    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create,
+        new DomainVersionMetadata(), new DomainVersionMetadata());
   }
 
   @Override

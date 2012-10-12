@@ -46,9 +46,18 @@ service SmartClient {
   HankBulkResponse getBulk(1:string domain_name, 2:list<binary> keys);
 }
 
+struct DomainMetadata {
+  1: required i32 id;
+  2: required i32 num_partitions;
+  3: required string storage_engine_factory_class;
+  4: required string storage_engine_options;
+  5: required string partitioner_class;
+  6: required string required_host_flags;
+}
+
 struct PartitionMetadata {
-  1: i64 num_bytes;
-  2: i64 num_records;
+  1: required i64 num_bytes;
+  2: required i64 num_records;
 }
 
 struct DomainVersionMetadata {

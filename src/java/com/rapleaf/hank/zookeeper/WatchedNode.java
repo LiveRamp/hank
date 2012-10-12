@@ -40,6 +40,7 @@ public abstract class WatchedNode<T> {
   private boolean cancelled = false;
 
   protected final T initialValue;
+  protected final T emptyValue;
 
   private final Watcher watcher = new Watcher() {
     @Override
@@ -100,11 +101,17 @@ public abstract class WatchedNode<T> {
    * @throws KeeperException
    * @throws InterruptedException
    */
-  protected WatchedNode(final ZooKeeperPlus zk, final String nodePath, boolean waitForCreation, boolean create, T initialValue)
+  protected WatchedNode(final ZooKeeperPlus zk,
+                        final String nodePath,
+                        boolean waitForCreation,
+                        boolean create,
+                        final T initialValue,
+                        final T emptyValue)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.nodePath = nodePath;
     this.initialValue = initialValue;
+    this.emptyValue = emptyValue;
     // Immediately try to load the data, if it fails, then optionally wait
     try {
       watchForData();
@@ -121,14 +128,9 @@ public abstract class WatchedNode<T> {
     }
   }
 
-  public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation, boolean create)
-      throws InterruptedException, KeeperException {
-    this(zk, nodePath, waitForCreation, create, null);
-  }
-
   public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
       throws InterruptedException, KeeperException {
-    this(zk, nodePath, waitForCreation, false, null);
+    this(zk, nodePath, waitForCreation, false, null, null);
   }
 
   protected abstract T decode(byte[] data);

@@ -31,7 +31,7 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.util.*;
 
-public class ZkDomain extends AbstractDomain {
+public class ZkDomain extends AbstractDomain implements Domain {
 
   private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
@@ -43,7 +43,7 @@ public class ZkDomain extends AbstractDomain {
   protected static final String VERSIONS_PATH = "v";
   private static final String KEY_REQUIRED_HOST_FLAGS = "required_host_flags";
 
-  private final String name;
+  protected final String name;
   private final int numParts;
   private final Partitioner partitioner;
   private final WatchedString storageEngineFactoryName;
