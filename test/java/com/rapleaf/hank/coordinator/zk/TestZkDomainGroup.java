@@ -26,6 +26,7 @@ import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.KeeperException;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -47,9 +48,9 @@ public class TestZkDomainGroup extends ZkTestCase {
   private final String domains_root = ZkPath.append(getRoot(), "domains");
 
   public void testLoad() throws Exception {
-    final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Echo.Factory.class.getName(), "---",
+    final Domain d0 = NewZkDomain.create(getZk(), domains_root, "domain0", 1024, Echo.Factory.class.getName(), "---",
         Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
-    final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Echo.Factory.class.getName(), "---",
+    final Domain d1 = NewZkDomain.create(getZk(), domains_root, "domain1", 1024, Echo.Factory.class.getName(), "---",
         Murmur64Partitioner.class.getName(), 1, Collections.<String>emptyList());
 
     Coordinator coord = new MockCoordinator() {
@@ -121,8 +122,8 @@ public class TestZkDomainGroup extends ZkTestCase {
     assertNull(getZk().exists(dg.getPath(), false));
   }
 
-  private Domain createDomain(String domainName) throws KeeperException, InterruptedException {
-    return ZkDomain.create(getZk(),
+  private Domain createDomain(String domainName) throws KeeperException, InterruptedException, IOException {
+    return NewZkDomain.create(getZk(),
         domains_root,
         domainName,
         1,

@@ -39,10 +39,10 @@ public class MigrationHelper {
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
 
     for (Domain domain : coordinator.getDomains()) {
-      LOG.info("Migrating domain " + domain.getName());
-      ZkDomain zkDomain = (ZkDomain) domain;
-      NewZkDomain result = zkDomain.migrate();
-      LOG.info(result);
+      //      LOG.info("Migrating domain " + domain.getName());
+      //      ZkDomain zkDomain = (ZkDomain) domain;
+      //      NewZkDomain result = zkDomain.migrate();
+      //      LOG.info(result);
       //      for (DomainVersion domainVersion : domain.getVersions()) {
       //        LOG.info("  version " + domainVersion.getVersionNumber());
       //        //        ZkDomainVersion zkDomainVersion = (ZkDomainVersion) domainVersion;

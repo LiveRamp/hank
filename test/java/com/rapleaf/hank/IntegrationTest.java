@@ -40,6 +40,8 @@ import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -197,7 +199,7 @@ public class IntegrationTest extends ZkTestCase {
 
     CoordinatorConfigurator config = new YamlClientConfigurator(clientConfigYml);
 
-    Coordinator coordinator = config.createCoordinator();
+    final Coordinator coordinator = config.createCoordinator();
 
     StringWriter sw = new StringWriter();
     pw = new PrintWriter(sw);
@@ -226,6 +228,13 @@ public class IntegrationTest extends ZkTestCase {
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
 
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return coordinator.getDomain("domain0") != null && coordinator.getDomain("domain1") != null;
+      }
+    });
+
     // create empty versions of each domain
 
     // write a base version of each domain
@@ -253,22 +262,28 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coordinator.getDomain("domain1"), domain1DataItems, 0, DOMAIN_1_DATAFILES);
 
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return coordinator.getDomain("domain0").getVersion(0) != null
+              && coordinator.getDomain("domain1").getVersion(0) != null;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
     // configure domain group
     coordinator.addDomainGroup("dg1");
 
-    LOG.debug("-------- domain is created --------");
-
-    // simulate publisher pushing out a new version
-    DomainGroup domainGroup = null;
-    coordinator = config.createCoordinator();
-    for (int i = 0; i < 15; i++) {
-      domainGroup = coordinator.getDomainGroup("dg1");
-      if (domainGroup != null) {
-        break;
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return coordinator.getDomainGroup("dg1") != null;
       }
-      Thread.sleep(1000);
-    }
-    assertNotNull("dg1 wasn't found, even after waiting 15 seconds!", domainGroup);
+    });
+    final DomainGroup domainGroup = coordinator.getDomainGroup("dg1");
 
     Map<Domain, Integer> versionMap = new HashMap<Domain, Integer>();
     versionMap.put(coordinator.getDomain("domain0"), 0);
@@ -277,6 +292,17 @@ public class IntegrationTest extends ZkTestCase {
 
     // configure ring group
     final RingGroup rg1 = coordinator.addRingGroup("rg1", "dg1");
+
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return DomainGroups.getLatestVersion(domainGroup) != null;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
     RingGroups.setTargetVersion(rg1, DomainGroups.getLatestVersion(domainGroup));
 

@@ -62,7 +62,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   }
 
   private final String groupName;
-  private final WatchedMap<ZkDomain> domainsById;
+  private final WatchedMap<NewZkDomain> domainsById;
   private final WatchedMap<ZkDomainGroupVersion> domainGroupVersions;
   private final String dgPath;
   private final ZooKeeperPlus zk;
@@ -74,13 +74,13 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     this.dgPath = dgPath;
     this.groupName = ZkPath.getFilename(dgPath);
 
-    final ElementLoader<ZkDomain> elementLoader = new ElementLoader<ZkDomain>() {
+    final ElementLoader<NewZkDomain> elementLoader = new ElementLoader<NewZkDomain>() {
       @Override
-      public ZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-        return new ZkDomain(zk, zk.getString(ZkPath.append(basePath, relPath)));
+      public NewZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+        return new NewZkDomain(zk, zk.getString(ZkPath.append(basePath, relPath)));
       }
     };
-    domainsById = new WatchedMap<ZkDomain>(zk, ZkPath.append(dgPath, "domains"), elementLoader);
+    domainsById = new WatchedMap<NewZkDomain>(zk, ZkPath.append(dgPath, "domains"), elementLoader);
 
     domainGroupVersions = new WatchedMap<ZkDomainGroupVersion>(zk, ZkPath.append(dgPath, "versions"),
         new ElementLoader<ZkDomainGroupVersion>() {
@@ -119,7 +119,7 @@ public class ZkDomainGroup extends AbstractDomainGroup {
   @Override
   public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException {
     try {
-      return ZkDomainGroupVersion.create(zk, getCoord(),
+      return ZkDomainGroupVersion.create(zk, getCoordinator(),
           ZkPath.append(dgPath, "versions"), domainNameToVersion, this);
     } catch (Exception e) {
       throw new IOException(e);

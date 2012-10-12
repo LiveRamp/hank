@@ -19,10 +19,10 @@ package com.rapleaf.hank.coordinator;
 import java.io.IOException;
 
 public abstract class AbstractDomainGroup implements DomainGroup {
-  private final Coordinator coord;
+  private final Coordinator coordinator;
 
-  protected AbstractDomainGroup(Coordinator coord) {
-    this.coord = coord;
+  protected AbstractDomainGroup(Coordinator coordinator) {
+    this.coordinator = coordinator;
   }
 
   @Override
@@ -40,7 +40,7 @@ public abstract class AbstractDomainGroup implements DomainGroup {
     return getName().compareTo(o.getName());
   }
 
-  protected Coordinator getCoord() {
-    return coord;
+  protected Coordinator getCoordinator() {
+    return coordinator;
   }
 }

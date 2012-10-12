@@ -88,6 +88,6 @@ public class TestZkDomainVersion extends ZkTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    getZk().create(ZkPath.append(getRoot(), ZkDomain.VERSIONS_PATH), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+    getZk().create(ZkPath.append(getRoot(), NewZkDomain.VERSIONS_PATH), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
   }
 }

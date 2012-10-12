@@ -44,7 +44,7 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
                                        DomainVersionProperties domainVersionProperties,
                                        DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException, IOException {
-    String versionPath = ZkPath.append(domainPath, ZkDomain.VERSIONS_PATH, getPathName(versionNumber));
+    String versionPath = ZkPath.append(domainPath, NewZkDomain.VERSIONS_PATH, getPathName(versionNumber));
     DomainVersionMetadata initialMetadata = new DomainVersionMetadata(null,
         new HashMap<Integer, PartitionMetadata>(), false, 0);
     setProperties(domainVersionPropertiesSerialization, domainVersionProperties, initialMetadata);
