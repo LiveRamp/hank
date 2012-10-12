@@ -16,9 +16,9 @@ import org.yaml.snakeyaml.Yaml;
 import java.io.IOException;
 import java.util.*;
 
-public class NewZkDomain extends AbstractDomain implements Domain {
+public class ZkDomain extends AbstractDomain implements Domain {
 
-  private static final Logger LOG = Logger.getLogger(NewZkDomain.class);
+  private static final Logger LOG = Logger.getLogger(ZkDomain.class);
 
   protected static final String VERSIONS_PATH = "v";
 
@@ -31,7 +31,7 @@ public class NewZkDomain extends AbstractDomain implements Domain {
   private final Partitioner partitioner;
   private final ZooKeeperPlus zk;
 
-  public static NewZkDomain create(ZooKeeperPlus zk,
+  public static ZkDomain create(ZooKeeperPlus zk,
                                    String domainsRoot,
                                    String domainName,
                                    int numParts,
@@ -43,14 +43,14 @@ public class NewZkDomain extends AbstractDomain implements Domain {
     String path = ZkPath.append(domainsRoot, domainName);
     DomainMetadata initialValue = new DomainMetadata(id, numParts, storageEngineFactoryClassName,
         storageEngineOptions, partitionerClassName, Hosts.joinHostFlags(requiredHostFlags));
-    return new NewZkDomain(zk, path, true, initialValue);
+    return new ZkDomain(zk, path, true, initialValue);
   }
 
-  public NewZkDomain(ZooKeeperPlus zk, String path) throws KeeperException, InterruptedException {
+  public ZkDomain(ZooKeeperPlus zk, String path) throws KeeperException, InterruptedException {
     this(zk, path, false, null);
   }
 
-  public NewZkDomain(ZooKeeperPlus zk, String path, boolean create, DomainMetadata initialMetadata) throws KeeperException, InterruptedException {
+  public ZkDomain(ZooKeeperPlus zk, String path, boolean create, DomainMetadata initialMetadata) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.name = ZkPath.getFilename(path);
@@ -253,7 +253,7 @@ public class NewZkDomain extends AbstractDomain implements Domain {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    NewZkDomain other = (NewZkDomain) obj;
+    ZkDomain other = (ZkDomain) obj;
     if (path == null) {
       if (other.path != null) {
         return false;

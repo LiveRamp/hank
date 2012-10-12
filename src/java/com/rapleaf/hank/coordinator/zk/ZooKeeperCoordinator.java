@@ -95,7 +95,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
    */
   private boolean isSessionExpired = false;
 
-  private final WatchedMap<NewZkDomain> domains;
+  private final WatchedMap<ZkDomain> domains;
   private final WatchedMap<ZkDomainGroup> domainGroups;
   private final WatchedMap<ZkRingGroup> ringGroups;
 
@@ -135,13 +135,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     this.ringGroupsRoot = ringGroupsRoot;
 
     // Domains
-    domains = new WatchedMap<NewZkDomain>(zk, domainsRoot, new WatchedMap.ElementLoader<NewZkDomain>() {
+    domains = new WatchedMap<ZkDomain>(zk, domainsRoot, new WatchedMap.ElementLoader<ZkDomain>() {
       @Override
-      public NewZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+      public ZkDomain load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         if (ZkPath.isHidden(relPath)) {
           return null;
         } else {
-          return new NewZkDomain(zk, ZkPath.append(basePath, relPath));
+          return new ZkDomain(zk, ZkPath.append(basePath, relPath));
         }
       }
     });
@@ -200,7 +200,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       return getDomain(domainName);
     } else {
       try {
-        return new NewZkDomain(zk, ZkPath.append(domainsRoot, domainName));
+        return new ZkDomain(zk, ZkPath.append(domainsRoot, domainName));
       } catch (InterruptedException e) {
         return null;
       } catch (KeeperException e) {
@@ -295,7 +295,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
                           String partitionerName,
                           List<String> requiredHostFlags) throws IOException {
     try {
-      NewZkDomain domain = NewZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName,
+      ZkDomain domain = ZkDomain.create(zk, domainsRoot, domainName, numParts, storageEngineFactoryName,
           storageEngineOptions, partitionerName, getNextDomainId(), requiredHostFlags);
       domains.put(domainName, domain);
       return domain;
@@ -333,7 +333,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
                              String storageEngineOptions,
                              String partitionerClassName,
                              List<String> requiredHostFlags) throws IOException {
-    NewZkDomain domain = (NewZkDomain) getDomain(domainName);
+    ZkDomain domain = (ZkDomain) getDomain(domainName);
     if (domain == null) {
       throw new IOException("Could not get Domain '" + domainName + "' from Coordinator.");
     } else {
@@ -391,7 +391,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public boolean deleteDomain(String domainName) throws IOException {
-    NewZkDomain domain = domains.remove(domainName);
+    ZkDomain domain = domains.remove(domainName);
 
     if (domain == null) {
       return false;
