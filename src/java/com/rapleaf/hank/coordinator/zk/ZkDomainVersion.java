@@ -45,27 +45,30 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
                                        DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException, IOException {
     String versionPath = ZkPath.append(domainPath, ZkDomain.VERSIONS_PATH, getPathName(versionNumber));
-    ZkDomainVersion result = new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization, true);
-    result.setProperties(domainVersionProperties);
-    return result;
+    DomainVersionMetadata initialMetadata = new DomainVersionMetadata(null,
+        new HashMap<Integer, PartitionMetadata>(), false, 0);
+    setProperties(domainVersionPropertiesSerialization, domainVersionProperties, initialMetadata);
+    return new ZkDomainVersion(zk, versionPath, domainVersionPropertiesSerialization, true, initialMetadata);
   }
 
   public ZkDomainVersion(ZooKeeperPlus zk, String path,
                          DomainVersionPropertiesSerialization domainVersionPropertiesSerialization)
       throws InterruptedException, KeeperException {
-    this(zk, path, domainVersionPropertiesSerialization, false);
+    this(zk, path, domainVersionPropertiesSerialization, false, null);
   }
 
-  public ZkDomainVersion(ZooKeeperPlus zk, String path,
+  public ZkDomainVersion(ZooKeeperPlus zk,
+                         String path,
                          DomainVersionPropertiesSerialization domainVersionPropertiesSerialization,
-                         boolean create)
+                         boolean create,
+                         DomainVersionMetadata initialMetadata)
       throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
     metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create,
-        new DomainVersionMetadata(), new DomainVersionMetadata());
+        initialMetadata, new DomainVersionMetadata());
   }
 
   @Override
@@ -173,24 +176,30 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
     }
   }
 
-  @Override
-  public void setProperties(final DomainVersionProperties properties) throws IOException {
+  private static void setProperties(final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization,
+                                    final DomainVersionProperties properties,
+                                    final DomainVersionMetadata metadata) {
     if (properties != null && domainVersionPropertiesSerialization == null) {
       throw new RuntimeException("Cannot set properties when the given properties serialization is null.");
     }
+    if (properties == null) {
+      metadata.set_properties((byte[]) null);
+    } else {
+      try {
+        metadata.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  @Override
+  public void setProperties(final DomainVersionProperties properties) throws IOException {
     try {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainVersionMetadata currentCopy) {
-          if (properties == null) {
-            currentCopy.set_properties((byte[]) null);
-          } else {
-            try {
-              currentCopy.set_properties(domainVersionPropertiesSerialization.serializeProperties(properties));
-            } catch (IOException e) {
-              throw new RuntimeException(e);
-            }
-          }
+          setProperties(domainVersionPropertiesSerialization, properties, currentCopy);
         }
       });
     } catch (InterruptedException e) {

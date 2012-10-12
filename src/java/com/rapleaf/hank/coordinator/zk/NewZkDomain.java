@@ -50,11 +50,11 @@ public class NewZkDomain extends AbstractDomain implements Domain {
     this(zk, path, false, null);
   }
 
-  public NewZkDomain(ZooKeeperPlus zk, String path, boolean create, DomainMetadata initialValue) throws KeeperException, InterruptedException {
+  public NewZkDomain(ZooKeeperPlus zk, String path, boolean create, DomainMetadata initialMetadata) throws KeeperException, InterruptedException {
     this.zk = zk;
     this.path = path;
     this.name = ZkPath.getFilename(path);
-    metadata = new WatchedThriftNode<DomainMetadata>(zk, path, true, create, initialValue, new DomainMetadata());
+    metadata = new WatchedThriftNode<DomainMetadata>(zk, path, true, create, initialMetadata, new DomainMetadata());
     if (create) {
       zk.create(ZkPath.append(path, VERSIONS_PATH), null);
     }

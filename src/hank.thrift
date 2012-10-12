@@ -62,7 +62,7 @@ struct PartitionMetadata {
 
 struct DomainVersionMetadata {
   1: binary properties;
-  2: map<i32, PartitionMetadata> partitions_metadata;
-  3: bool defunct;
-  4: i64 closed_at;
+  2: required map<i32, PartitionMetadata> partitions_metadata;
+  3: required bool defunct;
+  4: required i64 closed_at;
 }

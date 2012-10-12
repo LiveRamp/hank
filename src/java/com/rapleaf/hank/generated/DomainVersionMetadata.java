@@ -123,13 +123,13 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.PROPERTIES, new org.apache.thrift.meta_data.FieldMetaData("properties", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
-    tmpMap.put(_Fields.PARTITIONS_METADATA, new org.apache.thrift.meta_data.FieldMetaData("partitions_metadata", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PARTITIONS_METADATA, new org.apache.thrift.meta_data.FieldMetaData("partitions_metadata", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32), 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PartitionMetadata.class))));
-    tmpMap.put(_Fields.DEFUNCT, new org.apache.thrift.meta_data.FieldMetaData("defunct", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.DEFUNCT, new org.apache.thrift.meta_data.FieldMetaData("defunct", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.CLOSED_AT, new org.apache.thrift.meta_data.FieldMetaData("closed_at", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CLOSED_AT, new org.apache.thrift.meta_data.FieldMetaData("closed_at", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DomainVersionMetadata.class, metaDataMap);
@@ -561,6 +561,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
+    if (partitions_metadata == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'partitions_metadata' was not present! Struct: " + toString());
+    }
+    // alas, we cannot check 'defunct' because it's a primitive and you chose the non-beans generator.
+    // alas, we cannot check 'closed_at' because it's a primitive and you chose the non-beans generator.
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -652,6 +657,12 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
+      if (!struct.is_set_defunct()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'defunct' was not found in serialized data! Struct: " + toString());
+      }
+      if (!struct.is_set_closed_at()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'closed_at' was not found in serialized data! Struct: " + toString());
+      }
       struct.validate();
     }
 
@@ -700,72 +711,51 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, DomainVersionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      {
+        oprot.writeI32(struct.partitions_metadata.size());
+        for (Map.Entry<Integer, PartitionMetadata> _iter13 : struct.partitions_metadata.entrySet())
+        {
+          oprot.writeI32(_iter13.getKey());
+          _iter13.getValue().write(oprot);
+        }
+      }
+      oprot.writeBool(struct.defunct);
+      oprot.writeI64(struct.closed_at);
       BitSet optionals = new BitSet();
       if (struct.is_set_properties()) {
         optionals.set(0);
       }
-      if (struct.is_set_partitions_metadata()) {
-        optionals.set(1);
-      }
-      if (struct.is_set_defunct()) {
-        optionals.set(2);
-      }
-      if (struct.is_set_closed_at()) {
-        optionals.set(3);
-      }
-      oprot.writeBitSet(optionals, 4);
+      oprot.writeBitSet(optionals, 1);
       if (struct.is_set_properties()) {
         oprot.writeBinary(struct.properties);
-      }
-      if (struct.is_set_partitions_metadata()) {
-        {
-          oprot.writeI32(struct.partitions_metadata.size());
-          for (Map.Entry<Integer, PartitionMetadata> _iter13 : struct.partitions_metadata.entrySet())
-          {
-            oprot.writeI32(_iter13.getKey());
-            _iter13.getValue().write(oprot);
-          }
-        }
-      }
-      if (struct.is_set_defunct()) {
-        oprot.writeBool(struct.defunct);
-      }
-      if (struct.is_set_closed_at()) {
-        oprot.writeI64(struct.closed_at);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, DomainVersionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(4);
+      {
+        org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+        struct.partitions_metadata = new HashMap<Integer,PartitionMetadata>(2*_map14.size);
+        for (int _i15 = 0; _i15 < _map14.size; ++_i15)
+        {
+          int _key16; // required
+          PartitionMetadata _val17; // required
+          _key16 = iprot.readI32();
+          _val17 = new PartitionMetadata();
+          _val17.read(iprot);
+          struct.partitions_metadata.put(_key16, _val17);
+        }
+      }
+      struct.set_partitions_metadata_isSet(true);
+      struct.defunct = iprot.readBool();
+      struct.set_defunct_isSet(true);
+      struct.closed_at = iprot.readI64();
+      struct.set_closed_at_isSet(true);
+      BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         struct.properties = iprot.readBinary();
         struct.set_properties_isSet(true);
-      }
-      if (incoming.get(1)) {
-        {
-          org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.partitions_metadata = new HashMap<Integer,PartitionMetadata>(2*_map14.size);
-          for (int _i15 = 0; _i15 < _map14.size; ++_i15)
-          {
-            int _key16; // required
-            PartitionMetadata _val17; // required
-            _key16 = iprot.readI32();
-            _val17 = new PartitionMetadata();
-            _val17.read(iprot);
-            struct.partitions_metadata.put(_key16, _val17);
-          }
-        }
-        struct.set_partitions_metadata_isSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.defunct = iprot.readBool();
-        struct.set_defunct_isSet(true);
-      }
-      if (incoming.get(3)) {
-        struct.closed_at = iprot.readI64();
-        struct.set_closed_at_isSet(true);
       }
     }
   }
