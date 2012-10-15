@@ -20,6 +20,7 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
+import com.rapleaf.hank.generated.DomainGroupVersionMetadata;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
 import java.util.HashMap;
@@ -51,41 +52,37 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   };
 
   public void testLoad() throws Exception {
-    final long beforeMillis = System.currentTimeMillis();
-    Thread.sleep(10);
-    version(1, 1, 1);
     Coordinator coord = new MockCoordinator() {
       @Override
-      public Domain getDomain(String domainName) {
-        if (domainName.equals("domain1")) {
-          return domain1;
-        } else if (domainName.equals("domain2")) {
-          return domain2;
-        } else {
-          throw new IllegalStateException("Unknown domain: " + domainName);
-        }
+      public Domain getDomainById(int domainId) {
+        return mockDomainGroup.getDomain(domainId);
       }
     };
-    ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(1), mockDomainGroup);
+
+    final long beforeMillis = System.currentTimeMillis();
+    Thread.sleep(10);
+    version(coord, mockDomainGroup, 1, 1, 1);
+
+    NewZkDomainGroupVersion dgcv = new NewZkDomainGroupVersion(getZk(), coord, versionPath(1), mockDomainGroup);
     assertEquals(1, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
     assertTrue(dgcv.getCreatedAt() > beforeMillis);
 
-    version(2, 1, 2);
-    dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(2), mockDomainGroup);
+    version(coord, mockDomainGroup, 2, 1, 2);
+    dgcv = new NewZkDomainGroupVersion(getZk(), coord, versionPath(2), mockDomainGroup);
     assertEquals(2, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
-    version(3, 1, 3);
-    dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(3), mockDomainGroup);
+    version(coord, mockDomainGroup, 3, 1, 3);
+    dgcv = new NewZkDomainGroupVersion(getZk(), coord, versionPath(3), mockDomainGroup);
     assertEquals(3, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
     assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
-    version(4, 1, 3, 2, 1);
-    dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(4), mockDomainGroup);
+    version(coord, mockDomainGroup, 4, 1, 3, 2, 1);
+    dgcv = new NewZkDomainGroupVersion(getZk(), coord, versionPath(4), mockDomainGroup);
     assertEquals(4, dgcv.getVersionNumber());
     assertEquals(2, dgcv.getDomainVersions().size());
   }
@@ -99,18 +96,20 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     DomainGroup dgc = new MockDomainGroup("blah");
     Coordinator coord = new MockCoordinator() {
       @Override
-      public Domain getDomain(String domainName) {
-        if (domainName.equals("domain1")) {
+      public Domain getDomainById(int domainId) {
+        if (domainId == 0) {
           return d1;
-        } else {
+        } else if (domainId == 1) {
           return d4;
+        } else {
+          return null;
         }
       }
     };
-    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
+    DomainGroupVersion ver = NewZkDomainGroupVersion.create(getZk(), coord, getRoot(), 0, map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(2, ver.getDomainVersions().size());
-    ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
+    ver = NewZkDomainGroupVersion.create(getZk(), coord, getRoot(), 1, map, dgc);
     assertEquals(1, ver.getVersionNumber());
   }
 
@@ -121,11 +120,13 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     map.put(d1, 2);
     Coordinator coord = new MockCoordinator() {
       @Override
-      public Domain getDomain(String domainName) {
-        if (domainName.equals("domain1")) {
+      public Domain getDomainById(int domainId) {
+        if (domainId == 0) {
           return d1;
-        } else {
+        } else if (domainId == 1) {
           return d2;
+        } else {
+          return null;
         }
       }
     };
@@ -141,20 +142,23 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
         throw new IllegalStateException();
       }
     };
-    DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);
+    DomainGroupVersion ver = NewZkDomainGroupVersion.create(getZk(), coord, getRoot(), 0, map, dgc);
     assertEquals(0, ver.getVersionNumber());
     assertEquals(ver.getDomainVersion(d1).getVersionNumber(), 2);
   }
 
-  private void version(int versionNumber, int... pairs) throws Exception {
-    create(versionPath(versionNumber));
+  private void version(Coordinator coordinator, DomainGroup domainGroup, int versionNumber, int... pairs) throws Exception {
+    DomainGroupVersionMetadata initialValue = new DomainGroupVersionMetadata();
+    Map<Integer, Integer> domainVersions = new HashMap<Integer, Integer>();
     for (int i = 0; i < pairs.length; i += 2) {
-      create(ZkPath.append(versionPath(versionNumber), "domain" + pairs[i]), (Integer.toString(pairs[i + 1])));
+      domainVersions.put(pairs[i], pairs[i + 1]);
     }
-    create(ZkPath.append(versionPath(versionNumber), DotComplete.NODE_NAME));
+    initialValue.set_domain_versions(domainVersions);
+    initialValue.set_created_at(System.currentTimeMillis());
+    new NewZkDomainGroupVersion(getZk(), coordinator, versionPath(versionNumber), domainGroup, true, initialValue);
   }
 
   private String versionPath(int versionNumber) {
-    return ZkPath.append(getRoot(), "v" + versionNumber);
+    return ZkPath.append(getRoot(), String.valueOf(versionNumber));
   }
 }

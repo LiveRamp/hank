@@ -17,90 +17,82 @@ package com.rapleaf.hank.coordinator.zk;
 
 
 import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroups;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
-import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
-import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
 import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.KeeperException;
 
-import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestZkDomainGroup extends ZkTestCase {
-  public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
-    public DomainGroup calledWith;
 
-    @Override
-    public void onDomainGroupChange(DomainGroup newDomainGroup) {
-      this.calledWith = newDomainGroup;
-      synchronized (this) {
-        notifyAll();
-      }
-    }
-  }
-
-  private final String dg_root = ZkPath.append(getRoot(), "myDomainGroup");
-  private final String domains_root = ZkPath.append(getRoot(), "domains");
-
-  public void testLoad() throws Exception {
-    final Domain d0 = ZkDomain.create(getZk(), domains_root, "domain0", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
-    final Domain d1 = ZkDomain.create(getZk(), domains_root, "domain1", 1024, Echo.Factory.class.getName(), "---",
-        Murmur64Partitioner.class.getName(), 1, Collections.<String>emptyList());
-
-    Coordinator coord = new MockCoordinator() {
-      @Override
-      public Domain getDomain(String domainName) {
-        if (domainName.equals("domain0")) {
-          return d0;
-        } else {
-          return d1;
-        }
-      }
-    };
-
-    create(ZkPath.append(dg_root, "versions"));
-    create(ZkPath.append(dg_root, "versions/v1"));
-    create(ZkPath.append(dg_root, "versions/v1/domain0"), "1");
-    create(ZkPath.append(dg_root, "versions/v1/domain1"), "1");
-    create(ZkPath.append(dg_root, "versions/v1/" + DotComplete.NODE_NAME), "1");
-    create(ZkPath.append(dg_root, "versions/v2"));
-    create(ZkPath.append(dg_root, "versions/v2/domain0"), "1");
-    create(ZkPath.append(dg_root, "versions/v2/domain1"), "1");
-
-    ZkDomainGroup dg = new ZkDomainGroup(getZk(), dg_root, coord);
-
-    assertEquals(1, dg.getVersions().size());
-    assertEquals(1, ((DomainGroupVersion) dg.getVersions().toArray()[0]).getVersionNumber());
-    assertEquals(1, DomainGroups.getLatestVersion(dg).getVersionNumber());
-  }
-
-  public void testDelete() throws Exception {
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", null);
-    assertNotNull(getZk().exists(dg.getPath(), false));
-    assertTrue(dg.delete());
-    assertNull(getZk().exists(dg.getPath(), false));
-  }
-
-  private Domain createDomain(String domainName) throws KeeperException, InterruptedException, IOException {
-    return ZkDomain.create(getZk(),
-        domains_root,
-        domainName,
-        1,
-        ConstantStorageEngine.Factory.class.getName(),
-        "---\n",
-        ConstantPartitioner.class.getName(),
-        0,
-        Collections.<String>emptyList());
-  }
+  private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
+  private final String domainsRoot = ZkPath.append(getRoot(), "domains");
 
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    create(domains_root);
-    create(dg_root);
+    create(domainsRoot);
+    create(domainGroupsRoot);
+  }
+
+  public void testLoad() throws Exception {
+
+    final Domain d0 = ZkDomain.create(getZk(), domainsRoot, "domain0", 1024, Echo.Factory.class.getName(), "---",
+        Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
+    final Domain d1 = ZkDomain.create(getZk(), domainsRoot, "domain1", 1024, Echo.Factory.class.getName(), "---",
+        Murmur64Partitioner.class.getName(), 1, Collections.<String>emptyList());
+
+    Coordinator coord = new MockCoordinator() {
+      @Override
+      public Domain getDomainById(int domainId) {
+        if (domainId == 0) {
+          return d0;
+        } else if (domainId == 1) {
+          return d1;
+        } else {
+          throw new IllegalStateException();
+        }
+      }
+    };
+
+    NewZkDomainGroup dg = NewZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", coord);
+
+    assertEquals(0, dg.getVersions().size());
+    assertEquals(null, DomainGroups.getLatestVersion(dg));
+
+    Map<Domain, Integer> map1 = new HashMap<Domain, Integer>();
+    map1.put(d0, 0);
+    map1.put(d1, 0);
+    dg.createNewVersion(map1);
+
+    assertEquals(1, dg.getVersions().size());
+    assertEquals(0, DomainGroups.getLatestVersion(dg).getVersionNumber());
+
+    assertEquals(0, dg.getVersion(0).getDomainVersion(d0).getVersionNumber());
+    assertEquals(0, dg.getVersion(0).getDomainVersion(d1).getVersionNumber());
+
+    Map<Domain, Integer> map2 = new HashMap<Domain, Integer>();
+    map2.put(d0, 1);
+    map2.put(d1, 1);
+    dg.createNewVersion(map2);
+
+    assertEquals(2, dg.getVersions().size());
+    assertEquals(1, DomainGroups.getLatestVersion(dg).getVersionNumber());
+
+    assertEquals(1, dg.getVersion(1).getDomainVersion(d0).getVersionNumber());
+    assertEquals(1, dg.getVersion(1).getDomainVersion(d1).getVersionNumber());
+  }
+
+  public void testDelete() throws Exception {
+    NewZkDomainGroup dg = NewZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", null);
+    assertNotNull(getZk().exists(dg.getPath(), false));
+    assertTrue(dg.delete());
+    assertNull(getZk().exists(dg.getPath(), false));
   }
 }

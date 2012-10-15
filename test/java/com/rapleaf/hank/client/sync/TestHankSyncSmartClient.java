@@ -53,6 +53,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
   private TServer server2;
   private Thread thread2;
 
+  @Override
   public void setUp() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;

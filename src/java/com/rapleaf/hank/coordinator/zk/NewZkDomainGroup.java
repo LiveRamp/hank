@@ -75,7 +75,7 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   }
 
   @Override
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
+  public NewZkDomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
     // Compute next version number
     int versionNumber = 0;
     if (getVersions().size() > 0) {
@@ -95,7 +95,7 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
 
   public boolean delete() throws IOException {
     try {
-      zk.delete(path, -1);
+      zk.deleteNodeRecursively(path);
       return true;
     } catch (Exception e) {
       throw new IOException(e);
@@ -105,5 +105,9 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   @Override
   public String toString() {
     return "ZkDomainGroup [name=" + getName() + "]";
+  }
+
+  public String getPath() {
+    return path;
   }
 }

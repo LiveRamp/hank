@@ -28,7 +28,7 @@ public abstract class AbstractDomainGroupVersion implements DomainGroupVersion {
     }
     for (DomainGroupVersionDomainVersion domainVersion : getDomainVersions()) {
       if (domainVersion.getDomain() != null &&
-          domain.getName().equals(domainVersion.getDomain().getName())) {
+          domain.getId() == domainVersion.getDomain().getId()) {
         return domainVersion;
       }
     }
