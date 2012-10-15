@@ -17,7 +17,9 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.DomainGroupMetadata;
 import com.rapleaf.hank.zookeeper.WatchedMap;
+import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
@@ -34,6 +36,7 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   private final ZooKeeperPlus zk;
   private final String name;
   private final String path;
+  private final WatchedThriftNode<DomainGroupMetadata> metadata;
   private final WatchedMap<NewZkDomainGroupVersion> versions;
 
   public static NewZkDomainGroup create(final ZooKeeperPlus zk,
@@ -41,21 +44,32 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
                                         final String name,
                                         final Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
-    zk.create(path, null);
-    zk.create(ZkPath.append(path, VERSIONS_PATH), null);
-    return new NewZkDomainGroup(zk, path, coordinator);
+    DomainGroupMetadata initialValue = new DomainGroupMetadata();
+    initialValue.set_next_version_number(0);
+    return new NewZkDomainGroup(zk, path, coordinator, true, initialValue);
   }
-
 
   public NewZkDomainGroup(final ZooKeeperPlus zk,
                           final String path,
-                          final Coordinator coordinator)
+                          final Coordinator coordinator) throws IOException, InterruptedException, KeeperException {
+    this(zk, path, coordinator, false, null);
+  }
+
+  public NewZkDomainGroup(final ZooKeeperPlus zk,
+                          final String path,
+                          final Coordinator coordinator,
+                          final boolean create,
+                          final DomainGroupMetadata initialValue)
       throws InterruptedException, KeeperException, IOException {
     super(coordinator);
     this.zk = zk;
     this.path = path;
     this.name = ZkPath.getFilename(path);
-    versions = new WatchedMap<NewZkDomainGroupVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
+    this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialValue, new DomainGroupMetadata());
+    if (create) {
+      zk.create(ZkPath.append(path, VERSIONS_PATH), null);
+    }
+    this.versions = new WatchedMap<NewZkDomainGroupVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
         new WatchedMap.ElementLoader<NewZkDomainGroupVersion>() {
           @Override
           public NewZkDomainGroupVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
@@ -76,10 +90,20 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
 
   @Override
   public NewZkDomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
-    // Compute next version number
-    int versionNumber = 0;
-    if (getVersions().size() > 0) {
-      versionNumber = getVersions().last().getVersionNumber() + 1;
+    // First, copy next version number
+    int versionNumber = metadata.get().get_next_version_number();
+    // Then, increment next version counter
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainGroupMetadata currentCopy) {
+          currentCopy.set_next_version_number(currentCopy.get_next_version_number() + 1);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    } catch (KeeperException e) {
+      throw new RuntimeException(e);
     }
     try {
       return NewZkDomainGroupVersion.create(zk,
