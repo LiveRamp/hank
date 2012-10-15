@@ -191,7 +191,7 @@ public class HankApiHelper {
     Map<String, Integer> versionsMap = new HashMap<String, Integer>();
 
     for (DomainGroupVersionDomainVersion v : version.getDomainVersions()) {
-      versionsMap.put(v.getDomain().getName(), v.getVersion());
+      versionsMap.put(v.getDomain().getName(), v.getVersionNumber());
     }
     data.domainVersions = versionsMap;
     return data;
@@ -228,7 +228,7 @@ public class HankApiHelper {
   private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroupVersion targetVersion, Domain domain, RingGroup ringGroup) throws IOException {
     DomainDeployStatusForRingGroup status = new DomainDeployStatusForRingGroup();
     status.ringGroupName = ringGroup.getName();
-    if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain) == null ? null : targetVersion.getDomainVersion(domain).getVersion();
+    if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain) == null ? null : targetVersion.getDomainVersion(domain).getVersionNumber();
     ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
     status.numPartitions = servingStatus.getNumPartitions();
     status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();

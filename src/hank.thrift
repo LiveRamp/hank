@@ -66,3 +66,8 @@ struct DomainVersionMetadata {
   3: required bool defunct;
   4: required i64 closed_at;
 }
+
+struct DomainGroupVersionMetadata {
+  1: required map<i32, i32> domain_versions;
+  2: required i64 created_at;
+}

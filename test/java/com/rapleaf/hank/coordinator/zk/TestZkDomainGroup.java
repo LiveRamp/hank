@@ -28,8 +28,6 @@ import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 public class TestZkDomainGroup extends ZkTestCase {
   public class MockDomainGroupChangeListener implements DomainGroupChangeListener {
@@ -78,41 +76,6 @@ public class TestZkDomainGroup extends ZkTestCase {
     assertEquals(1, dg.getVersions().size());
     assertEquals(1, ((DomainGroupVersion) dg.getVersions().toArray()[0]).getVersionNumber());
     assertEquals(1, DomainGroups.getLatestVersion(dg).getVersionNumber());
-  }
-
-  public void testDomainsAndListener() throws Exception {
-    final Domain d0 = createDomain("domain0");
-    final Domain d1 = createDomain("domain1");
-
-    Coordinator coord = new MockCoordinator() {
-      @Override
-      public Domain getDomain(String domainName) {
-        if (domainName.equals("domain0")) {
-          return d0;
-        } else {
-          return d1;
-        }
-      }
-    };
-
-    DomainGroup dgc = ZkDomainGroup.create(getZk(), dg_root, "myDomainGroup", coord);
-    MockDomainGroupChangeListener listener = new MockDomainGroupChangeListener();
-    dgc.setListener(listener);
-    assertNull(listener.calledWith);
-
-    assertNull(listener.calledWith);
-
-    Map<Domain, Integer> versionMap = new HashMap<Domain, Integer>() {{
-      put(d0, 1);
-      put(d1, 3);
-    }};
-    dgc.createNewVersion(versionMap);
-
-    synchronized (listener) {
-      listener.wait(1000);
-    }
-    assertNotNull(listener.calledWith);
-    assertEquals(dgc.getName(), listener.calledWith.getName());
   }
 
   public void testDelete() throws Exception {

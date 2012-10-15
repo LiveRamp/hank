@@ -9,7 +9,7 @@ public abstract class AbstractDomainGroupVersionDomainVersion implements DomainG
 
   @Override
   public String toString() {
-    return getDomain().getName() + "@v" + getVersion();
+    return getDomain().getName() + "@v" + getVersionNumber();
   }
 
   @Override
@@ -26,7 +26,7 @@ public abstract class AbstractDomainGroupVersionDomainVersion implements DomainG
     if (getDomain().getName() != null ? !getDomain().getName().equals(that.getDomain().getName()) : that.getDomain().getName() != null) {
       return false;
     }
-    if (getVersion() != null ? !getVersion().equals(that.getVersion()) : that.getVersion() != null) {
+    if (getVersionNumber() != that.getVersionNumber()) {
       return false;
     }
 
@@ -36,7 +36,7 @@ public abstract class AbstractDomainGroupVersionDomainVersion implements DomainG
   @Override
   public int hashCode() {
     int result = getDomain().getName() != null ? getDomain().getName().hashCode() : 0;
-    result = 31 * result + (getVersion() != null ? getVersion().hashCode() : 0);
+    result = 31 * result + getVersionNumber();
     return result;
   }
 }

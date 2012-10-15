@@ -64,12 +64,12 @@ public final class RingGroups {
       if (domain == null) {
         return false;
       }
-      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersion());
+      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersionNumber());
       if (domainVersion == null
           || !DomainVersions.isClosed(domainVersion)
           || domainVersion.isDefunct()) {
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Version " + dgvdv.getVersion()
+          LOG.debug("Version " + dgvdv.getVersionNumber()
               + " of domain " + domain.getName()
               + " is null, still open or defunct. Hence domain group version "
               + domainGroupVersion + " is not deployable.");

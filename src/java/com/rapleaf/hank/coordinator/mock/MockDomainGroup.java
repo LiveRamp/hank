@@ -17,15 +17,15 @@ package com.rapleaf.hank.coordinator.mock;
 
 import com.rapleaf.hank.coordinator.AbstractDomainGroup;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupChangeListener;
 import com.rapleaf.hank.coordinator.DomainGroupVersion;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class MockDomainGroup extends AbstractDomainGroup {
+
   private final String name;
-  private final Map<Domain, Integer> domains = new HashMap<Domain, Integer>();
 
   public MockDomainGroup(String name) {
     super(null);
@@ -36,14 +36,12 @@ public class MockDomainGroup extends AbstractDomainGroup {
     return null;
   }
 
-  public Integer getDomainId(String domainName) {
-    return 0;
-  }
-
+  @Override
   public String getName() {
     return name;
   }
 
+  @Override
   public SortedSet<DomainGroupVersion> getVersions() {
     return new TreeSet<DomainGroupVersion>();
   }
@@ -53,18 +51,8 @@ public class MockDomainGroup extends AbstractDomainGroup {
     return "MockDomainGroupConfig [name=" + name + "]";
   }
 
-  public void setListener(DomainGroupChangeListener listener) {
-  }
-
-  public void addDomain(Domain domain, int domainId) {
-    domains.put(domain, domainId);
-  }
-
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainIdToVersion) {
+  @Override
+  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) {
     return null;
-  }
-
-  public Set<Domain> getDomains() throws IOException {
-    return domains.keySet();
   }
 }

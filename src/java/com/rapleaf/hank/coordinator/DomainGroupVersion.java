@@ -31,6 +31,7 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
 
   /**
    * milliseconds since epoch of when this domain group version was created
+   *
    * @return
    */
   public long getCreatedAt();
@@ -47,4 +48,6 @@ public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
    * @return
    */
   public DomainGroupVersionDomainVersion getDomainVersion(Domain domain);
+
+  public void removeDomain(Domain domain);
 }

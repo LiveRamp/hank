@@ -15,9 +15,12 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import java.util.Set;
 
 public class MockDomainGroupVersion extends AbstractDomainGroupVersion {
+
   private final int versionNumber;
   private final DomainGroup dgc;
   private final Set<DomainGroupVersionDomainVersion> domainVersions;
@@ -32,6 +35,11 @@ public class MockDomainGroupVersion extends AbstractDomainGroupVersion {
   @Override
   public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
     return domainVersions;
+  }
+
+  @Override
+  public void removeDomain(Domain domain) {
+    throw new NotImplementedException();
   }
 
   @Override

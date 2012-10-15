@@ -1499,13 +1499,13 @@ public class PartitionServer {
             case 2: // KEYS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list18 = iprot.readListBegin();
-                  struct.keys = new ArrayList<ByteBuffer>(_list18.size);
-                  for (int _i19 = 0; _i19 < _list18.size; ++_i19)
+                  org.apache.thrift.protocol.TList _list28 = iprot.readListBegin();
+                  struct.keys = new ArrayList<ByteBuffer>(_list28.size);
+                  for (int _i29 = 0; _i29 < _list28.size; ++_i29)
                   {
-                    ByteBuffer _elem20; // required
-                    _elem20 = iprot.readBinary();
-                    struct.keys.add(_elem20);
+                    ByteBuffer _elem30; // required
+                    _elem30 = iprot.readBinary();
+                    struct.keys.add(_elem30);
                   }
                   iprot.readListEnd();
                 }
@@ -1536,9 +1536,9 @@ public class PartitionServer {
           oprot.writeFieldBegin(KEYS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.keys.size()));
-            for (ByteBuffer _iter21 : struct.keys)
+            for (ByteBuffer _iter31 : struct.keys)
             {
-              oprot.writeBinary(_iter21);
+              oprot.writeBinary(_iter31);
             }
             oprot.writeListEnd();
           }
@@ -1575,9 +1575,9 @@ public class PartitionServer {
         if (struct.is_set_keys()) {
           {
             oprot.writeI32(struct.keys.size());
-            for (ByteBuffer _iter22 : struct.keys)
+            for (ByteBuffer _iter32 : struct.keys)
             {
-              oprot.writeBinary(_iter22);
+              oprot.writeBinary(_iter32);
             }
           }
         }
@@ -1593,13 +1593,13 @@ public class PartitionServer {
         }
         if (incoming.get(1)) {
           {
-            org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.keys = new ArrayList<ByteBuffer>(_list23.size);
-            for (int _i24 = 0; _i24 < _list23.size; ++_i24)
+            org.apache.thrift.protocol.TList _list33 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+            struct.keys = new ArrayList<ByteBuffer>(_list33.size);
+            for (int _i34 = 0; _i34 < _list33.size; ++_i34)
             {
-              ByteBuffer _elem25; // required
-              _elem25 = iprot.readBinary();
-              struct.keys.add(_elem25);
+              ByteBuffer _elem35; // required
+              _elem35 = iprot.readBinary();
+              struct.keys.add(_elem35);
             }
           }
           struct.set_keys_isSet(true);

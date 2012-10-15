@@ -16,10 +16,9 @@
 
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
-
 public final class DomainGroupVersions {
-  private DomainGroupVersions() {}
+  private DomainGroupVersions() {
+  }
 
   public static boolean containsDomain(DomainGroupVersion domainGroupVersion, Domain domain) {
     for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
@@ -28,13 +27,5 @@ public final class DomainGroupVersions {
       }
     }
     return false;
-  }
-
-  public static void removeDomain(DomainGroupVersion domainGroupVersion, Domain domain) throws IOException {
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      if (dgvdv.getDomain().equals(domain)) {
-        dgvdv.delete();
-      }
-    }
   }
 }

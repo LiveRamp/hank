@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 Rapleaf
+ *  Copyright 2012 Rapleaf
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,21 +13,23 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.AbstractDomainGroupVersionDomainVersion;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import org.apache.zookeeper.KeeperException;
 
-public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion {
+public class NewZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
 
   private final Domain domain;
-  private final Integer version;
+  private final int versionNumber;
 
-  public ZkDomainGroupVersionDomainVersion(ZooKeeperPlus zk, String path, Domain domain) throws KeeperException, InterruptedException {
+  public NewZkDomainGroupVersionDomainVersion(final int versionNumber,
+                                              final Domain domain) throws KeeperException, InterruptedException {
     this.domain = domain;
-    version = Integer.valueOf(zk.getString(path));
+    this.versionNumber = versionNumber;
   }
 
   @Override
@@ -37,12 +39,12 @@ public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersio
 
   @Override
   public int getVersionNumber() {
-    return version;
+    return versionNumber;
   }
 
   @Override
   public String toString() {
     return "ZkDomainGroupVersionDomainVersion [domain=" + domain
-        + ", versionNumber=" + version + "]";
+        + ", versionNumber=" + versionNumber + "]";
   }
 }

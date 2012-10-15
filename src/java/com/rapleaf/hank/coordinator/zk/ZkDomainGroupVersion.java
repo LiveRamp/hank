@@ -19,6 +19,7 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -33,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
+
   private static final Pattern VERSION_NAME_PATTERN = Pattern.compile("v(\\d+)");
   private final DomainGroup domainGroup;
   private final int versionNumber;
@@ -71,6 +73,11 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
   @Override
   public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
     return new TreeSet<DomainGroupVersionDomainVersion>(domainVersions.values());
+  }
+
+  @Override
+  public void removeDomain(Domain domain) {
+    throw new NotImplementedException();
   }
 
   @Override

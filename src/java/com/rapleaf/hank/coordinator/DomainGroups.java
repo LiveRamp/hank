@@ -45,7 +45,7 @@ public final class DomainGroups {
 
   public static void removeDomainFromAllVersions(DomainGroup domainGroup, Domain domain) throws IOException {
     for (DomainGroupVersion dgv : domainGroup.getVersions()) {
-      DomainGroupVersions.removeDomain(dgv, domain);
+      dgv.removeDomain(domain);
     }
   }
 

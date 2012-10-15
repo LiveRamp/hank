@@ -160,5 +160,4 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroup(zk, domainGroupPath, coord);
   }
-
 }

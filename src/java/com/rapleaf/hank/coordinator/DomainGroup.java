@@ -36,7 +36,5 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public DomainGroupVersion getVersion(int versionNumber) throws IOException;
 
-  public void setListener(DomainGroupChangeListener listener);
-
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainNameToVersion) throws IOException;
+  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException;
 }
