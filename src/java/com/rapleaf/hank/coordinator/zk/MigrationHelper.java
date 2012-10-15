@@ -19,7 +19,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -38,18 +38,11 @@ public class MigrationHelper {
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
 
-    for (Domain domain : coordinator.getDomains()) {
-      //      LOG.info("Migrating domain " + domain.getName());
-      //      ZkDomain zkDomain = (ZkDomain) domain;
-      //      NewZkDomain result = zkDomain.migrate();
-      //      LOG.info(result);
-      //      for (DomainVersion domainVersion : domain.getVersions()) {
-      //        LOG.info("  version " + domainVersion.getVersionNumber());
-      //        //        ZkDomainVersion zkDomainVersion = (ZkDomainVersion) domainVersion;
-      //        //        String domainPath = ZkPath.append("/hank/domains", domain.getName());
-      //        //        NewZkDomainVersion result = zkDomainVersion.migrate(domainPath);
-      //        //        LOG.info(result.toString());
-      //      }
+    for (DomainGroup domainGroup : coordinator.getDomainGroups()) {
+      LOG.info("Migrating domain group " + domainGroup.getName());
+      ZkDomainGroup zkDomainGroup = (ZkDomainGroup) domainGroup;
+      NewZkDomainGroup result = zkDomainGroup.migrate();
+      LOG.info(result);
     }
   }
 }

@@ -15,10 +15,9 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.AbstractDomainGroup;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.DomainGroupMetadata;
+import com.rapleaf.hank.generated.DomainGroupVersionMetadata;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -26,6 +25,7 @@ import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -120,5 +120,32 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     zk.create(ZkPath.append(domainGroupPath, DotComplete.NODE_NAME), null);
     zk.setData(domainGroupPath, new byte[]{1}, -1);
     return new ZkDomainGroup(zk, domainGroupPath, coord);
+  }
+
+  public NewZkDomainGroup migrate() throws IOException, InterruptedException, KeeperException {
+
+    SortedSet<DomainGroupVersion> versions = getVersions();
+
+    String versionsPath = ZkPath.append(dgPath, "v");
+    zk.create(versionsPath, null);
+    NewZkDomainGroup result = new NewZkDomainGroup(zk, dgPath, getCoordinator());
+
+    for (DomainGroupVersion dgv : versions) {
+      System.out.println("Migrating version " + dgv.getVersionNumber());
+      String path = ZkPath.append(versionsPath, String.valueOf(dgv.getVersionNumber()));
+      DomainGroupVersionMetadata initialDgv = new DomainGroupVersionMetadata();
+      initialDgv.set_created_at(dgv.getCreatedAt());
+      Map<Integer, Integer> domainVersions = new HashMap<Integer, Integer>();
+      for (DomainGroupVersionDomainVersion dgvdv : dgv.getDomainVersions()) {
+        domainVersions.put(dgvdv.getDomain().getId(), dgvdv.getVersionNumber());
+      }
+      initialDgv.set_domain_versions(domainVersions);
+      NewZkDomainGroupVersion newDgv = new NewZkDomainGroupVersion(zk, getCoordinator(), path, result, true, initialDgv);
+      System.out.println(newDgv);
+    }
+
+    result.metadata.set(new DomainGroupMetadata(versions.last().getVersionNumber() + 1));
+
+    return result;
   }
 }

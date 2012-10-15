@@ -36,7 +36,8 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   private final ZooKeeperPlus zk;
   private final String name;
   private final String path;
-  private final WatchedThriftNode<DomainGroupMetadata> metadata;
+  // TODO: make private
+  final WatchedThriftNode<DomainGroupMetadata> metadata;
   private final WatchedMap<NewZkDomainGroupVersion> versions;
 
   public static NewZkDomainGroup create(final ZooKeeperPlus zk,
