@@ -20,8 +20,6 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -32,7 +30,6 @@ import java.util.TreeSet;
 public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   private static final String VERSIONS_PATH = "v";
-  private static final Logger LOG = Logger.getLogger(NewZkDomainGroup.class);
 
   private final ZooKeeperPlus zk;
   private final String name;

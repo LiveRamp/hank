@@ -100,15 +100,6 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       }
 
       @Override
-      public Integer getDomainId(String domainName) {
-        if (domainName.equals("existent_domain")) {
-          return 1;
-        } else {
-          return null;
-        }
-      }
-
-      @Override
       public DomainGroupVersion getVersion(int version) {
         return new MockDomainGroupVersion(
             new HashSet<DomainGroupVersionDomainVersion>(

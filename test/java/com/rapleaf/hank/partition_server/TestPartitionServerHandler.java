@@ -145,12 +145,6 @@ public class TestPartitionServerHandler extends BaseTestCase {
       }
 
       @Override
-      public Integer getDomainId(String domainName) {
-        assertEquals("myDomain", domainName);
-        return 0;
-      }
-
-      @Override
       public DomainGroupVersion getVersion(int versionNumber) {
         assertEquals(0, versionNumber);
         return dgv;

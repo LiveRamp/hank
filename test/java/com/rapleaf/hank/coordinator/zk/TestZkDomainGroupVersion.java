@@ -48,16 +48,6 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
           return null;
       }
     }
-
-    @Override
-    public Integer getDomainId(String domainName) {
-      if (domainName.equals("domain1")) {
-        return 1;
-      } else if (domainName.equals("domain2")) {
-        return 2;
-      }
-      throw new IllegalStateException();
-    }
   };
 
   public void testLoad() throws Exception {
@@ -149,15 +139,6 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
           return d2;
         }
         throw new IllegalStateException();
-      }
-
-      @Override
-      public Integer getDomainId(String domainName) {
-        if (domainName.equals("domain1")) {
-          return 0;
-        } else {
-          return 1;
-        }
       }
     };
     DomainGroupVersion ver = ZkDomainGroupVersion.create(getZk(), coord, getRoot(), map, dgc);

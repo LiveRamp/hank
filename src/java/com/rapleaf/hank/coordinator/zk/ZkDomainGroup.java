@@ -15,15 +15,15 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.AbstractDomainGroup;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainGroupVersion;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.WatchedEvent;
-import org.apache.zookeeper.Watcher;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,36 +31,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class ZkDomainGroup extends AbstractDomainGroup {
-
-  private static final Logger LOG = Logger.getLogger(ZkDomainGroup.class);
-
-  private class StateChangeWatcher implements Watcher {
-    private final DomainGroupChangeListener listener;
-
-    public StateChangeWatcher(DomainGroupChangeListener listener)
-        throws KeeperException, InterruptedException {
-      this.listener = listener;
-      register();
-    }
-
-    private void register() throws KeeperException, InterruptedException {
-      zk.getChildren(ZkPath.append(dgPath, "versions"), this);
-    }
-
-    @Override
-    public void process(WatchedEvent event) {
-      switch (event.getType()) {
-        case NodeChildrenChanged:
-          listener.onDomainGroupChange(ZkDomainGroup.this);
-          try {
-            register();
-          } catch (Exception e) {
-            LOG.error("failed to reregister listener!", e);
-          }
-          break;
-      }
-    }
-  }
 
   private final String groupName;
   private final WatchedMap<ZkDomain> domainsById;
@@ -106,15 +76,6 @@ public class ZkDomainGroup extends AbstractDomainGroup {
       throw new IOException(e);
     }
     return s;
-  }
-
-  @Override
-  public void setListener(DomainGroupChangeListener listener) {
-    try {
-      new StateChangeWatcher(listener);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
   }
 
   @Override

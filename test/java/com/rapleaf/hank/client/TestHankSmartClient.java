@@ -40,6 +40,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class TestHankSmartClient extends BaseTestCase {
+
   private static final Logger LOG = Logger.getLogger(TestHankSmartClient.class);
 
   private static class ServerRunnable implements Runnable {
@@ -184,15 +185,6 @@ public class TestHankSmartClient extends BaseTestCase {
       @Override
       public Domain getDomain(int domainId) {
         return domains.get(domainId);
-      }
-
-      @Override
-      public Integer getDomainId(String domainName) {
-        if (domainName.equals("existent_domain")) {
-          return 1;
-        } else {
-          return null;
-        }
       }
 
       @Override

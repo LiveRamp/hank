@@ -48,7 +48,7 @@ public class MockDomainGroup extends AbstractDomainGroup {
 
   @Override
   public String toString() {
-    return "MockDomainGroupConfig [name=" + name + "]";
+    return "MockDomainGroup [name=" + name + "]";
   }
 
   @Override
