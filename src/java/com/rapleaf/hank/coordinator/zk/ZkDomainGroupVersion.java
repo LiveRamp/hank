@@ -29,14 +29,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class NewZkDomainGroupVersion extends AbstractDomainGroupVersion implements DomainGroupVersion {
+public class ZkDomainGroupVersion extends AbstractDomainGroupVersion implements DomainGroupVersion {
 
   private final DomainGroup domainGroup;
   private final int versionNumber;
   private final Coordinator coordinator;
   private final WatchedThriftNode<DomainGroupVersionMetadata> metadata;
 
-  public static NewZkDomainGroupVersion create(final ZooKeeperPlus zk,
+  public static ZkDomainGroupVersion create(final ZooKeeperPlus zk,
                                                final Coordinator coordinator,
                                                final String rootPath,
                                                final int versionNumber,
@@ -48,22 +48,22 @@ public class NewZkDomainGroupVersion extends AbstractDomainGroupVersion implemen
       domainIdToVersion.put(entry.getKey().getId(), entry.getValue());
     }
     DomainGroupVersionMetadata initialValue = new DomainGroupVersionMetadata(domainIdToVersion, System.currentTimeMillis());
-    return new NewZkDomainGroupVersion(zk, coordinator, path, domainGroup, true, initialValue);
+    return new ZkDomainGroupVersion(zk, coordinator, path, domainGroup, true, initialValue);
   }
 
-  public NewZkDomainGroupVersion(final ZooKeeperPlus zk,
-                                 final Coordinator coordinator,
-                                 final String path,
-                                 final DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
+  public ZkDomainGroupVersion(final ZooKeeperPlus zk,
+                              final Coordinator coordinator,
+                              final String path,
+                              final DomainGroup domainGroup) throws InterruptedException, KeeperException, IOException {
     this(zk, coordinator, path, domainGroup, false, null);
   }
 
-  public NewZkDomainGroupVersion(final ZooKeeperPlus zk,
-                                 final Coordinator coordinator,
-                                 final String path,
-                                 final DomainGroup domainGroup,
-                                 boolean create,
-                                 final DomainGroupVersionMetadata initialValue) throws InterruptedException, KeeperException, IOException {
+  public ZkDomainGroupVersion(final ZooKeeperPlus zk,
+                              final Coordinator coordinator,
+                              final String path,
+                              final DomainGroup domainGroup,
+                              boolean create,
+                              final DomainGroupVersionMetadata initialValue) throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
     this.coordinator = coordinator;
@@ -93,7 +93,7 @@ public class NewZkDomainGroupVersion extends AbstractDomainGroupVersion implemen
       int domainId = entry.getKey();
       int versionNumber = entry.getValue();
       try {
-        result.add(new NewZkDomainGroupVersionDomainVersion(versionNumber, coordinator.getDomainById(domainId)));
+        result.add(new ZkDomainGroupVersionDomainVersion(versionNumber, coordinator.getDomainById(domainId)));
       } catch (KeeperException e) {
         throw new RuntimeException(e);
       } catch (InterruptedException e) {

@@ -96,7 +96,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   private boolean isSessionExpired = false;
 
   private final WatchedMap<ZkDomain> domains;
-  private final WatchedMap<NewZkDomainGroup> domainGroups;
+  private final WatchedMap<ZkDomainGroup> domainGroups;
   private final WatchedMap<ZkRingGroup> ringGroups;
 
   private final String domainsRoot;
@@ -147,11 +147,11 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
     });
 
     // Domain Groups
-    domainGroups = new WatchedMap<NewZkDomainGroup>(zk, domainGroupsRoot, new WatchedMap.ElementLoader<NewZkDomainGroup>() {
+    domainGroups = new WatchedMap<ZkDomainGroup>(zk, domainGroupsRoot, new WatchedMap.ElementLoader<ZkDomainGroup>() {
       @Override
-      public NewZkDomainGroup load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+      public ZkDomainGroup load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         try {
-          return new NewZkDomainGroup(zk, ZkPath.append(basePath, relPath), ZooKeeperCoordinator.this);
+          return new ZkDomainGroup(zk, ZkPath.append(basePath, relPath), ZooKeeperCoordinator.this);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -346,7 +346,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
-      NewZkDomainGroup dgc = NewZkDomainGroup.create(zk, domainGroupsRoot, name, this);
+      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, this);
       synchronized (domainGroups) {
         domainGroups.put(name, dgc);
       }
@@ -360,7 +360,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   public RingGroup addRingGroup(String ringGroupName, String domainGroupName) throws IOException {
     try {
       RingGroup rg = ZkRingGroup.create(zk, ZkPath.append(ringGroupsRoot, ringGroupName),
-          (NewZkDomainGroup) getDomainGroup(domainGroupName), this);
+          (ZkDomainGroup) getDomainGroup(domainGroupName), this);
       ringGroups.put(ringGroupName, (ZkRingGroup) rg);
       return rg;
     } catch (Exception e) {
@@ -412,7 +412,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
 
   @Override
   public boolean deleteDomainGroup(String domainGroupName) throws IOException {
-    NewZkDomainGroup domainGroup = domainGroups.remove(domainGroupName);
+    ZkDomainGroup domainGroup = domainGroups.remove(domainGroupName);
     if (domainGroup == null) {
       return false;
     }

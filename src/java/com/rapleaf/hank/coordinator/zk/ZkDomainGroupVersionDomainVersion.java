@@ -21,13 +21,13 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
 import org.apache.zookeeper.KeeperException;
 
-public class NewZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
+public class ZkDomainGroupVersionDomainVersion extends AbstractDomainGroupVersionDomainVersion implements DomainGroupVersionDomainVersion {
 
   private final Domain domain;
   private final int versionNumber;
 
-  public NewZkDomainGroupVersionDomainVersion(final int versionNumber,
-                                              final Domain domain) throws KeeperException, InterruptedException {
+  public ZkDomainGroupVersionDomainVersion(final int versionNumber,
+                                           final Domain domain) throws KeeperException, InterruptedException {
     this.domain = domain;
     this.versionNumber = versionNumber;
   }

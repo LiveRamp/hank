@@ -48,7 +48,7 @@ public class ZkRingGroup extends AbstractRingGroup {
   private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
   private final DataLocationChangeListener dataLocationChangeListener = new LocalDataLocationChangeListener();
 
-  public static ZkRingGroup create(ZooKeeperPlus zk, String path, NewZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
+  public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     if (domainGroup.getVersions().isEmpty()) {
       throw new IllegalStateException(
           "You cannot create a ring group for a domain group that has no versions!");

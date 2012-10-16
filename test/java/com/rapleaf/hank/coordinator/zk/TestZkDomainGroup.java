@@ -61,7 +61,7 @@ public class TestZkDomainGroup extends ZkTestCase {
       }
     };
 
-    NewZkDomainGroup dg = NewZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", coord);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", coord);
 
     assertEquals(0, dg.getVersions().size());
     assertEquals(null, DomainGroups.getLatestVersion(dg));
@@ -90,7 +90,7 @@ public class TestZkDomainGroup extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    NewZkDomainGroup dg = NewZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", null);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", null);
     assertNotNull(getZk().exists(dg.getPath(), false));
     assertTrue(dg.delete());
     assertNull(getZk().exists(dg.getPath(), false));

@@ -124,7 +124,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0, Collections.<String>emptyList());
 
-    NewZkDomainGroup dgc = NewZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup", null);
+    ZkDomainGroup dgc = ZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup", null);
     Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
     dgc.createNewVersion(domainIdToVersion);
 

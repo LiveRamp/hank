@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
+public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   private static final String VERSIONS_PATH = "v";
 
@@ -37,29 +37,29 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   private final String name;
   private final String path;
   private final WatchedThriftNode<DomainGroupMetadata> metadata;
-  private final WatchedMap<NewZkDomainGroupVersion> versions;
+  private final WatchedMap<ZkDomainGroupVersion> versions;
 
-  public static NewZkDomainGroup create(final ZooKeeperPlus zk,
+  public static ZkDomainGroup create(final ZooKeeperPlus zk,
                                         final String rootPath,
                                         final String name,
                                         final Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
     DomainGroupMetadata initialValue = new DomainGroupMetadata();
     initialValue.set_next_version_number(0);
-    return new NewZkDomainGroup(zk, path, coordinator, true, initialValue);
+    return new ZkDomainGroup(zk, path, coordinator, true, initialValue);
   }
 
-  public NewZkDomainGroup(final ZooKeeperPlus zk,
-                          final String path,
-                          final Coordinator coordinator) throws IOException, InterruptedException, KeeperException {
+  public ZkDomainGroup(final ZooKeeperPlus zk,
+                       final String path,
+                       final Coordinator coordinator) throws IOException, InterruptedException, KeeperException {
     this(zk, path, coordinator, false, null);
   }
 
-  public NewZkDomainGroup(final ZooKeeperPlus zk,
-                          final String path,
-                          final Coordinator coordinator,
-                          final boolean create,
-                          final DomainGroupMetadata initialValue)
+  public ZkDomainGroup(final ZooKeeperPlus zk,
+                       final String path,
+                       final Coordinator coordinator,
+                       final boolean create,
+                       final DomainGroupMetadata initialValue)
       throws InterruptedException, KeeperException, IOException {
     super(coordinator);
     this.zk = zk;
@@ -69,11 +69,11 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
     if (create) {
       zk.create(ZkPath.append(path, VERSIONS_PATH), null);
     }
-    this.versions = new WatchedMap<NewZkDomainGroupVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
-        new WatchedMap.ElementLoader<NewZkDomainGroupVersion>() {
+    this.versions = new WatchedMap<ZkDomainGroupVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
+        new WatchedMap.ElementLoader<ZkDomainGroupVersion>() {
           @Override
-          public NewZkDomainGroupVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
-            return new NewZkDomainGroupVersion(zk, coordinator, ZkPath.append(basePath, relPath), NewZkDomainGroup.this);
+          public ZkDomainGroupVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+            return new ZkDomainGroupVersion(zk, coordinator, ZkPath.append(basePath, relPath), ZkDomainGroup.this);
           }
         });
   }
@@ -89,7 +89,7 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
   }
 
   @Override
-  public NewZkDomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
+  public ZkDomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
     // First, copy next version number
     int versionNumber = metadata.get().get_next_version_number();
     // Then, increment next version counter
@@ -106,7 +106,7 @@ public class NewZkDomainGroup extends AbstractDomainGroup implements DomainGroup
       throw new RuntimeException(e);
     }
     try {
-      return NewZkDomainGroupVersion.create(zk,
+      return ZkDomainGroupVersion.create(zk,
           getCoordinator(),
           ZkPath.append(path, VERSIONS_PATH),
           versionNumber,
