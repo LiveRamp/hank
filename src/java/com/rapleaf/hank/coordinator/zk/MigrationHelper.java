@@ -19,7 +19,6 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -37,13 +36,5 @@ public class MigrationHelper {
     String configurationPath = args[0];
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
-
-    for (Domain domain : coordinator.getDomains()) {
-      //      LOG.info("Migrating domain " + domain.getName());
-      //      ((ZkDomain) domain).migrate();
-      //      ZkDomainGroup zkDomainGroup = (ZkDomainGroup) domainGroup;
-      //      NewZkDomainGroup result = zkDomainGroup.migrate();
-      //      LOG.info(result);
-    }
   }
 }
