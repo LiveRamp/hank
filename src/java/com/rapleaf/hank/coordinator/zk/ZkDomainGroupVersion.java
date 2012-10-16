@@ -72,7 +72,13 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion {
 
   @Override
   public Set<DomainGroupVersionDomainVersion> getDomainVersions() {
-    return new TreeSet<DomainGroupVersionDomainVersion>(domainVersions.values());
+    TreeSet<DomainGroupVersionDomainVersion> result = new TreeSet<DomainGroupVersionDomainVersion>();
+    for (Entry<String, ZkDomainGroupVersionDomainVersion> entry : domainVersions.entrySet()) {
+      if (entry.getValue().getDomain() != null) {
+        result.add(entry.getValue());
+      }
+    }
+    return result;
   }
 
   @Override

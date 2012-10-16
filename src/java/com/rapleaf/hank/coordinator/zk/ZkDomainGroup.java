@@ -127,7 +127,9 @@ public class ZkDomainGroup extends AbstractDomainGroup {
     SortedSet<DomainGroupVersion> versions = getVersions();
 
     String versionsPath = ZkPath.append(dgPath, "v");
-    zk.create(versionsPath, null);
+    if (zk.exists(versionsPath, false) == null) {
+      zk.create(versionsPath, null);
+    }
     NewZkDomainGroup result = new NewZkDomainGroup(zk, dgPath, getCoordinator());
 
     for (DomainGroupVersion dgv : versions) {
