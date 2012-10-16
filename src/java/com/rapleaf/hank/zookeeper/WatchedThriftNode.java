@@ -25,8 +25,19 @@ import org.apache.zookeeper.KeeperException;
 
 public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
 
-  protected TDeserializer deserializer;
-  protected TSerializer serializer;
+  private static final ThreadLocal<TSerializer> serializerThreadLocal = new ThreadLocal<TSerializer>() {
+    @Override
+    protected TSerializer initialValue() {
+      return new TSerializer(new TCompactProtocol.Factory());
+    }
+  };
+
+  private static final ThreadLocal<TDeserializer> deserializerThreadLocal = new ThreadLocal<TDeserializer>() {
+    @Override
+    protected TDeserializer initialValue() {
+      return new TDeserializer(new TCompactProtocol.Factory());
+    }
+  };
 
   public WatchedThriftNode(final ZooKeeperPlus zk,
                            final String nodePath,
@@ -42,12 +53,9 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     if (data == null) {
       return null;
     } else {
-      if (deserializer == null) {
-        deserializer = new TDeserializer(new TCompactProtocol.Factory());
-      }
       T result = (T) emptyValue.deepCopy();
       try {
-        deserializer.deserialize(result, data);
+        deserializerThreadLocal.get().deserialize(result, data);
       } catch (TException e) {
         throw new RuntimeException(e);
       }
@@ -60,11 +68,8 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     if (v == null) {
       return null;
     } else {
-      if (serializer == null) {
-        serializer = new TSerializer(new TCompactProtocol.Factory());
-      }
       try {
-        return serializer.serialize(v);
+        return serializerThreadLocal.get().serialize(v);
       } catch (TException e) {
         throw new RuntimeException(e);
       }
