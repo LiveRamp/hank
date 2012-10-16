@@ -53,6 +53,7 @@ struct DomainMetadata {
   4: required string storage_engine_options;
   5: required string partitioner_class;
   6: required string required_host_flags;
+  7: required i32 next_version_number;
 }
 
 struct PartitionMetadata {

@@ -32,17 +32,17 @@ public class ZkDomain extends AbstractDomain implements Domain {
   private final ZooKeeperPlus zk;
 
   public static ZkDomain create(ZooKeeperPlus zk,
-                                   String domainsRoot,
-                                   String domainName,
-                                   int numParts,
-                                   String storageEngineFactoryClassName,
-                                   String storageEngineOptions,
-                                   String partitionerClassName,
-                                   int id,
-                                   List<String> requiredHostFlags) throws KeeperException, InterruptedException, IOException {
+                                String domainsRoot,
+                                String domainName,
+                                int numParts,
+                                String storageEngineFactoryClassName,
+                                String storageEngineOptions,
+                                String partitionerClassName,
+                                int id,
+                                List<String> requiredHostFlags) throws KeeperException, InterruptedException, IOException {
     String path = ZkPath.append(domainsRoot, domainName);
     DomainMetadata initialValue = new DomainMetadata(id, numParts, storageEngineFactoryClassName,
-        storageEngineOptions, partitionerClassName, Hosts.joinHostFlags(requiredHostFlags));
+        storageEngineOptions, partitionerClassName, Hosts.joinHostFlags(requiredHostFlags), 0);
     return new ZkDomain(zk, path, true, initialValue);
   }
 
@@ -162,17 +162,23 @@ public class ZkDomain extends AbstractDomain implements Domain {
 
   @Override
   public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException {
-    Integer nextVerNum;
-
-    if (getVersions().isEmpty()) {
-      nextVerNum = 0;
-    } else {
-      DomainVersion last = getVersions().last();
-      nextVerNum = last.getVersionNumber() + 1;
-    }
-
+    // First, copy next version number
+    int versionNumber = metadata.get().get_next_version_number();
+    // Then, increment next version counter
     try {
-      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, path, nextVerNum, domainVersionProperties,
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainMetadata currentCopy) {
+          currentCopy.set_next_version_number(currentCopy.get_next_version_number() + 1);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    } catch (KeeperException e) {
+      throw new RuntimeException(e);
+    }
+    try {
+      ZkDomainVersion newVersion = ZkDomainVersion.create(zk, path, versionNumber, domainVersionProperties,
           getStorageEngine().getDomainVersionPropertiesSerialization());
       versions.put(ZkDomainVersion.getPathName(newVersion.getVersionNumber()), newVersion);
       return newVersion;

@@ -37,6 +37,7 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
   private static final org.apache.thrift.protocol.TField STORAGE_ENGINE_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("storage_engine_options", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField PARTITIONER_CLASS_FIELD_DESC = new org.apache.thrift.protocol.TField("partitioner_class", org.apache.thrift.protocol.TType.STRING, (short)5);
   private static final org.apache.thrift.protocol.TField REQUIRED_HOST_FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("required_host_flags", org.apache.thrift.protocol.TType.STRING, (short)6);
+  private static final org.apache.thrift.protocol.TField NEXT_VERSION_NUMBER_FIELD_DESC = new org.apache.thrift.protocol.TField("next_version_number", org.apache.thrift.protocol.TType.I32, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -50,6 +51,7 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
   public String storage_engine_options; // required
   public String partitioner_class; // required
   public String required_host_flags; // required
+  public int next_version_number; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -58,7 +60,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     STORAGE_ENGINE_FACTORY_CLASS((short)3, "storage_engine_factory_class"),
     STORAGE_ENGINE_OPTIONS((short)4, "storage_engine_options"),
     PARTITIONER_CLASS((short)5, "partitioner_class"),
-    REQUIRED_HOST_FLAGS((short)6, "required_host_flags");
+    REQUIRED_HOST_FLAGS((short)6, "required_host_flags"),
+    NEXT_VERSION_NUMBER((short)7, "next_version_number");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -85,6 +88,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
           return PARTITIONER_CLASS;
         case 6: // REQUIRED_HOST_FLAGS
           return REQUIRED_HOST_FLAGS;
+        case 7: // NEXT_VERSION_NUMBER
+          return NEXT_VERSION_NUMBER;
         default:
           return null;
       }
@@ -127,7 +132,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
   // isset id assignments
   private static final int __ID_ISSET_ID = 0;
   private static final int __NUM_PARTITIONS_ISSET_ID = 1;
-  private BitSet __isset_bit_vector = new BitSet(2);
+  private static final int __NEXT_VERSION_NUMBER_ISSET_ID = 2;
+  private BitSet __isset_bit_vector = new BitSet(3);
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -143,6 +149,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.REQUIRED_HOST_FLAGS, new org.apache.thrift.meta_data.FieldMetaData("required_host_flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.NEXT_VERSION_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("next_version_number", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DomainMetadata.class, metaDataMap);
   }
@@ -156,7 +164,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     String storage_engine_factory_class,
     String storage_engine_options,
     String partitioner_class,
-    String required_host_flags)
+    String required_host_flags,
+    int next_version_number)
   {
     this();
     this.id = id;
@@ -167,6 +176,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     this.storage_engine_options = storage_engine_options;
     this.partitioner_class = partitioner_class;
     this.required_host_flags = required_host_flags;
+    this.next_version_number = next_version_number;
+    set_next_version_number_isSet(true);
   }
 
   /**
@@ -189,6 +200,7 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     if (other.is_set_required_host_flags()) {
       this.required_host_flags = other.required_host_flags;
     }
+    this.next_version_number = other.next_version_number;
   }
 
   public DomainMetadata deepCopy() {
@@ -205,6 +217,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     this.storage_engine_options = null;
     this.partitioner_class = null;
     this.required_host_flags = null;
+    set_next_version_number_isSet(false);
+    this.next_version_number = 0;
   }
 
   public int get_id() {
@@ -349,6 +363,29 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     }
   }
 
+  public int get_next_version_number() {
+    return this.next_version_number;
+  }
+
+  public DomainMetadata set_next_version_number(int next_version_number) {
+    this.next_version_number = next_version_number;
+    set_next_version_number_isSet(true);
+    return this;
+  }
+
+  public void unset_next_version_number() {
+    __isset_bit_vector.clear(__NEXT_VERSION_NUMBER_ISSET_ID);
+  }
+
+  /** Returns true if field next_version_number is set (has been assigned a value) and false otherwise */
+  public boolean is_set_next_version_number() {
+    return __isset_bit_vector.get(__NEXT_VERSION_NUMBER_ISSET_ID);
+  }
+
+  public void set_next_version_number_isSet(boolean value) {
+    __isset_bit_vector.set(__NEXT_VERSION_NUMBER_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -399,6 +436,14 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       }
       break;
 
+    case NEXT_VERSION_NUMBER:
+      if (value == null) {
+        unset_next_version_number();
+      } else {
+        set_next_version_number((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -421,6 +466,9 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
 
     case REQUIRED_HOST_FLAGS:
       return get_required_host_flags();
+
+    case NEXT_VERSION_NUMBER:
+      return Integer.valueOf(get_next_version_number());
 
     }
     throw new IllegalStateException();
@@ -445,6 +493,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       return is_set_partitioner_class();
     case REQUIRED_HOST_FLAGS:
       return is_set_required_host_flags();
+    case NEXT_VERSION_NUMBER:
+      return is_set_next_version_number();
     }
     throw new IllegalStateException();
   }
@@ -516,6 +566,15 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
         return false;
     }
 
+    boolean this_present_next_version_number = true;
+    boolean that_present_next_version_number = true;
+    if (this_present_next_version_number || that_present_next_version_number) {
+      if (!(this_present_next_version_number && that_present_next_version_number))
+        return false;
+      if (this.next_version_number != that.next_version_number)
+        return false;
+    }
+
     return true;
   }
 
@@ -552,6 +611,11 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     builder.append(present_required_host_flags);
     if (present_required_host_flags)
       builder.append(required_host_flags);
+
+    boolean present_next_version_number = true;
+    builder.append(present_next_version_number);
+    if (present_next_version_number)
+      builder.append(next_version_number);
 
     return builder.toHashCode();
   }
@@ -624,6 +688,16 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(is_set_next_version_number()).compareTo(typedOther.is_set_next_version_number());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (is_set_next_version_number()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.next_version_number, typedOther.next_version_number);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -683,6 +757,10 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       sb.append(this.required_host_flags);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("next_version_number:");
+    sb.append(this.next_version_number);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -703,6 +781,7 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
     if (required_host_flags == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'required_host_flags' was not present! Struct: " + toString());
     }
+    // alas, we cannot check 'next_version_number' because it's a primitive and you chose the non-beans generator.
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -789,6 +868,14 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 7: // NEXT_VERSION_NUMBER
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.next_version_number = iprot.readI32();
+              struct.set_next_version_number_isSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -802,6 +889,9 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       }
       if (!struct.is_set_num_partitions()) {
         throw new org.apache.thrift.protocol.TProtocolException("Required field 'num_partitions' was not found in serialized data! Struct: " + toString());
+      }
+      if (!struct.is_set_next_version_number()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'next_version_number' was not found in serialized data! Struct: " + toString());
       }
       struct.validate();
     }
@@ -836,6 +926,9 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
         oprot.writeString(struct.required_host_flags);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(NEXT_VERSION_NUMBER_FIELD_DESC);
+      oprot.writeI32(struct.next_version_number);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -859,6 +952,7 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       oprot.writeString(struct.storage_engine_options);
       oprot.writeString(struct.partitioner_class);
       oprot.writeString(struct.required_host_flags);
+      oprot.writeI32(struct.next_version_number);
     }
 
     @Override
@@ -876,6 +970,8 @@ public class DomainMetadata implements org.apache.thrift.TBase<DomainMetadata, D
       struct.set_partitioner_class_isSet(true);
       struct.required_host_flags = iprot.readString();
       struct.set_required_host_flags_isSet(true);
+      struct.next_version_number = iprot.readI32();
+      struct.set_next_version_number_isSet(true);
     }
   }
 
