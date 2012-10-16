@@ -111,7 +111,7 @@ tr.not_included td {
           </select>
         </td>
         <td>
-          <%= included ? latestDgvdv.getVersion() : "-" %>
+          <%= included ? latestDgvdv.getVersionNumber() : "-" %>
         </td>
 
         <% } else { %>
