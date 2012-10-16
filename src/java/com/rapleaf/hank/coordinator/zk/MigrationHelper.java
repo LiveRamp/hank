@@ -39,10 +39,10 @@ public class MigrationHelper {
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
 
     for (DomainGroup domainGroup : coordinator.getDomainGroups()) {
-      LOG.info("Migrating domain group " + domainGroup.getName());
-      ZkDomainGroup zkDomainGroup = (ZkDomainGroup) domainGroup;
-      NewZkDomainGroup result = zkDomainGroup.migrate();
-      LOG.info(result);
+      //      LOG.info("Migrating domain group " + domainGroup.getName());
+      //      ZkDomainGroup zkDomainGroup = (ZkDomainGroup) domainGroup;
+      //      NewZkDomainGroup result = zkDomainGroup.migrate();
+      //      LOG.info(result);
     }
   }
 }
