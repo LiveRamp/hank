@@ -23,22 +23,20 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.data.Stat;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class NewZkHost extends AbstractHost {
 
   private static final Logger LOG = Logger.getLogger(NewZkHost.class);
 
-  private static final String COMMAND_QUEUE_PATH = "q";
-  private static final String CURRENT_COMMAND_PATH = "c";
-  private static final String STATISTICS_PATH = "i";
   private static final String STATE_PATH = "s";
+  private static final String STATISTICS_PATH = "i";
+  private static final String CURRENT_COMMAND_PATH = "current_command";
+  private static final String COMMAND_QUEUE_PATH = "command_queue";
 
   private final ZooKeeperPlus zk;
   private final String path;
@@ -48,6 +46,10 @@ public class NewZkHost extends AbstractHost {
   private final WatchedThriftNode<HostMetadata> metadata;
   private final WatchedThriftNode<StatisticsMetadata> statistics;
   private final WatchedEnum<HostState> state;
+  private final WatchedEnum<HostCommand> currentCommand;
+
+  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
+  private final CommandQueueWatcher commandQueueWatcher;
 
   //
   //  private final WatchedEnum<HostCommand> currentCommand;
@@ -94,9 +96,9 @@ public class NewZkHost extends AbstractHost {
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, false, null, new StatisticsMetadata());
-    //    commandQueueWatcher = new CommandQueueWatcher();
-    //    currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
-    //        ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), true);
+    commandQueueWatcher = new CommandQueueWatcher();
+    currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
+        ZkPath.append(path, CURRENT_COMMAND_PATH), true);
     //    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT),
     //        new ElementLoader<ZkHostDomain>() {
     //          @Override
@@ -115,6 +117,7 @@ public class NewZkHost extends AbstractHost {
     //        });
     //    domains.addListener(new DomainsWatchedMapListener());
   }
+
   //
   //  private class DomainsWatchedMapListener implements WatchedMapListener<ZkHostDomain> {
   //
@@ -124,33 +127,33 @@ public class NewZkHost extends AbstractHost {
   //    }
   //  }
   //
-  //  private class CommandQueueWatcher extends HankWatcher {
-  //    protected CommandQueueWatcher() throws KeeperException, InterruptedException {
-  //      super();
-  //    }
-  //
-  //    @Override
-  //    public void realProcess(WatchedEvent event) {
-  //      if (LOG.isTraceEnabled()) {
-  //        LOG.trace(event);
-  //      }
-  //      switch (event.getType()) {
-  //        case NodeCreated:
-  //        case NodeDeleted:
-  //        case NodeDataChanged:
-  //        case NodeChildrenChanged:
-  //          for (HostCommandQueueChangeListener listener : commandQueueListeners) {
-  //            listener.onCommandQueueChange(NewZkHost.this);
-  //          }
-  //      }
-  //    }
-  //
-  //    @Override
-  //    public void setWatch() throws KeeperException, InterruptedException {
-  //      zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), this);
-  //    }
-  //  }
-  //
+  private class CommandQueueWatcher extends HankWatcher {
+    protected CommandQueueWatcher() throws KeeperException, InterruptedException {
+      super();
+    }
+
+    @Override
+    public void realProcess(WatchedEvent event) {
+      if (LOG.isTraceEnabled()) {
+        LOG.trace(event);
+      }
+      switch (event.getType()) {
+        case NodeCreated:
+        case NodeDeleted:
+        case NodeDataChanged:
+        case NodeChildrenChanged:
+          for (HostCommandQueueChangeListener listener : commandQueueListeners) {
+            listener.onCommandQueueChange(NewZkHost.this);
+          }
+      }
+    }
+
+    @Override
+    public void setWatch() throws KeeperException, InterruptedException {
+      zk.getChildren(ZkPath.append(path, COMMAND_QUEUE_PATH), this);
+    }
+  }
+
   //  @Override
   //  public Set<HostDomain> getAssignedDomains() throws IOException {
   //    return new HashSet<HostDomain>(domains.values());
@@ -180,64 +183,6 @@ public class NewZkHost extends AbstractHost {
   //  }
   //
   //  @Override
-  //  public HostCommand getCurrentCommand() throws IOException {
-  //    return currentCommand.get();
-  //  }
-  //
-  //  @Override
-  //  public void enqueueCommand(HostCommand command) throws IOException {
-  //    try {
-  //      zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT, "command_"),
-  //          command.toString().getBytes(), CreateMode.PERSISTENT_SEQUENTIAL);
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public List<HostCommand> getCommandQueue() throws IOException {
-  //    try {
-  //      List<String> children = zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), false);
-  //      Collections.sort(children);
-  //      List<HostCommand> queue = new ArrayList<HostCommand>();
-  //      for (String child : children) {
-  //        queue.add(HostCommand.valueOf(zk.getString(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT, child))));
-  //      }
-  //      return queue;
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public HostCommand nextCommand() throws IOException {
-  //    try {
-  //      // get the queue and sort so we have correct ordering
-  //      List<String> children = zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), false);
-  //      Collections.sort(children);
-  //
-  //      // if there are no children, the queue is empty.
-  //      if (children.size() == 0) {
-  //        currentCommand.set(null);
-  //        return null;
-  //      }
-  //
-  //      // parse out the actual command
-  //      String headOfQueuePath = ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT, children.get(0));
-  //      HostCommand nextCommand = HostCommand.valueOf(zk.getString(headOfQueuePath));
-  //
-  //      // set the current command first (modifying the queue will call the queue listeners)
-  //      currentCommand.set(nextCommand);
-  //      // delete the head of the queue
-  //      zk.delete(headOfQueuePath, -1);
-  //
-  //      return nextCommand;
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
   //  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) {
   //    synchronized (commandQueueListeners) {
   //      commandQueueListeners.add(listener);
@@ -253,30 +198,6 @@ public class NewZkHost extends AbstractHost {
   //    hostState.cancelWatch();
   //    currentCommand.cancelWatch();
   //    commandQueueWatcher.cancel();
-  //  }
-  //
-  //  @Override
-  //  public void clearCommandQueue() throws IOException {
-  //    try {
-  //      List<String> children = zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), false);
-  //      for (String child : children) {
-  //        zk.delete(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT, child), 0);
-  //      }
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //
-  //  public void delete() throws IOException {
-  //    try {
-  //      zk.delete(ZkPath.append(hostPath, DotComplete.NODE_NAME), -1);
-  //      zk.deleteNodeRecursively(hostPath);
-  //    } catch (InterruptedException e) {
-  //      throw new IOException(e);
-  //    } catch (KeeperException e) {
-  //      throw new IOException(e);
-  //    }
   //  }
   //
   //  private void fireDataLocationChangeListener() {
@@ -318,7 +239,6 @@ public class NewZkHost extends AbstractHost {
     if (getState() == HostState.OFFLINE) {
       return null;
     }
-
     try {
       Stat stat = zk.exists(state.getPath(), false);
       if (stat == null) {
@@ -333,12 +253,7 @@ public class NewZkHost extends AbstractHost {
 
   @Override
   public List<String> getFlags() throws IOException {
-    String flagsStr = metadata.get().get_flags();
-    if (flagsStr == null) {
-      return Collections.emptyList();
-    } else {
-      return Hosts.splitHostFlags(flagsStr);
-    }
+    return metadata.get().get_flags();
   }
 
   @Override
@@ -347,7 +262,7 @@ public class NewZkHost extends AbstractHost {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(HostMetadata currentCopy) {
-          currentCopy.set_flags(Hosts.joinHostFlags(newFlags));
+          currentCopy.set_flags(newFlags);
         }
       });
     } catch (InterruptedException e) {
@@ -368,39 +283,85 @@ public class NewZkHost extends AbstractHost {
   }
 
   @Override
+  public HostCommand getCurrentCommand() throws IOException {
+    return currentCommand.get();
+  }
+
+  @Override
   public void enqueueCommand(HostCommand command) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    try {
+      zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH, "command_"),
+          command.toString().getBytes(), CreateMode.PERSISTENT_SEQUENTIAL);
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public List<HostCommand> getCommandQueue() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    try {
+      List<String> children = zk.getChildren(ZkPath.append(path, COMMAND_QUEUE_PATH), false);
+      Collections.sort(children);
+      List<HostCommand> queue = new ArrayList<HostCommand>();
+      for (String child : children) {
+        queue.add(HostCommand.valueOf(zk.getString(ZkPath.append(path, COMMAND_QUEUE_PATH, child))));
+      }
+      return queue;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
   public HostCommand nextCommand() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    try {
+      // get the queue and sort so we have correct ordering
+      List<String> children = zk.getChildren(ZkPath.append(path, COMMAND_QUEUE_PATH), false);
+      Collections.sort(children);
+
+      // if there are no children, the queue is empty.
+      if (children.size() == 0) {
+        currentCommand.set(null);
+        return null;
+      }
+
+      // parse out the actual command
+      String headOfQueuePath = ZkPath.append(path, COMMAND_QUEUE_PATH, children.get(0));
+      HostCommand nextCommand = HostCommand.valueOf(zk.getString(headOfQueuePath));
+
+      // set the current command first (modifying the queue will call the queue listeners)
+      currentCommand.set(nextCommand);
+      // delete the head of the queue
+      zk.delete(headOfQueuePath, -1);
+
+      return nextCommand;
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
-  public HostCommand getCurrentCommand() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) {
+    synchronized (commandQueueListeners) {
+      commandQueueListeners.add(listener);
+    }
   }
 
   @Override
-  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) {
+    currentCommand.addListener(listener);
   }
 
   @Override
-  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+  public void clearCommandQueue() throws IOException {
+    try {
+      List<String> children = zk.getChildren(ZkPath.append(path, COMMAND_QUEUE_PATH), false);
+      for (String child : children) {
+        zk.delete(ZkPath.append(path, COMMAND_QUEUE_PATH, child), 0);
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -420,13 +381,6 @@ public class NewZkHost extends AbstractHost {
     //TODO: Implement
     throw new NotImplementedException();
   }
-
-  @Override
-  public void clearCommandQueue() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
-  }
-
 
   @Override
   public void setEphemeralStatistic(final String key, final String value) throws IOException {
@@ -475,6 +429,22 @@ public class NewZkHost extends AbstractHost {
       throw new IOException(e);
     }
   }
+
+  public void delete() throws IOException {
+    try {
+      zk.deleteNodeRecursively(path);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  //  public void close() {
+  //    hostState.cancelWatch();
+  //    currentCommand.cancelWatch();
+  //    commandQueueWatcher.cancel();
+  //  }
 
   @Override
   public int hashCode() {

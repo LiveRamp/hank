@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostMetadata._Fields>, java.io.Serializable, Cloneable {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HostMetadata");
 
-  private static final org.apache.thrift.protocol.TField FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("flags", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("flags", org.apache.thrift.protocol.TType.LIST, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -39,7 +39,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     schemes.put(TupleScheme.class, new HostMetadataTupleSchemeFactory());
   }
 
-  public String flags; // required
+  public List<String> flags; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -104,7 +104,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.FLAGS, new org.apache.thrift.meta_data.FieldMetaData("flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HostMetadata.class, metaDataMap);
   }
@@ -113,7 +114,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   }
 
   public HostMetadata(
-    String flags)
+    List<String> flags)
   {
     this();
     this.flags = flags;
@@ -124,7 +125,11 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
    */
   public HostMetadata(HostMetadata other) {
     if (other.is_set_flags()) {
-      this.flags = other.flags;
+      List<String> __this__flags = new ArrayList<String>();
+      for (String other_element : other.flags) {
+        __this__flags.add(other_element);
+      }
+      this.flags = __this__flags;
     }
   }
 
@@ -137,11 +142,26 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     this.flags = null;
   }
 
-  public String get_flags() {
+  public int get_flags_size() {
+    return (this.flags == null) ? 0 : this.flags.size();
+  }
+
+  public java.util.Iterator<String> get_flags_iterator() {
+    return (this.flags == null) ? null : this.flags.iterator();
+  }
+
+  public void add_to_flags(String elem) {
+    if (this.flags == null) {
+      this.flags = new ArrayList<String>();
+    }
+    this.flags.add(elem);
+  }
+
+  public List<String> get_flags() {
     return this.flags;
   }
 
-  public HostMetadata set_flags(String flags) {
+  public HostMetadata set_flags(List<String> flags) {
     this.flags = flags;
     return this;
   }
@@ -167,7 +187,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       if (value == null) {
         unset_flags();
       } else {
-        set_flags((String)value);
+        set_flags((List<String>)value);
       }
       break;
 
@@ -324,8 +344,18 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         }
         switch (schemeField.id) {
           case 1: // FLAGS
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.flags = iprot.readString();
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list28 = iprot.readListBegin();
+                struct.flags = new ArrayList<String>(_list28.size);
+                for (int _i29 = 0; _i29 < _list28.size; ++_i29)
+                {
+                  String _elem30; // required
+                  _elem30 = iprot.readString();
+                  struct.flags.add(_elem30);
+                }
+                iprot.readListEnd();
+              }
               struct.set_flags_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -348,7 +378,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       oprot.writeStructBegin(STRUCT_DESC);
       if (struct.flags != null) {
         oprot.writeFieldBegin(FLAGS_FIELD_DESC);
-        oprot.writeString(struct.flags);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.flags.size()));
+          for (String _iter31 : struct.flags)
+          {
+            oprot.writeString(_iter31);
+          }
+          oprot.writeListEnd();
+        }
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -368,13 +405,28 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeString(struct.flags);
+      {
+        oprot.writeI32(struct.flags.size());
+        for (String _iter32 : struct.flags)
+        {
+          oprot.writeString(_iter32);
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.flags = iprot.readString();
+      {
+        org.apache.thrift.protocol.TList _list33 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+        struct.flags = new ArrayList<String>(_list33.size);
+        for (int _i34 = 0; _i34 < _list33.size; ++_i34)
+        {
+          String _elem35; // required
+          _elem35 = iprot.readString();
+          struct.flags.add(_elem35);
+        }
+      }
       struct.set_flags_isSet(true);
     }
   }

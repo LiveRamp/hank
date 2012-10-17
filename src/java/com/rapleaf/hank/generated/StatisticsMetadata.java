@@ -351,15 +351,15 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
           case 1: // STATISTICS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map28 = iprot.readMapBegin();
-                struct.statistics = new HashMap<String,String>(2*_map28.size);
-                for (int _i29 = 0; _i29 < _map28.size; ++_i29)
+                org.apache.thrift.protocol.TMap _map36 = iprot.readMapBegin();
+                struct.statistics = new HashMap<String,String>(2*_map36.size);
+                for (int _i37 = 0; _i37 < _map36.size; ++_i37)
                 {
-                  String _key30; // required
-                  String _val31; // required
-                  _key30 = iprot.readString();
-                  _val31 = iprot.readString();
-                  struct.statistics.put(_key30, _val31);
+                  String _key38; // required
+                  String _val39; // required
+                  _key38 = iprot.readString();
+                  _val39 = iprot.readString();
+                  struct.statistics.put(_key38, _val39);
                 }
                 iprot.readMapEnd();
               }
@@ -387,10 +387,10 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
         oprot.writeFieldBegin(STATISTICS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.statistics.size()));
-          for (Map.Entry<String, String> _iter32 : struct.statistics.entrySet())
+          for (Map.Entry<String, String> _iter40 : struct.statistics.entrySet())
           {
-            oprot.writeString(_iter32.getKey());
-            oprot.writeString(_iter32.getValue());
+            oprot.writeString(_iter40.getKey());
+            oprot.writeString(_iter40.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -415,10 +415,10 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
         oprot.writeI32(struct.statistics.size());
-        for (Map.Entry<String, String> _iter33 : struct.statistics.entrySet())
+        for (Map.Entry<String, String> _iter41 : struct.statistics.entrySet())
         {
-          oprot.writeString(_iter33.getKey());
-          oprot.writeString(_iter33.getValue());
+          oprot.writeString(_iter41.getKey());
+          oprot.writeString(_iter41.getValue());
         }
       }
     }
@@ -427,15 +427,15 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
     public void read(org.apache.thrift.protocol.TProtocol prot, StatisticsMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
-        org.apache.thrift.protocol.TMap _map34 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-        struct.statistics = new HashMap<String,String>(2*_map34.size);
-        for (int _i35 = 0; _i35 < _map34.size; ++_i35)
+        org.apache.thrift.protocol.TMap _map42 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+        struct.statistics = new HashMap<String,String>(2*_map42.size);
+        for (int _i43 = 0; _i43 < _map42.size; ++_i43)
         {
-          String _key36; // required
-          String _val37; // required
-          _key36 = iprot.readString();
-          _val37 = iprot.readString();
-          struct.statistics.put(_key36, _val37);
+          String _key44; // required
+          String _val45; // required
+          _key44 = iprot.readString();
+          _val45 = iprot.readString();
+          struct.statistics.put(_key44, _val45);
         }
       }
       struct.set_statistics_isSet(true);

@@ -44,7 +44,6 @@ public class ZkHost extends AbstractHost {
 
   private final WatchedEnum<HostState> hostState;
   private final WatchedEnum<HostCommand> currentCommand;
-
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
   private final WatchedMap<ZkHostDomain> domains;

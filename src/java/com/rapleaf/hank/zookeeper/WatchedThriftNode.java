@@ -78,6 +78,8 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
 
   public abstract class Updater implements WatchedNodeUpdater<T> {
 
+    private Object returnValue;
+
     @Override
     public T update(T current) {
       T copy;
@@ -91,5 +93,13 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
     }
 
     public abstract void updateCopy(T currentCopy);
+
+    public Object getReturnValue() {
+      return returnValue;
+    }
+
+    protected void setReturnValue(Object returnValue) {
+      this.returnValue = returnValue;
+    }
   }
 }

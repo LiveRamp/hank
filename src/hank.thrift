@@ -78,7 +78,7 @@ struct DomainGroupVersionMetadata {
 }
 
 struct HostMetadata {
-  1: required string flags;
+  1: required list<string> flags;
 }
 
 struct StatisticsMetadata {
