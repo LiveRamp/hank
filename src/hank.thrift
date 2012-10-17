@@ -76,3 +76,11 @@ struct DomainGroupVersionMetadata {
   1: required map<i32, i32> domain_versions;
   2: required i64 created_at;
 }
+
+struct HostMetadata {
+  1: required string flags;
+}
+
+struct StatisticsMetadata {
+  1: required map<string, string> statistics;
+}

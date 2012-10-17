@@ -37,18 +37,18 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion implements 
   private final WatchedThriftNode<DomainGroupVersionMetadata> metadata;
 
   public static ZkDomainGroupVersion create(final ZooKeeperPlus zk,
-                                               final Coordinator coordinator,
-                                               final String rootPath,
-                                               final int versionNumber,
-                                               final Map<Domain, Integer> domainToVersion,
-                                               final DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
+                                            final Coordinator coordinator,
+                                            final String rootPath,
+                                            final int versionNumber,
+                                            final Map<Domain, Integer> domainToVersion,
+                                            final DomainGroup domainGroup) throws KeeperException, InterruptedException, IOException {
     String path = ZkPath.append(rootPath, String.valueOf(versionNumber));
     Map<Integer, Integer> domainIdToVersion = new HashMap<Integer, Integer>(domainToVersion.size());
     for (Map.Entry<Domain, Integer> entry : domainToVersion.entrySet()) {
       domainIdToVersion.put(entry.getKey().getId(), entry.getValue());
     }
-    DomainGroupVersionMetadata initialValue = new DomainGroupVersionMetadata(domainIdToVersion, System.currentTimeMillis());
-    return new ZkDomainGroupVersion(zk, coordinator, path, domainGroup, true, initialValue);
+    DomainGroupVersionMetadata initialMetadata = new DomainGroupVersionMetadata(domainIdToVersion, System.currentTimeMillis());
+    return new ZkDomainGroupVersion(zk, coordinator, path, domainGroup, true, initialMetadata);
   }
 
   public ZkDomainGroupVersion(final ZooKeeperPlus zk,
@@ -63,12 +63,12 @@ public class ZkDomainGroupVersion extends AbstractDomainGroupVersion implements 
                               final String path,
                               final DomainGroup domainGroup,
                               boolean create,
-                              final DomainGroupVersionMetadata initialValue) throws InterruptedException, KeeperException, IOException {
+                              final DomainGroupVersionMetadata initialMetadata) throws InterruptedException, KeeperException, IOException {
     this.domainGroup = domainGroup;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
     this.coordinator = coordinator;
     this.metadata = new WatchedThriftNode<DomainGroupVersionMetadata>(zk, path, true, create,
-        initialValue, new DomainGroupVersionMetadata());
+        initialMetadata, new DomainGroupVersionMetadata());
   }
 
   @Override
