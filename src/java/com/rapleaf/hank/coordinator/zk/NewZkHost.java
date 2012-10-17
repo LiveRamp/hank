@@ -35,13 +35,11 @@ public class NewZkHost extends AbstractHost {
 
   private static final Logger LOG = Logger.getLogger(NewZkHost.class);
 
-  private static final String COMMAND_QUEUE_PATH = "command_queue";
-  private static final String CURRENT_COMMAND_PATH = "current_command";
-  private static final String STATISTICS_PATH = "statistics";
-  private static final String STATE_PATH = "state";
+  private static final String COMMAND_QUEUE_PATH = "q";
+  private static final String CURRENT_COMMAND_PATH = "c";
+  private static final String STATISTICS_PATH = "i";
+  private static final String STATE_PATH = "s";
 
-  //  private static final String PARTS_PATH_SEGMENT = "parts";
-  //
   private final ZooKeeperPlus zk;
   private final String path;
   private final PartitionServerAddress address;
@@ -151,72 +149,6 @@ public class NewZkHost extends AbstractHost {
   //    public void setWatch() throws KeeperException, InterruptedException {
   //      zk.getChildren(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), this);
   //    }
-  //  }
-  //
-  //  @Override
-  //  public PartitionServerAddress getAddress() {
-  //    return address;
-  //  }
-  //
-  //  @Override
-  //  public HostState getState() throws IOException {
-  //    HostState state = hostState.get();
-  //    if (state == null) {
-  //      return HostState.OFFLINE;
-  //    } else {
-  //      return state;
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public void setState(HostState state) throws IOException {
-  //    try {
-  //      if (state == HostState.OFFLINE) {
-  //        zk.deleteIfExists(ZkPath.append(hostPath, STATUS_PATH_SEGMENT));
-  //      } else {
-  //        zk.setOrCreate(ZkPath.append(hostPath, STATUS_PATH_SEGMENT), state.toString(), CreateMode.EPHEMERAL);
-  //      }
-  //    } catch (Exception e) {
-  //      throw new IOException(e);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public int hashCode() {
-  //    final int prime = 31;
-  //    int result = 1;
-  //    result = prime * result + ((address == null) ? 0 : address.hashCode());
-  //    result = prime * result + ((hostPath == null) ? 0 : hostPath.hashCode());
-  //    return result;
-  //  }
-  //
-  //  @Override
-  //  public boolean equals(Object obj) {
-  //    if (this == obj) {
-  //      return true;
-  //    }
-  //    if (obj == null) {
-  //      return false;
-  //    }
-  //    if (getClass() != obj.getClass()) {
-  //      return false;
-  //    }
-  //    NewZkHost other = (NewZkHost) obj;
-  //    if (address == null) {
-  //      if (other.address != null) {
-  //        return false;
-  //      }
-  //    } else if (!address.equals(other.address)) {
-  //      return false;
-  //    }
-  //    if (hostPath == null) {
-  //      if (other.hostPath != null) {
-  //        return false;
-  //      }
-  //    } else if (!hostPath.equals(other.hostPath)) {
-  //      return false;
-  //    }
-  //    return true;
   //  }
   //
   //  @Override
@@ -360,14 +292,25 @@ public class NewZkHost extends AbstractHost {
 
   @Override
   public HostState getState() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    HostState stateValue = state.get();
+    if (stateValue == null) {
+      return HostState.OFFLINE;
+    } else {
+      return stateValue;
+    }
   }
 
   @Override
-  public void setState(HostState state) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+  public void setState(HostState stateValue) throws IOException {
+    try {
+      if (stateValue == HostState.OFFLINE) {
+        zk.deleteIfExists(state.getPath());
+      } else {
+        zk.setOrCreate(state.getPath(), stateValue.toString(), CreateMode.EPHEMERAL);
+      }
+    } catch (Exception e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -377,7 +320,7 @@ public class NewZkHost extends AbstractHost {
     }
 
     try {
-      Stat stat = zk.exists(ZkPath.append(path, STATE_PATH), false);
+      Stat stat = zk.exists(state.getPath(), false);
       if (stat == null) {
         return null;
       } else {
@@ -531,5 +474,43 @@ public class NewZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((address == null) ? 0 : address.hashCode());
+    result = prime * result + ((path == null) ? 0 : path.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+    NewZkHost other = (NewZkHost) obj;
+    if (address == null) {
+      if (other.address != null) {
+        return false;
+      }
+    } else if (!address.equals(other.address)) {
+      return false;
+    }
+    if (path == null) {
+      if (other.path != null) {
+        return false;
+      }
+    } else if (!path.equals(other.path)) {
+      return false;
+    }
+    return true;
   }
 }

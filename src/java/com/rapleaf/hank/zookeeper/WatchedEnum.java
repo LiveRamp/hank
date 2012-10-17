@@ -83,4 +83,8 @@ public class WatchedEnum<E extends Enum<E>> implements WatchedNodeListener<Strin
   public void cancelWatch() {
     watchedString.cancelWatch();
   }
+
+  public String getPath() {
+    return watchedString.getPath();
+  }
 }

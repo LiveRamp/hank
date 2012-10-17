@@ -194,6 +194,10 @@ public abstract class WatchedNode<T> {
     }
   }
 
+  public String getPath() {
+    return nodePath;
+  }
+
   public void cancelWatch() {
     cancelled = true;
   }
