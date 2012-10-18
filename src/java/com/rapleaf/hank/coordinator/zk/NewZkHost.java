@@ -53,34 +53,22 @@ public class NewZkHost extends AbstractHost {
   private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
 
-  //
-  //  private final WatchedEnum<HostCommand> currentCommand;
-  //
-  //  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
-  //  private final CommandQueueWatcher commandQueueWatcher;
-  //  private final WatchedMap<ZkHostDomain> domains;
-  //
-  //  public static NewZkHost create(ZooKeeperPlus zk,
-  //                                 Coordinator coordinator,
-  //                                 String root,
-  //                                 PartitionServerAddress partitionServerAddress,
-  //                                 DataLocationChangeListener dataLocationChangeListener,
-  //                                 List<String> flags) throws KeeperException, InterruptedException {
-  //    String hostPath = ZkPath.append(root, partitionServerAddress.toString());
-  //    if (LOG.isTraceEnabled()) {
-  //      LOG.trace("Creating host " + hostPath);
-  //    }
-  //    zk.create(hostPath, null);
-  //    zk.create(ZkPath.append(hostPath, PARTS_PATH_SEGMENT), null);
-  //    zk.create(ZkPath.append(hostPath, CURRENT_COMMAND_PATH_SEGMENT), null);
-  //    zk.create(ZkPath.append(hostPath, COMMAND_QUEUE_PATH_SEGMENT), null);
-  //    zk.create(ZkPath.append(hostPath, STATISTICS_PATH_SEGMENT), null);
-  //    zk.create(ZkPath.append(hostPath, FLAGS_PATH_SEGMENT), Hosts.joinHostFlags(flags).getBytes());
-  //
-  //    zk.create(ZkPath.append(hostPath, DotComplete.NODE_NAME), null);
-  //    return new NewZkHost(zk, coordinator, hostPath, dataLocationChangeListener);
-  //  }
-  //
+  public static NewZkHost create(ZooKeeperPlus zk,
+                                 Coordinator coordinator,
+                                 String root,
+                                 PartitionServerAddress partitionServerAddress,
+                                 DataLocationChangeListener dataLocationChangeListener,
+                                 List<String> flags) throws KeeperException, InterruptedException {
+    String path = ZkPath.append(root, partitionServerAddress.toString());
+    if (LOG.isTraceEnabled()) {
+      LOG.trace("Creating ZkHost " + path);
+    }
+    HostMetadata initialMetadata = new HostMetadata();
+    initialMetadata.set_flags(flags);
+    initialMetadata.set_domains(new HashMap<Integer, HostDomainMetadata>());
+    return new NewZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata);
+  }
+
   public NewZkHost(final ZooKeeperPlus zk,
                    final Coordinator coordinator,
                    final String path,
@@ -96,6 +84,11 @@ public class NewZkHost extends AbstractHost {
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
     this.dataLocationChangeListener = dataLocationChangeListener;
     this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create, initialMetadata, new HostMetadata());
+    if (create) {
+      zk.create(ZkPath.append(path, CURRENT_COMMAND_PATH), null);
+      zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
+      zk.create(ZkPath.append(path, STATISTICS_PATH), null);
+    }
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, false, null, new StatisticsMetadata());
