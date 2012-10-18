@@ -115,7 +115,7 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
 
   @Override
   public Collection<PartitionMetadata> getPartitionsMetadata() throws IOException {
-    Map<Integer, PartitionMetadata> result = metadata.get().get_partitions_metadata();
+    Map<Integer, PartitionMetadata> result = metadata.get().get_partitions();
     if (result == null) {
       return Collections.emptyList();
     } else {
@@ -131,11 +131,11 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainVersionMetadata currentCopy) {
-          Map<Integer, PartitionMetadata> partitionsMetadata = currentCopy.get_partitions_metadata();
+          Map<Integer, PartitionMetadata> partitionsMetadata = currentCopy.get_partitions();
           if (partitionsMetadata == null) {
-            currentCopy.set_partitions_metadata(new HashMap<Integer, PartitionMetadata>());
+            currentCopy.set_partitions(new HashMap<Integer, PartitionMetadata>());
           }
-          currentCopy.get_partitions_metadata().put(partNum, new PartitionMetadata(numBytes, numRecords));
+          currentCopy.get_partitions().put(partNum, new PartitionMetadata(numBytes, numRecords));
         }
       });
     } catch (InterruptedException e) {

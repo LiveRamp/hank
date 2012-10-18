@@ -49,10 +49,12 @@ public class MockHost extends AbstractHost {
   }
 
   @Override
-  public boolean removeDomain(Domain domain) throws IOException {
+  public void removeDomain(Domain domain) throws IOException {
     removedDomains.add(domain);
     HostDomain hostDomain = getHostDomain(domain);
-    return hostDomain != null && hostDomains.remove(hostDomain);
+    if (hostDomain != null) {
+      hostDomains.remove(hostDomain);
+    }
   }
 
   public boolean isRemoved(Domain domain) {

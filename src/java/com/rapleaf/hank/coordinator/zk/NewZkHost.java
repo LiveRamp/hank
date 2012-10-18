@@ -50,7 +50,8 @@ public class NewZkHost extends AbstractHost {
   private final WatchedEnum<HostState> state;
   private final WatchedEnum<HostCommand> currentCommand;
 
-  private final Set<HostCommandQueueChangeListener> commandQueueListeners = new HashSet<HostCommandQueueChangeListener>();
+  private final Set<HostCommandQueueChangeListener> commandQueueListeners
+      = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
 
   public static NewZkHost create(ZooKeeperPlus zk,
@@ -487,7 +488,8 @@ public class NewZkHost extends AbstractHost {
         public void updateCopy(HostMetadata currentCopy) {
           HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
           if (hostDomainMetadata != null) {
-            HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+            HostDomainPartitionMetadata hostPartitionMetadata =
+                hostDomainMetadata.get_partitions().get(partitionNumber);
             if (hostPartitionMetadata != null) {
               hostPartitionMetadata.set_current_version_number(version);
             }
@@ -524,7 +526,8 @@ public class NewZkHost extends AbstractHost {
         public void updateCopy(HostMetadata currentCopy) {
           HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
           if (hostDomainMetadata != null) {
-            HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+            HostDomainPartitionMetadata hostPartitionMetadata =
+                hostDomainMetadata.get_partitions().get(partitionNumber);
             if (hostPartitionMetadata != null) {
               hostPartitionMetadata.set_deletable(deletable);
             }

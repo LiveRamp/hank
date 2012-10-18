@@ -26,9 +26,8 @@ public class MockHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public boolean removePartition(int partNum) throws IOException {
+  public void removePartition(int partNum) throws IOException {
     removedPartitions.add(partNum);
-    return true;
   }
 
   public boolean isRemoved(int partitionNumber) {

@@ -249,14 +249,11 @@ public class ZkHost extends AbstractHost {
   }
 
   @Override
-  public boolean removeDomain(Domain domain) throws IOException {
+  public void removeDomain(Domain domain) throws IOException {
     ZkHostDomain hostDomain = domains.remove(domain.getName());
-    if (hostDomain == null) {
-      return false;
-    } else {
+    if (hostDomain != null) {
       hostDomain.delete();
       fireDataLocationChangeListener();
-      return true;
     }
   }
 
