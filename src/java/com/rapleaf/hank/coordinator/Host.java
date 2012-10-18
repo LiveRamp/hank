@@ -152,7 +152,7 @@ public interface Host extends Comparable<Host> {
    */
   public HostDomain addDomain(Domain domain) throws IOException;
 
-  public boolean removeDomain(Domain domain) throws IOException;
+  public void removeDomain(Domain domain) throws IOException;
 
   /**
    * Get the HostDomainConfig for the provided domainId.

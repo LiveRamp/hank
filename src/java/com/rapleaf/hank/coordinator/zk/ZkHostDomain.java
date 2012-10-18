@@ -103,14 +103,11 @@ public class ZkHostDomain extends AbstractHostDomain {
   }
 
   @Override
-  public boolean removePartition(int partNum) throws IOException {
+  public void removePartition(int partNum) throws IOException {
     ZkHostDomainPartition partition = partitions.remove(Integer.toString(partNum));
-    if (partition == null) {
-      return false;
-    } else {
+    if (partition != null) {
       partition.delete();
       fireDataLocationChangeListener();
-      return true;
     }
   }
 

@@ -16,10 +16,11 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HostDomainMetadata;
+import com.rapleaf.hank.generated.HostDomainPartitionMetadata;
 import com.rapleaf.hank.generated.HostMetadata;
 import com.rapleaf.hank.generated.StatisticsMetadata;
 import com.rapleaf.hank.zookeeper.*;
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -39,6 +40,7 @@ public class NewZkHost extends AbstractHost {
   private static final String COMMAND_QUEUE_PATH = "command_queue";
 
   private final ZooKeeperPlus zk;
+  private final Coordinator coordinator;
   private final String path;
   private final PartitionServerAddress address;
   private final DataLocationChangeListener dataLocationChangeListener;
@@ -89,6 +91,7 @@ public class NewZkHost extends AbstractHost {
       throw new IllegalArgumentException("Cannot initialize a ZkHost with a null Coordinator.");
     }
     this.zk = zk;
+    this.coordinator = coordinator;
     this.path = path;
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
     this.dataLocationChangeListener = dataLocationChangeListener;
@@ -154,11 +157,6 @@ public class NewZkHost extends AbstractHost {
     }
   }
 
-  //  @Override
-  //  public Set<HostDomain> getAssignedDomains() throws IOException {
-  //    return new HashSet<HostDomain>(domains.values());
-  //  }
-  //
   //  @Override
   //  public HostDomain addDomain(Domain domain) throws IOException {
   //    if (domains.containsKey(domain.getName())) {
@@ -366,20 +364,50 @@ public class NewZkHost extends AbstractHost {
 
   @Override
   public Set<HostDomain> getAssignedDomains() throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    Set<HostDomain> result = new HashSet<HostDomain>();
+    for (Integer domainId : metadata.get().get_domains().keySet()) {
+      result.add(new NewZkHostDomain(this, domainId));
+    }
+    return result;
   }
 
   @Override
   public HostDomain addDomain(Domain domain) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+    final int domainId = domain.getId();
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          HostDomainMetadata result = new HostDomainMetadata();
+          result.set_partitions(new HashMap<Integer, HostDomainPartitionMetadata>());
+          if (!currentCopy.get_domains().containsKey(domainId)) {
+            currentCopy.get_domains().put(domainId, result);
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+    return new NewZkHostDomain(this, domainId);
   }
 
   @Override
-  public boolean removeDomain(Domain domain) throws IOException {
-    //TODO: Implement
-    throw new NotImplementedException();
+  public void removeDomain(Domain domain) throws IOException {
+    final int domainId = domain.getId();
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          currentCopy.get_domains().remove(domainId);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -440,11 +468,140 @@ public class NewZkHost extends AbstractHost {
     }
   }
 
-  //  public void close() {
-  //    hostState.cancelWatch();
-  //    currentCommand.cancelWatch();
-  //    commandQueueWatcher.cancel();
-  //  }
+  public void close() {
+    state.cancelWatch();
+    currentCommand.cancelWatch();
+    commandQueueWatcher.cancel();
+  }
+
+  protected Domain getDomain(int domainId) {
+    return coordinator.getDomainById(domainId);
+  }
+
+  protected Set<HostDomainPartition> getPartitions(int domainId) {
+    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    if (hostDomainMetadata == null) {
+      return null;
+    } else {
+      Set<HostDomainPartition> result = new HashSet<HostDomainPartition>();
+      for (Integer partitionNumber : hostDomainMetadata.get_partitions().keySet()) {
+        result.add(new NewZkHostDomainPartition(this, domainId, partitionNumber));
+      }
+      return result;
+    }
+  }
+
+  protected HostDomainPartition addPartition(final int domainId,
+                                             final int partNum) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          final HostDomainPartitionMetadata result = new HostDomainPartitionMetadata();
+          result.set_deletable(false);
+          currentCopy.get_domains().get(domainId).get_partitions().put(partNum, result);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+    return new NewZkHostDomainPartition(this, domainId, partNum);
+  }
+
+  protected void removePartition(final int domainId,
+                                 final int partNum) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
+          if (hostDomainMetadata != null) {
+            hostDomainMetadata.get_partitions().remove(partNum);
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  protected Integer getCurrentDomainGroupVersion(int domainId, int partitionNumber) {
+    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    if (hostDomainMetadata == null) {
+      return null;
+    } else {
+      HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+      if (hostPartitionMetadata == null) {
+        return null;
+      } else {
+        return hostPartitionMetadata.get_current_version_number();
+      }
+    }
+  }
+
+  protected void setCurrentDomainGroupVersion(final int domainId,
+                                              final int partitionNumber,
+                                              final Integer version) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
+          if (hostDomainMetadata != null) {
+            HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+            if (hostPartitionMetadata != null) {
+              hostPartitionMetadata.set_current_version_number(version);
+            }
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  protected boolean isDeletable(int domainId, int partitionNumber) {
+    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    if (hostDomainMetadata == null) {
+      return false;
+    } else {
+      HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+      if (hostPartitionMetadata == null) {
+        return false;
+      } else {
+        return hostPartitionMetadata.is_deletable();
+      }
+    }
+  }
+
+  protected void setDeletable(final int domainId,
+                              final int partitionNumber,
+                              final boolean deletable) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
+          if (hostDomainMetadata != null) {
+            HostDomainPartitionMetadata hostPartitionMetadata = hostDomainMetadata.get_partitions().get(partitionNumber);
+            if (hostPartitionMetadata != null) {
+              hostPartitionMetadata.set_deletable(deletable);
+            }
+          }
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
 
   @Override
   public int hashCode() {

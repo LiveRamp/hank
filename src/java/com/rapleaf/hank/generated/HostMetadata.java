@@ -32,6 +32,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HostMetadata");
 
   private static final org.apache.thrift.protocol.TField FLAGS_FIELD_DESC = new org.apache.thrift.protocol.TField("flags", org.apache.thrift.protocol.TType.LIST, (short)1);
+  private static final org.apache.thrift.protocol.TField DOMAINS_FIELD_DESC = new org.apache.thrift.protocol.TField("domains", org.apache.thrift.protocol.TType.MAP, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -40,10 +41,12 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   }
 
   public List<String> flags; // required
+  public Map<Integer,HostDomainMetadata> domains; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    FLAGS((short)1, "flags");
+    FLAGS((short)1, "flags"),
+    DOMAINS((short)2, "domains");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -60,6 +63,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       switch(fieldId) {
         case 1: // FLAGS
           return FLAGS;
+        case 2: // DOMAINS
+          return DOMAINS;
         default:
           return null;
       }
@@ -106,6 +111,10 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     tmpMap.put(_Fields.FLAGS, new org.apache.thrift.meta_data.FieldMetaData("flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+    tmpMap.put(_Fields.DOMAINS, new org.apache.thrift.meta_data.FieldMetaData("domains", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32), 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, HostDomainMetadata.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HostMetadata.class, metaDataMap);
   }
@@ -114,10 +123,12 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   }
 
   public HostMetadata(
-    List<String> flags)
+    List<String> flags,
+    Map<Integer,HostDomainMetadata> domains)
   {
     this();
     this.flags = flags;
+    this.domains = domains;
   }
 
   /**
@@ -131,6 +142,21 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       }
       this.flags = __this__flags;
     }
+    if (other.is_set_domains()) {
+      Map<Integer,HostDomainMetadata> __this__domains = new HashMap<Integer,HostDomainMetadata>();
+      for (Map.Entry<Integer, HostDomainMetadata> other_element : other.domains.entrySet()) {
+
+        Integer other_element_key = other_element.getKey();
+        HostDomainMetadata other_element_value = other_element.getValue();
+
+        Integer __this__domains_copy_key = other_element_key;
+
+        HostDomainMetadata __this__domains_copy_value = new HostDomainMetadata(other_element_value);
+
+        __this__domains.put(__this__domains_copy_key, __this__domains_copy_value);
+      }
+      this.domains = __this__domains;
+    }
   }
 
   public HostMetadata deepCopy() {
@@ -140,6 +166,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   @Override
   public void clear() {
     this.flags = null;
+    this.domains = null;
   }
 
   public int get_flags_size() {
@@ -181,6 +208,41 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
   }
 
+  public int get_domains_size() {
+    return (this.domains == null) ? 0 : this.domains.size();
+  }
+
+  public void put_to_domains(int key, HostDomainMetadata val) {
+    if (this.domains == null) {
+      this.domains = new HashMap<Integer,HostDomainMetadata>();
+    }
+    this.domains.put(key, val);
+  }
+
+  public Map<Integer,HostDomainMetadata> get_domains() {
+    return this.domains;
+  }
+
+  public HostMetadata set_domains(Map<Integer,HostDomainMetadata> domains) {
+    this.domains = domains;
+    return this;
+  }
+
+  public void unset_domains() {
+    this.domains = null;
+  }
+
+  /** Returns true if field domains is set (has been assigned a value) and false otherwise */
+  public boolean is_set_domains() {
+    return this.domains != null;
+  }
+
+  public void set_domains_isSet(boolean value) {
+    if (!value) {
+      this.domains = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FLAGS:
@@ -191,6 +253,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       }
       break;
 
+    case DOMAINS:
+      if (value == null) {
+        unset_domains();
+      } else {
+        set_domains((Map<Integer,HostDomainMetadata>)value);
+      }
+      break;
+
     }
   }
 
@@ -198,6 +268,9 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     switch (field) {
     case FLAGS:
       return get_flags();
+
+    case DOMAINS:
+      return get_domains();
 
     }
     throw new IllegalStateException();
@@ -212,6 +285,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     switch (field) {
     case FLAGS:
       return is_set_flags();
+    case DOMAINS:
+      return is_set_domains();
     }
     throw new IllegalStateException();
   }
@@ -238,6 +313,15 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         return false;
     }
 
+    boolean this_present_domains = true && this.is_set_domains();
+    boolean that_present_domains = true && that.is_set_domains();
+    if (this_present_domains || that_present_domains) {
+      if (!(this_present_domains && that_present_domains))
+        return false;
+      if (!this.domains.equals(that.domains))
+        return false;
+    }
+
     return true;
   }
 
@@ -249,6 +333,11 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     builder.append(present_flags);
     if (present_flags)
       builder.append(flags);
+
+    boolean present_domains = true && (is_set_domains());
+    builder.append(present_domains);
+    if (present_domains)
+      builder.append(domains);
 
     return builder.toHashCode();
   }
@@ -267,6 +356,16 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     }
     if (is_set_flags()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.flags, typedOther.flags);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(is_set_domains()).compareTo(typedOther.is_set_domains());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (is_set_domains()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domains, typedOther.domains);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -298,6 +397,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       sb.append(this.flags);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("domains:");
+    if (this.domains == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.domains);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -306,6 +413,9 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     // check for required fields
     if (flags == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'flags' was not present! Struct: " + toString());
+    }
+    if (domains == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'domains' was not present! Struct: " + toString());
     }
   }
 
@@ -346,17 +456,38 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
           case 1: // FLAGS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list28 = iprot.readListBegin();
-                struct.flags = new ArrayList<String>(_list28.size);
-                for (int _i29 = 0; _i29 < _list28.size; ++_i29)
+                org.apache.thrift.protocol.TList _list38 = iprot.readListBegin();
+                struct.flags = new ArrayList<String>(_list38.size);
+                for (int _i39 = 0; _i39 < _list38.size; ++_i39)
                 {
-                  String _elem30; // required
-                  _elem30 = iprot.readString();
-                  struct.flags.add(_elem30);
+                  String _elem40; // required
+                  _elem40 = iprot.readString();
+                  struct.flags.add(_elem40);
                 }
                 iprot.readListEnd();
               }
               struct.set_flags_isSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // DOMAINS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map41 = iprot.readMapBegin();
+                struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map41.size);
+                for (int _i42 = 0; _i42 < _map41.size; ++_i42)
+                {
+                  int _key43; // required
+                  HostDomainMetadata _val44; // required
+                  _key43 = iprot.readI32();
+                  _val44 = new HostDomainMetadata();
+                  _val44.read(iprot);
+                  struct.domains.put(_key43, _val44);
+                }
+                iprot.readMapEnd();
+              }
+              struct.set_domains_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -380,11 +511,24 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         oprot.writeFieldBegin(FLAGS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.flags.size()));
-          for (String _iter31 : struct.flags)
+          for (String _iter45 : struct.flags)
           {
-            oprot.writeString(_iter31);
+            oprot.writeString(_iter45);
           }
           oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.domains != null) {
+        oprot.writeFieldBegin(DOMAINS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, struct.domains.size()));
+          for (Map.Entry<Integer, HostDomainMetadata> _iter46 : struct.domains.entrySet())
+          {
+            oprot.writeI32(_iter46.getKey());
+            _iter46.getValue().write(oprot);
+          }
+          oprot.writeMapEnd();
         }
         oprot.writeFieldEnd();
       }
@@ -407,9 +551,17 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
         oprot.writeI32(struct.flags.size());
-        for (String _iter32 : struct.flags)
+        for (String _iter47 : struct.flags)
         {
-          oprot.writeString(_iter32);
+          oprot.writeString(_iter47);
+        }
+      }
+      {
+        oprot.writeI32(struct.domains.size());
+        for (Map.Entry<Integer, HostDomainMetadata> _iter48 : struct.domains.entrySet())
+        {
+          oprot.writeI32(_iter48.getKey());
+          _iter48.getValue().write(oprot);
         }
       }
     }
@@ -418,16 +570,30 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     public void read(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
-        org.apache.thrift.protocol.TList _list33 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-        struct.flags = new ArrayList<String>(_list33.size);
-        for (int _i34 = 0; _i34 < _list33.size; ++_i34)
+        org.apache.thrift.protocol.TList _list49 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+        struct.flags = new ArrayList<String>(_list49.size);
+        for (int _i50 = 0; _i50 < _list49.size; ++_i50)
         {
-          String _elem35; // required
-          _elem35 = iprot.readString();
-          struct.flags.add(_elem35);
+          String _elem51; // required
+          _elem51 = iprot.readString();
+          struct.flags.add(_elem51);
         }
       }
       struct.set_flags_isSet(true);
+      {
+        org.apache.thrift.protocol.TMap _map52 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+        struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map52.size);
+        for (int _i53 = 0; _i53 < _map52.size; ++_i53)
+        {
+          int _key54; // required
+          HostDomainMetadata _val55; // required
+          _key54 = iprot.readI32();
+          _val55 = new HostDomainMetadata();
+          _val55.read(iprot);
+          struct.domains.put(_key54, _val55);
+        }
+      }
+      struct.set_domains_isSet(true);
     }
   }
 

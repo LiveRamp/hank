@@ -32,7 +32,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("DomainVersionMetadata");
 
   private static final org.apache.thrift.protocol.TField PROPERTIES_FIELD_DESC = new org.apache.thrift.protocol.TField("properties", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField PARTITIONS_METADATA_FIELD_DESC = new org.apache.thrift.protocol.TField("partitions_metadata", org.apache.thrift.protocol.TType.MAP, (short)2);
+  private static final org.apache.thrift.protocol.TField PARTITIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("partitions", org.apache.thrift.protocol.TType.MAP, (short)2);
   private static final org.apache.thrift.protocol.TField DEFUNCT_FIELD_DESC = new org.apache.thrift.protocol.TField("defunct", org.apache.thrift.protocol.TType.BOOL, (short)3);
   private static final org.apache.thrift.protocol.TField CLOSED_AT_FIELD_DESC = new org.apache.thrift.protocol.TField("closed_at", org.apache.thrift.protocol.TType.I64, (short)4);
 
@@ -43,14 +43,14 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
   }
 
   public ByteBuffer properties; // required
-  public Map<Integer,PartitionMetadata> partitions_metadata; // required
+  public Map<Integer,PartitionMetadata> partitions; // required
   public boolean defunct; // required
   public long closed_at; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     PROPERTIES((short)1, "properties"),
-    PARTITIONS_METADATA((short)2, "partitions_metadata"),
+    PARTITIONS((short)2, "partitions"),
     DEFUNCT((short)3, "defunct"),
     CLOSED_AT((short)4, "closed_at");
 
@@ -69,8 +69,8 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
       switch(fieldId) {
         case 1: // PROPERTIES
           return PROPERTIES;
-        case 2: // PARTITIONS_METADATA
-          return PARTITIONS_METADATA;
+        case 2: // PARTITIONS
+          return PARTITIONS;
         case 3: // DEFUNCT
           return DEFUNCT;
         case 4: // CLOSED_AT
@@ -123,7 +123,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.PROPERTIES, new org.apache.thrift.meta_data.FieldMetaData("properties", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
-    tmpMap.put(_Fields.PARTITIONS_METADATA, new org.apache.thrift.meta_data.FieldMetaData("partitions_metadata", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.PARTITIONS, new org.apache.thrift.meta_data.FieldMetaData("partitions", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32), 
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PartitionMetadata.class))));
@@ -140,13 +140,13 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
 
   public DomainVersionMetadata(
     ByteBuffer properties,
-    Map<Integer,PartitionMetadata> partitions_metadata,
+    Map<Integer,PartitionMetadata> partitions,
     boolean defunct,
     long closed_at)
   {
     this();
     this.properties = properties;
-    this.partitions_metadata = partitions_metadata;
+    this.partitions = partitions;
     this.defunct = defunct;
     set_defunct_isSet(true);
     this.closed_at = closed_at;
@@ -163,20 +163,20 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
       this.properties = org.apache.thrift.TBaseHelper.copyBinary(other.properties);
 ;
     }
-    if (other.is_set_partitions_metadata()) {
-      Map<Integer,PartitionMetadata> __this__partitions_metadata = new HashMap<Integer,PartitionMetadata>();
-      for (Map.Entry<Integer, PartitionMetadata> other_element : other.partitions_metadata.entrySet()) {
+    if (other.is_set_partitions()) {
+      Map<Integer,PartitionMetadata> __this__partitions = new HashMap<Integer,PartitionMetadata>();
+      for (Map.Entry<Integer, PartitionMetadata> other_element : other.partitions.entrySet()) {
 
         Integer other_element_key = other_element.getKey();
         PartitionMetadata other_element_value = other_element.getValue();
 
-        Integer __this__partitions_metadata_copy_key = other_element_key;
+        Integer __this__partitions_copy_key = other_element_key;
 
-        PartitionMetadata __this__partitions_metadata_copy_value = new PartitionMetadata(other_element_value);
+        PartitionMetadata __this__partitions_copy_value = new PartitionMetadata(other_element_value);
 
-        __this__partitions_metadata.put(__this__partitions_metadata_copy_key, __this__partitions_metadata_copy_value);
+        __this__partitions.put(__this__partitions_copy_key, __this__partitions_copy_value);
       }
-      this.partitions_metadata = __this__partitions_metadata;
+      this.partitions = __this__partitions;
     }
     this.defunct = other.defunct;
     this.closed_at = other.closed_at;
@@ -189,7 +189,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
   @Override
   public void clear() {
     this.properties = null;
-    this.partitions_metadata = null;
+    this.partitions = null;
     set_defunct_isSet(false);
     this.defunct = false;
     set_closed_at_isSet(false);
@@ -230,38 +230,38 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     }
   }
 
-  public int get_partitions_metadata_size() {
-    return (this.partitions_metadata == null) ? 0 : this.partitions_metadata.size();
+  public int get_partitions_size() {
+    return (this.partitions == null) ? 0 : this.partitions.size();
   }
 
-  public void put_to_partitions_metadata(int key, PartitionMetadata val) {
-    if (this.partitions_metadata == null) {
-      this.partitions_metadata = new HashMap<Integer,PartitionMetadata>();
+  public void put_to_partitions(int key, PartitionMetadata val) {
+    if (this.partitions == null) {
+      this.partitions = new HashMap<Integer,PartitionMetadata>();
     }
-    this.partitions_metadata.put(key, val);
+    this.partitions.put(key, val);
   }
 
-  public Map<Integer,PartitionMetadata> get_partitions_metadata() {
-    return this.partitions_metadata;
+  public Map<Integer,PartitionMetadata> get_partitions() {
+    return this.partitions;
   }
 
-  public DomainVersionMetadata set_partitions_metadata(Map<Integer,PartitionMetadata> partitions_metadata) {
-    this.partitions_metadata = partitions_metadata;
+  public DomainVersionMetadata set_partitions(Map<Integer,PartitionMetadata> partitions) {
+    this.partitions = partitions;
     return this;
   }
 
-  public void unset_partitions_metadata() {
-    this.partitions_metadata = null;
+  public void unset_partitions() {
+    this.partitions = null;
   }
 
-  /** Returns true if field partitions_metadata is set (has been assigned a value) and false otherwise */
-  public boolean is_set_partitions_metadata() {
-    return this.partitions_metadata != null;
+  /** Returns true if field partitions is set (has been assigned a value) and false otherwise */
+  public boolean is_set_partitions() {
+    return this.partitions != null;
   }
 
-  public void set_partitions_metadata_isSet(boolean value) {
+  public void set_partitions_isSet(boolean value) {
     if (!value) {
-      this.partitions_metadata = null;
+      this.partitions = null;
     }
   }
 
@@ -321,11 +321,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
       }
       break;
 
-    case PARTITIONS_METADATA:
+    case PARTITIONS:
       if (value == null) {
-        unset_partitions_metadata();
+        unset_partitions();
       } else {
-        set_partitions_metadata((Map<Integer,PartitionMetadata>)value);
+        set_partitions((Map<Integer,PartitionMetadata>)value);
       }
       break;
 
@@ -353,8 +353,8 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     case PROPERTIES:
       return get_properties();
 
-    case PARTITIONS_METADATA:
-      return get_partitions_metadata();
+    case PARTITIONS:
+      return get_partitions();
 
     case DEFUNCT:
       return Boolean.valueOf(is_defunct());
@@ -375,8 +375,8 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     switch (field) {
     case PROPERTIES:
       return is_set_properties();
-    case PARTITIONS_METADATA:
-      return is_set_partitions_metadata();
+    case PARTITIONS:
+      return is_set_partitions();
     case DEFUNCT:
       return is_set_defunct();
     case CLOSED_AT:
@@ -407,12 +407,12 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
         return false;
     }
 
-    boolean this_present_partitions_metadata = true && this.is_set_partitions_metadata();
-    boolean that_present_partitions_metadata = true && that.is_set_partitions_metadata();
-    if (this_present_partitions_metadata || that_present_partitions_metadata) {
-      if (!(this_present_partitions_metadata && that_present_partitions_metadata))
+    boolean this_present_partitions = true && this.is_set_partitions();
+    boolean that_present_partitions = true && that.is_set_partitions();
+    if (this_present_partitions || that_present_partitions) {
+      if (!(this_present_partitions && that_present_partitions))
         return false;
-      if (!this.partitions_metadata.equals(that.partitions_metadata))
+      if (!this.partitions.equals(that.partitions))
         return false;
     }
 
@@ -446,10 +446,10 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     if (present_properties)
       builder.append(properties);
 
-    boolean present_partitions_metadata = true && (is_set_partitions_metadata());
-    builder.append(present_partitions_metadata);
-    if (present_partitions_metadata)
-      builder.append(partitions_metadata);
+    boolean present_partitions = true && (is_set_partitions());
+    builder.append(present_partitions);
+    if (present_partitions)
+      builder.append(partitions);
 
     boolean present_defunct = true;
     builder.append(present_defunct);
@@ -482,12 +482,12 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(is_set_partitions_metadata()).compareTo(typedOther.is_set_partitions_metadata());
+    lastComparison = Boolean.valueOf(is_set_partitions()).compareTo(typedOther.is_set_partitions());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (is_set_partitions_metadata()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.partitions_metadata, typedOther.partitions_metadata);
+    if (is_set_partitions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.partitions, typedOther.partitions);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -540,11 +540,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("partitions_metadata:");
-    if (this.partitions_metadata == null) {
+    sb.append("partitions:");
+    if (this.partitions == null) {
       sb.append("null");
     } else {
-      sb.append(this.partitions_metadata);
+      sb.append(this.partitions);
     }
     first = false;
     if (!first) sb.append(", ");
@@ -561,8 +561,8 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    if (partitions_metadata == null) {
-      throw new org.apache.thrift.protocol.TProtocolException("Required field 'partitions_metadata' was not present! Struct: " + toString());
+    if (partitions == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'partitions' was not present! Struct: " + toString());
     }
     // alas, we cannot check 'defunct' because it's a primitive and you chose the non-beans generator.
     // alas, we cannot check 'closed_at' because it's a primitive and you chose the non-beans generator.
@@ -612,11 +612,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // PARTITIONS_METADATA
+          case 2: // PARTITIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map8 = iprot.readMapBegin();
-                struct.partitions_metadata = new HashMap<Integer,PartitionMetadata>(2*_map8.size);
+                struct.partitions = new HashMap<Integer,PartitionMetadata>(2*_map8.size);
                 for (int _i9 = 0; _i9 < _map8.size; ++_i9)
                 {
                   int _key10; // required
@@ -624,11 +624,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
                   _key10 = iprot.readI32();
                   _val11 = new PartitionMetadata();
                   _val11.read(iprot);
-                  struct.partitions_metadata.put(_key10, _val11);
+                  struct.partitions.put(_key10, _val11);
                 }
                 iprot.readMapEnd();
               }
-              struct.set_partitions_metadata_isSet(true);
+              struct.set_partitions_isSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -675,11 +675,11 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
         oprot.writeBinary(struct.properties);
         oprot.writeFieldEnd();
       }
-      if (struct.partitions_metadata != null) {
-        oprot.writeFieldBegin(PARTITIONS_METADATA_FIELD_DESC);
+      if (struct.partitions != null) {
+        oprot.writeFieldBegin(PARTITIONS_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, struct.partitions_metadata.size()));
-          for (Map.Entry<Integer, PartitionMetadata> _iter12 : struct.partitions_metadata.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, struct.partitions.size()));
+          for (Map.Entry<Integer, PartitionMetadata> _iter12 : struct.partitions.entrySet())
           {
             oprot.writeI32(_iter12.getKey());
             _iter12.getValue().write(oprot);
@@ -712,8 +712,8 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
     public void write(org.apache.thrift.protocol.TProtocol prot, DomainVersionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
-        oprot.writeI32(struct.partitions_metadata.size());
-        for (Map.Entry<Integer, PartitionMetadata> _iter13 : struct.partitions_metadata.entrySet())
+        oprot.writeI32(struct.partitions.size());
+        for (Map.Entry<Integer, PartitionMetadata> _iter13 : struct.partitions.entrySet())
         {
           oprot.writeI32(_iter13.getKey());
           _iter13.getValue().write(oprot);
@@ -736,7 +736,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
         org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.partitions_metadata = new HashMap<Integer,PartitionMetadata>(2*_map14.size);
+        struct.partitions = new HashMap<Integer,PartitionMetadata>(2*_map14.size);
         for (int _i15 = 0; _i15 < _map14.size; ++_i15)
         {
           int _key16; // required
@@ -744,10 +744,10 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
           _key16 = iprot.readI32();
           _val17 = new PartitionMetadata();
           _val17.read(iprot);
-          struct.partitions_metadata.put(_key16, _val17);
+          struct.partitions.put(_key16, _val17);
         }
       }
-      struct.set_partitions_metadata_isSet(true);
+      struct.set_partitions_isSet(true);
       struct.defunct = iprot.readBool();
       struct.set_defunct_isSet(true);
       struct.closed_at = iprot.readI64();
