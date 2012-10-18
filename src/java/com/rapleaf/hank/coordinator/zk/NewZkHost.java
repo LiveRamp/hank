@@ -102,34 +102,17 @@ public class NewZkHost extends AbstractHost {
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
-    //    domains = new WatchedMap<ZkHostDomain>(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT),
-    //        new ElementLoader<ZkHostDomain>() {
-    //          @Override
-    //          public ZkHostDomain load(ZooKeeperPlus zk,
-    //                                   String basePath,
-    //                                   String relPath) throws KeeperException, InterruptedException {
-    //            if (!ZkPath.isHidden(relPath)) {
-    //              Domain domain = coordinator.getDomain(relPath);
-    //              if (domain == null) {
-    //                throw new RuntimeException(String.format("Could not load domain %s from Coordinator.", relPath));
-    //              }
-    //              return new ZkHostDomain(zk, basePath, domain, dataLocationChangeListener);
-    //            }
-    //            return null;
-    //          }
-    //        });
-    //    domains.addListener(new DomainsWatchedMapListener());
+    metadata.addListener(new AssignmentsListener());
   }
 
-  //
-  //  private class DomainsWatchedMapListener implements WatchedMapListener<ZkHostDomain> {
-  //
-  //    @Override
-  //    public void onWatchedMapChange(WatchedMap<ZkHostDomain> zkHostDomainWatchedMap) {
-  //      fireDataLocationChangeListener();
-  //    }
-  //  }
-  //
+  private class AssignmentsListener implements WatchedNodeListener<HostMetadata> {
+
+    @Override
+    public void onWatchedNodeChange(HostMetadata value) {
+      fireDataLocationChangeListener();
+    }
+  }
+
   private class CommandQueueWatcher extends HankWatcher {
     protected CommandQueueWatcher() throws KeeperException, InterruptedException {
       super();
@@ -156,53 +139,6 @@ public class NewZkHost extends AbstractHost {
       zk.getChildren(ZkPath.append(path, COMMAND_QUEUE_PATH), this);
     }
   }
-
-  //  @Override
-  //  public HostDomain addDomain(Domain domain) throws IOException {
-  //    if (domains.containsKey(domain.getName())) {
-  //      throw new IOException("Domain " + domain + " is already assigned to this host!");
-  //    }
-  //    ZkHostDomain hdc = ZkHostDomain.create(zk, ZkPath.append(hostPath, PARTS_PATH_SEGMENT), domain, dataLocationChangeListener);
-  //    domains.put(domain.getName(), hdc);
-  //    fireDataLocationChangeListener();
-  //    return hdc;
-  //  }
-  //
-  //  @Override
-  //  public boolean removeDomain(Domain domain) throws IOException {
-  //    ZkHostDomain hostDomain = domains.remove(domain.getName());
-  //    if (hostDomain == null) {
-  //      return false;
-  //    } else {
-  //      hostDomain.delete();
-  //      fireDataLocationChangeListener();
-  //      return true;
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) {
-  //    synchronized (commandQueueListeners) {
-  //      commandQueueListeners.add(listener);
-  //    }
-  //  }
-  //
-  //  @Override
-  //  public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) {
-  //    currentCommand.addListener(listener);
-  //  }
-  //
-  //  public void close() {
-  //    hostState.cancelWatch();
-  //    currentCommand.cancelWatch();
-  //    commandQueueWatcher.cancel();
-  //  }
-  //
-  //  private void fireDataLocationChangeListener() {
-  //    if (dataLocationChangeListener != null) {
-  //      dataLocationChangeListener.onDataLocationChange();
-  //    }
-  //  }
 
   @Override
   public PartitionServerAddress getAddress() {
@@ -390,6 +326,7 @@ public class NewZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
+    fireDataLocationChangeListener();
     return new NewZkHostDomain(this, domainId);
   }
 
@@ -408,6 +345,7 @@ public class NewZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
+    fireDataLocationChangeListener();
   }
 
   @Override
@@ -475,7 +413,11 @@ public class NewZkHost extends AbstractHost {
   }
 
   protected Domain getDomain(int domainId) {
-    return coordinator.getDomainById(domainId);
+    Domain domain = coordinator.getDomainById(domainId);
+    if (domain == null) {
+      throw new RuntimeException(String.format("Could not load domain #%d from Coordinator.", domainId));
+    }
+    return domain;
   }
 
   protected Set<HostDomainPartition> getPartitions(int domainId) {
@@ -602,6 +544,13 @@ public class NewZkHost extends AbstractHost {
       throw new IOException(e);
     }
   }
+
+  private void fireDataLocationChangeListener() {
+    if (dataLocationChangeListener != null) {
+      dataLocationChangeListener.onDataLocationChange();
+    }
+  }
+
 
   @Override
   public int hashCode() {
