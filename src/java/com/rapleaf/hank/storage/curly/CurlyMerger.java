@@ -16,15 +16,19 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import org.apache.commons.io.IOUtils;
+import com.rapleaf.hank.util.IOStreamUtils;
 import org.apache.log4j.Logger;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class CurlyMerger implements ICurlyMerger {
 
   private static final Logger LOG = Logger.getLogger(CurlyMerger.class);
+  private static final int DEFAULT_BUFFER_SIZE = 256 * 1024;
 
   @Override
   public long[] merge(final CurlyFilePath base,
@@ -35,8 +39,7 @@ public class CurlyMerger implements ICurlyMerger {
 
     // Open the base in append mode
     File baseFile = new File(base.getPath());
-    FileOutputStream baseFileOutputStream = new FileOutputStream(baseFile, true);
-    OutputStream baseOutputStream = new BufferedOutputStream(baseFileOutputStream);
+    FileOutputStream baseOutputStream = new FileOutputStream(baseFile, true);
     try {
       // Loop over deltas and append them to the base in order, keeping track of offset adjustments
       long totalOffset = baseFile.length();
@@ -46,7 +49,7 @@ public class CurlyMerger implements ICurlyMerger {
         InputStream deltaRemoteInputStream = partitionRemoteFileOps.getInputStream(deltaRemoteFile);
         try {
           LOG.info("Merging remote file " + deltaRemoteFile + " into file " + base.getPath());
-          long bytesCopied = IOUtils.copyLarge(deltaRemoteInputStream, baseOutputStream);
+          long bytesCopied = IOStreamUtils.copy(deltaRemoteInputStream, baseOutputStream, DEFAULT_BUFFER_SIZE);
           totalOffset += bytesCopied;
         } finally {
           deltaRemoteInputStream.close();
@@ -56,7 +59,6 @@ public class CurlyMerger implements ICurlyMerger {
     } finally {
       // Close base streams
       baseOutputStream.close();
-      baseFileOutputStream.close();
     }
     return offsetAdjustments;
   }
