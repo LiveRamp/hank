@@ -547,7 +547,6 @@ public class NewZkHost extends AbstractHost {
     }
   }
 
-
   @Override
   public int hashCode() {
     final int prime = 31;
