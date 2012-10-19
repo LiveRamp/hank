@@ -16,6 +16,10 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.HostAssignmentsMetadata;
+import com.rapleaf.hank.generated.HostDomainMetadata;
+import com.rapleaf.hank.generated.HostDomainPartitionMetadata;
+import com.rapleaf.hank.generated.HostMetadata;
 import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Logger;
@@ -427,5 +431,35 @@ public class ZkHost extends AbstractHost {
     if (dataLocationChangeListener != null) {
       dataLocationChangeListener.onDataLocationChange();
     }
+  }
+
+  public NewZkHost migrate(Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
+
+    HostAssignmentsMetadata initialAssignments = new HostAssignmentsMetadata();
+    Map<Integer, HostDomainMetadata> domains = new HashMap<Integer, HostDomainMetadata>();
+    for (HostDomain hostDomain : getAssignedDomains()) {
+      LOG.info("  migrating " + hostDomain.getDomain().getName());
+      Map<Integer, HostDomainPartitionMetadata> partitions = new HashMap<Integer, HostDomainPartitionMetadata>();
+      HostDomainMetadata hostDomainMetadata = new HostDomainMetadata();
+      hostDomainMetadata.set_partitions(partitions);
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        HostDomainPartitionMetadata partitionMetadata = new HostDomainPartitionMetadata();
+        partitionMetadata.set_deletable(partition.isDeletable());
+        partitionMetadata.set_current_version_number(partition.getCurrentDomainGroupVersion());
+        partitions.put(partition.getPartitionNumber(), partitionMetadata);
+      }
+      domains.put(hostDomain.getDomain().getId(), hostDomainMetadata);
+    }
+    initialAssignments.set_domains(domains);
+
+    HostMetadata hostMetadata = new HostMetadata();
+    hostMetadata.set_flags(flags.get());
+
+    WatchedThriftNode<HostMetadata> metadata = new WatchedThriftNode<HostMetadata>(zk, hostPath, true, false, null,
+        new HostMetadata());
+    metadata.set(hostMetadata);
+    WatchedThriftNode<HostAssignmentsMetadata> assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(hostPath, "a"),
+        true, true, initialAssignments, new HostAssignmentsMetadata());
+    return new NewZkHost(zk, coordinator, hostPath, null, false, null, null);
   }
 }

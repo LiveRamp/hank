@@ -92,7 +92,6 @@ public class NewZkHost extends AbstractHost {
     if (create) {
       zk.create(ZkPath.append(path, CURRENT_COMMAND_PATH), null);
       zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
-      zk.create(ZkPath.append(path, STATISTICS_PATH), null);
     }
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
