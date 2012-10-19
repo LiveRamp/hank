@@ -86,9 +86,12 @@ struct HostDomainMetadata {
   1: required map<i32, HostDomainPartitionMetadata> partitions;
 }
 
+struct HostAssignmentsMetadata {
+  1: required map<i32, HostDomainMetadata> domains;
+}
+
 struct HostMetadata {
-  1: required list<string> flags;
-  2: required map<i32, HostDomainMetadata> domains;
+  1: required string flags;
 }
 
 struct StatisticsMetadata {

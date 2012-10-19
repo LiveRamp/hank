@@ -16,10 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.generated.HostDomainMetadata;
-import com.rapleaf.hank.generated.HostDomainPartitionMetadata;
-import com.rapleaf.hank.generated.HostMetadata;
-import com.rapleaf.hank.generated.StatisticsMetadata;
+import com.rapleaf.hank.generated.*;
 import com.rapleaf.hank.zookeeper.*;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -35,6 +32,7 @@ public class NewZkHost extends AbstractHost {
   private static final Logger LOG = Logger.getLogger(NewZkHost.class);
 
   private static final String STATE_PATH = "s";
+  private static final String ASSIGNMENTS_PATH = "a";
   private static final String STATISTICS_PATH = "i";
   private static final String CURRENT_COMMAND_PATH = "current_command";
   private static final String COMMAND_QUEUE_PATH = "command_queue";
@@ -46,6 +44,7 @@ public class NewZkHost extends AbstractHost {
   private final DataLocationChangeListener dataLocationChangeListener;
 
   private final WatchedThriftNode<HostMetadata> metadata;
+  private final WatchedThriftNode<HostAssignmentsMetadata> assignments;
   private final WatchedThriftNode<StatisticsMetadata> statistics;
   private final WatchedEnum<HostState> state;
   private final WatchedEnum<HostCommand> currentCommand;
@@ -65,9 +64,10 @@ public class NewZkHost extends AbstractHost {
       LOG.trace("Creating ZkHost " + path);
     }
     HostMetadata initialMetadata = new HostMetadata();
-    initialMetadata.set_flags(flags);
-    initialMetadata.set_domains(new HashMap<Integer, HostDomainMetadata>());
-    return new NewZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata);
+    initialMetadata.set_flags(Hosts.joinHostFlags(flags));
+    HostAssignmentsMetadata initialAssignments = new HostAssignmentsMetadata();
+    initialAssignments.set_domains(new HashMap<Integer, HostDomainMetadata>());
+    return new NewZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata, initialAssignments);
   }
 
   public NewZkHost(final ZooKeeperPlus zk,
@@ -75,7 +75,8 @@ public class NewZkHost extends AbstractHost {
                    final String path,
                    final DataLocationChangeListener dataLocationChangeListener,
                    final boolean create,
-                   final HostMetadata initialMetadata) throws KeeperException, InterruptedException {
+                   final HostMetadata initialMetadata,
+                   final HostAssignmentsMetadata initialAssignments) throws KeeperException, InterruptedException {
     if (coordinator == null) {
       throw new IllegalArgumentException("Cannot initialize a ZkHost with a null Coordinator.");
     }
@@ -85,6 +86,9 @@ public class NewZkHost extends AbstractHost {
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
     this.dataLocationChangeListener = dataLocationChangeListener;
     this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create, initialMetadata, new HostMetadata());
+    this.assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(path, ASSIGNMENTS_PATH),
+        true, create, initialAssignments, new HostAssignmentsMetadata());
+    assignments.addListener(new AssignmentsListener());
     if (create) {
       zk.create(ZkPath.append(path, CURRENT_COMMAND_PATH), null);
       zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
@@ -96,13 +100,12 @@ public class NewZkHost extends AbstractHost {
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
-    metadata.addListener(new AssignmentsListener());
   }
 
-  private class AssignmentsListener implements WatchedNodeListener<HostMetadata> {
+  private class AssignmentsListener implements WatchedNodeListener<HostAssignmentsMetadata> {
 
     @Override
-    public void onWatchedNodeChange(HostMetadata value) {
+    public void onWatchedNodeChange(HostAssignmentsMetadata value) {
       fireDataLocationChangeListener();
     }
   }
@@ -181,16 +184,17 @@ public class NewZkHost extends AbstractHost {
 
   @Override
   public List<String> getFlags() throws IOException {
-    return metadata.get().get_flags();
+    String flags = metadata.get().get_flags();
+    return flags == null ? null : Hosts.splitHostFlags(flags);
   }
 
   @Override
-  public void setFlags(final List<String> newFlags) throws IOException {
+  public void setFlags(final List<String> flags) throws IOException {
     try {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(HostMetadata currentCopy) {
-          currentCopy.set_flags(newFlags);
+          currentCopy.set_flags(Hosts.joinHostFlags(flags));
         }
       });
     } catch (InterruptedException e) {
@@ -295,7 +299,7 @@ public class NewZkHost extends AbstractHost {
   @Override
   public Set<HostDomain> getAssignedDomains() throws IOException {
     Set<HostDomain> result = new HashSet<HostDomain>();
-    for (Integer domainId : metadata.get().get_domains().keySet()) {
+    for (Integer domainId : assignments.get().get_domains().keySet()) {
       result.add(new NewZkHostDomain(this, domainId));
     }
     return result;
@@ -305,9 +309,9 @@ public class NewZkHost extends AbstractHost {
   public HostDomain addDomain(Domain domain) throws IOException {
     final int domainId = domain.getId();
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           HostDomainMetadata result = new HostDomainMetadata();
           result.set_partitions(new HashMap<Integer, HostDomainPartitionMetadata>());
           if (!currentCopy.get_domains().containsKey(domainId)) {
@@ -328,9 +332,9 @@ public class NewZkHost extends AbstractHost {
   public void removeDomain(Domain domain) throws IOException {
     final int domainId = domain.getId();
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           currentCopy.get_domains().remove(domainId);
         }
       });
@@ -415,7 +419,7 @@ public class NewZkHost extends AbstractHost {
   }
 
   protected Set<HostDomainPartition> getPartitions(int domainId) {
-    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    HostDomainMetadata hostDomainMetadata = assignments.get().get_domains().get(domainId);
     if (hostDomainMetadata == null) {
       return null;
     } else {
@@ -430,9 +434,9 @@ public class NewZkHost extends AbstractHost {
   protected HostDomainPartition addPartition(final int domainId,
                                              final int partNum) throws IOException {
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           final HostDomainPartitionMetadata result = new HostDomainPartitionMetadata();
           result.set_deletable(false);
           currentCopy.get_domains().get(domainId).get_partitions().put(partNum, result);
@@ -449,9 +453,9 @@ public class NewZkHost extends AbstractHost {
   protected void removePartition(final int domainId,
                                  final int partNum) throws IOException {
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
           if (hostDomainMetadata != null) {
             hostDomainMetadata.get_partitions().remove(partNum);
@@ -466,7 +470,7 @@ public class NewZkHost extends AbstractHost {
   }
 
   protected Integer getCurrentDomainGroupVersion(int domainId, int partitionNumber) {
-    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    HostDomainMetadata hostDomainMetadata = assignments.get().get_domains().get(domainId);
     if (hostDomainMetadata == null) {
       return null;
     } else {
@@ -483,9 +487,9 @@ public class NewZkHost extends AbstractHost {
                                               final int partitionNumber,
                                               final Integer version) throws IOException {
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
           if (hostDomainMetadata != null) {
             HostDomainPartitionMetadata hostPartitionMetadata =
@@ -504,7 +508,7 @@ public class NewZkHost extends AbstractHost {
   }
 
   protected boolean isDeletable(int domainId, int partitionNumber) {
-    HostDomainMetadata hostDomainMetadata = metadata.get().get_domains().get(domainId);
+    HostDomainMetadata hostDomainMetadata = assignments.get().get_domains().get(domainId);
     if (hostDomainMetadata == null) {
       return false;
     } else {
@@ -521,9 +525,9 @@ public class NewZkHost extends AbstractHost {
                               final int partitionNumber,
                               final boolean deletable) throws IOException {
     try {
-      metadata.update(metadata.new Updater() {
+      assignments.update(assignments.new Updater() {
         @Override
-        public void updateCopy(HostMetadata currentCopy) {
+        public void updateCopy(HostAssignmentsMetadata currentCopy) {
           HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(domainId);
           if (hostDomainMetadata != null) {
             HostDomainPartitionMetadata hostPartitionMetadata =
