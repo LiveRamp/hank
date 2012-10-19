@@ -460,6 +460,8 @@ public class ZkHost extends AbstractHost {
     metadata.set(hostMetadata);
     WatchedThriftNode<HostAssignmentsMetadata> assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(hostPath, "a"),
         true, true, initialAssignments, new HostAssignmentsMetadata());
+    zk.create(ZkPath.append(hostPath, "c"), null);
+    zk.create(ZkPath.append(hostPath, "q"), null);
     return new NewZkHost(zk, coordinator, hostPath, null, false, null, null);
   }
 }
