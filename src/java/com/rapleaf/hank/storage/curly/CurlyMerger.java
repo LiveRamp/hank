@@ -28,7 +28,6 @@ import java.util.List;
 public class CurlyMerger implements ICurlyMerger {
 
   private static final Logger LOG = Logger.getLogger(CurlyMerger.class);
-  private static final int DEFAULT_BUFFER_SIZE = 256 * 1024;
 
   @Override
   public long[] merge(final CurlyFilePath base,
@@ -49,7 +48,7 @@ public class CurlyMerger implements ICurlyMerger {
         InputStream deltaRemoteInputStream = partitionRemoteFileOps.getInputStream(deltaRemoteFile);
         try {
           LOG.info("Merging remote file " + deltaRemoteFile + " into file " + base.getPath());
-          long bytesCopied = IOStreamUtils.copy(deltaRemoteInputStream, baseOutputStream, DEFAULT_BUFFER_SIZE);
+          long bytesCopied = IOStreamUtils.copy(deltaRemoteInputStream, baseOutputStream);
           totalOffset += bytesCopied;
         } finally {
           deltaRemoteInputStream.close();

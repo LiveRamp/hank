@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.storage;
 
-import org.apache.commons.io.IOUtils;
+import com.rapleaf.hank.util.IOStreamUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -115,15 +115,11 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     LOG.info("Copying remote file " + source + " to local file " + destination);
     InputStream inputStream = getInputStream(remoteSourceRelativePath);
     FileOutputStream fileOutputStream = new FileOutputStream(destination);
-    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-    // Use copyLarge (over 2GB)
     try {
-      IOUtils.copyLarge(inputStream, bufferedOutputStream);
-      bufferedOutputStream.flush();
+      IOStreamUtils.copy(inputStream, fileOutputStream);
       fileOutputStream.flush();
     } finally {
       inputStream.close();
-      bufferedOutputStream.close();
       fileOutputStream.close();
     }
   }

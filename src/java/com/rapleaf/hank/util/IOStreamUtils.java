@@ -22,10 +22,11 @@ import java.io.OutputStream;
 
 public class IOStreamUtils {
 
+  private static final int DEFAULT_BUFFER_SIZE = 256 * 1024;
+
   public static long copy(final InputStream input,
-                          final OutputStream output,
-                          final int bufferSize) throws IOException {
-    byte[] buffer = new byte[bufferSize];
+                          final OutputStream output) throws IOException {
+    byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
     long count = 0;
     int n = 0;
     while (-1 != (n = input.read(buffer))) {

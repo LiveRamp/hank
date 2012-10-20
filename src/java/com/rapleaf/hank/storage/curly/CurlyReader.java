@@ -20,8 +20,8 @@ import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.IOStreamUtils;
 import com.rapleaf.hank.util.LruHashMap;
-import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -136,7 +136,7 @@ public class CurlyReader implements Reader, ICurlyReader {
             throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
         }
         // Decompress into the specialized result buffer
-        IOUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
+        IOStreamUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
         decompressedBlockInputStream.close();
         decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
         // Cache the decompressed block if requested
