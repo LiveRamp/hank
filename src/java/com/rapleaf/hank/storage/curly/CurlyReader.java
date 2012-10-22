@@ -58,6 +58,10 @@ public class CurlyReader implements Reader, ICurlyReader {
     public byte[] getCopyBuffer() {
       return copyBuffer;
     }
+
+    public void reset() {
+      decompressionOutputStream.reset();
+    }
   }
 
   private final static ThreadLocal<Buffers> threadLocalBuffers = new ThreadLocal<Buffers>() {
@@ -160,6 +164,7 @@ public class CurlyReader implements Reader, ICurlyReader {
         }
         // Decompress into the specialized result buffer
         Buffers buffers = threadLocalBuffers.get();
+        buffers.reset();
         IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
         decompressedBlockInputStream.close();
         decompressedBlockByteBuffer = buffers.getDecompressionOutputStream().getByteBuffer();
