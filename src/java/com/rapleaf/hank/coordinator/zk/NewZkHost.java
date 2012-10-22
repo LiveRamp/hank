@@ -34,8 +34,8 @@ public class NewZkHost extends AbstractHost {
   private static final String STATE_PATH = "s";
   private static final String ASSIGNMENTS_PATH = "a";
   private static final String STATISTICS_PATH = "i";
-  private static final String CURRENT_COMMAND_PATH = "current_command";
-  private static final String COMMAND_QUEUE_PATH = "command_queue";
+  private static final String CURRENT_COMMAND_PATH = "c";
+  private static final String COMMAND_QUEUE_PATH = "q";
 
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
