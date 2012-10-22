@@ -16,7 +16,6 @@
 package com.rapleaf.hank.storage;
 
 import com.rapleaf.hank.util.Bytes;
-import com.rapleaf.hank.util.UnsafeByteArrayOutputStream;
 
 import java.nio.ByteBuffer;
 
@@ -25,15 +24,13 @@ public class ReaderResult {
   private boolean isFound = false;
 
   private ByteBuffer buffer;
-  private UnsafeByteArrayOutputStream decompressionOutputStream;
   private boolean l1CacheHit = false;
   private boolean l2CacheHit = false;
 
   public ReaderResult() {
   }
 
-  public ReaderResult(int initialBufferSize, UnsafeByteArrayOutputStream decompressionOutputStream) {
-    this.decompressionOutputStream = decompressionOutputStream;
+  public ReaderResult(int initialBufferSize) {
     requiresBufferSize(initialBufferSize);
   }
 
@@ -43,9 +40,6 @@ public class ReaderResult {
     l2CacheHit = false;
     if (buffer != null) {
       buffer.clear();
-    }
-    if (decompressionOutputStream != null) {
-      decompressionOutputStream.reset();
     }
   }
 
@@ -69,19 +63,6 @@ public class ReaderResult {
 
   public ByteBuffer getBuffer() {
     return buffer;
-  }
-
-  public UnsafeByteArrayOutputStream getDecompressionOutputStream() {
-    if (decompressionOutputStream == null) {
-      decompressionOutputStream = new UnsafeByteArrayOutputStream();
-    }
-    return decompressionOutputStream;
-  }
-
-  public UnsafeByteArrayOutputStream surrenderDecompressionOutputStream() {
-    UnsafeByteArrayOutputStream result = decompressionOutputStream;
-    this.decompressionOutputStream = null;
-    return result;
   }
 
   public boolean getL1CacheHit() {

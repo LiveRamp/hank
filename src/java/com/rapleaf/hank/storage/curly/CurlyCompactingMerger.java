@@ -54,7 +54,7 @@ public class CurlyCompactingMerger implements ICurlyCompactingMerger {
       recordFileReaders[curlyReaderIndex++] = curlyReaderFactory.getInstance(curlyDelta);
     }
 
-    ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes, null);
+    ReaderResult readerResult = new ReaderResult(recordFileReadBufferBytes);
 
     while (true) {
       KeyHashAndValueAndStreamIndex keyHashValuePair =

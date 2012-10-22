@@ -18,10 +18,7 @@ package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.util.Bytes;
-import com.rapleaf.hank.util.EncodingHelper;
-import com.rapleaf.hank.util.IOStreamUtils;
-import com.rapleaf.hank.util.LruHashMap;
+import com.rapleaf.hank.util.*;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -43,6 +40,32 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final boolean cacheLastDecompressedBlock;
   private ByteBuffer lastDecompressedBlock;
   private long lastDecompressedBlockOffset = -1;
+
+  private static class Buffers {
+
+    private UnsafeByteArrayOutputStream decompressionOutputStream;
+    private byte[] copyBuffer;
+
+    public Buffers() {
+      decompressionOutputStream = new UnsafeByteArrayOutputStream();
+      copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
+    }
+
+    public UnsafeByteArrayOutputStream getDecompressionOutputStream() {
+      return decompressionOutputStream;
+    }
+
+    public byte[] getCopyBuffer() {
+      return copyBuffer;
+    }
+  }
+
+  private final static ThreadLocal<Buffers> threadLocalBuffers = new ThreadLocal<Buffers>() {
+    @Override
+    public Buffers initialValue() {
+      return new Buffers();
+    }
+  };
 
   public static CurlyFilePath getLatestBase(String partitionRoot) throws IOException {
     SortedSet<CurlyFilePath> bases = Curly.getBases(partitionRoot);
@@ -136,9 +159,10 @@ public class CurlyReader implements Reader, ICurlyReader {
             throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
         }
         // Decompress into the specialized result buffer
-        IOStreamUtils.copy(decompressedBlockInputStream, result.getDecompressionOutputStream());
+        Buffers buffers = threadLocalBuffers.get();
+        IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
         decompressedBlockInputStream.close();
-        decompressedBlockByteBuffer = result.getDecompressionOutputStream().getByteBuffer();
+        decompressedBlockByteBuffer = buffers.getDecompressionOutputStream().getByteBuffer();
         // Cache the decompressed block if requested
         if (cacheLastDecompressedBlock) {
           lastDecompressedBlockOffset = recordFileBlockOffset;

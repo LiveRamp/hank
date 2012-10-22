@@ -337,8 +337,8 @@ public class PartitionServerHandler implements IfaceWithShutdown {
             result.clear();
           } else {
             // Keep the ReaderResult's buffer in the response. Hence we need to create a new result buffer.
-            // Initialize it with the same capacity we had and take the decompression output stream if any.
-            result = new ReaderResult(valueBuffer.capacity(), result.surrenderDecompressionOutputStream());
+            // Initialize it with the same capacity we had.
+            result = new ReaderResult(valueBuffer.capacity());
           }
         }
         // Store response
