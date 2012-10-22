@@ -19,6 +19,7 @@ import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.IOStreamUtils;
 import com.rapleaf.hank.util.LruHashMap;
 
 import java.io.BufferedOutputStream;
@@ -70,7 +71,8 @@ public class CurlyWriter implements Writer {
                      BlockCompressionCodec blockCompressionCodec,
                      int compressedBlockSizeThreshold,
                      int offsetInBlockNumBytes) throws IOException {
-    this.recordFileStream = recordfileStream;
+    // Buffer output
+    this.recordFileStream = new BufferedOutputStream(recordfileStream, IOStreamUtils.DEFAULT_BUFFER_SIZE);
     this.keyfileWriter = keyfileWriter;
     this.blockCompressionCodec = blockCompressionCodec;
     this.offsetNumBytes = offsetNumBytes;
