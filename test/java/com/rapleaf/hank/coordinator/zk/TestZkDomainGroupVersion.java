@@ -148,14 +148,14 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
   }
 
   private void version(Coordinator coordinator, DomainGroup domainGroup, int versionNumber, int... pairs) throws Exception {
-    DomainGroupVersionMetadata initialValue = new DomainGroupVersionMetadata();
+    DomainGroupVersionMetadata initialMetadata = new DomainGroupVersionMetadata();
     Map<Integer, Integer> domainVersions = new HashMap<Integer, Integer>();
     for (int i = 0; i < pairs.length; i += 2) {
       domainVersions.put(pairs[i], pairs[i + 1]);
     }
-    initialValue.set_domain_versions(domainVersions);
-    initialValue.set_created_at(System.currentTimeMillis());
-    new ZkDomainGroupVersion(getZk(), coordinator, versionPath(versionNumber), domainGroup, true, initialValue);
+    initialMetadata.set_domain_versions(domainVersions);
+    initialMetadata.set_created_at(System.currentTimeMillis());
+    new ZkDomainGroupVersion(getZk(), coordinator, versionPath(versionNumber), domainGroup, true, initialMetadata);
   }
 
   private String versionPath(int versionNumber) {

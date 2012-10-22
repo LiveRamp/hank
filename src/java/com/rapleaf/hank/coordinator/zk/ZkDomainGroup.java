@@ -40,13 +40,13 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   private final WatchedMap<ZkDomainGroupVersion> versions;
 
   public static ZkDomainGroup create(final ZooKeeperPlus zk,
-                                        final String rootPath,
-                                        final String name,
-                                        final Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
+                                     final String rootPath,
+                                     final String name,
+                                     final Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
-    DomainGroupMetadata initialValue = new DomainGroupMetadata();
-    initialValue.set_next_version_number(0);
-    return new ZkDomainGroup(zk, path, coordinator, true, initialValue);
+    DomainGroupMetadata initialMetadata = new DomainGroupMetadata();
+    initialMetadata.set_next_version_number(0);
+    return new ZkDomainGroup(zk, path, coordinator, true, initialMetadata);
   }
 
   public ZkDomainGroup(final ZooKeeperPlus zk,
@@ -59,13 +59,13 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
                        final String path,
                        final Coordinator coordinator,
                        final boolean create,
-                       final DomainGroupMetadata initialValue)
+                       final DomainGroupMetadata initialMetadata)
       throws InterruptedException, KeeperException, IOException {
     super(coordinator);
     this.zk = zk;
     this.path = path;
     this.name = ZkPath.getFilename(path);
-    this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialValue, new DomainGroupMetadata());
+    this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialMetadata, new DomainGroupMetadata());
     if (create) {
       zk.create(ZkPath.append(path, VERSIONS_PATH), null);
     }

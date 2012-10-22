@@ -63,7 +63,7 @@ struct PartitionMetadata {
 
 struct DomainVersionMetadata {
   1: binary properties;
-  2: required map<i32, PartitionMetadata> partitions_metadata;
+  2: required map<i32, PartitionMetadata> partitions;
   3: required bool defunct;
   4: required i64 closed_at;
 }
@@ -75,4 +75,25 @@ struct DomainGroupMetadata {
 struct DomainGroupVersionMetadata {
   1: required map<i32, i32> domain_versions;
   2: required i64 created_at;
+}
+
+struct HostDomainPartitionMetadata {
+  1: optional i32 current_version_number;
+  2: required bool deletable;
+}
+
+struct HostDomainMetadata {
+  1: required map<i32, HostDomainPartitionMetadata> partitions;
+}
+
+struct HostAssignmentsMetadata {
+  1: required map<i32, HostDomainMetadata> domains;
+}
+
+struct HostMetadata {
+  1: required string flags;
+}
+
+struct StatisticsMetadata {
+  1: required map<string, string> statistics;
 }

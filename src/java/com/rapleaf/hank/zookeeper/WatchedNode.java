@@ -18,6 +18,7 @@ package com.rapleaf.hank.zookeeper;
 
 import com.rapleaf.hank.util.ExponentialBackoff;
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
@@ -193,11 +194,15 @@ public abstract class WatchedNode<T> {
     }
   }
 
+  public String getPath() {
+    return nodePath;
+  }
+
   public void cancelWatch() {
     cancelled = true;
   }
 
-  public void create() throws InterruptedException, KeeperException {
-    zk.create(nodePath, encode(initialValue));
+  public void ensureCreated(CreateMode createMode) throws InterruptedException, KeeperException {
+    zk.ensureCreated(nodePath, encode(initialValue), createMode);
   }
 }

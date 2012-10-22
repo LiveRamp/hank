@@ -18,6 +18,8 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
 import java.util.Collections;
@@ -58,33 +60,34 @@ public class TestZkRing extends ZkTestCase {
   }
 
   public void testHosts() throws Exception {
-    ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
+    final ZkRing ring = ZkRing.create(getZk(), coordinator, ring_group_root, 1, null, null);
     assertEquals(0, ring.getHosts().size());
 
     Host host = ring.addHost(LOCALHOST, Collections.<String>emptyList());
     assertEquals(LOCALHOST, host.getAddress());
-    for (int i = 0; i < 20; i++) {
-      if (!ring.getHosts().isEmpty()) {
-        break;
+
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return !ring.getHosts().isEmpty();
       }
-      Thread.sleep(100);
-    }
+    });
     assertEquals(Collections.singleton(host), ring.getHosts());
 
     assertEquals(LOCALHOST, ring.getHostByAddress(LOCALHOST).getAddress());
     ring.close();
 
     // assure that hosts reload well, too
-    ring = new ZkRing(getZk(), ring_root, null, coordinator, null);
-    assertEquals(1, ring.getHosts().size());
+    ZkRing sameRing = new ZkRing(getZk(), ring_root, null, coordinator, null);
+    assertEquals(1, sameRing.getHosts().size());
 
-    assertEquals(Collections.singleton(host), ring.getHosts());
+    assertEquals(Collections.singleton(host), sameRing.getHosts());
 
-    assertEquals(LOCALHOST, ring.getHostByAddress(LOCALHOST).getAddress());
+    assertEquals(LOCALHOST, sameRing.getHostByAddress(LOCALHOST).getAddress());
 
-    assertTrue(ring.removeHost(LOCALHOST));
-    assertNull(ring.getHostByAddress(LOCALHOST));
-    assertFalse(ring.removeHost(LOCALHOST));
+    assertTrue(sameRing.removeHost(LOCALHOST));
+    assertNull(sameRing.getHostByAddress(LOCALHOST));
+    assertFalse(sameRing.removeHost(LOCALHOST));
 
     ring.close();
   }
@@ -94,15 +97,19 @@ public class TestZkRing extends ZkTestCase {
     Host h1 = ring.addHost(new PartitionServerAddress("localhost", 1), Collections.<String>emptyList());
     MockHostCommandQueueChangeListener l1 = new MockHostCommandQueueChangeListener();
     h1.setCommandQueueChangeListener(l1);
-    MockHostStateChangeListener l2 = new MockHostStateChangeListener();
+    final MockHostStateChangeListener l2 = new MockHostStateChangeListener();
     h1.setStateChangeListener(l2);
 
     ring.addHost(new PartitionServerAddress("localhost", 2), Collections.<String>emptyList());
 
     h1.setState(HostState.UPDATING);
-    synchronized (l2) {
-      l2.wait(WAIT_TIME);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return HostState.UPDATING == l2.calledWith;
+      }
+    });
+
     assertEquals(HostState.UPDATING, l2.calledWith);
 
     h1.enqueueCommand(HostCommand.EXECUTE_UPDATE);

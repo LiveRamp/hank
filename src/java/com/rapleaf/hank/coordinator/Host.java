@@ -110,6 +110,13 @@ public interface Host extends Comparable<Host> {
   public HostCommand getCurrentCommand() throws IOException;
 
   /**
+   * Clear this hosts's command queue.
+   *
+   * @throws IOException
+   */
+  public void clearCommandQueue() throws IOException;
+
+  /**
    * The listener will be notified when there are changes to this host's command
    * queue.
    *
@@ -145,7 +152,7 @@ public interface Host extends Comparable<Host> {
    */
   public HostDomain addDomain(Domain domain) throws IOException;
 
-  public boolean removeDomain(Domain domain) throws IOException;
+  public void removeDomain(Domain domain) throws IOException;
 
   /**
    * Get the HostDomainConfig for the provided domainId.
@@ -154,13 +161,6 @@ public interface Host extends Comparable<Host> {
    * @return
    */
   public HostDomain getHostDomain(Domain domain);
-
-  /**
-   * Clear this hosts's command queue.
-   *
-   * @throws IOException
-   */
-  public void clearCommandQueue() throws IOException;
 
   public void setEphemeralStatistic(String key, String value) throws IOException;
 

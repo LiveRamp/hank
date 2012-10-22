@@ -19,6 +19,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.commons.io.FileUtils;
@@ -26,6 +28,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
@@ -49,8 +52,6 @@ public class ZkTestCase extends BaseTestCase {
 
   private static final int TICK_TIME = 2000;
   private static final int CONNECTION_TIMEOUT = 30000;
-
-  protected static final int WAIT_TIME = 10000;
 
   private final static String zkDir = System.getProperty("zk_dir", "/tmp/zk_in_tests");
   private static Factory standaloneServerFactory;
@@ -133,6 +134,18 @@ public class ZkTestCase extends BaseTestCase {
     LOG.debug("session timeout: " + zk.getSessionTimeout());
 
     zk.deleteNodeRecursively(zkRoot);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return zk.exists(zkRoot, false) == null;
+        } catch (KeeperException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     createNodeRecursively(zkRoot);
   }
 

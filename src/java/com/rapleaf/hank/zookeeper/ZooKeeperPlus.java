@@ -16,17 +16,17 @@
 
 package com.rapleaf.hank.zookeeper;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Watcher;
-import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 public class ZooKeeperPlus extends ZooKeeper {
 
@@ -124,6 +124,13 @@ public class ZooKeeperPlus extends ZooKeeper {
       create(path, value.getBytes(), DEFAULT_ACL, createMode);
     } else {
       setData(path, value.getBytes(), -1);
+    }
+  }
+
+  public void ensureCreated(String path, byte[] value, CreateMode createMode) throws InterruptedException, KeeperException {
+    if (exists(path, false) == null) {
+      create(path, value, DEFAULT_ACL, createMode);
+      NodeCreationBarrier.block(this, path);
     }
   }
 

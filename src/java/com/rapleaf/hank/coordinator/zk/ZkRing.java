@@ -35,7 +35,7 @@ public class ZkRing extends AbstractRing {
   private static final String HOSTS_PATH_SEGMENT = "hosts";
 
   private final String ringPath;
-  private final WatchedMap<ZkHost> hosts;
+  private final WatchedMap<NewZkHost> hosts;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
   private final DataLocationChangeListener dataLocationChangeListener;
@@ -68,18 +68,19 @@ public class ZkRing extends AbstractRing {
       throw new RuntimeException("Cannot initialize a ZkRing with a null Coordinator.");
     }
 
-    hosts = new WatchedMap<ZkHost>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<ZkHost>() {
-      public ZkHost load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
-        return new ZkHost(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT, relPath), dataLocationChangeListener);
+    hosts = new WatchedMap<NewZkHost>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<NewZkHost>() {
+      public NewZkHost load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
+        return new NewZkHost(zk, coordinator, ZkPath.append(basePath, relPath), dataLocationChangeListener,
+            false, null, null);
       }
-    });
+    }, new DotComplete());
     hosts.addListener(new ZkRing.HostsWatchedMapListener());
   }
 
-  private class HostsWatchedMapListener implements WatchedMapListener<ZkHost> {
+  private class HostsWatchedMapListener implements WatchedMapListener<NewZkHost> {
 
     @Override
-    public void onWatchedMapChange(WatchedMap<ZkHost> zkHostWatchedMap) {
+    public void onWatchedMapChange(WatchedMap<NewZkHost> zkHostWatchedMap) {
       if (dataLocationChangeListener != null) {
         dataLocationChangeListener.onDataLocationChange();
       }
@@ -106,7 +107,7 @@ public class ZkRing extends AbstractRing {
   public Host addHost(PartitionServerAddress address,
                       List<String> flags) throws IOException {
     try {
-      return ZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener, flags);
+      return NewZkHost.create(zk, coordinator, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), address, dataLocationChangeListener, flags);
     } catch (Exception e) {
       throw new IOException(e);
     }
@@ -115,7 +116,7 @@ public class ZkRing extends AbstractRing {
   @Override
   public boolean removeHost(PartitionServerAddress address) throws IOException {
     String addressStr = address.toString();
-    ZkHost host = hosts.remove(addressStr);
+    NewZkHost host = hosts.remove(addressStr);
     if (host == null) {
       return false;
     } else {
@@ -127,7 +128,7 @@ public class ZkRing extends AbstractRing {
 
   public void close() {
     for (Host host : getHosts()) {
-      ((ZkHost) host).close();
+      ((NewZkHost) host).close();
     }
   }
 
