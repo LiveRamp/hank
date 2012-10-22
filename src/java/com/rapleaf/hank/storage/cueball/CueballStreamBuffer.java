@@ -20,11 +20,12 @@ package com.rapleaf.hank.storage.cueball;
 
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.IOStreamUtils;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
 
 public final class CueballStreamBuffer {
   private final int relativeIndex;
@@ -34,7 +35,7 @@ public final class CueballStreamBuffer {
   private final int fullRecordSize;
 
   private boolean complete;
-  private final FileChannel channel;
+  private final InputStream stream;
 
   private final long[] hashIndex;
   private final byte[] uncompressedBuffer;
@@ -53,12 +54,13 @@ public final class CueballStreamBuffer {
       throws IOException {
     this.relativeIndex = relativeIndex;
     this.compressionCodec = compressionCodec;
-    this.channel = new FileInputStream(filePath).getChannel();
+    FileInputStream fileInputStream = new FileInputStream(filePath);
+    this.stream = new BufferedInputStream(fileInputStream, IOStreamUtils.DEFAULT_BUFFER_SIZE);
 
     this.keyHashSize = keyHashSize;
     this.fullRecordSize = valueSize + keyHashSize;
 
-    Footer footer = new Footer(channel, hashIndexBits);
+    Footer footer = new Footer(fileInputStream.getChannel(), hashIndexBits);
     dataLength = footer.getDataLength();
     hashIndex = footer.getHashIndex();
     uncompressedBuffer = new byte[footer.getMaxUncompressedBufferSize()];
@@ -122,7 +124,7 @@ public final class CueballStreamBuffer {
 
     final int blockLength = (int) (upperOffset - hashIndex[currentHashIndexIdx]);
     // read the compressed block from disk into the compressed buffer
-    final int compressedBytesRead = readFully(channel, compressedBuffer, blockLength);
+    final int compressedBytesRead = stream.read(compressedBuffer, 0, blockLength);
     // decompress the compressed block into the uncompressed buffer
     final int decompressedSize = compressionCodec.decompress(compressedBuffer, 0, compressedBytesRead, uncompressedBuffer, 0);
 
@@ -162,11 +164,7 @@ public final class CueballStreamBuffer {
     return currentOffset;
   }
 
-  private static int readFully(FileChannel channel, byte[] buf, int readLength) throws IOException {
-    return channel.read(ByteBuffer.wrap(buf, 0, readLength));
-  }
-
   public void close() throws IOException {
-    channel.close();
+    stream.close();
   }
 }
