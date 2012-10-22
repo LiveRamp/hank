@@ -73,7 +73,7 @@ public class ZkRing extends AbstractRing {
         return new NewZkHost(zk, coordinator, ZkPath.append(basePath, relPath), dataLocationChangeListener,
             false, null, null);
       }
-    });
+    }, new DotComplete());
     hosts.addListener(new ZkRing.HostsWatchedMapListener());
   }
 

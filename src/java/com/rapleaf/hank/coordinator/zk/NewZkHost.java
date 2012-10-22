@@ -99,6 +99,9 @@ public class NewZkHost extends AbstractHost {
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
+    if (create) {
+      zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
+    }
   }
 
   private class AssignmentsListener implements WatchedNodeListener<HostAssignmentsMetadata> {
@@ -477,7 +480,11 @@ public class NewZkHost extends AbstractHost {
       if (hostPartitionMetadata == null) {
         return null;
       } else {
-        return hostPartitionMetadata.get_current_version_number();
+        if (!hostPartitionMetadata.is_set_current_version_number()) {
+          return null;
+        } else {
+          return hostPartitionMetadata.get_current_version_number();
+        }
       }
     }
   }
@@ -494,7 +501,11 @@ public class NewZkHost extends AbstractHost {
             HostDomainPartitionMetadata hostPartitionMetadata =
                 hostDomainMetadata.get_partitions().get(partitionNumber);
             if (hostPartitionMetadata != null) {
-              hostPartitionMetadata.set_current_version_number(version);
+              if (version == null) {
+                hostPartitionMetadata.unset_current_version_number();
+              } else {
+                hostPartitionMetadata.set_current_version_number(version);
+              }
             }
           }
         }
@@ -515,7 +526,11 @@ public class NewZkHost extends AbstractHost {
       if (hostPartitionMetadata == null) {
         return false;
       } else {
-        return hostPartitionMetadata.is_deletable();
+        if (!hostPartitionMetadata.is_set_deletable()) {
+          return false;
+        } else {
+          return hostPartitionMetadata.is_deletable();
+        }
       }
     }
   }

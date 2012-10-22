@@ -53,8 +53,6 @@ public class ZkTestCase extends BaseTestCase {
   private static final int TICK_TIME = 2000;
   private static final int CONNECTION_TIMEOUT = 30000;
 
-  protected static final int WAIT_TIME = 10000;
-
   private final static String zkDir = System.getProperty("zk_dir", "/tmp/zk_in_tests");
   private static Factory standaloneServerFactory;
   private static ZooKeeperServer server;
