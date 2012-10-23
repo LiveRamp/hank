@@ -27,9 +27,9 @@ import org.apache.zookeeper.data.Stat;
 import java.io.IOException;
 import java.util.*;
 
-public class NewZkHost extends AbstractHost {
+public class ZkHost extends AbstractHost {
 
-  private static final Logger LOG = Logger.getLogger(NewZkHost.class);
+  private static final Logger LOG = Logger.getLogger(ZkHost.class);
 
   private static final String STATE_PATH = "s";
   private static final String ASSIGNMENTS_PATH = "a";
@@ -53,7 +53,7 @@ public class NewZkHost extends AbstractHost {
       = new HashSet<HostCommandQueueChangeListener>();
   private final CommandQueueWatcher commandQueueWatcher;
 
-  public static NewZkHost create(ZooKeeperPlus zk,
+  public static ZkHost create(ZooKeeperPlus zk,
                                  Coordinator coordinator,
                                  String root,
                                  PartitionServerAddress partitionServerAddress,
@@ -67,16 +67,16 @@ public class NewZkHost extends AbstractHost {
     initialMetadata.set_flags(Hosts.joinHostFlags(flags));
     HostAssignmentsMetadata initialAssignments = new HostAssignmentsMetadata();
     initialAssignments.set_domains(new HashMap<Integer, HostDomainMetadata>());
-    return new NewZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata, initialAssignments);
+    return new ZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata, initialAssignments);
   }
 
-  public NewZkHost(final ZooKeeperPlus zk,
-                   final Coordinator coordinator,
-                   final String path,
-                   final DataLocationChangeListener dataLocationChangeListener,
-                   final boolean create,
-                   final HostMetadata initialMetadata,
-                   final HostAssignmentsMetadata initialAssignments) throws KeeperException, InterruptedException {
+  public ZkHost(final ZooKeeperPlus zk,
+                final Coordinator coordinator,
+                final String path,
+                final DataLocationChangeListener dataLocationChangeListener,
+                final boolean create,
+                final HostMetadata initialMetadata,
+                final HostAssignmentsMetadata initialAssignments) throws KeeperException, InterruptedException {
     if (coordinator == null) {
       throw new IllegalArgumentException("Cannot initialize a ZkHost with a null Coordinator.");
     }
@@ -128,7 +128,7 @@ public class NewZkHost extends AbstractHost {
         case NodeDataChanged:
         case NodeChildrenChanged:
           for (HostCommandQueueChangeListener listener : commandQueueListeners) {
-            listener.onCommandQueueChange(NewZkHost.this);
+            listener.onCommandQueueChange(ZkHost.this);
           }
       }
     }
@@ -302,7 +302,7 @@ public class NewZkHost extends AbstractHost {
   public Set<HostDomain> getAssignedDomains() throws IOException {
     Set<HostDomain> result = new HashSet<HostDomain>();
     for (Integer domainId : assignments.get().get_domains().keySet()) {
-      result.add(new NewZkHostDomain(this, domainId));
+      result.add(new ZkHostDomain(this, domainId));
     }
     return result;
   }
@@ -327,7 +327,7 @@ public class NewZkHost extends AbstractHost {
       throw new IOException(e);
     }
     fireDataLocationChangeListener();
-    return new NewZkHostDomain(this, domainId);
+    return new ZkHostDomain(this, domainId);
   }
 
   @Override
@@ -427,7 +427,7 @@ public class NewZkHost extends AbstractHost {
     } else {
       Set<HostDomainPartition> result = new HashSet<HostDomainPartition>();
       for (Integer partitionNumber : hostDomainMetadata.get_partitions().keySet()) {
-        result.add(new NewZkHostDomainPartition(this, domainId, partitionNumber));
+        result.add(new ZkHostDomainPartition(this, domainId, partitionNumber));
       }
       return result;
     }
@@ -449,7 +449,7 @@ public class NewZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
-    return new NewZkHostDomainPartition(this, domainId, partNum);
+    return new ZkHostDomainPartition(this, domainId, partNum);
   }
 
   protected void removePartition(final int domainId,
@@ -585,7 +585,7 @@ public class NewZkHost extends AbstractHost {
     if (getClass() != obj.getClass()) {
       return false;
     }
-    NewZkHost other = (NewZkHost) obj;
+    ZkHost other = (ZkHost) obj;
     if (address == null) {
       if (other.address != null) {
         return false;

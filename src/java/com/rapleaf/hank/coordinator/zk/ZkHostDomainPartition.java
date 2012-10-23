@@ -21,13 +21,13 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 
 import java.io.IOException;
 
-public class NewZkHostDomainPartition extends AbstractHostDomainPartition implements HostDomainPartition {
+public class ZkHostDomainPartition extends AbstractHostDomainPartition implements HostDomainPartition {
 
-  private final NewZkHost host;
+  private final ZkHost host;
   private final int domainId;
   private final int partitionNumber;
 
-  public NewZkHostDomainPartition(NewZkHost host, int domainId, int partitionNumber) {
+  public ZkHostDomainPartition(ZkHost host, int domainId, int partitionNumber) {
     this.host = host;
     this.domainId = domainId;
     this.partitionNumber = partitionNumber;

@@ -24,12 +24,12 @@ import com.rapleaf.hank.coordinator.HostDomainPartition;
 import java.io.IOException;
 import java.util.Set;
 
-public class NewZkHostDomain extends AbstractHostDomain implements HostDomain {
+public class ZkHostDomain extends AbstractHostDomain implements HostDomain {
 
-  private final NewZkHost host;
+  private final ZkHost host;
   private final int domainId;
 
-  public NewZkHostDomain(NewZkHost host, int domainId) {
+  public ZkHostDomain(ZkHost host, int domainId) {
     this.host = host;
     this.domainId = domainId;
   }
