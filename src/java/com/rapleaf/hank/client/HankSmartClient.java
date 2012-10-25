@@ -265,7 +265,9 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           if (domain == null) {
             throw new IOException(String.format("Could not load Domain from HostDomain %s", hostDomain.toString()));
           }
-          LOG.info("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
+          }
           Map<Integer, List<PartitionServerAddress>> partitionToAdresses =
               newDomainToPartitionToPartitionServerAddressList.get(domain.getId());
           if (partitionToAdresses == null) {
