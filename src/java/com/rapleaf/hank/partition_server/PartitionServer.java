@@ -243,8 +243,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private void processGoToIdle(HostState state) throws IOException {
     switch (state) {
       case SERVING:
-        stopServingData();
+        // Set IDLE state proactively. If the shutting down hangs, it will be safe since clients will be already aware.
         host.setState(HostState.IDLE); // In case of exception, server will stop and state will be coherent.
+        stopServingData();
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
