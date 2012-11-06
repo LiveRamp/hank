@@ -54,11 +54,11 @@ public class ZkHost extends AbstractHost {
   private final CommandQueueWatcher commandQueueWatcher;
 
   public static ZkHost create(ZooKeeperPlus zk,
-                                 Coordinator coordinator,
-                                 String root,
-                                 PartitionServerAddress partitionServerAddress,
-                                 DataLocationChangeListener dataLocationChangeListener,
-                                 List<String> flags) throws KeeperException, InterruptedException {
+                              Coordinator coordinator,
+                              String root,
+                              PartitionServerAddress partitionServerAddress,
+                              DataLocationChangeListener dataLocationChangeListener,
+                              List<String> flags) throws KeeperException, InterruptedException {
     String path = ZkPath.append(root, partitionServerAddress.toString());
     if (LOG.isTraceEnabled()) {
       LOG.trace("Creating ZkHost " + path);
@@ -88,12 +88,12 @@ public class ZkHost extends AbstractHost {
     this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create, initialMetadata, new HostMetadata());
     this.assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(path, ASSIGNMENTS_PATH),
         true, create, initialAssignments, new HostAssignmentsMetadata());
-    assignments.addListener(new AssignmentsListener());
     if (create) {
       zk.create(ZkPath.append(path, CURRENT_COMMAND_PATH), null);
       zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
     }
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
+    this.state.addListener(new DataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, false, null, new StatisticsMetadata());
     commandQueueWatcher = new CommandQueueWatcher();
@@ -104,11 +104,13 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  private class AssignmentsListener implements WatchedNodeListener<HostAssignmentsMetadata> {
+  private class DataLocationChangeNotifier implements WatchedNodeListener<HostState> {
 
     @Override
-    public void onWatchedNodeChange(HostAssignmentsMetadata value) {
-      fireDataLocationChangeListener();
+    public void onWatchedNodeChange(HostState value) {
+      if (value == HostState.SERVING) {
+        fireDataLocationChangeListener();
+      }
     }
   }
 
