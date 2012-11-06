@@ -144,6 +144,12 @@ public class PartitionServerHandler implements IfaceWithShutdown {
               partition.getPartitionNumber(), domain.getName()));
           continue;
         }
+        if (partition.isDeletable()) {
+          LOG.error(String.format(
+              "Could not load Reader for partition #%d of Domain %s because the partition is deletable.",
+              partition.getPartitionNumber(), domain.getName()));
+          continue;
+        }
 
         // Determine at which DomainVersion the partition should be
         int domainGroupVersionDomainVersionNumber;
