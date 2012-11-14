@@ -425,7 +425,7 @@ public class ZkHost extends AbstractHost {
   protected Set<HostDomainPartition> getPartitions(int domainId) {
     HostDomainMetadata hostDomainMetadata = assignments.get().get_domains().get(domainId);
     if (hostDomainMetadata == null) {
-      return null;
+      return Collections.emptySet();
     } else {
       Set<HostDomainPartition> result = new HashSet<HostDomainPartition>();
       for (Integer partitionNumber : hostDomainMetadata.get_partitions().keySet()) {
