@@ -32,6 +32,7 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("DomainGroupMetadata");
 
   private static final org.apache.thrift.protocol.TField NEXT_VERSION_NUMBER_FIELD_DESC = new org.apache.thrift.protocol.TField("next_version_number", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField DOMAIN_VERSIONS_MAP_FIELD_DESC = new org.apache.thrift.protocol.TField("domain_versions_map", org.apache.thrift.protocol.TType.MAP, (short)2);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -40,10 +41,12 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   }
 
   public int next_version_number; // required
+  public Map<Integer,Integer> domain_versions_map; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    NEXT_VERSION_NUMBER((short)1, "next_version_number");
+    NEXT_VERSION_NUMBER((short)1, "next_version_number"),
+    DOMAIN_VERSIONS_MAP((short)2, "domain_versions_map");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -60,6 +63,8 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       switch(fieldId) {
         case 1: // NEXT_VERSION_NUMBER
           return NEXT_VERSION_NUMBER;
+        case 2: // DOMAIN_VERSIONS_MAP
+          return DOMAIN_VERSIONS_MAP;
         default:
           return null;
       }
@@ -102,11 +107,16 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   // isset id assignments
   private static final int __NEXT_VERSION_NUMBER_ISSET_ID = 0;
   private BitSet __isset_bit_vector = new BitSet(1);
+  private _Fields optionals[] = {_Fields.DOMAIN_VERSIONS_MAP};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.NEXT_VERSION_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("next_version_number", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.DOMAIN_VERSIONS_MAP, new org.apache.thrift.meta_data.FieldMetaData("domain_versions_map", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(DomainGroupMetadata.class, metaDataMap);
   }
@@ -129,6 +139,21 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     __isset_bit_vector.clear();
     __isset_bit_vector.or(other.__isset_bit_vector);
     this.next_version_number = other.next_version_number;
+    if (other.is_set_domain_versions_map()) {
+      Map<Integer,Integer> __this__domain_versions_map = new HashMap<Integer,Integer>();
+      for (Map.Entry<Integer, Integer> other_element : other.domain_versions_map.entrySet()) {
+
+        Integer other_element_key = other_element.getKey();
+        Integer other_element_value = other_element.getValue();
+
+        Integer __this__domain_versions_map_copy_key = other_element_key;
+
+        Integer __this__domain_versions_map_copy_value = other_element_value;
+
+        __this__domain_versions_map.put(__this__domain_versions_map_copy_key, __this__domain_versions_map_copy_value);
+      }
+      this.domain_versions_map = __this__domain_versions_map;
+    }
   }
 
   public DomainGroupMetadata deepCopy() {
@@ -139,6 +164,7 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   public void clear() {
     set_next_version_number_isSet(false);
     this.next_version_number = 0;
+    this.domain_versions_map = null;
   }
 
   public int get_next_version_number() {
@@ -164,6 +190,41 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     __isset_bit_vector.set(__NEXT_VERSION_NUMBER_ISSET_ID, value);
   }
 
+  public int get_domain_versions_map_size() {
+    return (this.domain_versions_map == null) ? 0 : this.domain_versions_map.size();
+  }
+
+  public void put_to_domain_versions_map(int key, int val) {
+    if (this.domain_versions_map == null) {
+      this.domain_versions_map = new HashMap<Integer,Integer>();
+    }
+    this.domain_versions_map.put(key, val);
+  }
+
+  public Map<Integer,Integer> get_domain_versions_map() {
+    return this.domain_versions_map;
+  }
+
+  public DomainGroupMetadata set_domain_versions_map(Map<Integer,Integer> domain_versions_map) {
+    this.domain_versions_map = domain_versions_map;
+    return this;
+  }
+
+  public void unset_domain_versions_map() {
+    this.domain_versions_map = null;
+  }
+
+  /** Returns true if field domain_versions_map is set (has been assigned a value) and false otherwise */
+  public boolean is_set_domain_versions_map() {
+    return this.domain_versions_map != null;
+  }
+
+  public void set_domain_versions_map_isSet(boolean value) {
+    if (!value) {
+      this.domain_versions_map = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case NEXT_VERSION_NUMBER:
@@ -174,6 +235,14 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       }
       break;
 
+    case DOMAIN_VERSIONS_MAP:
+      if (value == null) {
+        unset_domain_versions_map();
+      } else {
+        set_domain_versions_map((Map<Integer,Integer>)value);
+      }
+      break;
+
     }
   }
 
@@ -181,6 +250,9 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     switch (field) {
     case NEXT_VERSION_NUMBER:
       return Integer.valueOf(get_next_version_number());
+
+    case DOMAIN_VERSIONS_MAP:
+      return get_domain_versions_map();
 
     }
     throw new IllegalStateException();
@@ -195,6 +267,8 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     switch (field) {
     case NEXT_VERSION_NUMBER:
       return is_set_next_version_number();
+    case DOMAIN_VERSIONS_MAP:
+      return is_set_domain_versions_map();
     }
     throw new IllegalStateException();
   }
@@ -221,6 +295,15 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
         return false;
     }
 
+    boolean this_present_domain_versions_map = true && this.is_set_domain_versions_map();
+    boolean that_present_domain_versions_map = true && that.is_set_domain_versions_map();
+    if (this_present_domain_versions_map || that_present_domain_versions_map) {
+      if (!(this_present_domain_versions_map && that_present_domain_versions_map))
+        return false;
+      if (!this.domain_versions_map.equals(that.domain_versions_map))
+        return false;
+    }
+
     return true;
   }
 
@@ -232,6 +315,11 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     builder.append(present_next_version_number);
     if (present_next_version_number)
       builder.append(next_version_number);
+
+    boolean present_domain_versions_map = true && (is_set_domain_versions_map());
+    builder.append(present_domain_versions_map);
+    if (present_domain_versions_map)
+      builder.append(domain_versions_map);
 
     return builder.toHashCode();
   }
@@ -250,6 +338,16 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     }
     if (is_set_next_version_number()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.next_version_number, typedOther.next_version_number);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(is_set_domain_versions_map()).compareTo(typedOther.is_set_domain_versions_map());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (is_set_domain_versions_map()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.domain_versions_map, typedOther.domain_versions_map);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -277,6 +375,16 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     sb.append("next_version_number:");
     sb.append(this.next_version_number);
     first = false;
+    if (is_set_domain_versions_map()) {
+      if (!first) sb.append(", ");
+      sb.append("domain_versions_map:");
+      if (this.domain_versions_map == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.domain_versions_map);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -330,6 +438,26 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 2: // DOMAIN_VERSIONS_MAP
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map18 = iprot.readMapBegin();
+                struct.domain_versions_map = new HashMap<Integer,Integer>(2*_map18.size);
+                for (int _i19 = 0; _i19 < _map18.size; ++_i19)
+                {
+                  int _key20; // required
+                  int _val21; // required
+                  _key20 = iprot.readI32();
+                  _val21 = iprot.readI32();
+                  struct.domain_versions_map.put(_key20, _val21);
+                }
+                iprot.readMapEnd();
+              }
+              struct.set_domain_versions_map_isSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -351,6 +479,21 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       oprot.writeFieldBegin(NEXT_VERSION_NUMBER_FIELD_DESC);
       oprot.writeI32(struct.next_version_number);
       oprot.writeFieldEnd();
+      if (struct.domain_versions_map != null) {
+        if (struct.is_set_domain_versions_map()) {
+          oprot.writeFieldBegin(DOMAIN_VERSIONS_MAP_FIELD_DESC);
+          {
+            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, struct.domain_versions_map.size()));
+            for (Map.Entry<Integer, Integer> _iter22 : struct.domain_versions_map.entrySet())
+            {
+              oprot.writeI32(_iter22.getKey());
+              oprot.writeI32(_iter22.getValue());
+            }
+            oprot.writeMapEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -369,6 +512,21 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     public void write(org.apache.thrift.protocol.TProtocol prot, DomainGroupMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeI32(struct.next_version_number);
+      BitSet optionals = new BitSet();
+      if (struct.is_set_domain_versions_map()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.is_set_domain_versions_map()) {
+        {
+          oprot.writeI32(struct.domain_versions_map.size());
+          for (Map.Entry<Integer, Integer> _iter23 : struct.domain_versions_map.entrySet())
+          {
+            oprot.writeI32(_iter23.getKey());
+            oprot.writeI32(_iter23.getValue());
+          }
+        }
+      }
     }
 
     @Override
@@ -376,6 +534,22 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.next_version_number = iprot.readI32();
       struct.set_next_version_number_isSet(true);
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TMap _map24 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, iprot.readI32());
+          struct.domain_versions_map = new HashMap<Integer,Integer>(2*_map24.size);
+          for (int _i25 = 0; _i25 < _map24.size; ++_i25)
+          {
+            int _key26; // required
+            int _val27; // required
+            _key26 = iprot.readI32();
+            _val27 = iprot.readI32();
+            struct.domain_versions_map.put(_key26, _val27);
+          }
+        }
+        struct.set_domain_versions_map_isSet(true);
+      }
     }
   }
 

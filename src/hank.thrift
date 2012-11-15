@@ -70,6 +70,7 @@ struct DomainVersionMetadata {
 
 struct DomainGroupMetadata {
   1: required i32 next_version_number;
+  2: optional map<i32, i32> domain_versions_map;
 }
 
 struct DomainGroupVersionMetadata {

@@ -435,15 +435,15 @@ public class DomainGroupVersionMetadata implements org.apache.thrift.TBase<Domai
           case 1: // DOMAIN_VERSIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map18 = iprot.readMapBegin();
-                struct.domain_versions = new HashMap<Integer,Integer>(2*_map18.size);
-                for (int _i19 = 0; _i19 < _map18.size; ++_i19)
+                org.apache.thrift.protocol.TMap _map28 = iprot.readMapBegin();
+                struct.domain_versions = new HashMap<Integer,Integer>(2*_map28.size);
+                for (int _i29 = 0; _i29 < _map28.size; ++_i29)
                 {
-                  int _key20; // required
-                  int _val21; // required
-                  _key20 = iprot.readI32();
-                  _val21 = iprot.readI32();
-                  struct.domain_versions.put(_key20, _val21);
+                  int _key30; // required
+                  int _val31; // required
+                  _key30 = iprot.readI32();
+                  _val31 = iprot.readI32();
+                  struct.domain_versions.put(_key30, _val31);
                 }
                 iprot.readMapEnd();
               }
@@ -482,10 +482,10 @@ public class DomainGroupVersionMetadata implements org.apache.thrift.TBase<Domai
         oprot.writeFieldBegin(DOMAIN_VERSIONS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, struct.domain_versions.size()));
-          for (Map.Entry<Integer, Integer> _iter22 : struct.domain_versions.entrySet())
+          for (Map.Entry<Integer, Integer> _iter32 : struct.domain_versions.entrySet())
           {
-            oprot.writeI32(_iter22.getKey());
-            oprot.writeI32(_iter22.getValue());
+            oprot.writeI32(_iter32.getKey());
+            oprot.writeI32(_iter32.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -513,10 +513,10 @@ public class DomainGroupVersionMetadata implements org.apache.thrift.TBase<Domai
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
         oprot.writeI32(struct.domain_versions.size());
-        for (Map.Entry<Integer, Integer> _iter23 : struct.domain_versions.entrySet())
+        for (Map.Entry<Integer, Integer> _iter33 : struct.domain_versions.entrySet())
         {
-          oprot.writeI32(_iter23.getKey());
-          oprot.writeI32(_iter23.getValue());
+          oprot.writeI32(_iter33.getKey());
+          oprot.writeI32(_iter33.getValue());
         }
       }
       oprot.writeI64(struct.created_at);
@@ -526,15 +526,15 @@ public class DomainGroupVersionMetadata implements org.apache.thrift.TBase<Domai
     public void read(org.apache.thrift.protocol.TProtocol prot, DomainGroupVersionMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
-        org.apache.thrift.protocol.TMap _map24 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, iprot.readI32());
-        struct.domain_versions = new HashMap<Integer,Integer>(2*_map24.size);
-        for (int _i25 = 0; _i25 < _map24.size; ++_i25)
+        org.apache.thrift.protocol.TMap _map34 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, iprot.readI32());
+        struct.domain_versions = new HashMap<Integer,Integer>(2*_map34.size);
+        for (int _i35 = 0; _i35 < _map34.size; ++_i35)
         {
-          int _key26; // required
-          int _val27; // required
-          _key26 = iprot.readI32();
-          _val27 = iprot.readI32();
-          struct.domain_versions.put(_key26, _val27);
+          int _key36; // required
+          int _val37; // required
+          _key36 = iprot.readI32();
+          _val37 = iprot.readI32();
+          struct.domain_versions.put(_key36, _val37);
         }
       }
       struct.set_domain_versions_isSet(true);
