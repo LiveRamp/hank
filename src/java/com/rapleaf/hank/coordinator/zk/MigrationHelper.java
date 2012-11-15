@@ -33,7 +33,7 @@ public class MigrationHelper {
   private static Logger LOG = Logger.getLogger(MigrationHelper.class);
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[]{"configuration"},
+    CommandLineChecker.check(args, new String[]{"configuration", "ring_group"},
         MigrationHelper.class);
 
     String configurationPath = args[0];
