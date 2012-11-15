@@ -136,18 +136,4 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   public String getPath() {
     return path;
   }
-
-  public void migrate() throws IOException, InterruptedException, KeeperException {
-    DomainGroupVersion domainGroupVersion = DomainGroups.getLatestVersion(this);
-    final Map<Integer, Integer> map = new HashMap<Integer, Integer>();
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
-      map.put(domainVersion.getDomain().getId(), domainVersion.getVersionNumber());
-    }
-    metadata.update(metadata.new Updater() {
-      @Override
-      public void updateCopy(DomainGroupMetadata currentCopy) {
-        currentCopy.set_domain_versions_map(map);
-      }
-    });
-  }
 }

@@ -18,8 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -38,8 +37,25 @@ public class MigrationHelper {
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
 
-    for (DomainGroup domainGroup : coordinator.getDomainGroups()) {
-      ((ZkDomainGroup) domainGroup).migrate();
+    String ringGroupName = args[1];
+
+    RingGroup ringGroup = coordinator.getRingGroup(ringGroupName);
+    LOG.info("Migrating " + ringGroup.getName());
+    for (Ring ring : ringGroup.getRings()) {
+      LOG.info("  Migrating ring " + ring.getRingNumber());
+      for (Host host : ring.getHosts()) {
+        LOG.info("    Migrating host " + host.getAddress());
+        for (HostDomain hostDomain : host.getAssignedDomains()) {
+          LOG.info("      Migrating domain " + hostDomain.getDomain().getName());
+          int domainVersion = ringGroup.getTargetVersion().getDomainVersion(hostDomain.getDomain()).getVersionNumber();
+          for (HostDomainPartition partition : hostDomain.getPartitions()) {
+            LOG.info("        Migrating partition " + partition.getPartitionNumber()
+                + " from " + partition.getCurrentDomainGroupVersion()
+                + " to " + domainVersion);
+            partition.setCurrentDomainGroupVersion(domainVersion);
+          }
+        }
+      }
     }
   }
 }
