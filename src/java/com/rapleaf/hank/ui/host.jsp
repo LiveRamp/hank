@@ -282,7 +282,7 @@
           } else if (hdp.getCurrentDomainVersion() == null) {
             className = "partition_undeployed";
           } else if (targetDomainVersion != null &&
-                     hdp.getCurrentDomainGroupVersion().equals(targetDomainVersion.getVersionNumber())) {
+                     hdp.getCurrentDomainVersion().equals(targetDomainVersion.getVersionNumber())) {
             className = "partition_updated";
           } else {
             className = "partition_updating";
