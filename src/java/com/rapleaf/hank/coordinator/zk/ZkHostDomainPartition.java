@@ -39,12 +39,12 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition implement
   }
 
   @Override
-  public Integer getCurrentDomainGroupVersion() throws IOException {
+  public Integer getCurrentDomainVersion() throws IOException {
     return host.getCurrentDomainGroupVersion(domainId, partitionNumber);
   }
 
   @Override
-  public void setCurrentDomainGroupVersion(Integer version) throws IOException {
+  public void setCurrentDomainVersion(Integer version) throws IOException {
     host.setCurrentDomainGroupVersion(domainId, partitionNumber, version);
   }
 

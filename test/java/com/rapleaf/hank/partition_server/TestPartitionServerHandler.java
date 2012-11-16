@@ -37,6 +37,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class TestPartitionServerHandler extends BaseTestCase {
+
   private static final ByteBuffer K1 = bb(1);
   private static final ByteBuffer K2 = bb(2);
   private static final ByteBuffer K3 = bb(3);
@@ -74,7 +75,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
   }
 
   public void testSetUpAndServe() throws Exception {
-    PartitionServerHandler handler = createHandler(1);
+    PartitionServerHandler handler = createHandler(0);
 
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K1));
     assertEquals(HankResponse.value(V1), handler.get((byte) 0, K5));
@@ -88,7 +89,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
   }
 
   public void testSetUpAndServeBulk() throws Exception {
-    PartitionServerHandler handler = createHandler(1);
+    PartitionServerHandler handler = createHandler(0);
 
     // Regular bulk request
     List<ByteBuffer> keys1 = new ArrayList<ByteBuffer>();

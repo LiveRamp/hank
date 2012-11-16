@@ -164,9 +164,8 @@ public class UpdateManager implements IUpdateManager {
       long startTimeMs = System.currentTimeMillis();
       try {
         // Determine target version
-        DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
         DomainGroupVersionDomainVersion targetDomainGroupVersionDomainVersion =
-            targetDomainGroupVersion.getDomainVersion(domain);
+            ringGroup.getTargetVersion().getDomainVersion(domain);
 
         // If unable to determine the version, this partition is deletable (the corresponding domain is not in the
         // target domain group version)
@@ -178,8 +177,8 @@ public class UpdateManager implements IUpdateManager {
               domain.getVersion(targetDomainGroupVersionDomainVersion.getVersionNumber());
 
           // Skip partitions already up-to-date
-          if (partition.getCurrentDomainGroupVersion() != null &&
-              partition.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
+          if (partition.getCurrentDomainVersion() != null &&
+              partition.getCurrentDomainVersion().equals(targetDomainVersion.getVersionNumber())) {
             LOG.info(String.format(
                 "Skipping partition update of domain %s partition %d to version %d (it is already up-to-date).",
                 domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
@@ -188,7 +187,7 @@ public class UpdateManager implements IUpdateManager {
 
           // Mark the beginning of the update by first unsetting the partition's current version number.
           // That way, if the update fails, we will have to update it again, and won't be able to serve it.
-          partition.setCurrentDomainGroupVersion(null);
+          partition.setCurrentDomainVersion(null);
 
           // Perform update
           StorageEngine storageEngine = domain.getStorageEngine();
@@ -198,7 +197,7 @@ public class UpdateManager implements IUpdateManager {
           storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion);
 
           // Record update success
-          partition.setCurrentDomainGroupVersion(targetDomainGroupVersion.getVersionNumber());
+          partition.setCurrentDomainVersion(targetDomainVersion.getVersionNumber());
           LOG.info(String.format(
               "Completed partition update of domain %s partition %d to version %d.",
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));

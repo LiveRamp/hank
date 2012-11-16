@@ -49,7 +49,7 @@ public class WebUiServerTester extends ZkTestCase {
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
                       new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250})));
           for (HostDomainPartition partition : hd.getPartitions()) {
-            partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+            partition.setCurrentDomainVersion(dgv.getVersionNumber());
           }
         }
         PartitionServerHandler.setRuntimeStatistics(host, runtimeStatistics);
@@ -76,7 +76,7 @@ public class WebUiServerTester extends ZkTestCase {
             host.setState(HostState.SERVING);
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
-                partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+                partition.setCurrentDomainVersion(dgv.getVersionNumber());
               }
             }
           } else {
@@ -86,7 +86,7 @@ public class WebUiServerTester extends ZkTestCase {
             UpdateManager.setUpdateETA(host, 3243 * ((host.getAddress().hashCode() % 3) + 1));
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
-                partition.setCurrentDomainGroupVersion(0);
+                partition.setCurrentDomainVersion(0);
               }
             }
           }
@@ -96,7 +96,7 @@ public class WebUiServerTester extends ZkTestCase {
           host.setState(HostState.SERVING);
           for (HostDomain hd : host.getAssignedDomains()) {
             for (HostDomainPartition partition : hd.getPartitions()) {
-              partition.setCurrentDomainGroupVersion(dgv.getVersionNumber());
+              partition.setCurrentDomainVersion(dgv.getVersionNumber());
             }
           }
         }

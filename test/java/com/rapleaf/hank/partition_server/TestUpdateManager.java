@@ -169,7 +169,7 @@ public class TestUpdateManager extends BaseTestCase {
         @Override
         public SortedSet<DomainVersion> getVersions() {
           return new TreeSet<DomainVersion>(
-              Arrays.asList(new MockDomainVersion(0, null) {
+              Arrays.asList(new MockDomainVersion(2, null) {
                 @Override
                 public boolean isDefunct() throws IOException {
                   return true;
@@ -180,9 +180,9 @@ public class TestUpdateManager extends BaseTestCase {
     }
 
     private DomainGroupVersion getMockDomainGroupVersion(final Domain domain) {
-      // the domain version for this domain group version will be 0
+      // the domain version for this domain group version will be 2
       final DomainGroupVersionDomainVersion dgvdv =
-          new MockDomainGroupVersionDomainVersion(domain, 0);
+          new MockDomainGroupVersionDomainVersion(domain, 2);
       // the domain group version number is 1. note the difference between dgv
       // and dgvdv's version numbers - this is intentional
       return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
@@ -226,10 +226,10 @@ public class TestUpdateManager extends BaseTestCase {
     ud.update();
     assertTrue("update() was called on the storage engine",
         mockUpdater.isUpdated());
-    assertEquals("update() called with proper args", Integer.valueOf(0),
+    assertEquals("update() called with proper args", Integer.valueOf(2),
         mockUpdater.updatedToVersion);
-    assertEquals("current version", Integer.valueOf(1),
-        fixtures.HOST_DOMAIN_PARTITION.getCurrentDomainGroupVersion());
+    assertEquals("current version", Integer.valueOf(2),
+        fixtures.HOST_DOMAIN_PARTITION.getCurrentDomainVersion());
 
     assertFalse("host domain contains the partition", fixtures.MOCK_DELETER.hasDeleted());
     assertFalse("host domain partition has not yet been deleted",
@@ -318,7 +318,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
     // All updates have failed, so all versions should be set to null
     for (HostDomainPartition partition : mockHostDomain.getPartitions()) {
-      assertEquals(null, partition.getCurrentDomainGroupVersion());
+      assertEquals(null, partition.getCurrentDomainVersion());
     }
   }
 

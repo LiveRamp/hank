@@ -55,8 +55,8 @@ public final class Hosts {
           // Ignore deletable partitions
           if (!partition.isDeletable()) {
             ++numPartitions;
-            if (partition.getCurrentDomainGroupVersion() != null
-                && partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber())) {
+            if (partition.getCurrentDomainVersion() != null
+                && partition.getCurrentDomainVersion().equals(dgvdv.getVersionNumber())) {
               ++numPartitionsUpToDate;
             }
           }
@@ -88,8 +88,8 @@ public final class Hosts {
           // Ignore deletable partitions
           if (!partition.isDeletable()) {
             // If the partition is not currently at the given domain group version, the host is not up-to-date
-            if (partition.getCurrentDomainGroupVersion() == null ||
-                partition.getCurrentDomainGroupVersion() != domainGroupVersion.getVersionNumber()) {
+            if (partition.getCurrentDomainVersion() == null ||
+                partition.getCurrentDomainVersion() != dgvdv.getVersionNumber()) {
               return false;
             }
           }
@@ -111,14 +111,15 @@ public final class Hosts {
   computeServingStatusAggregator(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
     ServingStatusAggregator result = new ServingStatusAggregator();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
+      DomainGroupVersionDomainVersion domainVersion = domainGroupVersion.getDomainVersion(hostDomain.getDomain());
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
         // Ignore deletable partitions
         if (!partition.isDeletable()) {
           // Check if partition is served and up to date
           boolean servedAndUpToDate =
               host.getState() == HostState.SERVING &&
-                  partition.getCurrentDomainGroupVersion() != null &&
-                  partition.getCurrentDomainGroupVersion().equals(domainGroupVersion.getVersionNumber());
+                  partition.getCurrentDomainVersion() != null &&
+                  partition.getCurrentDomainVersion().equals(domainVersion.getVersionNumber());
           // Aggregate counts
           result.add(hostDomain.getDomain(), partition.getPartitionNumber(), servedAndUpToDate);
         }

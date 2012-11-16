@@ -24,9 +24,9 @@ public interface HostDomainPartition extends Comparable<HostDomainPartition> {
 
   public int getPartitionNumber();
 
-  public Integer getCurrentDomainGroupVersion() throws IOException;
+  public Integer getCurrentDomainVersion() throws IOException;
 
-  public void setCurrentDomainGroupVersion(Integer version) throws IOException;
+  public void setCurrentDomainVersion(Integer version) throws IOException;
 
   public boolean isDeletable() throws IOException;
 

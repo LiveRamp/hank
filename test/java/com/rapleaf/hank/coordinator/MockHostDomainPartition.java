@@ -20,18 +20,18 @@ import java.io.IOException;
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   private final int partNum;
-  private Integer currentDomainGroupVersion;
+  private Integer currentDomainVersion;
   private boolean deletable;
 
-  public MockHostDomainPartition(int partNum, int currentDomainGroupVersion) {
-    this.partNum = partNum;
-    this.currentDomainGroupVersion = currentDomainGroupVersion;
+  public MockHostDomainPartition(int partitionNumber, int currentDomainVersion) {
+    this.partNum = partitionNumber;
+    this.currentDomainVersion = currentDomainVersion;
     deletable = false;
   }
 
   @Override
-  public Integer getCurrentDomainGroupVersion() throws IOException {
-    return currentDomainGroupVersion;
+  public Integer getCurrentDomainVersion() throws IOException {
+    return currentDomainVersion;
   }
 
   @Override
@@ -40,8 +40,8 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
   }
 
   @Override
-  public void setCurrentDomainGroupVersion(Integer version) {
-    currentDomainGroupVersion = version;
+  public void setCurrentDomainVersion(Integer version) {
+    currentDomainVersion = version;
   }
 
   @Override

@@ -14,7 +14,7 @@ public abstract class AbstractHostDomainPartition implements HostDomainPartition
   public String toString() {
     try {
       return "AbstractHostDomainPartition [partition number=" + getPartitionNumber() +
-          ", current domain group version=" + getCurrentDomainGroupVersion() +
+          ", current version=" + getCurrentDomainVersion() +
           ", deletable=" + isDeletable() + "]";
     } catch (IOException e) {
       throw new RuntimeException(e);

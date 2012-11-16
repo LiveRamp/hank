@@ -94,7 +94,7 @@ public class Rings {
       for (HostDomain hostDomain : host.getAssignedDomains()) {
         for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
           ++numPartitions;
-          if (hostDomainPartition.getCurrentDomainGroupVersion() == null) {
+          if (hostDomainPartition.getCurrentDomainVersion() == null) {
             return false;
           }
         }
