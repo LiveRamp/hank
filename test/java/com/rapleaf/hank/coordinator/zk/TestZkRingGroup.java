@@ -91,6 +91,7 @@ public class TestZkRingGroup extends ZkTestCase {
     createRing(2);
     createRing(3);
 
+    PartitionServerAddress address = new PartitionServerAddress("localhost", 42);
     MockDomainGroup dg = new MockDomainGroup("myDomainGroup");
     ZkRingGroup rg = new ZkRingGroup(getZk(), ring_group, dg, coordinator);
 
@@ -100,7 +101,7 @@ public class TestZkRingGroup extends ZkTestCase {
 
     assertFalse(dataLocationChangeListener.isCalled());
 
-    Host host = rg.getRing(1).addHost(new PartitionServerAddress("localhost", 42), Collections.<String>emptyList());
+    Host host = rg.getRing(1).addHost(address, Collections.<String>emptyList());
     Thread.sleep(100);
 
     assertTrue(dataLocationChangeListener.isCalled());
@@ -115,10 +116,16 @@ public class TestZkRingGroup extends ZkTestCase {
     HostDomainPartition hostDomainPartition = hostDomain.addPartition(0);
     Thread.sleep(100);
 
-    assertTrue(dataLocationChangeListener.isCalled());
+    assertFalse(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     hostDomainPartition.setDeletable(true);
+    Thread.sleep(100);
+
+    assertFalse(dataLocationChangeListener.isCalled());
+    dataLocationChangeListener.clear();
+
+    rg.getRing(1).getHostByAddress(address).setState(HostState.SERVING);
     Thread.sleep(100);
 
     assertTrue(dataLocationChangeListener.isCalled());
