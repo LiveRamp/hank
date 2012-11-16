@@ -194,12 +194,14 @@ public class PartitionServerHandler implements IfaceWithShutdown {
     updateRuntimeStatisticsThread.start();
   }
 
+  @Override
   public HankResponse get(int domainId, ByteBuffer key) {
     ReaderResult result = readerResultThreadLocal.get();
     result.clear();
     return _get(this, domainId, key, result);
   }
 
+  @Override
   public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) {
     try {
       DomainAccessor domainAccessor = getDomainAccessor(domainId);
