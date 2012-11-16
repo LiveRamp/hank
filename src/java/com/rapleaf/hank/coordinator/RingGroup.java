@@ -27,46 +27,17 @@ public interface RingGroup extends Comparable<RingGroup> {
 
   public String getName();
 
-  /**
-   * Get a Set of all RingConfigs in this Ring Group.
-   *
-   * @return
-   */
   public Set<Ring> getRings();
 
   public SortedSet<Ring> getRingsSorted();
 
-  /**
-   * Get a RingConfig by the ring number.
-   *
-   * @param ringNumber
-   * @return
-   */
   public Ring getRing(int ringNumber) throws IOException;
 
-  /**
-   * Get the DomainGroupConfig for this Ring Group.
-   *
-   * @return
-   */
   public DomainGroup getDomainGroup();
 
-  /**
-   * Find the RingConfig that applies to a given host
-   *
-   * @param hostAddress
-   * @return
-   */
   public Ring getRingForHost(PartitionServerAddress hostAddress)
       throws IOException;
 
-  /**
-   * Claim the title of Ring Group Conductor for this ring group.
-   *
-   * @return true if the current session has successfully claimed Conductor
-   *         status. false otherwise.
-   * @throws IOException
-   */
   public boolean claimRingGroupConductor(RingGroupConductorMode mode) throws IOException;
 
   public void releaseRingGroupConductor() throws IOException;

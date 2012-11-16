@@ -15,25 +15,9 @@
  */
 package com.rapleaf.hank.coordinator;
 
-/**
- * The possible states a PartitionServer can take.
- */
 public enum HostState {
-  /**
-   * The PartitionServer is online, but not doing anything.
-   */
   IDLE,
-  /**
-   * The PartitionServer is serving data.
-   */
   SERVING,
-  /**
-   * The PartitionServer is currently executing an update.
-   */
   UPDATING,
-  /**
-   * The PartitionServer is currently offline, or separated from the Coordinator
-   * unexpectedly.
-   */
-  OFFLINE;
+  OFFLINE
 }

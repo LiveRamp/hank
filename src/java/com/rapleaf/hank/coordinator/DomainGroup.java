@@ -19,19 +19,10 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.SortedSet;
 
-/**
- * Encapsulates the configuration and listening/modification of a domain group.
- */
 public interface DomainGroup extends Comparable<DomainGroup> {
+
   public String getName();
 
-  /**
-   * Get a set of DomainGroupConfigVersions ordered by version number
-   * (ascending).
-   *
-   * @return
-   * @throws IOException
-   */
   public SortedSet<DomainGroupVersion> getVersions() throws IOException;
 
   public DomainGroupVersion getVersion(int versionNumber) throws IOException;

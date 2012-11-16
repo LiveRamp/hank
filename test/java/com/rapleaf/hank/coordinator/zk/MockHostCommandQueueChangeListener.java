@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.rapleaf.hank.coordinator.zk;
 
@@ -7,7 +7,9 @@ import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostCommandQueueChangeListener;
 
 final class MockHostCommandQueueChangeListener implements HostCommandQueueChangeListener {
+
   public Host calledWith;
+
   @Override
   public void onCommandQueueChange(Host hostConfig) {
     calledWith = hostConfig;
@@ -31,7 +33,7 @@ final class MockHostCommandQueueChangeListener implements HostCommandQueueChange
       if (calledWith != null) {
         return;
       }
-      if (!timeoutOk && end-start > 15000) {
+      if (!timeoutOk && end - start > 15000) {
         TestZkHost.fail("timed out waiting for notification!");
       }
     }

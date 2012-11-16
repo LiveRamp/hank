@@ -18,35 +18,18 @@ package com.rapleaf.hank.coordinator;
 import java.util.Set;
 import java.util.SortedSet;
 
-/**
- * Encapsulates a domain group config version, which is a numbered set of
- * individual DomainConfigVersions. A DomainGroupConfigVersion is distributed as
- * a whole to a RingGroup.
- */
 public interface DomainGroupVersion extends Comparable<DomainGroupVersion> {
 
   public int getVersionNumber();
 
   public DomainGroup getDomainGroup();
 
-  /**
-   * milliseconds since epoch of when this domain group version was created
-   *
-   * @return
-   */
   public long getCreatedAt();
 
   public Set<DomainGroupVersionDomainVersion> getDomainVersions();
 
   public SortedSet<DomainGroupVersionDomainVersion> getDomainVersionsSorted();
 
-  /**
-   * Get the DomainGroupVersionDomainVersion from this DomainGroupVersion that
-   * corresponds to the given Domain.
-   *
-   * @param domain
-   * @return
-   */
   public DomainGroupVersionDomainVersion getDomainVersion(Domain domain);
 
   public void removeDomain(Domain domain);

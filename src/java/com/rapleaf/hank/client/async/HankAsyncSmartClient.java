@@ -66,16 +66,6 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
   private final Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddresses
       = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
 
-  /**
-   * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
-   * with the requested ring group. Note that a given HankSmartClient can only
-   * contact one ring group. Queries will not timeout.
-   *
-   * @param coordinator
-   * @param configurator
-   * @throws IOException
-   * @throws TException
-   */
   public HankAsyncSmartClient(Coordinator coordinator,
                               HankSmartClientConfigurator configurator) throws IOException, TException {
     this(coordinator,
@@ -87,19 +77,6 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
         configurator.getBulkQueryTimeoutMs());
   }
 
-  /**
-   * Create a new HankAsyncSmartClient that uses the supplied coordinator and works
-   * with the requested ring group. Note that a given HankSmartClient can only
-   * contact one ring group. Queries will timeout after the given period of time.
-   * A timeout of 0 means no timeout.
-   *
-   * @param coordinator
-   * @param ringGroupName
-   * @param numConnectionsPerHost
-   * @param queryTimeoutMs
-   * @throws IOException
-   * @throws TException
-   */
   public HankAsyncSmartClient(Coordinator coordinator,
                               String ringGroupName,
                               int numConnectionsPerHost,

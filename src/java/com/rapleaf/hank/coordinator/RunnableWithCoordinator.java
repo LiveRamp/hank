@@ -21,5 +21,4 @@ import java.io.IOException;
 public interface RunnableWithCoordinator {
 
   public void run(Coordinator coordinator) throws IOException;
-
 }

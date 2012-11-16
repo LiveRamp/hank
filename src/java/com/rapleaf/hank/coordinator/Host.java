@@ -22,144 +22,46 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
-/**
- * Encapsulates the configuration and listening/modification of individual
- * PartitionServer hosts within the cluster.
- */
 public interface Host extends Comparable<Host> {
 
   public PartitionServerAddress getAddress();
 
-  /**
-   * Return this host's current state.
-   *
-   * @return
-   * @throws IOException
-   */
   public HostState getState() throws IOException;
 
-  /**
-   * Set this host's current state. This method should only be called by the
-   * host itself.
-   *
-   * @param state
-   * @throws IOException
-   */
   public void setState(HostState state) throws IOException;
 
-  /**
-   * The date (milliseconds since epoch) when the partition server came online,
-   * or null if the server is not currently online.
-   *
-   * @return
-   * @throws IOException
-   */
   public Long getUpSince() throws IOException;
 
   public void setFlags(List<String> flags) throws IOException;
 
   public List<String> getFlags() throws IOException;
 
-  /**
-   * The listener will be notified when host state changes.
-   *
-   * @param listener
-   * @throws IOException
-   */
   public void setStateChangeListener(WatchedNodeListener<HostState> listener) throws IOException;
 
-  /**
-   * Removes the specified listener.
-   *
-   * @param listener
-   */
   public void cancelStateChangeListener(WatchedNodeListener<HostState> listener);
 
-  /**
-   * Add a command to this host's command queue. Consecutive duplicate commands
-   * will be ignored.
-   *
-   * @param command
-   * @throws IOException
-   */
   public void enqueueCommand(HostCommand command) throws IOException;
 
-  /**
-   * Get the (immutable) list of commands in this host's command queue.
-   *
-   * @return
-   * @throws IOException
-   */
   public List<HostCommand> getCommandQueue() throws IOException;
 
-  /**
-   * Discard the current command. Set the head of this host's
-   * command queue as the current command and return it.
-   *
-   * @return
-   * @throws IOException
-   */
   public HostCommand nextCommand() throws IOException;
 
-  /**
-   * Get the currently pending command.
-   *
-   * @return
-   * @throws IOException
-   */
   public HostCommand getCurrentCommand() throws IOException;
 
-  /**
-   * Clear this hosts's command queue.
-   *
-   * @throws IOException
-   */
   public void clearCommandQueue() throws IOException;
 
-  /**
-   * The listener will be notified when there are changes to this host's command
-   * queue.
-   *
-   * @param listener
-   * @throws IOException
-   */
   public void setCommandQueueChangeListener(HostCommandQueueChangeListener listener) throws IOException;
 
-  /**
-   * The listener will be notified when there are changes to this host's current command
-   *
-   * @param listener
-   * @throws IOException
-   */
   public void setCurrentCommandChangeListener(WatchedNodeListener<HostCommand> listener) throws IOException;
 
-  /**
-   * Get the HostDomainConfigs for the domains assigned to this host.
-   *
-   * @return
-   * @throws IOException
-   */
   public Set<HostDomain> getAssignedDomains() throws IOException;
 
   public SortedSet<HostDomain> getAssignedDomainsSorted() throws IOException;
 
-  /**
-   * Add a new domain to this host.
-   *
-   * @param domain
-   * @return
-   * @throws IOException
-   */
   public HostDomain addDomain(Domain domain) throws IOException;
 
   public void removeDomain(Domain domain) throws IOException;
 
-  /**
-   * Get the HostDomainConfig for the provided domainId.
-   *
-   * @param domain
-   * @return
-   */
   public HostDomain getHostDomain(Domain domain);
 
   public void setEphemeralStatistic(String key, String value) throws IOException;

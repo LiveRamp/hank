@@ -80,16 +80,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
   private final Thread cacheUpdaterThread;
 
-  /**
-   * Create a new HankSmartClient that uses the supplied coordinator and works
-   * with the requested ring group. Note that a given HankSmartClient can only
-   * contact one ring group. Queries will not timeout.
-   *
-   * @param coordinator
-   * @param configurator
-   * @throws IOException
-   * @throws TException
-   */
   public HankSmartClient(Coordinator coordinator,
                          HankSmartClientConfigurator configurator) throws IOException, TException {
     this(coordinator,
@@ -102,19 +92,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         configurator.getBulkQueryTimeoutMs());
   }
 
-  /**
-   * Create a new HankSmartClient that uses the supplied coordinator and works
-   * with the requested ring group. Note that a given HankSmartClient can only
-   * contact one ring group. Queries will timeout after the given period of time.
-   * A timeout of 0 means no timeout.
-   *
-   * @param coordinator
-   * @param ringGroupName
-   * @param numConnectionsPerHost
-   * @param queryTimeoutMs
-   * @throws IOException
-   * @throws TException
-   */
   public HankSmartClient(Coordinator coordinator,
                          String ringGroupName,
                          int numConnectionsPerHost,

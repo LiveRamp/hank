@@ -19,9 +19,6 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.SortedSet;
 
-/**
- * Info about a given host's view of a domain.
- */
 public interface HostDomain extends Comparable<HostDomain> {
 
   public Domain getDomain();

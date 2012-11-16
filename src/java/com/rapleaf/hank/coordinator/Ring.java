@@ -26,11 +26,6 @@ public interface Ring extends Comparable<Ring> {
 
   public int getRingNumber();
 
-  /**
-   * Returns a set of all Part Daemon addresses.
-   *
-   * @return
-   */
   public Set<Host> getHosts();
 
   public SortedSet<Host> getHostsSorted();
@@ -39,13 +34,5 @@ public interface Ring extends Comparable<Ring> {
 
   public Host addHost(PartitionServerAddress address, List<String> hostFlags) throws IOException;
 
-  /**
-   * Remove a host from this ring. Returns true if the host was removed, false
-   * if there was no such host.
-   *
-   * @param address
-   * @return
-   * @throws IOException
-   */
   public boolean removeHost(PartitionServerAddress address) throws IOException;
 }

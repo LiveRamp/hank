@@ -17,9 +17,6 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 
-/**
- * Info about a partition within a given HostDomain.
- */
 public interface HostDomainPartition extends Comparable<HostDomainPartition> {
 
   public int getPartitionNumber();

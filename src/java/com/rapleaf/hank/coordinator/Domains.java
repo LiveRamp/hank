@@ -35,12 +35,6 @@ public final class Domains {
   private Domains() {
   }
 
-  /**
-   * Get the sum of the num bytes used for all versions.
-   *
-   * @return
-   * @throws IOException
-   */
   public static long getTotalNumBytes(Domain domain) throws IOException {
     long total = 0;
     for (DomainVersion version : domain.getVersions()) {

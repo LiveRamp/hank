@@ -36,9 +36,6 @@ import java.util.*;
 
 import static com.rapleaf.hank.util.LocalHostUtils.getHostName;
 
-/**
- * The main class of the PartitionServer.
- */
 public class PartitionServer implements HostCommandQueueChangeListener, WatchedNodeListener<HostCommand> {
 
   private static final Logger LOG = Logger.getLogger(PartitionServer.class);
@@ -321,13 +318,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     updateThread.start();
   }
 
-  /**
-   * Start serving the thrift server. doesn't return.
-   *
-   * @throws TTransportException
-   * @throws IOException
-   * @throws InterruptedException
-   */
   protected void startThriftServer() throws TTransportException, IOException, InterruptedException {
     IfaceWithShutdown handler = null;
     try {
@@ -352,9 +342,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
   }
 
-  /**
-   * Start serving the data. Returns when the server is up.
-   */
   private void serveData() throws IOException {
     waitForDataServer = true;
     if (dataServer != null) {
@@ -398,9 +385,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
   }
 
-  /**
-   * Block until thrift server is down
-   */
   private void stopServingData() {
     if (dataServer == null) {
       return;

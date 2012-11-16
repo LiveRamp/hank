@@ -32,14 +32,6 @@ public final class Hosts {
   private Hosts() {
   }
 
-  /**
-   * Returns true when the host is online. Note that this is distinct from
-   * "serving data" - a host is online when it's NOT offline.
-   *
-   * @param host
-   * @return
-   * @throws IOException
-   */
   public static boolean isOnline(Host host) throws IOException {
     return host.getState() != HostState.OFFLINE;
   }
@@ -66,15 +58,9 @@ public final class Hosts {
     return new UpdateProgress(numPartitions, numPartitionsUpToDate);
   }
 
-  /**
-   * Return true if all partitions assigned to that host for domains of the given domain group version
-   * are at the correct version. And there are no deletable partitions.
-   *
-   * @param host
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
+
+  // Return true if all partitions assigned to that host for domains of the given domain group version
+  // are at the correct version. And there are no deletable partitions.
   public static boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
     if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
       return false;

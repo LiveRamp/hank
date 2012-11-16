@@ -25,12 +25,6 @@ public final class DomainGroups {
   private DomainGroups() {
   }
 
-  /**
-   * Convenience method to get the most recent version of the domain group.
-   *
-   * @return
-   * @throws IOException
-   */
   public static DomainGroupVersion getLatestVersion(DomainGroup domainGroup) throws IOException {
     if (domainGroup == null) {
       throw new RuntimeException("Failed to get latest version: given Domain Group is null.");
@@ -49,15 +43,6 @@ public final class DomainGroups {
     }
   }
 
-
-  /**
-   * Creates a new domain group version containing all the domains in the latest
-   * domain group version with their version numbers fast-forwarded to the
-   * latest non-defunct closed version.
-   *
-   * @return
-   * @throws IOException
-   */
   public static DomainGroupVersion createNewFastForwardVersion(DomainGroup domainGroup) throws IOException {
     Map<Domain, Integer> domainNameToVersion = new HashMap<Domain, Integer>();
 

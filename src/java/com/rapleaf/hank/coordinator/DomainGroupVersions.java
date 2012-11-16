@@ -17,6 +17,7 @@
 package com.rapleaf.hank.coordinator;
 
 public final class DomainGroupVersions {
+
   private DomainGroupVersions() {
   }
 

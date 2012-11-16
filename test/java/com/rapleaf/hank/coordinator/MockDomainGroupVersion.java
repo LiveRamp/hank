@@ -54,7 +54,6 @@ public class MockDomainGroupVersion extends AbstractDomainGroupVersion {
 
   @Override
   public long getCreatedAt() {
-    // TODO Auto-generated method stub
     return 0;
   }
 }

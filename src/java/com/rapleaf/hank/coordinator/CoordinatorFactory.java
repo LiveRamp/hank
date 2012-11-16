@@ -18,5 +18,6 @@ package com.rapleaf.hank.coordinator;
 import java.util.Map;
 
 public interface CoordinatorFactory {
+
   public Coordinator getCoordinator(Map<String, Object> options);
 }

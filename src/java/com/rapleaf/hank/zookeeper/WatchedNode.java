@@ -93,15 +93,7 @@ public abstract class WatchedNode<T> {
     }
   };
 
-  /**
-   * Start watching a node, optionnaly waiting for it to be created
-   *
-   * @param zk
-   * @param nodePath
-   * @param waitForCreation
-   * @throws KeeperException
-   * @throws InterruptedException
-   */
+  // Start watching a node, optionnaly waiting for it to be created
   protected WatchedNode(final ZooKeeperPlus zk,
                         final String nodePath,
                         boolean waitForCreation,

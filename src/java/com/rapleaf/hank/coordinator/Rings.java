@@ -25,28 +25,12 @@ import java.util.*;
 
 public class Rings {
 
-  /**
-   * Enqueue <i>command</i> to all Hosts in this Ring.
-   *
-   * @param ring
-   * @param command
-   * @throws IOException
-   */
   public static void commandAll(Ring ring, HostCommand command) throws IOException {
     for (Host host : ring.getHosts()) {
       host.enqueueCommand(command);
     }
   }
 
-  /**
-   * Get the set of Hosts that can serve a given domain's partition.
-   *
-   * @param ring
-   * @param domain
-   * @param partition
-   * @return
-   * @throws IOException
-   */
   public static Set<Host> getHostsForDomainPartition(Ring ring, Domain domain, int partition) throws IOException {
     Set<Host> results = new HashSet<Host>();
     for (Host host : ring.getHosts()) {
@@ -62,14 +46,6 @@ public class Rings {
   }
 
 
-  /**
-   * Return all the hosts that are in the requested state.
-   *
-   * @param ring
-   * @param state
-   * @return
-   * @throws IOException
-   */
   public static Set<Host> getHostsInState(Ring ring, HostState state) throws IOException {
     Set<Host> results = new HashSet<Host>();
     for (Host host : ring.getHosts()) {
@@ -80,14 +56,9 @@ public class Rings {
     return results;
   }
 
-  /**
-   * Return true iff there is at least one assigned partition in the given ring,
-   * and all partitions in the given ring have a current version that is not null (servable).
-   *
-   * @param ring
-   * @return
-   * @throws IOException
-   */
+
+  // Return true iff there is at least one assigned partition in the given ring,
+  // and all partitions in the given ring have a current version that is not null (servable).
   public static boolean isServable(Ring ring) throws IOException {
     int numPartitions = 0;
     for (Host host : ring.getHosts()) {
@@ -103,14 +74,7 @@ public class Rings {
     return numPartitions != 0;
   }
 
-  /**
-   * Return true if each host in the given ring is considered up-to-date.
-   *
-   * @param ring
-   * @param domainGroupVersion
-   * @return
-   * @throws IOException
-   */
+  // Return true iff each host in the given ring is considered up-to-date.
   public static boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
     for (Host host : ring.getHosts()) {
       if (!Hosts.isUpToDate(host, domainGroupVersion)) {

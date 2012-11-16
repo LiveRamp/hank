@@ -18,11 +18,8 @@ package com.rapleaf.hank.coordinator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * A helper class representing a hostname and port number pair used to identify
- * a PartitionServer.
- */
 public final class PartitionServerAddress implements Comparable<PartitionServerAddress> {
+
   private static final Pattern HOST_AND_PORT_PATTERN = Pattern.compile("([^:]+):(\\d+)");
   private final String hostName;
   private final int portNumber;
@@ -51,20 +48,26 @@ public final class PartitionServerAddress implements Comparable<PartitionServerA
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     PartitionServerAddress other = (PartitionServerAddress) obj;
     if (hostName == null) {
-      if (other.hostName != null)
+      if (other.hostName != null) {
         return false;
-    } else if (!hostName.equals(other.hostName))
+      }
+    } else if (!hostName.equals(other.hostName)) {
       return false;
-    if (portNumber != other.portNumber)
+    }
+    if (portNumber != other.portNumber) {
       return false;
+    }
     return true;
   }
 

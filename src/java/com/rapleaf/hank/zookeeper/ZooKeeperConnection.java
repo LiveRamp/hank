@@ -15,13 +15,13 @@
  */
 package com.rapleaf.hank.zookeeper;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Base class that should be used by any class intending to connect to the
@@ -52,10 +52,9 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Creates a new connection to the ZooKeeper service. Blocks until we are
    * connected to the service. Uses the default session timeout of 30 seconds.
-   * 
-   * @param connectString
-   *          comma separated host:port pairs, each corresponding to a zk
-   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   *
+   * @param connectString comma separated host:port pairs, each corresponding to a zk
+   *                      server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString) throws InterruptedException {
@@ -65,12 +64,10 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Creates a new connection to the ZooKeeper service. Blocks until we are
    * connected to the service.
-   * 
-   * @param connectString
-   *          comma separated host:port pairs, each corresponding to a zk
-   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout
-   *          session timeout in milliseconds
+   *
+   * @param connectString  comma separated host:port pairs, each corresponding to a zk
+   *                       server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout session timeout in milliseconds
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout) throws InterruptedException {
@@ -80,15 +77,12 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Creates a new connection to the ZooKeeper service. Blocks until we are
    * connected to the service.
-   * 
-   * @param connectString
-   *          comma separated host:port pairs, each corresponding to a zk
-   *          server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
-   * @param sessionTimeout
-   *          session timeout in milliseconds
-   * @param maxConnectAttempts
-   *          how many times we should try to connect to the ZooKeeper ensemble
-   *          before dying
+   *
+   * @param connectString      comma separated host:port pairs, each corresponding to a zk
+   *                           server. e.g. "127.0.0.1:3000,127.0.0.1:3001,127.0.0.1:3002"
+   * @param sessionTimeout     session timeout in milliseconds
+   * @param maxConnectAttempts how many times we should try to connect to the ZooKeeper ensemble
+   *                           before dying
    * @throws InterruptedException
    */
   public ZooKeeperConnection(String connectString, int sessionTimeout, int maxConnectAttempts) throws InterruptedException {
@@ -104,17 +98,15 @@ public class ZooKeeperConnection implements Watcher {
     }
     connectedSignal.await();
   }
- 
+
   /**
    * Discards the current connection (if there is one), and tries to set up a
    * new connection to the ZooKeeper service.
-   * 
-   * @param maxConnectAttempts
-   *          the maximum number of times we want to connect to the ZooKeeper
-   *          ensemble. One attempt means trying all the servers once. A value
-   *          of zero means to attempt to connect forever.
-   * @throws IOException
-   *           if all of our connection attempts failed
+   *
+   * @param maxConnectAttempts the maximum number of times we want to connect to the ZooKeeper
+   *                           ensemble. One attempt means trying all the servers once. A value
+   *                           of zero means to attempt to connect forever.
+   * @throws IOException if all of our connection attempts failed
    */
   private void connect(int maxConnectAttempts) throws IOException {
     int attempts = 0;
@@ -126,7 +118,7 @@ public class ZooKeeperConnection implements Watcher {
         return;
       } catch (IOException e) {
         //this means that we tried to connect to all the hosts, but they all failed
-        attempts ++;
+        attempts++;
         // if maxConnectAttempts == 0, then try forever
         if (maxConnectAttempts != 0 && attempts >= maxConnectAttempts) {
           throw e;
@@ -146,16 +138,16 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Listens for notifications from the ZooKeeper service telling that we have
    * been connected, disconnected, or our session has expired.
-   * 
+   * <p/>
    * Upon connection, we first make a call to {@link #onConnect()}, and then we
    * release all threads that are blocking on {@link #waitForConnection()}.
-   * 
+   * <p/>
    * Upon disconnection, we call {@link #onDisconnect()}, and then we reset the
    * latch to block any threads that call {@link #waitForConnection()}.
-   * 
+   * <p/>
    * On session expiry, we call {@link #onSessionExpire()}, reset the latch, and
    * then manually try to reconnect to the ZooKeeper service.
-   * 
+   *
    * @param event
    */
   @Override
@@ -163,24 +155,24 @@ public class ZooKeeperConnection implements Watcher {
     if (event.getType() == Event.EventType.None) {
       KeeperState state = event.getState();
       switch (state) {
-      case SyncConnected:
-        onConnect();
-        connectedSignal.countDown();
-        break;
-      case Disconnected:
-        onDisconnect();
-        connectedSignal = new CountDownLatch(1);
-        break;
-      case Expired:
-        onSessionExpire();
-        connectedSignal = new CountDownLatch(1);
-        try {
-          connect(maxConnectAttempts);
-        } catch (IOException e) {
-          LOG.fatal("Failed to connect to the ZooKeeper service", e);
-          throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
-        }
-        break;
+        case SyncConnected:
+          onConnect();
+          connectedSignal.countDown();
+          break;
+        case Disconnected:
+          onDisconnect();
+          connectedSignal = new CountDownLatch(1);
+          break;
+        case Expired:
+          onSessionExpire();
+          connectedSignal = new CountDownLatch(1);
+          try {
+            connect(maxConnectAttempts);
+          } catch (IOException e) {
+            LOG.fatal("Failed to connect to the ZooKeeper service", e);
+            throw new RuntimeException("Couldn't connect to the ZooKeeper service", e);
+          }
+          break;
       }
       // Return because we are done processing this event; do not let subclasses
       // process.
@@ -191,7 +183,7 @@ public class ZooKeeperConnection implements Watcher {
   /**
    * Allows for subclasses to block until we are connected to the ZooKeeper
    * service. Returns immediately if we are already connected.
-   * 
+   *
    * @throws InterruptedException
    */
   protected void waitForConnection() throws InterruptedException {
@@ -202,7 +194,8 @@ public class ZooKeeperConnection implements Watcher {
    * Called when a connection to the ZooKeeper service has been established.
    * Meant to be used by subclasses
    */
-  protected void onConnect() {}
+  protected void onConnect() {
+  }
 
   /**
    * Called when the connection to the ZooKeeper service has been broken. Note
@@ -210,12 +203,14 @@ public class ZooKeeperConnection implements Watcher {
    * can be reestablished before the session timeout, we will keep the same
    * session (which means that ephemeral nodes will stay alive).
    */
-  protected void onDisconnect() {}
+  protected void onDisconnect() {
+  }
 
   /**
    * Called when our session with the ZooKeeper service has expired.
    */
-  protected void onSessionExpire() {}
+  protected void onSessionExpire() {
+  }
 
   public String getConnectString() {
     return connectString;

@@ -23,11 +23,6 @@ public final class HostDomains {
   private HostDomains() {
   }
 
-  /**
-   * @param hostDomain
-   * @param partitionNumber
-   * @throws IOException
-   */
   public static void addPartition(HostDomain hostDomain, int partitionNumber) throws IOException {
     HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionNumber);
     if (partition == null) {

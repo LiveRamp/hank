@@ -20,5 +20,6 @@ import java.io.IOException;
 import com.rapleaf.hank.coordinator.RingGroup;
 
 public interface RingGroupUpdateTransitionFunction {
+
   public void manageTransitions(RingGroup ringGroup) throws IOException;
 }

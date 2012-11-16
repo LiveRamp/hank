@@ -171,11 +171,7 @@ public class WatchedMap<T> extends AbstractMap<String, T> {
     }
   }
 
-  /**
-   * Return true iff the list of keys has changed
-   *
-   * @return
-   */
+  // Return true iff the list of keys has changed
   private boolean syncMap() {
     try {
       final List<String> childrenRelPaths = zk.getChildren(path, watcher);

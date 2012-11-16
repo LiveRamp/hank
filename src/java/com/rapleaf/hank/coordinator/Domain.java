@@ -24,20 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-/**
- * Encapsulates all the information about a given Domain.
- */
 public interface Domain extends Comparable<Domain> {
 
   public String getName();
 
   public int getId();
 
-  /**
-   * The number of partitions this domain is configured for.
-   *
-   * @return
-   */
   public int getNumParts();
 
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass();
@@ -50,13 +42,6 @@ public interface Domain extends Comparable<Domain> {
 
   public List<String> getRequiredHostFlags();
 
-  /**
-   * Returns the set of DomainVersionConfigs for this Domain in version-numbered
-   * order.
-   *
-   * @return
-   * @throws IOException
-   */
   public SortedSet<DomainVersion> getVersions() throws IOException;
 
   public DomainVersion openNewVersion(DomainVersionProperties domainVersionProperties) throws IOException;
