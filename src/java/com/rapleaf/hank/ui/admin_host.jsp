@@ -79,7 +79,7 @@
         <%= domain.getName()%>
       </td>
       <td><%= hdpc.getPartitionNumber() %></td>
-      <td><%= hdpc.getCurrentDomainGroupVersion() %></td>
+      <td><%= hdpc.getCurrentDomainVersion() %></td>
       <td>
         <form action= "<%= hdpc.isDeletable() ? "/host/undelete_partition" : "/host/delete_partition" %>" method="post">
           <input type="hidden" name="g" value="<%= ringGroup.getName() %>"/>

@@ -260,6 +260,7 @@
   <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
+      DomainGroupVersionDomainVersion targetDomainVersion = targetDomainGroupVersion.getDomainVersion(domain);
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
       if (domain == null) {
   %>
@@ -278,10 +279,10 @@
         if (hdp != null) {
           if (hdp.isDeletable()) {
             className = "partition_deletable";
-          } else if (hdp.getCurrentDomainGroupVersion() == null) {
+          } else if (hdp.getCurrentDomainVersion() == null) {
             className = "partition_undeployed";
-          } else if (targetDomainGroupVersion != null &&
-                     hdp.getCurrentDomainGroupVersion().equals(targetDomainGroupVersion.getVersionNumber())) {
+          } else if (targetDomainVersion != null &&
+                     hdp.getCurrentDomainGroupVersion().equals(targetDomainVersion.getVersionNumber())) {
             className = "partition_updated";
           } else {
             className = "partition_updating";
