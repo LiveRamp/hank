@@ -463,6 +463,9 @@ public class ZkHost extends AbstractHost {
         public void updateCopy(HostAssignmentsMetadata currentCopy) {
           final HostDomainPartitionMetadata result = new HostDomainPartitionMetadata();
           result.set_deletable(false);
+          if (!currentCopy.get_domains().containsKey(domainId)) {
+            currentCopy.get_domains().put(domainId, new HostDomainMetadata(new HashMap<Integer, HostDomainPartitionMetadata>()));
+          }
           currentCopy.get_domains().get(domainId).get_partitions().put(partNum, result);
         }
       });
