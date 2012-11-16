@@ -120,7 +120,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
           for (Integer partitionMapping : partitionMappings) {
             // Check that partition is assigned
             HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionMapping);
-            if (partition == null || partition.isDeletable()) {
+            if (partition == null) {
               return false;
             }
           }
@@ -171,7 +171,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
           }
           for (Integer partitionMapping : partitionMappings) {
             // Assign partition if necessary
-            HostDomains.addOrUndeletePartition(hostDomain, partitionMapping);
+            HostDomains.addPartition(hostDomain, partitionMapping);
           }
         }
       }

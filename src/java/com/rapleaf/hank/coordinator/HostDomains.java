@@ -24,19 +24,14 @@ public final class HostDomains {
   }
 
   /**
-   *
    * @param hostDomain
    * @param partitionNumber
    * @throws IOException
    */
-  public static void addOrUndeletePartition(HostDomain hostDomain, int partitionNumber) throws IOException {
+  public static void addPartition(HostDomain hostDomain, int partitionNumber) throws IOException {
     HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionNumber);
     if (partition == null) {
       hostDomain.addPartition(partitionNumber);
-    } else {
-      if (partition.isDeletable()) {
-        partition.setDeletable(false);
-      }
     }
   }
 }

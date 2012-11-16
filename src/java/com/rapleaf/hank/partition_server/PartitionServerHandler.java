@@ -183,8 +183,9 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner(),
           configurator.getGetTimerAggregatorWindow());
     }
-    // If there was a failure, abort
+    // If there was a failure, abort and skip current command.
     if (!exceptions.isEmpty()) {
+      host.nextCommand();
       throw new IOException("Failed to load Readers. Encountered " + exceptions.size() + " exceptions.");
     }
     // Start the update runtime statistics thread
