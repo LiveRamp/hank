@@ -20,7 +20,6 @@ import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.*;
 import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
-import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
@@ -28,31 +27,24 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ZkRingGroup extends AbstractRingGroup {
+public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   protected static final String TARGET_VERSION_PATH_SEGMENT = "target_version";
   protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
-  private static final Logger LOG = Logger.getLogger(ZkRingGroup.class);
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
   private final WatchedMap<ZkRing> rings;
   private final String ringGroupPath;
-  private final String targetVersionPath;
   private final String ringGroupConductorOnlinePath;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
 
-  private final WatchedInt targetVersion;
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
   private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
   private final DataLocationChangeListener dataLocationChangeListener = new LocalDataLocationChangeListener();
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
-    if (domainGroup.getVersions().isEmpty()) {
-      throw new IllegalStateException(
-          "You cannot create a ring group for a domain group that has no versions!");
-    }
     zk.create(path, domainGroup.getName().getBytes());
     zk.create(ZkPath.append(path, TARGET_VERSION_PATH_SEGMENT), null);
     zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
@@ -82,10 +74,8 @@ public class ZkRingGroup extends AbstractRingGroup {
     });
     rings.addListener(new ZkRingGroup.RingsWatchedMapListener());
 
-    targetVersionPath = ZkPath.append(ringGroupPath, TARGET_VERSION_PATH_SEGMENT);
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
 
-    targetVersion = new WatchedInt(zk, targetVersionPath, true);
     ringGroupConductorMode = new WatchedEnum<RingGroupConductorMode>(RingGroupConductorMode.class,
         zk, ringGroupConductorOnlinePath, false);
   }
@@ -180,24 +170,6 @@ public class ZkRingGroup extends AbstractRingGroup {
   }
 
   @Override
-  public Integer getTargetVersionNumber() throws IOException {
-    try {
-      return targetVersion.get();
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
-  public void setTargetVersion(int version) throws IOException {
-    try {
-      targetVersion.set(version);
-    } catch (Exception e) {
-      throw new IOException(e);
-    }
-  }
-
-  @Override
   public Ring addRing(int ringNum) throws IOException {
     try {
       ZkRing ring = ZkRing.create(zk, coordinator, ringGroupPath, ringNum, this, dataLocationChangeListener);
@@ -229,16 +201,6 @@ public class ZkRingGroup extends AbstractRingGroup {
   @Override
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
     ringGroupConductorMode.removeListener(listener);
-  }
-
-  @Override
-  public void addTargetVersionListener(WatchedNodeListener<Integer> listener) {
-    targetVersion.addListener(listener);
-  }
-
-  @Override
-  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener) {
-    targetVersion.removeListener(listener);
   }
 
   @Override

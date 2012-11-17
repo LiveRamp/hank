@@ -29,10 +29,10 @@ public class TestAbstractDomainGroup extends BaseTestCase {
 
     final Domain d3 = new MockDomain("d3");
 
-    DomainGroupVersionDomainVersion d1v1 = new MockDomainGroupVersionDomainVersion(d1, 1);
-    DomainGroupVersionDomainVersion d2v1 = new MockDomainGroupVersionDomainVersion(d2, 1);
+    DomainGroupDomainVersion d1v1 = new MockDomainGroupDomainVersion(d1, 1);
+    DomainGroupDomainVersion d2v1 = new MockDomainGroupDomainVersion(d2, 1);
     final DomainGroupVersion dgv1 = new MockDomainGroupVersion(
-        new HashSet<DomainGroupVersionDomainVersion>(Arrays.asList(d1v1, d2v1)), null, 1);
+        new HashSet<DomainGroupDomainVersion>(Arrays.asList(d1v1, d2v1)), null, 1);
 
     MockDomainGroup mdg = new MockDomainGroup("dg1") {
       @Override

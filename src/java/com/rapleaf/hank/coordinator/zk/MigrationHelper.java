@@ -19,9 +19,6 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -33,23 +30,11 @@ public class MigrationHelper {
   private static Logger LOG = Logger.getLogger(MigrationHelper.class);
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[]{"configuration", "ring_group"},
+    CommandLineChecker.check(args, new String[]{"configuration"},
         MigrationHelper.class);
 
     String configurationPath = args[0];
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
-
-    String ringGroupName = args[1];
-
-    RingGroup ringGroup = coordinator.getRingGroup(ringGroupName);
-    LOG.info("Migrating " + ringGroup.getName());
-    for (Ring ring : ringGroup.getRings()) {
-      LOG.info("  Migrating ring " + ring.getRingNumber());
-      for (Host host : ring.getHosts()) {
-        LOG.info("    Migrating host " + host.getAddress());
-        ((ZkHost) host).migrate(ringGroup.getTargetVersion());
-      }
-    }
   }
 }

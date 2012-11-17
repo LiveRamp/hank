@@ -1,28 +1,13 @@
 package com.rapleaf.hank.ui;
 
+import com.rapleaf.hank.coordinator.*;
+import org.apache.hadoop.thirdparty.guava.common.base.CaseFormat;
+
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.hadoop.thirdparty.guava.common.base.CaseFormat;
-
-import com.rapleaf.hank.coordinator.Coordinator;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
-import com.rapleaf.hank.coordinator.DomainGroupVersionDomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersion;
-import com.rapleaf.hank.coordinator.DomainVersions;
-import com.rapleaf.hank.coordinator.Host;
-import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.Hosts;
-import com.rapleaf.hank.coordinator.PartitionServerAddress;
-import com.rapleaf.hank.coordinator.Ring;
-import com.rapleaf.hank.coordinator.RingGroup;
-import com.rapleaf.hank.coordinator.RingGroups;
-import com.rapleaf.hank.coordinator.ServingStatus;
 
 /**
  * This class does all the logic for the HankApiServlet.
@@ -65,7 +50,7 @@ public class HankApiHelper {
 
   public static class DomainGroupData extends HankApiData {
     public String name;
-    public Map<Integer, DomainGroupVersionData> versionsMap;
+    public Map<String, Integer> domainVersions;
   }
 
   public static class DomainDeployStatus extends HankApiData {
@@ -87,14 +72,8 @@ public class HankApiHelper {
 
   public static class DomainGroupDeployStatusForRingGroup extends HankApiData {
     public String ringGroupName;
-    public Integer targetGroupVersion;
     public int numPartitions;
     public int numPartitionsServedAndUpToDate;
-  }
-
-  public static class DomainGroupVersionData extends HankApiData {
-    public int version;
-    public Map<String, Integer> domainVersions;
   }
 
   public static class RingData extends HankApiData {
@@ -104,7 +83,6 @@ public class HankApiHelper {
 
   public static class RingGroupData extends HankApiData {
     public String name;
-    public Integer targetVersion;
     public boolean isRingGroupConductorOnline;
     public String domainGroupName;
     public int numPartitions;
@@ -137,11 +115,10 @@ public class HankApiHelper {
   protected RingGroupData getRingGroupData(RingGroup ringGroup) throws IOException {
     RingGroupData data = new RingGroupData();
     data.name = ringGroup.getName();
-    data.targetVersion = ringGroup.getTargetVersionNumber();
     data.isRingGroupConductorOnline = ringGroup.isRingGroupConductorOnline();
     data.domainGroupName = ringGroup.getDomainGroup().getName();
 
-    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup()).computeServingStatus();
     data.numPartitions = servingStatus.getNumPartitions();
     data.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
 
@@ -175,22 +152,8 @@ public class HankApiHelper {
   protected DomainGroupData getDomainGroupData(DomainGroup domainGroup) throws IOException {
     DomainGroupData data = new DomainGroupData();
     data.name = domainGroup.getName();
-
-    Map<Integer, DomainGroupVersionData> versionsMap = new HashMap<Integer, DomainGroupVersionData>();
-    for (DomainGroupVersion v : domainGroup.getVersions()) {
-      versionsMap.put(v.getVersionNumber(), getDomainGroupVersionData(v));
-    }
-    data.versionsMap = versionsMap;
-
-    return data;
-  }
-
-  protected DomainGroupVersionData getDomainGroupVersionData(DomainGroupVersion version) throws IOException {
-    DomainGroupVersionData data = new DomainGroupVersionData();
-    data.version = version.getVersionNumber();
     Map<String, Integer> versionsMap = new HashMap<String, Integer>();
-
-    for (DomainGroupVersionDomainVersion v : version.getDomainVersions()) {
+    for (DomainGroupDomainVersion v : domainGroup.getDomainVersions()) {
       versionsMap.put(v.getDomain().getName(), v.getVersionNumber());
     }
     data.domainVersions = versionsMap;
@@ -216,20 +179,22 @@ public class HankApiHelper {
 
     Map<String, DomainDeployStatusForRingGroup> ringGroupsMap = new HashMap<String, DomainDeployStatusForRingGroup>();
     for (RingGroup ringGroup : coordinator.getRingGroups()) {
-      DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
-      if (targetVersion != null && targetVersion.getDomainVersion(domain) != null) {
-        ringGroupsMap.put(ringGroup.getName(), getDomainDeployStatusForRingGroup(targetVersion, domain, ringGroup));
+      DomainGroup domainGroup = ringGroup.getDomainGroup();
+      if (domainGroup != null && domainGroup.getDomainVersion(domain) != null) {
+        ringGroupsMap.put(ringGroup.getName(), getDomainDeployStatusForRingGroup(domainGroup, domain, ringGroup));
       }
     }
     status.ringGroupsMap = ringGroupsMap;
     return status;
   }
 
-  private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroupVersion targetVersion, Domain domain, RingGroup ringGroup) throws IOException {
+  private DomainDeployStatusForRingGroup getDomainDeployStatusForRingGroup(DomainGroup domainGroup, Domain domain, RingGroup ringGroup) throws IOException {
     DomainDeployStatusForRingGroup status = new DomainDeployStatusForRingGroup();
     status.ringGroupName = ringGroup.getName();
-    if (targetVersion != null) status.targetDomainVersion = targetVersion.getDomainVersion(domain) == null ? null : targetVersion.getDomainVersion(domain).getVersionNumber();
-    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    if (domainGroup != null) {
+      status.targetDomainVersion = domainGroup.getDomainVersion(domain) == null ? null : domainGroup.getDomainVersion(domain).getVersionNumber();
+    }
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, domainGroup).computeServingStatus();
     status.numPartitions = servingStatus.getNumPartitions();
     status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
     return status;
@@ -238,8 +203,7 @@ public class HankApiHelper {
   protected DomainGroupDeployStatusForRingGroup getDomainGroupDeployStatusForRingGroup(RingGroup ringGroup) throws IOException {
     DomainGroupDeployStatusForRingGroup status = new DomainGroupDeployStatusForRingGroup();
     status.ringGroupName = ringGroup.getName();
-    status.targetGroupVersion = ringGroup.getTargetVersionNumber();
-    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getTargetVersion()).computeServingStatus();
+    ServingStatus servingStatus = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup()).computeServingStatus();
     status.numPartitions = servingStatus.getNumPartitions();
     status.numPartitionsServedAndUpToDate = servingStatus.getNumPartitionsServedAndUpToDate();
     return status;

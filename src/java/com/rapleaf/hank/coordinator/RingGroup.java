@@ -48,12 +48,6 @@ public interface RingGroup extends Comparable<RingGroup> {
 
   public boolean isRingGroupConductorOnline() throws IOException;
 
-  public DomainGroupVersion getTargetVersion() throws IOException;
-
-  public Integer getTargetVersionNumber() throws IOException;
-
-  public void setTargetVersion(int version) throws IOException;
-
   public void addDataLocationChangeListener(RingGroupDataLocationChangeListener listener);
 
   public void removeDataLocationChangeListener(RingGroupDataLocationChangeListener listener);
@@ -65,8 +59,4 @@ public interface RingGroup extends Comparable<RingGroup> {
   public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
-
-  public void addTargetVersionListener(WatchedNodeListener<Integer> listener);
-
-  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener);
 }

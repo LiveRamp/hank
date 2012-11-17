@@ -18,7 +18,6 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.DomainGroupMetadata;
-import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -26,58 +25,46 @@ import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 
 public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
-  private static final String VERSIONS_PATH = "v";
-
   private final ZooKeeperPlus zk;
+  private final Coordinator coordinator;
   private final String name;
   private final String path;
   private final WatchedThriftNode<DomainGroupMetadata> metadata;
-  private final WatchedMap<ZkDomainGroupVersion> versions;
 
   public static ZkDomainGroup create(final ZooKeeperPlus zk,
+                                     final Coordinator coordinator,
                                      final String rootPath,
-                                     final String name,
-                                     final Coordinator coordinator) throws InterruptedException, KeeperException, IOException {
+                                     final String name) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
     DomainGroupMetadata initialMetadata = new DomainGroupMetadata();
     initialMetadata.set_next_version_number(0);
     initialMetadata.set_domain_versions_map(new HashMap<Integer, Integer>());
-    return new ZkDomainGroup(zk, path, coordinator, true, initialMetadata);
+    return new ZkDomainGroup(zk, coordinator, path, true, initialMetadata);
   }
 
   public ZkDomainGroup(final ZooKeeperPlus zk,
-                       final String path,
-                       final Coordinator coordinator) throws IOException, InterruptedException, KeeperException {
-    this(zk, path, coordinator, false, null);
-  }
-
-  public ZkDomainGroup(final ZooKeeperPlus zk,
-                       final String path,
                        final Coordinator coordinator,
+                       final String path) throws IOException, InterruptedException, KeeperException {
+    this(zk, coordinator, path, false, null);
+  }
+
+  public ZkDomainGroup(final ZooKeeperPlus zk,
+                       final Coordinator coordinator,
+                       final String path,
                        final boolean create,
                        final DomainGroupMetadata initialMetadata)
       throws InterruptedException, KeeperException, IOException {
-    super(coordinator);
     this.zk = zk;
+    this.coordinator = coordinator;
     this.path = path;
     this.name = ZkPath.getFilename(path);
     this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialMetadata, new DomainGroupMetadata());
-    if (create) {
-      zk.create(ZkPath.append(path, VERSIONS_PATH), null);
-    }
-    this.versions = new WatchedMap<ZkDomainGroupVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
-        new WatchedMap.ElementLoader<ZkDomainGroupVersion>() {
-          @Override
-          public ZkDomainGroupVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
-            return new ZkDomainGroupVersion(zk, coordinator, ZkPath.append(basePath, relPath), ZkDomainGroup.this);
-          }
-        });
   }
 
   @Override
@@ -86,35 +73,52 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   }
 
   @Override
-  public SortedSet<DomainGroupVersion> getVersions() throws IOException {
-    return new TreeSet<DomainGroupVersion>(versions.values());
+  public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
+    Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
+    for (Map.Entry<Integer, Integer> entry : metadata.get().get_domain_versions_map().entrySet()) {
+      try {
+        result.add(new DomainGroupDomainVersion(coordinator.getDomainById(entry.getKey()), entry.getValue()));
+      } catch (KeeperException e) {
+        throw new IOException(e);
+      } catch (InterruptedException e) {
+        throw new IOException(e);
+      }
+    }
+    return result;
   }
 
   @Override
-  public ZkDomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException {
-    // First, copy next version number
-    int versionNumber = metadata.get().get_next_version_number();
-    // Then, increment next version counter
+  public void setDomainVersions(final Map<Domain, Integer> domainVersions) throws IOException {
     try {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainGroupMetadata currentCopy) {
-          currentCopy.set_next_version_number(currentCopy.get_next_version_number() + 1);
+          Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+          for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
+            map.put(entry.getKey().getId(), entry.getValue());
+          }
+          currentCopy.set_domain_versions_map(map);
         }
       });
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      throw new IOException(e);
     } catch (KeeperException e) {
-      throw new RuntimeException(e);
+      throw new IOException(e);
     }
+  }
+
+  @Override
+  public void removeDomain(final Domain domain) throws IOException {
     try {
-      return ZkDomainGroupVersion.create(zk,
-          getCoordinator(),
-          ZkPath.append(path, VERSIONS_PATH),
-          versionNumber,
-          domainToVersion,
-          this);
-    } catch (Exception e) {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainGroupMetadata currentCopy) {
+          currentCopy.get_domain_versions_map().remove(domain.getId());
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
       throw new IOException(e);
     }
   }

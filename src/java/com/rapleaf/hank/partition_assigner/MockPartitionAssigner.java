@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.partition_assigner;
 
-import com.rapleaf.hank.coordinator.DomainGroupVersion;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.coordinator.Ring;
 
 import java.io.IOException;
@@ -24,11 +24,11 @@ import java.io.IOException;
 public class MockPartitionAssigner implements PartitionAssigner {
 
   @Override
-  public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
+  public boolean isAssigned(Ring ring, DomainGroup domainGroup) {
     return false;
   }
 
   @Override
-  public void assign(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+  public void assign(Ring ring, DomainGroup domainGroup) throws IOException {
   }
 }

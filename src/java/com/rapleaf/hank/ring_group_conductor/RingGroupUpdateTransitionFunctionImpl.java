@@ -41,24 +41,24 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
    * assigned and up-to-date)
    *
    * @param ring
-   * @param domainGroupVersion
+   * @param domainGroup
    * @return
    * @throws IOException
    */
-  protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
-    return Rings.isUpToDate(ring, domainGroupVersion);
+  protected boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
+    return Rings.isUpToDate(ring, domainGroup);
   }
 
   /**
    * Return true iff given host is up-to-date for given domain group version (i.e. all partitions are up-to-date)
    *
    * @param host
-   * @param domainGroupVersion
+   * @param domainGroup
    * @return
    * @throws IOException
    */
-  protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
-    return Hosts.isUpToDate(host, domainGroupVersion);
+  protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
+    return Hosts.isUpToDate(host, domainGroup);
   }
 
   /**
@@ -102,10 +102,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   @Override
   public void manageTransitions(RingGroup ringGroup) throws IOException {
-    DomainGroupVersion targetVersion = ringGroup.getTargetVersion();
-    if (targetVersion == null) {
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
+    if (domainGroup == null) {
       // Nothing to do
-      LOG.info("Target version not found. Nothing to do.");
+      LOG.info("Domain group not found. Nothing to do.");
       return;
     }
 
@@ -117,8 +117,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     // Determine ring statuses (serving and / or up-to-date)
     for (Ring ring : ringGroup.getRingsSorted()) {
-      boolean isAssigned = partitionAssigner.isAssigned(ring, targetVersion);
-      boolean isUpToDate = isUpToDate(ring, targetVersion);
+      boolean isAssigned = partitionAssigner.isAssigned(ring, domainGroup);
+      boolean isUpToDate = isUpToDate(ring, domainGroup);
       boolean isFullyServing = isFullyServing(ring);
       if (isFullyServing) {
         ringsFullyServing.add(ring);
@@ -145,9 +145,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
         // Enough rings are fully serving or the current ring is not servable
 
-        if (partitionAssigner.isAssigned(ring, targetVersion)) {
+        if (partitionAssigner.isAssigned(ring, domainGroup)) {
 
-          if (isUpToDate(ring, targetVersion)) {
+          if (isUpToDate(ring, domainGroup)) {
 
             // Ring is assigned and up-to-date but not fully serving.
             // Tell all idle hosts to serve (if they don't have the serve command already)
@@ -172,7 +172,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               // Remove it from the set in all cases (it might not be contained in the fully serving set).
               ringsFullyServing.remove(ring);
               for (Host host : ring.getHosts()) {
-                if (isUpToDate(host, targetVersion)) {
+                if (isUpToDate(host, domainGroup)) {
                   // Take appropriate action on hosts that are up-to-date: idle hosts should serve
                   switch (host.getState()) {
                     case IDLE:
@@ -203,7 +203,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
               && Rings.getHostsInState(ring, HostState.UPDATING).size() == 0) {
             // If no host is serving or updating in the ring, assign it
             LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
-            partitionAssigner.assign(ring, targetVersion);
+            partitionAssigner.assign(ring, domainGroup);
           } else {
             if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
               // If ring is fully serving and we barely have enough fully serving rings, do nothing.

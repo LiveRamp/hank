@@ -20,6 +20,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 public abstract class AbstractRing implements Ring {
+
   private final int ringNumber;
   private final RingGroup ringGroup;
 

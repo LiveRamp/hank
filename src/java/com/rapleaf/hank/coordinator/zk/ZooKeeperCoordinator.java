@@ -151,7 +151,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       @Override
       public ZkDomainGroup load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
         try {
-          return new ZkDomainGroup(zk, ZkPath.append(basePath, relPath), ZooKeeperCoordinator.this);
+          return new ZkDomainGroup(zk, ZooKeeperCoordinator.this, ZkPath.append(basePath, relPath));
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
@@ -213,20 +213,6 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
       }
     }
     return null;
-  }
-
-  @Override
-  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
-    Set<DomainGroupVersion> domainGroupVersions = new HashSet<DomainGroupVersion>();
-    for (DomainGroup dg : domainGroups.values()) {
-      for (DomainGroupVersion dgv : dg.getVersions()) {
-        DomainGroupVersionDomainVersion dgvdv = dgv.getDomainVersion(domain);
-        if (dgvdv != null) {
-          domainGroupVersions.add(dgv);
-        }
-      }
-    }
-    return domainGroupVersions;
   }
 
   @Override
@@ -346,7 +332,7 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public DomainGroup addDomainGroup(String name) throws IOException {
     try {
-      ZkDomainGroup dgc = ZkDomainGroup.create(zk, domainGroupsRoot, name, this);
+      ZkDomainGroup dgc = ZkDomainGroup.create(zk, this, domainGroupsRoot, name);
       synchronized (domainGroups) {
         domainGroups.put(name, dgc);
       }
@@ -388,16 +374,13 @@ public class ZooKeeperCoordinator extends ZooKeeperConnection implements Coordin
   @Override
   public boolean deleteDomain(String domainName) throws IOException {
     ZkDomain domain = domains.remove(domainName);
-
     if (domain == null) {
       return false;
     }
-
-    // remove domain from all domain group versions
-    for (DomainGroup dg : getDomainGroups()) {
-      DomainGroups.removeDomainFromAllVersions(dg, domain);
+    // remove domain from all domain groups
+    for (DomainGroup domainGroup : getDomainGroups()) {
+      domainGroup.removeDomain(domain);
     }
-
     return domain.delete();
   }
 

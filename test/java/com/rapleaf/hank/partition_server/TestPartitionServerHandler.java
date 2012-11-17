@@ -131,10 +131,10 @@ public class TestPartitionServerHandler extends BaseTestCase {
     };
     Domain domain = new MockDomain("myDomain", 0, 5, partitioner, storageEngine, null,
         null);
-    MockDomainGroupVersionDomainVersion dgvdv = new MockDomainGroupVersionDomainVersion(
+    MockDomainGroupDomainVersion dgvdv = new MockDomainGroupDomainVersion(
         domain, 1);
     final MockDomainGroupVersion dgv = new MockDomainGroupVersion(
-        Collections.singleton((DomainGroupVersionDomainVersion) dgvdv), null, 1);
+        Collections.singleton((DomainGroupDomainVersion) dgvdv), null, 1);
     final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
       add(dgv);
     }};

@@ -140,18 +140,12 @@ public class DomainController extends Controller {
     boolean isInUse = false;
     // check if this domain is in use anywhere
     for (RingGroup rg : coordinator.getRingGroups()) {
-      if (rg.getTargetVersion() == null) {
-        continue;
-      }
-
       DomainGroup dg = rg.getDomainGroup();
-      DomainGroupVersion dgv = rg.getTargetVersion();
-      if (DomainGroupVersions.containsDomain(dgv, domain)) {
+      if (dg.getDomains().contains(domain)) {
         isInUse = true;
         break;
       }
     }
-
     if (!isInUse) {
       coordinator.deleteDomain(domain.getName());
     }
@@ -175,5 +169,4 @@ public class DomainController extends Controller {
     }
     resp.sendRedirect("/domains.jsp");
   }
-
 }

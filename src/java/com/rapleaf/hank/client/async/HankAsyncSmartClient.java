@@ -178,15 +178,9 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
       LOG.error(errMsg);
       throw new IOException(errMsg);
     }
-    DomainGroupVersion domainGroupVersion = ringGroup.getTargetVersion();
-    if (domainGroupVersion == null) {
-      String errMsg = "Could not get target version of ring group " + ringGroup;
-      LOG.error(errMsg);
-      throw new IOException(errMsg);
-    }
 
     // Build domainToPartitionToPartitionServerAdresses with empty address lists
-    for (DomainGroupVersionDomainVersion domainVersion : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion domainVersion : domainGroup.getDomainVersions()) {
       Domain domain = domainVersion.getDomain();
       HashMap<Integer, List<PartitionServerAddress>> partitionToAddress = new HashMap<Integer, List<PartitionServerAddress>>();
       for (int i = 0; i < domain.getNumParts(); i++) {

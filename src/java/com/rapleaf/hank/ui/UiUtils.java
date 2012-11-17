@@ -94,13 +94,13 @@ public class UiUtils {
         + "</div>";
   }
 
-  public static String formatDomainGroupVersionTable(DomainGroupVersion domainGroupVersion,
-                                                     String cssClass,
-                                                     boolean linkToDomains)
+  public static String formatDomainGroupDomainVersionsTable(DomainGroup domainGroup,
+                                                            String cssClass,
+                                                            boolean linkToDomains)
       throws IOException {
     StringBuilder content = new StringBuilder();
     content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed On</th></tr>");
-    for (DomainGroupVersionDomainVersion version : domainGroupVersion.getDomainVersionsSorted()) {
+    for (DomainGroupDomainVersion version : domainGroup.getDomainVersionsSorted()) {
       content.append("<tr><td>");
       if (linkToDomains) {
         content.append("<a href='/domain.jsp?n=" + URLEnc.encode(version.getDomain().getName()) + "'>");
@@ -119,24 +119,10 @@ public class UiUtils {
     return content.toString();
   }
 
-  public static String formatDomainGroupVersionInfo(DomainGroupVersion domainGroupVersion) {
-    return domainGroupVersion.getDomainGroup().getName() + " version " + domainGroupVersion.getVersionNumber()
-        + " created on " + formatDomainGroupVersionCreatedAt(domainGroupVersion);
-  }
-
-  public static String formatDomainGroupVersionInfoTooltip(DomainGroupVersion domainGroupVersion, String text) throws IOException {
-    String title = formatDomainGroupVersionInfo(domainGroupVersion);
-    String content = formatDomainGroupVersionTable(domainGroupVersion, "domain-group-info", false);
+  public static String formatDomainGroupInfoTooltip(DomainGroup domainGroup, String text) throws IOException {
+    String title = domainGroup.getName();
+    String content = formatDomainGroupDomainVersionsTable(domainGroup, "domain-group-info", false);
     return htmlTooltip(text, title, content);
-  }
-
-  public static String formatDomainGroupVersionCreatedAt(DomainGroupVersion domainGroupVersion) {
-    Long createdAt = domainGroupVersion.getCreatedAt();
-    if (createdAt == null) {
-      return "-";
-    } else {
-      return dateFormat.format(new Date(createdAt));
-    }
   }
 
   public static String formatDomainVersionClosedAt(DomainVersion domainVersion) throws IOException {

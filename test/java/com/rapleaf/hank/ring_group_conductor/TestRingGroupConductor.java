@@ -49,8 +49,8 @@ public class TestRingGroupConductor extends TestCase {
 
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
       final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-        add(new MockDomainGroupVersion(Collections.singleton((DomainGroupVersionDomainVersion)
-            new MockDomainGroupVersionDomainVersion(domain, 1)), null, 2));
+        add(new MockDomainGroupVersion(Collections.singleton((DomainGroupDomainVersion)
+            new MockDomainGroupDomainVersion(domain, 1)), null, 2));
       }};
 
       @Override

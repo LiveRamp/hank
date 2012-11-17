@@ -66,20 +66,20 @@ public class TestZkDomainGroupVersion extends ZkTestCase {
     ZkDomainGroupVersion dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(1), mockDomainGroup);
     assertEquals(1, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
     assertTrue(dgcv.getCreatedAt() > beforeMillis);
 
     version(coord, mockDomainGroup, 2, 1, 2);
     dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(2), mockDomainGroup);
     assertEquals(2, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(coord, mockDomainGroup, 3, 1, 3);
     dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(3), mockDomainGroup);
     assertEquals(3, dgcv.getVersionNumber());
     assertEquals(1, dgcv.getDomainVersions().size());
-    assertEquals(domain1, ((DomainGroupVersionDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
+    assertEquals(domain1, ((DomainGroupDomainVersion) dgcv.getDomainVersions().toArray()[0]).getDomain());
 
     version(coord, mockDomainGroup, 4, 1, 3, 2, 1);
     dgcv = new ZkDomainGroupVersion(getZk(), coord, versionPath(4), mockDomainGroup);

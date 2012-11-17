@@ -104,25 +104,6 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  public void migrate(DomainGroupVersion domainGroupVersion) throws InterruptedException, KeeperException, IOException {
-    for (final HostDomain hostDomain : getAssignedDomains()) {
-      LOG.info("      Migrating domain " + hostDomain.getDomain().getName());
-      final int domainVersion = domainGroupVersion.getDomainVersion(hostDomain.getDomain()).getVersionNumber();
-      assignments.update(assignments.new Updater() {
-        @Override
-        public void updateCopy(HostAssignmentsMetadata currentCopy) {
-          HostDomainMetadata hostDomainMetadata = currentCopy.get_domains().get(hostDomain.getDomain().getId());
-          for (Map.Entry<Integer, HostDomainPartitionMetadata> entry : hostDomainMetadata.get_partitions().entrySet()) {
-            LOG.info("        Migrating partition " + entry.getKey()
-                + " from " + entry.getValue().get_current_version_number()
-                + " to " + domainVersion);
-            entry.getValue().set_current_version_number(domainVersion);
-          }
-        }
-      });
-    }
-  }
-
   private class DataLocationChangeNotifier implements WatchedNodeListener<HostState> {
 
     @Override

@@ -57,8 +57,6 @@ public interface Coordinator {
 
   public SortedSet<DomainGroup> getDomainGroupsSorted();
 
-  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException;
-
   public DomainGroup getDomainGroup(String domainGroupName);
 
   public boolean deleteDomainGroup(String domainGroupName) throws IOException;

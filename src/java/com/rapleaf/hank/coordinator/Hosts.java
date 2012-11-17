@@ -36,10 +36,10 @@ public final class Hosts {
     return host.getState() != HostState.OFFLINE;
   }
 
-  public static UpdateProgress computeUpdateProgress(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+  public static UpdateProgress computeUpdateProgress(Host host, DomainGroup domainGroup) throws IOException {
     int numPartitions = 0;
     int numPartitionsUpToDate = 0;
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
@@ -61,12 +61,12 @@ public final class Hosts {
 
   // Return true if all partitions assigned to that host for domains of the given domain group version
   // are at the correct version. And there are no deletable partitions.
-  public static boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
-    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
+  public static boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
+    if (domainGroup == null || domainGroup.getDomainVersions() == null) {
       return false;
     }
     // Check that each domain of the given domain group version is up to date on this host
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
       if (hostDomain != null) {
@@ -94,10 +94,10 @@ public final class Hosts {
   }
 
   public static ServingStatusAggregator
-  computeServingStatusAggregator(Host host, DomainGroupVersion domainGroupVersion) throws IOException {
+  computeServingStatusAggregator(Host host, DomainGroup domainGroup) throws IOException {
     ServingStatusAggregator result = new ServingStatusAggregator();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      DomainGroupVersionDomainVersion domainVersion = domainGroupVersion.getDomainVersion(hostDomain.getDomain());
+      DomainGroupDomainVersion domainVersion = domainGroup.getDomainVersion(hostDomain.getDomain());
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
         // Ignore deletable partitions
         if (!partition.isDeletable()) {

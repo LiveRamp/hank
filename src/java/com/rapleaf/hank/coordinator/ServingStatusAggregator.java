@@ -16,6 +16,7 @@
 
 package com.rapleaf.hank.coordinator;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -81,9 +82,9 @@ public class ServingStatusAggregator {
 
   // Compute, for each domain, the number of _domain partitions_ (unique partitions)
   // that are fully (all copies) served and up to date
-  public ServingStatus computeUniquePartitionsServingStatus(DomainGroupVersion domainGroupVersion) {
+  public ServingStatus computeUniquePartitionsServingStatus(DomainGroup domainGroup) throws IOException {
     ServingStatus result = new ServingStatus();
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       Map<Integer, ServingStatus> partitionToServingStatus = domainToPartitionToPartitionServingStatus.get(domain);
       int partitionsServedAndUpToDate = 0;

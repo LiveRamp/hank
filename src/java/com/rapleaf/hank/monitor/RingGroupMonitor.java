@@ -19,7 +19,6 @@ package com.rapleaf.hank.monitor;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
-import com.rapleaf.hank.monitor.notification.RingGroupTargetVersionNotification;
 import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
@@ -36,7 +35,6 @@ public class RingGroupMonitor {
   private final List<Notifier> notifiers;
   private Collection<RingMonitor> ringMonitors = new ArrayList<RingMonitor>();
   private final RingGroupConductorModeMonitor ringGroupConductorStatusMonitor;
-  private final TargetVersionMonitor targetVersionMonitor;
 
   private class RingGroupConductorModeMonitor implements WatchedNodeListener<RingGroupConductorMode> {
 
@@ -50,14 +48,6 @@ public class RingGroupMonitor {
     }
   }
 
-  private class TargetVersionMonitor implements WatchedNodeListener<Integer> {
-
-    @Override
-    public void onWatchedNodeChange(Integer targetVersion) {
-      doNotify(new RingGroupTargetVersionNotification(ringGroup, targetVersion));
-    }
-  }
-
   public RingGroupMonitor(RingGroup ringGroup,
                           List<Notifier> notifiers) throws IOException {
     this.notifiers = notifiers;
@@ -66,10 +56,8 @@ public class RingGroupMonitor {
       ringMonitors.add(new RingMonitor(ringGroup, ring, notifiers));
     }
     this.ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
-    this.targetVersionMonitor = new TargetVersionMonitor();
 
     ringGroup.addRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
-    ringGroup.addTargetVersionListener(targetVersionMonitor);
   }
 
   private void doNotify(Notification notification) {
@@ -83,6 +71,5 @@ public class RingGroupMonitor {
       ringMonitor.stop();
     }
     ringGroup.removeRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
-    ringGroup.removeTargetVersionListener(targetVersionMonitor);
   }
 }

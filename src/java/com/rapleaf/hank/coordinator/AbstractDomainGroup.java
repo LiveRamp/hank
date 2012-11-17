@@ -17,22 +17,38 @@
 package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public abstract class AbstractDomainGroup implements DomainGroup {
-  private final Coordinator coordinator;
-
-  protected AbstractDomainGroup(Coordinator coordinator) {
-    this.coordinator = coordinator;
-  }
 
   @Override
-  public DomainGroupVersion getVersion(int versionNumber) throws IOException {
-    for (DomainGroupVersion domainGroupVersion : getVersions()) {
-      if (domainGroupVersion.getVersionNumber() == versionNumber) {
-        return domainGroupVersion;
+  public DomainGroupDomainVersion getDomainVersion(Domain domain) throws IOException {
+    if (domain == null || domain.getName() == null) {
+      return null;
+    }
+    for (DomainGroupDomainVersion domainVersion : getDomainVersions()) {
+      if (domainVersion.getDomain() != null &&
+          domain.getId() == domainVersion.getDomain().getId()) {
+        return domainVersion;
       }
     }
     return null;
+  }
+
+  @Override
+  public SortedSet<DomainGroupDomainVersion> getDomainVersionsSorted() throws IOException {
+    return new TreeSet<DomainGroupDomainVersion>(getDomainVersions());
+  }
+
+  @Override
+  public Set<Domain> getDomains() throws IOException {
+    Set<Domain> result = new TreeSet<Domain>();
+    for (DomainGroupDomainVersion dgdv : getDomainVersions()) {
+      result.add(dgdv.getDomain());
+    }
+    return result;
   }
 
   @Override
@@ -40,7 +56,23 @@ public abstract class AbstractDomainGroup implements DomainGroup {
     return getName().compareTo(o.getName());
   }
 
-  protected Coordinator getCoordinator() {
-    return coordinator;
+  @Override
+  public String toString() {
+    StringBuilder domainVersionsString = new StringBuilder();
+    domainVersionsString.append('[');
+    try {
+      if (getDomainVersions() != null) {
+        for (DomainGroupDomainVersion dgvdv : getDomainVersionsSorted()) {
+          domainVersionsString.append(dgvdv.getDomain() != null ? dgvdv.getDomain().getName() : "null");
+          domainVersionsString.append('@');
+          domainVersionsString.append(dgvdv.getVersionNumber());
+          domainVersionsString.append(", ");
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    domainVersionsString.append(']');
+    return "AbstractDomainGroup [name=" + getName() + ", domainVersions=" + domainVersionsString.toString() + "]";
   }
 }

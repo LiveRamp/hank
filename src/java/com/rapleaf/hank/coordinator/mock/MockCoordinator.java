@@ -166,11 +166,6 @@ public class MockCoordinator implements Coordinator {
   }
 
   @Override
-  public Set<DomainGroupVersion> getDomainGroupVersionsForDomain(Domain domain) throws IOException {
-    return null;
-  }
-
-  @Override
   public Set<RingGroup> getRingGroupsForDomainGroup(DomainGroup domainGroup) {
     return null;
   }

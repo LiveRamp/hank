@@ -16,23 +16,10 @@
 
 package com.rapleaf.hank.coordinator;
 
-import java.io.IOException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public abstract class AbstractRingGroup implements RingGroup {
-
-  @Override
-  public DomainGroupVersion getTargetVersion() throws IOException {
-    Integer version = getTargetVersionNumber();
-    if (version != null) {
-      DomainGroup domainGroup = getDomainGroup();
-      if (domainGroup != null) {
-        return domainGroup.getVersion(version);
-      }
-    }
-    return null;
-  }
 
   @Override
   public SortedSet<Ring> getRingsSorted() {
@@ -46,17 +33,8 @@ public abstract class AbstractRingGroup implements RingGroup {
 
   @Override
   public String toString() {
-    try {
-      return "AbstractRingGroup [name=" + getName()
-          + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
-          + ", target version=" + getTargetVersionNumber()
-          + "]";
-    } catch (IOException e) {
-      return "AbstractRingGroup [name=" + getName()
-          + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
-          + ", current version=?"
-          + ", updating to version=?"
-          + "]";
-    }
+    return "AbstractRingGroup [name=" + getName()
+        + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
+        + "]";
   }
 }

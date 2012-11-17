@@ -105,9 +105,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   };
 
   private static DomainGroupVersion v1 =
-      new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 1);
+      new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), domainGroup, 1);
   private static DomainGroupVersion v2 =
-      new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), domainGroup, 2);
+      new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), domainGroup, 2);
 
   private MockRingLocal r0;
   private MockRingLocal r1;

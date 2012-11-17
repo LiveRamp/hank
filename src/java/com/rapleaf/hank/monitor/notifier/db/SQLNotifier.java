@@ -1,12 +1,12 @@
 package com.rapleaf.hank.monitor.notifier.db;
 
-import com.rapleaf.hank.monitor.notification.RingGroupTargetVersionNotification;
 import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class SQLNotifier implements Notifier {
   private static Logger LOG = Logger.getLogger(SQLNotifier.class);
@@ -20,24 +20,6 @@ public class SQLNotifier implements Notifier {
 
   @Override
   public void doNotify(Notification notification) {
-    try {
-      if (notification instanceof RingGroupTargetVersionNotification) {
-        RingGroupTargetVersionNotification versionNotification = (RingGroupTargetVersionNotification) notification;
-        int versionNumber = -1;
-        try {
-          versionNumber = versionNotification.getTargetVersion().getVersionNumber();
-        } catch (IOException e) {
-          LOG.warn("Cannot get target version", e);
-        }
-        PreparedStatement preparedStatement = getConnection().prepareStatement("insert into " + configuration.getTargetVersionTable() + " values (default, ?, ?, ?)");
-        preparedStatement.setTimestamp(1, new Timestamp(notification.getDate().getTime()));
-        preparedStatement.setString(2, versionNotification.getRingGroup().getName());
-        preparedStatement.setInt(3, versionNumber);
-        preparedStatement.executeUpdate();
-      }
-    } catch (SQLException e) {
-      LOG.warn("Error with mysql operation", e);
-    }
   }
 
   @Override

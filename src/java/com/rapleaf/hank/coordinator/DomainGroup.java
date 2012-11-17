@@ -17,15 +17,22 @@ package com.rapleaf.hank.coordinator;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 public interface DomainGroup extends Comparable<DomainGroup> {
 
   public String getName();
 
-  public SortedSet<DomainGroupVersion> getVersions() throws IOException;
+  public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException;
 
-  public DomainGroupVersion getVersion(int versionNumber) throws IOException;
+  public SortedSet<DomainGroupDomainVersion> getDomainVersionsSorted() throws IOException;
 
-  public DomainGroupVersion createNewVersion(Map<Domain, Integer> domainToVersion) throws IOException;
+  public DomainGroupDomainVersion getDomainVersion(Domain domain) throws IOException;
+
+  public void setDomainVersions(Map<Domain, Integer> domainVersions) throws IOException;
+
+  public void removeDomain(Domain domain) throws IOException;
+
+  public Set<Domain> getDomains() throws IOException;
 }

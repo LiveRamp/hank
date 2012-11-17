@@ -38,7 +38,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
   private final static Logger LOG = Logger.getLogger(PartitionServerHandler.class);
 
-  private final PartitionServerConfigurator configurator;
   private final Host host;
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -62,7 +61,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
   public PartitionServerHandler(PartitionServerAddress address,
                                 PartitionServerConfigurator configurator,
                                 Coordinator coordinator) throws IOException {
-    this.configurator = configurator;
 
     // Create the GET executor
     getBulkTaskExecutor = new ThreadPoolExecutor(
@@ -90,13 +88,6 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       throw new IOException(String.format("Could not get DomainGroup of Ring %s", ring));
     }
 
-    // Get the corresponding domain group version
-    DomainGroupVersion domainGroupVersion = ring.getRingGroup().getTargetVersion();
-    if (domainGroupVersion == null) {
-      throw new IOException(String.format("Could not get target version of ring group %s",
-          ring.getRingGroup()));
-    }
-
     // Get the corresponding Host
     host = ring.getHostByAddress(address);
     if (host == null) {
@@ -105,7 +96,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Determine the max domain id so we can bound the arrays
     int maxDomainId = 0;
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       int domainId = dgvdv.getDomain().getId();
       if (domainId > maxDomainId) {
         maxDomainId = domainId;
@@ -115,7 +106,7 @@ public class PartitionServerHandler implements IfaceWithShutdown {
 
     // Loop over the domains and get set up
     List<Exception> exceptions = new ArrayList<Exception>();
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       StorageEngine engine = domain.getStorageEngine();
 

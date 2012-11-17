@@ -164,17 +164,17 @@ public class UpdateManager implements IUpdateManager {
       long startTimeMs = System.currentTimeMillis();
       try {
         // Determine target version
-        DomainGroupVersionDomainVersion targetDomainGroupVersionDomainVersion =
-            ringGroup.getTargetVersion().getDomainVersion(domain);
+        DomainGroupDomainVersion targetDomainGroupDomainVersion =
+            ringGroup.getDomainGroup().getDomainVersion(domain);
 
         // If unable to determine the version, this partition is deletable (the corresponding domain is not in the
         // target domain group version)
-        if (partition.isDeletable() || targetDomainGroupVersionDomainVersion == null) {
+        if (partition.isDeletable() || targetDomainGroupDomainVersion == null) {
           deletePartition(hostDomain, partition);
         } else {
           // Determine Domain Version
           DomainVersion targetDomainVersion =
-              domain.getVersion(targetDomainGroupVersionDomainVersion.getVersionNumber());
+              domain.getVersion(targetDomainGroupDomainVersion.getVersionNumber());
 
           // Skip partitions already up-to-date
           if (partition.getCurrentDomainVersion() != null &&

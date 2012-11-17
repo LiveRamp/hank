@@ -75,9 +75,9 @@ public class Rings {
   }
 
   // Return true iff each host in the given ring is considered up-to-date.
-  public static boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+  public static boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
     for (Host host : ring.getHosts()) {
-      if (!Hosts.isUpToDate(host, domainGroupVersion)) {
+      if (!Hosts.isUpToDate(host, domainGroup)) {
         return false;
       }
     }
@@ -85,19 +85,19 @@ public class Rings {
   }
 
   public static UpdateProgress computeUpdateProgress(Ring ring,
-                                                     DomainGroupVersion domainGroupVersion) throws IOException {
+                                                     DomainGroup domainGroup) throws IOException {
     UpdateProgress result = new UpdateProgress();
     for (Host host : ring.getHosts()) {
-      result.aggregate(Hosts.computeUpdateProgress(host, domainGroupVersion));
+      result.aggregate(Hosts.computeUpdateProgress(host, domainGroup));
     }
     return result;
   }
 
   public static ServingStatusAggregator
-  computeServingStatusAggregator(Ring ring, DomainGroupVersion domainGroupVersion) throws IOException {
+  computeServingStatusAggregator(Ring ring, DomainGroup domainGroup) throws IOException {
     ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();
     for (Host host : ring.getHosts()) {
-      servingStatusAggregator.aggregate(Hosts.computeServingStatusAggregator(host, domainGroupVersion));
+      servingStatusAggregator.aggregate(Hosts.computeServingStatusAggregator(host, domainGroup));
     }
     return servingStatusAggregator;
   }

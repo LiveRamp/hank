@@ -181,8 +181,8 @@ public class TestUpdateManager extends BaseTestCase {
 
     private DomainGroupVersion getMockDomainGroupVersion(final Domain domain) {
       // the domain version for this domain group version will be 2
-      final DomainGroupVersionDomainVersion dgvdv =
-          new MockDomainGroupVersionDomainVersion(domain, 2);
+      final DomainGroupDomainVersion dgvdv =
+          new MockDomainGroupDomainVersion(domain, 2);
       // the domain group version number is 1. note the difference between dgv
       // and dgvdv's version numbers - this is intentional
       return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
@@ -255,7 +255,7 @@ public class TestUpdateManager extends BaseTestCase {
     // Empty domain group version
     DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
       SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-        add(new MockDomainGroupVersion(Collections.<DomainGroupVersionDomainVersion>emptySet(), null, 0));
+        add(new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), null, 0));
       }};
 
       @Override

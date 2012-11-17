@@ -30,61 +30,49 @@ public final class RingGroups {
   private RingGroups() {
   }
 
-  public static boolean isUpToDate(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
+  public static boolean isUpToDate(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
-      if (!Rings.isUpToDate(ring, domainGroupVersion)) {
+      if (!Rings.isUpToDate(ring, domainGroup)) {
         return false;
       }
     }
     return true;
   }
 
-  public static void setTargetVersion(RingGroup ringGroup, int versionNumber) throws IOException {
-    DomainGroupVersion domainGroupVersion = ringGroup.getDomainGroup().getVersion(versionNumber);
-    setTargetVersion(ringGroup, domainGroupVersion);
-  }
+  // TODO: reproduce behavior somewhere else
 
-  public static void setTargetVersion(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
-    // Check that target version is deployable
-    if (domainGroupVersionIsDeployable(domainGroupVersion)) {
-      ringGroup.setTargetVersion(domainGroupVersion.getVersionNumber());
-    } else {
-      LOG.info("Target domain group version is not deployable. Ignoring: " + domainGroupVersion);
-    }
-  }
-
-  // Check that all domains included in the given domain group version exist and that the specified versions
-  // are not defunct or open.
-  private static boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
-    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
-      return false;
-    }
-    for (DomainGroupVersionDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-      Domain domain = dgvdv.getDomain();
-      if (domain == null) {
-        return false;
-      }
-      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersionNumber());
-      if (domainVersion == null
-          || !DomainVersions.isClosed(domainVersion)
-          || domainVersion.isDefunct()) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Version " + dgvdv.getVersionNumber()
-              + " of domain " + domain.getName()
-              + " is null, still open or defunct. Hence domain group version "
-              + domainGroupVersion + " is not deployable.");
-        }
-        return false;
-      }
-    }
-    return true;
-  }
+  //  // Check that all domains included in the given domain group version exist and that the specified versions
+  //  // are not defunct or open.
+  //  private static boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
+  //    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
+  //      return false;
+  //    }
+  //    for (DomainGroupDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
+  //      Domain domain = dgvdv.getDomain();
+  //      if (domain == null) {
+  //        return false;
+  //      }
+  //      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersionNumber());
+  //      if (domainVersion == null
+  //          || !DomainVersions.isClosed(domainVersion)
+  //          || domainVersion.isDefunct()) {
+  //        if (LOG.isDebugEnabled()) {
+  //          LOG.debug("Version " + dgvdv.getVersionNumber()
+  //              + " of domain " + domain.getName()
+  //              + " is null, still open or defunct. Hence domain group version "
+  //              + domainGroupVersion + " is not deployable.");
+  //        }
+  //        return false;
+  //      }
+  //    }
+  //    return true;
+  //  }
 
   public static UpdateProgress computeUpdateProgress(RingGroup ringGroup,
-                                                     DomainGroupVersion domainGroupVersion) throws IOException {
+                                                     DomainGroup domainGroup) throws IOException {
     UpdateProgress result = new UpdateProgress();
     for (Ring ring : ringGroup.getRings()) {
-      result.aggregate(Rings.computeUpdateProgress(ring, domainGroupVersion));
+      result.aggregate(Rings.computeUpdateProgress(ring, domainGroup));
     }
     return result;
   }
@@ -114,10 +102,10 @@ public final class RingGroups {
   }
 
   public static ServingStatusAggregator
-  computeServingStatusAggregator(RingGroup ringGroup, DomainGroupVersion domainGroupVersion) throws IOException {
+  computeServingStatusAggregator(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
     ServingStatusAggregator servingStatusAggregator = new ServingStatusAggregator();
     for (Ring ring : ringGroup.getRings()) {
-      servingStatusAggregator.aggregate(Rings.computeServingStatusAggregator(ring, domainGroupVersion));
+      servingStatusAggregator.aggregate(Rings.computeServingStatusAggregator(ring, domainGroup));
     }
     return servingStatusAggregator;
   }
