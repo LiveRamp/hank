@@ -98,16 +98,19 @@ public final class Hosts {
     ServingStatusAggregator result = new ServingStatusAggregator();
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       DomainGroupDomainVersion domainVersion = domainGroup.getDomainVersion(hostDomain.getDomain());
-      for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        // Ignore deletable partitions
-        if (!partition.isDeletable()) {
-          // Check if partition is served and up to date
-          boolean servedAndUpToDate =
-              host.getState() == HostState.SERVING &&
-                  partition.getCurrentDomainVersion() != null &&
-                  partition.getCurrentDomainVersion().equals(domainVersion.getVersionNumber());
-          // Aggregate counts
-          result.add(hostDomain.getDomain(), partition.getPartitionNumber(), servedAndUpToDate);
+      // Ignore domains that are not relevant
+      if (domainVersion != null) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          // Ignore deletable partitions
+          if (!partition.isDeletable()) {
+            // Check if partition is served and up to date
+            boolean servedAndUpToDate =
+                host.getState() == HostState.SERVING &&
+                    partition.getCurrentDomainVersion() != null &&
+                    partition.getCurrentDomainVersion().equals(domainVersion.getVersionNumber());
+            // Aggregate counts
+            result.add(hostDomain.getDomain(), partition.getPartitionNumber(), servedAndUpToDate);
+          }
         }
       }
     }

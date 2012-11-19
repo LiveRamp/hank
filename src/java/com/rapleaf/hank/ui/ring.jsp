@@ -50,9 +50,9 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     FilesystemStatisticsAggregator filesystemStatisticsForRing =
       Rings.computeFilesystemStatisticsForRing(filesystemStatistics);
 
-    DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
-
     long updateETA = Rings.computeUpdateETA(ring);
+
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
   %>
 
   <h2>State</h2>
@@ -101,10 +101,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        if (targetDomainGroupVersion != null) {
-          servingStatusAggregator = Rings.computeServingStatusAggregator(ring, targetDomainGroupVersion);
-          servingStatus = servingStatusAggregator.computeServingStatus();
-        }
+        servingStatusAggregator = Rings.computeServingStatusAggregator(ring, domainGroup);
+        servingStatus = servingStatusAggregator.computeServingStatus();
         %>
         <% if (servingStatusAggregator != null) { %>
         <tr>
@@ -207,8 +205,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       </td>
       <%
       UpdateProgress progress = null;
-      if (targetDomainGroupVersion != null && !Rings.isUpToDate(ring, targetDomainGroupVersion)) {
-        progress = Hosts.computeUpdateProgress(host, targetDomainGroupVersion);
+      if (!Rings.isUpToDate(ring, domainGroup)) {
+        progress = Hosts.computeUpdateProgress(host, domainGroup);
       }
       %>
 
@@ -251,10 +249,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <%
         ServingStatusAggregator hostServingStatusAggregator = null;
         ServingStatus hostServingStatus = null;
-        if (targetDomainGroupVersion != null) {
-          hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, targetDomainGroupVersion);
-          hostServingStatus = hostServingStatusAggregator.computeServingStatus();
-        }
+        hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, domainGroup);
+        hostServingStatus = hostServingStatusAggregator.computeServingStatus();
         %>
         <% if (hostServingStatusAggregator != null) { %>
           <% if (hostServingStatus.getNumPartitionsServedAndUpToDate() != 0

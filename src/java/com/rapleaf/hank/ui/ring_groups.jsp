@@ -47,7 +47,7 @@
   <table id='all-ring-groups' class='table-blue ALL-RING-GROUPS'>
     <tr>
       <th>Ring Group</th>
-      <th>Target Version</th>
+      <th>Domain Group</th>
       <th></th>
       <th>Hosts</th>
       <th>Serving</th>
@@ -67,23 +67,20 @@
       <tr>
         <td class='centered'>
         <a href="/ring_group.jsp?name=<%= URLEnc.encode(ringGroup.getName()) %>"><%= ringGroup.getName() %></a>
-        <br/>
-        @ <%=ringGroup.getDomainGroup().getName()%>
         </td>
 
         <%
-        DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
         UpdateProgress progress = null;
-        if (targetDomainGroupVersion != null &&
-            !RingGroups.isUpToDate(ringGroup, targetDomainGroupVersion)) {
-          progress = RingGroups.computeUpdateProgress(ringGroup, targetDomainGroupVersion);
+        if (!RingGroups.isUpToDate(ringGroup, ringGroup.getDomainGroup())) {
+          progress = RingGroups.computeUpdateProgress(ringGroup, ringGroup.getDomainGroup());
         }
         %>
 
-        <td class='centered'><%= targetDomainGroupVersion != null ?
-        UiUtils.formatDomainGroupVersionInfoTooltip(targetDomainGroupVersion,
-        "<a href='/domain_group.jsp?n=" + URLEnc.encode(targetDomainGroupVersion.getDomainGroup().getName()) +
-        "'>" + targetDomainGroupVersion.getVersionNumber() + "</a>") : "-" %></td>
+        <td class='centered'>
+        <%= UiUtils.formatDomainGroupInfoTooltip(ringGroup.getDomainGroup(),
+        "<a href='/domain_group.jsp?n=" + URLEnc.encode(ringGroup.getDomainGroup().getName()) +
+        "'>" + ringGroup.getDomainGroup().getName() + "</a>") %>
+        </td>
 
         <% if (progress != null) { %>
         <td class='centered'>
@@ -161,10 +158,8 @@
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        if (targetDomainGroupVersion != null) {
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, targetDomainGroupVersion);
-          servingStatus = servingStatusAggregator.computeServingStatus();
-        }
+        servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
+        servingStatus = servingStatusAggregator.computeServingStatus();
         %>
         <% if (servingStatusAggregator != null) { %>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0

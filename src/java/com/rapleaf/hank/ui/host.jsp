@@ -59,7 +59,7 @@
   FilesystemStatisticsAggregator filesystemStatisticsForHost =
     Hosts.computeFilesystemStatisticsForHost(filesystemStatistics);
 
-  DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
+  DomainGroup domainGroup = ringGroup.getDomainGroup();
 
   long updateETA = Hosts.computeUpdateETA(host);
 %>
@@ -174,9 +174,6 @@
 
   <!-- Domain specific Runtime Statistics -->
 
-  <%
-    if (targetDomainGroupVersion != null) {
-  %>
   <table class='table-blue-compact DOMAIN-STATISTICS'>
   <tr>
      <th>Domain</th>
@@ -186,8 +183,8 @@
      <th>Cache Hits</th>
   </tr>
    <%
-     for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersionsSorted()) {
-       Domain domain = dgvdv.getDomain();
+     for (DomainGroupDomainVersion dgdv : domainGroup.getDomainVersionsSorted()) {
+       Domain domain = dgdv.getDomain();
        RuntimeStatisticsAggregator runtimeStatisticsForDomain =
        Hosts.computeRuntimeStatisticsForDomain(runtimeStatistics, domain);
    %>
@@ -202,9 +199,6 @@
     </tr>
   <%
     }
-  %>
-  <%
-  }
   %>
   </table>
 
@@ -260,7 +254,7 @@
   <%
     for (HostDomain hdc : host.getAssignedDomainsSorted()) {
       Domain domain = hdc.getDomain();
-      DomainGroupVersionDomainVersion targetDomainVersion = targetDomainGroupVersion.getDomainVersion(domain);
+      DomainGroupDomainVersion targetDomainVersion = domainGroup.getDomainVersion(domain);
       int squareDim = (int)Math.floor(Math.sqrt(domain.getNumParts()));
       if (domain == null) {
   %>

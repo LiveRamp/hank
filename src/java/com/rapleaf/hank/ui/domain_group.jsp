@@ -51,58 +51,53 @@ tr.not_included td {
 
 <h1>Domain Group <span class='currentItem'><%= domainGroup.getName() %></span></h1>
 
-<h2>Create New Version</h2>
+<h2>Current Domain Versions</h2>
 
-<form method="post" action="/domain_group/add_version">
-  <input type=hidden name="n" value="<%=domainGroup.getName()%>"/>
+<%= UiUtils.formatDomainGroupDomainVersionsTable(domainGroup, "table-blue-compact", true) %>
 
-  <table class='table-blue'>
+<h2>Update Domain Versions</h2>
+
+<form method="post" action="/domain_group/update_domain_versions">
+  <input type=hidden name="name" value="<%=domainGroup.getName()%>"/>
+
+  <table class='table-blue-compact'>
     <tr>
       <th>Domain</th>
       <th>Include</th>
-      <th>Version (default is most recent)</th>
+      <th>Version</th>
       <th>Current Version</th>
     </tr>
   <%
-    DomainGroupVersion latestDomainGroupVersion = DomainGroups.getLatestVersion(domainGroup);
     for (Domain domain : coord.getDomainsSorted()) {
   %>
     <%
-      DomainVersion latestVersion = Domains.getLatestVersionNotOpenNotDefunct(domain);
-      DomainGroupVersionDomainVersion latestDgvdv = null;
-      if (latestDomainGroupVersion != null) {
-        latestDgvdv = latestDomainGroupVersion.getDomainVersion(domain);
-      }
-      boolean included = latestDgvdv != null;
+      DomainGroupDomainVersion currentDomainVersion = domainGroup.getDomainVersion(domain);
+      boolean included = currentDomainVersion != null;
     %>
     <tr id="<%= domain.getId() %>_tr" <%= included ? "class='included'" : "class='not_included'" %> >
-      <td>
+      <td class='centered'>
         <a href="/domain.jsp?n=<%= domain.getName() %>"><%= domain.getName() %></a>
       </td>
 
-        <% if (latestVersion != null) { %>
-        <td>
+        <td class='centered'>
         <input type="checkbox"
                name="<%=domain.getName() %>_included"
                onclick="toggleDisabled('<%= domain.getId() %>_version'); toggleClass('<%= domain.getId() %>_tr', 'included', 'not_included')"
                <%= included ? "checked='checked'" : "" %> />
         </td>
-        <td>
+        <td class='centered'>
           <select size=3 id="<%= domain.getId() %>_version"
              name="<%=domain.getName() %>_version"
              <%= included ? "" : "disabled='disabled'" %> >
              <%
               TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
               revSortedVersions.addAll(domain.getVersions());
-              boolean first = true;
              %>
              <% for (DomainVersion v : revSortedVersions) {
                   if (v.getClosedAt() == null || v.isDefunct()) {continue;}
              %>
              <option
-              <% if (first) {
-                  first = false;
-              %>
+              <% if (included && currentDomainVersion.getVersionNumber() == v.getVersionNumber()) { %>
               selected
               <% } %>
               value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %>
@@ -110,43 +105,17 @@ tr.not_included td {
              <% } %>
           </select>
         </td>
-        <td>
-          <%= included ? latestDgvdv.getVersionNumber() : "-" %>
+        <td class='centered'>
+          <%= included ? currentDomainVersion.getVersionNumber() : "-" %>
         </td>
-
-        <% } else { %>
-          <td>No valid version available.</td><td></td><td></td>
-        <% } %>
 
     </tr>
   <%
   }
   %>
-
   </table>
-  <input type=submit value="Create New Version"/>
-  <span style="color: red; font-weight:bold"> (This will trigger a data deploy for Ring Group Conductors in <i>proactive</i> mode.)</span>
+  <input type=submit value="Update Domain Versions"/>
 </form>
-
-<h2>Existing Versions</h2>
-
-<table>
-  <%
-    SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
-    dgvRev.addAll(domainGroup.getVersions());
-    for (DomainGroupVersion dgcv : dgvRev) {
-  %>
-  <tr>
-    <td>v<%= dgcv.getVersionNumber() %></td>
-    <td>created <%= UiUtils.formatDomainGroupVersionCreatedAt(dgcv) %></td>
-  </tr>
-  <tr>
-    <td colspan=2 style="padding-left: 10px">
-      <%= UiUtils.formatDomainGroupVersionTable(dgcv, "table-blue", true) %>
-    </td>
-  </tr>
-  <% } %>
-</table>
 
 <jsp:include page="_footer.jsp"/>
 

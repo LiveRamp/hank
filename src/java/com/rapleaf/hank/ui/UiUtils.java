@@ -101,7 +101,7 @@ public class UiUtils {
     StringBuilder content = new StringBuilder();
     content.append("<table class='" + cssClass + "'><tr><th>Domain</th><th>Version</th><th>Closed On</th></tr>");
     for (DomainGroupDomainVersion version : domainGroup.getDomainVersionsSorted()) {
-      content.append("<tr><td>");
+      content.append("<tr><td class='centered'>");
       if (linkToDomains) {
         content.append("<a href='/domain.jsp?n=" + URLEnc.encode(version.getDomain().getName()) + "'>");
         content.append(version.getDomain().getName());
@@ -109,9 +109,9 @@ public class UiUtils {
       } else {
         content.append(version.getDomain().getName());
       }
-      content.append("</td><td>");
+      content.append("</td><td class='centered'>");
       content.append(version.getVersionNumber());
-      content.append("</td><td>");
+      content.append("</td><td class='centered'>");
       content.append(formatDomainVersionClosedAt(version.getDomain().getVersion(version.getVersionNumber())));
       content.append("</td></tr>");
     }

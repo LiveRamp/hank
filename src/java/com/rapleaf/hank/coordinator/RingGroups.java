@@ -39,35 +39,6 @@ public final class RingGroups {
     return true;
   }
 
-  // TODO: reproduce behavior somewhere else
-
-  //  // Check that all domains included in the given domain group version exist and that the specified versions
-  //  // are not defunct or open.
-  //  private static boolean domainGroupVersionIsDeployable(DomainGroupVersion domainGroupVersion) throws IOException {
-  //    if (domainGroupVersion == null || domainGroupVersion.getDomainVersions() == null) {
-  //      return false;
-  //    }
-  //    for (DomainGroupDomainVersion dgvdv : domainGroupVersion.getDomainVersions()) {
-  //      Domain domain = dgvdv.getDomain();
-  //      if (domain == null) {
-  //        return false;
-  //      }
-  //      DomainVersion domainVersion = domain.getVersion(dgvdv.getVersionNumber());
-  //      if (domainVersion == null
-  //          || !DomainVersions.isClosed(domainVersion)
-  //          || domainVersion.isDefunct()) {
-  //        if (LOG.isDebugEnabled()) {
-  //          LOG.debug("Version " + dgvdv.getVersionNumber()
-  //              + " of domain " + domain.getName()
-  //              + " is null, still open or defunct. Hence domain group version "
-  //              + domainGroupVersion + " is not deployable.");
-  //        }
-  //        return false;
-  //      }
-  //    }
-  //    return true;
-  //  }
-
   public static UpdateProgress computeUpdateProgress(RingGroup ringGroup,
                                                      DomainGroup domainGroup) throws IOException {
     UpdateProgress result = new UpdateProgress();

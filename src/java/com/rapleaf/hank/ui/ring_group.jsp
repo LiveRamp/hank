@@ -56,8 +56,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
     FilesystemStatisticsAggregator filesystemStatisticsForRingGroup =
       RingGroups.computeFilesystemStatisticsForRingGroup(filesystemStatistics);
-
-    DomainGroupVersion targetDomainGroupVersion = ringGroup.getTargetVersion();
   %>
 
     <h2>State</h2>
@@ -66,20 +64,9 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <tr>
         <td>Domain Group:</td>
         <td>
-        <a href="/domain_group.jsp?n=<%=URLEnc.encode(ringGroup.getDomainGroup().getName())%>"><%=ringGroup.getDomainGroup().getName()%></a>
-        </td>
-        </tr>
-
-        <tr>
-        <td>Target Version:</td>
-        <td>
-        Version
-        <% if (targetDomainGroupVersion != null) { %>
-          <%= targetDomainGroupVersion.getVersionNumber() %>
-          (<%= UiUtils.formatDomainGroupVersionCreatedAt(targetDomainGroupVersion) %>)
-        <% } else { %>
-          unspecified
-        <% } %>
+        <%= UiUtils.formatDomainGroupInfoTooltip(ringGroup.getDomainGroup(),
+          "<a href='/domain_group.jsp?n=" + URLEnc.encode(ringGroup.getDomainGroup().getName()) +
+          "'>" + ringGroup.getDomainGroup().getName() + "</a>") %>
         </td>
         </tr>
 
@@ -90,8 +77,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
             <td class='inactive centered'>INACTIVE</td>
           <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) { %>
             <td class='complete centered'>ACTIVE</td>
-          <% } else if (ringGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) { %>
-            <td class='complete centered'>PROACTIVE</td>
           <% } else { %>
             <td>unknown</td>
           <% } %>
@@ -134,10 +119,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <%
         ServingStatusAggregator servingStatusAggregator = null;
         ServingStatus servingStatus = null;
-        if (targetDomainGroupVersion != null) {
-          servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, targetDomainGroupVersion);
-          servingStatus = servingStatusAggregator.computeServingStatus();
-        }
+        servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
+        servingStatus = servingStatusAggregator.computeServingStatus();
         %>
 
         <% if (servingStatusAggregator != null) { %>
@@ -184,20 +167,16 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
          SortedSet<Domain> relevantDomains = new TreeSet<Domain>();
          relevantDomains.addAll(runtimeStatisticsForDomains.keySet());
-         if (targetDomainGroupVersion != null) {
-           for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersions()) {
-           relevantDomains.add(dgvdv.getDomain());
-           }
+         for (DomainGroupDomainVersion dgdv : ringGroup.getDomainGroup().getDomainVersions()) {
+           relevantDomains.add(dgdv.getDomain());
          }
 
          for (Domain domain : relevantDomains) {
            RuntimeStatisticsAggregator runtimeStatisticsForDomain = runtimeStatisticsForDomains.get(domain);
            DomainVersion targetDomainVersion = null;
-           if (targetDomainGroupVersion != null) {
-             DomainGroupVersionDomainVersion dgvdv = targetDomainGroupVersion.getDomainVersion(domain);
-             if (dgvdv != null) {
-               targetDomainVersion = domain.getVersion(dgvdv.getVersionNumber());
-             }
+           DomainGroupDomainVersion dgdv = ringGroup.getDomainGroup().getDomainVersion(domain);
+           if (dgdv != null) {
+             targetDomainVersion = domain.getVersion(dgdv.getVersionNumber());
            }
        %>
          <tr>
@@ -242,39 +221,12 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
           <option value="INACTIVE">
           INACTIVE: do nothing</option>
           <option value="ACTIVE">
-          ACTIVE: use target version</option>
-          <option value="PROACTIVE">
-          PROACTIVE: use most recent version</option>
+          ACTIVE: conduct updates</option>
         </select>
       <input type="submit" value="Change mode"/>
       </form>
     </td>
     </tr>
-
-    <!-- Set Target Version form -->
-    <% if (ringGroup.getRingGroupConductorMode() != RingGroupConductorMode.PROACTIVE) { %>
-    <tr>
-    <td>Target Version:</td>
-    <td>
-    <form action="/ring_group/set_target_version" method=post>
-      <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
-      <select name="version">
-        <option value=""></option>
-        <%
-        SortedSet<DomainGroupVersion> dgvRev = new TreeSet<DomainGroupVersion>(new ReverseComparator<DomainGroupVersion>());
-        dgvRev.addAll(ringGroup.getDomainGroup().getVersions());
-        for (DomainGroupVersion domainGroupVersion : dgvRev) { %>
-        <option value="<%= domainGroupVersion.getVersionNumber() %>">
-          <%= domainGroupVersion.getVersionNumber() %>
-          (<%= UiUtils.formatDomainGroupVersionCreatedAt(domainGroupVersion) %>)
-        </option>
-        <% } %>
-      </select>
-      <input type="submit" value="Change target"/>
-    </form>
-    </td>
-    </tr>
-    <% } %>
 
     </table>
 
@@ -305,9 +257,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
       <%
       UpdateProgress progress = null;
       long ringUpdateETA = Rings.computeUpdateETA(ring);
-      if (targetDomainGroupVersion != null &&
-          !Rings.isUpToDate(ring, targetDomainGroupVersion)) {
-        progress = Rings.computeUpdateProgress(ring, targetDomainGroupVersion);
+      if (!Rings.isUpToDate(ring, ringGroup.getDomainGroup())) {
+        progress = Rings.computeUpdateProgress(ring, ringGroup.getDomainGroup());
       }
       %>
 
@@ -382,10 +333,8 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <%
         ServingStatusAggregator ringServingStatusAggregator = null;
         ServingStatus ringServingStatus = null;
-        if (targetDomainGroupVersion != null) {
-          ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, targetDomainGroupVersion);
-          ringServingStatus = ringServingStatusAggregator.computeServingStatus();
-        }
+        ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, ringGroup.getDomainGroup());
+        ringServingStatus = ringServingStatusAggregator.computeServingStatus();
         %>
         <% if (ringServingStatusAggregator != null) { %>
           <% if (ringServingStatus.getNumPartitionsServedAndUpToDate() != 0
@@ -415,9 +364,6 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
   </table>
 
     <h2>Manual Query</h2>
-    <% if (ringGroup.getTargetVersion() == null) { %>
-      Query disabled because target version is empty.
-    <% } else { %>
       <form action="/ring_group.jsp" method=post>
         <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
         <table>
@@ -427,10 +373,10 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <select name="d">
           <option value=""></option>
           <%
-            for (DomainGroupVersionDomainVersion dgvdv : targetDomainGroupVersion.getDomainVersionsSorted()) {
+            for (DomainGroupDomainVersion dgdv : ringGroup.getDomainGroup().getDomainVersionsSorted()) {
           %>
-          <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgvdv.getDomain().getName()) ? " selected" : "" %>>
-            <%= dgvdv.getDomain().getName() %>
+          <option<%= request.getParameter("d") != null && URLEnc.decode(request.getParameter("d")).equals(dgdv.getDomain().getName()) ? " selected" : "" %>>
+            <%= dgdv.getDomain().getName() %>
           </option>
           <% } %>
         </select>
@@ -538,7 +484,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
             <%= valueString %>
           </div>
 
-        <% }}} %>
+        <% }} %>
       </form>
 
 <jsp:include page="_footer.jsp"/>

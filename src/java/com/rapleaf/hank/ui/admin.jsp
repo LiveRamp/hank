@@ -77,7 +77,6 @@
             <option></option>
           <%
             for (DomainGroup dgc : coord.getDomainGroupsSorted()) {
-              if (dgc.getVersions().isEmpty()) {continue;}
           %>
           <option><%=dgc.getName()%></option>
           <%

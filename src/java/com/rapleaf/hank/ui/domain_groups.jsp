@@ -40,14 +40,16 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
   <table class='table-blue-compact'>
     <tr>
       <th>Domain Group</th>
-      <th>Current Version</th>
     </tr>
     <%
       for (DomainGroup domainGroup : coord.getDomainGroupsSorted()) {
     %>
       <tr>
-        <td><a href="/domain_group.jsp?n=<%= URLEnc.encode(domainGroup.getName()) %>"><%= domainGroup.getName() %></a></td>
-        <td><%= DomainGroups.getLatestVersion(domainGroup) == null ? "" : DomainGroups.getLatestVersion(domainGroup).getVersionNumber() %></td>
+        <td class='centered'>
+        <%= UiUtils.formatDomainGroupInfoTooltip(domainGroup,
+        "<a href='/domain_group.jsp?n=" + URLEnc.encode(domainGroup.getName()) +
+        "'>" + domainGroup.getName() + "</a>") %>
+        </td>
       </tr>
       <%
     }
