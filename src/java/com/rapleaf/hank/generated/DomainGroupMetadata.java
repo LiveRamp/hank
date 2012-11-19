@@ -107,11 +107,11 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   // isset id assignments
   private static final int __NEXT_VERSION_NUMBER_ISSET_ID = 0;
   private BitSet __isset_bit_vector = new BitSet(1);
-  private _Fields optionals[] = {_Fields.DOMAIN_VERSIONS_MAP};
+  private _Fields optionals[] = {_Fields.NEXT_VERSION_NUMBER,_Fields.DOMAIN_VERSIONS_MAP};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.NEXT_VERSION_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("next_version_number", org.apache.thrift.TFieldRequirementType.REQUIRED, 
+    tmpMap.put(_Fields.NEXT_VERSION_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("next_version_number", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.DOMAIN_VERSIONS_MAP, new org.apache.thrift.meta_data.FieldMetaData("domain_versions_map", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
@@ -122,14 +122,6 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   }
 
   public DomainGroupMetadata() {
-  }
-
-  public DomainGroupMetadata(
-    int next_version_number)
-  {
-    this();
-    this.next_version_number = next_version_number;
-    set_next_version_number_isSet(true);
   }
 
   /**
@@ -286,8 +278,8 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     if (that == null)
       return false;
 
-    boolean this_present_next_version_number = true;
-    boolean that_present_next_version_number = true;
+    boolean this_present_next_version_number = true && this.is_set_next_version_number();
+    boolean that_present_next_version_number = true && that.is_set_next_version_number();
     if (this_present_next_version_number || that_present_next_version_number) {
       if (!(this_present_next_version_number && that_present_next_version_number))
         return false;
@@ -311,7 +303,7 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
   public int hashCode() {
     HashCodeBuilder builder = new HashCodeBuilder();
 
-    boolean present_next_version_number = true;
+    boolean present_next_version_number = true && (is_set_next_version_number());
     builder.append(present_next_version_number);
     if (present_next_version_number)
       builder.append(next_version_number);
@@ -372,9 +364,11 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     StringBuilder sb = new StringBuilder("DomainGroupMetadata(");
     boolean first = true;
 
-    sb.append("next_version_number:");
-    sb.append(this.next_version_number);
-    first = false;
+    if (is_set_next_version_number()) {
+      sb.append("next_version_number:");
+      sb.append(this.next_version_number);
+      first = false;
+    }
     if (is_set_domain_versions_map()) {
       if (!first) sb.append(", ");
       sb.append("domain_versions_map:");
@@ -391,7 +385,6 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
-    // alas, we cannot check 'next_version_number' because it's a primitive and you chose the non-beans generator.
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -466,9 +459,6 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
-      if (!struct.is_set_next_version_number()) {
-        throw new org.apache.thrift.protocol.TProtocolException("Required field 'next_version_number' was not found in serialized data! Struct: " + toString());
-      }
       struct.validate();
     }
 
@@ -476,9 +466,11 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(NEXT_VERSION_NUMBER_FIELD_DESC);
-      oprot.writeI32(struct.next_version_number);
-      oprot.writeFieldEnd();
+      if (struct.is_set_next_version_number()) {
+        oprot.writeFieldBegin(NEXT_VERSION_NUMBER_FIELD_DESC);
+        oprot.writeI32(struct.next_version_number);
+        oprot.writeFieldEnd();
+      }
       if (struct.domain_versions_map != null) {
         if (struct.is_set_domain_versions_map()) {
           oprot.writeFieldBegin(DOMAIN_VERSIONS_MAP_FIELD_DESC);
@@ -511,12 +503,17 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, DomainGroupMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      oprot.writeI32(struct.next_version_number);
       BitSet optionals = new BitSet();
-      if (struct.is_set_domain_versions_map()) {
+      if (struct.is_set_next_version_number()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.is_set_domain_versions_map()) {
+        optionals.set(1);
+      }
+      oprot.writeBitSet(optionals, 2);
+      if (struct.is_set_next_version_number()) {
+        oprot.writeI32(struct.next_version_number);
+      }
       if (struct.is_set_domain_versions_map()) {
         {
           oprot.writeI32(struct.domain_versions_map.size());
@@ -532,10 +529,12 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, DomainGroupMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      struct.next_version_number = iprot.readI32();
-      struct.set_next_version_number_isSet(true);
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
+        struct.next_version_number = iprot.readI32();
+        struct.set_next_version_number_isSet(true);
+      }
+      if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TMap _map24 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.I32, iprot.readI32());
           struct.domain_versions_map = new HashMap<Integer,Integer>(2*_map24.size);
