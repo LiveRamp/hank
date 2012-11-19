@@ -21,8 +21,8 @@ import com.rapleaf.hank.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
-import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 import com.rapleaf.hank.monitor.notifier.Notifier;
+import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ import java.util.Collections;
 
 public class TestRingGroupMonitor extends BaseTestCase {
 
-  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", Collections.<Ring>emptySet(), null);
+  private RingGroup mockRingGroup = new MockRingGroup(null, "rg", Collections.<Ring>emptySet());
   private MockNotifier mockNotifier;
 
   @Override

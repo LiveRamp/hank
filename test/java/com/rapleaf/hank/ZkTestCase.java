@@ -45,6 +45,7 @@ import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZkTestCase extends BaseTestCase {
@@ -293,26 +294,15 @@ public class ZkTestCase extends BaseTestCase {
     ver.close();
 
     DomainGroup g1 = coord.addDomainGroup("Group_1");
-
-    DomainGroupVersion g1v1 = g1.createNewVersion(new HashMap<Domain, Integer>() {
-      {
-        put(d0, 1);
-        put(d1, 1);
-      }
-    });
-    DomainGroupVersion g1v2 = g1.createNewVersion(new HashMap<Domain, Integer>() {
-      {
-        put(d0, 1);
-        put(d1, 1);
-      }
-    });
+    Map<Domain, Integer> g1Versions = new HashMap<Domain, Integer>();
+    g1Versions.put(d0, 1);
+    g1Versions.put(d1, 1);
+    g1.setDomainVersions(g1Versions);
 
     DomainGroup g2 = coord.addDomainGroup("Group_2");
-    DomainGroupVersion g2v1 = g2.createNewVersion(new HashMap<Domain, Integer>() {
-      {
-        put(d1, 1);
-      }
-    });
+    Map<Domain, Integer> g2Versions = new HashMap<Domain, Integer>();
+    g2Versions.put(d1, 1);
+    g2.setDomainVersions(g2Versions);
 
     RingGroup rgAlpha = coord.addRingGroup("RG_Alpha", g1.getName());
     Ring r1 = rgAlpha.addRing(1);

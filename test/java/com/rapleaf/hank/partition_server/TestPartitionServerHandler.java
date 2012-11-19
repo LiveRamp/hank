@@ -129,29 +129,17 @@ public class TestPartitionServerHandler extends BaseTestCase {
         };
       }
     };
-    Domain domain = new MockDomain("myDomain", 0, 5, partitioner, storageEngine, null,
-        null);
-    MockDomainGroupDomainVersion dgvdv = new MockDomainGroupDomainVersion(
-        domain, 1);
-    final MockDomainGroupVersion dgv = new MockDomainGroupVersion(
-        Collections.singleton((DomainGroupDomainVersion) dgvdv), null, 1);
-    final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-      add(dgv);
-    }};
+    final Domain domain = new MockDomain("myDomain", 0, 5, partitioner, storageEngine, null, null);
 
     final MockDomainGroup dg = new MockDomainGroup("myDomainGroup") {
       @Override
-      public SortedSet<DomainGroupVersion> getVersions() {
-        return versions;
-      }
-
-      @Override
-      public DomainGroupVersion getVersion(int versionNumber) {
-        assertEquals(0, versionNumber);
-        return dgv;
+      public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
+        Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
+        result.add(new DomainGroupDomainVersion(domain, 1));
+        return result;
       }
     };
-    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null, 0);
+    final MockRingGroup rg = new MockRingGroup(dg, "myRingGroupName", null);
 
     final MockRing mockRing = new MockRing(null, rg, 1) {
       @Override
@@ -164,7 +152,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
       @Override
       public RingGroup getRingGroup(String ringGroupName) {
         assertEquals("myRingGroupName", ringGroupName);
-        return new MockRingGroup(dg, "myRingGroupName", null, null) {
+        return new MockRingGroup(dg, "myRingGroupName", null) {
           @Override
           public Ring getRingForHost(PartitionServerAddress hostAddress) {
             return mockRing;

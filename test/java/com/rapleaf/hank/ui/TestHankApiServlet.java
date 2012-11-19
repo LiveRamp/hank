@@ -47,10 +47,8 @@ public class TestHankApiServlet extends ZkTestCase {
   @Test
   public void testGetDomainGroup() throws IOException {
     assertEmptyResponse(new String[]{"domain_group"}, new String[]{"blah"});
-    assertEmptyResponse(new String[]{"domain_group", "domain_group_version"}, new String[]{"Group_1", "blah"});
 
     assertNotEmptyResponse(new String[]{"domain_group"}, new String[]{"Group_1"});
-    assertNotEmptyResponse(new String[]{"domain_group", "domain_group_version"}, new String[]{"Group_1", "0"});
   }
 
   @Test

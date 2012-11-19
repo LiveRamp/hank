@@ -2,8 +2,8 @@ package com.rapleaf.hank.config.yaml;
 
 import com.rapleaf.hank.BaseTestCase;
 import com.rapleaf.hank.coordinator.MockRingGroup;
-import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 import com.rapleaf.hank.monitor.notifier.Notifier;
+import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -49,7 +49,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     assertTrue(globalNotifier instanceof MockNotifier);
     assertEquals("b", ((MockNotifier) globalNotifier).getConfiguration().get("b"));
 
-    List<Notifier> ringNotifiers1 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg1", null, null));
+    List<Notifier> ringNotifiers1 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg1", null));
     Notifier ringNotifier11 = ringNotifiers1.get(0);
     Notifier ringNotifier12 = ringNotifiers1.get(1);
     assertTrue(ringNotifier11 instanceof MockNotifier);
@@ -57,7 +57,7 @@ public class TestYamlMonitorConfigurator extends BaseTestCase {
     assertEquals("b", ((MockNotifier) ringNotifier11).getConfiguration().get("b"));
     assertEquals("c", ((MockNotifier) ringNotifier12).getConfiguration().get("c"));
 
-    List<Notifier> ringNotifiers2 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg2", null, null));
+    List<Notifier> ringNotifiers2 = configurator.getRingGroupNotifiers(new MockRingGroup(null, "rg2", null));
     Notifier ringNotifier22 = ringNotifiers2.get(0);
     assertTrue(ringNotifier22 instanceof MockNotifier);
     assertEquals("c", ((MockNotifier) ringNotifier22).getConfiguration().get("c"));

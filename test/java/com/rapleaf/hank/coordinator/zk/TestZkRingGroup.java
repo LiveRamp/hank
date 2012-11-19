@@ -80,8 +80,6 @@ public class TestZkRingGroup extends ZkTestCase {
 
     assertEquals("ring group for localhost:2", 2, rg.getRingForHost(new PartitionServerAddress("localhost", 2)).getRingNumber());
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
-
-    assertEquals("target version", Integer.valueOf(0), rg.getTargetVersionNumber());
   }
 
   public void testDataLocationChangeListeners() throws Exception {
@@ -132,20 +130,9 @@ public class TestZkRingGroup extends ZkTestCase {
     dataLocationChangeListener.clear();
   }
 
-  public void testVersionStuff() throws Exception {
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), ZkPath.append(getRoot(), "domain_groups"), "blah", null);
-    DomainGroupVersion version = dg.createNewVersion(Collections.EMPTY_MAP);
-    RingGroup rg = ZkRingGroup.create(getZk(), ZkPath.append(getRoot(), "my_ring_group"), dg, coordinator);
-    dumpZk();
-    assertNull(rg.getTargetVersion());
-    rg.setTargetVersion(version.getVersionNumber());
-    Thread.sleep(10);
-    assertEquals(Integer.valueOf(version.getVersionNumber()), rg.getTargetVersionNumber());
-  }
-
   public void testClaimRingGroupConductor() throws Exception {
-    ZkDomainGroup dg = (ZkDomainGroup) ZkDomainGroup.create(getZk(), dg_root, "blah", null);
-    dg.createNewVersion(Collections.EMPTY_MAP);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
+    dg.setDomainVersions(Collections.<Domain, Integer>emptyMap());
     RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg, coordinator);
     create(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT));
     assertFalse(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
@@ -159,7 +146,7 @@ public class TestZkRingGroup extends ZkTestCase {
   }
 
   public void testDelete() throws Exception {
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), dg_root, "blah", null);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
     assertNotNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));
     assertTrue(dg.delete());
     assertNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));

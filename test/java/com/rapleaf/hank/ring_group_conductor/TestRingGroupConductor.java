@@ -48,19 +48,11 @@ public class TestRingGroupConductor extends TestCase {
     };
 
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
-      final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-        add(new MockDomainGroupVersion(Collections.singleton((DomainGroupDomainVersion)
-            new MockDomainGroupDomainVersion(domain, 1)), null, 2));
-      }};
-
       @Override
-      public SortedSet<DomainGroupVersion> getVersions() {
-        return versions;
-      }
-
-      @Override
-      public Domain getDomain(int domainId) {
-        return domain;
+      public Set<DomainGroupDomainVersion> getDomainVersions() {
+        SortedSet<DomainGroupDomainVersion> result = new TreeSet<DomainGroupDomainVersion>();
+        result.add(new DomainGroupDomainVersion(domain, 1));
+        return result;
       }
     };
 
@@ -90,7 +82,7 @@ public class TestRingGroupConductor extends TestCase {
       }
     };
 
-    final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Collections.<Ring>emptySet(), 1) {
+    final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Collections.<Ring>emptySet()) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;
@@ -103,7 +95,7 @@ public class TestRingGroupConductor extends TestCase {
 
       @Override
       public RingGroupConductorMode getRingGroupConductorMode() {
-        return RingGroupConductorMode.PROACTIVE;
+        return RingGroupConductorMode.ACTIVE;
       }
     };
 
@@ -138,23 +130,18 @@ public class TestRingGroupConductor extends TestCase {
     daemon.processUpdates(mockRingGroup);
 
     assertNotNull(mockTransFunc.calledWithRingGroup);
-
-    assertEquals(Integer.valueOf(2), mockRingGroup.targetVersion);
   }
 
   public void testKeepsExistingUpdatesGoing() throws Exception {
     final MockDomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
-      final SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-        add(new MockDomainGroupVersion(null, null, 2));
-      }};
-
       @Override
-      public SortedSet<DomainGroupVersion> getVersions() {
-        return versions;
+      public Set<DomainGroupDomainVersion> getDomainVersions() {
+        SortedSet<DomainGroupDomainVersion> result = new TreeSet<DomainGroupDomainVersion>();
+        return result;
       }
     };
 
-    final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Collections.<Ring>emptySet(), null) {
+    final MockRingGroup mockRingGroup = new MockRingGroup(null, "myRingGroup", Collections.<Ring>emptySet()) {
       @Override
       public DomainGroup getDomainGroup() {
         return domainGroup;

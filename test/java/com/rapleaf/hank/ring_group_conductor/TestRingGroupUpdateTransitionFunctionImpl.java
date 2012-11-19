@@ -16,6 +16,7 @@
 package com.rapleaf.hank.ring_group_conductor;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.partition_assigner.MockPartitionAssigner;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
@@ -31,7 +32,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
 
   private class MockRingLocal extends MockRing {
 
-    protected DomainGroupVersion assignedVersion = null;
+    protected Set<DomainGroupDomainVersion> assignedVersions = null;
     private boolean isServable;
 
     public MockRingLocal(int number,
@@ -39,21 +40,21 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       super(hosts, null, number);
     }
 
-    public void setAssignedVersion(DomainGroupVersion domainGroupVersion) {
-      assignedVersion = domainGroupVersion;
+    public void setAssigned(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+      assignedVersions = domainVersions;
     }
 
-    public boolean isUpToDate(DomainGroupVersion domainGroupVersion) {
+    public boolean isUpToDate(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
       for (Host host : getHosts()) {
-        if (!((MockHostLocal) host).isUpToDate(domainGroupVersion)) {
+        if (!((MockHostLocal) host).isUpToDate(domainVersions)) {
           return false;
         }
       }
       return true;
     }
 
-    public boolean isAssigned(DomainGroupVersion domainGroupVersion) {
-      return assignedVersion != null && assignedVersion.equals(domainGroupVersion);
+    public boolean isAssigned(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+      return assignedVersions != null && assignedVersions.equals(domainVersions);
     }
 
     public void setServable(boolean isServable) {
@@ -68,46 +69,35 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   private class MockRingGroupLocal extends MockRingGroup {
 
     public MockRingGroupLocal(Ring... rings) {
-      super(domainGroup, "myRingGroup", new LinkedHashSet<Ring>(Arrays.asList(rings)), null);
+      super(domainGroup, "myRingGroup", new LinkedHashSet<Ring>(Arrays.asList(rings)));
     }
   }
 
   private class MockHostLocal extends MockHost {
 
-    private DomainGroupVersion currentVersion = null;
+    protected Set<DomainGroupDomainVersion> currentVersions = null;
 
     public MockHostLocal(PartitionServerAddress address) {
       super(address);
     }
 
-    public boolean isUpToDate(DomainGroupVersion domainGroupVersion) {
-      return currentVersion != null && currentVersion.equals(domainGroupVersion);
+    public boolean isUpToDate(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+      return currentVersions != null && currentVersions.equals(domainVersions);
     }
 
-    public void setCurrentVersion(DomainGroupVersion domainGroupVersion) {
-      this.currentVersion = domainGroupVersion;
+    public void setCurrentVersion(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+      this.currentVersions = domainVersions;
     }
   }
 
-  private static DomainGroup domainGroup = new MockDomainGroup("myDomainGroup") {
+  private static Map<Domain, Integer> versionsMap1 = new HashMap<Domain, Integer>();
+  private static Map<Domain, Integer> versionsMap2 = new HashMap<Domain, Integer>();
+  private static Set<DomainGroupDomainVersion> v1 = new HashSet<DomainGroupDomainVersion>();
+  private static Set<DomainGroupDomainVersion> v2 = new HashSet<DomainGroupDomainVersion>();
 
-    @Override
-    public DomainGroupVersion getVersion(int versionNumber) {
-      switch (versionNumber) {
-        case 1:
-          return v1;
-        case 2:
-          return v2;
-        default:
-          throw new RuntimeException("Unknown version: " + versionNumber);
-      }
-    }
-  };
+  private static Domain domain = new MockDomain("domain");
 
-  private static DomainGroupVersion v1 =
-      new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), domainGroup, 1);
-  private static DomainGroupVersion v2 =
-      new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), domainGroup, 2);
+  private static DomainGroup domainGroup = new MockDomainGroup("myDomainGroup");
 
   private MockRingLocal r0;
   private MockRingLocal r1;
@@ -155,26 +145,26 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     PartitionAssigner partitionAssigner = new MockPartitionAssigner() {
 
       @Override
-      public void assign(Ring ring, DomainGroupVersion domainGroupVersion) {
-        ((MockRingLocal) ring).setAssignedVersion(domainGroupVersion);
+      public void assign(Ring ring, DomainGroup domainGroup) throws IOException {
+        ((MockRingLocal) ring).setAssigned(domainGroup.getDomainVersions());
       }
 
       @Override
-      public boolean isAssigned(Ring ring, DomainGroupVersion domainGroupVersion) {
-        return ((MockRingLocal) ring).isAssigned(domainGroupVersion);
+      public boolean isAssigned(Ring ring, DomainGroup domainGroup) throws IOException {
+        return ((MockRingLocal) ring).isAssigned(domainGroup.getDomainVersions());
       }
     };
 
     testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner) {
 
       @Override
-      protected boolean isUpToDate(Ring ring, DomainGroupVersion domainGroupVersion) {
-        return ((MockRingLocal) ring).isUpToDate(domainGroupVersion);
+      protected boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
+        return ((MockRingLocal) ring).isUpToDate(domainGroup.getDomainVersions());
       }
 
       @Override
-      protected boolean isUpToDate(Host host, DomainGroupVersion domainGroupVersion) {
-        return ((MockHostLocal) host).isUpToDate(domainGroupVersion);
+      protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
+        return ((MockHostLocal) host).isUpToDate(domainGroup.getDomainVersions());
       }
 
       @Override
@@ -182,16 +172,21 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
         return ((MockRingLocal) ring).isServable();
       }
     };
+
+    versionsMap1.put(domain, 1);
+    versionsMap2.put(domain, 2);
+    v1.add(new DomainGroupDomainVersion(domain, 1));
+    v2.add(new DomainGroupDomainVersion(domain, 2));
   }
 
   private void setUpRing(MockRingLocal ring,
-                         DomainGroupVersion currentVersion,
-                         DomainGroupVersion assignedVersion,
+                         Set<DomainGroupDomainVersion> currentVersions,
+                         Set<DomainGroupDomainVersion> assignedVersions,
                          HostState hostState) throws IOException {
-    ring.setAssignedVersion(assignedVersion);
+    ring.setAssigned(assignedVersions);
     for (Host host : ring.getHosts()) {
       host.setState(hostState);
-      ((MockHostLocal) host).setCurrentVersion(currentVersion);
+      ((MockHostLocal) host).setCurrentVersion(currentVersions);
     }
     ring.setServable(true);
   }
@@ -217,7 +212,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testNothingToDo() throws IOException {
-    rg.setTargetVersion(1);
+    domainGroup.setDomainVersions(versionsMap1);
+
     setUpRing(r0, v1, v1, HostState.SERVING);
     setUpRing(r1, v1, v1, HostState.SERVING);
     setUpRing(r2, v1, v1, HostState.SERVING);
@@ -234,7 +230,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testKickstartAllRings() throws IOException {
-    rg.setTargetVersion(1);
+    domainGroup.setDomainVersions(versionsMap1);
 
     setUpRing(r0, null, null, HostState.IDLE);
     setUpRing(r1, null, null, HostState.IDLE);
@@ -271,7 +267,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testTakesDownFirstRingForAssignmentWhenStartingUpdate() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v1, HostState.SERVING);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -291,7 +287,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testTakesDownFirstRingForUpdateWhenStartingUpdate() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v2, HostState.SERVING);
     setUpRing(r1, v1, v2, HostState.SERVING);
@@ -311,7 +307,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDoNotAssignIfOneHostIsServing() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     r0h1.setState(HostState.SERVING);
@@ -333,7 +329,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testDoNotAssignIfOneHostIsUpdating() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     r0h1.setState(HostState.UPDATING);
@@ -355,7 +351,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testAssignIdleRing() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -376,7 +372,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testTakeDownModifiedRing() throws IOException {
-    rg.setTargetVersion(1);
+    domainGroup.setDomainVersions(versionsMap1);
 
     setUpRing(r0, v1, null, HostState.SERVING);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -396,7 +392,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testAssignedModifiedRing() throws IOException {
-    rg.setTargetVersion(1);
+    domainGroup.setDomainVersions(versionsMap1);
 
     setUpRing(r0, v1, null, HostState.IDLE);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -417,7 +413,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testExecuteUpdateWhenAssignedAndIdle() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v2, HostState.IDLE);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -437,7 +433,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testProactivelyServeDateWhenHostUpdated() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v2, HostState.UPDATING);
     setUpRing(r1, v1, v2, HostState.SERVING);
@@ -460,7 +456,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testServeDataWhenUpdated() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v2, v2, HostState.IDLE);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -480,7 +476,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testTakeDownSecondRingWhenFirstIsUpdated() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v2, v2, HostState.SERVING);
     setUpRing(r1, v1, v2, HostState.SERVING);
@@ -500,7 +496,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testServeDataWhenNotEnoughRingsAreFullyServing() throws IOException {
-    rg.setTargetVersion(2);
+    domainGroup.setDomainVersions(versionsMap2);
 
     setUpRing(r0, v1, v2, HostState.SERVING);
     setUpRing(r1, v1, v1, HostState.IDLE);

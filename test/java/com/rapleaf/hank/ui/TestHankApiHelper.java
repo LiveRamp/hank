@@ -1,11 +1,10 @@
 package com.rapleaf.hank.ui;
 
-import java.io.IOException;
-
-import org.junit.Test;
-
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
+import org.junit.Test;
+
+import java.io.IOException;
 
 public class TestHankApiHelper extends ZkTestCase {
 
@@ -43,22 +42,10 @@ public class TestHankApiHelper extends ZkTestCase {
   public void testGetDomainGroupData() throws Exception {
     HankApiHelper.DomainGroupData data = helper.getDomainGroupData(coordinator.getDomainGroup("Group_1"));
     assertEquals("Group_1", data.name);
-    assertEquals(2, data.versionsMap.size());
 
-    HankApiHelper.DomainGroupVersionData versionData = data.versionsMap.get(0);
-    assertNotNull(versionData);
-    assertEquals(0, versionData.version);
-    assertEquals(1, (int) versionData.domainVersions.get("domain0"));
-    assertEquals(1, (int) versionData.domainVersions.get("domain1"));
-
-    versionData = data.versionsMap.get(1);
-    assertNotNull(versionData);
-    assertEquals(1, versionData.version);
-    assertEquals(1, (int) versionData.domainVersions.get("domain0"));
-    assertEquals(1, (int) versionData.domainVersions.get("domain1"));
-
-    versionData = data.versionsMap.get(2);
-    assertNull(versionData);
+    assertNotNull(data.domainVersions);
+    assertEquals(1, (int) data.domainVersions.get("domain0"));
+    assertEquals(1, (int) data.domainVersions.get("domain1"));
   }
 
   public void testGetRingGroupData() throws Exception {

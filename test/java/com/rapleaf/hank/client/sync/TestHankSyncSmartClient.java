@@ -40,7 +40,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class TestHankSyncSmartClient extends BaseTestCase {
+
   private static final Logger LOG = Logger.getLogger(TestHankSyncSmartClient.class);
+
   private Host host1;
   private Host host2;
   private MockCoordinator mockCoord;
@@ -96,20 +98,12 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       };
 
       @Override
-      public Domain getDomain(int domainId) {
-        return domains.get(domainId);
-      }
-
-      @Override
-      public DomainGroupVersion getVersion(int version) {
-        return new MockDomainGroupVersion(
-            new HashSet<DomainGroupDomainVersion>(
-                Arrays.asList(new MockDomainGroupDomainVersion(
-                    existentDomain, 1))), this, 1);
+      public Set<DomainGroupDomainVersion> getDomainVersions() {
+        return new HashSet<DomainGroupDomainVersion>(Arrays.asList(new DomainGroupDomainVersion(existentDomain, 1)));
       }
     };
     final MockRingGroup mockRingGroup = new MockRingGroup(
-        mockDomainGroup, "myRingGroup", null, 0) {
+        mockDomainGroup, "myRingGroup", null) {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);

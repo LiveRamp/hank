@@ -19,12 +19,14 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroups;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,36 +63,55 @@ public class TestZkDomainGroup extends ZkTestCase {
       }
     };
 
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", coord);
+    final ZkDomainGroup dg = ZkDomainGroup.create(getZk(), coord, domainGroupsRoot, "dg");
 
-    assertEquals(0, dg.getVersions().size());
-    assertEquals(null, DomainGroups.getLatestVersion(dg));
+    assertEquals(0, dg.getDomainVersions().size());
 
     Map<Domain, Integer> map1 = new HashMap<Domain, Integer>();
     map1.put(d0, 0);
     map1.put(d1, 0);
-    dg.createNewVersion(map1);
+    dg.setDomainVersions(map1);
 
-    assertEquals(1, dg.getVersions().size());
-    assertEquals(0, DomainGroups.getLatestVersion(dg).getVersionNumber());
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dg.getDomainVersions().size() != 0;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
-    assertEquals(0, dg.getVersion(0).getDomainVersion(d0).getVersionNumber());
-    assertEquals(0, dg.getVersion(0).getDomainVersion(d1).getVersionNumber());
+    assertEquals(2, dg.getDomainVersions().size());
+
+    assertEquals(0, dg.getDomainVersion(d0).getVersionNumber());
+    assertEquals(0, dg.getDomainVersion(d1).getVersionNumber());
 
     Map<Domain, Integer> map2 = new HashMap<Domain, Integer>();
     map2.put(d0, 1);
     map2.put(d1, 1);
-    dg.createNewVersion(map2);
+    dg.setDomainVersions(map2);
 
-    assertEquals(2, dg.getVersions().size());
-    assertEquals(1, DomainGroups.getLatestVersion(dg).getVersionNumber());
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dg.getDomainVersion(d0).getVersionNumber() != 0;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
-    assertEquals(1, dg.getVersion(1).getDomainVersion(d0).getVersionNumber());
-    assertEquals(1, dg.getVersion(1).getDomainVersion(d1).getVersionNumber());
+    assertEquals(2, dg.getDomainVersions().size());
+
+    assertEquals(1, dg.getDomainVersion(d0).getVersionNumber());
+    assertEquals(1, dg.getDomainVersion(d1).getVersionNumber());
   }
 
   public void testDelete() throws Exception {
-    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), domainGroupsRoot, "dg", null);
+    ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, domainGroupsRoot, "dg");
     assertNotNull(getZk().exists(dg.getPath(), false));
     assertTrue(dg.delete());
     assertNull(getZk().exists(dg.getPath(), false));

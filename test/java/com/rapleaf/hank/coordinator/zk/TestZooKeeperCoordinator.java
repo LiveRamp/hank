@@ -73,7 +73,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     DomainGroup c = coord.getDomainGroup("myDomainGroup2");
     assertNotNull(c);
     assertEquals("myDomainGroup2", c.getName());
-    assertEquals(0, c.getVersions().size());
+    assertEquals(0, c.getDomainVersions().size());
 
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
@@ -87,7 +87,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());
-    assertEquals(0, c.getVersions().size());
+    assertEquals(0, c.getDomainVersions().size());
 
     coord2.close();
   }
@@ -95,11 +95,10 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   public void testAddRingGroup() throws Exception {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
     Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
-    dg.createNewVersion(domainIdToVersion);
+    dg.setDomainVersions(domainIdToVersion);
     RingGroup rg = coord.addRingGroup("superDuperRingGroup", "myDomainGroup2");
     assertEquals("superDuperRingGroup", rg.getName());
     assertEquals(0, rg.getRings().size());
-    assertNull(rg.getTargetVersionNumber());
   }
 
   public void testDeleteDomain() throws Exception {
@@ -124,11 +123,11 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     ZkDomain.create(getZk(), domains_root, "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), 0, Collections.<String>emptyList());
 
-    ZkDomainGroup dgc = ZkDomainGroup.create(getZk(), domain_groups_root, "myDomainGroup", null);
+    ZkDomainGroup domainGroup = ZkDomainGroup.create(getZk(), null, domain_groups_root, "myDomainGroup");
     Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
-    dgc.createNewVersion(domainIdToVersion);
+    domainGroup.setDomainVersions(domainIdToVersion);
 
-    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", dgc, new MockCoordinator());
+    ZkRingGroup rg = ZkRingGroup.create(getZk(), ring_groups_root + "/myRingGroup", domainGroup, new MockCoordinator());
     Ring rc = rg.addRing(1);
     rc.addHost(new PartitionServerAddress("localhost", 1), Collections.<String>emptyList());
 

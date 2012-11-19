@@ -79,8 +79,7 @@ public class RingGroupConductor {
             }
 
             // Only process updates if ring group conductor is configured to be active/proactive
-            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE ||
-                snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.PROACTIVE) {
+            if (snapshotRingGroup.getRingGroupConductorMode() == RingGroupConductorMode.ACTIVE) {
               processUpdates(snapshotRingGroup);
             }
             Thread.sleep(configurator.getSleepInterval());

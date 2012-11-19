@@ -48,7 +48,7 @@ public class TestUpdateManager extends BaseTestCase {
       private Ring ringSingleton = null;
 
       private MockRingGroupLocal(DomainGroup dcg, String name) {
-        super(dcg, name, Collections.<Ring>emptySet(), null);
+        super(dcg, name, Collections.<Ring>emptySet());
       }
 
       @Override
@@ -63,15 +63,6 @@ public class TestUpdateManager extends BaseTestCase {
 
     private MockRingGroupLocal getMockRingGroup(DomainGroup domainGroup) {
       return new MockRingGroupLocal(domainGroup, "myRingGroup") {
-
-        @Override
-        public Integer getTargetVersionNumber() {
-          try {
-            return DomainGroups.getLatestVersion(getDomainGroup()).getVersionNumber();
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        }
       };
     }
 
@@ -179,30 +170,14 @@ public class TestUpdateManager extends BaseTestCase {
       };
     }
 
-    private DomainGroupVersion getMockDomainGroupVersion(final Domain domain) {
-      // the domain version for this domain group version will be 2
-      final DomainGroupDomainVersion dgvdv =
-          new MockDomainGroupDomainVersion(domain, 2);
-      // the domain group version number is 1. note the difference between dgv
-      // and dgvdv's version numbers - this is intentional
-      return new MockDomainGroupVersion(Collections.singleton(dgvdv), null, 1);
-    }
-
     private DomainGroup getMockDomainGroup(final Domain domain) {
+      // the domain version for this domain group version will be 2
       return new MockDomainGroup("myDomainGroup") {
-        private DomainGroupVersion dgv = getMockDomainGroupVersion(domain);
-        private SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-          add(dgv);
-        }};
-
         @Override
-        public SortedSet<DomainGroupVersion> getVersions() {
-          return versions;
-        }
-
-        @Override
-        public DomainGroupVersion getVersion(int versionNumber) throws IOException {
-          return dgv;
+        public Set<DomainGroupDomainVersion> getDomainVersions() {
+          Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
+          result.add(new DomainGroupDomainVersion(domain, 2));
+          return result;
         }
       };
     }
@@ -254,13 +229,9 @@ public class TestUpdateManager extends BaseTestCase {
     MockHost mockHost = fixtures.getMockHost(mockHostDomain);
     // Empty domain group version
     DomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
-      SortedSet<DomainGroupVersion> versions = new TreeSet<DomainGroupVersion>() {{
-        add(new MockDomainGroupVersion(Collections.<DomainGroupDomainVersion>emptySet(), null, 0));
-      }};
-
       @Override
-      public SortedSet<DomainGroupVersion> getVersions() {
-        return versions;
+      public Set<DomainGroupDomainVersion> getDomainVersions() {
+        return Collections.emptySet();
       }
     };
     Fixtures.MockRingGroupLocal mockRingGroup = fixtures.getMockRingGroup(mockDomainGroup);

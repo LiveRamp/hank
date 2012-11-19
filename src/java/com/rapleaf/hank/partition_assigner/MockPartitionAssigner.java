@@ -24,7 +24,7 @@ import java.io.IOException;
 public class MockPartitionAssigner implements PartitionAssigner {
 
   @Override
-  public boolean isAssigned(Ring ring, DomainGroup domainGroup) {
+  public boolean isAssigned(Ring ring, DomainGroup domainGroup) throws IOException {
     return false;
   }
 

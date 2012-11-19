@@ -183,20 +183,12 @@ public class TestHankSmartClient extends BaseTestCase {
       };
 
       @Override
-      public Domain getDomain(int domainId) {
-        return domains.get(domainId);
-      }
-
-      @Override
-      public DomainGroupVersion getVersion(int version) {
-        return new MockDomainGroupVersion(
-            new HashSet<DomainGroupDomainVersion>(
-                Arrays.asList(new MockDomainGroupDomainVersion(
-                    existentDomain, 1))), this, 1);
+      public Set<DomainGroupDomainVersion> getDomainVersions() {
+        return new HashSet<DomainGroupDomainVersion>(Arrays.asList(new DomainGroupDomainVersion(existentDomain, 1)));
       }
     };
     final MockRingGroup mockRingGroup = new MockRingGroup(
-        mockDomainGroup, "myRingGroup", null, 0) {
+        mockDomainGroup, "myRingGroup", null) {
       @Override
       public Set<Ring> getRings() {
         return Collections.singleton((Ring) mockRing);

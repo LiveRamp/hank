@@ -31,13 +31,11 @@ public class WebUiServerTester extends ZkTestCase {
     RingGroup rgBeta = coordinator.getRingGroup("RG_Beta");
     RingGroup rgGamma = coordinator.getRingGroup("RG_Gamma");
 
-    DomainGroupVersion dgv = DomainGroups.getLatestVersion(dg1);
     for (Ring ring : rgAlpha.getRings()) {
-      partitionAssigner.assign(ring, dgv);
+      partitionAssigner.assign(ring, dg1);
     }
 
     // Ring ALPHA
-    rgAlpha.setTargetVersion(dgv.getVersionNumber());
     rgAlpha.claimRingGroupConductor(RingGroupConductorMode.INACTIVE);
     for (Ring ring : rgAlpha.getRings()) {
       for (Host host : ring.getHosts()) {
@@ -49,7 +47,7 @@ public class WebUiServerTester extends ZkTestCase {
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
                       new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250})));
           for (HostDomainPartition partition : hd.getPartitions()) {
-            partition.setCurrentDomainVersion(dgv.getVersionNumber());
+            partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
           }
         }
         PartitionServerHandler.setRuntimeStatistics(host, runtimeStatistics);
@@ -63,9 +61,8 @@ public class WebUiServerTester extends ZkTestCase {
     // Ring BETA
     // Assign
     for (Ring ring : rgBeta.getRings()) {
-      partitionAssigner.assign(ring, dgv);
+      partitionAssigner.assign(ring, dg1);
     }
-    rgBeta.setTargetVersion(1);
     rgBeta.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);
     for (Ring ring : rgBeta.getRings()) {
       // Set first ring to updating
@@ -76,7 +73,7 @@ public class WebUiServerTester extends ZkTestCase {
             host.setState(HostState.SERVING);
             for (HostDomain hd : host.getAssignedDomains()) {
               for (HostDomainPartition partition : hd.getPartitions()) {
-                partition.setCurrentDomainVersion(dgv.getVersionNumber());
+                partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
               }
             }
           } else {
@@ -96,7 +93,7 @@ public class WebUiServerTester extends ZkTestCase {
           host.setState(HostState.SERVING);
           for (HostDomain hd : host.getAssignedDomains()) {
             for (HostDomainPartition partition : hd.getPartitions()) {
-              partition.setCurrentDomainVersion(dgv.getVersionNumber());
+              partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
             }
           }
         }

@@ -29,7 +29,6 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final DomainGroup dcg;
   private final String name;
   private final Set<Ring> ringConfigs;
-  public Integer targetVersion;
   private RingGroupConductorMode ringGroupConductorMode = null;
   private Collection<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
       = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
@@ -38,12 +37,10 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   public MockRingGroup(DomainGroup dcg,
                        String name,
-                       Set<Ring> ringConfigs,
-                       Integer targetVersion) {
+                       Set<Ring> ringConfigs) {
     this.dcg = dcg;
     this.name = name;
     this.ringConfigs = ringConfigs;
-    this.targetVersion = targetVersion;
   }
 
   @Override
@@ -102,16 +99,6 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   }
 
   @Override
-  public Integer getTargetVersionNumber() {
-    return targetVersion;
-  }
-
-  @Override
-  public void setTargetVersion(int version) {
-    this.targetVersion = version;
-  }
-
-  @Override
   public void addDataLocationChangeListener(RingGroupDataLocationChangeListener listener) {
     ringGroupDataLocationChangeListeners.add(listener);
   }
@@ -140,14 +127,6 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
     ringGroupConductorModeListeners.remove(listener);
-  }
-
-  @Override
-  public void addTargetVersionListener(WatchedNodeListener<Integer> listener) {
-  }
-
-  @Override
-  public void removeTargetVersionListener(WatchedNodeListener<Integer> listener) {
   }
 
   @Override

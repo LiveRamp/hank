@@ -15,15 +15,13 @@
  */
 package com.rapleaf.hank.coordinator;
 
-import org.apache.zookeeper.KeeperException;
-
 public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVersion> {
 
   private final Domain domain;
   private final int versionNumber;
 
   public DomainGroupDomainVersion(final Domain domain,
-                                  final int versionNumber) throws KeeperException, InterruptedException {
+                                  final int versionNumber) {
     this.domain = domain;
     this.versionNumber = versionNumber;
   }
