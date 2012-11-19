@@ -93,11 +93,11 @@ tr.not_included td {
               TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
               revSortedVersions.addAll(domain.getVersions());
              %>
-             <% for (DomainVersion v : revSortedVersions) {
-                  if (v.getClosedAt() == null || v.isDefunct()) {continue;}
-             %>
+             <% for (DomainVersion v : revSortedVersions) { %>
              <option
-              <% if (included && currentDomainVersion.getVersionNumber() == v.getVersionNumber()) { %>
+              <% if (v.getClosedAt() == null || v.isDefunct()) { %>
+              disabled
+              <% } else if (included && currentDomainVersion.getVersionNumber() == v.getVersionNumber()) { %>
               selected
               <% } %>
               value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %>
