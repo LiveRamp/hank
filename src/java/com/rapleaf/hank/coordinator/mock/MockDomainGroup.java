@@ -57,6 +57,7 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
 
   @Override
   public void removeDomain(Domain domain) throws IOException {
+    domainVersions.remove(new DomainGroupDomainVersion(domain, -1));
   }
 
   @Override
