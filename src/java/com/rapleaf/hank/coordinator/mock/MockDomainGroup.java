@@ -47,12 +47,21 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
     for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
       this.domainVersions.add(new DomainGroupDomainVersion(entry.getKey(), entry.getValue()));
     }
-    notifyMetadataListeners();
+    notifyListeners();
   }
 
   @Override
   public void setDomainVersion(Domain domain, int versionNumber) {
     domainVersions.add(new DomainGroupDomainVersion(domain, versionNumber));
+    notifyListeners();
+  }
+
+  @Override
+  public void mergeDomainVersions(Map<Domain, Integer> domainVersions) throws IOException {
+    for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
+      this.domainVersions.add(new DomainGroupDomainVersion(entry.getKey(), entry.getValue()));
+    }
+    notifyListeners();
   }
 
   @Override
@@ -70,7 +79,7 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
     listeners.remove(listener);
   }
 
-  private void notifyMetadataListeners() {
+  private void notifyListeners() {
     for (DomainGroupListener listener : listeners) {
       listener.onDomainGroupChange(this);
     }
