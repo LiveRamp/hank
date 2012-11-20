@@ -44,6 +44,7 @@ public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVer
     return getDomain().getName() + "@v" + getVersionNumber();
   }
 
+  // Note: only domain is used
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -55,20 +56,16 @@ public class DomainGroupDomainVersion implements Comparable<DomainGroupDomainVer
 
     DomainGroupDomainVersion that = (DomainGroupDomainVersion) o;
 
-    if (getDomain().getName() != null ? !getDomain().getName().equals(that.getDomain().getName()) : that.getDomain().getName() != null) {
-      return false;
-    }
-    if (getVersionNumber() != that.getVersionNumber()) {
+    if (domain != null ? !domain.equals(that.domain) : that.domain != null) {
       return false;
     }
 
     return true;
   }
 
+  // Note: only domain is used
   @Override
   public int hashCode() {
-    int result = getDomain().getName() != null ? getDomain().getName().hashCode() : 0;
-    result = 31 * result + getVersionNumber();
-    return result;
+    return domain != null ? domain.hashCode() : 0;
   }
 }

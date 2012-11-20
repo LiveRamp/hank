@@ -114,6 +114,22 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   }
 
   @Override
+  public void setDomainVersion(final Domain domain, final int versionNumber) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(DomainGroupMetadata currentCopy) {
+          currentCopy.get_domain_versions_map().put(domain.getId(), versionNumber);
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
+  }
+
+  @Override
   public void removeDomain(final Domain domain) throws IOException {
     try {
       metadata.update(metadata.new Updater() {

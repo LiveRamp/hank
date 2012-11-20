@@ -32,6 +32,8 @@ public interface DomainGroup extends Comparable<DomainGroup> {
 
   public void setDomainVersions(Map<Domain, Integer> domainVersions) throws IOException;
 
+  public void setDomainVersion(Domain domain, int versionNumber) throws IOException;
+
   public void removeDomain(Domain domain) throws IOException;
 
   public Set<Domain> getDomains() throws IOException;
