@@ -15,20 +15,17 @@
  */
 package com.rapleaf.hank.coordinator.mock;
 
-import com.rapleaf.hank.coordinator.AbstractDomainGroup;
-import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.DomainGroup;
-import com.rapleaf.hank.coordinator.DomainGroupDomainVersion;
+import com.rapleaf.hank.coordinator.*;
 
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   private final String name;
   private Set<DomainGroupDomainVersion> domainVersions = new HashSet<DomainGroupDomainVersion>();
+  private Collection<DomainGroupListener> listeners
+      = new TreeSet<DomainGroupListener>();
 
   public MockDomainGroup(String name) {
     this.name = name;
@@ -50,10 +47,27 @@ public class MockDomainGroup extends AbstractDomainGroup implements DomainGroup 
     for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
       this.domainVersions.add(new DomainGroupDomainVersion(entry.getKey(), entry.getValue()));
     }
+    notifyMetadataListeners();
   }
 
   @Override
   public void removeDomain(Domain domain) throws IOException {
+  }
+
+  @Override
+  public void addListener(DomainGroupListener listener) {
+    listeners.add(listener);
+  }
+
+  @Override
+  public void removeListener(DomainGroupListener listener) {
+    listeners.remove(listener);
+  }
+
+  private void notifyMetadataListeners() {
+    for (DomainGroupListener listener : listeners) {
+      listener.onDomainGroupChange(this);
+    }
   }
 
   @Override

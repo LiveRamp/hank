@@ -18,6 +18,7 @@ package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.DomainGroupMetadata;
+import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -36,6 +37,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   private final String name;
   private final String path;
   private final WatchedThriftNode<DomainGroupMetadata> metadata;
+  private final Set<DomainGroupListener> listeners = new HashSet<DomainGroupListener>();
 
   public static ZkDomainGroup create(final ZooKeeperPlus zk,
                                      final Coordinator coordinator,
@@ -65,6 +67,16 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
     this.path = path;
     this.name = ZkPath.getFilename(path);
     this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialMetadata, new DomainGroupMetadata());
+    this.metadata.addListener(new WatchedNodeListener<DomainGroupMetadata>() {
+      @Override
+      public void onWatchedNodeChange(DomainGroupMetadata value) {
+        synchronized (listeners) {
+          for (DomainGroupListener listener : listeners) {
+            listener.onDomainGroupChange(ZkDomainGroup.this);
+          }
+        }
+      }
+    });
   }
 
   @Override
@@ -114,6 +126,20 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
       throw new IOException(e);
     } catch (KeeperException e) {
       throw new IOException(e);
+    }
+  }
+
+  @Override
+  public void addListener(final DomainGroupListener listener) {
+    synchronized (listeners) {
+      listeners.add(listener);
+    }
+  }
+
+  @Override
+  public void removeListener(DomainGroupListener listener) {
+    synchronized (listeners) {
+      listeners.remove(listener);
     }
   }
 

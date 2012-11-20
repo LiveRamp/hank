@@ -19,7 +19,6 @@ import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
 import java.util.TreeSet;
@@ -31,7 +30,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final Set<Ring> ringConfigs;
   private RingGroupConductorMode ringGroupConductorMode = null;
   private Collection<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
-      = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
+      = new TreeSet<WatchedNodeListener<RingGroupConductorMode>>();
   private Collection<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
       = new TreeSet<RingGroupDataLocationChangeListener>();
 

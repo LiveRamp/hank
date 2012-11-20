@@ -36,7 +36,6 @@ public class Monitor {
 
   private static final Logger LOG = Logger.getLogger(Monitor.class);
 
-  private final Coordinator coordinator;
   private final List<Notifier> globalNotifiers;
   private final List<Notifier> ringGroupNotifiers = new ArrayList<Notifier>();
   private final Collection<RingGroupMonitor> ringGroupMonitors = new ArrayList<RingGroupMonitor>();
@@ -50,8 +49,6 @@ public class Monitor {
 
   public Monitor(Coordinator coordinator,
                  MonitorConfigurator configurator) throws IOException, InvalidConfigurationException {
-    this.coordinator = coordinator;
-
     globalNotifiers = configurator.getGlobalNotifiers();
     try {
       notifyGlobalNotifiers(new StringNotification("Hank monitor starting on " + LocalHostUtils.getHostName() + "."));

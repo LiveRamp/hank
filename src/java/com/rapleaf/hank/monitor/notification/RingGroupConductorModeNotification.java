@@ -26,13 +26,6 @@ public class RingGroupConductorModeNotification extends AbstractNotification imp
   private final RingGroup ringGroup;
   private final RingGroupConductorMode mode;
 
-  @Override
-  public int hashCode() {
-    int result = ringGroup != null ? ringGroup.hashCode() : 0;
-    result = 31 * result + (mode != null ? mode.hashCode() : 0);
-    return result;
-  }
-
   public RingGroupConductorModeNotification(RingGroup ringGroup, RingGroupConductorMode mode) {
     this.ringGroup = ringGroup;
     this.mode = mode;
@@ -43,6 +36,13 @@ public class RingGroupConductorModeNotification extends AbstractNotification imp
     return "Ring Group Conductor mode for "
         + formatter.getWebUiLink(RingGroupController.getRingGroupUrl(ringGroup),
         ringGroup.getName()) + " is " + mode;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = ringGroup != null ? ringGroup.hashCode() : 0;
+    result = 31 * result + (mode != null ? mode.hashCode() : 0);
+    return result;
   }
 
   @Override

@@ -35,4 +35,8 @@ public interface DomainGroup extends Comparable<DomainGroup> {
   public void removeDomain(Domain domain) throws IOException;
 
   public Set<Domain> getDomains() throws IOException;
+
+  public void addListener(DomainGroupListener listener);
+
+  public void removeListener(DomainGroupListener listener);
 }

@@ -16,8 +16,11 @@
 
 package com.rapleaf.hank.monitor;
 
+import com.rapleaf.hank.coordinator.DomainGroup;
+import com.rapleaf.hank.coordinator.DomainGroupListener;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
+import com.rapleaf.hank.monitor.notification.DomainGroupChangeNotification;
 import com.rapleaf.hank.monitor.notification.RingGroupConductorModeNotification;
 import com.rapleaf.hank.monitor.notifier.Notification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
@@ -35,6 +38,7 @@ public class RingGroupMonitor {
   private final List<Notifier> notifiers;
   private Collection<RingMonitor> ringMonitors = new ArrayList<RingMonitor>();
   private final RingGroupConductorModeMonitor ringGroupConductorStatusMonitor;
+  private final DomainGroupMetadataMonitor domainGroupMetadataMonitor;
 
   private class RingGroupConductorModeMonitor implements WatchedNodeListener<RingGroupConductorMode> {
 
@@ -48,6 +52,14 @@ public class RingGroupMonitor {
     }
   }
 
+  private class DomainGroupMetadataMonitor implements DomainGroupListener {
+
+    @Override
+    public void onDomainGroupChange(DomainGroup domainGroup) {
+      doNotify(new DomainGroupChangeNotification(ringGroup));
+    }
+  }
+
   public RingGroupMonitor(RingGroup ringGroup,
                           List<Notifier> notifiers) throws IOException {
     this.notifiers = notifiers;
@@ -56,8 +68,10 @@ public class RingGroupMonitor {
       ringMonitors.add(new RingMonitor(ringGroup, ring, notifiers));
     }
     this.ringGroupConductorStatusMonitor = new RingGroupConductorModeMonitor();
+    this.domainGroupMetadataMonitor = new DomainGroupMetadataMonitor();
 
     ringGroup.addRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
+    ringGroup.getDomainGroup().addListener(domainGroupMetadataMonitor);
   }
 
   private void doNotify(Notification notification) {
@@ -71,5 +85,6 @@ public class RingGroupMonitor {
       ringMonitor.stop();
     }
     ringGroup.removeRingGroupConductorModeListener(ringGroupConductorStatusMonitor);
+    ringGroup.getDomainGroup().removeListener(domainGroupMetadataMonitor);
   }
 }
