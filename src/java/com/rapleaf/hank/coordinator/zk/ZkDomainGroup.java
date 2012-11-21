@@ -200,7 +200,6 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
       @Override
       public void updateCopy(DomainGroupMetadata currentCopy) {
         currentCopy.set_domain_versions(currentCopy.get_domain_versions_map());
-        currentCopy.unset_domain_versions_map();
       }
     });
   }
