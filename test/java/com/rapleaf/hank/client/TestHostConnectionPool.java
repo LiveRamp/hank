@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 public class TestHostConnectionPool extends BaseTestCase {
 
@@ -59,16 +60,14 @@ public class TestHostConnectionPool extends BaseTestCase {
   private static abstract class MockIface implements IfaceWithShutdown {
 
     private int numGets = 0;
-    private int numGetBulks = 0;
+    private int numCompletedGets = 0;
 
     public void clearCounts() {
       numGets = 0;
-      numGetBulks = 0;
+      numCompletedGets = 0;
     }
 
     protected abstract HankResponse getCore(int domain_id, ByteBuffer key) throws TException;
-
-    protected abstract HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException;
 
     @Override
     public void shutDown() throws InterruptedException {
@@ -77,16 +76,14 @@ public class TestHostConnectionPool extends BaseTestCase {
     @Override
     public HankResponse get(int domain_id, ByteBuffer key) throws TException {
       ++numGets;
-      if (this instanceof HangingIface) {
-        LOG.trace("HangingIface GET " + numGets);
-      }
-      return getCore(domain_id, key);
+      HankResponse result = getCore(domain_id, key);
+      ++numCompletedGets;
+      return result;
     }
 
     @Override
     public HankBulkResponse getBulk(int domain_id, List<ByteBuffer> keys) throws TException {
-      ++numGetBulks;
-      return getBulkCore(domain_id, keys);
+      return null;
     }
   }
 
@@ -96,27 +93,23 @@ public class TestHostConnectionPool extends BaseTestCase {
     public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
       return RESPONSE_1;
     }
-
-    @Override
-    public HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException {
-      return null;
-    }
   }
 
   private class HangingIface extends MockIface {
 
-    @Override
-    public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      return null;
+    private final Semaphore semaphore;
+
+    public HangingIface(Semaphore semaphore) {
+      this.semaphore = semaphore;
     }
 
     @Override
-    public HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException {
+    public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
+      try {
+        this.semaphore.acquire();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
       return null;
     }
   }
@@ -126,11 +119,6 @@ public class TestHostConnectionPool extends BaseTestCase {
     @Override
     protected HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
       return HankResponse.xception(HankException.internal_error("Internal Error"));
-    }
-
-    @Override
-    protected HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException {
-      return HankBulkResponse.xception(HankException.internal_error("Internal Error"));
     }
   }
 
@@ -247,8 +235,8 @@ public class TestHostConnectionPool extends BaseTestCase {
   }
 
   public void testOneHanging() throws IOException, TException, InterruptedException {
-
-    final MockIface iface1 = new HangingIface();
+    Semaphore semaphore = new Semaphore(0);
+    final MockIface iface1 = new HangingIface(semaphore);
     final MockIface iface2 = new Response1Iface();
 
     startMockPartitionServerThread1(iface1, 1);
@@ -272,11 +260,13 @@ public class TestHostConnectionPool extends BaseTestCase {
     mockHost2.setState(HostState.SERVING);
 
     int numHits;
+    int previousIface1NumGets;
 
     // With max num retries = 1
     numHits = 0;
     iface1.clearCounts();
     iface2.clearCounts();
+    previousIface1NumGets = 0;
     for (int i = 0; i < 10; ++i) {
       HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
       LOG.trace("Num retries = 1, sequence index = " + i +
@@ -284,23 +274,33 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (response.is_set_value()) {
         ++numHits;
       }
+      if (iface1.numGets != previousIface1NumGets) {
+        semaphore.release();
+        previousIface1NumGets = iface1.numGets;
+      }
     }
 
     WaitUntil.condition(new Condition() {
       @Override
       public boolean test() {
-        return iface1.numGets == 5 && iface2.numGets == 5;
+        return iface1.numGets == 5
+            && iface1.numCompletedGets == 5
+            && iface2.numGets == 5
+            && iface2.numCompletedGets == 5;
       }
     });
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
+    assertEquals("Half the requests should have failed with Host 1", 5, iface1.numCompletedGets);
     assertEquals("Half the requests should have succeeded with Host 2", 5, iface2.numGets);
+    assertEquals("Half the requests should have succeeded with Host 2", 5, iface2.numCompletedGets);
     assertEquals("Half the keys should have been found", 5, numHits);
 
     // With max num retries = 2
     numHits = 0;
     iface1.clearCounts();
     iface2.clearCounts();
+    previousIface1NumGets = 0;
     for (int i = 0; i < 10; ++i) {
       HankResponse response = hostConnectionPool.get(0, KEY_1, 2, null);
       LOG.trace("Num retries = 2, sequence index = " + i +
@@ -309,17 +309,26 @@ public class TestHostConnectionPool extends BaseTestCase {
       if (response.is_set_value()) {
         ++numHits;
       }
+      if (iface1.numGets != previousIface1NumGets) {
+        semaphore.release();
+        previousIface1NumGets = iface1.numGets;
+      }
     }
 
     WaitUntil.condition(new Condition() {
       @Override
       public boolean test() {
-        return iface1.numGets == 5 && iface2.numGets == 10;
+        return iface1.numGets == 5
+            && iface1.numCompletedGets == 5
+            && iface2.numGets == 10
+            && iface2.numCompletedGets == 10;
       }
     });
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
+    assertEquals("Half the requests should have failed with Host 1", 5, iface1.numCompletedGets);
     assertEquals("Host 2 should have served all requests", 10, iface2.numGets);
+    assertEquals("Host 2 should have served all requests", 10, iface2.numCompletedGets);
     assertEquals("All keys should have been found", 10, numHits);
   }
 
