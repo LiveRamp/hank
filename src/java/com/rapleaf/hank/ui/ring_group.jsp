@@ -48,6 +48,7 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
     addAsyncReload(['RING-GROUP-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
     addAsyncReload(['CLIENTS']);
+    addAsyncReload(['CLIENTS-TITLE']);
   </script>
 
   <jsp:include page="_top_nav.jsp" />
@@ -506,7 +507,7 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
         <% }} %>
       </form>
 
-  <h2><%= clients.size() %> clients</h2>
+  <h2 class='CLIENTS-TITLE'><%= clients.size() %> clients</h2>
 
   <table class='table-blue CLIENTS'>
     <tr>
