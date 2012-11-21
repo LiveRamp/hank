@@ -506,7 +506,7 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
         <% }} %>
       </form>
 
-  <h2>Clients</h2>
+  <h2><%= clients.size() %> clients</h2>
 
   <table class='table-blue CLIENTS'>
     <tr>
