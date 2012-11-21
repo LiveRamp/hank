@@ -44,7 +44,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private final String ringGroupConductorOnlinePath;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
-  private final WatchedMap<WatchedThriftNode<ClientMetadata>> clients;
+  private WatchedMap<WatchedThriftNode<ClientMetadata>> clients;
 
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
   private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
@@ -80,12 +80,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     });
     rings.addListener(new ZkRingGroup.RingsWatchedMapListener());
 
-    clients = new WatchedMap<WatchedThriftNode<ClientMetadata>>(zk, ZkPath.append(ringGroupPath, CLIENTS_PATH), new ElementLoader<WatchedThriftNode<ClientMetadata>>() {
-      @Override
-      public WatchedThriftNode<ClientMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
-        return new WatchedThriftNode<ClientMetadata>(zk, ZkPath.append(basePath, relPath), true, null, null, emptyClientMetadata);
-      }
-    });
+    // Note: clients is lazy loaded in getClients()
 
     ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH);
 
@@ -219,6 +214,14 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   @Override
   public List<ClientMetadata> getClients() {
+    if (clients == null) {
+      clients = new WatchedMap<WatchedThriftNode<ClientMetadata>>(zk, ZkPath.append(ringGroupPath, CLIENTS_PATH), new ElementLoader<WatchedThriftNode<ClientMetadata>>() {
+        @Override
+        public WatchedThriftNode<ClientMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+          return new WatchedThriftNode<ClientMetadata>(zk, ZkPath.append(basePath, relPath), true, null, null, emptyClientMetadata);
+        }
+      });
+    }
     List<ClientMetadata> result = new ArrayList<ClientMetadata>();
     for (WatchedThriftNode<ClientMetadata> client : clients.values()) {
       result.add(client.get());
