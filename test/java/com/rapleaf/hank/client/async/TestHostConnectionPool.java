@@ -24,6 +24,8 @@ import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partition_server.IfaceWithShutdown;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.async.TAsyncClientManager;
@@ -145,8 +147,8 @@ public class TestHostConnectionPool extends BaseTestCase {
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
 
     int establishConnectionTimeoutMs = 0;
-    int queryTimeoutMs = 10;
-    int bulkQueryTimeoutMs = 100;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
     HostConnection connection1 = new HostConnection(mockHost1,
         null,
         asyncClientManager,
@@ -328,11 +330,13 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress1);
     mockPartitionServerThread1 = new Thread(mockPartitionServer1);
     mockPartitionServerThread1.start();
-    while (mockPartitionServer1.dataServer == null ||
-        !mockPartitionServer1.dataServer.isServing()) {
-      LOG.info("Waiting for data server 1 to start serving...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer1.dataServer != null
+            && mockPartitionServer1.dataServer.isServing();
+      }
+    });
   }
 
   private void startMockPartitionServerThread2(IfaceWithShutdown handler, int numWorkerThreads)
@@ -341,10 +345,12 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress2);
     mockPartitionServerThread2 = new Thread(mockPartitionServer2);
     mockPartitionServerThread2.start();
-    while (mockPartitionServer2.dataServer == null ||
-        !mockPartitionServer2.dataServer.isServing()) {
-      LOG.info("Waiting for data server 2 to start serving...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer2.dataServer != null
+            && mockPartitionServer2.dataServer.isServing();
+      }
+    });
   }
 }

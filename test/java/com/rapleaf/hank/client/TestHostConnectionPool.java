@@ -333,10 +333,10 @@ public class TestHostConnectionPool extends BaseTestCase {
 
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
 
-    int tryLockTimeoutMs = 100;
-    int establishConnectionTimeoutMs = 100;
-    int queryTimeoutMs = 100;
-    int bulkQueryTimeoutMs = 100;
+    int tryLockTimeoutMs = 0;
+    int establishConnectionTimeoutMs = 0;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
 
     hostToConnectionsMap.put(mockHost1, Collections.singletonList(new HostConnection(mockHost1,
         tryLockTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs)));
