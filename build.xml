@@ -1,6 +1,6 @@
 <project name="hank" default="dist" basedir=".">
 
-  <property name="version" value="0.1.0" />
+  <property name="version" value="1.0.0" />
 
   <property environment="env" />
 
@@ -14,7 +14,7 @@
   <property name="src.test" location="test" />
   <property name="build.test" location="${build}/test" />
   <property name="lib" location="lib" />
-  <property name="doc" location="javadoc"/>  
+  <property name="doc" location="javadoc"/>
 
   <property name="test.junit.output.format" value="plain"/>
   <property name="test.timeout" value="300000"/>
