@@ -25,6 +25,8 @@ import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
 import com.rapleaf.hank.partitioner.MapPartitioner;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -125,7 +127,12 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       }
     };
 
-    Thread.sleep(1000);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return server1.isServing() && server2.isServing();
+      }
+    });
   }
 
   private static class ServerRunnable implements Runnable {
@@ -151,7 +158,6 @@ public class TestHankSyncSmartClient extends BaseTestCase {
     private static enum Mode {
       NORMAL,
       HANGING,
-      HARD_HANGING,
       FAILING,
       THROWING_ERROR
     }
@@ -189,10 +195,6 @@ public class TestHankSyncSmartClient extends BaseTestCase {
             break;
           } catch (InterruptedException e) {
 
-          }
-        case HARD_HANGING:
-          // Simulating hanging
-          while (true) {
           }
         case FAILING:
           throw new RuntimeException("In failing mode.");
@@ -305,12 +307,6 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
       assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
       assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
-
-      // Simulate servers that hangs
-      //((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HARD_HANGING);
-      //((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HARD_HANGING);
-      //assertTrue(c.get("existent_domain", KEY_1).get_xception().is_set_internal_error());
-      //assertTrue(c.get("existent_domain", KEY_2).get_xception().is_set_internal_error());
     } finally {
       if (c != null) {
         c.stop();

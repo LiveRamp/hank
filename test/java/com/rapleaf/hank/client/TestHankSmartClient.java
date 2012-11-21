@@ -67,6 +67,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
     private static enum Mode {
       NORMAL,
+      HANGING,
       FAILING,
       THROWING_ERROR
     }
@@ -97,6 +98,14 @@ public class TestHankSmartClient extends BaseTestCase {
 
     private void applyMode() {
       switch (mode) {
+        case HANGING:
+          // Simulating hanging
+          try {
+            Thread.sleep(5000);
+            break;
+          } catch (InterruptedException e) {
+
+          }
         case FAILING:
           throw new RuntimeException("In failing mode.");
         case THROWING_ERROR:
@@ -209,7 +218,7 @@ public class TestHankSmartClient extends BaseTestCase {
     });
 
     try {
-      final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 0, 0);
+      final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 1000, 0);
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), client.get("nonexistent_domain", null));
@@ -317,6 +326,13 @@ public class TestHankSmartClient extends BaseTestCase {
       // Simulate servers that throws an error
       ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
       ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
+
+      assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
+      assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
+
+      // Simulate servers that hangs
+      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
+      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
 
       assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
       assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
