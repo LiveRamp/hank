@@ -25,6 +25,8 @@ import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partition_server.IfaceWithShutdown;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -246,8 +248,8 @@ public class TestHostConnectionPool extends BaseTestCase {
 
   public void testOneHanging() throws IOException, TException, InterruptedException {
 
-    MockIface iface1 = new HangingIface();
-    MockIface iface2 = new Response1Iface();
+    final MockIface iface1 = new HangingIface();
+    final MockIface iface2 = new Response1Iface();
 
     startMockPartitionServerThread1(iface1, 1);
     startMockPartitionServerThread2(iface2, 1);
@@ -284,10 +286,12 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    while (iface1.numGets != 5) {
-      LOG.info("Waiting for all hanging calls to host 1 to finish...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return iface1.numGets == 5 && iface2.numGets == 5;
+      }
+    });
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
     assertEquals("Half the requests should have succeeded with Host 2", 5, iface2.numGets);
@@ -307,10 +311,12 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    while (iface1.numGets != 5) {
-      LOG.info("Waiting for all hanging calls to host 1 to finish...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return iface1.numGets == 5 && iface2.numGets == 10;
+      }
+    });
 
     assertEquals("Half the requests should have failed with Host 1", 5, iface1.numGets);
     assertEquals("Host 2 should have served all requests", 10, iface2.numGets);
@@ -383,11 +389,13 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress1);
     mockPartitionServerThread1 = new Thread(mockPartitionServer1);
     mockPartitionServerThread1.start();
-    while (mockPartitionServer1.dataServer == null ||
-        !mockPartitionServer1.dataServer.isServing()) {
-      LOG.info("Waiting for data server 1 to start serving...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer1.dataServer != null
+            && mockPartitionServer1.dataServer.isServing();
+      }
+    });
   }
 
   private void startMockPartitionServerThread2(IfaceWithShutdown handler, int numWorkerThreads)
@@ -396,10 +404,12 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress2);
     mockPartitionServerThread2 = new Thread(mockPartitionServer2);
     mockPartitionServerThread2.start();
-    while (mockPartitionServer2.dataServer == null ||
-        !mockPartitionServer2.dataServer.isServing()) {
-      LOG.info("Waiting for data server 2 to start serving...");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return mockPartitionServer2.dataServer != null
+            && mockPartitionServer2.dataServer.isServing();
+      }
+    });
   }
 }
