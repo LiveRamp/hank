@@ -21,6 +21,7 @@ import org.apache.thrift.TDeserializer;
 import org.apache.thrift.TException;
 import org.apache.thrift.TSerializer;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
@@ -41,11 +42,11 @@ public class WatchedThriftNode<T extends TBase> extends WatchedNode<T> {
 
   public WatchedThriftNode(final ZooKeeperPlus zk,
                            final String nodePath,
-                           boolean waitForCreation,
-                           boolean create,
-                           T initialValue,
-                           T emptyValue) throws KeeperException, InterruptedException {
-    super(zk, nodePath, waitForCreation, create, initialValue, emptyValue);
+                           final boolean waitForCreation,
+                           final CreateMode createMode,
+                           final T initialValue,
+                           final T emptyValue) throws KeeperException, InterruptedException {
+    super(zk, nodePath, waitForCreation, createMode, initialValue, emptyValue);
   }
 
   @Override

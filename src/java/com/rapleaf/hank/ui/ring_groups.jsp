@@ -54,6 +54,7 @@
       <th>Updating</th>
       <th>Idle</th>
       <th>Offline</th>
+      <th>Clients</th>
       <th>Throughput</th>
       <th>Latency</th>
       <th>Hit rate</th>
@@ -131,6 +132,8 @@
         <% } else { %>
           <td class='centered'>-</td>
         <% } %>
+
+        <td class='centered'><%= ringGroup.getClients().size() %>
 
         <!-- Statistics -->
 

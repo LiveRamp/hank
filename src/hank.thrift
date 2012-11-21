@@ -93,3 +93,10 @@ struct HostMetadata {
 struct StatisticsMetadata {
   1: required map<string, string> statistics;
 }
+
+struct ClientMetadata {
+  1: required string host;
+  2: required i64 connected_at;
+  3: required string type;
+  4: required string version;
+}

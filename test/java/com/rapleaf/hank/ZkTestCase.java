@@ -15,11 +15,14 @@
  */
 package com.rapleaf.hank;
 
+import com.rapleaf.hank.client.HankSmartClient;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
+import com.rapleaf.hank.generated.ClientMetadata;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
 import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.LocalHostUtils;
 import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
@@ -317,6 +320,13 @@ public class ZkTestCase extends BaseTestCase {
     r3.addHost(addy("alpha-3-1"), Collections.<String>emptyList());
     r3.addHost(addy("alpha-3-2"), Collections.<String>emptyList());
     r3.addHost(addy("alpha-3-3"), Collections.<String>emptyList());
+    for (int i = 0; i < 16; ++i) {
+      rgAlpha.registerClient(new ClientMetadata(
+          LocalHostUtils.getHostName(),
+          System.currentTimeMillis(),
+          HankSmartClient.class.getName(),
+          Hank.getGitCommit()));
+    }
 
     RingGroup rgBeta = coord.addRingGroup("RG_Beta", g1.getName());
     r1 = rgBeta.addRing(1);

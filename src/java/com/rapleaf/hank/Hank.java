@@ -1,16 +1,17 @@
 package com.rapleaf.hank;
 
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-import org.apache.log4j.Logger;
-
 public final class Hank {
   private static final Logger LOG = Logger.getLogger(Hank.class);
 
-  private Hank(){}
+  private Hank() {
+  }
 
   private final static String GIT_COMMIT;
 

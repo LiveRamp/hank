@@ -22,6 +22,7 @@ import com.rapleaf.hank.generated.PartitionMetadata;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -67,7 +68,7 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
     this.path = path;
     this.domainVersionPropertiesSerialization = domainVersionPropertiesSerialization;
     this.versionNumber = Integer.parseInt(ZkPath.getFilename(path));
-    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create,
+    metadata = new WatchedThriftNode<DomainVersionMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null,
         initialMetadata, new DomainVersionMetadata());
   }
 

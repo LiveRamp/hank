@@ -16,10 +16,12 @@
 
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.generated.ClientMetadata;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -59,4 +61,8 @@ public interface RingGroup extends Comparable<RingGroup> {
   public void addRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
 
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener);
+
+  public void registerClient(ClientMetadata client) throws IOException;
+
+  public List<ClientMetadata> getClients();
 }

@@ -66,7 +66,6 @@ public class TestZkRingGroup extends ZkTestCase {
 
   public void testLoad() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
-    create(ZkPath.append(ring_group, ZkRingGroup.TARGET_VERSION_PATH_SEGMENT), Integer.toString(0));
     createRing(1);
     createRing(2);
     createRing(3);
@@ -84,7 +83,6 @@ public class TestZkRingGroup extends ZkTestCase {
 
   public void testDataLocationChangeListeners() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
-    create(ZkPath.append(ring_group, ZkRingGroup.TARGET_VERSION_PATH_SEGMENT), Integer.toString(0));
     createRing(1);
     createRing(2);
     createRing(3);
@@ -134,9 +132,9 @@ public class TestZkRingGroup extends ZkTestCase {
     ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
     dg.setDomainVersions(Collections.<Domain, Integer>emptyMap());
     RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg, coordinator);
-    create(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT));
+    create(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH));
     assertFalse(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
-    getZk().delete(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT), -1);
+    getZk().delete(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH), -1);
     assertTrue(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
     assertFalse(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
     rg.releaseRingGroupConductor();

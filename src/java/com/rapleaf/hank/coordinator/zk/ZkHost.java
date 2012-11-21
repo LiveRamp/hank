@@ -85,9 +85,9 @@ public class ZkHost extends AbstractHost {
     this.path = path;
     this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
     this.dataLocationChangeListener = dataLocationChangeListener;
-    this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create, initialMetadata, new HostMetadata());
+    this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new HostMetadata());
     this.assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(path, ASSIGNMENTS_PATH),
-        true, create, initialAssignments, new HostAssignmentsMetadata());
+        true, create ? CreateMode.PERSISTENT : null, initialAssignments, new HostAssignmentsMetadata());
     if (create) {
       zk.create(ZkPath.append(path, CURRENT_COMMAND_PATH), null);
       zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
@@ -95,7 +95,7 @@ public class ZkHost extends AbstractHost {
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
     this.state.addListener(new DataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
-        false, false, null, new StatisticsMetadata());
+        false, null, null, new StatisticsMetadata());
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);

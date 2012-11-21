@@ -17,8 +17,10 @@
 package com.rapleaf.hank.client.async;
 
 
+import com.rapleaf.hank.client.Clients;
 import com.rapleaf.hank.client.GetBulkCallback;
 import com.rapleaf.hank.client.GetCallback;
+import com.rapleaf.hank.client.HankClientIface;
 import com.rapleaf.hank.config.HankSmartClientConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.generated.HankBulkResponse;
@@ -39,7 +41,7 @@ import java.util.Map;
 
 import static com.rapleaf.hank.client.HostConnectionPool.getHostListShuffleSeed;
 
-public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener {
+public class HankAsyncSmartClient implements HankClientIface, RingGroupDataLocationChangeListener {
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
@@ -90,6 +92,8 @@ public class HankAsyncSmartClient implements RingGroupDataLocationChangeListener
     if (ringGroup == null) {
       throw new IOException("Could not find Ring Group " + ringGroupName + " with Coordinator " + coordinator.toString());
     }
+
+    ringGroup.registerClient(Clients.getClientMetadata(this));
 
     this.numConnectionsPerHost = numConnectionsPerHost;
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;

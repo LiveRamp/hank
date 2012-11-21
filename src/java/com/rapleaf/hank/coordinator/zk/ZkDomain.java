@@ -10,6 +10,7 @@ import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
 import org.apache.log4j.Logger;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.yaml.snakeyaml.Yaml;
 
@@ -54,7 +55,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
     this.zk = zk;
     this.path = path;
     this.name = ZkPath.getFilename(path);
-    metadata = new WatchedThriftNode<DomainMetadata>(zk, path, true, create, initialMetadata, new DomainMetadata());
+    metadata = new WatchedThriftNode<DomainMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new DomainMetadata());
     if (create) {
       zk.create(ZkPath.append(path, VERSIONS_PATH), null);
     }

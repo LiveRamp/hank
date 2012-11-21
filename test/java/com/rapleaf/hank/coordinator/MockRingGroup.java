@@ -15,13 +15,12 @@
  */
 package com.rapleaf.hank.coordinator;
 
+import com.rapleaf.hank.generated.ClientMetadata;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -33,6 +32,7 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
       = new TreeSet<WatchedNodeListener<RingGroupConductorMode>>();
   private Collection<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
       = new TreeSet<RingGroupDataLocationChangeListener>();
+  private final List<ClientMetadata> clients = new ArrayList<ClientMetadata>();
 
   public MockRingGroup(DomainGroup dcg,
                        String name,
@@ -126,6 +126,16 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
     ringGroupConductorModeListeners.remove(listener);
+  }
+
+  @Override
+  public void registerClient(ClientMetadata client) throws IOException {
+    clients.add(client);
+  }
+
+  @Override
+  public List<ClientMetadata> getClients() {
+    return clients;
   }
 
   @Override

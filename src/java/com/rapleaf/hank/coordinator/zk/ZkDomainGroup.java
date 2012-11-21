@@ -22,6 +22,7 @@ import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import com.rapleaf.hank.zookeeper.ZooKeeperPlus;
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
@@ -65,7 +66,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
     this.coordinator = coordinator;
     this.path = path;
     this.name = ZkPath.getFilename(path);
-    this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create, initialMetadata, new DomainGroupMetadata());
+    this.metadata = new WatchedThriftNode<DomainGroupMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new DomainGroupMetadata());
     this.metadata.addListener(new WatchedNodeListener<DomainGroupMetadata>() {
       @Override
       public void onWatchedNodeChange(DomainGroupMetadata value) {

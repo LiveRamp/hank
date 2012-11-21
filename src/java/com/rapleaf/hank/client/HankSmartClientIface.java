@@ -8,7 +8,7 @@ import org.apache.thrift.TException;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-public interface HankSmartClientIface extends SmartClient.Iface {
+public interface HankSmartClientIface extends HankClientIface, SmartClient.Iface {
 
   public HankResponse get(String domain_name, ByteBuffer key);
 

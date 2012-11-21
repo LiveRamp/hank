@@ -107,6 +107,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       throw new IOException("Could not find Ring Group " + ringGroupName + " with Coordinator " + coordinator.toString());
     }
 
+    ringGroup.registerClient(Clients.getClientMetadata(this));
+
     this.numConnectionsPerHost = numConnectionsPerHost;
     this.queryMaxNumTries = queryMaxNumTries;
     this.tryLockConnectionTimeoutMs = tryLockConnectionTimeoutMs;

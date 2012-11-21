@@ -13,12 +13,15 @@
 <%@page import="org.apache.thrift.*"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils"%>
 <%@page import="java.text.DecimalFormat" %>
+<%@page import="java.text.SimpleDateFormat" %>
 
 <%
 
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
+
+List<ClientMetadata> clients = ringGroup.getClients();
 
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -36,6 +39,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
     addAsyncReload(['ALL-RINGS']);
     addAsyncReload(['RING-GROUP-STATE']);
     addAsyncReload(['DOMAIN-STATISTICS']);
+    addAsyncReload(['CLIENTS']);
   </script>
 
   <jsp:include page="_top_nav.jsp" />
@@ -83,6 +87,13 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
         <% } else { %>
           <td class='error centered'>OFFLINE</td>
         <% } %>
+        </tr>
+
+        <tr>
+        <td>Clients:</td>
+        <td>
+        <%= clients.size() %>
+        </td>
         </tr>
 
         <tr>
@@ -486,6 +497,31 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 
         <% }} %>
       </form>
+
+  <h2>Clients</h2>
+
+  <table class='table-blue CLIENTS'>
+    <tr>
+      <th>Host</th>
+      <th>Uptime</th>
+      <th>Connected</th>
+      <th>Type</th>
+      <th>Version</th>
+    </tr>
+    <% for (ClientMetadata client : clients) { %>
+      <tr>
+        <td><%= client.get_host() %></td>
+        <td>
+          <%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - client.get_connected_at()) / 1000) %>
+        </td>
+        <td>
+          <%= new SimpleDateFormat().format(new Date(client.get_connected_at())) %>
+        </td>
+        <td><%= client.get_type() %></td>
+        <td><%= client.get_version() %></td>
+      </tr>
+    <% } %>
+  </table>
 
 <jsp:include page="_footer.jsp"/>
 

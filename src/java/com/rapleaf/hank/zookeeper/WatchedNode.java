@@ -96,8 +96,8 @@ public abstract class WatchedNode<T> {
   // Start watching a node, optionnaly waiting for it to be created
   protected WatchedNode(final ZooKeeperPlus zk,
                         final String nodePath,
-                        boolean waitForCreation,
-                        boolean create,
+                        final boolean waitForCreation,
+                        final CreateMode createMode,
                         final T initialValue,
                         final T emptyValue)
       throws KeeperException, InterruptedException {
@@ -109,8 +109,13 @@ public abstract class WatchedNode<T> {
     try {
       watchForData();
     } catch (KeeperException.NoNodeException e) {
-      if (create) {
-        zk.create(nodePath, encode(initialValue));
+      if (createMode != null) {
+        zk.create(nodePath, encode(initialValue), createMode);
+      }
+      // Cannot wait for creation of sequential nodes (path is not yet known)
+      if (waitForCreation &&
+          (createMode == CreateMode.EPHEMERAL_SEQUENTIAL || createMode == CreateMode.PERSISTENT_SEQUENTIAL)) {
+        throw new RuntimeException("Cannot wait for creation of sequential nodes");
       }
       if (waitForCreation) {
         NodeCreationBarrier.block(zk, nodePath);
@@ -123,7 +128,7 @@ public abstract class WatchedNode<T> {
 
   public WatchedNode(ZooKeeperPlus zk, String nodePath, boolean waitForCreation)
       throws InterruptedException, KeeperException {
-    this(zk, nodePath, waitForCreation, false, null, null);
+    this(zk, nodePath, waitForCreation, null, null, null);
   }
 
   protected abstract T decode(byte[] data);

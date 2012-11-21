@@ -16,6 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.generated.ClientMetadata;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.zookeeper.*;
@@ -24,13 +25,17 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
-  protected static final String TARGET_VERSION_PATH_SEGMENT = "target_version";
-  protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT = "ring_group_conductor_online";
+  protected static final String RING_GROUP_CONDUCTOR_ONLINE_PATH = "ring_group_conductor_online";
+  private static final String CLIENTS_PATH = "c";
+  private static final String CLIENT_NODE = "c";
+  private static final ClientMetadata emptyClientMetadata = new ClientMetadata();
 
   private final String ringGroupName;
   private DomainGroup domainGroup;
@@ -39,6 +44,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private final String ringGroupConductorOnlinePath;
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
+  private final WatchedMap<WatchedThriftNode<ClientMetadata>> clients;
 
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
   private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
@@ -46,7 +52,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {
     zk.create(path, domainGroup.getName().getBytes());
-    zk.create(ZkPath.append(path, TARGET_VERSION_PATH_SEGMENT), null);
+    zk.create(ZkPath.append(path, CLIENTS_PATH), null);
     zk.create(ZkPath.append(path, DotComplete.NODE_NAME), null);
     return new ZkRingGroup(zk, path, domainGroup, coordinator);
   }
@@ -74,7 +80,14 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     });
     rings.addListener(new ZkRingGroup.RingsWatchedMapListener());
 
-    ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH_SEGMENT);
+    clients = new WatchedMap<WatchedThriftNode<ClientMetadata>>(zk, ZkPath.append(ringGroupPath, CLIENTS_PATH), new ElementLoader<WatchedThriftNode<ClientMetadata>>() {
+      @Override
+      public WatchedThriftNode<ClientMetadata> load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException, IOException {
+        return new WatchedThriftNode<ClientMetadata>(zk, ZkPath.append(basePath, relPath), true, null, null, emptyClientMetadata);
+      }
+    });
+
+    ringGroupConductorOnlinePath = ZkPath.append(ringGroupPath, RING_GROUP_CONDUCTOR_ONLINE_PATH);
 
     ringGroupConductorMode = new WatchedEnum<RingGroupConductorMode>(RingGroupConductorMode.class,
         zk, ringGroupConductorOnlinePath, false);
@@ -94,6 +107,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
     public void onWatchedMapChange(WatchedMap<ZkRingGroup> watchedMap) {
       fireDataLocationChangeListeners();
     }
+
   }
 
   @Override
@@ -201,6 +215,31 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public void removeRingGroupConductorModeListener(WatchedNodeListener<RingGroupConductorMode> listener) {
     ringGroupConductorMode.removeListener(listener);
+  }
+
+  @Override
+  public List<ClientMetadata> getClients() {
+    List<ClientMetadata> result = new ArrayList<ClientMetadata>();
+    for (WatchedThriftNode<ClientMetadata> client : clients.values()) {
+      result.add(client.get());
+    }
+    return result;
+  }
+
+  @Override
+  public void registerClient(ClientMetadata client) throws IOException {
+    try {
+      new WatchedThriftNode<ClientMetadata>(zk,
+          ZkPath.append(ringGroupPath, CLIENTS_PATH, CLIENT_NODE),
+          false,
+          CreateMode.EPHEMERAL_SEQUENTIAL,
+          client,
+          emptyClientMetadata);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
