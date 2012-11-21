@@ -77,9 +77,6 @@ public class TestHostConnectionPool extends BaseTestCase {
     @Override
     public HankResponse get(int domain_id, ByteBuffer key) throws TException {
       ++numGets;
-      if (this instanceof HangingIface) {
-        LOG.trace("HangingIface GET " + numGets);
-      }
       return getCore(domain_id, key);
     }
 
@@ -95,24 +92,6 @@ public class TestHostConnectionPool extends BaseTestCase {
     @Override
     public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
       return RESPONSE_1;
-    }
-
-    @Override
-    public HankBulkResponse getBulkCore(int domain_id, List<ByteBuffer> keys) throws TException {
-      return null;
-    }
-  }
-
-  private class HangingIface extends MockIface {
-
-    @Override
-    public HankResponse getCore(int domain_id, ByteBuffer key) throws TException {
-      try {
-        Thread.sleep(1000);
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
-      return null;
     }
 
     @Override
@@ -268,8 +247,8 @@ public class TestHostConnectionPool extends BaseTestCase {
     Map<Host, List<HostConnection>> hostToConnectionsMap = new HashMap<Host, List<HostConnection>>();
 
     int establishConnectionTimeoutMs = 0;
-    int queryTimeoutMs = 10;
-    int bulkQueryTimeoutMs = 100;
+    int queryTimeoutMs = 0;
+    int bulkQueryTimeoutMs = 0;
     HostConnection connection1 = new HostConnection(mockHost1,
         null,
         asyncClientManager,
