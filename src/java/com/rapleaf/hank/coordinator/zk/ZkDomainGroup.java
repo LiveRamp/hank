@@ -45,7 +45,6 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
                                      final String name) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
     DomainGroupMetadata initialMetadata = new DomainGroupMetadata();
-    initialMetadata.set_next_version_number(0);
     initialMetadata.set_domain_versions_map(new HashMap<Integer, Integer>());
     return new ZkDomainGroup(zk, coordinator, path, true, initialMetadata);
   }
@@ -194,5 +193,14 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
 
   public String getPath() {
     return path;
+  }
+
+  public void migrate() throws InterruptedException, KeeperException {
+    metadata.update(metadata.new Updater() {
+      @Override
+      public void updateCopy(DomainGroupMetadata currentCopy) {
+        currentCopy.unset_next_version_number();
+      }
+    });
   }
 }

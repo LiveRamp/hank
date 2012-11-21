@@ -19,6 +19,7 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.DomainGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -30,11 +31,17 @@ public class MigrationHelper {
   private static Logger LOG = Logger.getLogger(MigrationHelper.class);
 
   public static void main(String[] args) throws IOException, InvalidConfigurationException, InterruptedException, KeeperException {
-    CommandLineChecker.check(args, new String[]{"configuration"},
+    CommandLineChecker.check(args, new String[]{"configuration", "domain-group"},
         MigrationHelper.class);
 
     String configurationPath = args[0];
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
+
+    DomainGroup domainGroup = coordinator.getDomainGroup(args[1]);
+
+    ((ZkDomainGroup) domainGroup).migrate();
+
+
   }
 }
