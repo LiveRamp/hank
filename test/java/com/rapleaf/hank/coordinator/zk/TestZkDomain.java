@@ -20,8 +20,12 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.KeeperException;
 
+import java.io.IOException;
 import java.util.Collections;
 
 public class TestZkDomain extends ZkTestCase {
@@ -56,7 +60,7 @@ public class TestZkDomain extends ZkTestCase {
   }
 
   public void testVersioning() throws Exception {
-    ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER, 0, Collections.<String>emptyList());
+    final ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER, 0, Collections.<String>emptyList());
 
     assertTrue(dc.getVersions().isEmpty());
 
@@ -71,6 +75,18 @@ public class TestZkDomain extends ZkTestCase {
     version = dc.openNewVersion(null);
     assertNotNull(version);
     assertEquals(1, version.getVersionNumber());
+
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dc.getVersions().size() == 2;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
     assertEquals(2, dc.getVersions().size());
 
     // Test getVersionShallow
@@ -82,6 +98,18 @@ public class TestZkDomain extends ZkTestCase {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     assertNotNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
     assertTrue(dc.delete());
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return getZk().exists(ZkPath.append(getRoot(), "domain0"), false) == null;
+        } catch (KeeperException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
   }
 }
