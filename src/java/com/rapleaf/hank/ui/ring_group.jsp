@@ -137,13 +137,10 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
         <!-- Serving Status -->
 
         <%
-        ServingStatusAggregator servingStatusAggregator = null;
-        ServingStatus servingStatus = null;
-        servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
-        servingStatus = servingStatusAggregator.computeServingStatus();
+        ServingStatusAggregator servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
+        ServingStatus servingStatus = servingStatusAggregator.computeServingStatus();
         %>
 
-        <% if (servingStatusAggregator != null) { %>
         <tr>
         <td>Up-to-date & Served</td>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
@@ -155,7 +152,6 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
         </tr>
-        <% } %>
 
         <tr>
         <td>File System</td>
@@ -351,12 +347,9 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
         <!-- Serving Status -->
 
         <%
-        ServingStatusAggregator ringServingStatusAggregator = null;
-        ServingStatus ringServingStatus = null;
-        ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, ringGroup.getDomainGroup());
-        ringServingStatus = ringServingStatusAggregator.computeServingStatus();
+        ServingStatusAggregator ringServingStatusAggregator = Rings.computeServingStatusAggregator(ring, ringGroup.getDomainGroup());
+        ServingStatus ringServingStatus = ringServingStatusAggregator.computeServingStatus();
         %>
-        <% if (ringServingStatusAggregator != null) { %>
           <% if (ringServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && ringServingStatus.getNumPartitionsServedAndUpToDate() == ringServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -365,9 +358,6 @@ Collections.sort(clients, new Comparator<ClientMetadata>() {
           <% } %>
           <%= ringServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringServingStatus.getNumPartitions() %>
           </td>
-        <% } else { %>
-          <td></td>
-        <% } %>
 
       <!-- File system -->
       <td>

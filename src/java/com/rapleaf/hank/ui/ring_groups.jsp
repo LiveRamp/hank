@@ -159,12 +159,9 @@
         <!-- Serving Status -->
 
         <%
-        ServingStatusAggregator servingStatusAggregator = null;
-        ServingStatus servingStatus = null;
-        servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
-        servingStatus = servingStatusAggregator.computeServingStatus();
+        ServingStatusAggregator servingStatusAggregator = RingGroups.computeServingStatusAggregator(ringGroup, ringGroup.getDomainGroup());
+        ServingStatus servingStatus = servingStatusAggregator.computeServingStatus();
         %>
-        <% if (servingStatusAggregator != null) { %>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && servingStatus.getNumPartitionsServedAndUpToDate() == servingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -173,9 +170,6 @@
           <% } %>
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
-        <% } else { %>
-          <td></td>
-        <% } %>
 
       <!-- File system -->
       <td>

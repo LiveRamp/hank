@@ -99,12 +99,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <!-- Serving Status -->
 
         <%
-        ServingStatusAggregator servingStatusAggregator = null;
-        ServingStatus servingStatus = null;
-        servingStatusAggregator = Rings.computeServingStatusAggregator(ring, domainGroup);
-        servingStatus = servingStatusAggregator.computeServingStatus();
+        ServingStatusAggregator servingStatusAggregator = Rings.computeServingStatusAggregator(ring, domainGroup);
+        ServingStatus servingStatus = servingStatusAggregator.computeServingStatus();
         %>
-        <% if (servingStatusAggregator != null) { %>
+
         <tr>
         <td>Up-to-date & Served</td>
           <% if (servingStatus.getNumPartitionsServedAndUpToDate() != 0
@@ -116,8 +114,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
           </td>
         </tr>
-
-        <% } %>
 
         <tr>
         <td>File System</td>
@@ -247,12 +243,10 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
         <!-- Serving Status -->
 
         <%
-        ServingStatusAggregator hostServingStatusAggregator = null;
-        ServingStatus hostServingStatus = null;
-        hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, domainGroup);
-        hostServingStatus = hostServingStatusAggregator.computeServingStatus();
+        ServingStatusAggregator hostServingStatusAggregator = Hosts.computeServingStatusAggregator(host, domainGroup);
+        ServingStatus hostServingStatus = hostServingStatusAggregator.computeServingStatus();
         %>
-        <% if (hostServingStatusAggregator != null) { %>
+
           <% if (hostServingStatus.getNumPartitionsServedAndUpToDate() != 0
                  && hostServingStatus.getNumPartitionsServedAndUpToDate() == hostServingStatus.getNumPartitions()) { %>
             <td class='centered complete'>
@@ -261,9 +255,6 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
           <% } %>
           <%= hostServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= hostServingStatus.getNumPartitions() %>
           </td>
-        <% } else { %>
-          <td></td>
-        <% } %>
 
       <!-- File system -->
       <td>
