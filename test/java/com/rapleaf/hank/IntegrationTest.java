@@ -419,15 +419,20 @@ public class IntegrationTest extends ZkTestCase {
     LOG.info("----- stamping new dg1 version -----");
     domainGroup.setDomainVersions(versionMap);
 
+    // wait until domain group change propagates
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return domainGroup.getDomainVersion(coordinator.getDomain("domain1")).getVersionNumber() == 1;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
     // wait until the rings have been updated to the new version
     waitForRingGroupToFinishUpdating(coordinator.getRingGroup("rg1"), domainGroup);
-
-    /*
-    while (!HankResponse.value(bb(6, 6)).equals(dumbClient.get("domain1", bb(4)))) {
-      LOG.info("#### Waiting for ring to be updated by querying for a specific value");
-    }
-    LOG.info("#### Exited, specific value was correct #### !!!!!!!!!!!!!!!!!!!!!!!!!!!");
-    */
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
