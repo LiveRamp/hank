@@ -351,16 +351,16 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
           case 1: // DOMAINS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map48 = iprot.readMapBegin();
-                struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map48.size);
-                for (int _i49 = 0; _i49 < _map48.size; ++_i49)
+                org.apache.thrift.protocol.TMap _map38 = iprot.readMapBegin();
+                struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map38.size);
+                for (int _i39 = 0; _i39 < _map38.size; ++_i39)
                 {
-                  int _key50; // required
-                  HostDomainMetadata _val51; // required
-                  _key50 = iprot.readI32();
-                  _val51 = new HostDomainMetadata();
-                  _val51.read(iprot);
-                  struct.domains.put(_key50, _val51);
+                  int _key40; // required
+                  HostDomainMetadata _val41; // required
+                  _key40 = iprot.readI32();
+                  _val41 = new HostDomainMetadata();
+                  _val41.read(iprot);
+                  struct.domains.put(_key40, _val41);
                 }
                 iprot.readMapEnd();
               }
@@ -388,10 +388,10 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
         oprot.writeFieldBegin(DOMAINS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, struct.domains.size()));
-          for (Map.Entry<Integer, HostDomainMetadata> _iter52 : struct.domains.entrySet())
+          for (Map.Entry<Integer, HostDomainMetadata> _iter42 : struct.domains.entrySet())
           {
-            oprot.writeI32(_iter52.getKey());
-            _iter52.getValue().write(oprot);
+            oprot.writeI32(_iter42.getKey());
+            _iter42.getValue().write(oprot);
           }
           oprot.writeMapEnd();
         }
@@ -416,10 +416,10 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
         oprot.writeI32(struct.domains.size());
-        for (Map.Entry<Integer, HostDomainMetadata> _iter53 : struct.domains.entrySet())
+        for (Map.Entry<Integer, HostDomainMetadata> _iter43 : struct.domains.entrySet())
         {
-          oprot.writeI32(_iter53.getKey());
-          _iter53.getValue().write(oprot);
+          oprot.writeI32(_iter43.getKey());
+          _iter43.getValue().write(oprot);
         }
       }
     }
@@ -428,16 +428,16 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
     public void read(org.apache.thrift.protocol.TProtocol prot, HostAssignmentsMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
-        org.apache.thrift.protocol.TMap _map54 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map54.size);
-        for (int _i55 = 0; _i55 < _map54.size; ++_i55)
+        org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+        struct.domains = new HashMap<Integer,HostDomainMetadata>(2*_map44.size);
+        for (int _i45 = 0; _i45 < _map44.size; ++_i45)
         {
-          int _key56; // required
-          HostDomainMetadata _val57; // required
-          _key56 = iprot.readI32();
-          _val57 = new HostDomainMetadata();
-          _val57.read(iprot);
-          struct.domains.put(_key56, _val57);
+          int _key46; // required
+          HostDomainMetadata _val47; // required
+          _key46 = iprot.readI32();
+          _val47 = new HostDomainMetadata();
+          _val47.read(iprot);
+          struct.domains.put(_key46, _val47);
         }
       }
       struct.set_domains_isSet(true);

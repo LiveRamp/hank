@@ -195,13 +195,4 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   public String getPath() {
     return path;
   }
-
-  public void migrate() throws InterruptedException, KeeperException {
-    metadata.update(metadata.new Updater() {
-      @Override
-      public void updateCopy(DomainGroupMetadata currentCopy) {
-        currentCopy.unset_domain_versions_map();
-      }
-    });
-  }
 }

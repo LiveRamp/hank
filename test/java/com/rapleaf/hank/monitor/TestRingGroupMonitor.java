@@ -63,7 +63,7 @@ public class TestRingGroupMonitor extends BaseTestCase {
 
     Domain domain = new MockDomain("domain");
     DomainGroupMetadata domainGroupMetadata = new DomainGroupMetadata();
-    domainGroupMetadata.put_to_domain_versions_map(domain.getId(), 1);
+    domainGroupMetadata.put_to_domain_versions(domain.getId(), 1);
     Map<Domain, Integer> domainVersions = new HashMap<Domain, Integer>();
     domainVersions.put(domain, 1);
 

@@ -69,8 +69,7 @@ struct DomainVersionMetadata {
 }
 
 struct DomainGroupMetadata {
-  1: optional map<i32, i32> domain_versions;
-  2: optional map<i32, i32> domain_versions_map;
+  1: required map<i32, i32> domain_versions;
 }
 
 struct HostDomainPartitionMetadata {

@@ -351,16 +351,16 @@ public class HostDomainMetadata implements org.apache.thrift.TBase<HostDomainMet
           case 1: // PARTITIONS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
-                org.apache.thrift.protocol.TMap _map38 = iprot.readMapBegin();
-                struct.partitions = new HashMap<Integer,HostDomainPartitionMetadata>(2*_map38.size);
-                for (int _i39 = 0; _i39 < _map38.size; ++_i39)
+                org.apache.thrift.protocol.TMap _map28 = iprot.readMapBegin();
+                struct.partitions = new HashMap<Integer,HostDomainPartitionMetadata>(2*_map28.size);
+                for (int _i29 = 0; _i29 < _map28.size; ++_i29)
                 {
-                  int _key40; // required
-                  HostDomainPartitionMetadata _val41; // required
-                  _key40 = iprot.readI32();
-                  _val41 = new HostDomainPartitionMetadata();
-                  _val41.read(iprot);
-                  struct.partitions.put(_key40, _val41);
+                  int _key30; // required
+                  HostDomainPartitionMetadata _val31; // required
+                  _key30 = iprot.readI32();
+                  _val31 = new HostDomainPartitionMetadata();
+                  _val31.read(iprot);
+                  struct.partitions.put(_key30, _val31);
                 }
                 iprot.readMapEnd();
               }
@@ -388,10 +388,10 @@ public class HostDomainMetadata implements org.apache.thrift.TBase<HostDomainMet
         oprot.writeFieldBegin(PARTITIONS_FIELD_DESC);
         {
           oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, struct.partitions.size()));
-          for (Map.Entry<Integer, HostDomainPartitionMetadata> _iter42 : struct.partitions.entrySet())
+          for (Map.Entry<Integer, HostDomainPartitionMetadata> _iter32 : struct.partitions.entrySet())
           {
-            oprot.writeI32(_iter42.getKey());
-            _iter42.getValue().write(oprot);
+            oprot.writeI32(_iter32.getKey());
+            _iter32.getValue().write(oprot);
           }
           oprot.writeMapEnd();
         }
@@ -416,10 +416,10 @@ public class HostDomainMetadata implements org.apache.thrift.TBase<HostDomainMet
       TTupleProtocol oprot = (TTupleProtocol) prot;
       {
         oprot.writeI32(struct.partitions.size());
-        for (Map.Entry<Integer, HostDomainPartitionMetadata> _iter43 : struct.partitions.entrySet())
+        for (Map.Entry<Integer, HostDomainPartitionMetadata> _iter33 : struct.partitions.entrySet())
         {
-          oprot.writeI32(_iter43.getKey());
-          _iter43.getValue().write(oprot);
+          oprot.writeI32(_iter33.getKey());
+          _iter33.getValue().write(oprot);
         }
       }
     }
@@ -428,16 +428,16 @@ public class HostDomainMetadata implements org.apache.thrift.TBase<HostDomainMet
     public void read(org.apache.thrift.protocol.TProtocol prot, HostDomainMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       {
-        org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-        struct.partitions = new HashMap<Integer,HostDomainPartitionMetadata>(2*_map44.size);
-        for (int _i45 = 0; _i45 < _map44.size; ++_i45)
+        org.apache.thrift.protocol.TMap _map34 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.I32, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+        struct.partitions = new HashMap<Integer,HostDomainPartitionMetadata>(2*_map34.size);
+        for (int _i35 = 0; _i35 < _map34.size; ++_i35)
         {
-          int _key46; // required
-          HostDomainPartitionMetadata _val47; // required
-          _key46 = iprot.readI32();
-          _val47 = new HostDomainPartitionMetadata();
-          _val47.read(iprot);
-          struct.partitions.put(_key46, _val47);
+          int _key36; // required
+          HostDomainPartitionMetadata _val37; // required
+          _key36 = iprot.readI32();
+          _val37 = new HostDomainPartitionMetadata();
+          _val37.read(iprot);
+          struct.partitions.put(_key36, _val37);
         }
       }
       struct.set_partitions_isSet(true);
