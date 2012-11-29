@@ -68,7 +68,21 @@ tr.not_included td {
       <th>Current Version</th>
     </tr>
   <%
+    // Separate included domains and the other domains for display
+    List<Domain> includedDomains = new ArrayList<Domain>();
+    List<Domain> notIncludedDomains = new ArrayList<Domain>();
     for (Domain domain : coord.getDomainsSorted()) {
+      if (domainGroup.getDomainVersion(domain) != null) {
+        includedDomains.add(domain);
+      } else {
+        notIncludedDomains.add(domain);
+      }
+    }
+    List<Domain> allDomains = new ArrayList<Domain>(includedDomains.size() + notIncludedDomains.size());
+    allDomains.addAll(includedDomains);
+    allDomains.addAll(notIncludedDomains);
+
+    for (Domain domain : allDomains) {
   %>
     <%
       DomainGroupDomainVersion currentDomainVersion = domainGroup.getDomainVersion(domain);
