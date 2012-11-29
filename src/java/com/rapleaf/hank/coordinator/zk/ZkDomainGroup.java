@@ -46,7 +46,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
                                      final String name) throws InterruptedException, KeeperException, IOException {
     String path = ZkPath.append(rootPath, name);
     DomainGroupMetadata initialMetadata = new DomainGroupMetadata();
-    initialMetadata.set_domain_versions_map(new HashMap<Integer, Integer>());
+    initialMetadata.set_domain_versions(new HashMap<Integer, Integer>());
     return new ZkDomainGroup(zk, coordinator, path, true, initialMetadata);
   }
 
@@ -87,7 +87,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
   @Override
   public Set<DomainGroupDomainVersion> getDomainVersions() throws IOException {
     Set<DomainGroupDomainVersion> result = new HashSet<DomainGroupDomainVersion>();
-    for (Map.Entry<Integer, Integer> entry : metadata.get().get_domain_versions_map().entrySet()) {
+    for (Map.Entry<Integer, Integer> entry : metadata.get().get_domain_versions().entrySet()) {
       result.add(new DomainGroupDomainVersion(coordinator.getDomainById(entry.getKey()), entry.getValue()));
     }
     return result;
@@ -103,7 +103,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
           for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
             map.put(entry.getKey().getId(), entry.getValue());
           }
-          currentCopy.set_domain_versions_map(map);
+          currentCopy.set_domain_versions(map);
         }
       });
     } catch (InterruptedException e) {
@@ -119,7 +119,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainGroupMetadata currentCopy) {
-          currentCopy.get_domain_versions_map().put(domain.getId(), versionNumber);
+          currentCopy.get_domain_versions().put(domain.getId(), versionNumber);
         }
       });
     } catch (InterruptedException e) {
@@ -135,7 +135,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainGroupMetadata currentCopy) {
-          Map<Integer, Integer> map = currentCopy.get_domain_versions_map();
+          Map<Integer, Integer> map = currentCopy.get_domain_versions();
           for (Map.Entry<Domain, Integer> entry : domainVersions.entrySet()) {
             map.put(entry.getKey().getId(), entry.getValue());
           }
@@ -154,7 +154,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
       metadata.update(metadata.new Updater() {
         @Override
         public void updateCopy(DomainGroupMetadata currentCopy) {
-          currentCopy.get_domain_versions_map().remove(domain.getId());
+          currentCopy.get_domain_versions().remove(domain.getId());
         }
       });
     } catch (InterruptedException e) {
@@ -200,7 +200,7 @@ public class ZkDomainGroup extends AbstractDomainGroup implements DomainGroup {
     metadata.update(metadata.new Updater() {
       @Override
       public void updateCopy(DomainGroupMetadata currentCopy) {
-        currentCopy.set_domain_versions(currentCopy.get_domain_versions_map());
+        currentCopy.unset_domain_versions_map();
       }
     });
   }
