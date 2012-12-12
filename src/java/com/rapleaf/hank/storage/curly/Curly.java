@@ -62,6 +62,7 @@ public class Curly implements StorageEngine {
     public static final String VALUE_FOLDING_CACHE_CAPACITY = "value_folding_cache_capacity";
     public static final String KEY_FILE_PARTITION_CACHE_CAPACITY = "key_file_partition_cache_capacity";
     public static final String RECORD_FILE_PARTITION_CACHE_CAPACITY = "record_file_partition_cache_capacity";
+    public static final String RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY = "record_file_partition_compactor_cache_capacity";
     private static final String BLOCK_COMPRESSION_CODEC = "block_compression_codec";
     private static final String COMPRESSED_BLOCK_SIZE_THRESHOLD = "compressed_block_size_threshold";
     private static final String OFFSET_IN_BLOCK_NUM_BYTES = "offset_in_block_num_bytes";
@@ -116,6 +117,10 @@ public class Curly implements StorageEngine {
       if (recordFilePartitionCacheCapacity == null) {
         recordFilePartitionCacheCapacity = -1;
       }
+      Integer recordFilePartitionCompactorCacheCapacity = (Integer) options.get(RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY);
+      if (recordFilePartitionCompactorCacheCapacity == null) {
+        recordFilePartitionCompactorCacheCapacity = recordFilePartitionCacheCapacity;
+      }
 
       // Block compression
       BlockCompressionCodec blockCompressionCodec = null;
@@ -145,6 +150,7 @@ public class Curly implements StorageEngine {
           valueFoldingCacheCapacity,
           keyFilePartitionCacheCapacity,
           recordFilePartitionCacheCapacity,
+          recordFilePartitionCompactorCacheCapacity,
           blockCompressionCodec,
           compressedBlockSizeThreshold,
           offsetInBlockNumBytes);
@@ -211,6 +217,7 @@ public class Curly implements StorageEngine {
 
   private final Domain domain;
   private final int recordFilePartitionCacheCapacity;
+  private final int recordFilePartitionCompactorCacheCapacity;
 
   private final int offsetNumBytes;
   private final int recordFileReadBufferBytes;
@@ -241,6 +248,7 @@ public class Curly implements StorageEngine {
                int valueFoldingCacheCapacity,
                int keyFilePartitionCacheCapacity,
                int recordFilePartitionCacheCapacity,
+               int recordFilePartitionCompactorCacheCapacity,
                BlockCompressionCodec blockCompressionCodec,
                int compressedBlockSizeThreshold,
                int offsetInBlockNumBytes) {
@@ -254,6 +262,7 @@ public class Curly implements StorageEngine {
     this.numRemoteLeafVersionsToKeep = numRemoteLeafVersionsToKeep;
     this.valueFoldingCacheCapacity = valueFoldingCacheCapacity;
     this.recordFilePartitionCacheCapacity = recordFilePartitionCacheCapacity;
+    this.recordFilePartitionCompactorCacheCapacity = recordFilePartitionCompactorCacheCapacity;
     this.blockCompressionCodec = blockCompressionCodec;
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
@@ -367,12 +376,8 @@ public class Curly implements StorageEngine {
           @Override
           public ICurlyReader getInstance(CurlyFilePath curlyFilePath) throws IOException {
             // Note: key file reader is null as it will *not* be used
-            // Note: we are using the value of valueFoldingCacheCapacity for the reader cache capacity. The idea
-            // is that there is more RAM available during compaction (less compactors per machine than partitions
-            // per machine when serving) and that we want the compaction reader to have the same good cache behavior as
-            // when the partition was written.
             return new CurlyReader(curlyFilePath, recordFileReadBufferBytes,
-                null, valueFoldingCacheCapacity, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
+                null, recordFilePartitionCompactorCacheCapacity, blockCompressionCodec, offsetNumBytes, offsetInBlockNumBytes, true);
           }
         }
     );
