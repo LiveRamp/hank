@@ -37,8 +37,7 @@ import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper.States;
-import org.apache.zookeeper.server.NIOServerCnxn;
-import org.apache.zookeeper.server.NIOServerCnxn.Factory;
+import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
 
 import java.io.*;
@@ -58,7 +57,7 @@ public class ZkTestCase extends BaseTestCase {
   private static final int CONNECTION_TIMEOUT = 30000;
 
   private final static String zkDir = System.getProperty("zk_dir", "/tmp/zk_in_tests");
-  private static Factory standaloneServerFactory;
+  private static NIOServerCnxnFactory standaloneServerFactory;
   private static ZooKeeperServer server;
   private static int zkClientPort;
 
@@ -84,7 +83,8 @@ public class ZkTestCase extends BaseTestCase {
         LOG.debug("Trying to bind server to port " + clientPort);
         try {
           standaloneServerFactory =
-              new NIOServerCnxn.Factory(new InetSocketAddress(clientPort));
+              new NIOServerCnxnFactory();
+          standaloneServerFactory.configure(new InetSocketAddress(clientPort), 100);
         } catch (BindException e) {
           LOG.trace("Failed binding ZK Server to client port: " + clientPort);
           //this port is already in use. try to use another
