@@ -66,6 +66,7 @@ tr.not_included td {
       <th>Include</th>
       <th>Version</th>
       <th>Current Version</th>
+      <th>Latest Version</th>
     </tr>
   <%
     // Separate included domains and the other domains for display
@@ -104,10 +105,16 @@ tr.not_included td {
              name="<%=domain.getName() %>_version"
              <%= included ? "" : "disabled='disabled'" %> >
              <%
+              DomainVersion latestVersion = null;
               TreeSet<DomainVersion> revSortedVersions = new TreeSet<DomainVersion>(new ReverseComparator<DomainVersion>());
               revSortedVersions.addAll(domain.getVersions());
              %>
-             <% for (DomainVersion v : revSortedVersions) { %>
+             <%
+              for (DomainVersion v : revSortedVersions) {
+                if (latestVersion == null) {
+                  latestVersion = v;
+                }
+             %>
              <option
               <% if (v.getClosedAt() == null || v.isDefunct()) { %>
               disabled
@@ -121,6 +128,9 @@ tr.not_included td {
         </td>
         <td class='centered'>
           <%= included ? currentDomainVersion.getVersionNumber() : "-" %>
+        </td>
+        <td class='centered'>
+          <%= latestVersion != null ? latestVersion.getVersionNumber() : "-" %>
         </td>
 
     </tr>
