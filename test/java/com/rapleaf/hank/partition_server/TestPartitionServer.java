@@ -26,6 +26,7 @@ import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.List;
 
 public class TestPartitionServer extends BaseTestCase {
@@ -112,12 +113,12 @@ public class TestPartitionServer extends BaseTestCase {
       return new IfaceWithShutdown() {
         @Override
         public HankResponse get(int domainId, ByteBuffer key) throws TException {
-          return null;
+          return HankResponse.not_found(true);
         }
 
         @Override
         public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
-          return null;
+          return HankBulkResponse.responses(Collections.singletonList(HankResponse.not_found(true)));
         }
 
         @Override

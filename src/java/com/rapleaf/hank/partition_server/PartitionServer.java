@@ -19,19 +19,25 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.util.CommandLineChecker;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.server.THsHaServer;
 import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import static com.rapleaf.hank.util.LocalHostUtils.getHostName;
@@ -381,6 +387,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     if (dataServer == null || !dataServer.isServing()) {
       throw new IOException("Failed to start data server");
     } else {
+      warmUp();
       LOG.info("Data server online and serving.");
     }
   }
@@ -473,6 +480,29 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
     return result;
     */
+  }
+
+  private void warmUp() throws IOException {
+    // Use connection timeout to connect
+    TFramedTransport transport = null;
+    try {
+      transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
+          host.getAddress().getPortNumber(), 0));
+      transport.open();
+      TProtocol proto = new TCompactProtocol(transport);
+      com.rapleaf.hank.generated.PartitionServer.Client client = new com.rapleaf.hank.generated.PartitionServer.Client(proto);
+      // Perform query
+      HankTimer timer = new HankTimer();
+      client.get(0, ByteBuffer.wrap(new byte[0]));
+      long warmupDurationMs = timer.getDurationMs();
+      LOG.info("Warmup took " + warmupDurationMs + " ms");
+    } catch (TException e) {
+      throw new IOException("Failde to warm up data server", e);
+    } finally {
+      if (transport != null) {
+        transport.close();
+      }
+    }
   }
 
   /**
