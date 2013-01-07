@@ -45,7 +45,8 @@ public class RingGroupConductor {
   private Thread shutdownHook;
 
   public RingGroupConductor(RingGroupConductorConfigurator configurator) throws IOException {
-    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new ModPartitionAssigner()));
+    this(configurator, new RingGroupUpdateTransitionFunctionImpl(new ModPartitionAssigner(),
+        configurator.getMinRingFullyServingObservations()));
   }
 
   RingGroupConductor(RingGroupConductorConfigurator configurator, RingGroupUpdateTransitionFunction transFunc) throws IOException {

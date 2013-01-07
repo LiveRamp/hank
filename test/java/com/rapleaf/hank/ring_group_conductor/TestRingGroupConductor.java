@@ -111,6 +111,11 @@ public class TestRingGroupConductor extends TestCase {
       }
 
       @Override
+      public int getMinRingFullyServingObservations() {
+        return 0;
+      }
+
+      @Override
       public String getRingGroupName() {
         return "myRingGroup";
       }
@@ -157,6 +162,11 @@ public class TestRingGroupConductor extends TestCase {
       @Override
       public RingGroupConductorMode getInitialMode() {
         return RingGroupConductorMode.ACTIVE;
+      }
+
+      @Override
+      public int getMinRingFullyServingObservations() {
+        return 0;
       }
 
       @Override

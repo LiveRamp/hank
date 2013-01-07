@@ -25,15 +25,16 @@ import java.util.*;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
-  private static final int MIN_RING_FULLY_SERVING_OBSERVATIONS = 30;
-
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
   private final PartitionAssigner partitionAssigner;
+  private final int minRingFullyServingObservations;
   private final Map<Integer, Integer> ringToFullyServingObservations = new HashMap<Integer, Integer>();
 
-  public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner) throws IOException {
+  public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner,
+                                               int minRingFullyServingObservations) throws IOException {
     this.partitionAssigner = partitionAssigner;
+    this.minRingFullyServingObservations = minRingFullyServingObservations;
   }
 
   /**
@@ -83,11 +84,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       }
     }
     // Ring is fully serving, but have we observed that enough times?
-    if (ringToFullyServingObservations.get(ring.getRingNumber()) >= MIN_RING_FULLY_SERVING_OBSERVATIONS) {
+    if (ringToFullyServingObservations.get(ring.getRingNumber()) >= minRingFullyServingObservations) {
       return true;
     } else {
       // Increment number of observations
-      ringToFullyServingObservations.put(ring.getRingNumber(), ringToFullyServingObservations.get(ring.getRingNumber() + 1));
+      ringToFullyServingObservations.put(ring.getRingNumber(),
+          ringToFullyServingObservations.get(ring.getRingNumber()) + 1);
       return false;
     }
   }

@@ -95,6 +95,7 @@ public class IntegrationTest extends ZkTestCase {
       PrintWriter pw = new PrintWriter(new FileWriter(configPath));
       pw.println(YamlRingGroupConductorConfigurator.RING_GROUP_CONDUCTOR_SECTION_KEY + ":");
       pw.println("  " + YamlRingGroupConductorConfigurator.SLEEP_INTERVAL_KEY + ": 1000");
+      pw.println("  " + YamlRingGroupConductorConfigurator.MIN_RING_FULLY_SERVING_OBSERVATIONS_KEY + ": 0");
       pw.println("  " + YamlRingGroupConductorConfigurator.RING_GROUP_NAME_KEY + ": rg1");
       pw.println("  " + YamlRingGroupConductorConfigurator.INITIAL_MODE_KEY + ": ACTIVE");
       coordinatorConfig(pw);

@@ -155,7 +155,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
       }
     };
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner) {
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0) {
 
       @Override
       protected boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
@@ -192,7 +192,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
   }
 
   public void testIsFullyServing() throws IOException {
-    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null);
+    RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     assertFalse(transitionFunction.isFullyServing(r0));
@@ -201,6 +201,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends TestCase {
     assertFalse(transitionFunction.isFullyServing(r0));
 
     r0h1.setState(HostState.SERVING);
+
+    assertFalse(transitionFunction.isFullyServing(r0));
     assertTrue(transitionFunction.isFullyServing(r0));
 
     r0h0.enqueueCommand(HostCommand.GO_TO_IDLE);

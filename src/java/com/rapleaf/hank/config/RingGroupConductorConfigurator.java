@@ -24,5 +24,7 @@ public interface RingGroupConductorConfigurator extends CoordinatorConfigurator 
 
   public long getSleepInterval();
 
+  public int getMinRingFullyServingObservations();
+
   public RingGroupConductorMode getInitialMode();
 }
