@@ -21,16 +21,16 @@ import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
+
+  private static final int MIN_RING_FULLY_SERVING_OBSERVATIONS = 30;
 
   private static Logger LOG = Logger.getLogger(RingGroupUpdateTransitionFunctionImpl.class);
 
   private final PartitionAssigner partitionAssigner;
+  private final Map<Integer, Integer> ringToFullyServingObservations = new HashMap<Integer, Integer>();
 
   public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner) throws IOException {
     this.partitionAssigner = partitionAssigner;
@@ -63,21 +63,33 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   /**
    * Return true iff all hosts in given ring are serving and they are not about to
-   * stop serving (i.e. there is no current or pending command).
+   * stop serving (i.e. there is no current or pending command). And we have observed
+   * that enough times in a row.
    *
    * @param ring
    * @return
    * @throws IOException
    */
   protected boolean isFullyServing(Ring ring) throws IOException {
+    if (!ringToFullyServingObservations.containsKey(ring.getRingNumber())) {
+      ringToFullyServingObservations.put(ring.getRingNumber(), 0);
+    }
     for (Host host : ring.getHosts()) {
       if (!host.getState().equals(HostState.SERVING)
           || host.getCurrentCommand() != null
           || host.getCommandQueue().size() != 0) {
+        ringToFullyServingObservations.put(ring.getRingNumber(), 0);
         return false;
       }
     }
-    return true;
+    // Ring is fully serving, but have we observed that enough times?
+    if (ringToFullyServingObservations.get(ring.getRingNumber()) >= MIN_RING_FULLY_SERVING_OBSERVATIONS) {
+      return true;
+    } else {
+      // Increment number of observations
+      ringToFullyServingObservations.put(ring.getRingNumber(), ringToFullyServingObservations.get(ring.getRingNumber() + 1));
+      return false;
+    }
   }
 
   /**
