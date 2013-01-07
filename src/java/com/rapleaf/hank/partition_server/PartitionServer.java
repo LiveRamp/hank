@@ -49,7 +49,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
   private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
-  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 10000;
+  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 5000;
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
@@ -485,7 +485,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   }
 
   private void warmUp() throws IOException {
-
+    LOG.info("Warming up data server...");
     List<Thread> threads = new ArrayList<Thread>();
     for (int i = 0; i < configurator.getNumConcurrentQueries(); ++i) {
       threads.add(new Thread(new WarmupRunnable(), "Warmup Thread #" + i));
@@ -503,7 +503,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       }
     }
     long warmupDurationMs = timer.getDurationMs();
-    LOG.info("Warmup took " + warmupDurationMs + " ms");
+    LOG.info("Warming up data server took " + warmupDurationMs + " ms");
   }
 
   /**
