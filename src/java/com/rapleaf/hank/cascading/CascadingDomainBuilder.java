@@ -18,9 +18,6 @@ package com.rapleaf.hank.cascading;
 
 import cascading.cascade.Cascades;
 import cascading.flow.Flow;
-import cascading.flow.FlowConnector;
-import cascading.flow.hadoop.HadoopFlowConnector;
-import cascading.flow.stream.SinkStage;
 import cascading.pipe.Pipe;
 import cascading.tap.Tap;
 import com.rapleaf.hank.coordinator.DomainVersionProperties;
@@ -140,13 +137,21 @@ public class CascadingDomainBuilder {
     return flow;
   }
 
-  // Build multiple domains
   public static Flow buildDomains(Properties cascadingProperties,
                                   Map<String, Tap> sources,
                                   Map<String, Tap> otherSinks,
                                   Pipe[] otherTails,
                                   CascadingDomainBuilder... domainBuilders) throws IOException {
+    return buildDomains(new HadoopFlowConnectorFactory(cascadingProperties), cascadingProperties, sources, otherSinks, otherTails, domainBuilders);
+  }
 
+  // Build multiple domains
+  public static Flow buildDomains(FlowConnectorFactory flowConnectorFactory,
+                                  Properties cascadingProperties,
+                                  Map<String, Tap> sources,
+                                  Map<String, Tap> otherSinks,
+                                  Pipe[] otherTails,
+                                  CascadingDomainBuilder... domainBuilders) throws IOException {
     // Info output
     for (CascadingDomainBuilder domainBuilder : domainBuilders) {
       LOG.info("Building domain with " + domainBuilder.toString());
@@ -217,8 +222,7 @@ public class CascadingDomainBuilder {
       }
 
       // Build flow
-      flow = new HadoopFlowConnector(cascadingProperties)
-          .connect(jobName.toString(), actualSources, sinks, tails);
+      flow = flowConnectorFactory.create(cascadingProperties).connect(jobName.toString(), actualSources, sinks, tails);
 
       // Set up jobs
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
