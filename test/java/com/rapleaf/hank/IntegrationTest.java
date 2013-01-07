@@ -295,8 +295,8 @@ public class IntegrationTest extends ZkTestCase {
 
     // add ring 1
     final Ring rg1r1 = rg1.addRing(1);
-    Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"), Collections.<String>emptyList());
-    Host r1h2 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"), Collections.<String>emptyList());
+    final Host r1h1 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50000"), Collections.<String>emptyList());
+    final Host r1h2 = rg1r1.addHost(PartitionServerAddress.parse("localhost:50001"), Collections.<String>emptyList());
 
     // add ring 2
     final Ring rg1r2 = rg1.addRing(2);
@@ -499,14 +499,18 @@ public class IntegrationTest extends ZkTestCase {
     Rings.commandAll(rg1r1, HostCommand.SERVE_DATA);
 
     // Wait until the ring is online
-    for (int i = 0; i < 30; ++i) {
-      if (r1h1.getState().equals(HostState.SERVING)
-          && r1h2.getState().equals(HostState.SERVING)) {
-        break;
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          LOG.debug("Waiting for ring r1 to come back online");
+          return r1h1.getState().equals(HostState.SERVING)
+              && r1h2.getState().equals(HostState.SERVING);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
-      LOG.debug("Waiting for ring r1 to come back online");
-      Thread.sleep(1000);
-    }
+    });
 
     // keep making requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
@@ -532,17 +536,19 @@ public class IntegrationTest extends ZkTestCase {
     stopDaemons(new PartitionServerAddress("localhost", 50001));
   }
 
-  private void waitForRingGroupToFinishUpdating(RingGroup rg, DomainGroup domainGroup)
+  private void waitForRingGroupToFinishUpdating(final RingGroup rg, final DomainGroup domainGroup)
       throws IOException, InterruptedException {
-    for (int i = 0; i < 30; i++) {
-      if (RingGroups.isUpToDate(rg, domainGroup)) {
-        break;
-      } else {
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
         LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
+        try {
+          return RingGroups.isUpToDate(rg, domainGroup);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
-      Thread.sleep(1000);
-    }
-    assertTrue("Ring group failed to finish updating after 30secs", RingGroups.isUpToDate(rg, domainGroup));
+    });
   }
 
   private void startSmartClientServer() throws Exception {
