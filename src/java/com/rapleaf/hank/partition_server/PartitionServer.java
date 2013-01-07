@@ -49,6 +49,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
   private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
+  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 10000;
+
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
 
@@ -483,26 +485,25 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   }
 
   private void warmUp() throws IOException {
-    // Use connection timeout to connect
-    TFramedTransport transport = null;
-    try {
-      transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
-          host.getAddress().getPortNumber(), 0));
-      transport.open();
-      TProtocol proto = new TCompactProtocol(transport);
-      com.rapleaf.hank.generated.PartitionServer.Client client = new com.rapleaf.hank.generated.PartitionServer.Client(proto);
-      // Perform query
-      HankTimer timer = new HankTimer();
-      client.get(0, ByteBuffer.wrap(new byte[0]));
-      long warmupDurationMs = timer.getDurationMs();
-      LOG.info("Warmup took " + warmupDurationMs + " ms");
-    } catch (TException e) {
-      throw new IOException("Failde to warm up data server", e);
-    } finally {
-      if (transport != null) {
-        transport.close();
+
+    List<Thread> threads = new ArrayList<Thread>();
+    for (int i = 0; i < configurator.getNumConcurrentQueries(); ++i) {
+      threads.add(new Thread(new WarmupRunnable(), "Warmup Thread #" + i));
+    }
+    HankTimer timer = new HankTimer();
+    for (Thread thread : threads) {
+      thread.start();
+    }
+    for (Thread thread : threads) {
+      try {
+        thread.join();
+      } catch (InterruptedException e) {
+        LOG.error("Failed to warm up data server", e);
+        throw new IOException("Failed to warm up data server", e);
       }
     }
+    long warmupDurationMs = timer.getDurationMs();
+    LOG.info("Warmup took " + warmupDurationMs + " ms");
   }
 
   /**
@@ -573,5 +574,32 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     PropertyConfigurator.configure(log4jprops);
 
     new PartitionServer(configurator, getHostName()).run();
+  }
+
+
+  private class WarmupRunnable implements Runnable {
+
+    @Override
+    public void run() {
+      TFramedTransport transport = null;
+      try {
+        transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
+            host.getAddress().getPortNumber(), 0));
+        transport.open();
+        TProtocol proto = new TCompactProtocol(transport);
+        com.rapleaf.hank.generated.PartitionServer.Client client = new com.rapleaf.hank.generated.PartitionServer.Client(proto);
+        // Perform queries
+        for (int i = 0; i < NUM_WARMUP_QUERIES_PER_THREAD; i++) {
+          client.get(0, ByteBuffer.wrap(new byte[0]));
+        }
+      } catch (TException e) {
+        LOG.error("Failed to warm up data server", e);
+        throw new RuntimeException("Failed to warm up data server", e);
+      } finally {
+        if (transport != null) {
+          transport.close();
+        }
+      }
+    }
   }
 }

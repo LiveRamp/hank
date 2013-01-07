@@ -21,6 +21,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
 
@@ -215,13 +217,19 @@ public class TestPartitionServer extends BaseTestCase {
     Thread thread = createPartitionServerThread(partitionServer);
 
     thread.start();
-    Thread.sleep(2000);
 
-    assertEquals(HostState.UPDATING, fixtures.host.getState());
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return fixtures.host.getState() == HostState.SERVING;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
-    assertTrue("Update called", updateManager.updateCalled);
-
-    Thread.sleep(1500);
+    assertTrue("Update was called", updateManager.updateCalled);
 
     assertEquals(HostState.SERVING, fixtures.host.getState());
 
