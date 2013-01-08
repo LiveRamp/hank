@@ -99,9 +99,7 @@ public class TestWatchedInt extends ZkTestCase {
   public void testWaitForCreation() throws InterruptedException, KeeperException {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
-    WatchedInt wi;
-
-    wi = new WatchedInt(zk, nodePath, false);
+    WatchedInt wi = new WatchedInt(zk, nodePath, false);
 
     assertNull(wi.get());
 
@@ -128,5 +126,12 @@ public class TestWatchedInt extends ZkTestCase {
     t.start();
     wi = new WatchedInt(zk, nodePath, true);
     assertEquals(Integer.valueOf(42), wi.get());
+  }
+
+  public void testCreateAndWaitForCreation() throws InterruptedException, KeeperException {
+    final ZooKeeperPlus zk = getZk();
+    final String nodePath = ZkPath.append(getRoot(), "watchedNode");
+    WatchedInt wi = new WatchedInt(zk, nodePath, true, CreateMode.PERSISTENT, 84, 0);
+    assertEquals(Integer.valueOf(84), wi.get());
   }
 }

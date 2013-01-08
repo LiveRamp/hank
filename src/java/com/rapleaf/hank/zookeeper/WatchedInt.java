@@ -15,12 +15,22 @@
  */
 package com.rapleaf.hank.zookeeper;
 
+import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 
 public class WatchedInt extends WatchedNode<Integer> {
 
   public WatchedInt(ZooKeeperPlus zk, String nodePath, boolean waitForCreation) throws KeeperException, InterruptedException {
     super(zk, nodePath, waitForCreation);
+  }
+
+  public WatchedInt(ZooKeeperPlus zk,
+                    String nodePath,
+                    boolean waitForCreation,
+                    CreateMode createMode,
+                    Integer initialValue,
+                    Integer emptyValue) throws KeeperException, InterruptedException {
+    super(zk, nodePath, waitForCreation, createMode, initialValue, emptyValue);
   }
 
   public static Integer get(ZooKeeperPlus zk, String nodePath) throws InterruptedException, KeeperException {

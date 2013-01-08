@@ -105,23 +105,20 @@ public abstract class WatchedNode<T> {
     this.nodePath = nodePath;
     this.initialValue = initialValue;
     this.emptyValue = emptyValue;
-    // Immediately try to load the data, if it fails, then optionally wait
-    try {
-      watchForData();
-    } catch (KeeperException.NoNodeException e) {
+    // Immediately try to load the data, if it fails, then optionally create and wait
+    if (!watchForData()) {
+      // Optionally create the node
       if (createMode != null) {
         zk.create(nodePath, encode(initialValue), createMode);
       }
-      // Cannot wait for creation of sequential nodes (path is not yet known)
-      if (waitForCreation &&
-          (createMode == CreateMode.EPHEMERAL_SEQUENTIAL || createMode == CreateMode.PERSISTENT_SEQUENTIAL)) {
-        throw new RuntimeException("Cannot wait for creation of sequential nodes");
-      }
+      // Optionally wait for the node's creation
       if (waitForCreation) {
+        // Cannot wait for creation of sequential nodes (path is not yet known)
+        if (createMode == CreateMode.EPHEMERAL_SEQUENTIAL || createMode == CreateMode.PERSISTENT_SEQUENTIAL) {
+          throw new RuntimeException("Cannot wait for creation of sequential nodes");
+        }
         NodeCreationBarrier.block(zk, nodePath);
         watchForData();
-      } else {
-        watchForCreation();
       }
     }
   }
@@ -152,15 +149,23 @@ public abstract class WatchedNode<T> {
       value = null;
       stat = new Stat();
     }
-    zk.exists(nodePath, watcher);
+    if (zk.exists(nodePath, watcher) != null) {
+      watchForData();
+    }
   }
 
-  private void watchForData() throws InterruptedException, KeeperException {
+  private boolean watchForData() throws InterruptedException, KeeperException {
     if (LOG.isTraceEnabled()) {
       LOG.trace(String.format("Getting value for %s", nodePath));
     }
-    synchronized (this) {
-      value = decode(zk.getData(nodePath, watcher, stat));
+    try {
+      synchronized (this) {
+        value = decode(zk.getData(nodePath, watcher, stat));
+        return true;
+      }
+    } catch (KeeperException.NoNodeException e) {
+      watchForCreation();
+      return false;
     }
   }
 
