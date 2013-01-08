@@ -17,6 +17,8 @@
 package com.rapleaf.hank.zookeeper;
 
 import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
@@ -31,18 +33,40 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(1), wi.get());
 
     zk.setData(nodePath, "55".getBytes(), -1);
-    Thread.sleep(100);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        Integer v = wi.get();
+        return v != null && v == 55;
+      }
+    });
     assertEquals(Integer.valueOf(55), wi.get());
 
     zk.setData(nodePath, null, -1);
-    Thread.sleep(100);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return wi.get() == null;
+      }
+    });
     assertNull(wi.get());
 
-    WatchedInt wi2 = new WatchedInt(zk, nodePath, true);
-    Thread.sleep(100);
+    final WatchedInt wi2 = new WatchedInt(zk, nodePath, true);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return wi2.get() == null;
+      }
+    });
     assertNull(wi2.get());
     wi2.set(22);
-    Thread.sleep(100);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        Integer v = wi2.get();
+        return v != null && v == 22;
+      }
+    });
     assertEquals(Integer.valueOf(22), wi2.get());
     assertEquals(Integer.valueOf(22), wi.get());
   }
