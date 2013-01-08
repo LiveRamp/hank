@@ -45,9 +45,7 @@ import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
@@ -346,27 +344,7 @@ public class IntegrationTest extends ZkTestCase {
     // open a dumb client (through the smart client)
     TTransport trans = new TFramedTransport(new TSocket("localhost", 50004));
     trans.open();
-    TProtocol proto = new TCompactProtocol(trans);
-    SmartClient.Client dumbClient = new SmartClient.Client(proto);
-
-    boolean found = false;
-    for (int i = 0; i < 15; i++) {
-      try {
-        HankResponse r = dumbClient.get("domain0", bb(1));
-        LOG.trace(r);
-        if (r.isSet(HankResponse._Fields.VALUE)) {
-          found = true;
-          break;
-        }
-      } catch (TException e) {
-        LOG.error(e);
-      }
-      Thread.sleep(1000);
-    }
-
-    if (!found) {
-      fail("No ring came online in the time we waited!");
-    }
+    SmartClient.Client dumbClient = new SmartClient.Client(new TCompactProtocol(trans));
 
     // make a few requests
     assertEquals(HankResponse.value(bb(1, 1)), dumbClient.get("domain0", bb(1)));
@@ -544,7 +522,8 @@ public class IntegrationTest extends ZkTestCase {
       public boolean test() {
         LOG.info("Ring group is not yet at the correct version. Continuing to wait.");
         try {
-          return RingGroups.isUpToDate(rg, domainGroup);
+          return RingGroups.isUpToDate(rg, domainGroup)
+              && RingGroups.getHostsInState(rg, HostState.SERVING).size() == RingGroups.getNumHosts(rg);
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
