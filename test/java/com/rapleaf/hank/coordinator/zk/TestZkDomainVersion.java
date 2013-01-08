@@ -9,6 +9,7 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
 public class TestZkDomainVersion extends ZkTestCase {
+
   public void testCreate() throws Exception {
     DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
     assertEquals(1, dv.getVersionNumber());
