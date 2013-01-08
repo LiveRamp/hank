@@ -36,6 +36,7 @@ public class TestYamlRingGroupConductorConfigurator extends TestCase {
     pw.println("ring_group_conductor:");
     pw.println("  ring_group_name: myRingGroup");
     pw.println("  sleep_interval: 1000");
+    pw.println("  min_ring_fully_serving_observations: 10");
     pw.println("  initial_mode: INACTIVE");
     pw.println("coordinator:");
     pw.println("  factory: " + MockCoordinator.Factory.class.getName());
@@ -47,6 +48,7 @@ public class TestYamlRingGroupConductorConfigurator extends TestCase {
   public void testIt() throws Exception {
     YamlRingGroupConductorConfigurator c = new YamlRingGroupConductorConfigurator(PATH);
     assertEquals(1000, c.getSleepInterval());
+    assertEquals(10, c.getMinRingFullyServingObservations());
     assertEquals("myRingGroup", c.getRingGroupName());
     assertTrue(c.createCoordinator() instanceof MockCoordinator);
     assertTrue(((MockCoordinator) c.createCoordinator()).getInitOptions().containsKey("blah"));
