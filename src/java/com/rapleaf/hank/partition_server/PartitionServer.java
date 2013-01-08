@@ -541,14 +541,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
             if (host != null) {
               host.setState(HostState.OFFLINE);
             }
-            // Stop update statistics
-            updateFilesystemStatisticsRunnable.cancel();
-            updateFilesystemStatisticsThread.interrupt();
-            try {
-              updateFilesystemStatisticsThread.join();
-            } catch (InterruptedException e) {
-              LOG.info("Interrupted while waiting for update filesystem statistics thread to terminate during shutdown.");
-            }
           } catch (IOException e) {
             // When VM is exiting and we fail to set host to OFFLINE, swallow the exception
           }
