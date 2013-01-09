@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ZkTestCase extends BaseTestCase {
+public abstract class ZkTestCase extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
 
   private static final int TICK_TIME = 2000;

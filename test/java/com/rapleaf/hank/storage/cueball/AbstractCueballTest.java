@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class AbstractCueballTest extends BaseTestCase {
+public abstract class AbstractCueballTest extends BaseTestCase {
   protected static final byte[] EXPECTED_DATA = new byte[]{
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // KEY1
       1, 2, 1, 2, 1, // value 1 (truncated)

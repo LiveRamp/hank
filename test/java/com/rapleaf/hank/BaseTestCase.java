@@ -24,7 +24,7 @@ import org.apache.log4j.Logger;
 
 import com.rapleaf.hank.util.FsUtils;
 
-public class BaseTestCase extends TestCase {
+public abstract class BaseTestCase extends TestCase {
   static {
     Logger.getRootLogger().setLevel(Level.ALL);
   }

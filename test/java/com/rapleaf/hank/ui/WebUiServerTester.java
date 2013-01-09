@@ -10,6 +10,7 @@ import com.rapleaf.hank.partition_assigner.PartitionAssigner;
 import com.rapleaf.hank.partition_server.*;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
+import org.junit.Ignore;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Ignore
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();

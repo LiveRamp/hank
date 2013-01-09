@@ -21,7 +21,7 @@ import com.rapleaf.hank.BaseTestCase;
 import java.io.File;
 import java.io.IOException;
 
-public class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
+public abstract class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
 
   protected final String remotePartitionRoot = localTmpDir + "/remote_partition_root";
   protected final String localPartitionRoot = localTmpDir + "/partition_root";
