@@ -1,4 +1,4 @@
-build
 out
 .idea
 hank-deploy.tar.gz
+target
