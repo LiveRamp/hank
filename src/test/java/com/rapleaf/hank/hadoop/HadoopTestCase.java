@@ -26,7 +26,7 @@ import org.apache.hadoop.fs.Path;
 
 import com.rapleaf.hank.BaseTestCase;
 
-public class HadoopTestCase extends BaseTestCase {
+public abstract class HadoopTestCase extends BaseTestCase {
 
   protected final FileSystem fs;
 
