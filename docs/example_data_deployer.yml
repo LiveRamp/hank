@@ -1,8 +1,0 @@
----
-ring_group_name: myRingGroup
-sleep_interval: 1000
-coordinator:
-  factory: ZooKeeperCoordinator
-  options:
-    connect_string: 1.2.3.4:2181,2.3.4.5:2181,3.4.5.6:2181
-    session_timeout: 2010
