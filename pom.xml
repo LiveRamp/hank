@@ -107,6 +107,12 @@
       <version>1.5.6</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>14.0-rc1</version>
+    </dependency>
+
   </dependencies>
 
   <build>
