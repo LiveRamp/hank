@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Ignore
 public class WebUiServerTester extends ZkTestCase {
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();

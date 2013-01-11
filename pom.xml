@@ -208,6 +208,16 @@
       </resource>
     </resources>
 
+    <testResources>
+      <testResource>
+        <directory>src/main/java/</directory>
+        <includes>
+          <include>**/*.jsp</include>
+          <include>**/*.css</include>
+         </includes>
+      </testResource>
+    </testResources>
+
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
