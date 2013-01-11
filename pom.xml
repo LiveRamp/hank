@@ -254,7 +254,7 @@
         </configuration>
       </plugin>
 
-
+      <!-- Use mvn antrun:run to run this -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
