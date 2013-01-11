@@ -197,6 +197,17 @@
   </dependencies>
 
   <build>
+
+    <resources>
+      <resource>
+        <directory>src/main/java/</directory>
+        <includes>
+          <include>**/*.jsp</include>
+          <include>**/*.css</include>
+         </includes>
+      </resource>
+    </resources>
+
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
