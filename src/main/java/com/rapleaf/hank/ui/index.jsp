@@ -39,7 +39,7 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
     Hank version <%= Hank.getVersion() %>, commit <%= Hank.getGitCommit() %>
   </div>
   <div>
-    Please report bugs on <a href="https://github.com/rapleaf/hank/issues">GitHub issues page</a>.
+    Please report bugs on <a href="https://github.com/LiveRamp/hank/issues">GitHub issues page</a>.
   </div>
 
 <jsp:include page="_footer.jsp"/>
