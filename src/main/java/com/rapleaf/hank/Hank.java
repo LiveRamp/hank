@@ -6,6 +6,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.jar.Attributes;
+import java.util.jar.Manifest;
 
 public final class Hank {
   private static final Logger LOG = Logger.getLogger(Hank.class);
@@ -16,20 +18,23 @@ public final class Hank {
   private final static String GIT_COMMIT;
 
   static {
-    String temp = "UNKNOWN";
 
-    InputStream s = Hank.class.getClassLoader().getResourceAsStream("git-commit.txt");
-    if (s != null) {
-      BufferedReader r = new BufferedReader(new InputStreamReader(s));
-
-      try {
-        temp = r.readLine();
-        r.close();
-      } catch (IOException e) {
-        LOG.warn("couldn't load git-commit.txt from the jar.", e);
+    InputStream manifestStream = Thread.currentThread()
+        .getContextClassLoader()
+        .getResourceAsStream("META-INF/MANIFEST.MF");
+    try {
+      Manifest manifest = new Manifest(manifestStream);
+      Attributes attributes = manifest.getMainAttributes();
+      String temp = attributes.getValue("Implementation-Build");
+      if(temp != null){
+        GIT_COMMIT = temp;
+      }else{
+        GIT_COMMIT = "Unknown";
       }
     }
-    GIT_COMMIT = temp;
+    catch(IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public static String getGitCommit() {
@@ -39,20 +44,22 @@ public final class Hank {
   private final static String VERSION;
 
   static {
-    String temp = "UNKNOWN";
-
-    InputStream s = Hank.class.getClassLoader().getResourceAsStream("version.txt");
-    if (s != null) {
-      BufferedReader r = new BufferedReader(new InputStreamReader(s));
-
-      try {
-        temp = r.readLine();
-        r.close();
-      } catch (IOException e) {
-        LOG.warn("couldn't load version.txt from the jar.", e);
+    InputStream manifestStream = Thread.currentThread()
+        .getContextClassLoader()
+        .getResourceAsStream("META-INF/MANIFEST.MF");
+    try {
+      Manifest manifest = new Manifest(manifestStream);
+      Attributes attributes = manifest.getMainAttributes();
+      String temp = attributes.getValue("Implementation-Version");
+      if(temp != null){
+        VERSION = temp;
+      }else{
+        VERSION = "Unknown";
       }
     }
-    VERSION = temp;
+    catch(IOException ex) {
+      throw new RuntimeException(ex);
+    }
   }
 
   public static String getVersion() {
