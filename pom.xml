@@ -7,7 +7,11 @@
   <groupId>com.liveramp.hank</groupId>
   <artifactId>hank</artifactId>
 
-  <version>0.1-SNAPSHOT</version>
+  <version>1.0</version>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
 
   <scm>
     <connection>scm:git:git@github.com:LiveRamp/hank.git</connection>
