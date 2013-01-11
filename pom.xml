@@ -264,25 +264,17 @@
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>generate-sources</phase>
-            <configuration>
-              <tasks>
-		<delete dir="${basedir}/src/main/java/com/rapleaf/hank/generated"/>
-		<exec executable="thrift" failonerror="true">
-		  <arg line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift" />
-		</exec>
-		<move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
-		  <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated" />
-		</move>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-        </executions>
+	<configuration>
+	  <target>
+            <delete dir="${basedir}/src/main/java/com/rapleaf/hank/generated"/>
+            <exec executable="thrift" failonerror="true">
+              <arg line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift" />
+	    </exec>
+	    <move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
+	      <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated" />
+	    </move>
+          </target>
+        </configuration>
       </plugin>
 
     </plugins>
