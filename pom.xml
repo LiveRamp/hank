@@ -225,6 +225,14 @@
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Build>${build-commit}</Implementation-Build>
+            </manifestEntries>
+          </archive>
           <descriptors>
 	    <descriptor>src/assembly/jobjar.xml</descriptor>
 	    <descriptor>src/assembly/dist.xml</descriptor>
