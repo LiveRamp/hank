@@ -19,7 +19,7 @@
       <directory>${project.build.directory}</directory>
       <outputDirectory>/</outputDirectory>
       <includes>
-        <include>*.jar</include>
+        <include>${project.name}-${project.version}-jobjar.jar</include>
       </includes>
     </fileSet>
   </fileSets>

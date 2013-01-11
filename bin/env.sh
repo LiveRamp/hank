@@ -1,11 +1,8 @@
 #!/bin/sh
 
 BINDIR=`dirname "$0"`
-# CLASSPATH="$CLASSPATH"
 
-for i in `find $BINDIR/../lib -name "*.jar"`
+for i in `find $BINDIR/../ -name "*.jar"`
 do
   CLASSPATH="$i:$CLASSPATH"
 done
-
-# echo $CLASSPATH
