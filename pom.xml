@@ -269,12 +269,12 @@
             <phase>generate-sources</phase>
             <configuration>
               <tasks>
-		<delete dir="src/main/java/com/rapleaf/hank/generated"/>
+		<delete dir="${basedir}/src/main/java/com/rapleaf/hank/generated"/>
 		<exec executable="thrift" failonerror="true">
-		  <arg line="-o target/ --gen java:hashcode,nocamel,builder src/main/thrift/hank.thrift" />
+		  <arg line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift" />
 		</exec>
-		<move todir="src/main/java/com/rapleaf/hank/generated">
-		  <fileset dir="target/gen-java/com/rapleaf/hank/generated" />
+		<move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
+		  <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated" />
 		</move>
               </tasks>
             </configuration>
