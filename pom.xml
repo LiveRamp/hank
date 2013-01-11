@@ -261,6 +261,30 @@
       </plugin>
 
 
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>1.7</version>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+		<delete dir="src/main/java/com/rapleaf/hank/generated"/>
+		<exec executable="thrift" failonerror="true">
+		  <arg line="-o target/ --gen java:hashcode,nocamel,builder src/main/thrift/hank.thrift" />
+		</exec>
+		<move todir="src/main/java/com/rapleaf/hank/generated">
+		  <fileset dir="target/gen-java/com/rapleaf/hank/generated" />
+		</move>
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
 
   </build>
