@@ -24,12 +24,7 @@ RingGroup ringGroup = coord.getRingGroup(request.getParameter("name"));
 List<ClientMetadata> clients = ringGroup.getClients();
 
 // Sort clients by host name
-Collections.sort(clients, new Comparator<ClientMetadata>() {
-  @Override
-  public int compare(ClientMetadata a, ClientMetadata b) {
-    return a.get_host().compareTo(b.get_host());
-  }
-});
+Collections.sort(clients, new ClientMetadataComparator());
 
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
