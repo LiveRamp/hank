@@ -32,17 +32,26 @@ public final class Hank {
 
   public static String getProperty(String prop){
     try {
-      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF");
-      Manifest manifest = new Manifest(manifestStream);
-      Attributes attributes = manifest.getMainAttributes();
-      String temp = attributes.getValue(prop);
-      if (temp != null) {
-        return temp;
-      }else{
-        return "Unknown";
+      Enumeration<URL> manifestStream = Hank.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+      while(manifestStream.hasMoreElements()){
+        Manifest manifest = new Manifest(manifestStream.nextElement().openStream());
+        Attributes attributes = manifest.getMainAttributes();
+        if(attributes.containsKey("Implementation-Title")){
+          String title = attributes.getValue("Implementation-Title");
+          if(title.equals("hank")){
+            String temp = attributes.getValue(prop);
+            if (temp != null) {
+              return temp;
+            }else{
+              return "Not in Manifest";
+            }
+          }
+        }
       }
     } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
+
+    return "Unknown";
   }
 }
