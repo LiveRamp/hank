@@ -82,8 +82,8 @@ public class HankApiServlet extends HttpServlet {
     } catch (InvalidParamsException ipe) {
       sendResponseInvalidParams(response);
       return;
-    } catch (Throwable e) {
-      sendResponseInternalServerError(response);
+    } catch (Throwable t) {
+      sendResponseInternalServerError(response, t);
       return;
     }
 
@@ -103,8 +103,10 @@ public class HankApiServlet extends HttpServlet {
     }
   }
 
-  protected void sendResponseInternalServerError(HttpServletResponse response) {
-    sendResponseError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ERROR_INTERNAL_SERVER_ERROR, response);
+  protected void sendResponseInternalServerError(HttpServletResponse response, Throwable t) {
+    sendResponseError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+        ERROR_INTERNAL_SERVER_ERROR + ":" + t.getMessage() + "\n" + Arrays.toString(t.getStackTrace()),
+        response);
   }
 
   protected void sendResponseInvalidParams(HttpServletResponse response) {
