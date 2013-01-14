@@ -1,7 +1,7 @@
 package com.rapleaf.hank.ui;
 
+import com.google.common.base.CaseFormat;
 import com.rapleaf.hank.coordinator.*;
-import org.apache.hadoop.thirdparty.guava.common.base.CaseFormat;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
