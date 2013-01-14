@@ -277,7 +277,7 @@
         </executions>
       </plugin>
 
-      <!-- Tag the MAINFEST.MF in the jar with the latest git commit-->
+      <!-- Tag the MANIFEST.MF in the jar with the latest git commit-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>

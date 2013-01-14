@@ -2,10 +2,8 @@ package com.rapleaf.hank;
 
 import org.apache.log4j.Logger;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
@@ -19,20 +17,17 @@ public final class Hank {
 
   static {
 
-    InputStream manifestStream = Thread.currentThread()
-        .getContextClassLoader()
-        .getResourceAsStream("META-INF/MANIFEST.MF");
+    InputStream manifestStream = Hank.class.getResourceAsStream("META-INF/MANIFEST.MF");
     try {
       Manifest manifest = new Manifest(manifestStream);
       Attributes attributes = manifest.getMainAttributes();
       String temp = attributes.getValue("Implementation-Build");
-      if(temp != null){
+      if (temp != null) {
         GIT_COMMIT = temp;
-      }else{
+      } else {
         GIT_COMMIT = "Unknown";
       }
-    }
-    catch(IOException ex) {
+    } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
   }
@@ -44,20 +39,17 @@ public final class Hank {
   private final static String VERSION;
 
   static {
-    InputStream manifestStream = Thread.currentThread()
-        .getContextClassLoader()
-        .getResourceAsStream("META-INF/MANIFEST.MF");
+    InputStream manifestStream = Hank.class.getResourceAsStream("META-INF/MANIFEST.MF");
     try {
       Manifest manifest = new Manifest(manifestStream);
       Attributes attributes = manifest.getMainAttributes();
       String temp = attributes.getValue("Implementation-Version");
-      if(temp != null){
+      if (temp != null) {
         VERSION = temp;
-      }else{
+      } else {
         VERSION = "Unknown";
       }
-    }
-    catch(IOException ex) {
+    } catch (IOException ex) {
       throw new RuntimeException(ex);
     }
   }
