@@ -37,7 +37,7 @@ public final class Hank {
         Manifest manifest = new Manifest(manifests.nextElement().openStream());
         Attributes attributes = manifest.getMainAttributes();
         Object app = attributes.get("Implementation-Title");
-        if(app.equals("hank")){
+        if(app != null && app.equals("hank")){
           String temp = attributes.getValue(prop);
           if (temp != null) {
             return temp;
