@@ -32,7 +32,7 @@ public final class Hank {
 
   public static String getProperty(String prop){
     try {
-      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("/META-INF/MANIFEST.MF");
+      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("META-INF/MANIFEST.MF");
       Manifest manifest = new Manifest(manifestStream);
       Attributes attributes = manifest.getMainAttributes();
       Object app = attributes.get("Implementation-Title");
