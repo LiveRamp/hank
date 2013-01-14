@@ -33,18 +33,21 @@ public final class Hank {
   public static String getProperty(String prop){
     try {
       Enumeration<URL> manifestStream = Hank.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
+      if(!manifestStream.hasMoreElements()){
+        return "No Manifest";
+      }
+
       while(manifestStream.hasMoreElements()){
         Manifest manifest = new Manifest(manifestStream.nextElement().openStream());
         Attributes attributes = manifest.getMainAttributes();
-        if(attributes.containsKey("Implementation-Title")){
-          String title = attributes.getValue("Implementation-Title");
-          if(title.equals("hank")){
-            String temp = attributes.getValue(prop);
-            if (temp != null) {
-              return temp;
-            }else{
-              return "Not in Manifest";
-            }
+        String title = attributes.getValue("Implementation-Title");
+
+        if(title != null && title.equals("hank")){
+          String temp = attributes.getValue(prop);
+          if (temp != null) {
+            return temp;
+          }else{
+            return "Not in Manifest";
           }
         }
       }
