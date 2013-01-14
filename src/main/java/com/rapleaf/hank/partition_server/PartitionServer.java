@@ -99,6 +99,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     // Start the update filesystem statistics thread
     updateFilesystemStatisticsRunnable = new UpdateFilesystemStatisticsRunnable();
     updateFilesystemStatisticsThread = new Thread(updateFilesystemStatisticsRunnable, "Update Filesystem Statistics");
+    updateFilesystemStatisticsThread.setDaemon(true);
     updateFilesystemStatisticsThread.start();
   }
 
