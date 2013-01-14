@@ -1,5 +1,6 @@
 package com.rapleaf.hank.ui;
 
+import com.google.common.base.Throwables;
 import com.rapleaf.hank.coordinator.*;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -104,8 +105,13 @@ public class HankApiServlet extends HttpServlet {
   }
 
   protected void sendResponseInternalServerError(HttpServletResponse response, Throwable t) {
+    String error = "";
+    for (Throwable cause : Throwables.getCausalChain(t)) {
+      error += cause.getMessage();
+      error += "\n" + Throwables.getStackTraceAsString(cause);
+    }
     sendResponseError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-        ERROR_INTERNAL_SERVER_ERROR + ":" + t.getMessage() + "\n" + Arrays.toString(t.getStackTrace()),
+        ERROR_INTERNAL_SERVER_ERROR + ":\n" + error,
         response);
   }
 
