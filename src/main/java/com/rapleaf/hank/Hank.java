@@ -14,7 +14,7 @@ public final class Hank {
 
   public synchronized static String getGitCommit() {
     if (gitCommit == null) {
-      InputStream manifestStream = Hank.class.getResourceAsStream("META-INF/MANIFEST.MF");
+      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("/META-INF/MANIFEST.MF");
       try {
         Manifest manifest = new Manifest(manifestStream);
         Attributes attributes = manifest.getMainAttributes();
@@ -36,7 +36,7 @@ public final class Hank {
   public static String getVersion() {
     if (version == null) {
 
-      InputStream manifestStream = Hank.class.getResourceAsStream("META-INF/MANIFEST.MF");
+      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("/META-INF/MANIFEST.MF");
       try {
         Manifest manifest = new Manifest(manifestStream);
         Attributes attributes = manifest.getMainAttributes();
