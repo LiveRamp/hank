@@ -32,16 +32,16 @@ public final class Hank {
 
   public static String getProperty(String prop){
     try {
-      Enumeration<URL> manifests = Hank.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-      while (manifests.hasMoreElements()) {
-        Manifest manifest = new Manifest(manifests.nextElement().openStream());
-        Attributes attributes = manifest.getMainAttributes();
-        Object app = attributes.get("Implementation-Title");
-        if(app != null && app.equals("hank")){
-          String temp = attributes.getValue(prop);
-          if (temp != null) {
-            return temp;
-          }
+      InputStream manifestStream = Hank.class.getClassLoader().getResourceAsStream("/META-INF/MANIFEST.MF");
+      Manifest manifest = new Manifest(manifestStream);
+      Attributes attributes = manifest.getMainAttributes();
+      Object app = attributes.get("Implementation-Title");
+      if(app != null && app.equals("hank")){
+        String temp = attributes.getValue(prop);
+        if (temp != null) {
+          return temp;
+        }else{
+          return "Undetermined";
         }
       }
     } catch (IOException ex) {
