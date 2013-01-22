@@ -19,8 +19,6 @@ package com.rapleaf.hank.performance;
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import org.apache.log4j.Logger;
 
-import java.util.Arrays;
-
 public class HankTimerAggregator {
 
   private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
@@ -128,8 +126,6 @@ public class HankTimerAggregator {
   }
 
   private void logStats() {
-    // Sort durations
-    Arrays.sort(durations);
     // Build log string
     StringBuilder logStr = new StringBuilder();
     logStr.append("Statistics for Timer: ");
@@ -152,23 +148,9 @@ public class HankTimerAggregator {
       logStr.append((totalDuration / (double) totalUnderlyingCount));
       logStr.append("ms");
     }
-    /*
-    logStr.append(", median duration: ");
-    logStr.append(deciles[4]);
-    logStr.append("ms");
-    */
     logStr.append(", max duration: ");
     logStr.append(maxDuration);
     logStr.append("ms");
-    /*
-    for (int i = 0; i < 9; ++i) {
-      logStr.append(", ");
-      logStr.append((i + 1) * 10);
-      logStr.append("%: ");
-      logStr.append((deciles[i]));
-      logStr.append("ms");
-    }
-    */
     logStr.append(", QPS: ");
     logStr.append(count / (statsComputationWindowDuration / 1000000000d));
     if (totalUnderlyingCount != count) {
