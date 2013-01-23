@@ -4,10 +4,10 @@
                       http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.liveramp.hank</groupId>
+  <groupId>com.liveramp</groupId>
   <artifactId>hank</artifactId>
 
-  <version>1.0</version>
+  <version>1.0-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -259,13 +259,17 @@
 	    <descriptor>src/assembly/jobjar.xml</descriptor>
 	    <descriptor>src/assembly/dist.xml</descriptor>
           </descriptors>
-	</configuration>
+          <attach>false</attach>
+      	</configuration>
 	<executions>
 	  <execution>
 	    <phase>package</phase>
 	    <goals>
               <goal>single</goal>
 	    </goals>
+            <configuration>
+              <attach>false</attach>
+            </configuration>
 	  </execution>
 	</executions>
       </plugin>
