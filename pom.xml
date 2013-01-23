@@ -195,6 +195,14 @@
 
   </dependencies>
 
+  <distributionManagement>
+    <snapshotRepository>
+       <id>repository.liveramp.com</id>
+       <name>repository.liveramp.com-snapshots</name>
+       <url>http://repository.liveramp.com/artifactory/libs-snapshot-local</url>
+    </snapshotRepository>
+  </distributionManagement>
+
   <build>
 
     <resources>
