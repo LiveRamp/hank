@@ -122,9 +122,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.jgrapht</groupId>
-      <artifactId>jgrapht-jdk1.5</artifactId>
-      <version>0.7.3</version>
+      <groupId>thirdparty</groupId>
+      <artifactId>jgrapht-jdk1.6</artifactId>
+      <version>0.8.2</version>
     </dependency>
 
     <dependency>
