@@ -262,6 +262,16 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
     }
     // The base is the last version that was added (a base, the current version or a cached base)
     DomainVersion base = updatePlanVersions.removeLast();
+    // Check that the base we are going to update from is not invalid
+    if (!(getParentDomainVersion(base) == null ||
+        cachedBases.contains(base) ||
+        (currentVersion != null && base.equals(currentVersion)))) {
+      throw new IOException("Failed to find a valid base from which to update: "
+          + " domain: " + domain
+          + " not a valid base: " + base
+          + " current version: " + currentVersion
+          + " updating to version: " + updatingToVersion);
+    }
     // Reverse list of deltas as we have added versions going backwards
     Collections.reverse(updatePlanVersions);
     return new IncrementalUpdatePlan(base, updatePlanVersions);
