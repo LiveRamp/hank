@@ -207,7 +207,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       }
       %>
 
-      <td class='centered'><%= UiUtils.formatUpdateProgress(progress, hostUpdateETA) %></td>
+      <td><%= UiUtils.formatUpdateProgress(progress, hostUpdateETA) %></td>
 
       <td class='centered'><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>

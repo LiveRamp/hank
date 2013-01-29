@@ -258,28 +258,28 @@ public class UiUtils {
     StringBuilder tooltip = new StringBuilder();
     UpdateProgress updateProgress = updateProgressAggregator.computeUpdateProgress();
 
-    content.append("<td>" + UiUtils.formatDouble(updateProgress.getUpdateProgress() * 100) + " % up-to-date"
-        + "(" + updateProgress.getNumPartitionsUpToDate() + "/" + updateProgress.getNumPartitions() + ")");
+    content.append(UiUtils.formatDouble(updateProgress.getUpdateProgress() * 100) + "% up-to-date"
+        + " (" + updateProgress.getNumPartitionsUpToDate() + "/" + updateProgress.getNumPartitions() + ")");
     if (eta >= 0) {
-      content.append("ETA: " + UiUtils.formatSecondsDuration(eta));
+      content.append(" ETA: " + UiUtils.formatSecondsDuration(eta));
     }
     content.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
-        + Math.round(updateProgress.getUpdateProgress() * 100) + "%\'></div></div></td>");
+        + Math.round(updateProgress.getUpdateProgress() * 100) + "%\'></div></div>");
 
     // Build tooltip
-    tooltip.append("<table><tr><th>Domain</th><th>Update Progress</th><th></th></tr>");
+    tooltip.append("<table>");
     for (Map.Entry<Domain, UpdateProgress> entry : updateProgressAggregator.sortedEntrySet()) {
       UpdateProgress domainUpdateProgress = entry.getValue();
       tooltip.append("<tr><td class='centered'>");
       tooltip.append(entry.getKey().getName());
       tooltip.append("</td><td class='centered'>");
       tooltip.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
-          + Math.round(domainUpdateProgress.getUpdateProgress() * 100) + "%\'></div></div></td>");
+          + Math.round(domainUpdateProgress.getUpdateProgress() * 100) + "%\'></div></div>");
       tooltip.append("</td><td class='centered'>");
       tooltip.append(formatDouble(domainUpdateProgress.getUpdateProgress() * 100) + "%");
       tooltip.append("</td></tr>");
     }
-    content.append("</table>");
+    tooltip.append("</table>");
     return htmlTooltip(content.toString(), "Update Progress", tooltip.toString());
   }
 

@@ -273,7 +273,7 @@ Collections.sort(clients, new ClientMetadataComparator());
       }
       %>
 
-      <td class='centered'><%= UiUtils.formatUpdateProgress(progress, ringUpdateETA) %></td>
+      <td><%= UiUtils.formatUpdateProgress(progress, ringUpdateETA) %></td>
 
         <%
         Set<Host> hostsAll = ring.getHosts();
