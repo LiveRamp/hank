@@ -246,6 +246,23 @@ public class UiUtils {
     }
   }
 
+  public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator, long eta) {
+    if (updateProgressAggregator == null) {
+      return "";
+    }
+    StringBuilder content = new StringBuilder();
+    UpdateProgress progress = updateProgressAggregator.computeUpdateProgress();
+
+    content.append("<td>" + UiUtils.formatDouble(progress.getUpdateProgress() * 100) + " % up-to-date"
+        + "(" + progress.getNumPartitionsUpToDate() + "/" + progress.getNumPartitions() + ")");
+    if (eta >= 0) {
+      content.append("ETA: " + UiUtils.formatSecondsDuration(eta);
+    }
+    content.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
+        + Math.round(progress.getUpdateProgress() * 100) + "%\'></div></div></td>");
+    return content.toString();
+  }
+
   public static String join(List<String> input, String separator) {
     return StringUtils.join(input, separator);
   }

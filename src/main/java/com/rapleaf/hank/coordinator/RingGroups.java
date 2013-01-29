@@ -39,9 +39,9 @@ public final class RingGroups {
     return true;
   }
 
-  public static UpdateProgress computeUpdateProgress(RingGroup ringGroup,
-                                                     DomainGroup domainGroup) throws IOException {
-    UpdateProgress result = new UpdateProgress();
+  public static UpdateProgressAggregator computeUpdateProgress(RingGroup ringGroup,
+                                                               DomainGroup domainGroup) throws IOException {
+    UpdateProgressAggregator result = new UpdateProgressAggregator();
     for (Ring ring : ringGroup.getRings()) {
       result.aggregate(Rings.computeUpdateProgress(ring, domainGroup));
     }

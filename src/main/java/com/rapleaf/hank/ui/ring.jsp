@@ -199,28 +199,15 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <td class='<%= UiUtils.hostStateToClass(host.getState()) %>'>
       <%= host.getState() %>
       </td>
+
       <%
-      UpdateProgress progress = null;
+      UpdateProgressAggregator progress = null;
       if (!Rings.isUpToDate(ring, domainGroup)) {
         progress = Hosts.computeUpdateProgress(host, domainGroup);
       }
       %>
 
-        <% if (progress != null) { %>
-        <td>
-          <%= UiUtils.formatDouble(progress.getUpdateProgress() * 100) %>% up-to-date
-          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-          <% if (hostUpdateETA >= 0) { %>
-            ETA: <%= UiUtils.formatSecondsDuration(hostUpdateETA) %>
-          <% } %>
-
-          <div class='progress-bar'>
-            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-          </div>
-        </td>
-        <% } else { %>
-        <td></td>
-        <% } %>
+      <td class='centered'><%= UiUtils.formatUpdateProgress(progress, hostUpdateETA) %></td>
 
       <td class='centered'><%= host.getCurrentCommand() %></td>
       <td><%= host.getCommandQueue() %></td>

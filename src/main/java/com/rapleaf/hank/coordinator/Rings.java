@@ -84,9 +84,9 @@ public class Rings {
     return true;
   }
 
-  public static UpdateProgress computeUpdateProgress(Ring ring,
-                                                     DomainGroup domainGroup) throws IOException {
-    UpdateProgress result = new UpdateProgress();
+  public static UpdateProgressAggregator computeUpdateProgress(Ring ring,
+                                                               DomainGroup domainGroup) throws IOException {
+    UpdateProgressAggregator result = new UpdateProgressAggregator();
     for (Host host : ring.getHosts()) {
       result.aggregate(Hosts.computeUpdateProgress(host, domainGroup));
     }

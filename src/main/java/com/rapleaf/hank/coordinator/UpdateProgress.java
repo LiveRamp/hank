@@ -18,8 +18,8 @@ package com.rapleaf.hank.coordinator;
 
 public class UpdateProgress {
 
-  private int numPartitions;
-  private int numPartitionsUpToDate;
+  protected int numPartitions;
+  protected int numPartitionsUpToDate;
 
   public UpdateProgress() {
     this(0, 0);

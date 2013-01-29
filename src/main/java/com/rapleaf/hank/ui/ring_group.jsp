@@ -266,27 +266,14 @@ Collections.sort(clients, new ClientMetadataComparator());
     <tr>
       <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>">Ring <%=ring.getRingNumber()%></a></td>
       <%
-      UpdateProgress progress = null;
+      UpdateProgressAggregator progress = null;
       long ringUpdateETA = Rings.computeUpdateETA(ring);
       if (!Rings.isUpToDate(ring, ringGroup.getDomainGroup())) {
         progress = Rings.computeUpdateProgress(ring, ringGroup.getDomainGroup());
       }
       %>
 
-        <% if (progress != null) { %>
-        <td>
-          <%= UiUtils.formatDouble(progress.getUpdateProgress() * 100) %>% up-to-date
-          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-          <% if (ringUpdateETA >= 0) { %>
-            ETA: <%= UiUtils.formatSecondsDuration(ringUpdateETA) %>
-          <% } %>
-          <div class='progress-bar'>
-            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-          </div>
-        </td>
-        <% } else { %>
-        <td></td>
-        <% } %>
+      <td class='centered'><%= UiUtils.formatUpdateProgress(progress, ringUpdateETA) %></td>
 
         <%
         Set<Host> hostsAll = ring.getHosts();
