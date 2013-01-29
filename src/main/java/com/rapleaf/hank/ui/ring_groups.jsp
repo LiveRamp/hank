@@ -83,7 +83,7 @@
         "'>" + ringGroup.getDomainGroup().getName() + "</a>") %>
         </td>
 
-        <td class='centered'><%= UiUtils.formatUpdateProgress(progress, ringUpdateETA) %></td>
+        <td class='centered'><%= UiUtils.formatUpdateProgress(progress) %></td>
 
         <!-- Hosts State -->
 

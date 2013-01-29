@@ -246,6 +246,10 @@ public class UiUtils {
     }
   }
 
+  public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator) {
+    return formatUpdateProgress(updateProgressAggregator, 0);
+  }
+
   public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator, long eta) {
     if (updateProgressAggregator == null) {
       return "";
