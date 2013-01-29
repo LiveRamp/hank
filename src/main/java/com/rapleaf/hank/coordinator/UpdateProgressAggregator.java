@@ -18,11 +18,11 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class UpdateProgressAggregator {
 
-  private Map<Domain, UpdateProgress> domainToUpdateProgress =
-      new HashMap<Domain, UpdateProgress>();
+  private Map<Domain, UpdateProgress> domainToUpdateProgress = new HashMap<Domain, UpdateProgress>();
 
   public void add(Domain domain, boolean isUpToDate) {
     UpdateProgress updateProgress = getUpdateProgress(domain);
@@ -55,5 +55,9 @@ public class UpdateProgressAggregator {
       result.aggregate(updateProgress);
     }
     return result;
+  }
+
+  public Set<Map.Entry<Domain, UpdateProgress>> entrySet() {
+    return domainToUpdateProgress.entrySet();
   }
 }

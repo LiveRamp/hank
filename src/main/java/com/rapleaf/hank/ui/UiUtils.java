@@ -251,16 +251,32 @@ public class UiUtils {
       return "";
     }
     StringBuilder content = new StringBuilder();
-    UpdateProgress progress = updateProgressAggregator.computeUpdateProgress();
+    StringBuilder tooltip = new StringBuilder();
+    UpdateProgress updateProgress = updateProgressAggregator.computeUpdateProgress();
 
-    content.append("<td>" + UiUtils.formatDouble(progress.getUpdateProgress() * 100) + " % up-to-date"
-        + "(" + progress.getNumPartitionsUpToDate() + "/" + progress.getNumPartitions() + ")");
+    content.append("<td>" + UiUtils.formatDouble(updateProgress.getUpdateProgress() * 100) + " % up-to-date"
+        + "(" + updateProgress.getNumPartitionsUpToDate() + "/" + updateProgress.getNumPartitions() + ")");
     if (eta >= 0) {
-      content.append("ETA: " + UiUtils.formatSecondsDuration(eta);
+      content.append("ETA: " + UiUtils.formatSecondsDuration(eta));
     }
     content.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
-        + Math.round(progress.getUpdateProgress() * 100) + "%\'></div></div></td>");
-    return content.toString();
+        + Math.round(updateProgress.getUpdateProgress() * 100) + "%\'></div></div></td>");
+
+    // Build tooltip
+    tooltip.append("<table><tr><th>Domain</th><th>Update Progress</th><th></th></tr>");
+    for (Map.Entry<Domain, UpdateProgress> entry : updateProgressAggregator.entrySet()) {
+      UpdateProgress domainUpdateProgress = entry.getValue();
+      tooltip.append("<tr><td class='centered'>");
+      tooltip.append(entry.getKey().getName());
+      tooltip.append("</td><td class='centered'>");
+      tooltip.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
+          + Math.round(domainUpdateProgress.getUpdateProgress() * 100) + "%\'></div></div></td>");
+      tooltip.append("</td><td class='centered'>");
+      tooltip.append(formatDouble(domainUpdateProgress.getUpdateProgress() * 100) + "%");
+      tooltip.append("</td></tr>");
+    }
+    content.append("</table>");
+    return htmlTooltip(content.toString(), "Update Progress", tooltip.toString());
   }
 
   public static String join(List<String> input, String separator) {
