@@ -246,6 +246,43 @@ public class UiUtils {
     }
   }
 
+  public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator) {
+    return formatUpdateProgress(updateProgressAggregator, 0);
+  }
+
+  public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator, long eta) {
+    if (updateProgressAggregator == null) {
+      return "";
+    }
+    StringBuilder content = new StringBuilder();
+    StringBuilder tooltip = new StringBuilder();
+    UpdateProgress updateProgress = updateProgressAggregator.computeUpdateProgress();
+
+    content.append(UiUtils.formatDouble(updateProgress.getUpdateProgress() * 100) + "% up-to-date"
+        + " (" + updateProgress.getNumPartitionsUpToDate() + "/" + updateProgress.getNumPartitions() + ")");
+    if (eta >= 0) {
+      content.append(" ETA: " + UiUtils.formatSecondsDuration(eta));
+    }
+    content.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
+        + Math.round(updateProgress.getUpdateProgress() * 100) + "%\'></div></div>");
+
+    // Build tooltip
+    tooltip.append("<table>");
+    for (Map.Entry<Domain, UpdateProgress> entry : updateProgressAggregator.sortedEntrySet()) {
+      UpdateProgress domainUpdateProgress = entry.getValue();
+      tooltip.append("<tr><td class='centered'>");
+      tooltip.append(entry.getKey().getName());
+      tooltip.append("</td><td class='centered'>");
+      tooltip.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
+          + Math.round(domainUpdateProgress.getUpdateProgress() * 100) + "%\'></div></div>");
+      tooltip.append("</td><td class='centered'>");
+      tooltip.append(formatDouble(domainUpdateProgress.getUpdateProgress() * 100) + "%");
+      tooltip.append("</td></tr>");
+    }
+    tooltip.append("</table>");
+    return htmlTooltip(content.toString(), "Update Progress", tooltip.toString());
+  }
+
   public static String join(List<String> input, String separator) {
     return StringUtils.join(input, separator);
   }

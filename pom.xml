@@ -122,12 +122,6 @@
     </dependency>
 
     <dependency>
-      <groupId>thirdparty</groupId>
-      <artifactId>jgrapht-jdk1.6</artifactId>
-      <version>0.8.2</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.codehaus.jackson</groupId>
       <artifactId>jackson-mapper-asl</artifactId>
       <version>1.9.11</version>

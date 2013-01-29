@@ -36,9 +36,8 @@ public final class Hosts {
     return host.getState() != HostState.OFFLINE;
   }
 
-  public static UpdateProgress computeUpdateProgress(Host host, DomainGroup domainGroup) throws IOException {
-    int numPartitions = 0;
-    int numPartitionsUpToDate = 0;
+  public static UpdateProgressAggregator computeUpdateProgress(Host host, DomainGroup domainGroup) throws IOException {
+    UpdateProgressAggregator result = new UpdateProgressAggregator();
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
       HostDomain hostDomain = host.getHostDomain(domain);
@@ -46,18 +45,18 @@ public final class Hosts {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
           // Ignore deletable partitions
           if (!partition.isDeletable()) {
-            ++numPartitions;
             if (partition.getCurrentDomainVersion() != null
                 && partition.getCurrentDomainVersion().equals(dgvdv.getVersionNumber())) {
-              ++numPartitionsUpToDate;
+              result.add(domain, true);
+            } else {
+              result.add(domain, false);
             }
           }
         }
       }
     }
-    return new UpdateProgress(numPartitions, numPartitionsUpToDate);
+    return result;
   }
-
 
   // Return true if all partitions assigned to that host for domains of the given domain group version
   // are at the correct version. And there are no deletable partitions.

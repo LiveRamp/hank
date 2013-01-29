@@ -71,7 +71,7 @@
         </td>
 
         <%
-        UpdateProgress progress = null;
+        UpdateProgressAggregator progress = null;
         if (!RingGroups.isUpToDate(ringGroup, ringGroup.getDomainGroup())) {
           progress = RingGroups.computeUpdateProgress(ringGroup, ringGroup.getDomainGroup());
         }
@@ -83,17 +83,7 @@
         "'>" + ringGroup.getDomainGroup().getName() + "</a>") %>
         </td>
 
-        <% if (progress != null) { %>
-        <td class='centered'>
-          <%= UiUtils.formatDouble(progress.getUpdateProgress() * 100) %>%
-          (<%= progress.getNumPartitionsUpToDate() %>/<%= progress.getNumPartitions() %>)
-          <div class='progress-bar'>
-            <div class='progress-bar-filler' style='width: <%= Math.round(progress.getUpdateProgress() * 100) %>%'></div>
-          </div>
-        </td>
-        <% } else { %>
-        <td></td>
-        <% } %>
+        <td><%= UiUtils.formatUpdateProgress(progress) %></td>
 
         <!-- Hosts State -->
 

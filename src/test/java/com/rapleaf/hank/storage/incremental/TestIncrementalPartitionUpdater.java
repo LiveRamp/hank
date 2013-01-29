@@ -20,10 +20,6 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
-import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
-import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
-import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
-import com.rapleaf.hank.storage.incremental.MockIncrementalPartitionUpdater;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -89,8 +85,12 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     // Updating from null to v1, v0 is defunct
     v0.setDefunct(true);
-    assertEquals(new IncrementalUpdatePlan(v1),
-        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1));
+    try {
+      updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1);
+      fail("Should fail since v1 is not a base");
+    } catch (IOException e) {
+      // Good
+    }
     v0.setDefunct(false);
 
     // Updating from v1 to v2, v1 is defunct
