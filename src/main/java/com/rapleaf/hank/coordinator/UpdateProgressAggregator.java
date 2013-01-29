@@ -18,7 +18,8 @@ package com.rapleaf.hank.coordinator;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class UpdateProgressAggregator {
 
@@ -57,7 +58,7 @@ public class UpdateProgressAggregator {
     return result;
   }
 
-  public Set<Map.Entry<Domain, UpdateProgress>> entrySet() {
-    return domainToUpdateProgress.entrySet();
+  public SortedSet<Map.Entry<Domain, UpdateProgress>> sortedEntrySet() {
+    return new TreeSet<Map.Entry<Domain, UpdateProgress>>(domainToUpdateProgress.entrySet());
   }
 }

@@ -268,7 +268,7 @@ public class UiUtils {
 
     // Build tooltip
     tooltip.append("<table><tr><th>Domain</th><th>Update Progress</th><th></th></tr>");
-    for (Map.Entry<Domain, UpdateProgress> entry : updateProgressAggregator.entrySet()) {
+    for (Map.Entry<Domain, UpdateProgress> entry : updateProgressAggregator.sortedEntrySet()) {
       UpdateProgress domainUpdateProgress = entry.getValue();
       tooltip.append("<tr><td class='centered'>");
       tooltip.append(entry.getKey().getName());
