@@ -116,10 +116,10 @@ tr.not_included td {
                 }
              %>
              <option
-              <% if (v.getClosedAt() == null || v.isDefunct()) { %>
-              disabled
-              <% } else if (included && currentDomainVersion.getVersionNumber() == v.getVersionNumber()) { %>
+              <% if (included && currentDomainVersion.getVersionNumber() == v.getVersionNumber()) { %>
               selected
+              <% } else if (v.getClosedAt() == null || v.isDefunct()) { %>
+              disabled
               <% } %>
               value=<%=v.getVersionNumber() %>><%= v.getVersionNumber() %>
               (<%= UiUtils.formatDomainVersionClosedAt(v) %>)</option>

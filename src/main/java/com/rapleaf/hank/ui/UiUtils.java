@@ -247,7 +247,7 @@ public class UiUtils {
   }
 
   public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator) {
-    return formatUpdateProgress(updateProgressAggregator, 0);
+    return formatUpdateProgress(updateProgressAggregator, -1);
   }
 
   public static String formatUpdateProgress(UpdateProgressAggregator updateProgressAggregator, long eta) {
