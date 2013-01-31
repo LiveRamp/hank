@@ -59,7 +59,7 @@ public class ZkHost extends AbstractHost {
                               PartitionServerAddress partitionServerAddress,
                               DataLocationChangeListener dataLocationChangeListener,
                               List<String> flags) throws KeeperException, InterruptedException {
-    String path = ZkPath.append(root, partitionServerAddress.toString());
+    String path = ZkPath.append(root, Long.toString(UUID.randomUUID().getLeastSignificantBits()));
     if (LOG.isTraceEnabled()) {
       LOG.trace("Creating ZkHost " + path);
     }
