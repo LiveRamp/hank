@@ -611,14 +611,4 @@ public class ZkHost extends AbstractHost {
     }
     return true;
   }
-
-  public void migrate() throws KeeperException, InterruptedException {
-    metadata.update(metadata.new Updater() {
-      @Override
-      public void updateCopy(HostMetadata currentCopy) {
-        currentCopy.set_host_name(address.getHostName());
-        currentCopy.set_port_number(address.getPortNumber());
-      }
-    });
-  }
 }
