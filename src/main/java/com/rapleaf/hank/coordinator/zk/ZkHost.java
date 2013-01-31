@@ -97,8 +97,7 @@ public class ZkHost extends AbstractHost {
     this.state.addListener(new DataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, null, null, new StatisticsMetadata());
-    this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
-    // this.address = new PartitionServerAddress(metadata.get().get_host_name(), metadata.get().get_port_number());
+    this.address = new PartitionServerAddress(metadata.get().get_host_name(), metadata.get().get_port_number());
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
