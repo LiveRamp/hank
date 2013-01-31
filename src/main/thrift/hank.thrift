@@ -87,6 +87,8 @@ struct HostAssignmentsMetadata {
 
 struct HostMetadata {
   1: required string flags;
+  2: optional string host_name;
+  3: optional i32 port_number;
 }
 
 struct StatisticsMetadata {

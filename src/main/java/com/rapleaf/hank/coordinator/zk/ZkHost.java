@@ -65,6 +65,8 @@ public class ZkHost extends AbstractHost {
     }
     HostMetadata initialMetadata = new HostMetadata();
     initialMetadata.set_flags(Hosts.joinHostFlags(flags));
+    initialMetadata.set_host_name(partitionServerAddress.getHostName());
+    initialMetadata.set_port_number(partitionServerAddress.getPortNumber());
     HostAssignmentsMetadata initialAssignments = new HostAssignmentsMetadata();
     initialAssignments.set_domains(new HashMap<Integer, HostDomainMetadata>());
     return new ZkHost(zk, coordinator, path, dataLocationChangeListener, true, initialMetadata, initialAssignments);
@@ -83,7 +85,6 @@ public class ZkHost extends AbstractHost {
     this.zk = zk;
     this.coordinator = coordinator;
     this.path = path;
-    this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
     this.dataLocationChangeListener = dataLocationChangeListener;
     this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new HostMetadata());
     this.assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(path, ASSIGNMENTS_PATH),
@@ -96,6 +97,8 @@ public class ZkHost extends AbstractHost {
     this.state.addListener(new DataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, null, null, new StatisticsMetadata());
+    this.address = PartitionServerAddress.parse(ZkPath.getFilename(path));
+    // this.address = new PartitionServerAddress(metadata.get().get_host_name(), metadata.get().get_port_number());
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
@@ -607,5 +610,15 @@ public class ZkHost extends AbstractHost {
       return false;
     }
     return true;
+  }
+
+  public void migrate() throws KeeperException, InterruptedException {
+    metadata.update(metadata.new Updater() {
+      @Override
+      public void updateCopy(HostMetadata currentCopy) {
+        currentCopy.set_host_name(address.getHostName());
+        currentCopy.set_port_number(address.getPortNumber());
+      }
+    });
   }
 }

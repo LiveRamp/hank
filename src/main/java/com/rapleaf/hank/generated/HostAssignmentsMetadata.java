@@ -360,7 +360,7 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
                 for (int _i39 = 0; _i39 < _map38.size; ++_i39)
                 {
                   int _key40; // required
-                  HostDomainMetadata _val41; // required
+                  HostDomainMetadata _val41; // optional
                   _key40 = iprot.readI32();
                   _val41 = new HostDomainMetadata();
                   _val41.read(iprot);
@@ -437,7 +437,7 @@ public class HostAssignmentsMetadata implements org.apache.thrift.TBase<HostAssi
         for (int _i45 = 0; _i45 < _map44.size; ++_i45)
         {
           int _key46; // required
-          HostDomainMetadata _val47; // required
+          HostDomainMetadata _val47; // optional
           _key46 = iprot.readI32();
           _val47 = new HostDomainMetadata();
           _val47.read(iprot);

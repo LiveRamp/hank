@@ -1517,7 +1517,7 @@ public class SmartClient {
                   struct.keys = new ArrayList<ByteBuffer>(_list66.size);
                   for (int _i67 = 0; _i67 < _list66.size; ++_i67)
                   {
-                    ByteBuffer _elem68; // required
+                    ByteBuffer _elem68; // optional
                     _elem68 = iprot.readBinary();
                     struct.keys.add(_elem68);
                   }
@@ -1613,7 +1613,7 @@ public class SmartClient {
             struct.keys = new ArrayList<ByteBuffer>(_list71.size);
             for (int _i72 = 0; _i72 < _list71.size; ++_i72)
             {
-              ByteBuffer _elem73; // required
+              ByteBuffer _elem73; // optional
               _elem73 = iprot.readBinary();
               struct.keys.add(_elem73);
             }

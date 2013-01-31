@@ -360,7 +360,7 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
                 for (int _i49 = 0; _i49 < _map48.size; ++_i49)
                 {
                   String _key50; // required
-                  String _val51; // required
+                  String _val51; // optional
                   _key50 = iprot.readString();
                   _val51 = iprot.readString();
                   struct.statistics.put(_key50, _val51);
@@ -436,7 +436,7 @@ public class StatisticsMetadata implements org.apache.thrift.TBase<StatisticsMet
         for (int _i55 = 0; _i55 < _map54.size; ++_i55)
         {
           String _key56; // required
-          String _val57; // required
+          String _val57; // optional
           _key56 = iprot.readString();
           _val57 = iprot.readString();
           struct.statistics.put(_key56, _val57);

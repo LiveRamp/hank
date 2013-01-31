@@ -1515,7 +1515,7 @@ public class PartitionServer {
                   struct.keys = new ArrayList<ByteBuffer>(_list58.size);
                   for (int _i59 = 0; _i59 < _list58.size; ++_i59)
                   {
-                    ByteBuffer _elem60; // required
+                    ByteBuffer _elem60; // optional
                     _elem60 = iprot.readBinary();
                     struct.keys.add(_elem60);
                   }
@@ -1609,7 +1609,7 @@ public class PartitionServer {
             struct.keys = new ArrayList<ByteBuffer>(_list63.size);
             for (int _i64 = 0; _i64 < _list63.size; ++_i64)
             {
-              ByteBuffer _elem65; // required
+              ByteBuffer _elem65; // optional
               _elem65 = iprot.readBinary();
               struct.keys.add(_elem65);
             }

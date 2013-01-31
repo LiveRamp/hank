@@ -19,6 +19,9 @@ package com.rapleaf.hank.coordinator.zk;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.yaml.YamlClientConfigurator;
 import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.Ring;
+import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.KeeperException;
@@ -36,5 +39,14 @@ public class MigrationHelper {
     String configurationPath = args[0];
 
     Coordinator coordinator = new YamlClientConfigurator(configurationPath).createCoordinator();
+
+    for (RingGroup ringGroup : coordinator.getRingGroups()) {
+      for (Ring ring : ringGroup.getRings()) {
+        for (Host host : ring.getHosts()) {
+          LOG.info("Migrating " + host.getAddress());
+          ((ZkHost) host).migrate();
+        }
+      }
+    }
   }
 }

@@ -168,7 +168,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
               responses = new ArrayList<HankResponse>(_list0.size);
               for (int _i1 = 0; _i1 < _list0.size; ++_i1)
               {
-                HankResponse _elem2; // required
+                HankResponse _elem2; // optional
                 _elem2 = new HankResponse();
                 _elem2.read(iprot);
                 responses.add(_elem2);
@@ -233,7 +233,7 @@ public class HankBulkResponse extends org.apache.thrift.TUnion<HankBulkResponse,
             responses = new ArrayList<HankResponse>(_list4.size);
             for (int _i5 = 0; _i5 < _list4.size; ++_i5)
             {
-              HankResponse _elem6; // required
+              HankResponse _elem6; // optional
               _elem6 = new HankResponse();
               _elem6.read(iprot);
               responses.add(_elem6);

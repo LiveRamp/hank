@@ -623,7 +623,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
                 for (int _i9 = 0; _i9 < _map8.size; ++_i9)
                 {
                   int _key10; // required
-                  PartitionMetadata _val11; // required
+                  PartitionMetadata _val11; // optional
                   _key10 = iprot.readI32();
                   _val11 = new PartitionMetadata();
                   _val11.read(iprot);
@@ -743,7 +743,7 @@ public class DomainVersionMetadata implements org.apache.thrift.TBase<DomainVers
         for (int _i15 = 0; _i15 < _map14.size; ++_i15)
         {
           int _key16; // required
-          PartitionMetadata _val17; // required
+          PartitionMetadata _val17; // optional
           _key16 = iprot.readI32();
           _val17 = new PartitionMetadata();
           _val17.read(iprot);
