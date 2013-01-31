@@ -61,7 +61,7 @@ public class ZkHost extends AbstractHost {
                               List<String> flags) throws KeeperException, InterruptedException {
     String path = ZkPath.append(root, Long.toString(UUID.randomUUID().getLeastSignificantBits()));
     if (LOG.isTraceEnabled()) {
-      LOG.trace("Creating ZkHost " + path);
+      LOG.trace("Creating ZkHost " + partitionServerAddress + " at " + path);
     }
     HostMetadata initialMetadata = new HostMetadata();
     initialMetadata.set_flags(Hosts.joinHostFlags(flags));
