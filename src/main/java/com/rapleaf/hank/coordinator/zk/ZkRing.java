@@ -25,6 +25,7 @@ import org.apache.zookeeper.KeeperException;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -69,6 +70,7 @@ public class ZkRing extends AbstractRing {
     }
 
     hosts = new WatchedMap<ZkHost>(zk, ZkPath.append(ringPath, HOSTS_PATH_SEGMENT), new WatchedMap.ElementLoader<ZkHost>() {
+      @Override
       public ZkHost load(ZooKeeperPlus zk, String basePath, String relPath) throws InterruptedException, KeeperException {
         return new ZkHost(zk, coordinator, ZkPath.append(basePath, relPath), dataLocationChangeListener,
             false, null, null);
@@ -100,7 +102,12 @@ public class ZkRing extends AbstractRing {
 
   @Override
   public Host getHostByAddress(PartitionServerAddress address) {
-    return hosts.get(address.toString());
+    for (ZkHost host : hosts.values()) {
+      if (host.getAddress().equals(address)) {
+        return host;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -115,15 +122,15 @@ public class ZkRing extends AbstractRing {
 
   @Override
   public boolean removeHost(PartitionServerAddress address) throws IOException {
-    String addressStr = address.toString();
-    ZkHost host = hosts.remove(addressStr);
-    if (host == null) {
-      return false;
-    } else {
-      host.delete();
-      fireDataLocationChangeListener();
-      return true;
+    for (Map.Entry<String, ZkHost> entry : hosts.entrySet()) {
+      if (entry.getValue().getAddress().equals(address)) {
+        ZkHost host = hosts.remove(entry.getKey());
+        host.delete();
+        fireDataLocationChangeListener();
+        return true;
+      }
     }
+    return false;
   }
 
   public void close() {
