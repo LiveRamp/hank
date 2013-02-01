@@ -86,6 +86,7 @@ public class ZkHost extends AbstractHost {
     this.path = path;
     this.dataLocationChangeListener = dataLocationChangeListener;
     this.metadata = new WatchedThriftNode<HostMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new HostMetadata());
+    this.metadata.addListener(new HostMetadataDataLocationChangeNotifier());
     this.assignments = new WatchedThriftNode<HostAssignmentsMetadata>(zk, ZkPath.append(path, ASSIGNMENTS_PATH),
         true, create ? CreateMode.PERSISTENT : null, initialAssignments, new HostAssignmentsMetadata());
     if (create) {
@@ -93,7 +94,7 @@ public class ZkHost extends AbstractHost {
       zk.create(ZkPath.append(path, COMMAND_QUEUE_PATH), null);
     }
     this.state = new WatchedEnum<HostState>(HostState.class, zk, ZkPath.append(path, STATE_PATH), false);
-    this.state.addListener(new DataLocationChangeNotifier());
+    this.state.addListener(new HostStateDataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, null, null, new StatisticsMetadata());
     commandQueueWatcher = new CommandQueueWatcher();
@@ -104,13 +105,21 @@ public class ZkHost extends AbstractHost {
     }
   }
 
-  private class DataLocationChangeNotifier implements WatchedNodeListener<HostState> {
+  private class HostStateDataLocationChangeNotifier implements WatchedNodeListener<HostState> {
 
     @Override
     public void onWatchedNodeChange(HostState value) {
       if (value == HostState.SERVING) {
         fireDataLocationChangeListener();
       }
+    }
+  }
+
+  private class HostMetadataDataLocationChangeNotifier implements WatchedNodeListener<HostMetadata> {
+
+    @Override
+    public void onWatchedNodeChange(HostMetadata hostMetadata) {
+      fireDataLocationChangeListener();
     }
   }
 
@@ -163,7 +172,6 @@ public class ZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
-    fireDataLocationChangeListener();
   }
 
   @Override
