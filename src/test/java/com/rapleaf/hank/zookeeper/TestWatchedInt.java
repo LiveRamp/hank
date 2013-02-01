@@ -88,11 +88,17 @@ public class TestWatchedInt extends ZkTestCase {
         }
       }
     };
-    int finalValue = 64;
+    final int finalValue = 64;
     for (int i = 0; i < finalValue; ++i) {
       wi.update(incrementer);
     }
     Thread.sleep(100);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return Integer.valueOf(finalValue).equals(wi.get());
+      }
+    });
     assertEquals(Integer.valueOf(finalValue), wi.get());
   }
 
