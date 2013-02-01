@@ -97,8 +97,8 @@ public class HostController extends Controller {
     RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
     Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
     Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
-    String hostFlags = req.getParameter("hostFlags");
-    h.setFlags(Hosts.splitHostFlags(hostFlags));
+    h.setFlags(Hosts.splitHostFlags(req.getParameter("hostFlags")));
+    h.setAddress(PartitionServerAddress.parse(req.getParameter("hostAddress")));
     redirectBack(resp, rg, r, h);
   }
 

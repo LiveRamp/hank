@@ -45,6 +45,14 @@
       </td>
     </tr>
     <tr>
+      <td>
+        Host Address:
+      </td>
+      <td>
+        <input type=text name="hostAddress" size=50 value="<%= host.getFlags().getAddress().toString() %>"/>
+      </td>
+    </tr>
+    <tr>
       <td></td>
       <td>
         <input type=submit value="Save updated configuration"/>
