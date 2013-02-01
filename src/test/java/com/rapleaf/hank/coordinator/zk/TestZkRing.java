@@ -36,6 +36,7 @@ public class TestZkRing extends ZkTestCase {
   }
 
   private static final PartitionServerAddress LOCALHOST = PartitionServerAddress.parse("localhost:1");
+  private static final PartitionServerAddress LOCALHOST2 = PartitionServerAddress.parse("localhost:2");
 
   private final String ring_group_root = ZkPath.append(getRoot(), "ring-group-one");
   private final String ring_root = ZkPath.append(getRoot(), "ring-group-one/ring-1");
@@ -78,16 +79,31 @@ public class TestZkRing extends ZkTestCase {
     ring.close();
 
     // assure that hosts reload well, too
-    ZkRing sameRing = new ZkRing(getZk(), ring_root, null, coordinator, null);
+    final ZkRing sameRing = new ZkRing(getZk(), ring_root, null, coordinator, null);
     assertEquals(1, sameRing.getHosts().size());
 
     assertEquals(Collections.singleton(host), sameRing.getHosts());
 
     assertEquals(LOCALHOST, sameRing.getHostByAddress(LOCALHOST).getAddress());
 
-    assertTrue(sameRing.removeHost(LOCALHOST));
+    // Rename that host
+    sameRing.getHostByAddress(LOCALHOST).setAddress(LOCALHOST2);
+
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return sameRing.getHostByAddress(LOCALHOST2) != null &&
+            LOCALHOST2.equals(sameRing.getHostByAddress(LOCALHOST2).getAddress());
+      }
+    });
+
+    assertEquals(LOCALHOST2, sameRing.getHostByAddress(LOCALHOST2).getAddress());
+
     assertNull(sameRing.getHostByAddress(LOCALHOST));
-    assertFalse(sameRing.removeHost(LOCALHOST));
+
+    assertTrue(sameRing.removeHost(LOCALHOST2));
+    assertNull(sameRing.getHostByAddress(LOCALHOST2));
+    assertFalse(sameRing.removeHost(LOCALHOST2));
 
     ring.close();
   }

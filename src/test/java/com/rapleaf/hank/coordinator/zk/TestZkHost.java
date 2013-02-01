@@ -29,6 +29,7 @@ import java.util.Collections;
 public class TestZkHost extends ZkTestCase {
 
   private static final PartitionServerAddress ADDRESS = new PartitionServerAddress("my.super.host", 32267);
+  private static final PartitionServerAddress OTHER_ADDRESS = new PartitionServerAddress("my.other.host", 32267);
 
   private Coordinator coordinator;
   private Domain d0 = new MockDomain("d0");
@@ -49,7 +50,7 @@ public class TestZkHost extends ZkTestCase {
   }
 
   public void testCreateAndLoad() throws Exception {
-    ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
+    final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(ADDRESS, host.getAddress());
     assertEquals(0, host.getCommandQueue().size());
     assertNull(host.getCurrentCommand());
@@ -62,6 +63,15 @@ public class TestZkHost extends ZkTestCase {
     assertEquals("A", host.getStatistic("a"));
     assertEquals("B", host.getStatistic("b"));
     assertNull(host.getStatistic("c"));
+
+    host.setAddress(OTHER_ADDRESS);
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return host.getAddress().equals(OTHER_ADDRESS);
+      }
+    });
+    assertEquals(OTHER_ADDRESS, host.getAddress());
   }
 
   public void testStateChangeListener() throws Exception {

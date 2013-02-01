@@ -26,6 +26,8 @@ public interface Host extends Comparable<Host> {
 
   public PartitionServerAddress getAddress();
 
+  public void setAddress(PartitionServerAddress address) throws IOException;
+
   public HostState getState() throws IOException;
 
   public void setState(HostState state) throws IOException;

@@ -22,7 +22,7 @@ import java.util.*;
 
 public class MockHost extends AbstractHost {
 
-  private final PartitionServerAddress address;
+  private PartitionServerAddress address;
   private HostState state = HostState.OFFLINE;
   private List<HostCommand> commandQueue = new LinkedList<HostCommand>();
   private HostCommand currentCommand;
@@ -71,6 +71,11 @@ public class MockHost extends AbstractHost {
   @Override
   public PartitionServerAddress getAddress() {
     return address;
+  }
+
+  @Override
+  public void setAddress(PartitionServerAddress address) throws IOException {
+    this.address = address;
   }
 
   @Override

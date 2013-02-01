@@ -40,7 +40,6 @@ public class ZkHost extends AbstractHost {
   private final ZooKeeperPlus zk;
   private final Coordinator coordinator;
   private final String path;
-  private final PartitionServerAddress address;
   private final DataLocationChangeListener dataLocationChangeListener;
 
   private final WatchedThriftNode<HostMetadata> metadata;
@@ -97,7 +96,6 @@ public class ZkHost extends AbstractHost {
     this.state.addListener(new DataLocationChangeNotifier());
     this.statistics = new WatchedThriftNode<StatisticsMetadata>(zk, ZkPath.append(path, STATISTICS_PATH),
         false, null, null, new StatisticsMetadata());
-    this.address = new PartitionServerAddress(metadata.get().get_host_name(), metadata.get().get_port_number());
     commandQueueWatcher = new CommandQueueWatcher();
     currentCommand = new WatchedEnum<HostCommand>(HostCommand.class, zk,
         ZkPath.append(path, CURRENT_COMMAND_PATH), true);
@@ -146,7 +144,25 @@ public class ZkHost extends AbstractHost {
 
   @Override
   public PartitionServerAddress getAddress() {
-    return address;
+    HostMetadata hostMetadata = metadata.get();
+    return new PartitionServerAddress(hostMetadata.get_host_name(), hostMetadata.get_port_number());
+  }
+
+  @Override
+  public void setAddress(final PartitionServerAddress address) throws IOException {
+    try {
+      metadata.update(metadata.new Updater() {
+        @Override
+        public void updateCopy(HostMetadata currentCopy) {
+          currentCopy.set_host_name(address.getHostName());
+          currentCopy.set_port_number(address.getPortNumber());
+        }
+      });
+    } catch (InterruptedException e) {
+      throw new IOException(e);
+    } catch (KeeperException e) {
+      throw new IOException(e);
+    }
   }
 
   @Override
@@ -577,7 +593,7 @@ public class ZkHost extends AbstractHost {
   public int hashCode() {
     final int prime = 31;
     int result = 1;
-    result = prime * result + ((address == null) ? 0 : address.hashCode());
+    result = prime * result + ((getAddress() == null) ? 0 : getAddress().hashCode());
     result = prime * result + ((path == null) ? 0 : path.hashCode());
     return result;
   }
@@ -594,11 +610,11 @@ public class ZkHost extends AbstractHost {
       return false;
     }
     ZkHost other = (ZkHost) obj;
-    if (address == null) {
-      if (other.address != null) {
+    if (getAddress() == null) {
+      if (other.getAddress() != null) {
         return false;
       }
-    } else if (!address.equals(other.address)) {
+    } else if (!getAddress().equals(other.getAddress())) {
       return false;
     }
     if (path == null) {
