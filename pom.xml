@@ -7,7 +7,7 @@
   <groupId>com.liveramp</groupId>
   <artifactId>hank</artifactId>
 
-  <version>1.0-CDH4-SNAPSHOT</version>
+  <version>CDH4-1.0-SNAPSHOT</version>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
