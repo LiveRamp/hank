@@ -45,8 +45,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   }
 
   public String flags; // required
-  public String host_name; // optional
-  public int port_number; // optional
+  public String host_name; // required
+  public int port_number; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -115,15 +115,14 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   // isset id assignments
   private static final int __PORT_NUMBER_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private _Fields optionals[] = {_Fields.HOST_NAME,_Fields.PORT_NUMBER};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.FLAGS, new org.apache.thrift.meta_data.FieldMetaData("flags", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.HOST_NAME, new org.apache.thrift.meta_data.FieldMetaData("host_name", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.HOST_NAME, new org.apache.thrift.meta_data.FieldMetaData("host_name", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.PORT_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("port_number", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.PORT_NUMBER, new org.apache.thrift.meta_data.FieldMetaData("port_number", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HostMetadata.class, metaDataMap);
@@ -133,10 +132,15 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
   }
 
   public HostMetadata(
-    String flags)
+    String flags,
+    String host_name,
+    int port_number)
   {
     this();
     this.flags = flags;
+    this.host_name = host_name;
+    this.port_number = port_number;
+    set_port_number_isSet(true);
   }
 
   /**
@@ -328,8 +332,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         return false;
     }
 
-    boolean this_present_port_number = true && this.is_set_port_number();
-    boolean that_present_port_number = true && that.is_set_port_number();
+    boolean this_present_port_number = true;
+    boolean that_present_port_number = true;
     if (this_present_port_number || that_present_port_number) {
       if (!(this_present_port_number && that_present_port_number))
         return false;
@@ -354,7 +358,7 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     if (present_host_name)
       builder.append(host_name);
 
-    boolean present_port_number = true && (is_set_port_number());
+    boolean present_port_number = true;
     builder.append(present_port_number);
     if (present_port_number)
       builder.append(port_number);
@@ -427,22 +431,18 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       sb.append(this.flags);
     }
     first = false;
-    if (is_set_host_name()) {
-      if (!first) sb.append(", ");
-      sb.append("host_name:");
-      if (this.host_name == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.host_name);
-      }
-      first = false;
+    if (!first) sb.append(", ");
+    sb.append("host_name:");
+    if (this.host_name == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.host_name);
     }
-    if (is_set_port_number()) {
-      if (!first) sb.append(", ");
-      sb.append("port_number:");
-      sb.append(this.port_number);
-      first = false;
-    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("port_number:");
+    sb.append(this.port_number);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -452,6 +452,10 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     if (flags == null) {
       throw new org.apache.thrift.protocol.TProtocolException("Required field 'flags' was not present! Struct: " + toString());
     }
+    if (host_name == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'host_name' was not present! Struct: " + toString());
+    }
+    // alas, we cannot check 'port_number' because it's a primitive and you chose the non-beans generator.
     // check for sub-struct validity
   }
 
@@ -523,6 +527,9 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
+      if (!struct.is_set_port_number()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'port_number' was not found in serialized data! Struct: " + toString());
+      }
       struct.validate();
     }
 
@@ -536,17 +543,13 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
         oprot.writeFieldEnd();
       }
       if (struct.host_name != null) {
-        if (struct.is_set_host_name()) {
-          oprot.writeFieldBegin(HOST_NAME_FIELD_DESC);
-          oprot.writeString(struct.host_name);
-          oprot.writeFieldEnd();
-        }
-      }
-      if (struct.is_set_port_number()) {
-        oprot.writeFieldBegin(PORT_NUMBER_FIELD_DESC);
-        oprot.writeI32(struct.port_number);
+        oprot.writeFieldBegin(HOST_NAME_FIELD_DESC);
+        oprot.writeString(struct.host_name);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(PORT_NUMBER_FIELD_DESC);
+      oprot.writeI32(struct.port_number);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -565,20 +568,8 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
     public void write(org.apache.thrift.protocol.TProtocol prot, HostMetadata struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       oprot.writeString(struct.flags);
-      BitSet optionals = new BitSet();
-      if (struct.is_set_host_name()) {
-        optionals.set(0);
-      }
-      if (struct.is_set_port_number()) {
-        optionals.set(1);
-      }
-      oprot.writeBitSet(optionals, 2);
-      if (struct.is_set_host_name()) {
-        oprot.writeString(struct.host_name);
-      }
-      if (struct.is_set_port_number()) {
-        oprot.writeI32(struct.port_number);
-      }
+      oprot.writeString(struct.host_name);
+      oprot.writeI32(struct.port_number);
     }
 
     @Override
@@ -586,15 +577,10 @@ public class HostMetadata implements org.apache.thrift.TBase<HostMetadata, HostM
       TTupleProtocol iprot = (TTupleProtocol) prot;
       struct.flags = iprot.readString();
       struct.set_flags_isSet(true);
-      BitSet incoming = iprot.readBitSet(2);
-      if (incoming.get(0)) {
-        struct.host_name = iprot.readString();
-        struct.set_host_name_isSet(true);
-      }
-      if (incoming.get(1)) {
-        struct.port_number = iprot.readI32();
-        struct.set_port_number_isSet(true);
-      }
+      struct.host_name = iprot.readString();
+      struct.set_host_name_isSet(true);
+      struct.port_number = iprot.readI32();
+      struct.set_port_number_isSet(true);
     }
   }
 
