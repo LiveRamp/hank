@@ -101,8 +101,11 @@ public class HostController extends Controller {
     PartitionServerAddress address = PartitionServerAddress.parse(req.getParameter("hostAddress"));
     if (!h.getAddress().equals(address)) {
       h.setAddress(address);
+      // Redirect to Ring (host address has changed)
+      resp.sendRedirect("/ring.jsp?g=" + rg.getName() + "&n=" + r.getRingNumber());
+    } else {
+      redirectBack(resp, rg, r, h);
     }
-    redirectBack(resp, rg, r, h);
   }
 
   public static String getHostUrl(RingGroup ringGroup, Ring ring, Host host) {
