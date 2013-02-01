@@ -163,6 +163,7 @@ public class ZkHost extends AbstractHost {
     } catch (KeeperException e) {
       throw new IOException(e);
     }
+    fireDataLocationChangeListener();
   }
 
   @Override
