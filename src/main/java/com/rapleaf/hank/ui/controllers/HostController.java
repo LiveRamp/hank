@@ -98,7 +98,10 @@ public class HostController extends Controller {
     Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
     Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
     h.setFlags(Hosts.splitHostFlags(req.getParameter("hostFlags")));
-    h.setAddress(PartitionServerAddress.parse(req.getParameter("hostAddress")));
+    PartitionServerAddress address = PartitionServerAddress.parse(req.getParameter("hostAddress"));
+    if (!h.getAddress().equals(address)) {
+      h.setAddress(address);
+    }
     redirectBack(resp, rg, r, h);
   }
 
