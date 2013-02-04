@@ -41,6 +41,7 @@ public class HankApiHelper {
     public boolean isClosed;
     public Long closedAt;
     public DomainVersionProperties properties;
+    public boolean isDefunct;
   }
 
   public static class DomainData extends HankApiData {
@@ -218,6 +219,7 @@ public class HankApiHelper {
     data.isClosed = DomainVersions.isClosed(version);
     data.closedAt = version.getClosedAt();
     data.properties = version.getProperties();
+    data.isDefunct = version.isDefunct();
 
     return data;
   }
