@@ -127,7 +127,7 @@ public class TestHankSyncSmartClient extends BaseTestCase {
       }
     };
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return server1.isServing() && server2.isServing();

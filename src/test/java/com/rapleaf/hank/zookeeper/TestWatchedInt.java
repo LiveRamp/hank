@@ -33,7 +33,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(1), wi.get());
 
     zk.setData(nodePath, "55".getBytes(), -1);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         Integer v = wi.get();
@@ -43,7 +43,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(55), wi.get());
 
     zk.setData(nodePath, null, -1);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return wi.get() == null;
@@ -52,7 +52,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertNull(wi.get());
 
     final WatchedInt wi2 = new WatchedInt(zk, nodePath, true);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return wi2.get() == null;
@@ -60,11 +60,12 @@ public class TestWatchedInt extends ZkTestCase {
     });
     assertNull(wi2.get());
     wi2.set(22);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
-        Integer v = wi2.get();
-        return v != null && v == 22;
+        Integer v = wi.get();
+        Integer v2 = wi2.get();
+        return v2 != null && v2 == 22 && v != null && v == 22;
       }
     });
     assertEquals(Integer.valueOf(22), wi2.get());
@@ -92,8 +93,7 @@ public class TestWatchedInt extends ZkTestCase {
     for (int i = 0; i < finalValue; ++i) {
       wi.update(incrementer);
     }
-    Thread.sleep(100);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return Integer.valueOf(finalValue).equals(wi.get());

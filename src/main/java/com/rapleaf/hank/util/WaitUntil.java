@@ -24,4 +24,14 @@ public class WaitUntil {
       exponentialBackoff.backoff();
     }
   }
+
+  public static void orDie(Condition condition) throws InterruptedException {
+    ExponentialBackoff exponentialBackoff = new ExponentialBackoff();
+    while (!condition.test()) {
+      if (exponentialBackoff.isMaxedOut()) {
+        throw new RuntimeException("Timed out while waiting for exception to test true: " + condition);
+      }
+      exponentialBackoff.backoff();
+    }
+  }
 }

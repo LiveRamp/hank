@@ -44,4 +44,8 @@ public class ExponentialBackoff {
   public long getBackoffMs() {
     return backoffMs;
   }
+
+  public boolean isMaxedOut() {
+    return backoffMs >= maximumBackoffMs;
+  }
 }

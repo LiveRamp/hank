@@ -59,13 +59,23 @@ public class TestZkHost extends ZkTestCase {
 
     host.setEphemeralStatistic("a", "A");
     host.setEphemeralStatistic("b", "B");
-    Thread.sleep(10);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return "A".equals(host.getStatistic("a"))
+              && "B".equals(host.getStatistic("b"));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertEquals("A", host.getStatistic("a"));
     assertEquals("B", host.getStatistic("b"));
     assertNull(host.getStatistic("c"));
 
     host.setAddress(OTHER_ADDRESS);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return host.getAddress().equals(OTHER_ADDRESS);
@@ -101,12 +111,12 @@ public class TestZkHost extends ZkTestCase {
     assertFalse(Hosts.isOnline(host));
 
     host.setState(HostState.IDLE);
-    Thread.sleep(100);
+    waitUntilHost(HostState.IDLE, host);
     assertEquals(HostState.IDLE, host.getState());
     assertTrue(Hosts.isOnline(host));
 
     host.setState(HostState.OFFLINE);
-    Thread.sleep(100);
+    waitUntilHost(HostState.OFFLINE, host);
     assertEquals(HostState.OFFLINE, host.getState());
     assertFalse(Hosts.isOnline(host));
     host.close();
@@ -126,7 +136,7 @@ public class TestZkHost extends ZkTestCase {
     assertNull(host.getCurrentCommand());
 
     assertEquals(HostCommand.GO_TO_IDLE, host.nextCommand());
-    Thread.sleep(10);
+    waitUntilCommand(HostCommand.GO_TO_IDLE, host);
     assertEquals(HostCommand.GO_TO_IDLE, host.getCurrentCommand());
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), host.getCommandQueue());
 
@@ -195,7 +205,7 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(0, host.getAssignedDomains().size());
 
     host.addDomain(d0);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {

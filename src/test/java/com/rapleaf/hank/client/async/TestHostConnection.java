@@ -37,7 +37,6 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TTransportException;
 
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -111,8 +110,7 @@ public class TestHostConnection extends BaseTestCase {
       }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
-    }
-    finally {
+    } finally {
       connection.setIsBusy(false);
     }
   }
@@ -128,8 +126,7 @@ public class TestHostConnection extends BaseTestCase {
       }
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
-    }
-    finally {
+    } finally {
       connection.setIsBusy(false);
     }
   }
@@ -178,11 +175,11 @@ public class TestHostConnection extends BaseTestCase {
 
     try {
       new HostConnection(mockHost,
-              null,
-              new TAsyncClientManager(),
-              establishConnectionTimeoutMs,
-              queryTimeoutMs,
-              bulkQueryTimeoutMs);
+          null,
+          new TAsyncClientManager(),
+          establishConnectionTimeoutMs,
+          queryTimeoutMs,
+          bulkQueryTimeoutMs);
 
       fail("Should fail");
     } catch (NotImplementedException e) {
@@ -192,6 +189,7 @@ public class TestHostConnection extends BaseTestCase {
 
   class NotifierMock implements Runnable {
     public boolean notified = false;
+
     @Override
     public void run() {
       notified = true;
@@ -204,11 +202,11 @@ public class TestHostConnection extends BaseTestCase {
     NotifierMock notifier = new NotifierMock();
 
     HostConnection connection = new HostConnection(mockHost,
-            notifier,
-            new TAsyncClientManager(),
-            0,
-            queryTimeoutMs,
-            bulkQueryTimeoutMs);
+        notifier,
+        new TAsyncClientManager(),
+        0,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs);
     mockHost.setState(HostState.SERVING);
     connect(connection);
 
@@ -253,11 +251,11 @@ public class TestHostConnection extends BaseTestCase {
     HankTimer timer = new HankTimer();
 
     HostConnection connection = new HostConnection(mockHost,
-            null,
-            new TAsyncClientManager(),
-            0,
-            100,
-            100);
+        null,
+        new TAsyncClientManager(),
+        0,
+        100,
+        100);
     mockHost.setState(HostState.SERVING);
 
     // Test GET Timeout

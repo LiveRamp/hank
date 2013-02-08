@@ -15,14 +15,18 @@
  */
 package com.rapleaf.hank;
 
-import java.io.File;
-
+import com.rapleaf.hank.coordinator.Host;
+import com.rapleaf.hank.coordinator.HostCommand;
+import com.rapleaf.hank.coordinator.HostState;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.FsUtils;
+import com.rapleaf.hank.util.WaitUntil;
 import junit.framework.TestCase;
-
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.rapleaf.hank.util.FsUtils;
+import java.io.File;
+import java.io.IOException;
 
 public abstract class BaseTestCase extends TestCase {
   static {
@@ -38,5 +42,31 @@ public abstract class BaseTestCase extends TestCase {
     new File(localTmpDir).mkdirs();
     System.err.println("------ test start ------");
     System.out.println("------ test start ------");
+  }
+
+  protected void waitUntilHost(final HostState state, final Host host) throws InterruptedException {
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return state.equals(host.getState());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+  }
+
+  protected void waitUntilCommand(final HostCommand command, final Host host) throws InterruptedException {
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return command.equals(host.getCurrentCommand());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
   }
 }

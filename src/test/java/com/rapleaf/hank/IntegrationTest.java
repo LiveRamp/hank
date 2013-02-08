@@ -227,7 +227,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName(), Collections.<String>emptyList());
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return coordinator.getDomain("domain0") != null && coordinator.getDomain("domain1") != null;
@@ -261,7 +261,7 @@ public class IntegrationTest extends ZkTestCase {
 
     writeOut(coordinator.getDomain("domain1"), domain1DataItems, 0, DOMAIN_1_DATAFILES);
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {
@@ -276,7 +276,7 @@ public class IntegrationTest extends ZkTestCase {
     // configure domain group
     coordinator.addDomainGroup("dg1");
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return coordinator.getDomainGroup("dg1") != null;
@@ -399,7 +399,7 @@ public class IntegrationTest extends ZkTestCase {
     domainGroup.setDomainVersions(versionMap);
 
     // wait until domain group change propagates
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {
@@ -478,7 +478,7 @@ public class IntegrationTest extends ZkTestCase {
     Rings.commandAll(rg1r1, HostCommand.SERVE_DATA);
 
     // Wait until the ring is online
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {
@@ -517,7 +517,7 @@ public class IntegrationTest extends ZkTestCase {
 
   private void waitForRingGroupToFinishUpdating(final RingGroup rg, final DomainGroup domainGroup)
       throws IOException, InterruptedException {
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         LOG.info("Ring group is not yet at the correct version. Continuing to wait.");

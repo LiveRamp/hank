@@ -76,7 +76,7 @@ public class TestZkDomain extends ZkTestCase {
     assertNotNull(version);
     assertEquals(1, version.getVersionNumber());
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {
@@ -98,7 +98,7 @@ public class TestZkDomain extends ZkTestCase {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     assertNotNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));
     assertTrue(dc.delete());
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {

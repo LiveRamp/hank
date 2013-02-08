@@ -72,7 +72,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     map1.put(d1, 0);
     dg.setDomainVersions(map1);
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {
@@ -93,7 +93,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     map2.put(d1, 1);
     dg.setDomainVersions(map2);
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {

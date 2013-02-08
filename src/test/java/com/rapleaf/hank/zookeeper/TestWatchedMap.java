@@ -1,9 +1,11 @@
 package com.rapleaf.hank.zookeeper;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-
+import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
+import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
+import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.zookeeper.CreateMode;
@@ -11,10 +13,9 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
 
-import com.rapleaf.hank.ZkTestCase;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionAwaiter;
-import com.rapleaf.hank.zookeeper.WatchedMap.CompletionDetector;
-import com.rapleaf.hank.zookeeper.WatchedMap.ElementLoader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TestWatchedMap extends ZkTestCase {
   private static final class StringElementLoader implements ElementLoader<String> {
@@ -47,9 +48,21 @@ public class TestWatchedMap extends ZkTestCase {
     final WatchedMap<String> c1 = new WatchedMap<String>(zk, colRoot, elementLoader);
     dumpZk();
 
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return 0 == c1.size();
+      }
+    });
     assertEquals(0, c1.size());
     zk.create(ZkPath.append(colRoot, "first"), "data".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-    Thread.sleep(1000);
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return 1 == c1.size();
+      }
+    });
     assertEquals(1, c1.size());
   }
 
@@ -81,14 +94,24 @@ public class TestWatchedMap extends ZkTestCase {
     getZk().create(ZkPath.append(getRoot(), "node"), "blah".getBytes(), Ids.OPEN_ACL_UNSAFE,
         CreateMode.PERSISTENT);
     // wait for notification to propagate
-    Thread.sleep(1000);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return b.get();
+      }
+    });
     // the detector should have been invoked...
     assertTrue(b.get());
     // ...but it still shouldn't have come through to the actual map, since
     // there's a delay in the completion detector.
     assertEquals(0, m.size());
     // after waiting a bit, the completion detector should notify the awaiter
-    Thread.sleep(2000);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return 1 == m.size();
+      }
+    });
     assertEquals(1, m.size());
   }
 
@@ -100,7 +123,12 @@ public class TestWatchedMap extends ZkTestCase {
       put("1", "2");
     }}, m);
     getZk().delete(ZkPath.append(getRoot(), "map/1"), 0);
-    Thread.sleep(1000);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return Collections.EMPTY_MAP.equals(m);
+      }
+    });
     assertEquals(Collections.EMPTY_MAP, m);
   }
 }

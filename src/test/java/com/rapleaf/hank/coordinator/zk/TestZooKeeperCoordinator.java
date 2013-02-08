@@ -20,6 +20,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.storage.constant.ConstantStorageEngine;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
 import java.util.Collections;
@@ -67,7 +69,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
   public void testAddDomainGroup() throws Exception {
     // keep a second coordinator aside
-    ZooKeeperCoordinator coord2 = getCoord();
+    final ZooKeeperCoordinator coord2 = getCoord();
     coord.addDomainGroup("myDomainGroup2");
 
     DomainGroup c = coord.getDomainGroup("myDomainGroup2");
@@ -77,13 +79,13 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
 
     // repeat the assertions with the other coord instance to ensure changes are
     // visible
-    for (int i = 0; i < 300; i++) {
-      c = coord2.getDomainGroup("myDomainGroup2");
-      if (c != null) {
-        break;
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return coord2.getDomainGroup("myDomainGroup2") != null;
       }
-      Thread.sleep(100);
-    }
+    });
 
     assertNotNull("myDomainGroup2 should be found", c);
     assertEquals("myDomainGroup2", c.getName());

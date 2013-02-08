@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class ZkTestCase extends BaseTestCase {
+
   private static final Logger LOG = Logger.getLogger(ZkTestCase.class);
 
   private static final int TICK_TIME = 2000;
@@ -138,7 +139,7 @@ public abstract class ZkTestCase extends BaseTestCase {
     LOG.debug("session timeout: " + zk.getSessionTimeout());
 
     zk.deleteNodeRecursively(zkRoot);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         try {

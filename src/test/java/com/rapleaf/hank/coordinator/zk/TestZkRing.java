@@ -67,7 +67,7 @@ public class TestZkRing extends ZkTestCase {
     Host host = ring.addHost(LOCALHOST, Collections.<String>emptyList());
     assertEquals(LOCALHOST, host.getAddress());
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return !ring.getHosts().isEmpty();
@@ -89,7 +89,7 @@ public class TestZkRing extends ZkTestCase {
     // Rename that host
     sameRing.getHostByAddress(LOCALHOST).setAddress(LOCALHOST2);
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return sameRing.getHostByAddress(LOCALHOST2) != null &&
@@ -119,7 +119,7 @@ public class TestZkRing extends ZkTestCase {
     ring.addHost(new PartitionServerAddress("localhost", 2), Collections.<String>emptyList());
 
     h1.setState(HostState.UPDATING);
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return HostState.UPDATING == l2.calledWith;

@@ -280,7 +280,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return iface1.numGets == 5
@@ -315,7 +315,7 @@ public class TestHostConnectionPool extends BaseTestCase {
       }
     }
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return iface1.numGets == 5
@@ -398,7 +398,7 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress1);
     mockPartitionServerThread1 = new Thread(mockPartitionServer1);
     mockPartitionServerThread1.start();
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return mockPartitionServer1.dataServer != null
@@ -413,7 +413,7 @@ public class TestHostConnectionPool extends BaseTestCase {
         partitionServerAddress2);
     mockPartitionServerThread2 = new Thread(mockPartitionServer2);
     mockPartitionServerThread2.start();
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return mockPartitionServer2.dataServer != null

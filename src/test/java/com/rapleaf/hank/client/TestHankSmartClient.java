@@ -210,7 +210,7 @@ public class TestHankSmartClient extends BaseTestCase {
       }
     };
 
-    WaitUntil.condition(new Condition() {
+    WaitUntil.orDie(new Condition() {
       @Override
       public boolean test() {
         return server1.isServing() && server2.isServing() && server3.isServing();
@@ -306,7 +306,7 @@ public class TestHankSmartClient extends BaseTestCase {
       client.onDataLocationChange(mockCoord.getRingGroup("myRingGroup"));
 
       // Should be able to query new domain when the client has done updating its cache
-      WaitUntil.condition(new Condition() {
+      WaitUntil.orDie(new Condition() {
         @Override
         public boolean test() {
           return HankResponse.value(VALUE_3).equals(client.get("new_domain", KEY_3));

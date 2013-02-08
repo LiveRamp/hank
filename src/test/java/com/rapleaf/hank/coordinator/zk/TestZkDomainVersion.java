@@ -4,9 +4,13 @@ import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersions;
 import com.rapleaf.hank.generated.PartitionMetadata;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
+
+import java.io.IOException;
 
 public class TestZkDomainVersion extends ZkTestCase {
 
@@ -38,28 +42,46 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testCloseVersion() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
+    final DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
     assertEquals(1, dv.getVersionNumber());
     assertNull(dv.getClosedAt());
     assertFalse(DomainVersions.isClosed(dv));
 
     dv.close();
-    Thread.sleep(100);
-
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dv.getClosedAt() != null;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertNotNull(dv.getClosedAt());
     assertTrue(DomainVersions.isClosed(dv));
   }
 
   public void testPartitionMetadata() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
-    DomainVersion dv2 = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "v/1"), null);
+    final DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
+    final DomainVersion dv2 = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "v/1"), null);
 
     assertTrue(dv.getPartitionsMetadata().isEmpty());
     assertTrue(dv2.getPartitionsMetadata().isEmpty());
 
     dv.addPartitionProperties(1, 2, 3);
 
-    Thread.sleep(100);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dv.getPartitionsMetadata().size() == 1 &&
+              dv2.getPartitionsMetadata().size() == 1;
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
     assertEquals(1, dv.getPartitionsMetadata().size());
     assertEquals(1, dv2.getPartitionsMetadata().size());
@@ -69,19 +91,37 @@ public class TestZkDomainVersion extends ZkTestCase {
   }
 
   public void testDefunct() throws Exception {
-    DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
+    final DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
     DomainVersion otherDv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "v/1"), null);
 
     assertFalse(dv.isDefunct());
     assertFalse(otherDv.isDefunct());
 
     dv.setDefunct(true);
-    Thread.sleep(1000);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return dv.isDefunct();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertTrue(dv.isDefunct());
     assertTrue(otherDv.isDefunct());
 
     dv.setDefunct(false);
-    Thread.sleep(1000);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return !dv.isDefunct();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertFalse(dv.isDefunct());
     assertFalse(otherDv.isDefunct());
   }

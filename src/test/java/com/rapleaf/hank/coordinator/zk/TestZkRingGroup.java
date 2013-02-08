@@ -21,8 +21,11 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.ring_group_conductor.RingGroupConductorMode;
+import com.rapleaf.hank.util.Condition;
+import com.rapleaf.hank.util.WaitUntil;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
+import java.io.IOException;
 import java.util.Collections;
 
 public class TestZkRingGroup extends ZkTestCase {
@@ -91,39 +94,49 @@ public class TestZkRingGroup extends ZkTestCase {
     MockDomainGroup dg = new MockDomainGroup("myDomainGroup");
     ZkRingGroup rg = new ZkRingGroup(getZk(), ring_group, dg, coordinator);
 
-    MockRingGroupDataLocationChangeListener dataLocationChangeListener = new MockRingGroupDataLocationChangeListener();
+    final MockRingGroupDataLocationChangeListener dataLocationChangeListener = new MockRingGroupDataLocationChangeListener();
 
     rg.addDataLocationChangeListener(dataLocationChangeListener);
 
     assertFalse(dataLocationChangeListener.isCalled());
 
     Host host = rg.getRing(1).addHost(address, Collections.<String>emptyList());
-    Thread.sleep(100);
-
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return dataLocationChangeListener.isCalled;
+      }
+    });
     assertTrue(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     HostDomain hostDomain = host.addDomain(new MockDomain("domain"));
-    Thread.sleep(100);
-
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return dataLocationChangeListener.isCalled;
+      }
+    });
     assertTrue(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     HostDomainPartition hostDomainPartition = hostDomain.addPartition(0);
     Thread.sleep(100);
-
     assertFalse(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     hostDomainPartition.setDeletable(true);
     Thread.sleep(100);
-
     assertFalse(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     rg.getRing(1).getHostByAddress(address).setState(HostState.SERVING);
-    Thread.sleep(100);
-
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return dataLocationChangeListener.isCalled;
+      }
+    });
     assertTrue(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
   }
@@ -131,7 +144,7 @@ public class TestZkRingGroup extends ZkTestCase {
   public void testClaimRingGroupConductor() throws Exception {
     ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
     dg.setDomainVersions(Collections.<Domain, Integer>emptyMap());
-    RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg, coordinator);
+    final RingGroup rg = ZkRingGroup.create(getZk(), ring_group, dg, coordinator);
     create(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH));
     assertFalse(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
     getZk().delete(ZkPath.append(ring_group, ZkRingGroup.RING_GROUP_CONDUCTOR_ONLINE_PATH), -1);
@@ -139,7 +152,16 @@ public class TestZkRingGroup extends ZkTestCase {
     assertFalse(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
     rg.releaseRingGroupConductor();
     assertTrue(rg.claimRingGroupConductor(RingGroupConductorMode.ACTIVE));
-    Thread.sleep(100);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return RingGroupConductorMode.ACTIVE.equals(rg.getRingGroupConductorMode());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     assertEquals(RingGroupConductorMode.ACTIVE, rg.getRingGroupConductorMode());
   }
 
