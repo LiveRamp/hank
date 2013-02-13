@@ -10,7 +10,12 @@ shift
 ARGS=$@
 
 # Load environment variables
-. "$CONFDIR"/env.sh
+ENV_FILE="$CONFDIR"/env.sh
+if [ -f "$CONFDIR"/ring_group_conductor_extra.sh ]; then
+  . $ENV_FILE
+else
+  echo "Warning: environment configuration file was not found: $ENV_FILE"
+fi
 
 SERVER_CLASS='com.rapleaf.hank.partition_server.PartitionServer'
 UI_CLASS='com.rapleaf.hank.ui.WebUiServer'
