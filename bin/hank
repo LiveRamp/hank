@@ -52,7 +52,9 @@ function start-component {
  JVM_OPTS=$1
  shift
  ARGS=$@
- echo "HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
+ COMMAND="HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
+ echo "$COMMAND"
+ nohup $COMMAND &
 }
 
 function stop-component {
