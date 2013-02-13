@@ -1,0 +1,90 @@
+#!/bin/bash
+
+BINDIR=`dirname "$0"`
+CONFDIR="$BINDIR/../conf"
+JOBJAR=`find $BINDIR/../ -name 'hank*.jobjar.jar'`
+COMPONENT=$1
+shift
+COMMAND=$1
+shift
+ARGS=$@
+
+# Load environment variables
+. "$CONFDIR"/env.sh
+
+SERVER_CLASS='com.rapleaf.hank.partition_server.PartitionServer'
+UI_CLASS='com.rapleaf.hank.ui.WebUiServer'
+CONDUCTOR_CLASS='com.rapleaf.hank.ring_group_conductor.RingGroupConductor'
+
+# Default OPTS
+
+HANK_SERVER_OPTS="$HANK_SERVER_OPTS -XX:+UseConcMarkSweepGC"
+HANK_UI_OPTS="$HANK_UI_OPTS -XX:+UseConcMarkSweepGC"
+HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
+
+function start-server {
+  start-component $SERVER_CLASS $HANK_SERVER_OPTS $ARGS
+}
+
+function stop-server {
+  stop-component $SERVER_CLASS
+}
+
+function start-ui {
+  start-component $UI_CLASS $HANK_UI_OPTS $ARGS
+}
+
+function stop-ui {
+  stop-component $UI_CLASS
+}
+
+function start-conductor {
+  start-component $CONDUCTOR_CLASS $HANK_CONDUCTOR_OPTS $ARGS
+}
+
+function stop-conductor {
+  stop-component $CONDUCTOR_CLASS
+}
+
+function start-component {
+ CLASSNAME=$1
+ shift
+ JVM_OPTS=$1
+ shift
+ ARGS=$@
+ echo "HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
+}
+
+function stop-component {
+  CLASSNAME=$1
+  for PID in `jps -l | grep $CLASSNAME | cut -d ' ' -f 1`; do
+    echo "Killing $PID $CLASSNAME"
+    kill $PID
+  done
+}
+
+function main {
+
+  case $COMMAND in
+    "start");;
+    "stop");;
+    "restart");;
+    *) echo "Invalid command: $COMMAND"; exit 1;;
+  esac
+
+  case $COMPONENT in
+    "server");;
+    "ui");;
+    "conductor");;
+    *) echo "Invalid component: $COMPONENT" ; exit 1;;
+  esac
+
+  if [ $COMMAND == "restart" ]; then
+    stop-$COMPONENT
+    start-$COMPONENT
+  else
+    $COMMAND-$COMPONENT
+  fi
+}
+
+main
