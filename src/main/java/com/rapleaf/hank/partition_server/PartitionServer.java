@@ -49,7 +49,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
   private static final String FILESYSTEM_STATISTICS_KEY = "filesystem_statistics";
 
-  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 5000;
+  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 1000;
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
