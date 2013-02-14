@@ -2,7 +2,7 @@
 
 BINDIR=`dirname "$0"`
 CONFDIR="$BINDIR/../conf"
-JOBJAR=`find $BINDIR/../ -name 'hank*.jobjar.jar'`
+JOBJAR=`find $BINDIR/../ -name 'hank*-jobjar.jar'`
 COMPONENT=$1
 shift
 COMMAND=$1
