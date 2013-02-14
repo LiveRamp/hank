@@ -28,7 +28,8 @@ HANK_UI_OPTS="$HANK_UI_OPTS -XX:+UseConcMarkSweepGC"
 HANK_CONDUCTOR_OPTS="$HANK_CONDUCTOR_OPTS -XX:+UseConcMarkSweepGC"
 
 function start-server {
-  start-component $SERVER_CLASS $HANK_SERVER_OPTS $ARGS
+  set-opts $HANK_SERVER_OPTS
+  start-component $SERVER_CLASS $ARGS
 }
 
 function stop-server {
@@ -36,7 +37,8 @@ function stop-server {
 }
 
 function start-ui {
-  start-component $UI_CLASS $HANK_UI_OPTS $ARGS
+  set-opts $HANK_UI_OPTS
+  start-component $UI_CLASS $ARGS
 }
 
 function stop-ui {
@@ -44,17 +46,20 @@ function stop-ui {
 }
 
 function start-conductor {
-  start-component $CONDUCTOR_CLASS $HANK_CONDUCTOR_OPTS $ARGS
+  set-opts $HANK_CONDUCTOR_OPTS
+  start-component $CONDUCTOR_CLASS $ARGS
 }
 
 function stop-conductor {
   stop-component $CONDUCTOR_CLASS
 }
 
+function set-opts {
+  JVM_OPTS=$@
+}
+
 function start-component {
  CLASSNAME=$1
- shift
- JVM_OPTS=$1
  shift
  ARGS=$@
  COMMAND="HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
