@@ -59,7 +59,7 @@ function start-component {
  ARGS=$@
  COMMAND="HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
  echo "$COMMAND"
- $COMMAND
+ eval $COMMAND
 }
 
 function stop-component {
