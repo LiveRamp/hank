@@ -11,7 +11,7 @@ ARGS=$@
 
 # Load environment variables
 ENV_FILE="$CONFDIR"/env.sh
-if [ -f "$CONFDIR"/ring_group_conductor_extra.sh ]; then
+if [ -f $ENV_FILE ]; then
   . $ENV_FILE
 else
   echo "Warning: environment configuration file was not found: $ENV_FILE"
