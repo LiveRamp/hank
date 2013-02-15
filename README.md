@@ -1,12 +1,9 @@
 Project hank
 ========
 
-Hank is an open-source system for running distributed, highly-scalable, low-latency, batch-writable-only, key-value datastores. You can find a much more detailed description of the project at:
+Hank is an open-source system for running distributed, highly-scalable, low-latency, batch-writable-only, key-value datastores. You can find a much more detailed description of the project [here](https://docs.google.com/document/d/1tam5b83GE2NnDti5o7giU-vBb-fpqu0ZJWgokrOSJo0/edit).
 
-https://docs.google.com/document/d/1tam5b83GE2NnDti5o7giU-vBb-fpqu0ZJWgokrOSJo0/edit
-
-Something you might find helpful (necessary?) when configuring Curly and Cueball domains:
-https://docs.google.com/spreadsheet/ccc?key=0AvnnKDkRGJGodHM5TVk5eXdHMFIzcEJ4cDJWZTJadEE
+Some tips helpful when configuring Curly and Cueball domains can be found [here](https://docs.google.com/spreadsheet/ccc?key=0AvnnKDkRGJGodHM5TVk5eXdHMFIzcEJ4cDJWZTJadEE).
 
 Download
 ====
