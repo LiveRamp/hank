@@ -10,7 +10,7 @@ shift
 ARGS=$@
 
 # Load environment variables
-ENV_FILE="$CONFDIR"/env.sh
+ENV_FILE="$CONFDIR"/hank-env.sh
 if [ -f $ENV_FILE ]; then
   . $ENV_FILE
 else
@@ -62,7 +62,7 @@ function start-component {
  CLASSNAME=$1
  shift
  ARGS=$@
- COMMAND="HADOOP_OPTS='$HADOOP_OPTS $JVM_OPTS' hadoop jar $JOBJAR $CLASSNAME $ARGS"
+ COMMAND="java $JVM_OPTS jar $JOBJAR $CLASSNAME $ARGS"
  echo "$COMMAND"
  eval $COMMAND
 }
