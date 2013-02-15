@@ -92,8 +92,8 @@ public class TestHostConnection extends BaseTestCase {
 
     int tryLockTimeoutMs = 1000;
     int establishConnectionTimeoutMs = 1000;
-    int queryTimeoutMs = 100;
-    int bulkQueryTimeoutMs = 100;
+    int queryTimeoutMs = 1000;
+    int bulkQueryTimeoutMs = 1000;
 
     HostConnection connection = new HostConnection(mockHost,
         tryLockTimeoutMs,
