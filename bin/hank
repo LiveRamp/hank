@@ -62,7 +62,7 @@ function start-component {
  CLASSNAME=$1
  shift
  ARGS=$@
- COMMAND="java $JVM_OPTS -cp $JOBJAR $CLASSNAME $ARGS"
+ COMMAND="java $JVM_OPTS -cp $HANK_CLASSPATH:$JOBJAR $CLASSNAME $ARGS"
  echo "$COMMAND"
  eval $COMMAND
 }
