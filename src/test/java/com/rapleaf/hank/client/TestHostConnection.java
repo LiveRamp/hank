@@ -101,15 +101,17 @@ public class TestHostConnection extends BaseTestCase {
         queryTimeoutMs,
         bulkQueryTimeoutMs);
 
-    // Should not query a non serving host
+    // Should not query an idle host
     mockHost.setState(HostState.IDLE);
     try {
       connection.get(0, KEY_1);
+      fail("Should fail");
     } catch (Exception e) {
       assertEquals("Connection to host is not available (host is not serving).", e.getMessage());
     }
     try {
       connection.getBulk(0, Collections.singletonList(KEY_1));
+      fail("Should fail");
     } catch (Exception e) {
       assertEquals("Connection to host is not available (host is not serving).", e.getMessage());
     }
@@ -117,6 +119,11 @@ public class TestHostConnection extends BaseTestCase {
     // Should succeed quering a serving host
     mockHost.setState(HostState.SERVING);
     startMockPartitionServerThread(mockIface, 1);
+    assertEquals(RESPONSE_1, connection.get(0, KEY_1));
+    assertEquals(RESPONSE_BULK_1, connection.getBulk(0, Collections.singletonList(KEY_1)));
+
+    // Should try to query an "offline" host only if that is the only option
+    mockHost.setState(HostState.OFFLINE);
     assertEquals(RESPONSE_1, connection.get(0, KEY_1));
     assertEquals(RESPONSE_BULK_1, connection.getBulk(0, Collections.singletonList(KEY_1)));
   }

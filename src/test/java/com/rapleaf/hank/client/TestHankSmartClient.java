@@ -277,22 +277,17 @@ public class TestHankSmartClient extends BaseTestCase {
         // Good
       }
 
-      // Host state change
-      host1.setState(HostState.OFFLINE);
+      // Host is not available
+      host1.setState(HostState.UPDATING);
       assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
           client.get("existent_domain", KEY_1));
-      bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
 
-      host2.setState(HostState.UPDATING);
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          client.get("existent_domain", KEY_1));
-      assertEquals(HankResponse.xception(HankException.no_connection_available(true)),
-          client.get("existent_domain", KEY_2));
+      // Host is offline but it's the only one, use it opportunistically
+      host2.setState(HostState.OFFLINE);
+      assertEquals(HankResponse.value(VALUE_2), client.get("existent_domain", KEY_2));
 
       host1.setState(HostState.SERVING);
       host2.setState(HostState.SERVING);
-      bulkResponse1.get_responses().add(HankResponse.value(VALUE_1));
-      bulkResponse1.get_responses().add(HankResponse.value(VALUE_2));
 
       // Test location changes
 

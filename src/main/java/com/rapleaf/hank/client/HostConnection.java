@@ -50,14 +50,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
   private PartitionServer.Client client;
   private final Host host;
   protected final ReentrantLock lock = new ReentrantLock(true); // Use a fair ReentrantLock
-  private HostConnectionState state = HostConnectionState.DISCONNECTED;
-
-  private static enum HostConnectionState {
-    CONNECTED,
-    DISCONNECTED,
-    // STANDBY: we are waiting for the host to be SERVING
-    STANDBY
-  }
 
   // A timeout of 0 means no timeout
   public HostConnection(Host host,
@@ -78,12 +70,24 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     return host;
   }
 
-  boolean isAvailable() {
-    return state != HostConnectionState.STANDBY;
+  boolean isServing() {
+    try {
+      return HostState.SERVING.equals(host.getState());
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  boolean isOffline() {
+    try {
+      return HostState.OFFLINE.equals(host.getState());
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   private boolean isDisconnected() {
-    return state == HostConnectionState.DISCONNECTED;
+    return client == null;
   }
 
   private void lock() {
@@ -126,13 +130,13 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       }
     }
     try {
+      // Check availability
+      if (!isServing() && !isOffline()) {
+        throw new IOException("Connection to host is not available (host is not serving).");
+      }
       // Connect if necessary
       if (isDisconnected()) {
         connect();
-      }
-      // Check availability
-      if (!isAvailable()) {
-        throw new IOException("Connection to host is not available (host is not serving).");
       }
       // Query timeout is by default always set to regular mode
       // Perform query
@@ -160,15 +164,15 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       }
     }
     try {
+      // Check availability
+      if (!isServing() && !isOffline()) {
+        throw new IOException("Connection to host is not available (host is not serving).");
+      }
       // Connect if necessary
       if (isDisconnected()) {
         connect();
       }
       try {
-        // Check availability
-        if (!isAvailable()) {
-          throw new IOException("Connection to host is not available (host is not serving).");
-        }
         // Set socket timeout to bulk mode
         setSocketTimeout(bulkQueryTimeoutMs);
         // Perform query
@@ -198,7 +202,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     socket = null;
     transport = null;
     client = null;
-    state = HostConnectionState.DISCONNECTED;
   }
 
   private void connect() throws IOException {
@@ -224,7 +227,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
     if (LOG.isTraceEnabled()) {
       LOG.trace("Connection to " + host.getAddress() + " opened.");
     }
-    state = HostConnectionState.CONNECTED;
   }
 
   private void setSocketTimeout(int timeout) {
@@ -253,7 +255,6 @@ public class HostConnection implements WatchedNodeListener<HostState> {
       lock();
       try {
         disconnect();
-        state = HostConnectionState.STANDBY;
       } finally {
         unlock();
       }

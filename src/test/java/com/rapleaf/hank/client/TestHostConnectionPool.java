@@ -172,6 +172,48 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
     assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
     assertEquals("All keys should have been found", 10, numHits);
+
+    iface1.clearCounts();
+    iface2.clearCounts();
+
+    // Only one is reporting "offline", we should not attempt to query it
+
+    mockHost1.setState(HostState.SERVING);
+    mockHost2.setState(HostState.OFFLINE);
+
+    numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      assertEquals(RESPONSE_1, response);
+      if (response.is_set_value()) {
+        ++numHits;
+      }
+    }
+    assertEquals("Online host should receive all queries", 10, iface1.numGets);
+    assertEquals("Offline host should receive no query", 0, iface2.numGets);
+    assertEquals("All keys should have been found", 10, numHits);
+
+    iface1.clearCounts();
+    iface2.clearCounts();
+
+    // Both are reporting "offline", we should attempt to query them opportunistically
+
+    mockHost1.setState(HostState.OFFLINE);
+    mockHost2.setState(HostState.OFFLINE);
+
+    numHits = 0;
+
+    for (int i = 0; i < 10; ++i) {
+      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      assertEquals(RESPONSE_1, response);
+      if (response.is_set_value()) {
+        ++numHits;
+      }
+    }
+    assertEquals("Gets should be distributed accross hosts", 5, iface1.numGets);
+    assertEquals("Gets should be distributed accross hosts", 5, iface2.numGets);
+    assertEquals("All keys should have been found", 10, numHits);
   }
 
   public void testOneHankExceptions() throws IOException, TException, InterruptedException {

@@ -149,17 +149,6 @@ public class HostConnectionPool {
     return connections;
   }
 
-  public int getNumAvailableHosts() {
-    int result = 0;
-    for (List<HostConnectionAndHostIndex> connections : hostToConnections) {
-      // A host is available if at least one connection to it is available
-      if (connections.size() > 0 && connections.get(0).hostConnection.isAvailable()) {
-        result += 1;
-      }
-    }
-    return result;
-  }
-
   // Return a connection to a host, initially skipping the previously used host
   private synchronized HostConnectionAndHostIndex getConnectionToUse() {
     HostConnectionAndHostIndex result = getNextConnectionToUse(globalPreviouslyUsedHostIndex);
@@ -185,7 +174,7 @@ public class HostConnectionPool {
       List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
       for (HostConnectionAndHostIndex connectionAndHostIndex : connectionAndHostList) {
         // If a host has one unavaible connection, it is itself unavailable. Move on to the next host.
-        if (!connectionAndHostIndex.hostConnection.isAvailable()) {
+        if (!connectionAndHostIndex.hostConnection.isServing()) {
           break;
         }
         // If successful in locking a non locked connection, return it
@@ -208,9 +197,26 @@ public class HostConnectionPool {
           = connectionAndHostList.get(random.nextInt(connectionAndHostList.size()));
       // If a host has one unavaible connection, it is itself unavailable.
       // Move on to the next host. Otherwise, return it.
-      if (connectionAndHostIndex.hostConnection.isAvailable()) {
+      if (connectionAndHostIndex.hostConnection.isServing()) {
         // Note: here the returned connection is not locked.
         // Locking/unlocking it is not the responsibily of this method.
+        return connectionAndHostIndex;
+      }
+    }
+
+    // Here, host index is back to the same host we started with (it looped over twice)
+
+    // No random available connection was found, return a random connection that is not available.
+    // This is a worst case scenario only. For example when hosts miss a Zookeeper heartbeat and report
+    // offline when the Thrift partition server is actually still up. We then attempt to use an unavailable
+    // connection opportunistically, until the system recovers.
+    for (int tryId = 0; tryId < hostToConnections.size(); ++tryId) {
+      previouslyUsedHostIndex = getNextHostIndexToUse(previouslyUsedHostIndex);
+      List<HostConnectionAndHostIndex> connectionAndHostList = hostToConnections.get(previouslyUsedHostIndex);
+      // Pick a random connection for that host, and use it only if it is offline
+      HostConnectionAndHostIndex connectionAndHostIndex
+          = connectionAndHostList.get(random.nextInt(connectionAndHostList.size()));
+      if (connectionAndHostIndex.hostConnection.isOffline()) {
         return connectionAndHostIndex;
       }
     }

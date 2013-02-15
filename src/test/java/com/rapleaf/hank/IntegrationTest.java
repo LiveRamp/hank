@@ -299,8 +299,8 @@ public class IntegrationTest extends ZkTestCase {
 
     // add ring 2
     final Ring rg1r2 = rg1.addRing(2);
-    Host r2h1 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"), Collections.<String>emptyList());
-    Host r2h2 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"), Collections.<String>emptyList());
+    final Host r2h1 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50002"), Collections.<String>emptyList());
+    final Host r2h2 = rg1r2.addHost(PartitionServerAddress.parse("localhost:50003"), Collections.<String>emptyList());
 
     // Add domains
     // Domain0
@@ -433,6 +433,19 @@ public class IntegrationTest extends ZkTestCase {
     // take down hosts of one ring "unexpectedly"
     stopDaemons(new PartitionServerAddress("localhost", 50000));
     stopDaemons(new PartitionServerAddress("localhost", 50001));
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return HostState.OFFLINE.equals(r1h1.getState())
+              && HostState.OFFLINE.equals(r1h2.getState());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+
     Thread.sleep(1000);
 
     // keep making requests
@@ -454,21 +467,32 @@ public class IntegrationTest extends ZkTestCase {
     // take down other ring "unexpectedly"
     stopDaemons(new PartitionServerAddress("localhost", 50002));
     stopDaemons(new PartitionServerAddress("localhost", 50003));
-    Thread.sleep(1000);
+
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        try {
+          return HostState.OFFLINE.equals(r2h1.getState())
+              && HostState.OFFLINE.equals(r2h2.getState());
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
 
     // keep making requests
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(1)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(2)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(3)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(4)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(1)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(2)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(3)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(4)));
 
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain0", bb(99)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(99)));
 
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(4)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(3)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(2)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(1)));
-    assertEquals(HankResponse.xception(HankException.no_connection_available(true)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(3)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(2)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(1)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(5)));
 
     // restart one ring
     startDaemons(new PartitionServerAddress("localhost", 50000));
