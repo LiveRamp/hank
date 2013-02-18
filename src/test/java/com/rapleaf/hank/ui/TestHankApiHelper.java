@@ -2,7 +2,6 @@ package com.rapleaf.hank.ui;
 
 import com.rapleaf.hank.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
-import org.junit.Test;
 
 import java.io.IOException;
 
@@ -18,7 +17,6 @@ public class TestHankApiHelper extends ZkTestCase {
     helper = new HankApiHelper(coordinator);
   }
 
-  @Test
   public void testGetDomainData() throws IOException {
     HankApiHelper.DomainData data = helper.getDomainData(coordinator.getDomain("domain0"));
     assertEquals("domain0", data.name);
