@@ -25,6 +25,7 @@ import com.rapleaf.hank.storage.cueball.CueballPartitionUpdater;
 import com.rapleaf.hank.storage.cueball.ICueballMerger;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
+import com.rapleaf.hank.ui.UiUtils;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -115,7 +116,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     HankTimer timer = new HankTimer();
     long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltaRemoteFiles, partitionRemoteFileOps);
     LOG.info("Update in " + updateWorkRoot
-        + " merged Curly deltas into the base in " + timer.getDurationMs() / 1000.0 + " seconds");
+        + " merged Curly deltas into the base in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
 
     // Run Cueball update
     timer.restart();
@@ -133,6 +134,6 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         compressionCodec,
         new OffsetTransformer(offsetNumBytes, offsetAdjustments));
     LOG.info("Update in " + updateWorkRoot
-        + " ran the Cueball update in " + timer.getDurationMs() / 1000.0 + " seconds");
+        + " ran the Cueball update in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 }
