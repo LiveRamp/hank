@@ -17,6 +17,7 @@
 package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -86,9 +87,13 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       // At this point, we can close the Coordinator opportunistically if requested
       closeCoordinatorOpportunistically();
       // Fetch and cache versions needed to update
+      HankTimer timer = new HankTimer();
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
+      LOG.info("Update in " + localPartitionRoot + " fetched and cached versions in " + timer.getDurationMs() / 1000.0 + " seconds");
       // Run update in a workspace
+      timer.restart();
       runUpdate(currentVersion, updatingToVersion, updatePlan);
+      LOG.info("Update in " + localPartitionRoot + " executed in " + timer.getDurationMs() / 1000.0 + " seconds");
     } finally {
       cleanCachedVersions();
     }
