@@ -134,7 +134,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         new OffsetTransformer(offsetNumBytes, offsetAdjustments));
     long cueballTimeMs = timer.getDurationMs();
 
-    LOG.info("Update in " + updateWorkRoot
+    LOG.info("Update in " + updateWorkRoot + " to " + updatingToVersion
         + ": merged Curly deltas in " + UiUtils.formatSecondsDuration(curlyTimeMs / 1000)
         + ", ran Cueball update in " + UiUtils.formatSecondsDuration(cueballTimeMs / 1000));
   }
