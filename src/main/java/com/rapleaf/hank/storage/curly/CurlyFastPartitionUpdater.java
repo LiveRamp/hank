@@ -115,8 +115,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     // Merge the Curly delta files into the base
     HankTimer timer = new HankTimer();
     long[] offsetAdjustments = curlyMerger.merge(newCurlyBasePath, curlyDeltaRemoteFiles, partitionRemoteFileOps);
-    LOG.info("Update in " + updateWorkRoot
-        + " merged Curly deltas into the base in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
+    long curlyTimeMs = timer.getDurationMs();
 
     // Run Cueball update
     timer.restart();
@@ -133,7 +132,10 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         hashIndexBits,
         compressionCodec,
         new OffsetTransformer(offsetNumBytes, offsetAdjustments));
+    long cueballTimeMs = timer.getDurationMs();
+
     LOG.info("Update in " + updateWorkRoot
-        + " ran the Cueball update in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
+        + ": merged Curly deltas in " + UiUtils.formatSecondsDuration(curlyTimeMs / 1000)
+        + ", ran Cueball update in " + UiUtils.formatSecondsDuration(cueballTimeMs / 1000));
   }
 }

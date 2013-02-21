@@ -90,13 +90,14 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       // Fetch and cache versions needed to update
       HankTimer timer = new HankTimer();
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
-      LOG.info("Update in " + localPartitionRoot
-          + " fetched and cached versions in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
+      long fetchTimeMs = timer.getDurationMs();
       // Run update in a workspace
       timer.restart();
+      long executionTimeMs = timer.getDurationMs();
       runUpdate(currentVersion, updatingToVersion, updatePlan);
       LOG.info("Update in " + localPartitionRoot
-          + " executed in " + UiUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
+          + ": fetched data in " + UiUtils.formatSecondsDuration(fetchTimeMs / 1000)
+          + ", executed in " + UiUtils.formatSecondsDuration(executionTimeMs / 1000));
     } finally {
       cleanCachedVersions();
     }
