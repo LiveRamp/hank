@@ -93,8 +93,8 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       long fetchTimeMs = timer.getDurationMs();
       // Run update in a workspace
       timer.restart();
-      long executionTimeMs = timer.getDurationMs();
       runUpdate(currentVersion, updatingToVersion, updatePlan);
+      long executionTimeMs = timer.getDurationMs();
       LOG.info("Update in " + localPartitionRoot + " to " + updatingToVersion
           + ": fetched data in " + UiUtils.formatSecondsDuration(fetchTimeMs / 1000)
           + ", executed in " + UiUtils.formatSecondsDuration(executionTimeMs / 1000));
