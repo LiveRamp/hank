@@ -27,8 +27,12 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballFilePath;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.ui.UiUtils;
 import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.IOStreamUtils;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -65,11 +69,31 @@ public class PerformanceTestCueball {
     writer.close();
     double elapsedMs = timer.getDurationMs();
     double elapsedSecs = elapsedMs / 1000.0;
-    long totalBytes = numRecords * (KEY_SIZE + VALUE_SIZE);
-    long totalMegaBytes = (totalBytes / 1024 / 1024);
-    System.out.println("Test took " + elapsedMs + "ms, wrote " + numRecords + " records totalling " + totalMegaBytes + "MB");
+    long totalBytes = numRecords * (KEY_HASH_SIZE + VALUE_SIZE);
+
+    System.out.println("Test took " + elapsedMs + "ms, wrote " + numRecords + " records totalling " + UiUtils.formatNumBytes(totalBytes));
     System.out.println(String.format("Throughput: %.2f writes/sec", numRecords / elapsedSecs));
-    System.out.println(String.format("Throughput: %.2f MB/sec", totalMegaBytes / elapsedSecs));
+    System.out.println("Throughput: " + UiUtils.formatDataThroughput(totalBytes / elapsedSecs));
+
+    createZeroFile(localTmpDir + "/zero_file0", numRecords, IOStreamUtils.DEFAULT_BUFFER_SIZE);
+    createZeroFile(localTmpDir + "/zero_file1", numRecords, 10 << 20);
+  }
+
+  private static void createZeroFile(String path, long numRecords, int bufferSize) throws IOException {
+    FileOutputStream zeroFile = new FileOutputStream(path);
+    BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(zeroFile, bufferSize);
+    byte[] record = new byte[KEY_HASH_SIZE + VALUE_SIZE];
+    HankTimer timer = new HankTimer();
+    for (int i = 0; i < numRecords; ++i) {
+      bufferedOutputStream.write(record);
+    }
+    bufferedOutputStream.close();
+    zeroFile.close();
+    double elapsedSecs = timer.getDurationMs() / 1000.0;
+    long totalBytes = numRecords * record.length;
+    System.out.println("Throughput to write zero file of size " + UiUtils.formatNumBytes(totalBytes)
+        + " with buffer of " + UiUtils.formatNumBytes(bufferSize)
+        + ": " + UiUtils.formatDataThroughput(totalBytes / elapsedSecs));
   }
 
   private static void prepareTestPerformanceCueballMerger(String localTmpDir,
