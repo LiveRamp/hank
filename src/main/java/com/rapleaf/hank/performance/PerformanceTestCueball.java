@@ -202,7 +202,7 @@ public class PerformanceTestCueball {
   }
 
   public static void main(String[] args) throws IOException {
-    testPerformanceCueballWriter("/tmp/" + args[0]);
-    testPerformanceCueballMerger("/tmp/" + args[0]);
+    testPerformanceCueballWriter(args[0]);
+    testPerformanceCueballMerger(args[0]);
   }
 }
