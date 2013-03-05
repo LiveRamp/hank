@@ -176,8 +176,7 @@ public class TestHostConnection extends BaseTestCase {
     }
     // Check that timeout was respected
     LOG.info("Took " + duration + "ms");
-    // 10ms get timeout and 10ms for the rest
-    assertTrue(duration < 100 + 10);
+    assertTrue(duration < 1000);
 
 
     // Test GET BULK Timeout
@@ -192,8 +191,7 @@ public class TestHostConnection extends BaseTestCase {
     }
     // Check that timeout was respected
     LOG.info("Took " + duration + "ms");
-    // 10ms get timeout and 10ms for the rest
-    assertTrue(duration < 100 + 10);
+    assertTrue(duration < 1000);
   }
 
   public void testTryLockTimeout() throws IOException, TException, InterruptedException {
