@@ -65,23 +65,44 @@
     </dependency>
 
     <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>2.0.0-cdh4.1.2</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>2.0.0-cdh4.1.2</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-test</artifactId>
+      <version>2.0.0-mr1-cdh4.1.2</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minicluster</artifactId>
+      <version>2.0.0-cdh4.1.2</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
       <groupId>cascading</groupId>
       <artifactId>cascading-hadoop</artifactId>
-      <version>2.0.7-cdh4.1.2-wip-dev</version>
+      <version>2.1.4</version>
     </dependency>
 
     <dependency>
       <groupId>cascading</groupId>
       <artifactId>cascading-core</artifactId>
-      <version>2.0.7-cdh4.1.2-wip-dev</version>
+      <version>2.1.4</version>
     </dependency>
-
-    <dependency>
-      <groupId>cascading</groupId>
-      <artifactId>cascading-xml</artifactId>
-      <version>2.0.7-cdh4.1.2-wip-dev</version>
-    </dependency>
-
 
     <dependency>
       <groupId>log4j</groupId>
@@ -195,7 +216,7 @@
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
       <version>7.4.0.v20110414</version>
-     </dependency>
+    </dependency>
 
     <dependency>
       <groupId>org.springframework</groupId>
@@ -207,9 +228,9 @@
 
   <distributionManagement>
     <snapshotRepository>
-       <id>repository.liveramp.com</id>
-       <name>repository.liveramp.com-snapshots</name>
-       <url>http://repository.liveramp.com/artifactory/libs-snapshot-local</url>
+      <id>repository.liveramp.com</id>
+      <name>repository.liveramp.com-snapshots</name>
+      <url>http://repository.liveramp.com/artifactory/libs-snapshot-local</url>
     </snapshotRepository>
   </distributionManagement>
 
@@ -221,7 +242,7 @@
         <includes>
           <include>**/*.jsp</include>
           <include>**/*.css</include>
-         </includes>
+        </includes>
       </resource>
     </resources>
 
@@ -231,7 +252,7 @@
         <includes>
           <include>**/*.jsp</include>
           <include>**/*.css</include>
-         </includes>
+        </includes>
       </testResource>
     </testResources>
 
@@ -266,22 +287,22 @@
             </manifestEntries>
           </archive>
           <descriptors>
-	    <descriptor>src/assembly/jobjar.xml</descriptor>
-	    <descriptor>src/assembly/dist.xml</descriptor>
+            <descriptor>src/assembly/jobjar.xml</descriptor>
+            <descriptor>src/assembly/dist.xml</descriptor>
           </descriptors>
           <attach>false</attach>
-      	</configuration>
-	<executions>
-	  <execution>
-	    <phase>package</phase>
-	    <goals>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
               <goal>single</goal>
-	    </goals>
+            </goals>
             <configuration>
               <attach>false</attach>
             </configuration>
-	  </execution>
-	</executions>
+          </execution>
+        </executions>
       </plugin>
 
 
@@ -319,15 +340,16 @@
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
-	<configuration>
-	  <target>
+        <configuration>
+          <target>
             <delete dir="${basedir}/src/main/java/com/rapleaf/hank/generated"/>
             <exec executable="thrift" failonerror="true">
-              <arg line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift" />
-	    </exec>
-	    <move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
-	      <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated" />
-	    </move>
+              <arg
+                  line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift"/>
+            </exec>
+            <move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
+              <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated"/>
+            </move>
           </target>
         </configuration>
       </plugin>
