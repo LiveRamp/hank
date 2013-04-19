@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.config.yaml;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 
 import java.io.FileWriter;

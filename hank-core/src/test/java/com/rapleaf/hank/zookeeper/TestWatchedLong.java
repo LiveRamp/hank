@@ -1,6 +1,6 @@
 package com.rapleaf.hank.zookeeper;
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.util.Condition;
 import com.rapleaf.hank.util.WaitUntil;
 import org.apache.zookeeper.CreateMode;

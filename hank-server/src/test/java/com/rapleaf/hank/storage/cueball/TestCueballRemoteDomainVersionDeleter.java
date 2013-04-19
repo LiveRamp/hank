@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;

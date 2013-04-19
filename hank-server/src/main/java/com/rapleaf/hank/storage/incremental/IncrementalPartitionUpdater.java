@@ -17,7 +17,7 @@
 package com.rapleaf.hank.storage.incremental;
 
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.util.HankTimer;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.ui.UiUtils;
 import org.apache.commons.io.FileUtils;

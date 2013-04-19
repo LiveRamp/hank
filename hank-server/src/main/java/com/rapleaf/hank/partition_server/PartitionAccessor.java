@@ -18,7 +18,7 @@ package com.rapleaf.hank.partition_server;
 
 import com.rapleaf.hank.coordinator.HostDomainPartition;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.util.HankTimer;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.AtomicLongCollection;

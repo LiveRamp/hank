@@ -16,7 +16,7 @@
 package com.rapleaf.hank.coordinator.zk;
 
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;

@@ -13,7 +13,7 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank;
+package com.rapleaf.hank.test;
 
 import com.rapleaf.hank.util.Condition;
 import com.rapleaf.hank.util.WaitUntil;

@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.storage.incremental;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,7 +1,9 @@
 package com.rapleaf.hank.coordinator;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
+import com.rapleaf.hank.test.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockHostDomain;
 
 import java.io.IOException;
 import java.util.*;

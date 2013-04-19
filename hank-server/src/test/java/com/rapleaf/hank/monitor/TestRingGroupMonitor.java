@@ -16,9 +16,9 @@
 
 package com.rapleaf.hank.monitor;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.Domain;
-import com.rapleaf.hank.coordinator.MockRingGroup;
+import com.rapleaf.hank.test.coordinator.MockRingGroup;
 import com.rapleaf.hank.coordinator.Ring;
 import com.rapleaf.hank.coordinator.RingGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomain;

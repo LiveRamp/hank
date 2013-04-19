@@ -17,6 +17,8 @@
 package com.rapleaf.hank.performance;
 
 import com.rapleaf.hank.util.FormatUtils;
+import com.rapleaf.hank.util.HankTimer;
+import com.rapleaf.hank.util.HankTimerAggregator;
 import org.apache.log4j.Logger;
 
 import java.io.File;

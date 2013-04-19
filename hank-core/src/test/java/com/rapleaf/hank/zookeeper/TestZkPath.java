@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.zookeeper;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 
 import java.util.ArrayList;
 import java.util.List;

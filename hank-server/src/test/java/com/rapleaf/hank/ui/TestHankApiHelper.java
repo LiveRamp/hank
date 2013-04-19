@@ -1,11 +1,11 @@
 package com.rapleaf.hank.ui;
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.ZkMockCoordinatorTestCase;
 import com.rapleaf.hank.coordinator.Coordinator;
 
 import java.io.IOException;
 
-public class TestHankApiHelper extends ZkTestCase {
+public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
 
   private HankApiHelper helper;
   private Coordinator coordinator;

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.performance;
+package com.rapleaf.hank.util;
 
 import com.rapleaf.hank.partition_server.DoublePopulationStatisticsAggregator;
 import org.apache.log4j.Logger;

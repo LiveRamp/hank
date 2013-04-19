@@ -26,7 +26,6 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     final Coordinator coordinator = getMockCoordinator();
 
     DomainGroup dg1 = coordinator.getDomainGroup("Group_1");
-    DomainGroup dg2 = coordinator.getDomainGroup("Group_2");
 
     // Assign
     PartitionAssigner partitionAssigner = new ModPartitionAssigner();

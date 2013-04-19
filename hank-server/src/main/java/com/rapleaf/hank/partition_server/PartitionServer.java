@@ -19,7 +19,7 @@ import com.rapleaf.hank.config.InvalidConfigurationException;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
-import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.util.HankTimer;
 import com.rapleaf.hank.util.CommandLineChecker;
 import com.rapleaf.hank.util.UpdateStatisticsRunnable;
 import com.rapleaf.hank.zookeeper.WatchedNodeListener;

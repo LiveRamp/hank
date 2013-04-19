@@ -1,7 +1,7 @@
 package com.rapleaf.hank.config.yaml;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.MockRingGroup;
+import com.rapleaf.hank.test.BaseTestCase;
+import com.rapleaf.hank.test.coordinator.MockRingGroup;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
 

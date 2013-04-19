@@ -20,6 +20,9 @@ import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.partition_assigner.MockPartitionAssigner;
 import com.rapleaf.hank.partition_assigner.PartitionAssigner;
+import com.rapleaf.hank.test.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockRing;
+import com.rapleaf.hank.test.coordinator.MockRingGroup;
 import junit.framework.TestCase;
 import org.apache.log4j.Logger;
 

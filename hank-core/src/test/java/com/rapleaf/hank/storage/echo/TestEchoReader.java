@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.echo;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.storage.ReaderResult;
 
 import java.nio.ByteBuffer;

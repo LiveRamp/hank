@@ -1,6 +1,6 @@
 package com.rapleaf.hank.monitor.notifier.db;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.config.InvalidConfigurationException;
 import org.apache.log4j.Logger;
 import org.junit.Before;

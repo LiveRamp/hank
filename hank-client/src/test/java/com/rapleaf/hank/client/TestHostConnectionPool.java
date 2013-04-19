@@ -16,10 +16,10 @@
 
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;

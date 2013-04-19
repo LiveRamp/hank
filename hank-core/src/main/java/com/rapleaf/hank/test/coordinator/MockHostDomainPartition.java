@@ -13,7 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.coordinator;
+package com.rapleaf.hank.test.coordinator;
+
+import com.rapleaf.hank.coordinator.AbstractHostDomainPartition;
 
 import java.io.IOException;
 

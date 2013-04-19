@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
@@ -25,11 +25,12 @@ import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
-import com.rapleaf.hank.partitioner.MapPartitioner;
+import com.rapleaf.hank.test.partitioner.MapPartitioner;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.mock.MockReader;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+import com.rapleaf.hank.test.coordinator.*;
 import org.apache.thrift.TException;
 
 import java.io.IOException;

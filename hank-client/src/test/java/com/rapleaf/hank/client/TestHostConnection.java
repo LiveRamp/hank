@@ -16,15 +16,15 @@
 
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.Host;
 import com.rapleaf.hank.coordinator.HostState;
-import com.rapleaf.hank.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockHost;
 import com.rapleaf.hank.coordinator.PartitionServerAddress;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partition_server.IfaceWithShutdown;
-import com.rapleaf.hank.performance.HankTimer;
+import com.rapleaf.hank.util.HankTimer;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;

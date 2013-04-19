@@ -1,4 +1,8 @@
-package com.rapleaf.hank.coordinator;
+package com.rapleaf.hank.test.coordinator;
+
+import com.rapleaf.hank.coordinator.AbstractHostDomain;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.HostDomainPartition;
 
 import java.io.IOException;
 import java.util.HashSet;

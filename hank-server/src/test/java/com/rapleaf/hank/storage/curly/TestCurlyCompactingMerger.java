@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.rapleaf.hank.storage.cueball.KeyHashAndValueAndStreamIndex;

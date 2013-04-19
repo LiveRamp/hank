@@ -1,10 +1,10 @@
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.BaseTestCase;
-import com.rapleaf.hank.coordinator.MockHostDomain;
-import com.rapleaf.hank.coordinator.MockHostDomainPartition;
+import com.rapleaf.hank.test.BaseTestCase;
+import com.rapleaf.hank.test.coordinator.MockHostDomain;
+import com.rapleaf.hank.test.coordinator.MockHostDomainPartition;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
-import com.rapleaf.hank.partitioner.MapPartitioner;
+import com.rapleaf.hank.test.partitioner.MapPartitioner;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.mock.MockReader;
 

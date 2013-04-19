@@ -5,7 +5,7 @@ import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 
 public class TestFooter extends BaseTestCase {
   private final String filePath = localTmpDir + "/testfile";

@@ -16,11 +16,14 @@
 
 package com.rapleaf.hank.monitor;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.monitor.notification.HostStateNotification;
 import com.rapleaf.hank.monitor.notifier.Notifier;
 import com.rapleaf.hank.monitor.notifier.mock.MockNotifier;
+import com.rapleaf.hank.test.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockRing;
+import com.rapleaf.hank.test.coordinator.MockRingGroup;
 
 import java.io.IOException;
 import java.util.Collections;

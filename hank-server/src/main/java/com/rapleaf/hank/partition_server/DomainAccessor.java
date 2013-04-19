@@ -20,8 +20,8 @@ import com.rapleaf.hank.coordinator.HostDomain;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.partitioner.Partitioner;
-import com.rapleaf.hank.performance.HankTimer;
-import com.rapleaf.hank.performance.HankTimerAggregator;
+import com.rapleaf.hank.util.HankTimer;
+import com.rapleaf.hank.util.HankTimerAggregator;
 import com.rapleaf.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 

@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.client;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -24,7 +24,8 @@ import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankException;
 import com.rapleaf.hank.generated.HankResponse;
 import com.rapleaf.hank.generated.PartitionServer;
-import com.rapleaf.hank.partitioner.MapPartitioner;
+import com.rapleaf.hank.test.partitioner.MapPartitioner;
+import com.rapleaf.hank.test.coordinator.*;
 import com.rapleaf.hank.util.Condition;
 import com.rapleaf.hank.util.WaitUntil;
 import org.apache.log4j.Logger;

@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.performance;
+package com.rapleaf.hank.util;
 
 public class HankTimer {
 

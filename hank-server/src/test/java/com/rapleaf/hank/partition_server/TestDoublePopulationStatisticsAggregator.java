@@ -1,6 +1,6 @@
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 
 public class TestDoublePopulationStatisticsAggregator extends BaseTestCase {
 

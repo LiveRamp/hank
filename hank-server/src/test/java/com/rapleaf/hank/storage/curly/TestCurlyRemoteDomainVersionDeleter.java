@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;

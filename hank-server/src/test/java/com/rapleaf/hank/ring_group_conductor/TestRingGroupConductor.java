@@ -21,6 +21,7 @@ import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
 import com.rapleaf.hank.coordinator.mock.MockDomainGroup;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
+import com.rapleaf.hank.test.coordinator.*;
 import junit.framework.TestCase;
 
 import java.io.IOException;

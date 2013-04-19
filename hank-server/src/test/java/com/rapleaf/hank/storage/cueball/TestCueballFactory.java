@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.LocalPartitionRemoteFileOps;
 import org.apache.log4j.Logger;

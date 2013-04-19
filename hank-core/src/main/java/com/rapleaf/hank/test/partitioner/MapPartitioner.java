@@ -13,8 +13,9 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.partitioner;
+package com.rapleaf.hank.test.partitioner;
 
+import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.util.Bytes;
 
 import java.nio.ByteBuffer;

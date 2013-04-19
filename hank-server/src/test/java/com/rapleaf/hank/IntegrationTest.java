@@ -39,6 +39,7 @@ import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.curly.Curly;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.Condition;
 import com.rapleaf.hank.util.WaitUntil;

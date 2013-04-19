@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.coordinator.zk;
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.partitioner.ConstantPartitioner;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;

@@ -6,6 +6,7 @@ import com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator;
 import com.rapleaf.hank.generated.ClientMetadata;
 import com.rapleaf.hank.partitioner.Murmur64Partitioner;
 import com.rapleaf.hank.storage.echo.Echo;
+import com.rapleaf.hank.test.ZkTestCase;
 import com.rapleaf.hank.util.LocalHostUtils;
 import com.rapleaf.hank.zookeeper.ZkPath;
 
@@ -13,7 +14,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ZkMockCoordinatorTestCase extends ZkTestCase {
+public abstract class ZkMockCoordinatorTestCase extends ZkTestCase {
 
   protected Coordinator getMockCoordinator() throws Exception {
     create(ZkPath.append(getRoot(), "domains"));

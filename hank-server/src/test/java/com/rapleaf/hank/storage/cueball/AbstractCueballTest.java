@@ -15,9 +15,9 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.test.MapHasher;
+import com.rapleaf.hank.test.hasher.MapHasher;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

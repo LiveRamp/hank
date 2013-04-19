@@ -15,12 +15,15 @@
  */
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockCoordinator;
 import com.rapleaf.hank.generated.HankBulkResponse;
 import com.rapleaf.hank.generated.HankResponse;
+import com.rapleaf.hank.test.coordinator.MockHost;
+import com.rapleaf.hank.test.coordinator.MockRing;
+import com.rapleaf.hank.test.coordinator.MockRingGroup;
 import com.rapleaf.hank.util.Condition;
 import com.rapleaf.hank.util.WaitUntil;
 import org.apache.thrift.TException;

@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.partition_server;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.coordinator.mock.MockDomain;
@@ -28,6 +28,7 @@ import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.mock.MockDeleter;
 import com.rapleaf.hank.storage.mock.MockStorageEngine;
+import com.rapleaf.hank.test.coordinator.*;
 
 import java.io.IOException;
 import java.util.*;

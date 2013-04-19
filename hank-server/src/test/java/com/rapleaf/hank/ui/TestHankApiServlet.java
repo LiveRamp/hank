@@ -1,7 +1,7 @@
 package com.rapleaf.hank.ui;
 
 
-import com.rapleaf.hank.ZkTestCase;
+import com.rapleaf.hank.ZkMockCoordinatorTestCase;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -9,7 +9,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class TestHankApiServlet extends ZkTestCase {
+public class TestHankApiServlet extends ZkMockCoordinatorTestCase {
 
   private HankApiServlet apiServlet;
 

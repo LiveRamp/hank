@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.test.BaseTestCase;
 
 public class TestHashPrefixCalculator extends BaseTestCase {
   public void testLessThanEightBits() throws Exception {
