@@ -9,9 +9,17 @@
 
   <version>1.0-SNAPSHOT</version>
 
+  <packaging>pom</packaging>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
+
+  <modules>
+    <module>hank-core</module>
+    <module>hank-server</module>
+    <module>hank-client</module>
+  </modules>
 
   <scm>
     <connection>scm:git:git@github.com:LiveRamp/hank.git</connection>
@@ -20,10 +28,6 @@
   </scm>
 
   <repositories>
-    <repository>
-      <id>cdh.repo</id>
-      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
-    </repository>
     <repository>
       <id>conjars.org</id>
       <url>http://conjars.org/repo</url>
@@ -41,6 +45,10 @@
         <enabled>false</enabled>
       </releases>
     </repository>
+    <repository>
+      <id>cdh.repo</id>
+      <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
+    </repository>
   </repositories>
 
   <pluginRepositories>
@@ -52,10 +60,11 @@
       <id>clojars.org</id>
       <url>https://clojars.org/repo</url>
     </pluginRepository>
-
   </pluginRepositories>
 
   <dependencies>
+
+<!--
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -105,27 +114,21 @@
     </dependency>
 
     <dependency>
-      <groupId>log4j</groupId>
-      <artifactId>log4j</artifactId>
-      <version>1.2.16</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.6.4</version>
     </dependency>
 
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-      <version>2.3</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.6.4</version>
     </dependency>
 
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
       <version>2.5</version>
-    </dependency>
-
-    <dependency>
-      <groupId>commons-cli</groupId>
-      <artifactId>commons-cli</artifactId>
-      <version>1.2</version>
     </dependency>
 
     <dependency>
@@ -138,18 +141,6 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.6.4</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.6.4</version>
     </dependency>
 
     <dependency>
@@ -174,24 +165,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>13.0.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.thrift</groupId>
-      <artifactId>libthrift</artifactId>
-      <version>0.9.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.zookeeper</groupId>
-      <artifactId>zookeeper</artifactId>
-      <version>3.4.5</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.yaml</groupId>
-      <artifactId>snakeyaml</artifactId>
-      <version>1.11</version>
     </dependency>
 
     <dependency>
@@ -224,6 +197,8 @@
       <version>3.2.0.RELEASE</version>
     </dependency>
 
+-->
+
   </dependencies>
 
   <distributionManagement>
@@ -235,26 +210,6 @@
   </distributionManagement>
 
   <build>
-
-    <resources>
-      <resource>
-        <directory>src/main/java/</directory>
-        <includes>
-          <include>**/*.jsp</include>
-          <include>**/*.css</include>
-        </includes>
-      </resource>
-    </resources>
-
-    <testResources>
-      <testResource>
-        <directory>src/main/java/</directory>
-        <includes>
-          <include>**/*.jsp</include>
-          <include>**/*.css</include>
-        </includes>
-      </testResource>
-    </testResources>
 
     <plugins>
       <plugin>
@@ -273,7 +228,6 @@
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
         </configuration>
       </plugin>
-
 
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
@@ -304,7 +258,6 @@
           </execution>
         </executions>
       </plugin>
-
 
       <plugin>
         <groupId>com.code54.mojo</groupId>
@@ -367,6 +320,5 @@
       </plugin>
     </plugins>
   </reporting>
-
 
 </project>
