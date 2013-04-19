@@ -126,7 +126,7 @@
 
     <testResources>
       <testResource>
-        <directory>src/test/java/</directory>
+        <directory>src/main/java/</directory>
         <includes>
           <include>**/*.jsp</include>
           <include>**/*.css</include>
