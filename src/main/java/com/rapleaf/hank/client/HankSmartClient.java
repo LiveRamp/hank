@@ -100,6 +100,26 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
                          int establishConnectionTimeoutMs,
                          int queryTimeoutMs,
                          int bulkQueryTimeoutMs) throws IOException, TException {
+    this(coordinator,
+        ringGroupName,
+        numConnectionsPerHost,
+        queryMaxNumTries,
+        tryLockConnectionTimeoutMs,
+        establishConnectionTimeoutMs,
+        queryTimeoutMs,
+        bulkQueryTimeoutMs,
+        Integer.MAX_VALUE);
+  }
+
+  public HankSmartClient(Coordinator coordinator,
+                         String ringGroupName,
+                         int numConnectionsPerHost,
+                         int queryMaxNumTries,
+                         int tryLockConnectionTimeoutMs,
+                         int establishConnectionTimeoutMs,
+                         int queryTimeoutMs,
+                         int bulkQueryTimeoutMs,
+                         int concurrentGetThreadPoolMaxSize) throws IOException, TException {
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -115,12 +135,12 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
     this.queryTimeoutMs = queryTimeoutMs;
     this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
-    // Initialize get task executor with 0 core threads and an unbounded maximum number of threads.
+    // Initialize get task executor with 0 core threads and a bounded maximum number of threads (default is unbounded).
     // The queue is a synchronous queue so that we create new threads even though there might be more
     // than number of core threads threads running
     this.getTaskExecutor = new ThreadPoolExecutor(
         0,
-        Integer.MAX_VALUE,
+        concurrentGetThreadPoolMaxSize,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
         new SynchronousQueue<Runnable>(),
