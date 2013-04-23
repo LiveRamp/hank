@@ -17,9 +17,9 @@ else
   echo "Warning: environment configuration file was not found: $ENV_FILE"
 fi
 
-SERVER_CLASS='com.rapleaf.hank.partition_server.PartitionServer'
-UI_CLASS='com.rapleaf.hank.ui.WebUiServer'
-CONDUCTOR_CLASS='com.rapleaf.hank.ring_group_conductor.RingGroupConductor'
+SERVER_CLASS='com.liveramp.hank.partition_server.PartitionServer'
+UI_CLASS='com.liveramp.hank.ui.WebUiServer'
+CONDUCTOR_CLASS='com.liveramp.hank.ring_group_conductor.RingGroupConductor'
 
 # Default OPTS
 
