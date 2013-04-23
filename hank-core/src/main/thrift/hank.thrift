@@ -1,4 +1,4 @@
-namespace java com.rapleaf.hank.generated
+namespace java com.liveramp.hank.generated
 
 union HankException {
   /** The host queried is not assigned the key that was requested */
