@@ -16,10 +16,9 @@
 
 package com.liveramp.hank.coordinator;
 
-import com.google.common.collect.Maps;
-
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DomainGroups {
@@ -33,7 +32,7 @@ public class DomainGroups {
   }
 
   public static void fastForwardDomains(DomainGroup domainGroup, Collection<Domain> domains) throws IOException {
-    Map<Domain, Integer> domainVersions = Maps.newHashMap();
+    Map<Domain, Integer> domainVersions = new HashMap<Domain, Integer>();
     for (Domain domain : domains) {
       domainVersions.put(domain, Domains.getLatestVersionNotOpenNotDefunct(domain).getVersionNumber());
     }
@@ -43,5 +42,4 @@ public class DomainGroups {
   public static void fastForwardAllDomains(DomainGroup domainGroup) throws IOException {
     fastForwardDomains(domainGroup, domainGroup.getDomains());
   }
-
 }
