@@ -2,6 +2,7 @@ package com.rapleaf.hank.ui;
 
 import com.google.common.base.CaseFormat;
 import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.storage.StorageEngine;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -48,6 +49,7 @@ public class HankApiHelper {
     public String name;
     public int numPartitions;
     public Map<Integer, DomainVersionData> versionsMap;
+    public String storageEngine;
   }
 
   public static class DomainGroupData extends HankApiData {
@@ -228,6 +230,7 @@ public class HankApiHelper {
     DomainData data = new DomainData();
     data.name = domain.getName();
     data.numPartitions = domain.getNumParts();
+    data.storageEngine = domain.getStorageEngine().getClass().getSimpleName();
 
     Map<Integer, DomainVersionData> versionsMap = new HashMap<Integer, DomainVersionData>();
     for (DomainVersion v : domain.getVersions()) {
