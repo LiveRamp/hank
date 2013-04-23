@@ -50,6 +50,7 @@ public class HankApiHelper {
     public int numPartitions;
     public Map<Integer, DomainVersionData> versionsMap;
     public String storageEngine;
+    public Map<String, Object> storageEngineOptions;
   }
 
   public static class DomainGroupData extends HankApiData {
@@ -231,6 +232,7 @@ public class HankApiHelper {
     data.name = domain.getName();
     data.numPartitions = domain.getNumParts();
     data.storageEngine = domain.getStorageEngine().getClass().getSimpleName();
+    data.storageEngineOptions = domain.getStorageEngineOptions();
 
     Map<Integer, DomainVersionData> versionsMap = new HashMap<Integer, DomainVersionData>();
     for (DomainVersion v : domain.getVersions()) {
