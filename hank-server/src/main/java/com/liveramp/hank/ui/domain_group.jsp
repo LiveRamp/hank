@@ -1,9 +1,9 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
 
-<%@page import="com.rapleaf.hank.coordinator.*"%>
-<%@page import="com.rapleaf.hank.ui.*"%>
-<%@page import="com.rapleaf.hank.util.*"%>
+<%@page import="com.liveramp.hank.coordinator.*"%>
+<%@page import="com.liveramp.hank.ui.*"%>
+<%@page import="com.liveramp.hank.util.*"%>
 <%@page import="java.util.*"%>
 
 <%

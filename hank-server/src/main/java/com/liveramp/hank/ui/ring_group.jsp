@@ -1,12 +1,12 @@
   <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
            pageEncoding="ISO-8859-1" %>
 
-    <%@page import="com.rapleaf.hank.coordinator.*" %>
-    <%@page import="com.rapleaf.hank.partition_server.*" %>
-    <%@page import="com.rapleaf.hank.ring_group_conductor.*" %>
-    <%@page import="com.rapleaf.hank.generated.*" %>
-    <%@page import="com.rapleaf.hank.ui.*" %>
-    <%@page import="com.rapleaf.hank.util.*" %>
+    <%@page import="com.liveramp.hank.coordinator.*" %>
+    <%@page import="com.liveramp.hank.partition_server.*" %>
+    <%@page import="com.liveramp.hank.ring_group_conductor.*" %>
+    <%@page import="com.liveramp.hank.generated.*" %>
+    <%@page import="com.liveramp.hank.ui.*" %>
+    <%@page import="com.liveramp.hank.util.*" %>
     <%@page import="java.util.*" %>
     <%@page import="java.net.*" %>
     <%@page import="java.nio.ByteBuffer" %>

@@ -2,23 +2,23 @@
     pageEncoding="ISO-8859-1"%>
 
 <%@page import="java.util.*"%>
-<%@page import="com.rapleaf.hank.coordinator.*"%>
-<%@page import="com.rapleaf.hank.partitioner.*"%>
-<%@page import="com.rapleaf.hank.storage.curly.Curly.Factory"%>
+<%@page import="com.liveramp.hank.coordinator.*"%>
+<%@page import="com.liveramp.hank.partitioner.*"%>
+<%@page import="com.liveramp.hank.storage.curly.Curly.Factory"%>
 
 <%
 Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator");
 
 List<StorageEngineFactory> knownStorageEngineFactories = Arrays.asList((StorageEngineFactory)
     new Cueball.Factory(),
-    new com.rapleaf.hank.storage.curly.Curly.Factory(),
-    new com.rapleaf.hank.storage.echo.Echo.Factory());
+    new com.liveramp.hank.storage.curly.Curly.Factory(),
+    new com.liveramp.hank.storage.echo.Echo.Factory());
 
 %>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 
-<%@page import="com.rapleaf.hank.storage.StorageEngineFactory"%>
-<%@page import="com.rapleaf.hank.storage.cueball.Cueball"%><html>
+<%@page import="com.liveramp.hank.storage.StorageEngineFactory"%>
+<%@page import="com.liveramp.hank.storage.cueball.Cueball"%><html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <title>New Domain (Hank)</title>
