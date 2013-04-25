@@ -160,13 +160,13 @@
         <version>1.7</version>
         <configuration>
           <target>
-            <delete dir="${basedir}/src/main/java/com/rapleaf/hank/generated"/>
+            <delete dir="${basedir}/src/main/java/com/liveramp/hank/generated"/>
             <exec executable="thrift" failonerror="true">
               <arg
                   line="-o ${project.build.directory} --gen java:hashcode,nocamel,builder ${basedir}/src/main/thrift/hank.thrift"/>
             </exec>
-            <move todir="${basedir}/src/main/java/com/rapleaf/hank/generated">
-              <fileset dir="${project.build.directory}/gen-java/com/rapleaf/hank/generated"/>
+            <move todir="${basedir}/src/main/java/com/liveramp/hank/generated">
+              <fileset dir="${project.build.directory}/gen-java/com/liveramp/hank/generated"/>
             </move>
           </target>
         </configuration>
