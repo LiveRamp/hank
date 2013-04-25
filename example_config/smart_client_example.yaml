@@ -9,7 +9,7 @@ smart_client:
   # client won't be able to serve domains from any other ring group.
   ring_group_name: ring_group_name
 coordinator:
-  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  factory: com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator$Factory
   options:
     # a ZooKeeper connection string that identifies your quorum
     connect_string: localhost:2181

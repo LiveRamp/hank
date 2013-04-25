@@ -1,5 +1,5 @@
 coordinator:
-  factory: com.rapleaf.hank.coordinator.zk.ZooKeeperCoordinator$Factory
+  factory: com.liveramp.hank.coordinator.zk.ZooKeeperCoordinator$Factory
   options:
     # a ZooKeeper connection string that identifies your quorum
     connect_string: localhost:2181
