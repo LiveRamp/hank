@@ -154,7 +154,7 @@
         </configuration>
       </plugin>
 
-      <!-- Use mvn antrun:run to run this -->
+      <!-- Use mvn antrun:run --projects hank-core to generate Thrift sources -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
