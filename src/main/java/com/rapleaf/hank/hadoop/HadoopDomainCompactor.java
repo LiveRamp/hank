@@ -29,6 +29,10 @@ import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
+import org.apache.hadoop.fs.BlockLocation;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
@@ -39,9 +43,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
@@ -151,14 +153,18 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private String domainName;
     private int partitionNumber;
     private String[] locations;
+    private JobConf jobConf;
+
+    private static final int MAX_BLOCK_LOCATIONS_PER_SPLIT = 6;
 
     public HadoopDomainCompactorInputSplit() {
     }
 
-    public HadoopDomainCompactorInputSplit(String domainName, int partitionNumber, String[] locations) {
+    public HadoopDomainCompactorInputSplit(String domainName, int partitionNumber, String[] locations, JobConf jobConf) {
       this.domainName = domainName;
       this.partitionNumber = partitionNumber;
       this.locations = locations;
+      this.jobConf = jobConf;
     }
 
     @Override
@@ -168,8 +174,87 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public String[] getLocations() throws IOException {
-      return locations;
+      if (jobConf == null) {
+        return new String[] {};
+      }
+
+      Map<String, Long> numBytesPerHost = new HashMap<String, Long>();
+      for (String location: locations) {
+        addToHostsAndSizes(numBytesPerHost, location);
+      }
+
+      final int numHosts = Math.min(numBytesPerHost.size(), MAX_BLOCK_LOCATIONS_PER_SPLIT);
+
+      String[] sortedHosts = scoreAndSortHosts(numBytesPerHost, numHosts);
+      return sortedHosts;
     }
+
+    private String[] scoreAndSortHosts(Map<String, Long> numBytesPerHost, int numHosts) {
+      List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
+      for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
+        scoredHosts.add(new ScoredHost(entry.getKey(), entry.getValue()));
+      }
+
+      Collections.sort(scoredHosts);
+      String[] sortedHosts = new String[numHosts];
+
+      for (int i = 0; i < numHosts; i++) {
+        sortedHosts[i] = scoredHosts.get(i).hostname;
+      }
+      return sortedHosts;
+    }
+
+    private void addToHostsAndSizes(Map<String, Long> numBytesPerHost, String location) throws IOException {
+      Path path = new Path(location);
+      FileSystem fileSystem = path.getFileSystem(jobConf);
+      FileStatus status = fileSystem.getFileStatus(path);
+      BlockLocation[] blockLocations = fileSystem.getFileBlockLocations(status, 0, status.getLen());
+
+      if (blockLocations != null) {
+        for (BlockLocation blockLocation: blockLocations) {
+          Long size = blockLocation.getLength();
+          for (String host: blockLocation.getHosts()) {
+            incrNumBytesPerHost(numBytesPerHost, host, size);
+          }
+        }
+      }
+    }
+
+    private void incrNumBytesPerHost(Map<String, Long> numBytesPerHost, String host, Long numBytes) {
+      if (!numBytesPerHost.containsKey(host)) {
+        numBytesPerHost.put(host, numBytes);
+      } else {
+        numBytesPerHost.put(host, numBytesPerHost.get(host) + numBytes);
+      }
+    }
+
+    private static class ScoredHost implements Comparable<ScoredHost> {
+      public String hostname;
+      public long numBytesInHost;
+
+      public ScoredHost(String hostname, long numBytesInHost) {
+        this.hostname = hostname;
+        this.numBytesInHost = numBytesInHost;
+      }
+
+      @Override
+      public int compareTo(ScoredHost scoredHost) {
+        int bytesCmp = compareNumBytes(numBytesInHost, scoredHost.numBytesInHost);
+
+        if (bytesCmp == 0) {
+          return hostname.compareTo(scoredHost.hostname);
+        }
+
+        return bytesCmp;
+      }
+
+      // sort in reverse order by number of bytes in the host
+      private static int compareNumBytes(long thisCount, long thatCount) {
+        return Long.valueOf(thatCount).compareTo(thisCount);
+      }
+    }
+
+
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
@@ -230,7 +315,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           }
         }
 
-        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
+        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]), conf);
       }
       return splits;
     }
