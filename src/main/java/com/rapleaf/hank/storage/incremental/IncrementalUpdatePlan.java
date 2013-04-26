@@ -5,6 +5,7 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import java.util.*;
 
 public class IncrementalUpdatePlan {
+
   private final DomainVersion base;
   private final List<DomainVersion> deltasOrdered;
 

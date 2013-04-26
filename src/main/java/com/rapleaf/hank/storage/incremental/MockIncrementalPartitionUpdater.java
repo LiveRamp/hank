@@ -23,6 +23,7 @@ import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater {
@@ -103,5 +104,10 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) {
+  }
+
+  @Override
+  public List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException {
+    return null;
   }
 }

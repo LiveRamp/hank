@@ -28,9 +28,7 @@ import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
@@ -194,4 +192,15 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 
+  public void testGetRemotePartitionFilePaths() throws IOException {
+    List<String> paths = updater.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2));
+    List<String> expectedPaths = new ArrayList<String>();
+    expectedPaths.add(getRemoteFilePath("0/00001.base.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00001.base.curly"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.curly"));
+    Collections.sort(paths);
+    Collections.sort(expectedPaths);
+    assertEquals(expectedPaths, paths);
+  }
 }

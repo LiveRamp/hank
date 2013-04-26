@@ -205,4 +205,14 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     // Old base is intact
     assertTrue(existsLocalFile("00000.base.cueball"));
   }
+
+  public void testGetRemotePartitionFilePaths() throws IOException {
+    List<String> paths = updater.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2));
+    List<String> expectedPaths = new ArrayList<String>();
+    expectedPaths.add(getRemoteFilePath("0/00001.base.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.cueball"));
+    Collections.sort(paths);
+    Collections.sort(expectedPaths);
+    assertEquals(expectedPaths, paths);
+  }
 }

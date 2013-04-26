@@ -25,10 +25,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater, CloseCoordinatorOpportunistically {
 
@@ -70,6 +67,8 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
                                         DomainVersion updatingToVersion,
                                         IncrementalUpdatePlan updatePlan,
                                         String updateWorkRoot) throws IOException;
+
+  public abstract List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException;
 
   @Override
   public void updateTo(DomainVersion updatingToVersion) throws IOException {
@@ -212,6 +211,10 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
         throw new IOException("Failed to create cache root directory: " + cacheRootFile.getAbsolutePath());
       }
     }
+  }
+
+  public IncrementalUpdatePlan computeUpdatePlan(DomainVersion updatingToVersion) throws IOException {
+    return computeUpdatePlan(null, new HashSet<DomainVersion>(), updatingToVersion);
   }
 
   /**

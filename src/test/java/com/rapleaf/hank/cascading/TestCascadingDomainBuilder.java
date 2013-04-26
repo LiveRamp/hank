@@ -121,8 +121,8 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         .build(new Properties(), "pipe", inputTap);
 
     // Check output
-    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_A, 0, "0.base"));
-    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_A, 1, "0.base"));
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p1);
     assertEquals("1 v1\n3 v3\n", p2);
   }
@@ -160,23 +160,23 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         sources, domainA, domainB, domainC);
 
     // Check A output
-    String p0A = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_A, 0, "0.base"));
-    String p1A = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_A, 1, "0.base"));
+    String p0A = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p1A = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
     assertEquals("0 v0\n2 v2\n4 v4\n", p0A);
     assertEquals("1 v1\n3 v3\n", p1A);
 
     // Check B output
-    String p0B = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_B, 0, "0.base"));
-    String p1B = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_B, 1, "0.base"));
-    String p2B = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_B, 2, "0.base"));
+    String p0B = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_B, 0, "0.base"));
+    String p1B = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_B, 1, "0.base"));
+    String p2B = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_B, 2, "0.base"));
     assertEquals("12 v2\n", p0B);
     assertEquals("10 v0\n13 v3\n", p1B);
     assertEquals("11 v1\n14 v4\n", p2B);
 
     // Check C output
-    String p0C = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_C, 0, "0.base"));
-    String p1C = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_C, 1, "0.base"));
-    String p2C = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_C, 2, "0.base"));
+    String p0C = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 0, "0.base"));
+    String p1C = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 1, "0.base"));
+    String p2C = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 2, "0.base"));
     assertEquals("", p0C);
     assertEquals("", p1C);
     assertEquals("", p2C);
@@ -197,8 +197,8 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         .build(new Properties(), "pipe", inputTap);
 
     // Check output
-    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_C, 0, "0.base"));
-    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getAbsoluteRemotePath(OUTPUT_PATH_C, 1, "0.base"));
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 1, "0.base"));
     assertEquals("", p1);
     assertEquals("", p2);
   }

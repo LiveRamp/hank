@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 Rapleaf
+ *  Copyright 2011 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.io.IntWritable;
@@ -37,6 +39,8 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
@@ -146,13 +150,15 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     private String domainName;
     private int partitionNumber;
+    private String[] locations;
 
     public HadoopDomainCompactorInputSplit() {
     }
 
-    public HadoopDomainCompactorInputSplit(String domainName, int partitionNumber) {
+    public HadoopDomainCompactorInputSplit(String domainName, int partitionNumber, String[] locations) {
       this.domainName = domainName;
       this.partitionNumber = partitionNumber;
+      this.locations = locations;
     }
 
     @Override
@@ -162,19 +168,21 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public String[] getLocations() throws IOException {
-      return new String[]{};
+      return locations;
     }
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
       WritableUtils.writeString(dataOutput, domainName);
       WritableUtils.writeVInt(dataOutput, partitionNumber);
+      WritableUtils.writeStringArray(dataOutput, locations);
     }
 
     @Override
     public void readFields(DataInput dataInput) throws IOException {
       domainName = WritableUtils.readString(dataInput);
       partitionNumber = WritableUtils.readVInt(dataInput);
+      locations = WritableUtils.readStringArray(dataInput);
     }
 
     public String getDomainName() {
@@ -188,21 +196,41 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
   private static class HadoopDomainCompactorInputFormat implements InputFormat<Text, IntWritable> {
 
-    private int domainNumParts;
+    private Domain domain;
+    private DomainVersion domainVersion;
 
     @Override
-    public InputSplit[] getSplits(JobConf conf, int ignored) throws IOException {
+    public InputSplit[] getSplits(final JobConf conf, int ignored) throws IOException {
       final String domainName = DomainBuilderProperties.getDomainName(conf);
       RunWithCoordinator.run(DomainBuilderProperties.getConfigurator(conf), new RunnableWithCoordinator() {
         @Override
         public void run(Coordinator coordinator) throws IOException {
-          Domain domain = DomainBuilderProperties.getDomain(coordinator, domainName);
-          domainNumParts = domain.getNumParts();
+          domain = DomainBuilderProperties.getDomain(coordinator, domainName);
+          domainVersion = domain.getVersion(DomainBuilderProperties.getVersionNumber(domainName, conf));
         }
       });
-      InputSplit[] splits = new InputSplit[domainNumParts];
+
+      final int domainNumParts = domain.getNumParts();
+      final StorageEngine storageEngine = domain.getStorageEngine();
+      final InputSplit[] splits = new InputSplit[domainNumParts];
+
+      // Create splits
       for (int partition = 0; partition < domainNumParts; ++partition) {
-        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition);
+
+        // Compute remote partition file paths for this split if possible
+        Compactor compactor = storageEngine.getCompactor(null, partition);
+        List<String> locations = new ArrayList<String>();
+        if (compactor instanceof IncrementalPartitionUpdater) {
+          IncrementalPartitionUpdater updater = (IncrementalPartitionUpdater) compactor;
+          IncrementalUpdatePlan updatePlan = updater.computeUpdatePlan(domainVersion);
+          List<String> paths = updater.getRemotePartitionFilePaths(updatePlan);
+          for (String path : paths) {
+            LOG.info("Determining locations for partition " + partition + " using: " + path);
+            //locations.add(?);
+          }
+        }
+
+        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
       }
       return splits;
     }

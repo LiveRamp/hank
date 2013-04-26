@@ -203,4 +203,12 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
       throw new IOException("Could not find required file for merging: " + path);
     }
   }
+
+  public List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException {
+    List<String> result = new ArrayList<String>();
+    for (DomainVersion domainVersion : updatePlan.getAllVersions()) {
+      result.add(partitionRemoteFileOps.getRemoteAbsolutePath(Cueball.getName(domainVersion)));
+    }
+    return result;
+  }
 }

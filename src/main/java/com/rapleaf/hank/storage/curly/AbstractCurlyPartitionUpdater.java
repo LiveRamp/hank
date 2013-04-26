@@ -31,9 +31,7 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
+import java.util.*;
 
 public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartitionUpdater {
 
@@ -166,5 +164,14 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
       // Otherwise, version must be in cache
       return new CurlyFilePath(localPartitionRootCache + "/" + Curly.getName(version.getVersionNumber(), isBase));
     }
+  }
+
+  public List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException {
+    List<String> result = new ArrayList<String>();
+    for (DomainVersion domainVersion : updatePlan.getAllVersions()) {
+      result.add(partitionRemoteFileOps.getRemoteAbsolutePath(Curly.getName(domainVersion)));
+      result.add(partitionRemoteFileOps.getRemoteAbsolutePath(Cueball.getName(domainVersion)));
+    }
+    return result;
   }
 }
