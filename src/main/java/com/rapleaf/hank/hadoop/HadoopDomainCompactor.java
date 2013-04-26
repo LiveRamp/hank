@@ -119,8 +119,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public void map(Text domainName, IntWritable partitionNumber,
-        OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector,
-        Reporter reporter) throws IOException {
+                    OutputCollector<KeyAndPartitionWritable, ValueWritable> outputCollector,
+                    Reporter reporter) throws IOException {
       LOG.info("Compacting Domain " + domainName.toString()
           + " Version " + domainVersionToCompact.getVersionNumber()
           + " Partition " + partitionNumber.get()
@@ -233,6 +233,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           List<String> paths = updater.getRemotePartitionFilePaths(updatePlan);
           LOG.info("Determining locations for partition " + partition + " using: " + paths);
           locations = computeOptimalHosts(conf, paths);
+          LOG.info("Found locations: " + locations);
         }
 
         splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
@@ -302,8 +303,8 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public RecordReader<Text, IntWritable> getRecordReader(InputSplit inputSplit,
-        JobConf conf,
-        Reporter reporter) throws IOException {
+                                                           JobConf conf,
+                                                           Reporter reporter) throws IOException {
       HadoopDomainCompactorInputSplit split = (HadoopDomainCompactorInputSplit) inputSplit;
       return new HadoopDomainCompactorRecordReader(split);
     }
