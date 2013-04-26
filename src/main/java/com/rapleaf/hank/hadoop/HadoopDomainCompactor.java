@@ -172,7 +172,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
     @Override
     public String[] getLocations() throws IOException {
-
+      return locations;
     }
 
 
