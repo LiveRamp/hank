@@ -155,7 +155,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private int partitionNumber;
     private String[] locations;
 
-
     public HadoopDomainCompactorInputSplit() {
     }
 
@@ -174,7 +173,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     public String[] getLocations() throws IOException {
       return locations;
     }
-
 
     @Override
     public void write(DataOutput dataOutput) throws IOException {
