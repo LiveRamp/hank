@@ -231,7 +231,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           List<String> paths = updater.getRemotePartitionFilePaths(updatePlan);
           LOG.info("Determining locations for partition " + partition + " using: " + paths);
           locations = computeOptimalHosts(conf, paths);
-          LOG.info("Found locations: " + locations);
+          LOG.info("Determining locations for partition " + partition + " : " + locations);
         }
 
         splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
