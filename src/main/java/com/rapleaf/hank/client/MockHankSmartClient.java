@@ -65,14 +65,18 @@ public class MockHankSmartClient implements HankSmartClientIface {
 
   @Override
   public FutureGet concurrentGet(String domainName, ByteBuffer key) {
-    return new FutureGet(new GetTaskRunnable(domainName, key));
+    FutureGet futureGet = new FutureGet(new GetTaskRunnable(domainName, key));
+    futureGet.run();
+    return futureGet;
   }
 
   @Override
   public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> keys) {
     List<FutureGet> result = new ArrayList<FutureGet>();
     for (ByteBuffer key : keys) {
-      result.add(new FutureGet(new GetTaskRunnable(domainName, key)));
+      FutureGet futureGet = new FutureGet(new GetTaskRunnable(domainName, key));
+      futureGet.run();
+      result.add(futureGet);
     }
     return result;
   }
