@@ -44,12 +44,12 @@ public class MockHankSmartClient implements HankSmartClientIface {
   }
 
   @Override
-  public FutureGet concurrentGet(String s, ByteBuffer byteBuffer) throws TException {
+  public FutureGet concurrentGet(String s, ByteBuffer byteBuffer) {
     throw new NotImplementedException();
   }
 
   @Override
-  public List<FutureGet> concurrentGet(String s, List<ByteBuffer> byteBuffers) throws TException {
+  public List<FutureGet> concurrentGet(String s, List<ByteBuffer> byteBuffers) {
     throw new NotImplementedException();
   }
 
