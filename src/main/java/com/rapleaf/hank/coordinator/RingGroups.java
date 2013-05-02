@@ -30,6 +30,10 @@ public final class RingGroups {
   private RingGroups() {
   }
 
+  public static boolean isUpToDate(RingGroup ringGroup) throws IOException {
+    return isUpToDate(ringGroup, ringGroup.getDomainGroup());
+  }
+
   public static boolean isUpToDate(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isUpToDate(ring, domainGroup)) {
