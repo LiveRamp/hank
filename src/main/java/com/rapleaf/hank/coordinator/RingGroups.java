@@ -43,11 +43,12 @@ public final class RingGroups {
     return true;
   }
 
-  // Return true iff each ring is either up to date or not serving any data
+  // Return true iff each ring is either serving only up to date data or not serving any data
   public static boolean isServingOnlyUpToDate(RingGroup ringGroup) throws IOException {
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     for (Ring ring : ringGroup.getRings()) {
-      if (!(Rings.isUpToDate(ring, domainGroup) || Rings.getHostsInState(ring, HostState.SERVING).size() == 0)) {
+      ServingStatus servingStatus = Rings.computeServingStatusAggregator(ring, domainGroup).computeServingStatus();
+      if (!(servingStatus.isServedAndUpToDate() || Rings.getHostsInState(ring, HostState.SERVING).size() == 0)) {
         return false;
       }
     }
