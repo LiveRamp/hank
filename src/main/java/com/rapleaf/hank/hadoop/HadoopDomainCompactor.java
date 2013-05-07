@@ -200,7 +200,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   private static class HadoopDomainCompactorInputFormat implements InputFormat<Text, IntWritable> {
 
     private Domain domain;
-    private DomainVersion domainVersion;
+    private DomainVersion domainVersionToCompact;
 
     private static final int MAX_BLOCK_LOCATIONS_PER_SPLIT = 6;
 
@@ -211,7 +211,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         @Override
         public void run(Coordinator coordinator) throws IOException {
           domain = DomainBuilderProperties.getDomain(coordinator, domainName);
-          domainVersion = domain.getVersion(DomainBuilderProperties.getVersionNumber(domainName, conf));
+          domainVersionToCompact = domain.getVersion(DomainCompactorProperties.getVersionNumberToCompact(domainName, conf));
         }
       });
 
@@ -227,7 +227,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
         List<String> locations = new ArrayList<String>();
         if (compactor instanceof IncrementalPartitionUpdater) {
           IncrementalPartitionUpdater updater = (IncrementalPartitionUpdater) compactor;
-          IncrementalUpdatePlan updatePlan = updater.computeUpdatePlan(domainVersion);
+          IncrementalUpdatePlan updatePlan = updater.computeUpdatePlan(domainVersionToCompact);
           List<String> paths = updater.getRemotePartitionFilePaths(updatePlan);
           LOG.info("Determining locations for partition " + partition + " using: " + paths);
           locations = computeOptimalHosts(conf, paths);
