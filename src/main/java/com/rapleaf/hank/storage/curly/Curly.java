@@ -369,7 +369,7 @@ public class Curly implements StorageEngine {
     return getWriter(domainVersion, fileOps, partitionNumber, cueballWriter);
   }
 
-  public Compactor getCompactor(String localDir,
+  private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
         partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
