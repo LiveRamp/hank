@@ -350,11 +350,15 @@ public class Curly implements StorageEngine {
   @Override
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException {
-    File localDir = new File(getLocalDir(configurator, partitionNumber));
-    if (!localDir.exists() && !localDir.mkdirs()) {
-      throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
+    if (configurator != null) {
+      File localDir = new File(getLocalDir(configurator, partitionNumber));
+      if (!localDir.exists() && !localDir.mkdirs()) {
+        throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
+      }
+      return getCompactor(localDir.getAbsolutePath(), partitionNumber);
+    } else {
+      return getCompactor((String) null, partitionNumber);
     }
-    return getCompactor(localDir.getAbsolutePath(), partitionNumber);
   }
 
   @Override
@@ -365,7 +369,7 @@ public class Curly implements StorageEngine {
     return getWriter(domainVersion, fileOps, partitionNumber, cueballWriter);
   }
 
-  private Compactor getCompactor(String localDir,
+  public Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
         partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
