@@ -79,7 +79,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
   private static class HadoopDomainCompactorMapper implements Mapper<Text, IntWritable,
       KeyAndPartitionWritable, ValueWritable> {
 
-    //private Domain domain;
     private DomainVersion domainVersionToCompact;
     private StorageEngine storageEngine;
     private File localTmpOutput;
