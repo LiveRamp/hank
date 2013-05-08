@@ -126,6 +126,8 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (cache != null && loadValueFromCache(location, result)) {
       return;
     }
+    // Deep copy the location if caching is activated
+    ByteBuffer locationDeepCopy = cache != null ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);
@@ -190,7 +192,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     }
     // Store result in cache if needed
     if (cache != null) {
-      addValueToCache(location, result.getBuffer());
+      addValueToCache(locationDeepCopy, result.getBuffer());
     }
   }
 
@@ -270,9 +272,10 @@ public class CurlyReader implements Reader, ICurlyReader {
     return versionNumber;
   }
 
+  // Note: location should already be a deep copy that won't get modified
   private void addValueToCache(ByteBuffer location, ByteBuffer value) {
     synchronized (cache) {
-      cache.put(Bytes.byteBufferDeepCopy(location), Bytes.byteBufferDeepCopy(value));
+      cache.put(location, Bytes.byteBufferDeepCopy(value));
     }
   }
 
