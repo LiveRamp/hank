@@ -126,7 +126,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (cache != null && loadValueFromCache(location, result)) {
       return;
     }
-    // Deep copy the location if caching is activated
+    // Deep copy the location if caching is activated, since result might point to location and overwrite it
     ByteBuffer locationDeepCopy = cache != null ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
