@@ -32,7 +32,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
+  private LruHashMap<ByteBuffer, ByteBuffer> cache;
   private final BlockCompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
@@ -303,8 +303,6 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (keyFileReader != null) {
       keyFileReader.close();
     }
-    if (cache != null) {
-      cache.clear();
-    }
+    cache = null;
   }
 }

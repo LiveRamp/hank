@@ -43,7 +43,7 @@ public class CueballReader implements Reader {
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
-  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
+  private LruHashMap<ByteBuffer, ByteBuffer> cache;
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
@@ -137,9 +137,7 @@ public class CueballReader implements Reader {
   @Override
   public void close() throws IOException {
     channel.close();
-    if (cache != null) {
-      cache.clear();
-    }
+    cache = null;
   }
 
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {
