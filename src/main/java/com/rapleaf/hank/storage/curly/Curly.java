@@ -30,6 +30,8 @@ import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.storage.incremental.IncrementalStorageEngine;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.*;
@@ -42,7 +44,7 @@ import java.util.regex.Pattern;
  * Curly is a storage engine designed for larger, variable-sized values. It uses
  * Cueball under the hood.
  */
-public class Curly implements StorageEngine {
+public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   private static final Pattern BASE_OR_REGEX_PATTERN = Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.curly");
   static final String BASE_REGEX = ".*\\d{5}\\.base\\.curly";
@@ -339,6 +341,11 @@ public class Curly implements StorageEngine {
   }
 
   @Override
+  public IncrementalUpdatePlanner getUpdatePlanner(Domain domain) {
+    return new CurlyUpdatePlanner(domain);
+  }
+
+  @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     File localDir = new File(getLocalDir(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
@@ -372,7 +379,7 @@ public class Curly implements StorageEngine {
   private Compactor getCompactor(String localDir,
                                  int partitionNumber) throws IOException {
     return new CurlyCompactor(domain,
-        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
+        getPartitionRemoteFileOps(partitionNumber),
         localDir,
         new CurlyCompactingMerger(recordFileReadBufferBytes),
         new CueballStreamBufferMergeSort.Factory(keyHashSize, cueballValueNumBytes, hashIndexBits, getCompressionCodec(), null),
@@ -389,7 +396,7 @@ public class Curly implements StorageEngine {
 
   private CurlyFastPartitionUpdater getFastPartitionUpdater(String localDir, int partNum) throws IOException {
     return new CurlyFastPartitionUpdater(domain,
-        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partNum),
+        getPartitionRemoteFileOps(partNum),
         new CurlyMerger(),
         new CueballMerger(),
         keyHashSize,
@@ -423,6 +430,11 @@ public class Curly implements StorageEngine {
   @Override
   public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
     return partitionRemoteFileOpsFactory;
+  }
+
+  @Override
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
+    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
   }
 
   private String getLocalDir(DataDirectoriesConfigurator configurator, int partNum) {

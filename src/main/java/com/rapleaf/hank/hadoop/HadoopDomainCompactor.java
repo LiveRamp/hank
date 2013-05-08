@@ -26,8 +26,9 @@ import com.rapleaf.hank.coordinator.*;
 import com.rapleaf.hank.storage.Compactor;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
-import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
+import com.rapleaf.hank.storage.incremental.IncrementalStorageEngine;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.rapleaf.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.BlockLocation;
@@ -222,12 +223,11 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       for (int partition = 0; partition < domainNumParts; ++partition) {
 
         // Compute remote partition file paths for this split if possible
-        Compactor compactor = storageEngine.getCompactor(null, partition);
         List<String> locations = new ArrayList<String>();
-        if (compactor instanceof IncrementalPartitionUpdater) {
-          IncrementalPartitionUpdater updater = (IncrementalPartitionUpdater) compactor;
-          IncrementalUpdatePlan updatePlan = updater.computeUpdatePlan(domainVersionToCompact);
-          List<String> paths = updater.getRemotePartitionFilePaths(updatePlan);
+        if (storageEngine instanceof IncrementalStorageEngine) {
+          IncrementalUpdatePlanner updatePlanner = ((IncrementalStorageEngine) storageEngine).getUpdatePlanner(domain);
+          IncrementalUpdatePlan updatePlan = updatePlanner.computeUpdatePlan(domainVersionToCompact);
+          List<String> paths = updatePlanner.getRemotePartitionFilePaths(updatePlan, storageEngine.getPartitionRemoteFileOps(partition));
           LOG.info("Determining locations for partition " + partition + " using: " + paths);
           locations = computeOptimalHosts(conf, paths);
           LOG.info("Determining locations for partition " + partition + " : " + locations);

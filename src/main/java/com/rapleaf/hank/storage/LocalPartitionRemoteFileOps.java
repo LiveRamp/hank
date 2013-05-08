@@ -35,11 +35,6 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public LocalPartitionRemoteFileOps(String remoteDomainRoot,
                                      int partitionNumber) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
-    if (!new File(partitionRoot).isAbsolute()) {
-      throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
-          + " with a non absolute remote partition root: "
-          + partitionRoot);
-    }
   }
 
   @Override

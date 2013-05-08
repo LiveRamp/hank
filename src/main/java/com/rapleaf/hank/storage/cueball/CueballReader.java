@@ -208,5 +208,4 @@ public class CueballReader implements Reader {
       return false;
     }
   }
-
 }

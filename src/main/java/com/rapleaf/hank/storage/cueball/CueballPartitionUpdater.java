@@ -20,7 +20,6 @@ import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.storage.PartitionRemoteFileOps;
-import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlan;
 import org.apache.commons.io.FileUtils;
@@ -49,7 +48,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                  int hashIndexBits,
                                  CompressionCodec compressionCodec,
                                  String localPartitionRoot) throws IOException {
-    super(domain, localPartitionRoot);
+    super(domain, localPartitionRoot, new CueballUpdatePlanner(domain));
     this.partitionRemoteFileOps = partitionRemoteFileOps;
     this.cueballMerger = cueballMerger;
     this.keyHashSize = keyHashSize;
@@ -66,11 +65,6 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     } else {
       return null;
     }
-  }
-
-  @Override
-  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
   public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
@@ -202,13 +196,5 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     if (!new File(path).exists()) {
       throw new IOException("Could not find required file for merging: " + path);
     }
-  }
-
-  public List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException {
-    List<String> result = new ArrayList<String>();
-    for (DomainVersion domainVersion : updatePlan.getAllVersions()) {
-      result.add(partitionRemoteFileOps.getRemoteAbsolutePath(Cueball.getName(domainVersion)));
-    }
-    return result;
   }
 }

@@ -62,31 +62,30 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
       }
     };
 
-    IncrementalPartitionUpdater updater =
-        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null);
+    IncrementalUpdatePlanner updatePlanner = new MockIncrementalUpdatePlanner(domain);
 
     // No need to update to null
-    assertNull(updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), null));
+    assertNull(updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), null));
 
     // No need to update from v0 to v0
-    assertNull(updater.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v0));
+    assertNull(updatePlanner.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v0
     assertEquals(new IncrementalUpdatePlan(v0, Collections.<DomainVersion>emptyList()),
-        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v0));
+        updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v0));
 
     // Updating from null to v1
     assertEquals(new IncrementalUpdatePlan(v0, v1),
-        updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1));
+        updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1));
 
     // Updating from v0 to v1
     assertEquals(new IncrementalUpdatePlan(v0, v1),
-        updater.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v1));
+        updatePlanner.computeUpdatePlan(v0, Collections.<DomainVersion>emptySet(), v1));
 
     // Updating from null to v1, v0 is defunct
     v0.setDefunct(true);
     try {
-      updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1);
+      updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v1);
       fail("Should fail since v1 is not a base");
     } catch (IOException e) {
       // Good
@@ -96,12 +95,12 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     // Updating from v1 to v2, v1 is defunct
     v1.setDefunct(true);
     assertEquals(new IncrementalUpdatePlan(v0, v2),
-        updater.computeUpdatePlan(v1, Collections.<DomainVersion>emptySet(), v2));
+        updatePlanner.computeUpdatePlan(v1, Collections.<DomainVersion>emptySet(), v2));
     v1.setDefunct(false);
 
     // Updating from null to v4, v3 is not closed
     try {
-      updater.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v4);
+      updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>emptySet(), v4);
       fail("Should fail since v3 is not closed");
     } catch (IOException e) {
       // Good
@@ -109,7 +108,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
 
     // Updating from null to v2, v1 is cached
     assertEquals(new IncrementalUpdatePlan(v1, v2),
-        updater.computeUpdatePlan(null, Collections.<DomainVersion>singleton(v1), v2));
+        updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>singleton(v1), v2));
   }
 
   public void testGetUpdatePlanNonRelatedVersions() throws IOException {
@@ -137,10 +136,10 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
       }
     };
 
-    IncrementalPartitionUpdater updater =
-        new MockIncrementalPartitionUpdater(localPartitionRoot, domain, null) {
+    IncrementalUpdatePlanner updater =
+        new MockIncrementalUpdatePlanner(domain) {
           @Override
-          protected DomainVersion getParentDomainVersion(DomainVersion version) {
+          public DomainVersion getParentDomainVersion(DomainVersion version) {
             switch (version.getVersionNumber()) {
               case 0:
                 return null;

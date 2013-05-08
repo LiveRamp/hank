@@ -76,6 +76,11 @@ public class MockStorageEngine implements StorageEngine {
   }
 
   @Override
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) {
+    return null;
+  }
+
+  @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     return null;
   }

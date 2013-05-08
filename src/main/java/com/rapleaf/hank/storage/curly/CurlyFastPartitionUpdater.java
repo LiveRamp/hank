@@ -55,9 +55,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
                                    int hashIndexBits,
                                    CompressionCodec compressionCodec,
                                    String localPartitionRoot) throws IOException {
-    super(domain,
-        partitionRemoteFileOps,
-        localPartitionRoot);
+    super(domain, partitionRemoteFileOps, localPartitionRoot);
     this.keyHashSize = keyHashSize;
     this.offsetNumBytes = offsetNumBytes;
     if (offsetInBlockNumBytes > 0) {

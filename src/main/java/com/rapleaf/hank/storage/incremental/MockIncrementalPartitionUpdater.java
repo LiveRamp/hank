@@ -23,7 +23,6 @@ import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater {
@@ -48,7 +47,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
                                          final Integer currentVersion,
                                          final Integer cachedBase,
                                          final Integer cachedDelta) throws IOException {
-    super(domain, localPartitionRoot);
+    super(domain, localPartitionRoot, null);
     this.domain = domain;
     this.currentVersion = currentVersion;
     this.cachedBase = cachedBase;
@@ -91,23 +90,9 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
   }
 
   @Override
-  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    if (domainVersion.getVersionNumber() == 0) {
-      return null;
-    } else {
-      return domain.getVersion(domainVersion.getVersionNumber() - 1);
-    }
-  }
-
-  @Override
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) {
-  }
-
-  @Override
-  public List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException {
-    return null;
   }
 }

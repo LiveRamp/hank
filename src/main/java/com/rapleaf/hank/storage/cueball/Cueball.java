@@ -27,6 +27,8 @@ import com.rapleaf.hank.hasher.IdentityHasher;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.rapleaf.hank.storage.incremental.IncrementalStorageEngine;
+import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.IOException;
@@ -40,7 +42,7 @@ import java.util.regex.Pattern;
 /**
  * Cueball is a storage engine optimized for small, fixed-size values.
  */
-public class Cueball implements StorageEngine {
+public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   private static final Pattern BASE_OR_DELTA_PATTERN = Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.cueball");
   static final String BASE_REGEX = ".*\\d{5}\\.base\\.cueball";
@@ -222,10 +224,15 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
+  public IncrementalUpdatePlanner getUpdatePlanner(Domain domain) {
+    return new CueballUpdatePlanner(domain);
+  }
+
+  @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
+        getPartitionRemoteFileOps(partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -264,6 +271,11 @@ public class Cueball implements StorageEngine {
   @Override
   public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
     return partitionRemoteFileOpsFactory;
+  }
+
+  @Override
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
+    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
   }
 
   @Override

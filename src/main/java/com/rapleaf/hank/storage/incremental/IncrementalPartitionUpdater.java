@@ -16,7 +16,10 @@
 
 package com.rapleaf.hank.storage.incremental;
 
-import com.rapleaf.hank.coordinator.*;
+import com.rapleaf.hank.coordinator.CloseCoordinatorOpportunistically;
+import com.rapleaf.hank.coordinator.Coordinator;
+import com.rapleaf.hank.coordinator.Domain;
+import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.performance.HankTimer;
 import com.rapleaf.hank.storage.PartitionUpdater;
 import com.rapleaf.hank.ui.UiUtils;
@@ -25,7 +28,8 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Set;
+import java.util.UUID;
 
 public abstract class IncrementalPartitionUpdater implements PartitionUpdater, CloseCoordinatorOpportunistically {
 
@@ -38,13 +42,16 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
   protected final Domain domain;
   protected final String localPartitionRoot;
   protected final String localPartitionRootCache;
+  private final IncrementalUpdatePlanner updatePlanner;
   private Coordinator coordinatorToCloseOpportunistically;
 
   public IncrementalPartitionUpdater(Domain domain,
-                                     String localPartitionRoot) throws IOException {
+                                     String localPartitionRoot,
+                                     IncrementalUpdatePlanner updatePlanner) throws IOException {
     this.domain = domain;
     this.localPartitionRoot = localPartitionRoot;
     this.localPartitionRootCache = localPartitionRoot + "/" + CACHE_ROOT_NAME;
+    this.updatePlanner = updatePlanner;
   }
 
   /**
@@ -52,8 +59,6 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
    * @throws IOException
    */
   protected abstract Integer detectCurrentVersionNumber() throws IOException;
-
-  protected abstract DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException;
 
   protected abstract Set<DomainVersion> detectCachedBasesCore() throws IOException;
 
@@ -68,8 +73,6 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
                                         IncrementalUpdatePlan updatePlan,
                                         String updateWorkRoot) throws IOException;
 
-  public abstract List<String> getRemotePartitionFilePaths(IncrementalUpdatePlan updatePlan) throws IOException;
-
   @Override
   public void updateTo(DomainVersion updatingToVersion) throws IOException {
     ensureLocalPartitionRootExists();
@@ -78,7 +81,7 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       DomainVersion currentVersion = detectCurrentVersion();
       Set<DomainVersion> cachedBases = detectCachedBases();
       Set<DomainVersion> cachedDeltas = detectCachedDeltas();
-      IncrementalUpdatePlan updatePlan = computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
+      IncrementalUpdatePlan updatePlan = updatePlanner.computeUpdatePlan(currentVersion, cachedBases, updatingToVersion);
       // The plan is empty, we are done
       if (updatePlan == null) {
         return;
@@ -211,82 +214,6 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
         throw new IOException("Failed to create cache root directory: " + cacheRootFile.getAbsolutePath());
       }
     }
-  }
-
-  public IncrementalUpdatePlan computeUpdatePlan(DomainVersion updatingToVersion) throws IOException {
-    return computeUpdatePlan(null, new HashSet<DomainVersion>(), updatingToVersion);
-  }
-
-  /**
-   * Return the list of versions needed to update to the specific version given that
-   * the specified current version and cached bases are available.
-   *
-   * @param currentVersion
-   * @param cachedBases
-   * @param updatingToVersion
-   * @return
-   * @throws java.io.IOException
-   */
-  protected IncrementalUpdatePlan computeUpdatePlan(DomainVersion currentVersion,
-                                                    Set<DomainVersion> cachedBases,
-                                                    DomainVersion updatingToVersion) throws IOException {
-    LinkedList<DomainVersion> updatePlanVersions = new LinkedList<DomainVersion>();
-    // Backtrack versions (ignoring defunct versions) until we find:
-    // - a base (no parent)
-    // - or the current version (which is by definition a base or a rebased delta)
-    // - or a version that is a base and that is cached
-    DomainVersion parentVersion = updatingToVersion;
-    while (parentVersion != null) {
-      // Ignore completely defunct versions
-      if (!parentVersion.isDefunct()) {
-        // If a version along the path is still open, abort
-        if (!DomainVersions.isClosed(parentVersion)) {
-          throw new IOException("Detected a domain version that is still open"
-              + " along the path from current version to version to update to: "
-              + " domain: " + domain
-              + " open version: " + parentVersion
-              + " current version: " + currentVersion
-              + " updating to version: " + updatingToVersion);
-        }
-        // If backtrack to current version, use it and stop backtracking
-        if (currentVersion != null && parentVersion.equals(currentVersion)) {
-          // If we only need the current version, we don't need any plan
-          if (updatePlanVersions.isEmpty()) {
-            return null;
-          } else {
-            updatePlanVersions.add(parentVersion);
-            break;
-          }
-        }
-        // If backtrack to cached base version, use it and stop backtracking
-        if (cachedBases.contains(parentVersion)) {
-          updatePlanVersions.add(parentVersion);
-          break;
-        }
-        // Add backtracked version to versions needed
-        updatePlanVersions.add(parentVersion);
-      }
-      // Move to parent version
-      parentVersion = getParentDomainVersion(parentVersion);
-    }
-    if (updatePlanVersions.isEmpty()) {
-      return null;
-    }
-    // The base is the last version that was added (a base, the current version or a cached base)
-    DomainVersion base = updatePlanVersions.removeLast();
-    // Check that the base we are going to update from is not invalid
-    if (!(getParentDomainVersion(base) == null ||
-        cachedBases.contains(base) ||
-        (currentVersion != null && base.equals(currentVersion)))) {
-      throw new IOException("Failed to find a valid base from which to update: "
-          + " domain: " + domain
-          + " not a valid base: " + base
-          + " current version: " + currentVersion
-          + " updating to version: " + updatingToVersion);
-    }
-    // Reverse list of deltas as we have added versions going backwards
-    Collections.reverse(updatePlanVersions);
-    return new IncrementalUpdatePlan(base, updatePlanVersions);
   }
 
   private DomainVersion detectCurrentVersion() throws IOException {

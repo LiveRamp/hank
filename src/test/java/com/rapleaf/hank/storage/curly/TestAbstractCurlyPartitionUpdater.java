@@ -79,9 +79,10 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
   }
 
   public void testGetDomainVersionParent() throws IOException {
-    assertNull(updater.getParentDomainVersion(v0));
-    assertNull(updater.getParentDomainVersion(v1));
-    assertEquals(v1, updater.getParentDomainVersion(v2));
+    CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
+    assertNull(updatePlanner.getParentDomainVersion(v0));
+    assertNull(updatePlanner.getParentDomainVersion(v1));
+    assertEquals(v1, updatePlanner.getParentDomainVersion(v2));
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
@@ -193,7 +194,9 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
   }
 
   public void testGetRemotePartitionFilePaths() throws IOException {
-    List<String> paths = updater.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2));
+    CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
+    List<String> paths = updatePlanner.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2),
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 0));
     List<String> expectedPaths = new ArrayList<String>();
     expectedPaths.add(getRemoteFilePath("0/00001.base.cueball"));
     expectedPaths.add(getRemoteFilePath("0/00001.base.curly"));
