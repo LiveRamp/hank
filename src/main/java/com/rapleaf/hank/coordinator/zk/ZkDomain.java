@@ -59,7 +59,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
     if (create) {
       zk.ensureCreated(ZkPath.append(path, VERSIONS_PATH), null);
     }
-    domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
+    domainVersionPropertiesSerialization = getStorageEngine() != null ? getStorageEngine().getDomainVersionPropertiesSerialization() : null;
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
         new WatchedMap.ElementLoader<ZkDomainVersion>() {
           @Override
