@@ -70,7 +70,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
         if (options == null || options.get(requiredKey) == null) {
-          throw new RuntimeException("Required key '" + requiredKey
+          throw new IOException("Required key '" + requiredKey
               + "' was not found!");
         }
       }
@@ -82,7 +82,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
         hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
         fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new IOException(e);
       }
 
       // Compression codec
@@ -92,7 +92,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
         try {
           compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodec);
         } catch (ClassNotFoundException e) {
-          throw new RuntimeException("Failed to get CompressionCodec class '"
+          throw new IOException("Failed to get CompressionCodec class '"
               + compressionCodec + "'!", e);
         }
       }

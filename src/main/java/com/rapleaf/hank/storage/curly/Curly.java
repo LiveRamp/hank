@@ -76,7 +76,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
         if (options == null || options.get(requiredKey) == null) {
-          throw new RuntimeException("Required key '" + requiredKey
+          throw new IOException("Required key '" + requiredKey
               + "' was not found!");
         }
       }
@@ -95,7 +95,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
           compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodecClassName);
         }
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new IOException(e);
       }
       final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
           : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
