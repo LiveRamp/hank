@@ -21,6 +21,7 @@ import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.IOStreamUtils;
 import com.rapleaf.hank.util.LruHashMap;
+import org.xerial.snappy.SnappyOutputStream;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -198,13 +199,17 @@ public class CurlyWriter implements Writer {
     compressedBlockOutputStream.reset();
     offsetInDecompressedBlock = 0;
     // Initialize new compression stream
+    compressionOutputStream = getBlockCompressionOutputStream(compressedBlockOutputStream);
+  }
+
+  private OutputStream getBlockCompressionOutputStream(OutputStream compressedBlockOutputStream) throws IOException {
     switch (blockCompressionCodec) {
       case GZIP:
-        compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
-        break;
+        return new GZIPOutputStream(compressedBlockOutputStream);
+      case SNAPPY:
+        return new SnappyOutputStream(compressedBlockOutputStream);
       case SLOW_IDENTITY:
-        compressionOutputStream = new BufferedOutputStream(compressedBlockOutputStream);
-        break;
+        return new BufferedOutputStream(compressedBlockOutputStream);
       default:
         throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
     }

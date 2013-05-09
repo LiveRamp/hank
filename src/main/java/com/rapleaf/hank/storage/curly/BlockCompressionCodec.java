@@ -18,5 +18,6 @@ package com.rapleaf.hank.storage.curly;
 
 public enum BlockCompressionCodec {
   GZIP,
+  SNAPPY,
   SLOW_IDENTITY
 }

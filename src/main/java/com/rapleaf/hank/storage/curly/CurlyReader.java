@@ -19,6 +19,7 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.*;
+import org.xerial.snappy.SnappyInputStream;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -151,17 +152,7 @@ public class CurlyReader implements Reader, ICurlyReader {
         InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
             result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
         // Build an InputStream corresponding to the compression codec
-        InputStream decompressedBlockInputStream;
-        switch (blockCompressionCodec) {
-          case GZIP:
-            decompressedBlockInputStream = new GZIPInputStream(blockInputStream);
-            break;
-          case SLOW_IDENTITY:
-            decompressedBlockInputStream = new BufferedInputStream(blockInputStream);
-            break;
-          default:
-            throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-        }
+        InputStream decompressedBlockInputStream = getBlockCompressionInputStream(blockInputStream);
         // Decompress into the specialized result buffer
         Buffers buffers = threadLocalBuffers.get();
         buffers.reset();
@@ -193,6 +184,19 @@ public class CurlyReader implements Reader, ICurlyReader {
     // Store result in cache if needed
     if (cache != null) {
       addValueToCache(locationDeepCopy, result.getBuffer());
+    }
+  }
+
+  private InputStream getBlockCompressionInputStream(InputStream blockInputStream) throws IOException {
+    switch (blockCompressionCodec) {
+      case GZIP:
+        return new GZIPInputStream(blockInputStream);
+      case SNAPPY:
+        return new SnappyInputStream(blockInputStream);
+      case SLOW_IDENTITY:
+        return new BufferedInputStream(blockInputStream);
+      default:
+        throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
     }
   }
 

@@ -16,7 +16,6 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.storage.map.MapWriter;
-import com.rapleaf.hank.util.Bytes;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -115,9 +114,6 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
 
     // verify the keyfile looks as expected
     assertTrue(keyfileWriter.entries.containsKey(KEY1));
-    System.out.println("k1=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY1))); //TODO: remove
-    System.out.println("k2=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY2))); //TODO: remove
-    System.out.println("k3=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY3))); //TODO: remove
     assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 0, 0}), keyfileWriter.entries.get(KEY1));
     assertTrue(keyfileWriter.entries.containsKey(KEY2));
     assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 5, 0}), keyfileWriter.entries.get(KEY2));
@@ -127,7 +123,31 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertFalse(keyfileWriter.entries.containsKey(KEY4));
 
     // verify that the record stream looks as expected
-    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(s.toByteArray()))); //TODO: remove
     assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP), ByteBuffer.wrap(s.toByteArray()));
+  }
+
+  public void testSnappyBlockCompression() throws Exception {
+    ByteArrayOutputStream s = new ByteArrayOutputStream();
+    MapWriter keyfileWriter = new MapWriter();
+    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, BlockCompressionCodec.SNAPPY, 1024, 2);
+    writer.write(KEY1, VALUE1);
+    writer.write(KEY2, VALUE2);
+    writer.write(KEY3, VALUE3);
+    writer.close();
+    assertTrue(writer.getNumBytesWritten() > 0);
+    assertEquals(3, writer.getNumRecordsWritten());
+
+    // verify the keyfile looks as expected
+    assertTrue(keyfileWriter.entries.containsKey(KEY1));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 0, 0}), keyfileWriter.entries.get(KEY1));
+    assertTrue(keyfileWriter.entries.containsKey(KEY2));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 5, 0}), keyfileWriter.entries.get(KEY2));
+    assertTrue(keyfileWriter.entries.containsKey(KEY3));
+    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 10, 0}), keyfileWriter.entries.get(KEY3));
+
+    assertFalse(keyfileWriter.entries.containsKey(KEY4));
+
+    // verify that the record stream looks as expected
+    assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY), ByteBuffer.wrap(s.toByteArray()));
   }
 }
