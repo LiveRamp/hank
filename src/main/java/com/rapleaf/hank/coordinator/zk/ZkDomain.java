@@ -57,7 +57,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
     this.name = ZkPath.getFilename(path);
     metadata = new WatchedThriftNode<DomainMetadata>(zk, path, true, create ? CreateMode.PERSISTENT : null, initialMetadata, new DomainMetadata());
     if (create) {
-      zk.create(ZkPath.append(path, VERSIONS_PATH), null);
+      zk.ensureCreated(ZkPath.append(path, VERSIONS_PATH), null);
     }
     domainVersionPropertiesSerialization = getStorageEngine().getDomainVersionPropertiesSerialization();
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
