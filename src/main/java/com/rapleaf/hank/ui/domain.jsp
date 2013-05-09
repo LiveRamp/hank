@@ -27,12 +27,12 @@
 
 <h1>Domain <span class='currentItem'><%= domain.getName() %></span></h1>
 
+<% if (domain.getStorageEngine() == null) { %>
+    <div class="error">Storage Engine configuration is invalid</div>
+<% } %>
+
 <form action="/domain/update" method=post>
 <table>
-  <tr>
-  <td>Valid configuration:</td>
-  <td><%= domain.getStorageEngine() != null ? "True" : "False" %></td>
-  </tr>
   <tr>
   <td>ID:</td>
   <td><%= domain.getId() %></td>
