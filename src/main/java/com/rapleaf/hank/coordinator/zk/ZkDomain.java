@@ -5,6 +5,7 @@ import com.rapleaf.hank.generated.DomainMetadata;
 import com.rapleaf.hank.partitioner.Partitioner;
 import com.rapleaf.hank.storage.StorageEngine;
 import com.rapleaf.hank.storage.StorageEngineFactory;
+import com.rapleaf.hank.storage.mock.MockStorageEngine;
 import com.rapleaf.hank.zookeeper.WatchedMap;
 import com.rapleaf.hank.zookeeper.WatchedThriftNode;
 import com.rapleaf.hank.zookeeper.ZkPath;
@@ -127,8 +128,9 @@ public class ZkDomain extends AbstractDomain implements Domain {
       StorageEngineFactory factory = (StorageEngineFactory) Class.forName(getStorageEngineFactoryClassName()).newInstance();
       return storageEngine = factory.getStorageEngine(getStorageEngineOptions(), this);
     } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate storage engine from factory "
+      LOG.error("Could not instantiate storage engine from factory "
           + getStorageEngineFactoryClassName(), e);
+      return new MockStorageEngine();
     }
   }
 
