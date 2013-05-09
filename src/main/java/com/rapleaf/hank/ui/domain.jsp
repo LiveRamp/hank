@@ -30,8 +30,12 @@
 <form action="/domain/update" method=post>
 <table>
   <tr>
-    <td>ID:</td>
-    <td><%= domain.getId() %></td>
+  <td>Valid configuration:</td>
+  <td><%= domain.getStorageEngine() != null ? "True" : "False" %></td>
+  </tr>
+  <tr>
+  <td>ID:</td>
+  <td><%= domain.getId() %></td>
   </tr>
   <tr>
     <td>
