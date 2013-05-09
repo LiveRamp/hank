@@ -24,7 +24,6 @@ import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.hasher.IdentityHasher;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
 import com.rapleaf.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.rapleaf.hank.storage.incremental.IncrementalStorageEngine;
@@ -32,8 +31,6 @@ import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.rapleaf.hank.util.FsUtils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -128,20 +125,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
     @Override
     public String getDefaultOptions() {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-
-      pw.println("---");
-      pw.println("key_hash_size: 10");
-      pw.println("hasher: " + Murmur64Hasher.class.getName());
-      pw.println("max_allowed_part_size: " + 1024 * 1024);
-      pw.println("hash_index_bits: 15");
-      pw.println("remote_domain_root: #fill this in!");
-      pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
-      pw.println("value_size: #fill this in!");
-      pw.println("num_remote_leaf_versions_to_keep: #fill this in! 0 means keep all versions.");
-
-      return sw.toString();
+      return "";
     }
   }
 

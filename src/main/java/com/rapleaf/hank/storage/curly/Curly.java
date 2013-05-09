@@ -22,10 +22,7 @@ import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.rapleaf.hank.hasher.Hasher;
-import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.*;
-import com.rapleaf.hank.storage.Reader;
-import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.storage.cueball.Cueball;
 import com.rapleaf.hank.storage.cueball.CueballMerger;
 import com.rapleaf.hank.storage.cueball.CueballStreamBufferMergeSort;
@@ -34,7 +31,9 @@ import com.rapleaf.hank.storage.incremental.IncrementalStorageEngine;
 import com.rapleaf.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.rapleaf.hank.util.FsUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -165,55 +164,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
     @Override
     public String getDefaultOptions() {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-
-      pw.println("---");
-
-      pw.println("# The path where your remote domain files reside.");
-      pw.println(REMOTE_DOMAIN_ROOT_KEY + ": # FILL THIS IN!!!");
-      pw.println();
-      pw.println("# The File Ops Factory lets Curly know where to retrieve remote data from.");
-      pw.println("# If you're running over NFS or something like that, leave this alone.");
-      pw.println("# If you are using Hadoop, switch to the HdfsFileOpsFactory.");
-      pw.println(FILE_OPS_FACTORY_KEY + ": "
-          + LocalPartitionRemoteFileOps.Factory.class.getName());
-      pw.println("#" + FILE_OPS_FACTORY_KEY + ": "
-          + HdfsPartitionRemoteFileOps.Factory.class.getName());
-      pw.println();
-      pw.println("# This allows partitions up to 1TB in size. If you don't need");
-      pw.println("# them that big, try reducing this value to 4294967296 (4GB)");
-      pw.println("# to reduce the offset size to 4 bytes.");
-      pw.println(MAX_ALLOWED_PART_SIZE_KEY + ": " + (1L << 40));
-      pw.println();
-      pw.println("# The class name of the hasher you want to use. You should only");
-      pw.println("# need to adjust this if you have very particular needs.");
-      pw.println(HASHER_KEY + ": " + Murmur64Hasher.class.getName());
-      pw.println();
-      pw.println("# 12-byte hashes are more than sufficient for most people,");
-      pw.println("# unless you have just tons of keys.");
-      pw.println(KEY_HASH_SIZE_KEY + ": 12");
-      pw.println();
-      pw.println("# This setting adjusts the number of bits used for the hash index prefixes.");
-      pw.println("# Reducing this number can reduce memory usage, but increase the size of blocks.");
-      pw.println("# Adjust with caution.");
-      pw.println(HASH_INDEX_BITS_KEY + ": 15");
-      pw.println();
-      pw.println("# This value should be set to a number around the size of your");
-      pw.println("# average value, but not much smaller than 32KB. You can safely");
-      pw.println("# ignore it in most cases.");
-      pw.println(RECORD_FILE_READ_BUFFER_BYTES_KEY + ": " + (32 * 1024));
-      pw.println();
-      pw.println("# Set the number of newest full versions (bases + deltas) to keep on remote storage. 0 means keep all versions.");
-      pw.println(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP + ": " + 0);
-      pw.println();
-      pw.println("# Optional: compression codec. If no codec is specified,");
-      pw.println("# no compression will be used. Be sure to verify that compression");
-      pw.println("# actually helps you! If you are just using arbitrary hashed keys,");
-      pw.println("# it will probably make things worse!");
-      pw.println("#" + COMPRESSION_CODEC + ": " + NoCompressionCodec.class.getName());
-
-      return sw.toString();
+      return "";
     }
   }
 
