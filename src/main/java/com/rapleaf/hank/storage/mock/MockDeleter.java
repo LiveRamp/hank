@@ -1,15 +1,14 @@
 package com.rapleaf.hank.storage.mock;
 
-import java.io.IOException;
-
 import com.rapleaf.hank.storage.Deleter;
 
+import java.io.IOException;
+
 public class MockDeleter implements Deleter {
-  private final int partNum;
+
   private boolean hasDeleted = false;
 
   public MockDeleter(int partNum) {
-    this.partNum = partNum;
   }
 
   @Override
