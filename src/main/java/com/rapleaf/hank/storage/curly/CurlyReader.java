@@ -148,17 +148,8 @@ public class CurlyReader implements Reader, ICurlyReader {
       } else {
         // Read in the compressed block into the result
         readRecordAtOffset(recordFileBlockOffset, result);
-        // Decompress the block
-        InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
-            result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
-        // Build an InputStream corresponding to the compression codec
-        InputStream decompressedBlockInputStream = getBlockCompressionInputStream(blockInputStream);
-        // Decompress into the specialized result buffer
-        Buffers buffers = threadLocalBuffers.get();
-        buffers.reset();
-        IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
-        decompressedBlockInputStream.close();
-        decompressedBlockByteBuffer = buffers.getDecompressionOutputStream().getByteBuffer();
+        // Decompress block
+        decompressedBlockByteBuffer = decompressBlock(result.getBuffer());
         // Cache the decompressed block if requested
         if (cacheLastDecompressedBlock) {
           lastDecompressedBlockOffset = recordFileBlockOffset;
@@ -185,6 +176,20 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (cache != null) {
       addValueToCache(locationDeepCopy, result.getBuffer());
     }
+  }
+
+  private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
+    Buffers buffers = threadLocalBuffers.get();
+    buffers.reset();
+    // Decompress the block
+    InputStream blockInputStream =
+        new ByteArrayInputStream(block.array(), block.arrayOffset() + block.position(), block.remaining());
+    // Build an InputStream corresponding to the compression codec
+    InputStream decompressedBlockInputStream = getBlockCompressionInputStream(blockInputStream);
+    // Decompress into the specialized result buffer
+    IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
+    decompressedBlockInputStream.close();
+    return buffers.getDecompressionOutputStream().getByteBuffer();
   }
 
   private InputStream getBlockCompressionInputStream(InputStream blockInputStream) throws IOException {
