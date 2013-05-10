@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.GZIPInputStream;
 
-public class GzipBlockDecompressor extends InputStreamBlockDecompressor implements BlockDecompressor {
+public class GzipBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
   InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {

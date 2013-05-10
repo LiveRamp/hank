@@ -21,7 +21,7 @@ import org.xerial.snappy.SnappyInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SnappyBlockDecompressor extends InputStreamBlockDecompressor implements BlockDecompressor {
+public class SnappyBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
   InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {

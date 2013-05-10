@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class InputStreamBlockDecompressor implements BlockDecompressor {
+public abstract class StreamCopyBlockDecompressor implements BlockDecompressor {
 
   private final byte[] copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
 

@@ -20,7 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class SlowNoCompressionBlockDecompressor extends InputStreamBlockDecompressor implements BlockDecompressor {
+public class SlowNoCompressionBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
   InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
