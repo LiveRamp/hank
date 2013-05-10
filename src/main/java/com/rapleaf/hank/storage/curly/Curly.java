@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.compress.BlockCompressionCodec;
 import com.rapleaf.hank.compress.CompressionCodec;
 import com.rapleaf.hank.compress.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;

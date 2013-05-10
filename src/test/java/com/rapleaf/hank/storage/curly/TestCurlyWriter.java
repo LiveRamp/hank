@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.compress.BlockCompressionCodec;
 import com.rapleaf.hank.storage.map.MapWriter;
 
 import java.io.ByteArrayOutputStream;

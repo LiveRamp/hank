@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.storage.curly;
+package com.rapleaf.hank.compress;
 
 public enum BlockCompressionCodec {
   GZIP,

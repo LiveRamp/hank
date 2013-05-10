@@ -15,6 +15,7 @@
  */
 package com.rapleaf.hank.storage.curly;
 
+import com.rapleaf.hank.compress.BlockCompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
