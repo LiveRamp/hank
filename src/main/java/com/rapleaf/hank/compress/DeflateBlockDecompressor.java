@@ -39,14 +39,11 @@ public class DeflateBlockDecompressor implements BlockDecompressor {
       } catch (DataFormatException e) {
         throw new IOException(e);
       }
-      if (numBytes != 0) {
+      if (numBytes > 0) {
         outputStream.write(copyBuffer, 0, numBytes);
-      } else {
-        if (inflater.finished()) {
-          break;
-        } else {
-          throw new IllegalStateException("Inflater did not inflate any bytes and is not finished.");
-        }
+      }
+      if (inflater.finished()) {
+        break;
       }
     }
   }
