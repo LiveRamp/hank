@@ -16,17 +16,15 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.BlockCompressionCodec;
+import com.rapleaf.hank.compress.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.*;
-import org.xerial.snappy.SnappyInputStream;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
-import java.util.zip.GZIPInputStream;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
@@ -38,38 +36,52 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final BlockCompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
+
   // Last decompressed block cache
   private final boolean cacheLastDecompressedBlock;
   private ByteBuffer lastDecompressedBlock;
   private long lastDecompressedBlockOffset = -1;
 
-  private static class Buffers {
+  private class Local {
 
-    private UnsafeByteArrayOutputStream decompressionOutputStream;
-    private byte[] copyBuffer;
+    private final BlockDecompressor blockDecompressor;
+    private final UnsafeByteArrayOutputStream decompressionOutputStream;
 
-    public Buffers() {
-      decompressionOutputStream = new UnsafeByteArrayOutputStream();
-      copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
+    public Local() {
+      this.blockDecompressor = initializeBlockDecompressor();
+      this.decompressionOutputStream = new UnsafeByteArrayOutputStream();
+    }
+
+    public BlockDecompressor getBlockDecompressor() {
+      return blockDecompressor;
     }
 
     public UnsafeByteArrayOutputStream getDecompressionOutputStream() {
       return decompressionOutputStream;
     }
 
-    public byte[] getCopyBuffer() {
-      return copyBuffer;
-    }
-
     public void reset() {
       decompressionOutputStream.reset();
     }
+
+    private BlockDecompressor initializeBlockDecompressor() {
+      switch (blockCompressionCodec) {
+        case GZIP:
+          return new GzipBlockDecompressor();
+        case SNAPPY:
+          return new SnappyBlockDecompressor();
+        case SLOW_NO_COMPRESSION:
+          return new SlowNoCompressionBlockDecompressor();
+        default:
+          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
+      }
+    }
   }
 
-  private final static ThreadLocal<Buffers> threadLocalBuffers = new ThreadLocal<Buffers>() {
+  private final ThreadLocal<Local> threadLocal = new ThreadLocal<Local>() {
     @Override
-    public Buffers initialValue() {
-      return new Buffers();
+    public Local initialValue() {
+      return new Local();
     }
   };
 
@@ -180,30 +192,14 @@ public class CurlyReader implements Reader, ICurlyReader {
   }
 
   private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
-    Buffers buffers = threadLocalBuffers.get();
-    buffers.reset();
-    // Decompress the block
-    InputStream blockInputStream =
-        new ByteArrayInputStream(block.array(), block.arrayOffset() + block.position(), block.remaining());
-    // Build an InputStream corresponding to the compression codec
-    InputStream decompressedBlockInputStream = getBlockCompressionInputStream(blockInputStream);
-    // Decompress into the specialized result buffer
-    IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
-    decompressedBlockInputStream.close();
-    return buffers.getDecompressionOutputStream().getByteBuffer();
-  }
-
-  private InputStream getBlockCompressionInputStream(InputStream blockInputStream) throws IOException {
-    switch (blockCompressionCodec) {
-      case GZIP:
-        return new GZIPInputStream(blockInputStream);
-      case SNAPPY:
-        return new SnappyInputStream(blockInputStream);
-      case SLOW_NO_COMPRESSION:
-        return new BufferedInputStream(blockInputStream);
-      default:
-        throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-    }
+    Local local = threadLocal.get();
+    local.reset();
+    local.getBlockDecompressor().decompress(
+        block.array(),
+        block.arrayOffset() + block.position(),
+        block.remaining(),
+        local.getDecompressionOutputStream());
+    return local.getDecompressionOutputStream().getByteBuffer();
   }
 
   // Note: the buffer in result must be at least readBufferSize long

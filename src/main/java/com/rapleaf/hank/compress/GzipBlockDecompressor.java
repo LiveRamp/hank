@@ -16,11 +16,14 @@
 
 package com.rapleaf.hank.compress;
 
-public interface CompressionCodec {
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
-  public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+public class GzipBlockDecompressor extends InputStreamBlockDecompressor implements BlockDecompressor {
 
-  public int getMaxCompressBufferSize(int length);
-
-  public int decompress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+  @Override
+  InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
+    return new GZIPInputStream(inputStream);
+  }
 }

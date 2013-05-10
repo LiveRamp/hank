@@ -16,11 +16,15 @@
 
 package com.rapleaf.hank.compress;
 
-public interface CompressionCodec {
+import org.xerial.snappy.SnappyInputStream;
 
-  public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+import java.io.IOException;
+import java.io.InputStream;
 
-  public int getMaxCompressBufferSize(int length);
+public class SnappyBlockDecompressor extends InputStreamBlockDecompressor implements BlockDecompressor {
 
-  public int decompress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+  @Override
+  InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
+    return new SnappyInputStream(inputStream);
+  }
 }

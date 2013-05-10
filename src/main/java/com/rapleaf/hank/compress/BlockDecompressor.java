@@ -16,11 +16,10 @@
 
 package com.rapleaf.hank.compress;
 
-public interface CompressionCodec {
+import java.io.IOException;
+import java.io.OutputStream;
 
-  public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+public interface BlockDecompressor {
 
-  public int getMaxCompressBufferSize(int length);
-
-  public int decompress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+  public void decompress(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException;
 }
