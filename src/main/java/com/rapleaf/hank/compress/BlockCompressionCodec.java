@@ -17,6 +17,7 @@
 package com.rapleaf.hank.compress;
 
 public enum BlockCompressionCodec {
+  DEFLATE,
   GZIP,
   SNAPPY,
   SLOW_NO_COMPRESSION

@@ -19,9 +19,13 @@ package com.rapleaf.hank.storage.curly;
 import com.rapleaf.hank.compress.*;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
-import com.rapleaf.hank.util.*;
+import com.rapleaf.hank.util.Bytes;
+import com.rapleaf.hank.util.EncodingHelper;
+import com.rapleaf.hank.util.LruHashMap;
+import com.rapleaf.hank.util.UnsafeByteArrayOutputStream;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.SortedSet;
@@ -66,6 +70,8 @@ public class CurlyReader implements Reader, ICurlyReader {
 
     private BlockDecompressor initializeBlockDecompressor() {
       switch (blockCompressionCodec) {
+        case DEFLATE:
+          return new DeflateBlockDecompressor();
         case GZIP:
           return new GzipBlockDecompressor();
         case SNAPPY:
