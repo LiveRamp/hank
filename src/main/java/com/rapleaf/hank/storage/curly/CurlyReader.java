@@ -162,14 +162,14 @@ public class CurlyReader implements Reader, ICurlyReader {
       // Determine result value size
       int valueSize = EncodingHelper.decodeLittleEndianVarInt(decompressedBlockByteBuffer);
 
-      // We can exactly wrap our value
-      ByteBuffer value = ByteBuffer.wrap(decompressedBlockByteBuffer.array(),
-          decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(), valueSize);
-
       // Copy decompressed result into final result buffer
       result.requiresBufferSize(valueSize);
       result.getBuffer().clear();
-      result.getBuffer().put(value);
+      // We can exactly wrap our value
+      result.getBuffer().put(
+          decompressedBlockByteBuffer.array(),
+          decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(),
+          valueSize);
       result.getBuffer().flip();
     }
     // Store result in cache if needed
