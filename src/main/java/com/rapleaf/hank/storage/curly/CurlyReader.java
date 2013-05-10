@@ -199,7 +199,7 @@ public class CurlyReader implements Reader, ICurlyReader {
         return new GZIPInputStream(blockInputStream);
       case SNAPPY:
         return new SnappyInputStream(blockInputStream);
-      case SLOW_IDENTITY:
+      case SLOW_NO_COMPRESSION:
         return new BufferedInputStream(blockInputStream);
       default:
         throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);

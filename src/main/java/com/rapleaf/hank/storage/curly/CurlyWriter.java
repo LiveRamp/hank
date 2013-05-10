@@ -209,7 +209,7 @@ public class CurlyWriter implements Writer {
         return new GZIPOutputStream(compressedBlockOutputStream);
       case SNAPPY:
         return new SnappyOutputStream(compressedBlockOutputStream);
-      case SLOW_IDENTITY:
+      case SLOW_NO_COMPRESSION:
         return new BufferedOutputStream(compressedBlockOutputStream);
       default:
         throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
