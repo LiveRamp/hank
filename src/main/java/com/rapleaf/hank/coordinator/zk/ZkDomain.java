@@ -26,9 +26,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   private final String path;
   private final WatchedThriftNode<DomainMetadata> metadata;
   private final String name;
-  private StorageEngine storageEngine;
   private final WatchedMap<ZkDomainVersion> versions;
-  private final DomainVersionPropertiesSerialization domainVersionPropertiesSerialization;
   private final Partitioner partitioner;
   private final ZooKeeperPlus zk;
 
@@ -59,11 +57,14 @@ public class ZkDomain extends AbstractDomain implements Domain {
     if (create) {
       zk.ensureCreated(ZkPath.append(path, VERSIONS_PATH), null);
     }
-    domainVersionPropertiesSerialization = getStorageEngine() != null ? getStorageEngine().getDomainVersionPropertiesSerialization() : null;
+
     this.versions = new WatchedMap<ZkDomainVersion>(zk, ZkPath.append(path, VERSIONS_PATH),
         new WatchedMap.ElementLoader<ZkDomainVersion>() {
           @Override
           public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
+            StorageEngine storageEngine = getStorageEngine();
+            DomainVersionPropertiesSerialization domainVersionPropertiesSerialization =
+                storageEngine != null ? storageEngine.getDomainVersionPropertiesSerialization() : null;
             return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
           }
         });
@@ -120,12 +121,9 @@ public class ZkDomain extends AbstractDomain implements Domain {
 
   @Override
   public StorageEngine getStorageEngine() {
-    if (storageEngine != null) {
-      return storageEngine;
-    }
     try {
       StorageEngineFactory factory = (StorageEngineFactory) Class.forName(getStorageEngineFactoryClassName()).newInstance();
-      return storageEngine = factory.getStorageEngine(getStorageEngineOptions(), this);
+      return factory.getStorageEngine(getStorageEngineOptions(), this);
     } catch (Exception e) {
       LOG.error("Could not instantiate storage engine from factory " + getStorageEngineFactoryClassName()
           + " with options " + getStorageEngineOptions(), e);
