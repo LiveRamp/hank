@@ -1,4 +1,6 @@
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression.cueball;
+
+import com.rapleaf.hank.compression.cueball.CompressionCodec;
 
 public class NoCompressionCodec implements CompressionCodec {
   @Override

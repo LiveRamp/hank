@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 Rapleaf
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,11 +14,7 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression;
 
-public enum BlockCompressionCodec {
-  DEFLATE,
-  GZIP,
-  SNAPPY,
-  SLOW_NO_COMPRESSION
+public interface Compressor {
 }

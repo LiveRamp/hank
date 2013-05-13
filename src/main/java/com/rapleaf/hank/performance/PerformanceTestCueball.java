@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.performance;
 
-import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.compression.cueball.NoCompressionCodec;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Hasher;

@@ -1,6 +1,6 @@
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compression.cueball.CompressionCodec;
 import com.rapleaf.hank.coordinator.mock.MockDomainVersion;
 import com.rapleaf.hank.hasher.Hasher;
 import com.rapleaf.hank.partitioner.Partitioner;

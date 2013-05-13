@@ -14,9 +14,9 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress.deflate;
+package com.rapleaf.hank.compression.deflate;
 
-import com.rapleaf.hank.compress.BlockDecompressor;
+import com.rapleaf.hank.compression.Decompressor;
 import com.rapleaf.hank.util.IOStreamUtils;
 
 import java.io.IOException;
@@ -24,13 +24,13 @@ import java.io.OutputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
-public class DeflateBlockDecompressor implements BlockDecompressor {
+public class DeflateDecompressor implements Decompressor {
 
   private final Inflater inflater = new Inflater();
   private final byte[] copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
 
   @Override
-  public void decompress(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException {
+  public void decompressBlock(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException {
     inflater.reset();
     inflater.setInput(buffer, offset, length);
     while (true) {

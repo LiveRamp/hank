@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.BlockCompressionCodec;
+import com.rapleaf.hank.compression.CompressionCodec;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.storage.map.MapReader;
 
@@ -107,7 +107,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     result.clear();
   }
 
-  private void doTestBlockCompression(BlockCompressionCodec blockCompressionCodec, byte[] compressedBlock) throws IOException {
+  private void doTestBlockCompression(CompressionCodec blockCompressionCodec, byte[] compressedBlock) throws IOException {
     new File(TMP_TEST_CURLY_READER).mkdirs();
     OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
     s.write(compressedBlock);
@@ -146,18 +146,18 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
   }
 
   public void testBlockCompressionSlowNoCompression() throws Exception {
-    doTestBlockCompression(BlockCompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
+    doTestBlockCompression(CompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
   }
 
   public void testBlockCompressionDeflate() throws Exception {
-    doTestBlockCompression(BlockCompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
+    doTestBlockCompression(CompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
   }
 
   public void testBlockCompressionGzip() throws Exception {
-    doTestBlockCompression(BlockCompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
+    doTestBlockCompression(CompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
   }
 
   public void testBlockCompressionSnappy() throws Exception {
-    doTestBlockCompression(BlockCompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
+    doTestBlockCompression(CompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
   }
 }

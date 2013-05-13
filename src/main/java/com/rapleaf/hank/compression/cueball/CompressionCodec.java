@@ -14,19 +14,13 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress.zip;
+package com.rapleaf.hank.compression.cueball;
 
-import com.rapleaf.hank.compress.BlockDecompressor;
-import com.rapleaf.hank.compress.StreamCopyBlockDecompressor;
+public interface CompressionCodec {
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.zip.GZIPInputStream;
+  public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
 
-public class GzipBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
+  public int getMaxCompressBufferSize(int length);
 
-  @Override
-  protected InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
-    return new GZIPInputStream(inputStream);
-  }
+  public int decompress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
 }

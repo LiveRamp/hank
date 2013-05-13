@@ -14,13 +14,21 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression.snappy;
 
-public interface CompressionCodec {
+import com.rapleaf.hank.compression.CompressionFactory;
+import com.rapleaf.hank.compression.Compressor;
+import com.rapleaf.hank.compression.Decompressor;
 
-  public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+public class SnappyCompressionFactory implements CompressionFactory {
 
-  public int getMaxCompressBufferSize(int length);
+  @Override
+  public Decompressor getDecompressor() {
+    return new SnappyDecompressor();
+  }
 
-  public int decompress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff);
+  @Override
+  public Compressor getCompressor() {
+    return new SnappyCompressor();
+  }
 }

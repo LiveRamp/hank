@@ -16,7 +16,7 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compression.cueball.CompressionCodec;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
 import com.rapleaf.hank.performance.HankTimer;

@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank;
 
-import com.rapleaf.hank.compress.JavaGzipCompressionCodec;
+import com.rapleaf.hank.compression.cueball.JavaGzipCompressionCodec;
 import com.rapleaf.hank.config.CoordinatorConfigurator;
 import com.rapleaf.hank.config.PartitionServerConfigurator;
 import com.rapleaf.hank.config.RingGroupConductorConfigurator;

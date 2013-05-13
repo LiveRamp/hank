@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression.common;
 
+import com.rapleaf.hank.compression.Decompressor;
 import com.rapleaf.hank.util.IOStreamUtils;
 
 import java.io.ByteArrayInputStream;
@@ -23,12 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public abstract class StreamCopyBlockDecompressor implements BlockDecompressor {
+public abstract class StreamCopyDecompressor implements Decompressor {
 
   private final byte[] copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
 
   @Override
-  public void decompress(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException {
+  public void decompressBlock(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException {
     // Decompress the block
     InputStream blockInputStream = new ByteArrayInputStream(buffer, offset, length);
     // Build an InputStream corresponding to the compression codec

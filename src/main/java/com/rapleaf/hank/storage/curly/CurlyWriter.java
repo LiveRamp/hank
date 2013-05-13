@@ -15,7 +15,7 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.BlockCompressionCodec;
+import com.rapleaf.hank.compression.CompressionCodec;
 import com.rapleaf.hank.hasher.Murmur64Hasher;
 import com.rapleaf.hank.storage.Writer;
 import com.rapleaf.hank.util.Bytes;
@@ -51,7 +51,7 @@ public class CurlyWriter implements Writer {
   private final byte[] valueLengthBuffer = new byte[5];
 
   // Compression
-  private final BlockCompressionCodec blockCompressionCodec;
+  private final CompressionCodec blockCompressionCodec;
   private ByteArrayOutputStream compressedBlockOutputStream;
   private OutputStream compressionOutputStream;
   private final int compressedBlockSizeThreshold;
@@ -72,7 +72,7 @@ public class CurlyWriter implements Writer {
                      Writer keyfileWriter,
                      int offsetNumBytes,
                      int valueFoldingCacheCapacity,
-                     BlockCompressionCodec blockCompressionCodec,
+                     CompressionCodec blockCompressionCodec,
                      int compressedBlockSizeThreshold,
                      int offsetInBlockNumBytes) throws IOException {
     // Buffer output

@@ -16,12 +16,8 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.BlockCompressionCodec;
-import com.rapleaf.hank.compress.BlockDecompressor;
-import com.rapleaf.hank.compress.SlowNoCompressionBlockDecompressor;
-import com.rapleaf.hank.compress.deflate.DeflateBlockDecompressor;
-import com.rapleaf.hank.compress.snappy.SnappyBlockDecompressor;
-import com.rapleaf.hank.compress.zip.GzipBlockDecompressor;
+import com.rapleaf.hank.compression.CompressionCodec;
+import com.rapleaf.hank.compression.Decompressor;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;
@@ -44,7 +40,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final FileChannel recordFile;
   private final int versionNumber;
   private LruHashMap<ByteBuffer, ByteBuffer> cache;
-  private final BlockCompressionCodec blockCompressionCodec;
+  private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
 
@@ -55,18 +51,18 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   private static class Local {
 
-    private final Map<BlockCompressionCodec, BlockDecompressor> blockDecompressors;
+    private final Map<CompressionCodec, Decompressor> blockDecompressors;
     private final UnsafeByteArrayOutputStream decompressionOutputStream;
 
     public Local() {
-      this.blockDecompressors = new HashMap<BlockCompressionCodec, BlockDecompressor>();
+      this.blockDecompressors = new HashMap<CompressionCodec, Decompressor>();
       this.decompressionOutputStream = new UnsafeByteArrayOutputStream();
     }
 
-    public BlockDecompressor getBlockDecompressor(BlockCompressionCodec blockDecompressorCodec) {
-      BlockDecompressor blockDecompressor = blockDecompressors.get(blockDecompressorCodec);
+    public Decompressor getBlockDecompressor(CompressionCodec blockDecompressorCodec) {
+      Decompressor blockDecompressor = blockDecompressors.get(blockDecompressorCodec);
       if (blockDecompressor == null) {
-        blockDecompressor = initializeBlockDecompressor(blockDecompressorCodec);
+        blockDecompressor = blockDecompressorCodec.getFactory().getDecompressor();
         blockDecompressors.put(blockDecompressorCodec, blockDecompressor);
       }
       return blockDecompressor;
@@ -78,21 +74,6 @@ public class CurlyReader implements Reader, ICurlyReader {
 
     public void reset() {
       decompressionOutputStream.reset();
-    }
-
-    private BlockDecompressor initializeBlockDecompressor(BlockCompressionCodec blockCompressionCodec) {
-      switch (blockCompressionCodec) {
-        case DEFLATE:
-          return new DeflateBlockDecompressor();
-        case GZIP:
-          return new GzipBlockDecompressor();
-        case SNAPPY:
-          return new SnappyBlockDecompressor();
-        case SLOW_NO_COMPRESSION:
-          return new SlowNoCompressionBlockDecompressor();
-        default:
-          throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-      }
     }
   }
 
@@ -122,7 +103,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
                      int cacheCapacity,
-                     BlockCompressionCodec blockCompressionCodec,
+                     CompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
                      int offsetInBlockNumBytes,
                      boolean cacheLastDecompressedBlock) throws IOException {
@@ -212,7 +193,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
     Local local = threadLocal.get();
     local.reset();
-    local.getBlockDecompressor(blockCompressionCodec).decompress(
+    local.getBlockDecompressor(blockCompressionCodec).decompressBlock(
         block.array(),
         block.arrayOffset() + block.position(),
         block.remaining(),

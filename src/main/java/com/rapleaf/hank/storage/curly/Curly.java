@@ -15,9 +15,8 @@
  */
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.BlockCompressionCodec;
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.compression.CompressionCodec;
+import com.rapleaf.hank.compression.cueball.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
@@ -84,7 +83,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
       Hasher hasher;
       PartitionRemoteFileOpsFactory fileOpsFactory;
-      Class<? extends CompressionCodec> compressionCodecClass;
+      Class<? extends com.rapleaf.hank.compression.cueball.CompressionCodec> compressionCodecClass;
       try {
         hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
         fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
@@ -93,7 +92,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         if (compressionCodecClassName == null) {
           compressionCodecClass = NoCompressionCodec.class;
         } else {
-          compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodecClassName);
+          compressionCodecClass = (Class<? extends com.rapleaf.hank.compression.cueball.CompressionCodec>) Class.forName(compressionCodecClassName);
         }
       } catch (Exception e) {
         throw new IOException(e);
@@ -125,10 +124,10 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
       }
 
       // Block compression
-      BlockCompressionCodec blockCompressionCodec = null;
+      CompressionCodec blockCompressionCodec = null;
       String blockCompressionCodecStr = (String) options.get(BLOCK_COMPRESSION_CODEC);
       if (blockCompressionCodecStr != null) {
-        blockCompressionCodec = BlockCompressionCodec.valueOf(blockCompressionCodecStr.toUpperCase());
+        blockCompressionCodec = CompressionCodec.valueOf(blockCompressionCodecStr.toUpperCase());
       }
       Integer compressedBlockSizeThreshold = (Integer) options.get(COMPRESSED_BLOCK_SIZE_THRESHOLD);
       if (compressedBlockSizeThreshold == null) {
@@ -181,10 +180,10 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   private final int keyHashSize;
   private final PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory;
   private final int hashIndexBits;
-  private final Class<? extends CompressionCodec> keyFileCompressionCodecClass;
+  private final Class<? extends com.rapleaf.hank.compression.cueball.CompressionCodec> keyFileCompressionCodecClass;
   private final int numRemoteLeafVersionsToKeep;
   private final int valueFoldingCacheCapacity;
-  private final BlockCompressionCodec blockCompressionCodec;
+  private final CompressionCodec blockCompressionCodec;
   private final int compressedBlockSizeThreshold;
   private final int offsetInBlockNumBytes;
   private final int cueballValueNumBytes;
@@ -196,14 +195,14 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
                int recordFileReadBufferBytes,
                String remoteDomainRoot,
                PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
-               Class<? extends CompressionCodec> keyFileCompressionCodecClass,
+               Class<? extends com.rapleaf.hank.compression.cueball.CompressionCodec> keyFileCompressionCodecClass,
                Domain domain,
                int numRemoteLeafVersionsToKeep,
                int valueFoldingCacheCapacity,
                int keyFilePartitionCacheCapacity,
                int recordFilePartitionCacheCapacity,
                int recordFilePartitionCompactorCacheCapacity,
-               BlockCompressionCodec blockCompressionCodec,
+               CompressionCodec blockCompressionCodec,
                int compressedBlockSizeThreshold,
                int offsetInBlockNumBytes) {
     this.keyHashSize = keyHashSize;
@@ -359,7 +358,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         localDir);
   }
 
-  private CompressionCodec getCompressionCodec() throws IOException {
+  private com.rapleaf.hank.compression.cueball.CompressionCodec getCompressionCodec() throws IOException {
     try {
       return keyFileCompressionCodecClass.newInstance();
     } catch (Exception e) {

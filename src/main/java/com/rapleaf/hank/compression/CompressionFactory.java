@@ -14,16 +14,11 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+public interface CompressionFactory {
 
-public class SlowNoCompressionBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
+  public Decompressor getDecompressor();
 
-  @Override
-  protected InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
-    return new BufferedInputStream(inputStream);
-  }
+  public Compressor getCompressor();
 }

@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 Rapleaf
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,22 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compression.cueball.CompressionCodec;
+package com.rapleaf.hank.compression;
 
 import java.io.IOException;
-import java.util.List;
+import java.io.OutputStream;
 
-public interface ICueballMerger {
+public interface Decompressor {
 
-  public void merge(final CueballFilePath latestBase,
-                    final List<CueballFilePath> deltas,
-                    final String newBasePath,
-                    final int keyHashSize,
-                    final int valueSize,
-                    ValueTransformer transformer,
-                    int hashIndexBits,
-                    CompressionCodec compressionCodec)
-      throws IOException;
+  public void decompressBlock(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException;
 }

@@ -18,7 +18,7 @@
  */
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compress.CompressionCodec;
+import com.rapleaf.hank.compression.cueball.CompressionCodec;
 import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.IOStreamUtils;
 

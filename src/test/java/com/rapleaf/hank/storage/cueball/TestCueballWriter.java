@@ -17,7 +17,7 @@ package com.rapleaf.hank.storage.cueball;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.compression.cueball.NoCompressionCodec;
 
 
 public class TestCueballWriter extends AbstractCueballTest {

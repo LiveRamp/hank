@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.rapleaf.hank.BaseTestCase;
+import com.rapleaf.hank.compression.cueball.JavaGzipCompressionCodec;
 
 public class TestJavaGzipCompressionCodec extends BaseTestCase {
   private static final List<byte[]> TESTCASES = Arrays.asList(

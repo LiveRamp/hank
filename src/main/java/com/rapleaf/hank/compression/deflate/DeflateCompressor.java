@@ -14,12 +14,16 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compression.deflate;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.rapleaf.hank.compression.Compressor;
 
-public interface BlockDecompressor {
+public class DeflateCompressor implements Compressor {
 
-  public void decompress(byte[] buffer, int offset, int length, OutputStream outputStream) throws IOException;
+
+  //        Deflater deflater = new Deflater();
+  //        deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
+  //        deflater.setStrategy(Deflater.DEFAULT_STRATEGY);
+  //        return new DeflaterOutputStream(compressedBlockOutputStream, deflater);
+
 }

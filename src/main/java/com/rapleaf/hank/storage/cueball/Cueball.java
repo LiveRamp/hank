@@ -16,8 +16,8 @@
 
 package com.rapleaf.hank.storage.cueball;
 
-import com.rapleaf.hank.compress.CompressionCodec;
-import com.rapleaf.hank.compress.NoCompressionCodec;
+import com.rapleaf.hank.compression.cueball.CompressionCodec;
+import com.rapleaf.hank.compression.cueball.NoCompressionCodec;
 import com.rapleaf.hank.config.DataDirectoriesConfigurator;
 import com.rapleaf.hank.coordinator.Domain;
 import com.rapleaf.hank.coordinator.DomainVersion;
