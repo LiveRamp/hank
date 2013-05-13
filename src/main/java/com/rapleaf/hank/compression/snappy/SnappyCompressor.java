@@ -17,6 +17,15 @@
 package com.rapleaf.hank.compression.snappy;
 
 import com.rapleaf.hank.compression.Compressor;
+import org.xerial.snappy.SnappyOutputStream;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 public class SnappyCompressor implements Compressor {
+
+  @Override
+  public OutputStream getOutputStream(OutputStream outputStream) throws IOException {
+    return new SnappyOutputStream(outputStream);
+  }
 }

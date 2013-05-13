@@ -18,5 +18,14 @@ package com.rapleaf.hank.compression.zip;
 
 import com.rapleaf.hank.compression.Compressor;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.zip.GZIPOutputStream;
+
 public class GzipCompressor implements Compressor {
+
+  @Override
+  public OutputStream getOutputStream(OutputStream outputStream) throws IOException {
+    return new GZIPOutputStream(outputStream);
+  }
 }

@@ -16,5 +16,10 @@
 
 package com.rapleaf.hank.compression;
 
+import java.io.IOException;
+import java.io.OutputStream;
+
 public interface Compressor {
+
+  public OutputStream getOutputStream(OutputStream outputStream) throws IOException;
 }

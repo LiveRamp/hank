@@ -18,5 +18,13 @@ package com.rapleaf.hank.compression.none;
 
 import com.rapleaf.hank.compression.Compressor;
 
+import java.io.BufferedOutputStream;
+import java.io.OutputStream;
+
 public class SlowNoCompressionCompressor implements Compressor {
+
+  @Override
+  public OutputStream getOutputStream(OutputStream outputStream) {
+    return new BufferedOutputStream(outputStream);
+  }
 }

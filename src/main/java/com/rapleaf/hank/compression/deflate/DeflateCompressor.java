@@ -18,12 +18,17 @@ package com.rapleaf.hank.compression.deflate;
 
 import com.rapleaf.hank.compression.Compressor;
 
+import java.io.OutputStream;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
+
 public class DeflateCompressor implements Compressor {
 
-
-  //        Deflater deflater = new Deflater();
-  //        deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
-  //        deflater.setStrategy(Deflater.DEFAULT_STRATEGY);
-  //        return new DeflaterOutputStream(compressedBlockOutputStream, deflater);
-
+  @Override
+  public OutputStream getOutputStream(OutputStream outputStream) {
+    Deflater deflater = new Deflater();
+    deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
+    deflater.setStrategy(Deflater.DEFAULT_STRATEGY);
+    return new DeflaterOutputStream(outputStream, deflater);
+  }
 }

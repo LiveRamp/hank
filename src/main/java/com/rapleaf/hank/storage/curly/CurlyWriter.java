@@ -22,16 +22,12 @@ import com.rapleaf.hank.util.Bytes;
 import com.rapleaf.hank.util.EncodingHelper;
 import com.rapleaf.hank.util.IOStreamUtils;
 import com.rapleaf.hank.util.LruHashMap;
-import org.xerial.snappy.SnappyOutputStream;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterOutputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class CurlyWriter implements Writer {
 
@@ -202,25 +198,7 @@ public class CurlyWriter implements Writer {
     compressedBlockOutputStream.reset();
     offsetInDecompressedBlock = 0;
     // Initialize new compression stream
-    compressionOutputStream = getBlockCompressionOutputStream(compressedBlockOutputStream);
-  }
-
-  private OutputStream getBlockCompressionOutputStream(OutputStream compressedBlockOutputStream) throws IOException {
-    switch (blockCompressionCodec) {
-      case DEFLATE:
-        Deflater deflater = new Deflater();
-        deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
-        deflater.setStrategy(Deflater.DEFAULT_STRATEGY);
-        return new DeflaterOutputStream(compressedBlockOutputStream, deflater);
-      case GZIP:
-        return new GZIPOutputStream(compressedBlockOutputStream);
-      case SNAPPY:
-        return new SnappyOutputStream(compressedBlockOutputStream);
-      case SLOW_NO_COMPRESSION:
-        return new BufferedOutputStream(compressedBlockOutputStream);
-      default:
-        throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-    }
+    compressionOutputStream = blockCompressionCodec.getFactory().getCompressor().getOutputStream(compressedBlockOutputStream);
   }
 
   private void flushCompressedBlock() throws IOException {
