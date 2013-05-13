@@ -356,8 +356,7 @@ Collections.sort(clients, new ClientMetadataComparator());
   </table>
 
     <h2>Manual Query</h2>
-      <form action="/ring_group.jsp" method=post>
-        <input type=hidden name="name" value="<%=ringGroup.getName()%>"/>
+      <form action="/ring_group.jsp?name=<%=ringGroup.getName()%>" method=post>
         <table>
         <tr>
         <td>Domain:</td>
