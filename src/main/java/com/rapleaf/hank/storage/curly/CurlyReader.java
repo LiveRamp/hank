@@ -17,6 +17,9 @@
 package com.rapleaf.hank.storage.curly;
 
 import com.rapleaf.hank.compress.*;
+import com.rapleaf.hank.compress.deflate.DeflateBlockDecompressor;
+import com.rapleaf.hank.compress.snappy.SnappyBlockDecompressor;
+import com.rapleaf.hank.compress.zip.GzipBlockDecompressor;
 import com.rapleaf.hank.storage.Reader;
 import com.rapleaf.hank.storage.ReaderResult;
 import com.rapleaf.hank.util.Bytes;

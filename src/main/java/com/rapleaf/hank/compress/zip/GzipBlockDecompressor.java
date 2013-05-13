@@ -14,17 +14,19 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compress.zip;
 
-import org.xerial.snappy.SnappyInputStream;
+import com.rapleaf.hank.compress.BlockDecompressor;
+import com.rapleaf.hank.compress.StreamCopyBlockDecompressor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.zip.GZIPInputStream;
 
-public class SnappyBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
+public class GzipBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
   InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
-    return new SnappyInputStream(inputStream);
+    return new GZIPInputStream(inputStream);
   }
 }

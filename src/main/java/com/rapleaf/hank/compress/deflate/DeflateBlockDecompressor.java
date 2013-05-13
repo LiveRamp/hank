@@ -14,8 +14,9 @@
  *  limitations under the License.
  */
 
-package com.rapleaf.hank.compress;
+package com.rapleaf.hank.compress.deflate;
 
+import com.rapleaf.hank.compress.BlockDecompressor;
 import com.rapleaf.hank.util.IOStreamUtils;
 
 import java.io.IOException;
