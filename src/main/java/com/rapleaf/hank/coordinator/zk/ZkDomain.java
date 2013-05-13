@@ -62,10 +62,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
         new WatchedMap.ElementLoader<ZkDomainVersion>() {
           @Override
           public ZkDomainVersion load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
-            StorageEngine storageEngine = getStorageEngine();
-            DomainVersionPropertiesSerialization domainVersionPropertiesSerialization =
-                storageEngine != null ? storageEngine.getDomainVersionPropertiesSerialization() : null;
-            return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), domainVersionPropertiesSerialization);
+            return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), getDomainVersionPropertiesSerialization());
           }
         });
     String partitionerClassName = metadata.get().get_partitioner_class();
@@ -140,6 +137,11 @@ public class ZkDomain extends AbstractDomain implements Domain {
     return metadata.get().get_storage_engine_factory_class();
   }
 
+  private DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
+    StorageEngine storageEngine = getStorageEngine();
+    return storageEngine != null ? storageEngine.getDomainVersionPropertiesSerialization() : null;
+  }
+
   @Override
   public Partitioner getPartitioner() {
     return partitioner;
@@ -202,7 +204,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
       try {
         return new ZkDomainVersion(zk,
             ZkPath.append(path, VERSIONS_PATH, ZkDomainVersion.getPathName(versionNumber)),
-            domainVersionPropertiesSerialization);
+            getDomainVersionPropertiesSerialization());
       } catch (InterruptedException e) {
         return null;
       } catch (KeeperException e) {
@@ -234,7 +236,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public String toString() {
     return "ZkDomain [domainPath=" + path + ", id=" + getId() + ", name=" + name + ", numParts=" + getNumParts()
-        + ", partitioner=" + partitioner + ", storageEngine=" + storageEngine
+        + ", partitioner=" + partitioner + ", storageEngine=" + getStorageEngine()
         + ", storageEngineFactoryClassName=" + getStorageEngineFactoryClassName() + ", storageEngineOptions="
         + getStorageEngineOptions() + "]";
   }
