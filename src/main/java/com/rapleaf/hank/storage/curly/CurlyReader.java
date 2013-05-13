@@ -16,7 +16,9 @@
 
 package com.rapleaf.hank.storage.curly;
 
-import com.rapleaf.hank.compress.*;
+import com.rapleaf.hank.compress.BlockCompressionCodec;
+import com.rapleaf.hank.compress.BlockDecompressor;
+import com.rapleaf.hank.compress.SlowNoCompressionBlockDecompressor;
 import com.rapleaf.hank.compress.deflate.DeflateBlockDecompressor;
 import com.rapleaf.hank.compress.snappy.SnappyBlockDecompressor;
 import com.rapleaf.hank.compress.zip.GzipBlockDecompressor;
@@ -31,6 +33,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
 
 public class CurlyReader implements Reader, ICurlyReader {
@@ -49,17 +53,22 @@ public class CurlyReader implements Reader, ICurlyReader {
   private ByteBuffer lastDecompressedBlock;
   private long lastDecompressedBlockOffset = -1;
 
-  private class Local {
+  private static class Local {
 
-    private final BlockDecompressor blockDecompressor;
+    private final Map<BlockCompressionCodec, BlockDecompressor> blockDecompressors;
     private final UnsafeByteArrayOutputStream decompressionOutputStream;
 
     public Local() {
-      this.blockDecompressor = initializeBlockDecompressor();
+      this.blockDecompressors = new HashMap<BlockCompressionCodec, BlockDecompressor>();
       this.decompressionOutputStream = new UnsafeByteArrayOutputStream();
     }
 
-    public BlockDecompressor getBlockDecompressor() {
+    public BlockDecompressor getBlockDecompressor(BlockCompressionCodec blockDecompressorCodec) {
+      BlockDecompressor blockDecompressor = blockDecompressors.get(blockDecompressorCodec);
+      if (blockDecompressor == null) {
+        blockDecompressor = initializeBlockDecompressor(blockDecompressorCodec);
+        blockDecompressors.put(blockDecompressorCodec, blockDecompressor);
+      }
       return blockDecompressor;
     }
 
@@ -71,7 +80,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       decompressionOutputStream.reset();
     }
 
-    private BlockDecompressor initializeBlockDecompressor() {
+    private BlockDecompressor initializeBlockDecompressor(BlockCompressionCodec blockCompressionCodec) {
       switch (blockCompressionCodec) {
         case DEFLATE:
           return new DeflateBlockDecompressor();
@@ -87,7 +96,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     }
   }
 
-  private final ThreadLocal<Local> threadLocal = new ThreadLocal<Local>() {
+  private static final ThreadLocal<Local> threadLocal = new ThreadLocal<Local>() {
     @Override
     public Local initialValue() {
       return new Local();
@@ -203,7 +212,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
     Local local = threadLocal.get();
     local.reset();
-    local.getBlockDecompressor().decompress(
+    local.getBlockDecompressor(blockCompressionCodec).decompress(
         block.array(),
         block.arrayOffset() + block.position(),
         block.remaining(),
