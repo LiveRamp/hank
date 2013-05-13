@@ -26,7 +26,7 @@ import java.io.InputStream;
 public class SnappyBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
-  InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
+  protected InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
     return new SnappyInputStream(inputStream);
   }
 }

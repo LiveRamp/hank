@@ -38,5 +38,5 @@ public abstract class StreamCopyBlockDecompressor implements BlockDecompressor {
     decompressedBlockInputStream.close();
   }
 
-  abstract InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException;
+  protected abstract InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException;
 }

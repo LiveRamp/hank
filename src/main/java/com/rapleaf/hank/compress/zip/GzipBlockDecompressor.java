@@ -26,7 +26,7 @@ import java.util.zip.GZIPInputStream;
 public class GzipBlockDecompressor extends StreamCopyBlockDecompressor implements BlockDecompressor {
 
   @Override
-  InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
+  protected InputStream getBlockDecompressionInputStream(InputStream inputStream) throws IOException {
     return new GZIPInputStream(inputStream);
   }
 }
