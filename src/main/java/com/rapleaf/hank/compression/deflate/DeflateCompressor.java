@@ -27,7 +27,7 @@ public class DeflateCompressor implements Compressor {
   @Override
   public OutputStream getOutputStream(OutputStream outputStream) {
     Deflater deflater = new Deflater();
-    deflater.setLevel(Deflater.DEFAULT_COMPRESSION);
+    deflater.setLevel(Deflater.BEST_COMPRESSION);
     deflater.setStrategy(Deflater.DEFAULT_STRATEGY);
     return new DeflaterOutputStream(outputStream, deflater);
   }
