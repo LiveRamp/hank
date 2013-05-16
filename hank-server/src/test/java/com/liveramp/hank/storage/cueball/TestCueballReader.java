@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.storage.ReaderResult;
 
 import java.io.File;
@@ -33,7 +33,7 @@ public class TestCueballReader extends AbstractCueballTest {
     os.flush();
     os.close();
 
-    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCompressionCodec(), 1);
+    CueballReader reader = new CueballReader(root, 10, HASHER, 5, 1, new NoCueballCompressionCodec(), 1);
 
     // test version number
     assertEquals(Integer.valueOf(0), reader.getVersionNumber());

@@ -1,4 +1,4 @@
-package com.liveramp.hank.compress;
+package com.liveramp.hank.compression.cueball;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-public class JavaGzipCompressionCodec implements CompressionCodec {
+public class GzipCueballCompressionCodec implements CueballCompressionCodec {
   @Override
   public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff) {
     if (srcLength - srcOffset == 0) {

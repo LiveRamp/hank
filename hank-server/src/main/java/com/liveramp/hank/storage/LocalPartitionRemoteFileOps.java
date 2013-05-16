@@ -35,35 +35,30 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public LocalPartitionRemoteFileOps(String remoteDomainRoot,
                                      int partitionNumber) throws IOException {
     this.partitionRoot = remoteDomainRoot + "/" + partitionNumber;
-    if (!new File(partitionRoot).isAbsolute()) {
-      throw new IOException("Cannot initialize " + this.getClass().getSimpleName()
-          + " with a non absolute remote partition root: "
-          + partitionRoot);
-    }
   }
 
   @Override
   public InputStream getInputStream(String remoteRelativePath) throws IOException {
-    String path = getAbsoluteRemotePath(remoteRelativePath);
+    String path = getRemoteAbsolutePath(remoteRelativePath);
     new File(new File(path).getParent()).mkdirs();
     return new FileInputStream(path);
   }
 
   @Override
   public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
-    String path = getAbsoluteRemotePath(remoteRelativePath);
+    String path = getRemoteAbsolutePath(remoteRelativePath);
     new File(new File(path).getParent()).mkdirs();
     return new FileOutputStream(path);
   }
 
   @Override
   public boolean exists(String remoteRelativePath) throws IOException {
-    return new File(getAbsoluteRemotePath(remoteRelativePath)).exists();
+    return new File(getRemoteAbsolutePath(remoteRelativePath)).exists();
   }
 
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
-    File source = new File(getAbsoluteRemotePath(remoteSourceRelativePath));
+    File source = new File(getRemoteAbsolutePath(remoteSourceRelativePath));
     File destination = new File(localDestinationRoot + "/" + source.getName());
     FileUtils.copyFile(source, destination);
   }
@@ -71,13 +66,14 @@ public class LocalPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      return new File(getAbsoluteRemotePath(remoteRelativePath)).delete();
+      return new File(getRemoteAbsolutePath(remoteRelativePath)).delete();
     } else {
       return false;
     }
   }
 
-  private String getAbsoluteRemotePath(String remoteRelativePath) {
+  @Override
+  public String getRemoteAbsolutePath(String remoteRelativePath) {
     return partitionRoot + "/" + remoteRelativePath;
   }
 

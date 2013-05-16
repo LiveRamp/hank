@@ -1,6 +1,6 @@
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.partitioner.Partitioner;
@@ -30,7 +30,7 @@ public class TestDomainGenerator {
     int numPartitions = Integer.parseInt(args[8]);
     String partitionerClass = args[9];
 
-    final Class<? extends CompressionCodec> codecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodecClassName);
+    final Class<? extends CueballCompressionCodec> codecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodecClassName);
 
     Partitioner p = (Partitioner) Class.forName(partitionerClass).newInstance();
     Hasher h = (Hasher) Class.forName(hasherClassName).newInstance();
@@ -69,5 +69,4 @@ public class TestDomainGenerator {
       writer.close();
     }
   }
-
 }

@@ -22,7 +22,6 @@ import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.Cueball;
 import com.liveramp.hank.storage.cueball.CueballFilePath;
 import com.liveramp.hank.storage.cueball.ValueTransformer;
-import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import com.liveramp.hank.util.EncodingHelper;
@@ -44,7 +43,7 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
   public AbstractCurlyPartitionUpdater(Domain domain,
                                        PartitionRemoteFileOps partitionRemoteFileOps,
                                        String localPartitionRoot) throws IOException {
-    super(domain, localPartitionRoot);
+    super(domain, localPartitionRoot, new CurlyUpdatePlanner(domain));
     this.partitionRemoteFileOps = partitionRemoteFileOps;
   }
 
@@ -81,11 +80,6 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
     } else {
       return null;
     }
-  }
-
-  @Override
-  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
   @Override

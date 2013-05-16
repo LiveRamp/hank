@@ -47,7 +47,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
                                          final Integer currentVersion,
                                          final Integer cachedBase,
                                          final Integer cachedDelta) throws IOException {
-    super(domain, localPartitionRoot);
+    super(domain, localPartitionRoot, null);
     this.domain = domain;
     this.currentVersion = currentVersion;
     this.cachedBase = cachedBase;
@@ -87,15 +87,6 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
   @Override
   protected Integer detectCurrentVersionNumber() throws IOException {
     return currentVersion;
-  }
-
-  @Override
-  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    if (domainVersion.getVersionNumber() == 0) {
-      return null;
-    } else {
-      return domain.getVersion(domainVersion.getVersionNumber() - 1);
-    }
   }
 
   @Override

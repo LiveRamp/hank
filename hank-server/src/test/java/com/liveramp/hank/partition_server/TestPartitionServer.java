@@ -183,12 +183,15 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.SERVE_DATA);
+    waitUntilHost(HostState.SERVING, fixtures.host);
     assertEquals(HostState.SERVING, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.GO_TO_IDLE);
+    waitUntilHost(HostState.IDLE, fixtures.host);
     assertEquals(HostState.IDLE, fixtures.host.getState());
 
     fixtures.host.enqueueCommand(HostCommand.EXECUTE_UPDATE);
+    waitUntilHost(HostState.UPDATING, fixtures.host);
     assertEquals(HostState.UPDATING, fixtures.host.getState());
 
     WaitUntil.orDie(new Condition() {

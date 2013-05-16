@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.util.Bytes;
@@ -38,7 +38,7 @@ public class CueballWriter implements Writer {
   private final int keyHashSize;
   private final Hasher hasher;
   private final int valueSize;
-  private final CompressionCodec compressionCodec;
+  private final CueballCompressionCodec compressionCodec;
 
   private final byte[] uncompressedBuffer;
   private final byte[] compressedBuffer;
@@ -62,7 +62,7 @@ public class CueballWriter implements Writer {
                        int keyHashSize,
                        Hasher hasher,
                        int valueSize,
-                       CompressionCodec compressionCodec,
+                       CueballCompressionCodec compressionCodec,
                        int hashIndexBits) {
     // Buffer output
     this.stream = new BufferedOutputStream(outputStream, IOStreamUtils.DEFAULT_BUFFER_SIZE);

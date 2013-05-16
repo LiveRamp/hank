@@ -15,6 +15,7 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.storage.map.MapWriter;
 import com.liveramp.hank.util.Bytes;
 
@@ -76,10 +77,10 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertEquals(ByteBuffer.wrap(EXPECTED_FOLDED_RECORD_FILE), ByteBuffer.wrap(s.toByteArray()));
   }
 
-  public void testBlockCompression() throws Exception {
+  private void doTestBlockCompression(CompressionCodec blockCompressionCodec, byte[] expectedBlock) throws IOException {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
     MapWriter keyfileWriter = new MapWriter();
-    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, BlockCompressionCodec.SLOW_IDENTITY, 1024, 2);
+    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, blockCompressionCodec, 1024, 2);
 
     writer.write(KEY1, VALUE1);
     writer.write(KEY2, VALUE2);
@@ -99,35 +100,23 @@ public class TestCurlyWriter extends AbstractCurlyTestBase {
     assertFalse(keyfileWriter.entries.containsKey(KEY4));
 
     // verify that the record stream looks as expected
-    assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED), ByteBuffer.wrap(s.toByteArray()));
+    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(s.toByteArray())));
+    assertEquals(ByteBuffer.wrap(expectedBlock), ByteBuffer.wrap(s.toByteArray()));
   }
 
-  public void testGzipBlockCompression() throws Exception {
-    ByteArrayOutputStream s = new ByteArrayOutputStream();
-    MapWriter keyfileWriter = new MapWriter();
-    CurlyWriter writer = new CurlyWriter(s, keyfileWriter, 3, -1, BlockCompressionCodec.GZIP, 1024, 2);
-    writer.write(KEY1, VALUE1);
-    writer.write(KEY2, VALUE2);
-    writer.write(KEY3, VALUE3);
-    writer.close();
-    assertTrue(writer.getNumBytesWritten() > 0);
-    assertEquals(3, writer.getNumRecordsWritten());
+  public void testBlockCompressionSlowNoCompression() throws Exception {
+    doTestBlockCompression(CompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
+  }
 
-    // verify the keyfile looks as expected
-    assertTrue(keyfileWriter.entries.containsKey(KEY1));
-    System.out.println("k1=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY1))); //TODO: remove
-    System.out.println("k2=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY2))); //TODO: remove
-    System.out.println("k3=" + Bytes.bytesToHexString(keyfileWriter.entries.get(KEY3))); //TODO: remove
-    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 0, 0}), keyfileWriter.entries.get(KEY1));
-    assertTrue(keyfileWriter.entries.containsKey(KEY2));
-    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 5, 0}), keyfileWriter.entries.get(KEY2));
-    assertTrue(keyfileWriter.entries.containsKey(KEY3));
-    assertEquals(ByteBuffer.wrap(new byte[]{0, 0, 0, 10, 0}), keyfileWriter.entries.get(KEY3));
+  public void testBlockCompressionDeflate() throws Exception {
+    doTestBlockCompression(CompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
+  }
 
-    assertFalse(keyfileWriter.entries.containsKey(KEY4));
+  public void testBlockCompressionGzip() throws Exception {
+    doTestBlockCompression(CompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
+  }
 
-    // verify that the record stream looks as expected
-    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(s.toByteArray()))); //TODO: remove
-    assertEquals(ByteBuffer.wrap(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP), ByteBuffer.wrap(s.toByteArray()));
+  public void testBlockCompressionSnappy() throws Exception {
+    doTestBlockCompression(CompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
   }
 }

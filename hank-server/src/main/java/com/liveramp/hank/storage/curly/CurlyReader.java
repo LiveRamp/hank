@@ -16,15 +16,22 @@
 
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.hank.compression.CompressionCodec;
+import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.util.*;
+import com.liveramp.hank.util.Bytes;
+import com.liveramp.hank.util.EncodingHelper;
+import com.liveramp.hank.util.LruHashMap;
+import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.SortedSet;
-import java.util.zip.GZIPInputStream;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
@@ -32,31 +39,37 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
-  private final BlockCompressionCodec blockCompressionCodec;
+  private LruHashMap<ByteBuffer, ByteBuffer> cache;
+  private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
+
   // Last decompressed block cache
   private final boolean cacheLastDecompressedBlock;
   private ByteBuffer lastDecompressedBlock;
   private long lastDecompressedBlockOffset = -1;
 
-  private static class Buffers {
+  private static class Local {
 
-    private UnsafeByteArrayOutputStream decompressionOutputStream;
-    private byte[] copyBuffer;
+    private final Map<CompressionCodec, Decompressor> blockDecompressors;
+    private final UnsafeByteArrayOutputStream decompressionOutputStream;
 
-    public Buffers() {
-      decompressionOutputStream = new UnsafeByteArrayOutputStream();
-      copyBuffer = new byte[IOStreamUtils.DEFAULT_BUFFER_SIZE];
+    public Local() {
+      this.blockDecompressors = new HashMap<CompressionCodec, Decompressor>();
+      this.decompressionOutputStream = new UnsafeByteArrayOutputStream();
+    }
+
+    public Decompressor getBlockDecompressor(CompressionCodec blockDecompressorCodec) {
+      Decompressor blockDecompressor = blockDecompressors.get(blockDecompressorCodec);
+      if (blockDecompressor == null) {
+        blockDecompressor = blockDecompressorCodec.getFactory().getDecompressor();
+        blockDecompressors.put(blockDecompressorCodec, blockDecompressor);
+      }
+      return blockDecompressor;
     }
 
     public UnsafeByteArrayOutputStream getDecompressionOutputStream() {
       return decompressionOutputStream;
-    }
-
-    public byte[] getCopyBuffer() {
-      return copyBuffer;
     }
 
     public void reset() {
@@ -64,10 +77,10 @@ public class CurlyReader implements Reader, ICurlyReader {
     }
   }
 
-  private final static ThreadLocal<Buffers> threadLocalBuffers = new ThreadLocal<Buffers>() {
+  private static final ThreadLocal<Local> threadLocal = new ThreadLocal<Local>() {
     @Override
-    public Buffers initialValue() {
-      return new Buffers();
+    public Local initialValue() {
+      return new Local();
     }
   };
 
@@ -90,7 +103,7 @@ public class CurlyReader implements Reader, ICurlyReader {
                      int recordFileReadBufferBytes,
                      Reader keyFileReader,
                      int cacheCapacity,
-                     BlockCompressionCodec blockCompressionCodec,
+                     CompressionCodec blockCompressionCodec,
                      int offsetNumBytes,
                      int offsetInBlockNumBytes,
                      boolean cacheLastDecompressedBlock) throws IOException {
@@ -126,7 +139,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (cache != null && loadValueFromCache(location, result)) {
       return;
     }
-    // Deep copy the location if caching is activated
+    // Deep copy the location if caching is activated, since result might point to location and overwrite it
     ByteBuffer locationDeepCopy = cache != null ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
@@ -147,27 +160,8 @@ public class CurlyReader implements Reader, ICurlyReader {
       } else {
         // Read in the compressed block into the result
         readRecordAtOffset(recordFileBlockOffset, result);
-        // Decompress the block
-        InputStream blockInputStream = new ByteArrayInputStream(result.getBuffer().array(),
-            result.getBuffer().arrayOffset() + result.getBuffer().position(), result.getBuffer().remaining());
-        // Build an InputStream corresponding to the compression codec
-        InputStream decompressedBlockInputStream;
-        switch (blockCompressionCodec) {
-          case GZIP:
-            decompressedBlockInputStream = new GZIPInputStream(blockInputStream);
-            break;
-          case SLOW_IDENTITY:
-            decompressedBlockInputStream = new BufferedInputStream(blockInputStream);
-            break;
-          default:
-            throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-        }
-        // Decompress into the specialized result buffer
-        Buffers buffers = threadLocalBuffers.get();
-        buffers.reset();
-        IOStreamUtils.copy(decompressedBlockInputStream, buffers.getDecompressionOutputStream(), buffers.getCopyBuffer());
-        decompressedBlockInputStream.close();
-        decompressedBlockByteBuffer = buffers.getDecompressionOutputStream().getByteBuffer();
+        // Decompress block
+        decompressedBlockByteBuffer = decompressBlock(result.getBuffer());
         // Cache the decompressed block if requested
         if (cacheLastDecompressedBlock) {
           lastDecompressedBlockOffset = recordFileBlockOffset;
@@ -180,20 +174,31 @@ public class CurlyReader implements Reader, ICurlyReader {
       // Determine result value size
       int valueSize = EncodingHelper.decodeLittleEndianVarInt(decompressedBlockByteBuffer);
 
-      // We can exactly wrap our value
-      ByteBuffer value = ByteBuffer.wrap(decompressedBlockByteBuffer.array(),
-          decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(), valueSize);
-
       // Copy decompressed result into final result buffer
       result.requiresBufferSize(valueSize);
       result.getBuffer().clear();
-      result.getBuffer().put(value);
+      // We can exactly wrap our value
+      result.getBuffer().put(
+          decompressedBlockByteBuffer.array(),
+          decompressedBlockByteBuffer.arrayOffset() + decompressedBlockByteBuffer.position(),
+          valueSize);
       result.getBuffer().flip();
     }
     // Store result in cache if needed
     if (cache != null) {
       addValueToCache(locationDeepCopy, result.getBuffer());
     }
+  }
+
+  private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
+    Local local = threadLocal.get();
+    local.reset();
+    local.getBlockDecompressor(blockCompressionCodec).decompressBlock(
+        block.array(),
+        block.arrayOffset() + block.position(),
+        block.remaining(),
+        local.getDecompressionOutputStream());
+    return local.getDecompressionOutputStream().getByteBuffer();
   }
 
   // Note: the buffer in result must be at least readBufferSize long
@@ -303,8 +308,6 @@ public class CurlyReader implements Reader, ICurlyReader {
     if (keyFileReader != null) {
       keyFileReader.close();
     }
-    if (cache != null) {
-      cache.clear();
-    }
+    cache = null;
   }
 }

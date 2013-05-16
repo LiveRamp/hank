@@ -29,7 +29,7 @@ public class WaitUntil {
     ExponentialBackoff exponentialBackoff = new ExponentialBackoff();
     while (!condition.test()) {
       if (exponentialBackoff.isMaxedOut()) {
-        throw new RuntimeException("Timed out while waiting for exception to test true: " + condition);
+        throw new RuntimeException("Timed out while waiting for condition to test true: " + condition);
       }
       exponentialBackoff.backoff();
     }

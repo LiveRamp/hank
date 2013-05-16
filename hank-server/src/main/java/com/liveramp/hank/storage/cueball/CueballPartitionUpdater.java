@@ -16,11 +16,10 @@
 
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
-import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import org.apache.commons.io.FileUtils;
@@ -38,7 +37,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   private final int keyHashSize;
   private final int valueSize;
   private final ICueballMerger cueballMerger;
-  private final CompressionCodec compressionCodec;
+  private final CueballCompressionCodec compressionCodec;
   private final int hashIndexBits;
 
   public CueballPartitionUpdater(Domain domain,
@@ -47,9 +46,9 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                  int keyHashSize,
                                  int valueSize,
                                  int hashIndexBits,
-                                 CompressionCodec compressionCodec,
+                                 CueballCompressionCodec compressionCodec,
                                  String localPartitionRoot) throws IOException {
-    super(domain, localPartitionRoot);
+    super(domain, localPartitionRoot, new CueballUpdatePlanner(domain));
     this.partitionRemoteFileOps = partitionRemoteFileOps;
     this.cueballMerger = cueballMerger;
     this.keyHashSize = keyHashSize;
@@ -66,11 +65,6 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
     } else {
       return null;
     }
-  }
-
-  @Override
-  protected DomainVersion getParentDomainVersion(DomainVersion domainVersion) throws IOException {
-    return IncrementalDomainVersionProperties.getParentDomainVersion(domain, domainVersion);
   }
 
   public static boolean isEmptyVersion(PartitionRemoteFileOps partitionRemoteFileOps,
@@ -144,7 +138,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                    int keyHashSize,
                                    int valueSize,
                                    int hashIndexBits,
-                                   CompressionCodec compressionCodec,
+                                   CueballCompressionCodec compressionCodec,
                                    ValueTransformer valueTransformer) throws IOException {
 
     // Determine new base path

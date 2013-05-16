@@ -16,16 +16,16 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
 import com.liveramp.hank.storage.cueball.ICueballMerger;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import com.liveramp.hank.ui.UiUtils;
+import com.liveramp.hank.util.HankTimer;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -41,7 +41,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
   private final int offsetNumBytes;
   private final int valueSize;
   private final int hashIndexBits;
-  private final CompressionCodec compressionCodec;
+  private final CueballCompressionCodec compressionCodec;
   private final ICurlyMerger curlyMerger;
   private final ICueballMerger cueballMerger;
 
@@ -53,11 +53,9 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
                                    int offsetNumBytes,
                                    int offsetInBlockNumBytes,
                                    int hashIndexBits,
-                                   CompressionCodec compressionCodec,
+                                   CueballCompressionCodec compressionCodec,
                                    String localPartitionRoot) throws IOException {
-    super(domain,
-        partitionRemoteFileOps,
-        localPartitionRoot);
+    super(domain, partitionRemoteFileOps, localPartitionRoot);
     this.keyHashSize = keyHashSize;
     this.offsetNumBytes = offsetNumBytes;
     if (offsetInBlockNumBytes > 0) {

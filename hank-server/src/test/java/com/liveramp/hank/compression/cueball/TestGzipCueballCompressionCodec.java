@@ -1,20 +1,20 @@
-package com.liveramp.hank.compress;
+package com.liveramp.hank.compression.cueball;
+
+import com.liveramp.hank.test.BaseTestCase;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.liveramp.hank.test.BaseTestCase;
-
-public class TestJavaGzipCompressionCodec extends BaseTestCase {
+public class TestGzipCueballCompressionCodec extends BaseTestCase {
   private static final List<byte[]> TESTCASES = Arrays.asList(
       new byte[]{},
       new byte[]{0, 1, 2, 3, 4, 5, 6},
-      lotsOfBytes(16*1024),
-      lotsOfBytes(32*1024),
-      lotsOfBytes(64*1024),
-      lotsOfBytes(128*1024)
+      lotsOfBytes(16 * 1024),
+      lotsOfBytes(32 * 1024),
+      lotsOfBytes(64 * 1024),
+      lotsOfBytes(128 * 1024)
   );
 
   private static byte[] lotsOfBytes(int i) {
@@ -29,7 +29,7 @@ public class TestJavaGzipCompressionCodec extends BaseTestCase {
   }
 
   public void testIt() throws Exception {
-    JavaGzipCompressionCodec codec = new JavaGzipCompressionCodec();
+    GzipCueballCompressionCodec codec = new GzipCueballCompressionCodec();
 
     for (int i = 0; i < TESTCASES.size(); i++) {
       System.err.println("Testcase #" + i);

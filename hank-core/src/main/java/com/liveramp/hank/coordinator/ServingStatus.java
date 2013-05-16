@@ -31,4 +31,8 @@ public class ServingStatus {
     this.numPartitions += numPartitions;
     this.numPartitionsServedAndUpToDate += numPartitionsServedAndUpToDate;
   }
+
+  public boolean isServedAndUpToDate() {
+    return numPartitions == numPartitionsServedAndUpToDate;
+  }
 }

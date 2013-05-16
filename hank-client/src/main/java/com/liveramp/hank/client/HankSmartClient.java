@@ -380,7 +380,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   // Asynchronous get
   @Override
-  public FutureGet concurrentGet(String domainName, ByteBuffer key) throws TException {
+  public FutureGet concurrentGet(String domainName, ByteBuffer key) {
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
@@ -394,7 +394,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   // Asynchronous get
   @Override
-  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> keys) throws TException {
+  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> keys) {
     List<FutureGet> result = new ArrayList<FutureGet>(keys.size());
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);

@@ -40,6 +40,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static com.liveramp.hank.util.LocalHostUtils.getHostName;
 
@@ -53,6 +55,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
+
+  private final LinkedBlockingQueue<HostCommand> commandQueue;
 
   private boolean stopping = false;
   private boolean hasProcessedCommandOnStartup = false;
@@ -74,6 +78,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   public PartitionServer(PartitionServerConfigurator configurator, String hostName) throws IOException {
     this.configurator = configurator;
     this.coordinator = configurator.createCoordinator();
+    this.commandQueue = new LinkedBlockingQueue<HostCommand>();
     hostAddress = new PartitionServerAddress(hostName, configurator.getServicePort());
     ringGroup = coordinator.getRingGroup(configurator.getRingGroupName());
     if (ringGroup == null) {
@@ -116,9 +121,17 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     processCommandOnStartup();
     while (!stopping) {
       try {
-        Thread.sleep(MAIN_THREAD_STEP_SLEEP_MS);
+        HostCommand command = commandQueue.poll(MAIN_THREAD_STEP_SLEEP_MS, TimeUnit.MILLISECONDS);
+        if (command != null) {
+          try {
+            processCommand(command, host.getState());
+          } catch (IOException e) {
+            LOG.error("Failed to process command: " + command, e);
+            break;
+          }
+        }
       } catch (InterruptedException e) {
-        LOG.info("Interrupted in run loop. Exiting.", e);
+        LOG.info("Interrupted in main loop. Exiting.", e);
         break;
       }
     }
@@ -127,11 +140,8 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     // Stop serving data
     stopServingData();
     // Stop updating if necessary
-    if (updateThread != null) {
-      LOG.info("Update thread is still running. Interrupting and waiting for it to finish...");
-      updateThread.interrupt();
-      updateThread.join(); // In case of interrupt exception, server will stop and state will be coherent.
-    }
+    stopUpdating();
+    // Signal OFFLINE
     setStateSynchronized(HostState.OFFLINE); // In case of exception, server will stop and state will be coherent.
     // Remove shutdown hook. We don't need it anymore as we just set the host state to OFFLINE
     removeShutdownHook();
@@ -179,7 +189,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   }
 
   @Override
-  public synchronized void onWatchedNodeChange(HostCommand command) {
+  public void onWatchedNodeChange(final HostCommand command) {
     LOG.info("Current command changed: " + command);
     // Do not process anything when stopping
     if (stopping) {
@@ -188,23 +198,24 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     }
     try {
       if (command != null) {
-        processCommand(command, host.getState());
+        commandQueue.put(command);
       }
-    } catch (IOException e) {
-      LOG.error("Failed to process current command.", e);
-      stop();
+    } catch (InterruptedException e) {
+      LOG.error("Failed to process command.", e);
+      stopSynchronized();
     }
   }
 
-  public synchronized void processCommandOnStartup() {
+  public void processCommandOnStartup() {
     try {
       HostCommand command = host.getCurrentCommand();
+      LOG.info("Current command is: " + command);
       if (command != null) {
-        processCommand(command, host.getState());
+        commandQueue.put(command);
       } else {
         host.nextCommand();
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       LOG.error("Failed to process current command on startup.", e);
       stop();
     }
@@ -325,6 +336,14 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     };
     updateThread = new Thread(updateRunnable, "Update manager thread");
     updateThread.start();
+  }
+
+  private void stopUpdating() throws InterruptedException {
+    if (updateThread != null) {
+      LOG.info("Update thread is still running. Interrupting and waiting for it to finish...");
+      updateThread.interrupt();
+      updateThread.join(); // In case of interrupt exception, server will stop and state will be coherent.
+    }
   }
 
   protected void startThriftServer() throws TTransportException, IOException, InterruptedException {
@@ -534,7 +553,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
     new PartitionServer(configurator, getHostName()).run();
   }
-
 
   private class WarmupRunnable implements Runnable {
 

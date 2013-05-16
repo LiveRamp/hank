@@ -28,9 +28,7 @@ import org.apache.commons.lang.NotImplementedException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
@@ -81,9 +79,10 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
   }
 
   public void testGetDomainVersionParent() throws IOException {
-    assertNull(updater.getParentDomainVersion(v0));
-    assertNull(updater.getParentDomainVersion(v1));
-    assertEquals(v1, updater.getParentDomainVersion(v2));
+    CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
+    assertNull(updatePlanner.getParentDomainVersion(v0));
+    assertNull(updatePlanner.getParentDomainVersion(v1));
+    assertEquals(v1, updatePlanner.getParentDomainVersion(v2));
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
@@ -194,4 +193,17 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 
+  public void testGetRemotePartitionFilePaths() throws IOException {
+    CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
+    List<String> paths = updatePlanner.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2),
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 0));
+    List<String> expectedPaths = new ArrayList<String>();
+    expectedPaths.add(getRemoteFilePath("0/00001.base.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00001.base.curly"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.curly"));
+    Collections.sort(paths);
+    Collections.sort(expectedPaths);
+    assertEquals(expectedPaths, paths);
+  }
 }

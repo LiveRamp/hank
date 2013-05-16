@@ -127,6 +127,10 @@ public class ZooKeeperPlus extends ZooKeeper {
     }
   }
 
+  public void ensureCreated(String path, byte[] value) throws InterruptedException, KeeperException {
+    ensureCreated(path, value, DEFAULT_CREATE_MODE);
+  }
+
   public void ensureCreated(String path, byte[] value, CreateMode createMode) throws InterruptedException, KeeperException {
     if (exists(path, false) == null) {
       create(path, value, DEFAULT_ACL, createMode);

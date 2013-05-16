@@ -15,11 +15,13 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.map.MapReader;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
@@ -105,10 +107,10 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     result.clear();
   }
 
-  public void testBlockCompression() throws Exception {
+  private void doTestBlockCompression(CompressionCodec blockCompressionCodec, byte[] compressedBlock) throws IOException {
     new File(TMP_TEST_CURLY_READER).mkdirs();
     OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
-    s.write(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED);
+    s.write(compressedBlock);
     s.flush();
     s.close();
 
@@ -119,7 +121,7 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     );
 
     CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1,
-        BlockCompressionCodec.SLOW_IDENTITY, 3, 2, true);
+        blockCompressionCodec, 3, 2, true);
 
     ReaderResult result = new ReaderResult();
 
@@ -143,41 +145,19 @@ public class TestCurlyReader extends AbstractCurlyTestBase {
     result.clear();
   }
 
+  public void testBlockCompressionSlowNoCompression() throws Exception {
+    doTestBlockCompression(CompressionCodec.SLOW_NO_COMPRESSION, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SLOW_NO_COMPRESSION);
+  }
+
+  public void testBlockCompressionDeflate() throws Exception {
+    doTestBlockCompression(CompressionCodec.DEFLATE, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_DEFLATE);
+  }
+
   public void testBlockCompressionGzip() throws Exception {
-    new File(TMP_TEST_CURLY_READER).mkdirs();
-    OutputStream s = new FileOutputStream(TMP_TEST_CURLY_READER + "/00000.base.curly");
-    s.write(EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
-    s.flush();
-    s.close();
+    doTestBlockCompression(CompressionCodec.GZIP, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_GZIP);
+  }
 
-    MapReader keyfileReader = new MapReader(0,
-        KEY1.array(), new byte[]{0, 0, 0, 0, 0},
-        KEY2.array(), new byte[]{0, 0, 0, 5, 0},
-        KEY3.array(), new byte[]{0, 0, 0, 10, 0}
-    );
-
-    CurlyReader reader = new CurlyReader(CurlyReader.getLatestBase(TMP_TEST_CURLY_READER), 1024, keyfileReader, -1,
-        BlockCompressionCodec.GZIP, 3, 2, true);
-
-    ReaderResult result = new ReaderResult();
-
-    reader.get(KEY1, result);
-    assertTrue(result.isFound());
-    assertEquals(VALUE1, result.getBuffer());
-    result.clear();
-
-    reader.get(KEY4, result);
-    assertFalse(result.isFound());
-    result.clear();
-
-    reader.get(KEY3, result);
-    assertTrue(result.isFound());
-    assertEquals(VALUE3, result.getBuffer());
-    result.clear();
-
-    reader.get(KEY2, result);
-    assertTrue(result.isFound());
-    assertEquals(VALUE2, result.getBuffer());
-    result.clear();
+  public void testBlockCompressionSnappy() throws Exception {
+    doTestBlockCompression(CompressionCodec.SNAPPY, EXPECTED_RECORD_FILE_BLOCK_COMPRESSED_SNAPPY);
   }
 }

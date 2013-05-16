@@ -16,7 +16,7 @@
 
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -33,13 +33,13 @@ public class CueballStreamBufferMergeSort implements IKeyFileStreamBufferMergeSo
     private final int keyHashSize;
     private final int valueSize;
     private final int hashIndexBits;
-    private final CompressionCodec compressionCodec;
+    private final CueballCompressionCodec compressionCodec;
     private final ValueTransformer valueTransformer;
 
     public Factory(int keyHashSize,
                    int valueSize,
                    int hashIndexBits,
-                   CompressionCodec compressionCodec,
+                   CueballCompressionCodec compressionCodec,
                    ValueTransformer valueTransformer) {
       this.keyHashSize = keyHashSize;
       this.valueSize = valueSize;
@@ -68,7 +68,7 @@ public class CueballStreamBufferMergeSort implements IKeyFileStreamBufferMergeSo
                                       int keyHashSize,
                                       int valueSize,
                                       int hashIndexBits,
-                                      CompressionCodec compressionCodec,
+                                      CueballCompressionCodec compressionCodec,
                                       ValueTransformer transformer) throws IOException {
     this.keyHashSize = keyHashSize;
     this.valueSize = valueSize;

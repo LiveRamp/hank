@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public final class CueballMerger implements ICueballMerger {
                     final int valueSize,
                     ValueTransformer transformer,
                     int hashIndexBits,
-                    CompressionCodec compressionCodec) throws IOException {
+                    CueballCompressionCodec compressionCodec) throws IOException {
 
     CueballStreamBufferMergeSort cueballStreamBufferMergeSort = new CueballStreamBufferMergeSort(base,
         deltas,

@@ -17,14 +17,14 @@ package com.liveramp.hank.storage.cueball;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 
 
 public class TestCueballWriter extends AbstractCueballTest {
   public void testWriter() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
 
-    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec(), 1);
+    CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCueballCompressionCodec(), 1);
 
     cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1}));
     cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2}));
@@ -42,7 +42,7 @@ public class TestCueballWriter extends AbstractCueballTest {
     try {
       ByteArrayOutputStream s = new ByteArrayOutputStream();
 
-      CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCompressionCodec(), 1);
+      CueballWriter cw = new CueballWriter(s, 10, HASHER, 5, new NoCueballCompressionCodec(), 1);
 
       cw.write(ByteBuffer.wrap(KEY2), ByteBuffer.wrap(new byte[]{2,1,2,1,2}));
       cw.write(ByteBuffer.wrap(KEY1), ByteBuffer.wrap(new byte[]{1,2,1,2,1}));

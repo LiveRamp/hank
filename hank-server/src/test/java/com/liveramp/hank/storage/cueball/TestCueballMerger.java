@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -174,7 +174,7 @@ public class TestCueballMerger extends AbstractCueballTest {
         1,
         null,
         1,
-        new NoCompressionCodec());
+        new NoCueballCompressionCodec());
 
     DataInputStream in = new DataInputStream(new FileInputStream(NEW_BASE_PATH));
     int length = (int) new File(NEW_BASE_PATH).length();

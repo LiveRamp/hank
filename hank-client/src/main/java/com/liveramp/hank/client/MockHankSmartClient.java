@@ -43,14 +43,44 @@ public class MockHankSmartClient implements HankSmartClientIface {
     return HankBulkResponse.responses(responses);
   }
 
-  @Override
-  public FutureGet concurrentGet(String s, ByteBuffer byteBuffer) throws TException {
-    throw new NotImplementedException();
+  private class GetTaskRunnable implements GetTaskRunnableIface {
+
+    private final String domain;
+    private final ByteBuffer key;
+    private HankResponse response = null;
+
+    private GetTaskRunnable(String domain, ByteBuffer key) {
+      this.domain = domain;
+      this.key = key;
+    }
+
+    @Override
+    public void run() {
+      response = get(domain, key);
+    }
+
+    @Override
+    public HankResponse getResponse() {
+      return response;
+    }
   }
 
   @Override
-  public List<FutureGet> concurrentGet(String s, List<ByteBuffer> byteBuffers) throws TException {
-    throw new NotImplementedException();
+  public FutureGet concurrentGet(String domainName, ByteBuffer key) {
+    FutureGet futureGet = new FutureGet(new GetTaskRunnable(domainName, key));
+    futureGet.run();
+    return futureGet;
+  }
+
+  @Override
+  public List<FutureGet> concurrentGet(String domainName, List<ByteBuffer> keys) {
+    List<FutureGet> result = new ArrayList<FutureGet>();
+    for (ByteBuffer key : keys) {
+      FutureGet futureGet = new FutureGet(new GetTaskRunnable(domainName, key));
+      futureGet.run();
+      result.add(futureGet);
+    }
+    return result;
   }
 
   @Override

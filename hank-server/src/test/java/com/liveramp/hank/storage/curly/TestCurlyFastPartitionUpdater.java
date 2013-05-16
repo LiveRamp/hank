@@ -16,8 +16,8 @@
 
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.compress.CompressionCodec;
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
@@ -64,7 +64,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
     int hashIndexBits = 1;
     MockCueballMerger cueballMerger = new MockCueballMerger();
     MockCurlyMerger curlyMerger = new MockCurlyMerger();
-    CompressionCodec compressionCodec = new NoCompressionCodec();
+    CueballCompressionCodec compressionCodec = new NoCueballCompressionCodec();
     this.updater = new CurlyFastPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
         curlyMerger,

@@ -1,6 +1,6 @@
-package com.liveramp.hank.compress;
+package com.liveramp.hank.compression.cueball;
 
-public class NoCompressionCodec implements CompressionCodec {
+public class NoCueballCompressionCodec implements CueballCompressionCodec {
   @Override
   public int compress(byte[] src, int srcOffset, int srcLength, byte[] dst, int dstOff) {
     System.arraycopy(src, srcOffset, dst, dstOff, srcLength);

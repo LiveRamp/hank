@@ -18,7 +18,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class MockCueballMerger implements ICueballMerger {
   @Override
   public void merge(CueballFilePath latestBase, List<CueballFilePath> deltas,
                     String newBasePath, int keyHashSize, int valueSize,
-                    ValueTransformer transformer, int hashIndexBits, CompressionCodec compressionCodec)
+                    ValueTransformer transformer, int hashIndexBits, CueballCompressionCodec compressionCodec)
       throws IOException {
     this.called = true;
     this.latestBase = latestBase;

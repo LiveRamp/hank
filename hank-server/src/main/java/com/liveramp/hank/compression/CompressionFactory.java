@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 LiveRamp
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -14,9 +14,11 @@
  *  limitations under the License.
  */
 
-package com.liveramp.hank.storage.curly;
+package com.liveramp.hank.compression;
 
-public enum BlockCompressionCodec {
-  GZIP,
-  SLOW_IDENTITY
+public interface CompressionFactory {
+
+  public Decompressor getDecompressor();
+
+  public Compressor getCompressor();
 }

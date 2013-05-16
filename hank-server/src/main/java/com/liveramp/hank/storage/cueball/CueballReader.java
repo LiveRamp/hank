@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
@@ -38,19 +38,19 @@ public class CueballReader implements Reader {
   private final FileChannel channel;
   private final int keyHashSize;
   private final int fullRecordSize;
-  private final CompressionCodec compressionCodec;
+  private final CueballCompressionCodec compressionCodec;
   private int maxUncompressedBufferSize;
   private int maxCompressedBufferSize;
   private final HashPrefixCalculator prefixer;
   private final int versionNumber;
-  private final LruHashMap<ByteBuffer, ByteBuffer> cache;
+  private LruHashMap<ByteBuffer, ByteBuffer> cache;
 
   public CueballReader(String partitionRoot,
                        int keyHashSize,
                        Hasher hasher,
                        int valueSize,
                        int hashIndexBits,
-                       CompressionCodec compressionCodec,
+                       CueballCompressionCodec compressionCodec,
                        int cacheCapacity) throws IOException {
     SortedSet<CueballFilePath> bases = Cueball.getBases(partitionRoot);
     if (bases == null || bases.size() == 0) {
@@ -137,9 +137,7 @@ public class CueballReader implements Reader {
   @Override
   public void close() throws IOException {
     channel.close();
-    if (cache != null) {
-      cache.clear();
-    }
+    cache = null;
   }
 
   private int getValueOffset(byte[] keyfileBufferChunk, int off, int limit, byte[] key) {
@@ -210,5 +208,4 @@ public class CueballReader implements Reader {
       return false;
     }
   }
-
 }

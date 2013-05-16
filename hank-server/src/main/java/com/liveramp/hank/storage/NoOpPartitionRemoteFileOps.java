@@ -49,4 +49,9 @@ public class NoOpPartitionRemoteFileOps implements PartitionRemoteFileOps {
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     return false;
   }
+
+  @Override
+  public String getRemoteAbsolutePath(String remoteRelativePath) {
+    return null;
+  }
 }

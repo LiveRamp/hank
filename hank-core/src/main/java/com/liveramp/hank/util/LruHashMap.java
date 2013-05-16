@@ -17,11 +17,13 @@
 package com.liveramp.hank.util;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
   private static final float LOAD_FACTOR = 0.75f;
   private final int sizeLimit;
+  private Map.Entry<K, V> eldestRemoved;
 
   public LruHashMap(int initialCapacity, int sizeLimit) {
     super(initialCapacity, LOAD_FACTOR, true);
@@ -29,7 +31,19 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
   }
 
   @Override
-  protected boolean removeEldestEntry(java.util.Map.Entry<K, V> eldest) {
-    return size() > sizeLimit;
+  protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
+    boolean remove = size() > sizeLimit;
+    if (remove) {
+      eldestRemoved = eldest;
+    } else {
+      eldestRemoved = null;
+    }
+    return remove;
+  }
+
+  public Map.Entry<K, V> getAndClearEldestRemoved() {
+    Map.Entry<K, V> result = eldestRemoved;
+    eldestRemoved = null;
+    return result;
   }
 }

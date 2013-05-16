@@ -16,7 +16,7 @@
 
 package com.liveramp.hank.performance;
 
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.hasher.Hasher;
@@ -50,7 +50,7 @@ public class PerformanceTestCueball {
   private static Cueball getCueball(String localTmpDir) {
     return new Cueball(
         KEY_HASH_SIZE, new KeyHasher(HASH_INDEX_BITS), VALUE_SIZE, HASH_INDEX_BITS, localTmpDir + "/remote_domain_root",
-        new LocalPartitionRemoteFileOps.Factory(), NoCompressionCodec.class, null, 0, -1);
+        new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class, null, 0, -1);
   }
 
   private static long getNumTotalRecords() {
@@ -139,7 +139,7 @@ public class PerformanceTestCueball {
         VALUE_SIZE,
         null,
         HASH_INDEX_BITS,
-        new NoCompressionCodec());
+        new NoCueballCompressionCodec());
     double elapsedS = timer.getDurationMs() / 1000.0;
     System.out.println("Merge done in " + elapsedS + " seconds");
   }

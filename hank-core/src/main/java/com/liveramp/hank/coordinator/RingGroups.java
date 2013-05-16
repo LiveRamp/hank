@@ -30,10 +30,27 @@ public final class RingGroups {
   private RingGroups() {
   }
 
+  public static boolean isUpToDate(RingGroup ringGroup) throws IOException {
+    return isUpToDate(ringGroup, ringGroup.getDomainGroup());
+  }
+
   public static boolean isUpToDate(RingGroup ringGroup, DomainGroup domainGroup) throws IOException {
     for (Ring ring : ringGroup.getRings()) {
       if (!Rings.isUpToDate(ring, domainGroup)) {
         return false;
+      }
+    }
+    return true;
+  }
+
+  // Return true iff each host is either up to date or not serving any data
+  public static boolean isServingOnlyUpToDate(RingGroup ringGroup) throws IOException {
+    DomainGroup domainGroup = ringGroup.getDomainGroup();
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host host : ring.getHosts()) {
+        if (!(Hosts.isUpToDate(host, domainGroup) || (host.getState() != HostState.SERVING))) {
+          return false;
+        }
       }
     }
     return true;

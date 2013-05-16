@@ -15,6 +15,7 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.util.Bytes;
@@ -27,7 +28,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
-import java.util.zip.GZIPOutputStream;
 
 public class CurlyWriter implements Writer {
 
@@ -47,7 +47,7 @@ public class CurlyWriter implements Writer {
   private final byte[] valueLengthBuffer = new byte[5];
 
   // Compression
-  private final BlockCompressionCodec blockCompressionCodec;
+  private final CompressionCodec blockCompressionCodec;
   private ByteArrayOutputStream compressedBlockOutputStream;
   private OutputStream compressionOutputStream;
   private final int compressedBlockSizeThreshold;
@@ -68,7 +68,7 @@ public class CurlyWriter implements Writer {
                      Writer keyfileWriter,
                      int offsetNumBytes,
                      int valueFoldingCacheCapacity,
-                     BlockCompressionCodec blockCompressionCodec,
+                     CompressionCodec blockCompressionCodec,
                      int compressedBlockSizeThreshold,
                      int offsetInBlockNumBytes) throws IOException {
     // Buffer output
@@ -198,16 +198,7 @@ public class CurlyWriter implements Writer {
     compressedBlockOutputStream.reset();
     offsetInDecompressedBlock = 0;
     // Initialize new compression stream
-    switch (blockCompressionCodec) {
-      case GZIP:
-        compressionOutputStream = new GZIPOutputStream(compressedBlockOutputStream);
-        break;
-      case SLOW_IDENTITY:
-        compressionOutputStream = new BufferedOutputStream(compressedBlockOutputStream);
-        break;
-      default:
-        throw new RuntimeException("Unknown block compression codec: " + blockCompressionCodec);
-    }
+    compressionOutputStream = blockCompressionCodec.getFactory().getCompressor().getOutputStream(compressedBlockOutputStream);
   }
 
   private void flushCompressedBlock() throws IOException {

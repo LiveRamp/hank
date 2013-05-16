@@ -45,6 +45,10 @@ public abstract class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
     new File(remotePartitionRoot + "/" + name).delete();
   }
 
+  protected String getRemoteFilePath(String name) {
+    return remotePartitionRoot + "/" + name;
+  }
+
   protected void makeLocalFile(String name) throws IOException {
     File file = new File(localPartitionRoot + "/" + name);
     file.getParentFile().mkdirs();

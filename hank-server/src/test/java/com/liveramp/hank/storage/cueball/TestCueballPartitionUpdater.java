@@ -16,8 +16,8 @@
 
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
@@ -61,7 +61,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     int valueSize = 5;
     int hashIndexBits = 1;
     MockCueballMerger cueballMerger = new MockCueballMerger();
-    CompressionCodec compressionCodec = new NoCompressionCodec();
+    CueballCompressionCodec compressionCodec = new NoCueballCompressionCodec();
 
     this.updater = new CueballPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
@@ -78,9 +78,10 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
   }
 
   public void testGetDomainVersionParent() throws IOException {
-    assertNull(updater.getParentDomainVersion(v0));
-    assertNull(updater.getParentDomainVersion(v1));
-    assertEquals(v1, updater.getParentDomainVersion(v2));
+    CueballUpdatePlanner updatePlanner = new CueballUpdatePlanner(domain);
+    assertNull(updatePlanner.getParentDomainVersion(v0));
+    assertNull(updatePlanner.getParentDomainVersion(v1));
+    assertEquals(v1, updatePlanner.getParentDomainVersion(v2));
   }
 
   public void testDetectCurrentVersionNumber() throws IOException {
@@ -204,5 +205,17 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertTrue(existsUpdateWorkFile("00002.base.cueball"));
     // Old base is intact
     assertTrue(existsLocalFile("00000.base.cueball"));
+  }
+
+  public void testGetRemotePartitionFilePaths() throws IOException {
+    CueballUpdatePlanner updatePlanner = new CueballUpdatePlanner(domain);
+    List<String> paths = updatePlanner.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2),
+        new LocalPartitionRemoteFileOps(remotePartitionRoot, 0));
+    List<String> expectedPaths = new ArrayList<String>();
+    expectedPaths.add(getRemoteFilePath("0/00001.base.cueball"));
+    expectedPaths.add(getRemoteFilePath("0/00002.delta.cueball"));
+    Collections.sort(paths);
+    Collections.sort(expectedPaths);
+    assertEquals(expectedPaths, paths);
   }
 }

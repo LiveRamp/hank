@@ -18,7 +18,7 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.IOStreamUtils;
 
@@ -42,7 +42,7 @@ public final class CueballStreamBuffer {
   private final byte[] compressedBuffer;
 
   private int currentHashIndexIdx = -1;
-  private final CompressionCodec compressionCodec;
+  private final CueballCompressionCodec compressionCodec;
   private final long dataLength;
 
   public CueballStreamBuffer(String filePath,
@@ -50,7 +50,7 @@ public final class CueballStreamBuffer {
                              int keyHashSize,
                              int valueSize,
                              int hashIndexBits,
-                             CompressionCodec compressionCodec)
+                             CueballCompressionCodec compressionCodec)
       throws IOException {
     this.relativeIndex = relativeIndex;
     this.compressionCodec = compressionCodec;

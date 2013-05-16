@@ -16,22 +16,21 @@
 
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.compress.CompressionCodec;
-import com.liveramp.hank.compress.NoCompressionCodec;
+import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.hasher.IdentityHasher;
-import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.*;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
+import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
+import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.liveramp.hank.util.FsUtils;
 
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -40,7 +39,7 @@ import java.util.regex.Pattern;
 /**
  * Cueball is a storage engine optimized for small, fixed-size values.
  */
-public class Cueball implements StorageEngine {
+public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   private static final Pattern BASE_OR_DELTA_PATTERN = Pattern.compile(".*(\\d{5})\\.((base)|(delta))\\.cueball");
   static final String BASE_REGEX = ".*\\d{5}\\.base\\.cueball";
@@ -71,7 +70,7 @@ public class Cueball implements StorageEngine {
     public StorageEngine getStorageEngine(Map<String, Object> options, Domain domain) throws IOException {
       for (String requiredKey : REQUIRED_KEYS) {
         if (options == null || options.get(requiredKey) == null) {
-          throw new RuntimeException("Required key '" + requiredKey
+          throw new IOException("Required key '" + requiredKey
               + "' was not found!");
         }
       }
@@ -83,17 +82,17 @@ public class Cueball implements StorageEngine {
         hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
         fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new IOException(e);
       }
 
       // Compression codec
       String compressionCodec = (String) options.get(COMPRESSION_CODEC);
-      Class<? extends CompressionCodec> compressionCodecClass = NoCompressionCodec.class;
+      Class<? extends CueballCompressionCodec> compressionCodecClass = NoCueballCompressionCodec.class;
       if (compressionCodec != null) {
         try {
-          compressionCodecClass = (Class<? extends CompressionCodec>) Class.forName(compressionCodec);
+          compressionCodecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodec);
         } catch (ClassNotFoundException e) {
-          throw new RuntimeException("Failed to get CompressionCodec class '"
+          throw new IOException("Failed to get CompressionCodec class '"
               + compressionCodec + "'!", e);
         }
       }
@@ -126,20 +125,7 @@ public class Cueball implements StorageEngine {
 
     @Override
     public String getDefaultOptions() {
-      StringWriter sw = new StringWriter();
-      PrintWriter pw = new PrintWriter(sw);
-
-      pw.println("---");
-      pw.println("key_hash_size: 10");
-      pw.println("hasher: " + Murmur64Hasher.class.getName());
-      pw.println("max_allowed_part_size: " + 1024 * 1024);
-      pw.println("hash_index_bits: 15");
-      pw.println("remote_domain_root: #fill this in!");
-      pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
-      pw.println("value_size: #fill this in!");
-      pw.println("num_remote_leaf_versions_to_keep: #fill this in! 0 means keep all versions.");
-
-      return sw.toString();
+      return "";
     }
   }
 
@@ -155,7 +141,7 @@ public class Cueball implements StorageEngine {
   private final int numRemoteLeafVersionsToKeep;
   private final int partitionCacheCapacity;
 
-  private final Class<? extends CompressionCodec> compressionCodecClass;
+  private final Class<? extends CueballCompressionCodec> compressionCodecClass;
 
   public Cueball(int keyHashSize,
                  Hasher hasher,
@@ -163,7 +149,7 @@ public class Cueball implements StorageEngine {
                  int hashIndexBits,
                  String remoteDomainRoot,
                  PartitionRemoteFileOpsFactory partitionRemoteFileOpsFactory,
-                 Class<? extends CompressionCodec> compressionCodecClass,
+                 Class<? extends CueballCompressionCodec> compressionCodecClass,
                  Domain domain,
                  int numRemoteLeafVersionsToKeep,
                  int partitionCacheCapacity) {
@@ -190,7 +176,7 @@ public class Cueball implements StorageEngine {
         keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec(), partitionCacheCapacity);
   }
 
-  private CompressionCodec getCompressionCodec() throws IOException {
+  private CueballCompressionCodec getCompressionCodec() throws IOException {
     try {
       return compressionCodecClass.newInstance();
     } catch (Exception e) {
@@ -222,10 +208,15 @@ public class Cueball implements StorageEngine {
   }
 
   @Override
+  public IncrementalUpdatePlanner getUpdatePlanner(Domain domain) {
+    return new CueballUpdatePlanner(domain);
+  }
+
+  @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
     String localDir = getLocalDir(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
-        partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber),
+        getPartitionRemoteFileOps(partitionNumber),
         new CueballMerger(),
         keyHashSize,
         valueSize,
@@ -264,6 +255,11 @@ public class Cueball implements StorageEngine {
   @Override
   public PartitionRemoteFileOpsFactory getPartitionRemoteFileOpsFactory() {
     return partitionRemoteFileOpsFactory;
+  }
+
+  @Override
+  public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
+    return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
   }
 
   @Override

@@ -15,7 +15,7 @@
  */
 package com.liveramp.hank;
 
-import com.liveramp.hank.compress.JavaGzipCompressionCodec;
+import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.RingGroupConductorConfigurator;
@@ -223,7 +223,7 @@ public class IntegrationTest extends ZkTestCase {
     pw.println("record_file_read_buffer_bytes: 10240");
     pw.println("remote_domain_root: " + DOMAIN_1_DATAFILES);
     pw.println("file_ops_factory: " + LocalPartitionRemoteFileOps.Factory.class.getName());
-    pw.println("compression_codec: " + JavaGzipCompressionCodec.class.getName());
+    pw.println("compression_codec: " + GzipCueballCompressionCodec.class.getName());
     pw.println("num_remote_leaf_versions_to_keep: 0");
     pw.close();
     coordinator.addDomain("domain1", 2, Curly.Factory.class.getName(), sw.toString(), Murmur64Partitioner.class.getName(), Collections.<String>emptyList());

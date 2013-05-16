@@ -75,7 +75,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   @Override
   public InputStream getInputStream(String remoteRelativePath) throws IOException {
-    InputStream inputStream = fs.open(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+    InputStream inputStream = fs.open(new Path(getRemoteAbsolutePath(remoteRelativePath)));
     if (compressionCodec == null) {
       return inputStream;
     } else {
@@ -90,7 +90,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   @Override
   public OutputStream getOutputStream(String remoteRelativePath) throws IOException {
-    OutputStream outputStream = fs.create(new Path(getAbsoluteRemotePath(remoteRelativePath)), false);
+    OutputStream outputStream = fs.create(new Path(getRemoteAbsolutePath(remoteRelativePath)), false);
     if (compressionCodec == null) {
       return outputStream;
     } else {
@@ -105,12 +105,12 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
 
   @Override
   public boolean exists(String remoteRelativePath) throws IOException {
-    return fs.exists(new Path(getAbsoluteRemotePath(remoteRelativePath)));
+    return fs.exists(new Path(getRemoteAbsolutePath(remoteRelativePath)));
   }
 
   @Override
   public void copyToLocalRoot(String remoteSourceRelativePath, String localDestinationRoot) throws IOException {
-    Path source = new Path(getAbsoluteRemotePath(remoteSourceRelativePath));
+    Path source = new Path(getRemoteAbsolutePath(remoteSourceRelativePath));
     File destination = new File(localDestinationRoot + "/" + new Path(remoteSourceRelativePath).getName());
     LOG.info("Copying remote file " + source + " to local file " + destination);
     InputStream inputStream = getInputStream(remoteSourceRelativePath);
@@ -127,12 +127,13 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      fs.delete(new Path(getAbsoluteRemotePath(remoteRelativePath)), true);
+      fs.delete(new Path(getRemoteAbsolutePath(remoteRelativePath)), true);
     }
     return true;
   }
 
-  protected String getAbsoluteRemotePath(String relativePath) {
+  @Override
+  public String getRemoteAbsolutePath(String relativePath) {
     if (compressionCodec == null) {
       return partitionRoot + "/" + relativePath;
     } else {
@@ -149,17 +150,17 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
     }
   }
 
-  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+  public static String getRemoteAbsolutePath(String remoteDomainRoot,
                                              int partitionNumber,
                                              String relativePath,
                                              CompressionCodec compressionCodec) throws IOException {
-    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, compressionCodec).getAbsoluteRemotePath(relativePath);
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber, compressionCodec).getRemoteAbsolutePath(relativePath);
   }
 
-  public static String getAbsoluteRemotePath(String remoteDomainRoot,
+  public static String getRemoteAbsolutePath(String remoteDomainRoot,
                                              int partitionNumber,
                                              String relativePath) throws IOException {
-    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber).getAbsoluteRemotePath(relativePath);
+    return new HdfsPartitionRemoteFileOps(remoteDomainRoot, partitionNumber).getRemoteAbsolutePath(relativePath);
   }
 
   @Override
