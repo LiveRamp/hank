@@ -130,6 +130,40 @@
       </testResource>
     </testResources>
 
+    <plugins>
+
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Implementation-Build>${build-commit}</Implementation-Build>
+            </manifestEntries>
+          </archive>
+          <descriptors>
+            <descriptor>src/assembly/jobjar.xml</descriptor>
+            <descriptor>src/assembly/dist.xml</descriptor>
+          </descriptors>
+          <attach>false</attach>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+
   </build>
 
 </project>
