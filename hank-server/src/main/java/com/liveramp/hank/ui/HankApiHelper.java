@@ -18,7 +18,6 @@ package com.liveramp.hank.ui;
 
 import com.google.common.base.CaseFormat;
 import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.storage.StorageEngine;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -247,7 +246,7 @@ public class HankApiHelper {
     DomainData data = new DomainData();
     data.name = domain.getName();
     data.numPartitions = domain.getNumParts();
-    data.storageEngine = domain.getStorageEngine().getClass().getSimpleName();
+    data.storageEngine = domain.getStorageEngineFactoryClassName();
     data.storageEngineOptions = domain.getStorageEngineOptions();
 
     Map<Integer, DomainVersionData> versionsMap = new HashMap<Integer, DomainVersionData>();

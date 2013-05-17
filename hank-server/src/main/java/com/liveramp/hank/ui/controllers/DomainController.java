@@ -162,9 +162,9 @@ public class DomainController extends Controller {
     } else {
       coordinator.updateDomain(domainName,
           domain.getNumParts(),
-          domain.getStorageEngineFactoryClass().getName(),
+          domain.getStorageEngineFactoryClassName(),
           storageEngineOptions,
-          domain.getPartitioner().getClass().getName(),
+          domain.getPartitionerClassName(),
           Hosts.splitHostFlags(requiredHostFlags));
     }
     resp.sendRedirect("/domains.jsp");

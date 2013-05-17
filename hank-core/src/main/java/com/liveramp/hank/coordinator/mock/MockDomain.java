@@ -71,6 +71,11 @@ public class MockDomain extends AbstractDomain {
   }
 
   @Override
+  public String getPartitionerClassName() {
+    return part.getClass().getName();
+  }
+
+  @Override
   public List<String> getRequiredHostFlags() {
     return Collections.emptyList();
   }
@@ -89,6 +94,11 @@ public class MockDomain extends AbstractDomain {
 
   @Override
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass() {
+    return null;
+  }
+
+  @Override
+  public String getStorageEngineFactoryClassName() {
     return null;
   }
 

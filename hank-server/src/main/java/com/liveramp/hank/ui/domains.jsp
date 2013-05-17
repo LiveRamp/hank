@@ -38,9 +38,9 @@ Coordinator coord = (Coordinator)getServletContext().getAttribute("coordinator")
         <td><a href="/domain.jsp?n=<%= URLEnc.encode(domain.getName()) %>"><%= domain.getName() %></a></td>
         <td><%= Hosts.joinHostFlags(domain.getRequiredHostFlags()) %></td>
         <td><%= domain.getId() %></td>
-        <td><%= domain.getPartitioner().getClass().getSimpleName() %></td>
+        <td><%= domain.getPartitionerClassName() %></td>
         <td class='centered'><%= domain.getNumParts() %></td>
-        <td><%= domain.getStorageEngineFactoryClass().getName() %></td>
+        <td><%= domain.getStorageEngineFactoryClassName() %></td>
       </tr>
       <%
     }

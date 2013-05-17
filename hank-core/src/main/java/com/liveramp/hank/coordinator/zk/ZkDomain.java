@@ -111,12 +111,18 @@ public class ZkDomain extends AbstractDomain implements Domain {
   }
 
   @Override
+  public String getStorageEngineFactoryClassName() {
+    return metadata.get().get_storage_engine_factory_class();
+  }
+
+  @Override
   public StorageEngine getStorageEngine() {
+    String storageEngineFactoryClassName = getStorageEngineFactoryClassName();
     try {
-      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(getStorageEngineFactoryClassName()).newInstance();
+      StorageEngineFactory factory = (StorageEngineFactory) Class.forName(storageEngineFactoryClassName).newInstance();
       return factory.getStorageEngine(getStorageEngineOptions(), this);
     } catch (Exception e) {
-      LOG.error("Could not instantiate storage engine from factory " + getStorageEngineFactoryClassName()
+      LOG.error("Could not instantiate storage engine from factory " + storageEngineFactoryClassName
           + " with options " + getStorageEngineOptions(), e);
       return null;
     }
@@ -127,10 +133,6 @@ public class ZkDomain extends AbstractDomain implements Domain {
     return (Map<String, Object>) new Yaml().load(metadata.get().get_storage_engine_options());
   }
 
-  public String getStorageEngineFactoryClassName() {
-    return metadata.get().get_storage_engine_factory_class();
-  }
-
   private DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     StorageEngine storageEngine = getStorageEngine();
     return storageEngine != null ? storageEngine.getDomainVersionPropertiesSerialization() : null;
@@ -139,14 +141,19 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public Partitioner getPartitioner() {
     if (partitioner == null) {
-      String partitionerClassName = metadata.get().get_partitioner_class();
+      String partitionerClassName = getPartitionerClassName();
       try {
-        partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
+        partitioner = (Partitioner) ((Class) Class.forName(getPartitionerClassName())).newInstance();
       } catch (Exception e) {
         throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
       }
     }
     return partitioner;
+  }
+
+  @Override
+  public String getPartitionerClassName() {
+    return metadata.get().get_partitioner_class();
   }
 
   @Override
@@ -238,7 +245,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public String toString() {
     return "ZkDomain [domainPath=" + path + ", id=" + getId() + ", name=" + name + ", numParts=" + getNumParts()
-        + ", partitioner=" + metadata.get().get_partitioner_class() + ", storageEngine=" + getStorageEngine()
+        + ", partitioner=" + getPartitionerClassName() + ", storageEngine=" + getStorageEngine()
         + ", storageEngineFactoryClassName=" + getStorageEngineFactoryClassName() + ", storageEngineOptions="
         + getStorageEngineOptions() + "]";
   }

@@ -50,7 +50,7 @@
       Partitioner:
     </td>
     <td>
-      <%= domain.getPartitioner().getClass().getName() %>
+      <%= domain.getPartitionerClassName() %>
     </td>
   </tr>
 
@@ -68,7 +68,7 @@
       Storage engine factory:
     </td>
     <td>
-      <%= domain.getStorageEngineFactoryClass().getName() %>
+      <%= domain.getStorageEngineFactoryClassName() %>
     </td>
   </tr>
 

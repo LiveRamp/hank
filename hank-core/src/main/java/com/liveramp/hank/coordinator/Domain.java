@@ -34,11 +34,15 @@ public interface Domain extends Comparable<Domain> {
 
   public Class<? extends StorageEngineFactory> getStorageEngineFactoryClass();
 
+  public String getStorageEngineFactoryClassName();
+
   public StorageEngine getStorageEngine();
 
   public Map<String, Object> getStorageEngineOptions();
 
   public Partitioner getPartitioner();
+
+  public String getPartitionerClassName();
 
   public List<String> getRequiredHostFlags();
 
