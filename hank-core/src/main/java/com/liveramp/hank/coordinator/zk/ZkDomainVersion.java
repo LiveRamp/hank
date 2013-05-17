@@ -170,7 +170,7 @@ public class ZkDomainVersion extends AbstractDomainVersion implements DomainVers
   @Override
   public DomainVersionProperties getProperties() throws IOException {
     byte[] serializedProperties = metadata.get().get_properties();
-    if (serializedProperties == null) {
+    if (serializedProperties == null || domainVersionPropertiesSerialization == null) {
       return null;
     } else {
       return domainVersionPropertiesSerialization.deserializeProperties(serializedProperties);
