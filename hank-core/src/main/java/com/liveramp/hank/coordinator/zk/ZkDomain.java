@@ -28,6 +28,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   private final String name;
   private final WatchedMap<ZkDomainVersion> versions;
   private final ZooKeeperPlus zk;
+  private Partitioner partitioner;
 
   public static ZkDomain create(ZooKeeperPlus zk,
                                 String domainsRoot,
@@ -137,12 +138,15 @@ public class ZkDomain extends AbstractDomain implements Domain {
 
   @Override
   public Partitioner getPartitioner() {
-    String partitionerClassName = metadata.get().get_partitioner_class();
-    try {
-      return (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+    if (partitioner == null) {
+      String partitionerClassName = metadata.get().get_partitioner_class();
+      try {
+        partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
+      } catch (Exception e) {
+        throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+      }
     }
+    return partitioner;
   }
 
   @Override
