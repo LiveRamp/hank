@@ -27,7 +27,6 @@ public class ZkDomain extends AbstractDomain implements Domain {
   private final WatchedThriftNode<DomainMetadata> metadata;
   private final String name;
   private final WatchedMap<ZkDomainVersion> versions;
-  private final Partitioner partitioner;
   private final ZooKeeperPlus zk;
 
   public static ZkDomain create(ZooKeeperPlus zk,
@@ -65,12 +64,6 @@ public class ZkDomain extends AbstractDomain implements Domain {
             return new ZkDomainVersion(zk, ZkPath.append(basePath, relPath), getDomainVersionPropertiesSerialization());
           }
         });
-    String partitionerClassName = metadata.get().get_partitioner_class();
-    try {
-      partitioner = (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
-    } catch (Exception e) {
-      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
-    }
   }
 
   public void update(final int id,
@@ -144,7 +137,12 @@ public class ZkDomain extends AbstractDomain implements Domain {
 
   @Override
   public Partitioner getPartitioner() {
-    return partitioner;
+    String partitionerClassName = metadata.get().get_partitioner_class();
+    try {
+      return (Partitioner) ((Class) Class.forName(partitionerClassName)).newInstance();
+    } catch (Exception e) {
+      throw new RuntimeException("Could not instantiate partitioner " + partitionerClassName, e);
+    }
   }
 
   @Override
@@ -236,7 +234,7 @@ public class ZkDomain extends AbstractDomain implements Domain {
   @Override
   public String toString() {
     return "ZkDomain [domainPath=" + path + ", id=" + getId() + ", name=" + name + ", numParts=" + getNumParts()
-        + ", partitioner=" + partitioner + ", storageEngine=" + getStorageEngine()
+        + ", partitioner=" + metadata.get().get_partitioner_class() + ", storageEngine=" + getStorageEngine()
         + ", storageEngineFactoryClassName=" + getStorageEngineFactoryClassName() + ", storageEngineOptions="
         + getStorageEngineOptions() + "]";
   }
