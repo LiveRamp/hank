@@ -50,7 +50,7 @@
       Partitioner:
     </td>
     <td>
-      <%= domain.getPartitionerClassName() %>
+      <input type=text name="partitionerClassName" size=50 value="<%= domain.getPartitionerClassName() %>"/>
     </td>
   </tr>
 
@@ -68,7 +68,7 @@
       Storage engine factory:
     </td>
     <td>
-      <%= domain.getStorageEngineFactoryClassName() %>
+      <input type=text name="storageEngineFactoryClassName" size=50 value="<%= domain.getStorageEngineFactoryClassName() %>"/>
     </td>
   </tr>
 
