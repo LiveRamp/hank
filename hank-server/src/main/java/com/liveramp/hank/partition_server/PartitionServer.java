@@ -19,8 +19,8 @@ import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.CommandLineChecker;
+import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.UpdateStatisticsRunnable;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 import org.apache.log4j.Logger;
@@ -51,7 +51,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private static final long MAIN_THREAD_STEP_SLEEP_MS = 1000;
   private static final int UPDATE_FILESYSTEM_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 2 * 60 * 1000;
 
-  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 1000;
+  private static final int NUM_WARMUP_QUERIES_PER_THREAD = 100;
 
   private final PartitionServerConfigurator configurator;
   private final Coordinator coordinator;
