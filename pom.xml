@@ -107,23 +107,6 @@
         </executions>
       </plugin>
 
-      <!-- Tag the MANIFEST.MF in the jar with the latest git commit-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>2.4</version>
-        <configuration>
-          <archive>
-            <manifest>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
-            <manifestEntries>
-              <Implementation-Build>${build-commit}</Implementation-Build>
-            </manifestEntries>
-          </archive>
-        </configuration>
-      </plugin>
-
       <!-- Use mvn antrun:run -pl hank-core to generate Thrift sources -->
       <plugin>
         <artifactId>maven-antrun-plugin</artifactId>
