@@ -16,15 +16,17 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
-import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partition_server.IfaceWithShutdown;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockHost;
+import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.HankTimer;
+import com.liveramp.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -221,21 +223,20 @@ public class TestHostConnection extends BaseTestCase {
     lockingThread.start();
 
     // Wait for the connection to be locked
-    while (!connection.lock.isLocked() ||
-        connection.lock.isHeldByCurrentThread()) {
-      LOG.info("Waiting for connection lock to be locked by another thread.");
-      Thread.sleep(100);
-    }
+    WaitUntil.condition(new Condition() {
+      @Override
+      public boolean test() {
+        return connection.lock.isLocked() &&
+            !connection.lock.isHeldByCurrentThread();
+      }
+    });
 
     // Try to perform a get
-    HankTimer timer = new HankTimer();
     try {
       connection.get(0, KEY_1);
       fail("Should fail");
     } catch (IOException e) {
-      long duration = timer.getDuration() / 1000000l;
       assertEquals("Exceeded timeout while trying to lock the host connection.", e.getMessage());
-      assertTrue(duration < 100 + 10);
     } finally {
       // Kill the locking thread
       lockingThread.interrupt();
