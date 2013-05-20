@@ -15,7 +15,7 @@ public final class Hank {
 
   public synchronized static String getGitCommit() {
     if (gitCommit == null) {
-      gitCommit = getProperty("hank-core", "Implementation-Build");
+      gitCommit = getProperty("Implementation-Build");
     }
     return gitCommit;
   }
@@ -24,12 +24,12 @@ public final class Hank {
 
   public static String getVersion() {
     if (version == null) {
-      version = getProperty("hank-core", "Implementation-Version");
+      version = getProperty("Implementation-Version");
     }
     return version;
   }
 
-  public static String getProperty(String title, String property) {
+  public static String getProperty(String property) {
     try {
       Enumeration<URL> manifestStream = Hank.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
       if (!manifestStream.hasMoreElements()) {
@@ -39,9 +39,9 @@ public final class Hank {
       while (manifestStream.hasMoreElements()) {
         Manifest manifest = new Manifest(manifestStream.nextElement().openStream());
         Attributes attributes = manifest.getMainAttributes();
-        String actualTitle = attributes.getValue("Implementation-Title");
+        String title = attributes.getValue("Implementation-Title");
 
-        if (actualTitle != null && actualTitle.equals(title)) {
+        if (title != null && isValidTitle(title)) {
           String temp = attributes.getValue(property);
           if (temp != null) {
             return temp;
@@ -55,5 +55,11 @@ public final class Hank {
     }
 
     return "Unknown";
+  }
+
+  private static boolean isValidTitle(String title) {
+    return title.equals("hank-core")
+        || title.equals("hank-client")
+        || title.equals("hank-server");
   }
 }
