@@ -1,7 +1,6 @@
 package com.liveramp.hank;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.jar.Attributes;
@@ -16,7 +15,7 @@ public final class Hank {
 
   public synchronized static String getGitCommit() {
     if (gitCommit == null) {
-      gitCommit = getProperty("Implementation-Build");
+      gitCommit = getProperty("hank-core", "Implementation-Build");
     }
     return gitCommit;
   }
@@ -25,28 +24,28 @@ public final class Hank {
 
   public static String getVersion() {
     if (version == null) {
-      version = getProperty("Implementation-Version");
+      version = getProperty("hank-core", "Implementation-Version");
     }
     return version;
   }
 
-  public static String getProperty(String prop){
+  public static String getProperty(String title, String property) {
     try {
       Enumeration<URL> manifestStream = Hank.class.getClassLoader().getResources("META-INF/MANIFEST.MF");
-      if(!manifestStream.hasMoreElements()){
+      if (!manifestStream.hasMoreElements()) {
         return "No Manifest";
       }
 
-      while(manifestStream.hasMoreElements()){
+      while (manifestStream.hasMoreElements()) {
         Manifest manifest = new Manifest(manifestStream.nextElement().openStream());
         Attributes attributes = manifest.getMainAttributes();
-        String title = attributes.getValue("Implementation-Title");
+        String actualTitle = attributes.getValue("Implementation-Title");
 
-        if(title != null && title.equals("hank")){
-          String temp = attributes.getValue(prop);
+        if (actualTitle != null && actualTitle.equals(title)) {
+          String temp = attributes.getValue(property);
           if (temp != null) {
             return temp;
-          }else{
+          } else {
             return "Not in Manifest";
           }
         }
