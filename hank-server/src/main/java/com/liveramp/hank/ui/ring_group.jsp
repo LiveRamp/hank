@@ -32,7 +32,7 @@ Collections.sort(clients, new ClientMetadataComparator());
     <%@page import="org.apache.commons.lang.NotImplementedException" %><html>
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-    <title>Ring Group<%=ringGroup.getName()%></title>
+    <title>Ring Group <%=ringGroup.getName()%></title>
 
     <jsp:include page="_head.jsp"/>
     </head>

@@ -20,7 +20,7 @@
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-    <title>Host:<%= host.getAddress() %></title>
+    <title>Host: <%= host.getAddress() %></title>
     <jsp:include page="_head.jsp"/>
 
     <style type="text/css">

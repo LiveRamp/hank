@@ -19,8 +19,8 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <html>
     <head>
     <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-    <title>Ring<%=ring.getRingNumber()%>
-    in group<%=ringGroup.getName()%></title>
+    <title>Ring <%=ring.getRingNumber()%>
+    in group <%=ringGroup.getName()%></title>
     <jsp:include page="_head.jsp"/>
     </head>
     <body>
