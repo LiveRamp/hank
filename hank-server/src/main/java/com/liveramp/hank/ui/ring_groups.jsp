@@ -162,8 +162,7 @@
       <% } else { %>
     <td class='centered error'>
       <% } %>
-      <%= servingStatus.getNumPartitionsServedAndUpToDate() %>
-    /<%= servingStatus.getNumPartitions() %>
+      <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
     </td>
 
     <!-- File system -->

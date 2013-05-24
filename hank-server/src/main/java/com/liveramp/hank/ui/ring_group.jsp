@@ -145,8 +145,7 @@ Collections.sort(clients, new ClientMetadataComparator());
       <% } else { %>
     <td class='centered error'>
       <% } %>
-      <%= servingStatus.getNumPartitionsServedAndUpToDate() %>
-    /<%= servingStatus.getNumPartitions() %>
+      <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
     </td>
     </tr>
 
@@ -350,8 +349,7 @@ Collections.sort(clients, new ClientMetadataComparator());
       <% } else { %>
     <td class='centered error'>
       <% } %>
-      <%= ringServingStatus.getNumPartitionsServedAndUpToDate() %>
-    /<%= ringServingStatus.getNumPartitions() %>
+      <%= ringServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= ringServingStatus.getNumPartitions() %>
     </td>
 
     <!-- File system -->

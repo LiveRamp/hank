@@ -121,8 +121,8 @@
       <% if (upSince == null) { %>
     undefined
       <% } else { %>
-    Started<%= new SimpleDateFormat().format(new Date(upSince)) %>
-    (online for<%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
+    Started <%= new SimpleDateFormat().format(new Date(upSince)) %>
+    (online for <%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
       <% } %>
     </td>
     </tr>

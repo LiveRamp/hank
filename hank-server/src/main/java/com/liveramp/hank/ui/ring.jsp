@@ -114,8 +114,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <% } else { %>
     <td class='centered error'>
       <% } %>
-      <%= servingStatus.getNumPartitionsServedAndUpToDate() %>
-    /<%= servingStatus.getNumPartitions() %>
+      <%= servingStatus.getNumPartitionsServedAndUpToDate() %> / <%= servingStatus.getNumPartitions() %>
     </td>
     </tr>
 
@@ -251,8 +250,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
       <% } else { %>
     <td class='centered error'>
       <% } %>
-      <%= hostServingStatus.getNumPartitionsServedAndUpToDate() %>
-    /<%= hostServingStatus.getNumPartitions() %>
+      <%= hostServingStatus.getNumPartitionsServedAndUpToDate() %> / <%= hostServingStatus.getNumPartitions() %>
     </td>
 
     <!-- File system -->
