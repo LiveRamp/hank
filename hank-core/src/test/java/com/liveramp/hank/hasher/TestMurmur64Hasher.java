@@ -19,6 +19,7 @@ import com.liveramp.hank.util.Bytes;
 import junit.framework.TestCase;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class TestMurmur64Hasher extends TestCase {
 
@@ -45,5 +46,17 @@ public class TestMurmur64Hasher extends TestCase {
     int comparision = Bytes.compareBytesUnsigned(hashA, 0, hashB, 0, 10);
 
     assertTrue(0 != comparision);
+  }
+
+  public void testMultipleOf8() {
+    byte[] hash64 = new byte[8];
+    byte[] hash128 = new byte[16];
+
+    hsh.hash(ByteBuffer.wrap(new byte[]{0x1, 0x2, 0x3, 0x4}), 8, hash64);
+    hsh.hash(ByteBuffer.wrap(new byte[]{0x1, 0x2, 0x3, 0x4}), 16, hash128);
+
+    assertTrue(Arrays.equals(new byte[]{0x08, 0x51, 0x77, 0x72, 0x42, 0x6e, 0x7f, (byte) 0xa6}, hash64));
+    assertTrue(Arrays.equals(new byte[]{0x08, 0x51, 0x77, 0x72, 0x42, 0x6e, 0x7f, (byte) 0xa6,
+        (byte) 0x9f, (byte) 0xa8, 0x0d, 0x49, (byte) 0xde, 0x0a, (byte) 0x90, 0x15}, hash128));
   }
 }

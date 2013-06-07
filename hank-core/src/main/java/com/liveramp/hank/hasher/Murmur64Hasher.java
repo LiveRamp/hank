@@ -91,8 +91,8 @@ public final class Murmur64Hasher implements Hasher {
   @Override
   public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
     int seed = INITIAL_SEED;
-    long hashValue = 0;
-    for (int i = 0; i < hashSize - 8; i += 8) {
+    long hashValue;
+    for (int i = 0; i <= hashSize - 8; i += 8) {
       hashValue = murmurHash64(value.array(), value.arrayOffset() + value.position(), value.arrayOffset() + value.limit(), seed);
       seed = (int) hashValue;
       hashBytes[i] = (byte) ((hashValue >> 56) & 0xff);
