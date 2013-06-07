@@ -112,7 +112,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
                                String updateWorkRoot) throws IOException {
-    runUpdateCore(partitionRemoteFileOps,
+    runUpdateCore(
         currentVersion,
         updatingToVersion,
         updatePlan,
@@ -127,8 +127,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         null);
   }
 
-  public static void runUpdateCore(PartitionRemoteFileOps partitionRemoteFileOps,
-                                   DomainVersion currentVersion,
+  public static void runUpdateCore(DomainVersion currentVersion,
                                    DomainVersion updatingToVersion,
                                    IncrementalUpdatePlan updatePlan,
                                    String updateWorkRoot,

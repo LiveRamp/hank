@@ -117,7 +117,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
 
     // Run Cueball update
     timer.restart();
-    CueballPartitionUpdater.runUpdateCore(partitionRemoteFileOps,
+    CueballPartitionUpdater.runUpdateCore(
         currentVersion,
         updatingToVersion,
         updatePlan,
