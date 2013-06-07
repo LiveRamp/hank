@@ -17,10 +17,11 @@
 package com.liveramp.hank.storage;
 
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 
 import java.io.IOException;
 
 public interface PartitionUpdater {
 
-  void updateTo(DomainVersion updatingToVersion) throws IOException;
+  void updateTo(DomainVersion updatingToVersion, PartitionUpdateTaskStatistics statistics) throws IOException;
 }

@@ -19,6 +19,7 @@ import com.liveramp.hank.config.PartitionServerConfigurator;
 import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.util.DurationAggregator;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -33,25 +34,6 @@ public class UpdateManager implements IUpdateManager {
   private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
   private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
-
-  private final class PartitionUpdateTaskStatistics {
-
-    private final long startTimeMs;
-    private final long endTimeMs;
-
-    private PartitionUpdateTaskStatistics(long startTimeMs, long endTimeMs) {
-      this.startTimeMs = startTimeMs;
-      this.endTimeMs = endTimeMs;
-    }
-
-    public long getStartTimeMs() {
-      return startTimeMs;
-    }
-
-    public long getEndTimeMs() {
-      return endTimeMs;
-    }
-  }
 
   private final class PartitionUpdateTaskStatisticsAggregator {
 
@@ -131,6 +113,29 @@ public class UpdateManager implements IUpdateManager {
       }
       return maxDomainETA;
     }
+
+    public synchronized void logStats() {
+      Map<String, DurationAggregator> hankTimerDurationAggregators = new TreeMap<String, DurationAggregator>();
+      for (Map.Entry<Domain, List<PartitionUpdateTaskStatistics>> entry1 : domainToPartitionUpdateTaskStatistics.entrySet()) {
+        Domain domain = entry1.getKey();
+        List<PartitionUpdateTaskStatistics> partitionUpdateTaskStatisticsList = entry1.getValue();
+        for (PartitionUpdateTaskStatistics partitionUpdateTaskStatistics : partitionUpdateTaskStatisticsList) {
+          for (Map.Entry<String, Long> entry2 : partitionUpdateTaskStatistics.getDurationsMs().entrySet()) {
+            String name = domain.getName() + " - " + entry2.getKey();
+            Long duration = entry2.getValue();
+            DurationAggregator aggregator = hankTimerDurationAggregators.get(name);
+            if (aggregator == null) {
+              aggregator = new DurationAggregator(name);
+              hankTimerDurationAggregators.put(name, aggregator);
+            }
+            aggregator.add(duration);
+          }
+        }
+      }
+      for (DurationAggregator aggregator : hankTimerDurationAggregators.values()) {
+        aggregator.logStats();
+      }
+    }
   }
 
   private final class PartitionUpdateTask implements Runnable, Comparable<PartitionUpdateTask> {
@@ -160,7 +165,8 @@ public class UpdateManager implements IUpdateManager {
 
     @Override
     public void run() {
-      long startTimeMs = System.currentTimeMillis();
+      PartitionUpdateTaskStatistics statistics = new PartitionUpdateTaskStatistics();
+      statistics.setStartTimeMs(System.currentTimeMillis());
       try {
         // Determine target version
         DomainGroupDomainVersion targetDomainGroupDomainVersion =
@@ -193,7 +199,7 @@ public class UpdateManager implements IUpdateManager {
           LOG.info(String.format(
               "Starting partition update of domain %s partition %d to version %d.",
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
-          storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion);
+          storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion, statistics);
 
           // Record update success
           partition.setCurrentDomainVersion(targetDomainVersion.getVersionNumber());
@@ -206,9 +212,8 @@ public class UpdateManager implements IUpdateManager {
             domain.getName(), partition.getPartitionNumber()), e);
         exceptionQueue.add(e);
       } finally {
-        long endTimeMs = System.currentTimeMillis();
-        partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this,
-            new PartitionUpdateTaskStatistics(startTimeMs, endTimeMs));
+        statistics.setEndTimeMs(System.currentTimeMillis());
+        partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this, statistics);
       }
     }
 
@@ -306,6 +311,9 @@ public class UpdateManager implements IUpdateManager {
 
     // Garbage collect useless host domains
     garbageCollectHostDomains(host);
+
+    // Log statistics
+    partitionUpdateTaskStatisticsAggregator.logStats();
   }
 
   private void executePartitionUpdateTasks(ExecutorService executor,

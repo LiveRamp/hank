@@ -21,48 +21,52 @@ import org.apache.log4j.Logger;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HankTimerDurationAggregator {
+public class DurationAggregator {
 
-  private static Logger LOG = Logger.getLogger(HankTimerDurationAggregator.class);
+  private static Logger LOG = Logger.getLogger(DurationAggregator.class);
 
   private final String name;
-  private List<HankTimer> timers;
+  private List<Long> durationsMs;
 
-  public HankTimerDurationAggregator(String name) {
+  public DurationAggregator(String name) {
     this.name = name;
     this.clear();
   }
 
-  public synchronized void add(HankTimer timer) {
-    timers.add(timer);
+  public synchronized void add(long duration) {
+    durationsMs.add(duration);
   }
 
   public void clear() {
-    timers = new ArrayList<HankTimer>();
+    durationsMs = new ArrayList<Long>();
   }
 
-  public void logStats() {
+  public String getStats() {
     long totalDurationMs = getTotalDurationMs();
     long averageDurationMs = 0;
-    if (timers.size() > 0) {
-      averageDurationMs = totalDurationMs / timers.size();
+    if (durationsMs.size() > 0) {
+      averageDurationMs = totalDurationMs / durationsMs.size();
     }
     StringBuilder logStr = new StringBuilder();
-    logStr.append("Statistics for Timer: ");
+    logStr.append("Statistics for: ");
     logStr.append(name);
     logStr.append(", average duration: ");
     logStr.append(FormatUtils.formatSecondsDuration(averageDurationMs / 1000));
     logStr.append(", total duration: ");
     logStr.append(FormatUtils.formatSecondsDuration(totalDurationMs / 1000));
     logStr.append(", count: ");
-    logStr.append(timers.size());
-    LOG.info(logStr.toString());
+    logStr.append(durationsMs.size());
+    return logStr.toString();
+  }
+
+  public void logStats() {
+    LOG.info(getStats());
   }
 
   private long getTotalDurationMs() {
     long result = 0;
-    for (HankTimer timer : timers) {
-      result += timer.getDurationMs();
+    for (Long durationMs : durationsMs) {
+      result += durationMs;
     }
     return result;
   }

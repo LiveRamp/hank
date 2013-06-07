@@ -20,6 +20,7 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
@@ -68,7 +69,8 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
       protected void runUpdateCore(DomainVersion currentVersion,
                                    DomainVersion updatingToVersion,
                                    IncrementalUpdatePlan updatePlan,
-                                   String updateWorkRoot) throws IOException {
+                                   String updateWorkRoot,
+                                   PartitionUpdateTaskStatistics statistics) throws IOException {
         throw new NotImplementedException();
       }
     };

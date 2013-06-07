@@ -19,6 +19,7 @@ package com.liveramp.hank.storage.incremental;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -93,6 +94,7 @@ public class MockIncrementalPartitionUpdater extends IncrementalPartitionUpdater
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               String updateWorkRoot) {
+                               String updateWorkRoot,
+                               PartitionUpdateTaskStatistics statistics) {
   }
 }

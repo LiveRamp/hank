@@ -22,6 +22,7 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.MockCueballMerger;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
@@ -88,7 +89,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
     deltas.add(v2);
     // Fail when missing files
     try {
-      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot, new PartitionUpdateTaskStatistics());
       fail("Should fail");
     } catch (IOException e) {
       // Good
@@ -109,7 +110,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
     makeRemoteFile("0/00002.delta.cueball");
     makeRemoteFile("0/00002.delta.curly");
 
-    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot, new PartitionUpdateTaskStatistics());
     // Deltas still exist
     assertTrue(existsCacheFile("00001.delta.cueball"));
     assertTrue(existsCacheFile("00002.delta.cueball"));

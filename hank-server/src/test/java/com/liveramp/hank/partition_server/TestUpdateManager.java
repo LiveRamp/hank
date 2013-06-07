@@ -16,7 +16,6 @@
 
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.coordinator.mock.MockDomain;
@@ -28,6 +27,7 @@ import com.liveramp.hank.storage.PartitionUpdater;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.mock.MockDeleter;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
+import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.*;
 
 import java.io.IOException;
@@ -262,8 +262,8 @@ public class TestUpdateManager extends BaseTestCase {
   public void testFailedUpdateTask() throws Exception {
     final MockPartitionUpdater failingUpdater = new MockPartitionUpdater() {
       @Override
-      public void updateTo(DomainVersion updatingToVersion) throws IOException {
-        super.updateTo(updatingToVersion);
+      public void updateTo(DomainVersion updatingToVersion, PartitionUpdateTaskStatistics statistics) throws IOException {
+        super.updateTo(updatingToVersion, statistics);
         throw new IOException("Failed to update.");
       }
     };

@@ -19,6 +19,7 @@ package com.liveramp.hank.storage.curly;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
 import com.liveramp.hank.storage.cueball.ICueballMerger;
@@ -80,7 +81,8 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               String updateWorkRoot) throws IOException {
+                               String updateWorkRoot,
+                               PartitionUpdateTaskStatistics statistics) throws IOException {
     // Run Curly update
 
     // Determine new base path
@@ -129,8 +131,11 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
         valueSize,
         hashIndexBits,
         compressionCodec,
-        new OffsetTransformer(offsetNumBytes, offsetAdjustments));
+        new OffsetTransformer(offsetNumBytes, offsetAdjustments),
+        statistics);
     long cueballTimeMs = timer.getDurationMs();
+
+    statistics.getDurationsMs().put("Curly merge", curlyTimeMs);
 
     LOG.info("Update in " + updateWorkRoot + " to " + updatingToVersion
         + ": merged Curly deltas in " + FormatUtils.formatSecondsDuration(curlyTimeMs / 1000)

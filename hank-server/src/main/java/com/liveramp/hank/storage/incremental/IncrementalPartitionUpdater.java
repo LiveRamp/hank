@@ -20,6 +20,7 @@ import com.liveramp.hank.coordinator.CloseCoordinatorOpportunistically;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.PartitionUpdater;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
@@ -71,10 +72,11 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
   protected abstract void runUpdateCore(DomainVersion currentVersion,
                                         DomainVersion updatingToVersion,
                                         IncrementalUpdatePlan updatePlan,
-                                        String updateWorkRoot) throws IOException;
+                                        String updateWorkRoot,
+                                        PartitionUpdateTaskStatistics statistics) throws IOException;
 
   @Override
-  public void updateTo(DomainVersion updatingToVersion) throws IOException {
+  public void updateTo(DomainVersion updatingToVersion, PartitionUpdateTaskStatistics statistics) throws IOException {
     ensureLocalPartitionRootExists();
     ensureCacheExists();
     try {
@@ -93,10 +95,12 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       HankTimer timer = new HankTimer();
       cacheVersionsNeededToUpdate(currentVersion, cachedBases, cachedDeltas, updatePlan);
       long fetchTimeMs = timer.getDurationMs();
+      statistics.getDurationsMs().put("Update data fetch", fetchTimeMs);
       // Run update in a workspace
       timer.restart();
-      runUpdate(currentVersion, updatingToVersion, updatePlan);
+      runUpdate(currentVersion, updatingToVersion, updatePlan, statistics);
       long executionTimeMs = timer.getDurationMs();
+      statistics.getDurationsMs().put("Update execution", executionTimeMs);
       LOG.info("Update in " + localPartitionRoot + " to " + updatingToVersion
           + ": fetched data in " + FormatUtils.formatSecondsDuration(fetchTimeMs / 1000)
           + ", executed in " + FormatUtils.formatSecondsDuration(executionTimeMs / 1000));
@@ -152,14 +156,15 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
 
   private void runUpdate(DomainVersion currentVersion,
                          DomainVersion updatingToVersion,
-                         IncrementalUpdatePlan updatePlan) throws IOException {
+                         IncrementalUpdatePlan updatePlan,
+                         PartitionUpdateTaskStatistics statistics) throws IOException {
     // Clean all previous update work roots
     deleteUpdateWorkRoots();
     // Create new update work root
     File updateWorkRoot = createUpdateWorkRoot();
     try {
       // Execute update
-      runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath());
+      runUpdateCore(currentVersion, updatingToVersion, updatePlan, updateWorkRoot.getAbsolutePath(), statistics);
       // Move current version to cache
       commitFiles(new File(localPartitionRoot), localPartitionRootCache);
       // Commit update result files to top level

@@ -22,6 +22,7 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
@@ -161,7 +162,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     // Updating from null to v0
     // Fail when missing files
     try {
-      updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot);
+      updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot, new PartitionUpdateTaskStatistics());
       fail("Should fail");
     } catch (IOException e) {
       // Good
@@ -170,7 +171,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertFalse(existsUpdateWorkFile("00000.base.cueball"));
     makeLocalCacheFile("00000.base.cueball");
     assertTrue(existsCacheFile("00000.base.cueball"));
-    updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot);
+    updater.runUpdateCore(null, v0, new IncrementalUpdatePlan(v0), updateWorkRoot, new PartitionUpdateTaskStatistics());
     assertFalse(existsCacheFile("00000.base.cueball"));
     assertTrue(existsUpdateWorkFile("00000.base.cueball"));
   }
@@ -182,7 +183,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     deltas.add(v2);
     // Fail when missing files
     try {
-      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+      updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot, new PartitionUpdateTaskStatistics());
       fail("Should fail");
     } catch (IOException e) {
       // Good
@@ -197,7 +198,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     makeRemoteFile("0/00001.delta.cueball");
     makeRemoteFile("0/00002.delta.cueball");
 
-    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot);
+    updater.runUpdateCore(v0, v2, new IncrementalUpdatePlan(v0, deltas), updateWorkRoot, new PartitionUpdateTaskStatistics());
     // Deltas still exist
     assertTrue(existsCacheFile("00001.delta.cueball"));
     assertTrue(existsCacheFile("00002.delta.cueball"));

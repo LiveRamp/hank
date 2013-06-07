@@ -18,6 +18,7 @@ package com.liveramp.hank.storage.curly;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.Writer;
@@ -26,6 +27,7 @@ import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
 import com.liveramp.hank.storage.cueball.ICueballStreamBufferMergeSortFactory;
 import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.util.HankTimer;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -54,7 +56,7 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
   public void compact(DomainVersion versionToCompact,
                       Writer writer) throws IOException {
     this.writer = writer;
-    this.updateTo(versionToCompact);
+    this.updateTo(versionToCompact, new PartitionUpdateTaskStatistics());
   }
 
   @Override
@@ -67,7 +69,8 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               String updateWorkRoot) throws IOException {
+                               String updateWorkRoot,
+                               PartitionUpdateTaskStatistics statistics) throws IOException {
 
     // Prepare Curly
 
@@ -109,6 +112,8 @@ public class CurlyCompactor extends AbstractCurlyPartitionUpdater implements Com
     IKeyFileStreamBufferMergeSort cueballStreamBufferMergeSort =
         cueballStreamBufferMergeSortFactory.getInstance(cueballBasePath, cueballDeltas);
 
+    HankTimer timer = new HankTimer();
     merger.merge(curlyBasePath, curlyDeltas, cueballStreamBufferMergeSort, curlyReaderFactory, writer);
+    statistics.getDurationsMs().put("Curly compaction", timer.getDurationMs());
   }
 }

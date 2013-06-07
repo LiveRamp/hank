@@ -19,9 +19,11 @@ package com.liveramp.hank.storage.cueball;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdater;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import com.liveramp.hank.util.HankTimer;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
 
@@ -111,7 +113,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
   protected void runUpdateCore(DomainVersion currentVersion,
                                DomainVersion updatingToVersion,
                                IncrementalUpdatePlan updatePlan,
-                               String updateWorkRoot) throws IOException {
+                               String updateWorkRoot,
+                               PartitionUpdateTaskStatistics statistics) throws IOException {
     runUpdateCore(
         currentVersion,
         updatingToVersion,
@@ -124,7 +127,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
         valueSize,
         hashIndexBits,
         compressionCodec,
-        null);
+        null,
+        statistics);
   }
 
   public static void runUpdateCore(DomainVersion currentVersion,
@@ -138,7 +142,8 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
                                    int valueSize,
                                    int hashIndexBits,
                                    CueballCompressionCodec compressionCodec,
-                                   ValueTransformer valueTransformer) throws IOException {
+                                   ValueTransformer valueTransformer,
+                                   PartitionUpdateTaskStatistics statistics) throws IOException {
 
     // Determine new base path
     String newBasePath = updateWorkRoot + "/"
@@ -159,6 +164,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
       checkRequiredFileExists(delta.getPath());
     }
 
+    HankTimer timer = new HankTimer();
     // If there are no deltas, simply move the required base to the target version.
     // Otherwise, perform merging.
     if (deltas.size() == 0) {
@@ -175,6 +181,7 @@ public class CueballPartitionUpdater extends IncrementalPartitionUpdater {
           hashIndexBits,
           compressionCodec);
     }
+    statistics.getDurationsMs().put("Cueball merge", timer.getDurationMs());
   }
 
   public static CueballFilePath getCueballFilePathForVersion(DomainVersion version,

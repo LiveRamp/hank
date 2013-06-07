@@ -18,6 +18,7 @@ package com.liveramp.hank.storage.curly;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.partition_server.PartitionUpdateTaskStatistics;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.Cueball;
 import com.liveramp.hank.storage.cueball.CueballFilePath;
@@ -148,7 +149,8 @@ public abstract class AbstractCurlyPartitionUpdater extends IncrementalPartition
   protected abstract void runUpdateCore(DomainVersion currentVersion,
                                         DomainVersion updatingToVersion,
                                         IncrementalUpdatePlan updatePlan,
-                                        String updateWorkRoot) throws IOException;
+                                        String updateWorkRoot,
+                                        PartitionUpdateTaskStatistics statistics) throws IOException;
 
   public CurlyFilePath getCurlyFilePathForVersion(DomainVersion version,
                                                   DomainVersion currentVersion,
