@@ -235,6 +235,7 @@ public class UpdateManager implements IUpdateManager {
   }
 
   // When an Exception is thrown, the update has failed.
+  @Override
   public void update() throws IOException {
 
     // Perform update
@@ -264,9 +265,8 @@ public class UpdateManager implements IUpdateManager {
             UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
         if (terminated) {
           // We finished executing all tasks
+          // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
           keepWaiting = false;
-        } else {
-          // Timeout elapsed and current thread was not interrupted. Keep waiting.
         }
         // Record update ETA
         Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
