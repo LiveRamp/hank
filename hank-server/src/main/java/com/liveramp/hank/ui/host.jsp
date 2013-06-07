@@ -79,7 +79,7 @@
     <tr>
     <td>Update ETA:</td>
     <td>
-      <%= UiUtils.formatSecondsDuration(updateETA) %>
+      <%= FormatUtils.formatSecondsDuration(updateETA) %>
     </td>
     </tr>
       <% } %>
@@ -122,7 +122,7 @@
     undefined
       <% } else { %>
     Started <%= new SimpleDateFormat().format(new Date(upSince)) %>
-    (online for <%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
+    (online for <%= FormatUtils.formatSecondsDuration((System.currentTimeMillis() - upSince) / 1000) %>)
       <% } %>
     </td>
     </tr>

@@ -512,7 +512,7 @@ Collections.sort(clients, new ClientMetadataComparator());
     <tr>
     <td><%= client.get_host() %></td>
     <td>
-      <%= UiUtils.formatSecondsDuration((System.currentTimeMillis() - client.get_connected_at()) / 1000) %>
+      <%= FormatUtils.formatSecondsDuration((System.currentTimeMillis() - client.get_connected_at()) / 1000) %>
     </td>
     <td>
       <%= new SimpleDateFormat().format(new Date(client.get_connected_at())) %>

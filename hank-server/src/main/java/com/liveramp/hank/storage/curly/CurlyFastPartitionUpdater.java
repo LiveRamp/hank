@@ -24,7 +24,7 @@ import com.liveramp.hank.storage.cueball.CueballPartitionUpdater;
 import com.liveramp.hank.storage.cueball.ICueballMerger;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
-import com.liveramp.hank.ui.UiUtils;
+import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import org.apache.log4j.Logger;
 
@@ -133,7 +133,7 @@ public class CurlyFastPartitionUpdater extends AbstractCurlyPartitionUpdater {
     long cueballTimeMs = timer.getDurationMs();
 
     LOG.info("Update in " + updateWorkRoot + " to " + updatingToVersion
-        + ": merged Curly deltas in " + UiUtils.formatSecondsDuration(curlyTimeMs / 1000)
-        + ", ran Cueball update in " + UiUtils.formatSecondsDuration(cueballTimeMs / 1000));
+        + ": merged Curly deltas in " + FormatUtils.formatSecondsDuration(curlyTimeMs / 1000)
+        + ", ran Cueball update in " + FormatUtils.formatSecondsDuration(cueballTimeMs / 1000));
   }
 }

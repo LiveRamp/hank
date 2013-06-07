@@ -64,7 +64,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <tr>
     <td>Update ETA:</td>
     <td>
-      <%= UiUtils.formatSecondsDuration(updateETA) %>
+      <%= FormatUtils.formatSecondsDuration(updateETA) %>
     </td>
     </tr>
       <% } %>

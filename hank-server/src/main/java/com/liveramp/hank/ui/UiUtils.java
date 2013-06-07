@@ -157,40 +157,6 @@ public class UiUtils {
     }
   }
 
-  public static String formatSecondsDuration(long secondsDuration) {
-    if (secondsDuration < 0) {
-      return "-";
-    } else {
-      long hours = secondsDuration / 3600;
-      long remainder = secondsDuration % 3600;
-      long minutes = remainder / 60;
-      long seconds = remainder % 60;
-
-      StringBuilder result = new StringBuilder();
-      // Hours
-      if (secondsDuration >= 3600) {
-        result.append(hours);
-        result.append("h");
-      }
-      // Minutes
-      if (secondsDuration >= 60) {
-        if (minutes < 10) {
-          result.append("0");
-        }
-        result.append(minutes);
-        result.append("m");
-      }
-      // Seconds
-      if (seconds < 10) {
-        result.append("0");
-      }
-      result.append(seconds);
-      result.append("s");
-
-      return result.toString();
-    }
-  }
-
   public static String formatFilesystemStatistics(FilesystemStatisticsAggregator filesystemStatistics) {
     return
         FormatUtils.formatDouble(filesystemStatistics.getUsedPercentage()) + "% used, "
@@ -232,7 +198,7 @@ public class UiUtils {
     content.append(FormatUtils.formatDouble(updateProgress.getUpdateProgress() * 100) + "% up-to-date"
         + " (" + updateProgress.getNumPartitionsUpToDate() + "/" + updateProgress.getNumPartitions() + ")");
     if (eta >= 0) {
-      content.append(" ETA: " + UiUtils.formatSecondsDuration(eta));
+      content.append(" ETA: " + FormatUtils.formatSecondsDuration(eta));
     }
     content.append("<div class=\'progress-bar\'><div class=\'progress-bar-filler\' style=\'width: "
         + Math.round(updateProgress.getUpdateProgress() * 100) + "%\'></div></div>");

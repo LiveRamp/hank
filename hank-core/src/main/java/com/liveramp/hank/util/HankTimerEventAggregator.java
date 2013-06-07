@@ -21,7 +21,7 @@ import org.apache.log4j.Logger;
 
 public class HankTimerEventAggregator {
 
-  private Logger LOG = Logger.getLogger(HankTimerEventAggregator.class);
+  private static Logger LOG = Logger.getLogger(HankTimerEventAggregator.class);
 
   private final String name;
   private double[] durations;

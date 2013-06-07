@@ -21,7 +21,7 @@ import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.storage.PartitionUpdater;
-import com.liveramp.hank.ui.UiUtils;
+import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
@@ -98,8 +98,8 @@ public abstract class IncrementalPartitionUpdater implements PartitionUpdater, C
       runUpdate(currentVersion, updatingToVersion, updatePlan);
       long executionTimeMs = timer.getDurationMs();
       LOG.info("Update in " + localPartitionRoot + " to " + updatingToVersion
-          + ": fetched data in " + UiUtils.formatSecondsDuration(fetchTimeMs / 1000)
-          + ", executed in " + UiUtils.formatSecondsDuration(executionTimeMs / 1000));
+          + ": fetched data in " + FormatUtils.formatSecondsDuration(fetchTimeMs / 1000)
+          + ", executed in " + FormatUtils.formatSecondsDuration(executionTimeMs / 1000));
     } finally {
       cleanCachedVersions();
     }

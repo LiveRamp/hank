@@ -32,4 +32,38 @@ public class FormatUtils {
   public static String formatDataThroughput(double bytesThrougput) {
     return formatNumBytes(Math.round(bytesThrougput)) + "/s";
   }
+
+  public static String formatSecondsDuration(long secondsDuration) {
+    if (secondsDuration < 0) {
+      return "-";
+    } else {
+      long hours = secondsDuration / 3600;
+      long remainder = secondsDuration % 3600;
+      long minutes = remainder / 60;
+      long seconds = remainder % 60;
+
+      StringBuilder result = new StringBuilder();
+      // Hours
+      if (secondsDuration >= 3600) {
+        result.append(hours);
+        result.append("h");
+      }
+      // Minutes
+      if (secondsDuration >= 60) {
+        if (minutes < 10) {
+          result.append("0");
+        }
+        result.append(minutes);
+        result.append("m");
+      }
+      // Seconds
+      if (seconds < 10) {
+        result.append("0");
+      }
+      result.append(seconds);
+      result.append("s");
+
+      return result.toString();
+    }
+  }
 }
