@@ -272,7 +272,7 @@ Collections.sort(clients, new ClientMetadataComparator());
     %>
     <tr>
     <td><a href="/ring.jsp?g=<%=URLEnc.encode(ringGroup.getName())%>&n=<%=ring.getRingNumber()%>
-    ">Ring<%=ring.getRingNumber()%></a></td>
+    ">Ring <%=ring.getRingNumber()%></a></td>
       <%
       UpdateProgressAggregator progress = null;
       long ringUpdateETA = Rings.computeUpdateETA(ring);
