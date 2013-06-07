@@ -19,9 +19,9 @@ package com.liveramp.hank.util;
 import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
 import org.apache.log4j.Logger;
 
-public class HankTimerAggregator {
+public class HankTimerEventAggregator {
 
-  private Logger LOG = Logger.getLogger(HankTimerAggregator.class);
+  private Logger LOG = Logger.getLogger(HankTimerEventAggregator.class);
 
   private final String name;
   private double[] durations;
@@ -44,7 +44,7 @@ public class HankTimerAggregator {
    * @param statsComputationWindow Number of timers to aggregate before computing and
    *                               logging statistics. 0 means no timer aggregation.
    */
-  public HankTimerAggregator(String name, int statsComputationWindow) {
+  public HankTimerEventAggregator(String name, int statsComputationWindow) {
     this.name = name;
     this.statsComputationWindow = statsComputationWindow;
     this.isActive = statsComputationWindow != 0;

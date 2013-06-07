@@ -21,7 +21,7 @@ import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.util.HankTimer;
-import com.liveramp.hank.util.HankTimerAggregator;
+import com.liveramp.hank.util.HankTimerEventAggregator;
 import com.liveramp.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 
@@ -39,7 +39,7 @@ public class DomainAccessor {
   private final HostDomain hostDomain;
   private final PartitionAccessor[] partitionAccessors;
   private final Partitioner partitioner;
-  private final HankTimerAggregator getRequestsTimerAggregator;
+  private final HankTimerEventAggregator getRequestsTimerAggregator;
 
   DomainAccessor(HostDomain hostDomain,
                  PartitionAccessor[] partitionAccessors,
@@ -48,7 +48,7 @@ public class DomainAccessor {
     this.hostDomain = hostDomain;
     this.partitionAccessors = partitionAccessors;
     this.partitioner = partitioner;
-    this.getRequestsTimerAggregator = new HankTimerAggregator("GET " + hostDomain.getDomain().getName(),
+    this.getRequestsTimerAggregator = new HankTimerEventAggregator("GET " + hostDomain.getDomain().getName(),
         getTimerAggregatorWindow);
   }
 

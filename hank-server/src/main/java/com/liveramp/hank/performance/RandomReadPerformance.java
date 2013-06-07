@@ -18,7 +18,7 @@ package com.liveramp.hank.performance;
 
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
-import com.liveramp.hank.util.HankTimerAggregator;
+import com.liveramp.hank.util.HankTimerEventAggregator;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -72,7 +72,7 @@ public class RandomReadPerformance {
   private static class RandomReadsRunnable implements Runnable {
 
     private final FileChannel[] testChannels;
-    private final HankTimerAggregator timerAggregator;
+    private final HankTimerEventAggregator timerAggregator;
     private final int randomReadBufferSize;
 
     public RandomReadsRunnable(File[] testFiles, int randomReadBufferSize) throws FileNotFoundException {
@@ -81,7 +81,7 @@ public class RandomReadPerformance {
       for (int i = 0; i < testFiles.length; ++i) {
         testChannels[i] = new FileInputStream(testFiles[i]).getChannel();
       }
-      timerAggregator = new HankTimerAggregator("Random reads", 1);
+      timerAggregator = new HankTimerEventAggregator("Random reads", 1);
       this.randomReadBufferSize = randomReadBufferSize;
     }
 
