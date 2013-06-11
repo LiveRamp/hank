@@ -40,7 +40,7 @@
     <h1>
     Ring Group <a href="/ring_group.jsp?name=<%=ringGroup.getName() %>"><%= ringGroup.getName() %></a>
     &gt;
-    <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">Ring<%= ring.getRingNumber() %></a>
+    <a href="/ring.jsp?g=<%=ringGroup.getName() %>&n=<%= ring.getRingNumber() %>">Ring <%= ring.getRingNumber() %></a>
     &gt; <span class='currentItem'><%= host.getAddress() %></span>
     </h1>
 

@@ -36,7 +36,7 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     <h1>
     Ring Group <a href="/ring_group.jsp?name=<%=URLEnc.encode(ringGroup.getName())%>"><%=ringGroup.getName()%></a>
     &gt;
-    <span class='currentItem'>Ring<%=ring.getRingNumber()%></span>
+    <span class='currentItem'>Ring <%=ring.getRingNumber()%></span>
     </h1>
 
       <%
