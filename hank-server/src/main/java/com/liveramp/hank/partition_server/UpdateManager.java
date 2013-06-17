@@ -20,6 +20,8 @@ import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.DurationAggregator;
+import com.liveramp.hank.util.FormatUtils;
+import com.liveramp.hank.util.HankTimer;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -243,77 +245,86 @@ public class UpdateManager implements IUpdateManager {
   @Override
   public void update() throws IOException {
 
-    // Perform update
-    ThreadFactory factory = new ThreadFactory() {
-      private int threadID = 0;
+    HankTimer timer = new HankTimer();
 
-      @Override
-      public Thread newThread(Runnable r) {
-        return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
-      }
-    };
+    try {
 
-    ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
-    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator
-        = new PartitionUpdateTaskStatisticsAggregator();
-    Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
+      // Perform update
+      ThreadFactory factory = new ThreadFactory() {
+        private int threadID = 0;
 
-    // Execute all tasks and wait for them to finish
-    executePartitionUpdateTasks(executor, partitionUpdateTaskStatisticsAggregator, exceptionQueue);
-    IOException failedUpdateException = null;
-    boolean keepWaiting = true;
-    executor.shutdown();
-    while (keepWaiting) {
-      LOG.debug("Waiting for update executor to complete...");
-      try {
-        boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
-            UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
-        if (terminated) {
-          // We finished executing all tasks
-          // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
-          keepWaiting = false;
+        @Override
+        public Thread newThread(Runnable r) {
+          return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
         }
-        // Record update ETA
-        Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
-      } catch (InterruptedException e) {
-        // Received interruption (stop request).
-        // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
-        LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
-            " and wait for those that were running to finish).");
-        executor.shutdownNow();
-        // Record failed update exception (we need to keep waiting)
-        failedUpdateException = new IOException("Failed to complete update: update interruption was requested.");
+      };
+
+      ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
+      PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator
+          = new PartitionUpdateTaskStatisticsAggregator();
+      Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
+
+      // Execute all tasks and wait for them to finish
+      executePartitionUpdateTasks(executor, partitionUpdateTaskStatisticsAggregator, exceptionQueue);
+      IOException failedUpdateException = null;
+      boolean keepWaiting = true;
+      executor.shutdown();
+      while (keepWaiting) {
+        LOG.debug("Waiting for update executor to complete...");
+        try {
+          boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
+              UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
+          if (terminated) {
+            // We finished executing all tasks
+            // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
+            keepWaiting = false;
+          }
+          // Record update ETA
+          Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
+        } catch (InterruptedException e) {
+          // Received interruption (stop request).
+          // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
+          LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
+              " and wait for those that were running to finish).");
+          executor.shutdownNow();
+          // Record failed update exception (we need to keep waiting)
+          failedUpdateException = new IOException("Failed to complete update: update interruption was requested.");
+        }
       }
-    }
 
-    // Detect failed tasks
-    IOException failedTasksException = null;
-    if (!exceptionQueue.isEmpty()) {
-      LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
-      int i = 0;
-      for (Throwable t : exceptionQueue) {
-        LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
+      // Detect failed tasks
+      IOException failedTasksException = null;
+      if (!exceptionQueue.isEmpty()) {
+        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
+        int i = 0;
+        for (Throwable t : exceptionQueue) {
+          LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
+        }
+        failedTasksException = new IOException(String.format(
+            "Failed to complete update: %d exceptions encountered while running partition update tasks.",
+            exceptionQueue.size()));
       }
-      failedTasksException = new IOException(String.format(
-          "Failed to complete update: %d exceptions encountered while running partition update tasks.",
-          exceptionQueue.size()));
+
+      // First detect failed update
+      if (failedUpdateException != null) {
+        throw failedUpdateException;
+      }
+
+      // Then detect failed tasks
+      if (failedTasksException != null) {
+        throw failedTasksException;
+      }
+
+      // Garbage collect useless host domains
+      garbageCollectHostDomains(host);
+
+      // Log statistics
+      partitionUpdateTaskStatisticsAggregator.logStats();
+
+    } catch (Throwable t) {
+      LOG.info("Update failed and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
     }
-
-    // First detect failed update
-    if (failedUpdateException != null) {
-      throw failedUpdateException;
-    }
-
-    // Then detect failed tasks
-    if (failedTasksException != null) {
-      throw failedTasksException;
-    }
-
-    // Garbage collect useless host domains
-    garbageCollectHostDomains(host);
-
-    // Log statistics
-    partitionUpdateTaskStatisticsAggregator.logStats();
+    LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 
   private void executePartitionUpdateTasks(ExecutorService executor,
