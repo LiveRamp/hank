@@ -127,7 +127,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     List<Ring> ringsTransitioning = new ArrayList<Ring>();
 
     // TODO: this could be configurable
-    int minNumRingsFullyServing = ringGroup.getRings().size() - 1;
+    int minNumRingsFullyServing;
+    if (ringGroup.getRings().size() <= 3) {
+      minNumRingsFullyServing = ringGroup.getRings().size() - 1;
+    } else {
+      minNumRingsFullyServing = ringGroup.getRings().size() - 2;
+    }
 
     // Determine ring statuses (serving and / or up-to-date)
     for (Ring ring : ringGroup.getRingsSorted()) {
