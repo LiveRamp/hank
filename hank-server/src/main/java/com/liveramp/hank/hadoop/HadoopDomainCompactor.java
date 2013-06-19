@@ -228,9 +228,7 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
           IncrementalUpdatePlanner updatePlanner = ((IncrementalStorageEngine) storageEngine).getUpdatePlanner(domain);
           IncrementalUpdatePlan updatePlan = updatePlanner.computeUpdatePlan(domainVersionToCompact);
           List<String> paths = updatePlanner.getRemotePartitionFilePaths(updatePlan, storageEngine.getPartitionRemoteFileOps(partition));
-          LOG.info("Determining locations for partition " + partition + " using: " + paths);
           locations = computeOptimalHosts(conf, paths);
-          LOG.info("Determining locations for partition " + partition + " : " + locations);
         }
 
         splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
