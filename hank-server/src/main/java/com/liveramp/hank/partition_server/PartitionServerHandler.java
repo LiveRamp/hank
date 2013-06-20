@@ -135,19 +135,15 @@ public class PartitionServerHandler implements IfaceWithShutdown {
               partition.getPartitionNumber(), domain.getName()));
           continue;
         }
-        if (partition.isDeletable()) {
-          LOG.error(String.format(
-              "Could not load Reader for partition #%d of Domain %s because the partition is deletable.",
-              partition.getPartitionNumber(), domain.getName()));
-          continue;
-        }
 
         Reader reader;
         try {
           reader = engine.getReader(configurator, partition.getPartitionNumber());
         } catch (IOException e) {
           // Something went wrong when loading this partition's Reader. Set it deletable and signal failure.
-          partition.setDeletable(true);
+          if (!partition.isDeletable()) {
+            partition.setDeletable(true);
+          }
           final String msg = String.format("Could not load Reader for partition #%d of domain %s because of an exception.",
               partition.getPartitionNumber(), domain.getName());
           LOG.error(msg, e);
@@ -169,6 +165,10 @@ public class PartitionServerHandler implements IfaceWithShutdown {
               partition.getPartitionNumber(), domain.getName()));
         }
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
+        // Loading succeeded, if the partition was deletable, it should not be
+        if (partition.isDeletable()) {
+          partition.setDeletable(false);
+        }
       }
       // configure and store the DomainAccessors
       domainAccessors[domainId] = new DomainAccessor(hostDomain, partitionAccessors, domain.getPartitioner(),
