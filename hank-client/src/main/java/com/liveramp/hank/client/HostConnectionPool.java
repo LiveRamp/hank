@@ -261,12 +261,14 @@ public class HostConnectionPool {
           ++numTries;
           if (numTries < maxNumTries) {
             // Simply log the error and retry
-            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+            LOG.error("Failed to perform query with host: "
+                + connectionAndHostIndex.hostConnection.getHost().getAddress()
                 + ". Retrying. Try " + numTries + "/" + maxNumTries
                 + ", Key = " + Bytes.bytesToHexString(key), e);
           } else {
             // If we have exhausted tries, return an exception response
-            LOG.error("Failed to perform query with host #" + connectionAndHostIndex.hostIndex
+            LOG.error("Failed to perform query with host: "
+                + connectionAndHostIndex.hostConnection.getHost().getAddress()
                 + ". Giving up. Try " + numTries + "/" + maxNumTries
                 + ", Key = " + Bytes.bytesToHexString(key), e);
             return HankResponse.xception(HankException.failed_retries(maxNumTries));
