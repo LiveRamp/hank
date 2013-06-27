@@ -321,8 +321,9 @@ public class UpdateManager implements IUpdateManager {
       // Log statistics
       partitionUpdateTaskStatisticsAggregator.logStats();
 
-    } catch (Throwable t) {
+    } catch (IOException e) {
       LOG.info("Update failed and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
+      throw e;
     }
     LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
