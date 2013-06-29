@@ -38,6 +38,14 @@ public final class Hosts {
     return host.getState() != HostState.OFFLINE;
   }
 
+  public static boolean isIdle(Host host) throws IOException {
+    return HostState.IDLE.equals(host.getState());
+  }
+
+  public static boolean isServing(Host host) throws IOException {
+    return HostState.SERVING.equals(host.getState());
+  }
+
   public static UpdateProgressAggregator computeUpdateProgress(Host host, DomainGroup domainGroup) throws IOException {
     UpdateProgressAggregator result = new UpdateProgressAggregator();
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
@@ -92,6 +100,21 @@ public final class Hosts {
       }
     }
     return true;
+  }
+
+  // Return true iff there is at least one assigned partition
+  // and all partitions have a current version that is not null (servable).
+  public static boolean isServable(Host host) throws IOException {
+    int numPartitions = 0;
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
+        ++numPartitions;
+        if (hostDomainPartition.getCurrentDomainVersion() == null) {
+          return false;
+        }
+      }
+    }
+    return numPartitions != 0;
   }
 
   public static ServingStatusAggregator

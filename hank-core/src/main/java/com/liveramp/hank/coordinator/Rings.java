@@ -55,24 +55,6 @@ public class Rings {
     return results;
   }
 
-
-  // Return true iff there is at least one assigned partition in the given ring,
-  // and all partitions in the given ring have a current version that is not null (servable).
-  public static boolean isServable(Ring ring) throws IOException {
-    int numPartitions = 0;
-    for (Host host : ring.getHosts()) {
-      for (HostDomain hostDomain : host.getAssignedDomains()) {
-        for (HostDomainPartition hostDomainPartition : hostDomain.getPartitions()) {
-          ++numPartitions;
-          if (hostDomainPartition.getCurrentDomainVersion() == null) {
-            return false;
-          }
-        }
-      }
-    }
-    return numPartitions != 0;
-  }
-
   // Return true iff each host in the given ring is considered up-to-date.
   public static boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
     for (Host host : ring.getHosts()) {

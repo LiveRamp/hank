@@ -21,7 +21,8 @@ import com.liveramp.hank.partition_assigner.PartitionAssigner;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
@@ -29,7 +30,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
   private final PartitionAssigner partitionAssigner;
   private final int minRingFullyServingObservations;
-  private final Map<Integer, Integer> ringToFullyServingObservations = new HashMap<Integer, Integer>();
+  private final Map<String, Integer> hostToFullyServingObservations = new HashMap<String, Integer>();
 
   public RingGroupUpdateTransitionFunctionImpl(PartitionAssigner partitionAssigner,
                                                int minRingFullyServingObservations) throws IOException {
@@ -37,80 +38,39 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     this.minRingFullyServingObservations = minRingFullyServingObservations;
   }
 
-  /**
-   * Return true iff given ring is up-to-date for given domain group version (i.e. all partitions are
-   * assigned and up-to-date)
-   *
-   * @param ring
-   * @param domainGroup
-   * @return
-   * @throws IOException
-   */
-  protected boolean isUpToDate(Ring ring, DomainGroup domainGroup) throws IOException {
-    return Rings.isUpToDate(ring, domainGroup);
+  private static boolean isServingAndAboutToServe(Host host) throws IOException {
+    return host.getState().equals(HostState.SERVING)
+        && host.getCurrentCommand() == null
+        && host.getCommandQueue().size() == 0;
   }
 
   /**
-   * Return true iff given host is up-to-date for given domain group version (i.e. all partitions are up-to-date)
-   *
-   * @param host
-   * @param domainGroup
-   * @return
-   * @throws IOException
-   */
-  protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
-    return Hosts.isUpToDate(host, domainGroup);
-  }
-
-  /**
-   * Return true iff all hosts in given ring are serving and they are not about to
+   * Return true iff host is serving and is not about to
    * stop serving (i.e. there is no current or pending command). And we have observed
    * that enough times in a row.
    *
-   * @param ring
+   * @param host
    * @return
    * @throws IOException
    */
-  protected boolean isFullyServing(Ring ring) throws IOException {
-    if (!ringToFullyServingObservations.containsKey(ring.getRingNumber())) {
-      ringToFullyServingObservations.put(ring.getRingNumber(), 0);
+  protected boolean isFullyServing(Host host, boolean isObserved) throws IOException {
+    String key = host.getAddress().toString();
+    if (!hostToFullyServingObservations.containsKey(key)) {
+      hostToFullyServingObservations.put(key, 0);
     }
-    for (Host host : ring.getHosts()) {
-      if (!host.getState().equals(HostState.SERVING)
-          || host.getCurrentCommand() != null
-          || host.getCommandQueue().size() != 0) {
-        ringToFullyServingObservations.put(ring.getRingNumber(), 0);
-        return false;
-      }
-    }
-    // Ring is fully serving, but have we observed that enough times?
-    if (ringToFullyServingObservations.get(ring.getRingNumber()) >= minRingFullyServingObservations) {
-      return true;
-    } else {
-      // Increment number of observations
-      ringToFullyServingObservations.put(ring.getRingNumber(),
-          ringToFullyServingObservations.get(ring.getRingNumber()) + 1);
+    if (!isServingAndAboutToServe(host)) {
+      hostToFullyServingObservations.put(key, 0);
       return false;
     }
-  }
-
-  /**
-   * Return true iff there is at least one assigned partition in the given ring,
-   * and all partitions in the given ring have a current version that is not null (servable).
-   *
-   * @param ring
-   * @return
-   * @throws IOException
-   */
-  protected boolean isServable(Ring ring) throws IOException {
-    return Rings.isServable(ring);
-  }
-
-  private void commandIdleHostsToServe(Ring ring) throws IOException {
-    for (Host host : ring.getHosts()) {
-      if (host.getState().equals(HostState.IDLE)) {
-        Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+    // Host is fully serving, but have we observed that enough times?
+    if (hostToFullyServingObservations.get(key) >= minRingFullyServingObservations) {
+      return true;
+    } else {
+      if (isObserved) {
+        // Increment number of observations
+        hostToFullyServingObservations.put(key, hostToFullyServingObservations.get(key) + 1);
       }
+      return false;
     }
   }
 
@@ -123,130 +83,139 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       return;
     }
 
-    Set<Ring> ringsFullyServing = new TreeSet<Ring>();
-    List<Ring> ringsTransitioning = new ArrayList<Ring>();
-
-    // TODO: this could be configurable
-    int minNumRingsFullyServing;
+    int minNumReplicasFullyServing;
     if (ringGroup.getRings().size() <= 3) {
-      minNumRingsFullyServing = ringGroup.getRings().size() - 1;
+      minNumReplicasFullyServing = ringGroup.getRings().size() - 1;
     } else {
-      minNumRingsFullyServing = ringGroup.getRings().size() - 2;
+      minNumReplicasFullyServing = ringGroup.getRings().size() - 2;
     }
 
-    // Determine ring statuses (serving and / or up-to-date)
     for (Ring ring : ringGroup.getRingsSorted()) {
-      boolean isAssigned = partitionAssigner.isAssigned(ring, domainGroup);
-      boolean isUpToDate = isUpToDate(ring, domainGroup);
-      boolean isFullyServing = isFullyServing(ring);
-      if (isFullyServing) {
-        ringsFullyServing.add(ring);
-      }
-      if (isAssigned && isFullyServing && isUpToDate) {
-        // Nothing needs to be done with this ring
-        LOG.info("Ring " + ring.getRingNumber() + " is assigned, up-to-date and fully serving.");
-      } else {
-        ringsTransitioning.add(ring);
+      for (Host host : ring.getHostsSorted()) {
+        manageTransitions(ringGroup, ring, host, domainGroup, minNumReplicasFullyServing);
       }
     }
+  }
 
-    // Take appropriate actions for rings that are transitioning
-    for (Ring ring : ringsTransitioning) {
+  private void manageTransitions(RingGroup ringGroup,
+                                 Ring ring,
+                                 Host host,
+                                 DomainGroup domainGroup,
+                                 int minNumReplicasFullyServing) throws IOException {
+    boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup);
+    boolean isUpToDate = isUpToDate(host, domainGroup);
+    boolean isFullyServing = isFullyServing(host, true);
 
-      if (ringsFullyServing.size() < minNumRingsFullyServing && isServable(ring)) {
+    // Host is serving, assigned and up-to-date. Do nothing.
+    if (Hosts.isServing(host) && isAssigned && isUpToDate) {
+      LOG.info("Host " + host.getAddress() + " is serving, assigned, and up-to-date. Do nothing.");
+      return;
+    }
 
-        // Not enough rings are fully serving and the current ring is servable. Attempt to serve it.
+    int numReplicasFullyServing = computeNumReplicasFullyServing(ringGroup, host);
 
-        LOG.info("Ring " + ring.getRingNumber() + " is servable and only " + ringsFullyServing.size()
-            + " rings are fully serving. Command idle hosts to serve.");
-        commandIdleHostsToServe(ring);
-      } else {
+    // Not enough replicas are fully serving and the current host is servable. Serve.
+    if (Hosts.isIdle(host) && isServable(host) && numReplicasFullyServing < minNumReplicasFullyServing) {
+      LOG.info("Host " + host.getAddress() + " is idle, servable, and only " + numReplicasFullyServing + " replicas are fully serving. Serve.");
+      Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+      return;
+    }
 
-        // Enough rings are fully serving or the current ring is not servable
+    // Host is idle, assigned and up-to-date. Attempt to serve.
+    if (Hosts.isIdle(host) && isAssigned && isUpToDate) {
+      LOG.info("Host " + host.getAddress() + " is idle, assigned and up-to-date. Serve.");
+      Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
+      return;
+    }
 
-        if (partitionAssigner.isAssigned(ring, domainGroup)) {
+    if (Hosts.isIdle(host) && isAssigned && !isUpToDate
+        && (numReplicasFullyServing > minNumReplicasFullyServing || !isServable(host))) {
+      // Host is idle, assigned, not up-to-date and there are more than enough replicas serving or it's not servable. Update.
+      LOG.info("Host " + host.getAddress() + " is idle, assigned, not up-to-date, and there are more than enough replicas serving (or it's not servable). Update.");
+      Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
+      return;
+    }
 
-          if (isUpToDate(ring, domainGroup)) {
+    if (isFullyServing && isAssigned && !isUpToDate && numReplicasFullyServing > minNumReplicasFullyServing) {
+      // Host is serving, assigned, not up-to-date and there are more than enough replicas serving. Go idle.
+      LOG.info("Host " + host.getAddress() + " is serving, assigned, not up-to-date, and there are more than enough replicas serving. Go idle.");
+      Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+      return;
+    }
 
-            // Ring is assigned and up-to-date but not fully serving.
-            // Tell all idle hosts to serve (if they don't have the serve command already)
-            LOG.info("Ring " + ring.getRingNumber() +
-                " is assigned and up-to-date but NOT fully serving. Command and wait for idle hosts to serve.");
-            commandIdleHostsToServe(ring);
-          } else {
+    // Host is idle, and not assigned. Assign.
+    if (Hosts.isIdle(host) && !isAssigned) {
+      LOG.info("Host " + host.getAddress() + " is idle, and not assigned. Assign.");
+      partitionAssigner.assign(ring, host, domainGroup);
+      return;
+    }
 
-            // Ring is assigned but not up-to-date
+    // Host is serving, not assigned, and there are more than enough replicas serving. Go idle.
+    if (isFullyServing && !isAssigned && numReplicasFullyServing > minNumReplicasFullyServing) {
+      LOG.info("Host " + host.getAddress() + " is serving, not assigned, and there are more than enough replicas serving. Go idle.");
+      Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+      return;
+    }
 
-            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
-              // If ring is fully serving and we barely have enough fully serving rings, do nothing.
-              LOG.info("Ring " + ring.getRingNumber() + " is assigned and NOT up-to-date"
-                  + " but only " + ringsFullyServing.size() + " rings are fully serving."
-                  + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before updating.");
-            } else {
-              // If the ring is not fully serving, or if it is but we have enough other rings serving,
-              // go idle and update
-              LOG.info("Ring " + ring.getRingNumber() + " is assigned but NOT up-to-date."
-                  + " Update.");
-              // We are about to take actions and this ring will not be fully serving anymore (if it even was).
-              // Remove it from the set in all cases (it might not be contained in the fully serving set).
-              ringsFullyServing.remove(ring);
-              for (Host host : ring.getHosts()) {
-                if (isUpToDate(host, domainGroup)) {
-                  // Take appropriate action on hosts that are up-to-date: idle hosts should serve
-                  switch (host.getState()) {
-                    case IDLE:
-                      Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
-                      break;
-                  }
-                } else {
-                  // Take appropriate action on hosts that are not up-to-date: idle hosts should update. Serving hosts
-                  // should go idle.
-                  switch (host.getState()) {
-                    case IDLE:
-                      Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
-                      break;
-                    case SERVING:
-                      Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
-                      break;
-                  }
+    LOG.info("Host " + host.getAddress() + ": Nothing to do"
+        + ", isAssigned: " + isAssigned
+        + ", isUpToDate: " + isUpToDate
+        + ", state: " + host.getState()
+        + ", numReplicasFullyServing: " + numReplicasFullyServing
+        + ", minNumReplicasFullyServing: " + minNumReplicasFullyServing
+    );
+  }
+
+  protected boolean isServable(Host host) throws IOException {
+    return Hosts.isServable(host);
+  }
+
+  protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
+    return Hosts.isUpToDate(host, domainGroup);
+  }
+
+  protected int computeNumReplicasFullyServing(RingGroup ringGroup, Host host) throws IOException {
+    Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing = new HashMap<Domain, Map<Integer, Integer>>();
+    // Compute num replicas fully serving for all partitions
+    for (Ring ring : ringGroup.getRings()) {
+      for (Host h : ring.getHosts()) {
+        if (isFullyServing(h, false)) {
+          for (HostDomain hostDomain : h.getAssignedDomains()) {
+            for (HostDomainPartition partition : hostDomain.getPartitions()) {
+              if (!partition.isDeletable() && partition.getCurrentDomainVersion() != null) {
+                Domain domain = hostDomain.getDomain();
+                int partitionNumber = partition.getPartitionNumber();
+                Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(domain);
+                if (partitionToNumFullyServing == null) {
+                  partitionToNumFullyServing = new HashMap<Integer, Integer>();
+                  domainToPartitionToNumFullyServing.put(domain, partitionToNumFullyServing);
                 }
-              }
-            }
-          }
-        } else {
-
-          // Ring is not even assigned target version
-
-          LOG.info("Ring " + ring.getRingNumber() + " is NOT assigned target version.");
-          if (Rings.getHostsInState(ring, HostState.SERVING).size() == 0
-              && Rings.getHostsInState(ring, HostState.UPDATING).size() == 0) {
-            // If no host is serving or updating in the ring, assign it
-            LOG.info("  No host is serving in Ring " + ring.getRingNumber() + ". Assigning target version.");
-            partitionAssigner.assign(ring, domainGroup);
-          } else {
-            if (ringsFullyServing.contains(ring) && ringsFullyServing.size() <= minNumRingsFullyServing) {
-              // If ring is fully serving and we barely have enough fully serving rings, do nothing.
-              LOG.info("  Ring " + ring.getRingNumber()
-                  + " is fully serving but only " + ringsFullyServing.size() + " rings are fully serving."
-                  + " Waiting for " + (minNumRingsFullyServing + 1) + " rings to be fully serving before assigning.");
-            } else {
-              // If the ring is not fully serving, or if it is but we have enough other rings serving, command serving
-              // hosts to go idle.
-              LOG.info("  Some hosts are still serving in Ring " + ring.getRingNumber()
-                  + ". Commanding and waiting for them to go idle.");
-              // We are about to take actions and this ring will not be fully serving anymore (if it even was).
-              // Remove it from the set in all cases (it might not be contained in the fully serving set).
-              ringsFullyServing.remove(ring);
-              // Command hosts
-              for (Host host : ring.getHosts()) {
-                if (host.getState().equals(HostState.SERVING)) {
-                  Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+                if (!partitionToNumFullyServing.containsKey(partitionNumber)) {
+                  partitionToNumFullyServing.put(partitionNumber, 0);
                 }
+                partitionToNumFullyServing.put(partitionNumber, partitionToNumFullyServing.get(partitionNumber) + 1);
               }
             }
           }
         }
       }
     }
+
+    // Compute num replicas fully serving for given host, which is the minimum of the number of replicas
+    // fully serving across all partitions assigned to it.
+    Integer result = null;
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(hostDomain.getDomain());
+      if (partitionToNumFullyServing == null) {
+        return 0;
+      }
+      for (HostDomainPartition partition : hostDomain.getPartitions()) {
+        int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber());
+        if (result == null || numFullyServing < result) {
+          result = numFullyServing;
+        }
+      }
+    }
+    return result == null ? 0 : result;
   }
 }

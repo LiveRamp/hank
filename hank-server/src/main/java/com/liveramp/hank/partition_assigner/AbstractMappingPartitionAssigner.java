@@ -80,7 +80,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public boolean isAssigned(Ring ring, DomainGroup domainGroup) throws IOException {
+  public boolean isAssigned(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
         = getHostToDomainToPartitionsMapping(ring, domainGroup);
@@ -91,38 +91,36 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     // Check required mapping is exactly satisfied
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      for (Host host : ring.getHosts()) {
-        Set<Integer> partitionMappings = null;
-        Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
-        if (domainToPartitionsMappings != null) {
-          partitionMappings = domainToPartitionsMappings.get(domain);
-        }
+      Set<Integer> partitionMappings = null;
+      Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
+      if (domainToPartitionsMappings != null) {
+        partitionMappings = domainToPartitionsMappings.get(domain);
+      }
 
-        HostDomain hostDomain = host.getHostDomain(domain);
+      HostDomain hostDomain = host.getHostDomain(domain);
 
-        // Check for extra mappings
-        if (hostDomain != null) {
-          for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            if (!partition.isDeletable() &&
-                (partitionMappings == null ||
-                    !partitionMappings.contains(partition.getPartitionNumber()))) {
-              return false;
-            }
-          }
-        }
-
-        // Check for missing mappings
-        if (partitionMappings != null) {
-          // Check that domain is assigned
-          if (hostDomain == null) {
+      // Check for extra mappings
+      if (hostDomain != null) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (!partition.isDeletable() &&
+              (partitionMappings == null ||
+                  !partitionMappings.contains(partition.getPartitionNumber()))) {
             return false;
           }
-          for (Integer partitionMapping : partitionMappings) {
-            // Check that partition is assigned
-            HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionMapping);
-            if (partition == null) {
-              return false;
-            }
+        }
+      }
+
+      // Check for missing mappings
+      if (partitionMappings != null) {
+        // Check that domain is assigned
+        if (hostDomain == null) {
+          return false;
+        }
+        for (Integer partitionMapping : partitionMappings) {
+          // Check that partition is assigned
+          HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionMapping);
+          if (partition == null) {
+            return false;
           }
         }
       }
@@ -131,7 +129,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public void assign(Ring ring, DomainGroup domainGroup) throws IOException {
+  public void assign(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
         = getHostToDomainToPartitionsMapping(ring, domainGroup);
@@ -142,37 +140,35 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     // Apply required mappings and delete extra mappings
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
-      for (Host host : ring.getHosts()) {
-        // Determine mappings for this host and domain
-        Set<Integer> partitionMappings = null;
-        Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
-        if (domainToPartitionsMappings != null) {
-          partitionMappings = domainToPartitionsMappings.get(domain);
-        }
+      // Determine mappings for this host and domain
+      Set<Integer> partitionMappings = null;
+      Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
+      if (domainToPartitionsMappings != null) {
+        partitionMappings = domainToPartitionsMappings.get(domain);
+      }
 
-        HostDomain hostDomain = host.getHostDomain(domain);
+      HostDomain hostDomain = host.getHostDomain(domain);
 
-        // Delete extra mappings
-        if (hostDomain != null) {
-          for (HostDomainPartition partition : hostDomain.getPartitions()) {
-            if (!partition.isDeletable() &&
-                (partitionMappings == null ||
-                    !partitionMappings.contains(partition.getPartitionNumber()))) {
-              partition.setDeletable(true);
-            }
+      // Delete extra mappings
+      if (hostDomain != null) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (!partition.isDeletable() &&
+              (partitionMappings == null ||
+                  !partitionMappings.contains(partition.getPartitionNumber()))) {
+            partition.setDeletable(true);
           }
         }
+      }
 
-        // Add missing mappings
-        if (partitionMappings != null) {
-          // Assign domain if necessary
-          if (hostDomain == null) {
-            hostDomain = host.addDomain(domain);
-          }
-          for (Integer partitionMapping : partitionMappings) {
-            // Assign partition if necessary
-            HostDomains.addPartition(hostDomain, partitionMapping);
-          }
+      // Add missing mappings
+      if (partitionMappings != null) {
+        // Assign domain if necessary
+        if (hostDomain == null) {
+          hostDomain = host.addDomain(domain);
+        }
+        for (Integer partitionMapping : partitionMappings) {
+          // Assign partition if necessary
+          HostDomains.addPartition(hostDomain, partitionMapping);
         }
       }
     }

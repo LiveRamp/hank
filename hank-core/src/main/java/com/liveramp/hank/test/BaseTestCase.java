@@ -40,8 +40,8 @@ public abstract class BaseTestCase extends TestCase {
     super.setUp();
     FsUtils.rmrf(localTmpDir);
     new File(localTmpDir).mkdirs();
-    System.err.println("------ test start ------");
-    System.out.println("------ test start ------");
+    System.err.println("------ test start: " + this.getName() + " ------");
+    System.out.println("------ test start: " + this.getName() + " ------");
   }
 
   protected void waitUntilHost(final HostState state, final Host host) throws InterruptedException {

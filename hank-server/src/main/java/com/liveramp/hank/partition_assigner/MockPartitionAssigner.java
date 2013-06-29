@@ -17,6 +17,7 @@
 package com.liveramp.hank.partition_assigner;
 
 import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.Ring;
 
 import java.io.IOException;
@@ -24,11 +25,11 @@ import java.io.IOException;
 public class MockPartitionAssigner implements PartitionAssigner {
 
   @Override
-  public boolean isAssigned(Ring ring, DomainGroup domainGroup) throws IOException {
+  public boolean isAssigned(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
     return false;
   }
 
   @Override
-  public void assign(Ring ring, DomainGroup domainGroup) throws IOException {
+  public void assign(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
   }
 }
