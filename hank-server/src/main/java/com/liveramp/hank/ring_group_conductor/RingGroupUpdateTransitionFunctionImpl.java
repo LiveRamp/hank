@@ -92,11 +92,11 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       minNumReplicasFullyServing = ringGroup.getRings().size() - 2;
     }
 
-    Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing = computeDomainToPartitionToNumFullyServing(ringGroup);
+    Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
 
     for (Ring ring : ringGroup.getRingsSorted()) {
       for (Host host : ring.getHostsSorted()) {
-        manageTransitions(ring, host, domainGroup, minNumReplicasFullyServing, domainToPartitionToNumFullyServing);
+        manageTransitions(ring, host, domainGroup, minNumReplicasFullyServing, domainToPartitionToHostsFullyServing);
       }
     }
   }
@@ -105,7 +105,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                                  Host host,
                                  DomainGroup domainGroup,
                                  int minNumReplicasFullyServing,
-                                 Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing) throws IOException {
+                                 Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing) throws IOException {
     boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup.getDomainVersions());
     boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
     boolean isFullyServing = isFullyServing(host, true);
@@ -120,7 +120,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
 
     Integer numReplicasFullyServing =
         computeNumReplicasFullyServingRelevantData(
-            domainToPartitionToNumFullyServing,
+            domainToPartitionToHostsFullyServing,
             domainGroup.getDomainVersions(),
             host);
     if (numReplicasFullyServing == null) {
@@ -153,6 +153,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       // Host is serving, assigned, not up-to-date and there are more than enough replicas serving. Go idle.
       LOG.info("Host " + host.getAddress() + " is serving, assigned, not up-to-date, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+      removeFromReplicasFullyServing(domainToPartitionToHostsFullyServing, host);
       return;
     }
 
@@ -167,6 +168,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     if (isFullyServing && !isAssigned && numReplicasFullyServing > minNumReplicasFullyServing) {
       LOG.info("Host " + host.getAddress() + " is serving, not assigned, and there are more than enough replicas serving. Go idle.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.GO_TO_IDLE);
+      removeFromReplicasFullyServing(domainToPartitionToHostsFullyServing, host);
       return;
     }
 
@@ -180,8 +182,17 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     );
   }
 
-  private Map<Domain, Map<Integer, Integer>> computeDomainToPartitionToNumFullyServing(RingGroup ringGroup) throws IOException {
-    Map<Domain, Map<Integer, Integer>> result = new HashMap<Domain, Map<Integer, Integer>>();
+  private void removeFromReplicasFullyServing(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
+                                              Host host) {
+    for (Map<Integer, Set<Host>> partitionToHostsFullyServing : domainToPartitionToHostsFullyServing.values()) {
+      for (Set<Host> hosts : partitionToHostsFullyServing.values()) {
+        hosts.remove(host);
+      }
+    }
+  }
+
+  private Map<Domain, Map<Integer, Set<Host>>> computeDomainToPartitionToHostsFullyServing(RingGroup ringGroup) throws IOException {
+    Map<Domain, Map<Integer, Set<Host>>> result = new HashMap<Domain, Map<Integer, Set<Host>>>();
     // Compute num replicas fully serving for all partitions
     for (Ring ring : ringGroup.getRings()) {
       for (Host h : ring.getHosts()) {
@@ -191,15 +202,15 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             for (HostDomainPartition partition : hostDomain.getPartitions()) {
               if (!partition.isDeletable() && partition.getCurrentDomainVersion() != null) {
                 int partitionNumber = partition.getPartitionNumber();
-                Map<Integer, Integer> partitionToNumFullyServing = result.get(domain);
+                Map<Integer, Set<Host>> partitionToNumFullyServing = result.get(domain);
                 if (partitionToNumFullyServing == null) {
-                  partitionToNumFullyServing = new HashMap<Integer, Integer>();
+                  partitionToNumFullyServing = new HashMap<Integer, Set<Host>>();
                   result.put(domain, partitionToNumFullyServing);
                 }
                 if (!partitionToNumFullyServing.containsKey(partitionNumber)) {
-                  partitionToNumFullyServing.put(partitionNumber, 0);
+                  partitionToNumFullyServing.put(partitionNumber, new HashSet<Host>());
                 }
-                partitionToNumFullyServing.put(partitionNumber, partitionToNumFullyServing.get(partitionNumber) + 1);
+                partitionToNumFullyServing.get(partitionNumber).add(h);
               }
             }
           }
@@ -209,7 +220,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     return result;
   }
 
-  private Integer computeNumReplicasFullyServingRelevantData(Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing,
+  private Integer computeNumReplicasFullyServingRelevantData(Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing,
                                                              Set<DomainGroupDomainVersion> domainVersions,
                                                              Host host) throws IOException {
     // Build set of relevant domains
@@ -225,12 +236,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       Domain domain = hostDomain.getDomain();
       // Only consider relevant domains
       if (relevantDomains.contains(domain)) {
-        Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(hostDomain.getDomain());
+        Map<Integer, Set<Host>> partitionToNumFullyServing = domainToPartitionToHostsFullyServing.get(hostDomain.getDomain());
         if (partitionToNumFullyServing == null) {
           return 0;
         }
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber());
+          int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber()).size();
           if (result == null || numFullyServing < result) {
             result = numFullyServing;
           }
