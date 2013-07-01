@@ -26,6 +26,16 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
 
   private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
 
+  private Set<DomainGroupDomainVersion> domainVersions;
+  private Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings;
+
+  @Override
+  public void prepare(Ring ring,
+                      Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+    this.domainVersions = domainVersions;
+    this.hostToDomainToPartitionsMappings = getHostToDomainToPartitionsMapping(ring, domainVersions);
+  }
+
   abstract protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber);
 
   private Map<Host, Map<Domain, Set<Integer>>>
@@ -80,10 +90,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-    // Compute required mapping
-    Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
-        = getHostToDomainToPartitionsMapping(ring, domainVersions);
+  public boolean isAssigned(Host host) throws IOException {
     if (hostToDomainToPartitionsMappings == null) {
       // Error
       return false;
@@ -129,10 +136,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public void assign(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-    // Compute required mapping
-    Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
-        = getHostToDomainToPartitionsMapping(ring, domainVersions);
+  public void assign(Host host) throws IOException {
     if (hostToDomainToPartitionsMappings == null) {
       // Error
       return;

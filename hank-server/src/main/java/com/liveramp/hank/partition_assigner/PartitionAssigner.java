@@ -25,7 +25,9 @@ import java.util.Set;
 
 public interface PartitionAssigner {
 
-  public boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException;
+  public void prepare(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException;
 
-  public void assign(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException;
+  public boolean isAssigned(Host host) throws IOException;
+
+  public void assign(Host host) throws IOException;
 }

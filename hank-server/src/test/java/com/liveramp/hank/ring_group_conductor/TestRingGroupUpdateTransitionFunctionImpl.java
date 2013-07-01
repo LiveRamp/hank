@@ -147,15 +147,21 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
                          Set<DomainGroupDomainVersion> currentVersions,
                          Set<DomainGroupDomainVersion> assignedVersions,
                          HostState hostState) throws IOException {
+    partitionAssigner.prepare(ring, assignedVersions);
     for (Host host : ring.getHosts()) {
       if (assignedVersions != null) {
-        partitionAssigner.assign(ring, host, assignedVersions);
+        partitionAssigner.assign(host);
       }
       host.setState(hostState);
       if (currentVersions != null) {
         ((MockHostLocal) host).setCurrentVersion(currentVersions);
       }
     }
+  }
+
+  private boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
+    partitionAssigner.prepare(ring, domainVersions);
+    return partitionAssigner.isAssigned(host);
   }
 
   public void testIsFullyServing() throws IOException {
@@ -209,22 +215,22 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r2, null, null, HostState.IDLE);
 
     // Nothing should be assigned
-    assertFalse(partitionAssigner.isAssigned(r0, r0h0, v1));
-    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v1));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v1));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v1));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v1));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v1));
+    assertFalse(isAssigned(r0, r0h0, v1));
+    assertFalse(isAssigned(r0, r0h1, v1));
+    assertFalse(isAssigned(r1, r1h0, v1));
+    assertFalse(isAssigned(r1, r1h1, v1));
+    assertFalse(isAssigned(r2, r2h0, v1));
+    assertFalse(isAssigned(r2, r2h1, v1));
 
     testTransitionFunction.manageTransitions(rg);
 
     // All rings should have been assigned
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v1));
-    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v1));
-    assertTrue(partitionAssigner.isAssigned(r1, r1h0, v1));
-    assertTrue(partitionAssigner.isAssigned(r1, r1h1, v1));
-    assertTrue(partitionAssigner.isAssigned(r2, r2h0, v1));
-    assertTrue(partitionAssigner.isAssigned(r2, r2h1, v1));
+    assertTrue(isAssigned(r0, r0h0, v1));
+    assertTrue(isAssigned(r0, r0h1, v1));
+    assertTrue(isAssigned(r1, r1h0, v1));
+    assertTrue(isAssigned(r1, r1h1, v1));
+    assertTrue(isAssigned(r2, r2h0, v1));
+    assertTrue(isAssigned(r2, r2h1, v1));
 
     // No commands should have been issued
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -265,12 +271,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
 
     // Nothing should be assigned
-    assertFalse(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
+    assertFalse(isAssigned(r0, r0h0, v3));
+    assertFalse(isAssigned(r0, r0h1, v3));
+    assertFalse(isAssigned(r1, r1h0, v3));
+    assertFalse(isAssigned(r1, r1h1, v3));
+    assertFalse(isAssigned(r2, r2h0, v3));
+    assertFalse(isAssigned(r2, r2h1, v3));
 
     // Make hosts idle
     r0h0.nextCommand();
@@ -281,12 +287,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // Ring one should have been assigned
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
+    assertTrue(isAssigned(r0, r0h0, v3));
+    assertTrue(isAssigned(r0, r0h1, v3));
+    assertFalse(isAssigned(r1, r1h0, v3));
+    assertFalse(isAssigned(r1, r1h1, v3));
+    assertFalse(isAssigned(r2, r2h0, v3));
+    assertFalse(isAssigned(r2, r2h1, v3));
   }
 
   public void testTakesDownFirstRingForUpdateWhenStartingUpdate() throws IOException {
@@ -338,8 +344,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // v2 should have been assigned to r0h0 but not r0h1
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertTrue(isAssigned(r0, r0h0, v3));
+    assertFalse(isAssigned(r0, r0h1, v3));
 
     // No commands should have been issued to rings, except to r0h1
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -356,8 +362,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // v2 should have been assigned to r0h1
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertTrue(isAssigned(r0, r0h0, v3));
+    assertTrue(isAssigned(r0, r0h1, v3));
 
     // r0h0 should be updating
     assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
@@ -379,8 +385,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // v2 should have been assigned to r0h0 but not r0h1
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertTrue(isAssigned(r0, r0h0, v3));
+    assertFalse(isAssigned(r0, r0h1, v3));
 
     // No commands should have been issued to rings
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -400,12 +406,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
-    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
-    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
+    assertTrue(isAssigned(r0, r0h0, v3));
+    assertTrue(isAssigned(r0, r0h1, v3));
+    assertFalse(isAssigned(r1, r1h0, v3));
+    assertFalse(isAssigned(r1, r1h1, v3));
+    assertFalse(isAssigned(r2, r2h0, v3));
+    assertFalse(isAssigned(r2, r2h1, v3));
 
     // No commands should have been issued to rings
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -446,8 +452,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // v1 should have been assigned to r0
-    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v1));
-    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v1));
+    assertTrue(isAssigned(r0, r0h0, v1));
+    assertTrue(isAssigned(r0, r0h1, v1));
 
     // No commands should have been issued to rings
     assertNull(r0h0.getAndClearLastEnqueuedCommand());
@@ -570,7 +576,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     setUpRing(r0, v1, v2, HostState.SERVING);
     // Make r0h0 up to date
-    partitionAssigner.assign(r0, r0h0, v2);
+    partitionAssigner.prepare(r0, v2);
+    partitionAssigner.assign(r0h0);
     r0h0.setCurrentVersion(v2);
     // r0h1 is still updating
     r0h1.setState(HostState.UPDATING);

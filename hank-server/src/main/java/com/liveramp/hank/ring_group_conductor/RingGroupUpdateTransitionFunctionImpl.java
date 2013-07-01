@@ -52,6 +52,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
    * that enough times in a row.
    *
    * @param host
+   * @param isObserved
    * @return
    * @throws IOException
    */
@@ -95,18 +96,18 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing = computeDomainToPartitionToHostsFullyServing(ringGroup);
 
     for (Ring ring : ringGroup.getRingsSorted()) {
+      partitionAssigner.prepare(ring, domainGroup.getDomainVersions());
       for (Host host : ring.getHostsSorted()) {
-        manageTransitions(ring, host, domainGroup, minNumReplicasFullyServing, domainToPartitionToHostsFullyServing);
+        manageTransitions(host, domainGroup, minNumReplicasFullyServing, domainToPartitionToHostsFullyServing);
       }
     }
   }
 
-  private void manageTransitions(Ring ring,
-                                 Host host,
+  private void manageTransitions(Host host,
                                  DomainGroup domainGroup,
                                  int minNumReplicasFullyServing,
                                  Map<Domain, Map<Integer, Set<Host>>> domainToPartitionToHostsFullyServing) throws IOException {
-    boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup.getDomainVersions());
+    boolean isAssigned = partitionAssigner.isAssigned(host);
     boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
     boolean isFullyServing = isFullyServing(host, true);
 
@@ -160,7 +161,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     // Host is idle, and not assigned. Assign.
     if (Hosts.isIdle(host) && !isAssigned) {
       LOG.info("Host " + host.getAddress() + " is idle, and not assigned. Assign.");
-      partitionAssigner.assign(ring, host, domainGroup.getDomainVersions());
+      partitionAssigner.assign(host);
       return;
     }
 
