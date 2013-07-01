@@ -7,7 +7,7 @@ Some tips helpful when configuring Curly and Cueball domains can be found [here]
 
 Download
 ====
-You can either build cascading\_ext from source as described below, or pull the latest jar from the Liveramp Maven repository:
+You can either build Hank from source as described below, or pull the latest jar from the Liveramp Maven repository:
 
 ```xml
 <repository>
