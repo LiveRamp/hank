@@ -12,26 +12,28 @@ import java.util.TreeSet;
 public class MockHostDomain extends AbstractHostDomain {
 
   protected final Domain domain;
-  private final Set<HostDomainPartition> parts = new HashSet<HostDomainPartition>();
+  private final Set<HostDomainPartition> partitions = new HashSet<HostDomainPartition>();
   private Set<Integer> removedPartitions = new TreeSet<Integer>();
 
-  public MockHostDomain(Domain domain, int... numberAndVersionPairs) {
+  public MockHostDomain(Domain domain, int... partitionNumberAndVersionPairs) {
     this.domain = domain;
 
-    for (int i = 0; i < numberAndVersionPairs.length; i += 2) {
-      parts.add(new MockHostDomainPartition(numberAndVersionPairs[i],
-          numberAndVersionPairs[i + 1]));
+    for (int i = 0; i < partitionNumberAndVersionPairs.length; i += 2) {
+      partitions.add(new MockHostDomainPartition(partitionNumberAndVersionPairs[i],
+          partitionNumberAndVersionPairs[i + 1]));
     }
   }
 
   @Override
-  public HostDomainPartition addPartition(int partNum) {
-    throw new UnsupportedOperationException();
+  public HostDomainPartition addPartition(int partitionNumber) {
+    MockHostDomainPartition result = new MockHostDomainPartition(partitionNumber, null);
+    partitions.add(result);
+    return result;
   }
 
   @Override
-  public void removePartition(int partNum) throws IOException {
-    removedPartitions.add(partNum);
+  public void removePartition(int partitionNumber) throws IOException {
+    removedPartitions.add(partitionNumber);
   }
 
   public boolean isRemoved(int partitionNumber) {
@@ -45,6 +47,6 @@ public class MockHostDomain extends AbstractHostDomain {
 
   @Override
   public Set<HostDomainPartition> getPartitions() throws IOException {
-    return parts;
+    return partitions;
   }
 }

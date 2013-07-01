@@ -123,7 +123,7 @@ public class TestUpdateManager extends BaseTestCase {
       }
 
       @Override
-      public HostDomainPartition addPartition(int partNum) {
+      public HostDomainPartition addPartition(int partitionNumber) {
         return null;
       }
 

@@ -35,7 +35,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
     for (Ring ring : rgAlpha.getRings()) {
       for (Host host : ring.getHosts()) {
-        partitionAssigner.assign(ring, host, dg1);
+        partitionAssigner.assign(ring, host, dg1.getDomainVersions());
       }
     }
 
@@ -66,7 +66,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
     // Assign
     for (Ring ring : rgBeta.getRings()) {
       for (Host host : ring.getHosts()) {
-        partitionAssigner.assign(ring, host, dg1);
+        partitionAssigner.assign(ring, host, dg1.getDomainVersions());
       }
     }
     rgBeta.claimRingGroupConductor(RingGroupConductorMode.ACTIVE);

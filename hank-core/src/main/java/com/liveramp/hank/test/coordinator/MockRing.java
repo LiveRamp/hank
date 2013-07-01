@@ -65,7 +65,7 @@ public class MockRing extends AbstractRing {
   public boolean isAllCommanded(HostCommand command) {
     for (Host host : getHosts()) {
       MockHost mockHost = (MockHost) host;
-      if (mockHost.getLastEnqueuedCommand() != command) {
+      if (mockHost.getAndClearLastEnqueuedCommand() != command) {
         return false;
       }
     }

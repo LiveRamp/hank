@@ -64,7 +64,7 @@ public class TestRingGroupConductor extends TestCase {
       public Set<HostDomain> getAssignedDomains() throws IOException {
         return Collections.singleton((HostDomain) new MockHostDomain(domain) {
           @Override
-          public HostDomainPartition addPartition(int partNum) {
+          public HostDomainPartition addPartition(int partitionNumber) {
             return null;
           }
 

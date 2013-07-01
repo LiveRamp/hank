@@ -29,9 +29,9 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   abstract protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber);
 
   private Map<Host, Map<Domain, Set<Integer>>>
-  getHostToDomainToPartitionsMapping(Ring ring, DomainGroup domainGroup) throws IOException {
+  getHostToDomainToPartitionsMapping(Ring ring, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
     Map<Host, Map<Domain, Set<Integer>>> result = new TreeMap<Host, Map<Domain, Set<Integer>>>();
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
 
       // Determine what hosts can serve this domain
@@ -80,16 +80,16 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public boolean isAssigned(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
+  public boolean isAssigned(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
-        = getHostToDomainToPartitionsMapping(ring, domainGroup);
+        = getHostToDomainToPartitionsMapping(ring, domainVersions);
     if (hostToDomainToPartitionsMappings == null) {
       // Error
       return false;
     }
     // Check required mapping is exactly satisfied
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
       Set<Integer> partitionMappings = null;
       Map<Domain, Set<Integer>> domainToPartitionsMappings = hostToDomainToPartitionsMappings.get(host);
@@ -129,16 +129,16 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
   }
 
   @Override
-  public void assign(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
+  public void assign(Ring ring, Host host, Set<DomainGroupDomainVersion> domainVersions) throws IOException {
     // Compute required mapping
     Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings
-        = getHostToDomainToPartitionsMapping(ring, domainGroup);
+        = getHostToDomainToPartitionsMapping(ring, domainVersions);
     if (hostToDomainToPartitionsMappings == null) {
       // Error
       return;
     }
     // Apply required mappings and delete extra mappings
-    for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
+    for (DomainGroupDomainVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
       // Determine mappings for this host and domain
       Set<Integer> partitionMappings = null;

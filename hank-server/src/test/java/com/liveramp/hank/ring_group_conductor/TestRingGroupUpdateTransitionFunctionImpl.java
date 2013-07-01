@@ -18,47 +18,23 @@ package com.liveramp.hank.ring_group_conductor;
 import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainGroup;
-import com.liveramp.hank.partition_assigner.MockPartitionAssigner;
+import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
 import com.liveramp.hank.partition_assigner.PartitionAssigner;
 import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
-  private static Logger LOG = Logger.getLogger(TestRingGroupUpdateTransitionFunctionImpl.class);
-
   private class MockRingLocal extends MockRing {
 
     public MockRingLocal(int number,
                          Set<Host> hosts) {
       super(hosts, null, number);
-    }
-
-    public void setAssigned(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-      for (Host host : getHosts()) {
-        ((MockHostLocal) host).setAssignedVersions(domainVersions);
-      }
-    }
-
-    public boolean isAssigned(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-      for (Host host : getHosts()) {
-        if (!((MockHostLocal) host).isAssigned(domainVersions)) {
-          return false;
-        }
-      }
-      return true;
-    }
-
-    public void setServable(boolean isServable) {
-      for (Host host : getHosts()) {
-        ((MockHostLocal) host).setServable(isServable);
-      }
     }
   }
 
@@ -71,45 +47,37 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
   private class MockHostLocal extends MockHost {
 
-    protected Set<DomainGroupDomainVersion> currentVersions = null;
-    private Set<DomainGroupDomainVersion> assignedVersions;
-    private boolean isServable;
-
     public MockHostLocal(PartitionServerAddress address) {
       super(address);
     }
 
-    public boolean isUpToDate(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-      return currentVersions != null && currentVersions.equals(domainVersions);
-    }
-
-    public void setCurrentVersion(Set<DomainGroupDomainVersion> domainVersions) throws IOException {
-      this.currentVersions = domainVersions;
-    }
-
-    public void setAssignedVersions(Set<DomainGroupDomainVersion> assignedVersions) {
-      this.assignedVersions = assignedVersions;
-    }
-
-    public boolean isAssigned(Set<DomainGroupDomainVersion> domainVersions) {
-      return assignedVersions != null && assignedVersions.equals(domainVersions);
-    }
-
-    public void setServable(boolean isServable) {
-      this.isServable = isServable;
-    }
-
-    public boolean isServable() {
-      return isServable;
+    public void setCurrentVersion(Set<DomainGroupDomainVersion> currentVersions) throws IOException {
+      for (HostDomain hostDomain : getAssignedDomains()) {
+        Integer version = null;
+        for (DomainGroupDomainVersion domainVersion : currentVersions) {
+          if (domainVersion.getDomain().equals(hostDomain.getDomain())) {
+            version = domainVersion.getVersionNumber();
+            break;
+          }
+        }
+        if (version != null) {
+          for (HostDomainPartition partition : hostDomain.getPartitions()) {
+            partition.setCurrentDomainVersion(version);
+          }
+        }
+      }
     }
   }
 
   private static Map<Domain, Integer> versionsMap1 = new HashMap<Domain, Integer>();
   private static Map<Domain, Integer> versionsMap2 = new HashMap<Domain, Integer>();
+  private static Map<Domain, Integer> versionsMap3 = new HashMap<Domain, Integer>();
   private static Set<DomainGroupDomainVersion> v1 = new HashSet<DomainGroupDomainVersion>();
   private static Set<DomainGroupDomainVersion> v2 = new HashSet<DomainGroupDomainVersion>();
+  private static Set<DomainGroupDomainVersion> v3 = new HashSet<DomainGroupDomainVersion>();
 
-  private static Domain domain = new MockDomain("domain");
+  private static Domain domain1 = new MockDomain("domain1", 1, 6, null, null, null, null);
+  private static Domain domain2 = new MockDomain("domain2", 2, 6, null, null, null, null);
 
   private static DomainGroup domainGroup = new MockDomainGroup("myDomainGroup");
 
@@ -125,7 +93,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
   private MockHostLocal r2h1 = null;
 
   private MockRingGroupLocal rg = null;
-
+  private PartitionAssigner partitionAssigner;
   private RingGroupUpdateTransitionFunctionImpl testTransitionFunction = null;
 
   @Override
@@ -156,65 +124,38 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     rg = new MockRingGroupLocal(r0, r1, r2);
 
-    PartitionAssigner partitionAssigner = new MockPartitionAssigner() {
+    partitionAssigner = new ModPartitionAssigner();
 
-      @Override
-      public void assign(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
-        ((MockHostLocal) host).setAssignedVersions(domainGroup.getDomainVersions());
-      }
+    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0);
 
-      @Override
-      public boolean isAssigned(Ring ring, Host host, DomainGroup domainGroup) throws IOException {
-        return ((MockHostLocal) host).isAssigned(domainGroup.getDomainVersions());
-      }
-    };
+    // V1
+    versionsMap1.put(domain1, 1);
+    v1.add(new DomainGroupDomainVersion(domain1, 1));
 
-    testTransitionFunction = new RingGroupUpdateTransitionFunctionImpl(partitionAssigner, 0) {
+    // V2
+    versionsMap2.put(domain1, 2);
+    v2.add(new DomainGroupDomainVersion(domain1, 2));
 
-      @Override
-      protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
-        return ((MockHostLocal) host).isUpToDate(domainGroup.getDomainVersions());
-      }
-
-      @Override
-      protected boolean isServable(Host host) {
-        return ((MockHostLocal) host).isServable();
-      }
-
-      @Override
-      protected int computeNumReplicasFullyServing(RingGroup ringGroup, Host host) throws IOException {
-        int result = 0;
-        for (Ring ring : ringGroup.getRings()) {
-          boolean isFullyServing = true;
-          for (Host h : ring.getHosts()) {
-            if (!Hosts.isServing(h)) {
-              isFullyServing = false;
-            }
-          }
-          if (isFullyServing) {
-            ++result;
-          }
-        }
-        return result;
-      }
-    };
-
-    versionsMap1.put(domain, 1);
-    versionsMap2.put(domain, 2);
-    v1.add(new DomainGroupDomainVersion(domain, 1));
-    v2.add(new DomainGroupDomainVersion(domain, 2));
+    // V3
+    versionsMap3.put(domain1, 2);
+    versionsMap3.put(domain2, 1);
+    v3.add(new DomainGroupDomainVersion(domain1, 2));
+    v3.add(new DomainGroupDomainVersion(domain2, 1));
   }
 
   private void setUpRing(MockRingLocal ring,
                          Set<DomainGroupDomainVersion> currentVersions,
                          Set<DomainGroupDomainVersion> assignedVersions,
                          HostState hostState) throws IOException {
-    ring.setAssigned(assignedVersions);
     for (Host host : ring.getHosts()) {
+      if (assignedVersions != null) {
+        partitionAssigner.assign(ring, host, assignedVersions);
+      }
       host.setState(hostState);
-      ((MockHostLocal) host).setCurrentVersion(currentVersions);
+      if (currentVersions != null) {
+        ((MockHostLocal) host).setCurrentVersion(currentVersions);
+      }
     }
-    ring.setServable(true);
   }
 
   public void testIsFullyServing() throws IOException {
@@ -252,12 +193,12 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // No commands should have been issued
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testKickstartAllRings() throws IOException {
@@ -267,54 +208,85 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     setUpRing(r1, null, null, HostState.IDLE);
     setUpRing(r2, null, null, HostState.IDLE);
 
-    r0.setServable(false);
-    r1.setServable(false);
-    r2.setServable(false);
+    // Nothing should be assigned
+    assertFalse(partitionAssigner.isAssigned(r0, r0h0, v1));
+    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v1));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v1));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v1));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v1));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v1));
 
     testTransitionFunction.manageTransitions(rg);
 
     // All rings should have been assigned
-    assertTrue(r0.isAssigned(v1));
-    assertTrue(r1.isAssigned(v1));
-    assertTrue(r2.isAssigned(v1));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v1));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v1));
+    assertTrue(partitionAssigner.isAssigned(r1, r1h0, v1));
+    assertTrue(partitionAssigner.isAssigned(r1, r1h1, v1));
+    assertTrue(partitionAssigner.isAssigned(r2, r2h0, v1));
+    assertTrue(partitionAssigner.isAssigned(r2, r2h1, v1));
 
     // No commands should have been issued
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
 
     testTransitionFunction.manageTransitions(rg);
 
     // All hosts should have received execute update
-    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r1h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r1h1.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r2h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r2h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r1h1.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r2h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testTakesDownFirstRingForAssignmentWhenStartingUpdate() throws IOException {
-    domainGroup.setDomainVersions(versionsMap2);
+    domainGroup.setDomainVersions(versionsMap3);
 
-    setUpRing(r0, v1, v1, HostState.SERVING);
-    setUpRing(r1, v1, v1, HostState.SERVING);
-    setUpRing(r2, v1, v1, HostState.SERVING);
+    setUpRing(r0, v2, v2, HostState.SERVING);
+    setUpRing(r1, v2, v2, HostState.SERVING);
+    setUpRing(r2, v2, v2, HostState.SERVING);
 
     testTransitionFunction.manageTransitions(rg);
 
     // All serving hosts in r0 should have received go to idle
-    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to other rings
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
+
+    // Nothing should be assigned
+    assertFalse(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
+
+    // Make hosts idle
+    r0h0.nextCommand();
+    r0h1.nextCommand();
+    r0h0.setState(HostState.IDLE);
+    r0h1.setState(HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // Ring one should have been assigned
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
   }
 
   public void testTakesDownFirstRingForUpdateWhenStartingUpdate() throws IOException {
@@ -326,19 +298,37 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // All serving hosts in r1 should have received go to idle
-    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+    // All serving hosts in r0 should have received go to idle
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to other rings
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
+
+    // Make hosts idle
+    r0h0.nextCommand();
+    r0h1.nextCommand();
+    r0h0.setState(HostState.IDLE);
+    r0h1.setState(HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // All idle hosts in r0 should have received execute update
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getAndClearLastEnqueuedCommand());
+
+    // No commands should have been issued to other rings
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
-  public void testDoNotAssignIfOneHostIsServing() throws IOException {
-    domainGroup.setDomainVersions(versionsMap2);
+  public void testAssignWhenOneHostIsServing() throws IOException {
+    domainGroup.setDomainVersions(versionsMap3);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     r0h1.setState(HostState.SERVING);
@@ -347,20 +337,39 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // v2 should not have been assigned to r0
-    assertTrue(r0.isAssigned(v1));
+    // v2 should have been assigned to r0h0 but not r0h1
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
 
     // No commands should have been issued to rings, except to r0h1
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
+
+    // Make host idle
+    r0h1.nextCommand();
+    r0h1.setState(HostState.IDLE);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // v2 should have been assigned to r0h1
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
+
+    // r0h0 should be updating
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
-  public void testDoNotAssignIfOneHostIsUpdating() throws IOException {
-    domainGroup.setDomainVersions(versionsMap2);
+  public void testAssignWhenOneHostIsUpdating() throws IOException {
+    domainGroup.setDomainVersions(versionsMap3);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     r0h1.setState(HostState.UPDATING);
@@ -369,20 +378,21 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // v2 should not have been assigned to r0
-    assertTrue(r0.isAssigned(v1));
+    // v2 should have been assigned to r0h0 but not r0h1
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r0, r0h1, v3));
 
-    // No commands should have been issued to rings, except to r0h1
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    // No commands should have been issued to rings
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testAssignIdleRing() throws IOException {
-    domainGroup.setDomainVersions(versionsMap2);
+    domainGroup.setDomainVersions(versionsMap3);
 
     setUpRing(r0, v1, v1, HostState.IDLE);
     setUpRing(r1, v1, v1, HostState.SERVING);
@@ -390,16 +400,20 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // v2 should have been assigned to r0
-    assertTrue(r0.isAssigned(v2));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v3));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r1, r1h1, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h0, v3));
+    assertFalse(partitionAssigner.isAssigned(r2, r2h1, v3));
 
     // No commands should have been issued to rings
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testTakeDownModifiedRing() throws IOException {
@@ -412,17 +426,17 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r0 should have received go to idle
-    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r0h1.getAndClearLastEnqueuedCommand());
 
-    // No commands should have been issued to rings
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    // No commands should have been issued to other rings
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
-  public void testAssignedModifiedRing() throws IOException {
+  public void testAssignModifiedRing() throws IOException {
     domainGroup.setDomainVersions(versionsMap1);
 
     setUpRing(r0, v1, null, HostState.IDLE);
@@ -431,16 +445,17 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // v2 should have been assigned to r0
-    assertTrue(r0.isAssigned(v1));
+    // v1 should have been assigned to r0
+    assertTrue(partitionAssigner.isAssigned(r0, r0h0, v1));
+    assertTrue(partitionAssigner.isAssigned(r0, r0h1, v1));
 
     // No commands should have been issued to rings
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testExecuteUpdateWhenAssignedAndIdle() throws IOException {
@@ -453,14 +468,14 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r0 should have received execute update
-    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.EXECUTE_UPDATE, r0h1.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to rings
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testProactivelyServeDateWhenHostUpdated() throws IOException {
@@ -476,14 +491,14 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // r0h0 should have received serve data
-    assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r0h0.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to rings
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testServeDataWhenUpdated() throws IOException {
@@ -496,14 +511,14 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // Hosts of r0 should have received serve data
-    assertEquals(HostCommand.SERVE_DATA, r0h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.SERVE_DATA, r0h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r0h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r0h1.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to rings
-    assertNull(r1h0.getLastEnqueuedCommand());
-    assertNull(r1h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testTakeDownSecondRingWhenFirstIsUpdated() throws IOException {
@@ -515,15 +530,15 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
     testTransitionFunction.manageTransitions(rg);
 
-    // Hosts of r1 should have received execute update
-    assertEquals(HostCommand.GO_TO_IDLE, r1h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.GO_TO_IDLE, r1h1.getLastEnqueuedCommand());
+    // Hosts of r1 should have received go to idle
+    assertEquals(HostCommand.GO_TO_IDLE, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r1h1.getAndClearLastEnqueuedCommand());
 
     // No commands should have been issued to rings
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
-    assertNull(r2h0.getLastEnqueuedCommand());
-    assertNull(r2h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
   public void testServeDataWhenNotEnoughRingsAreFullyServing() throws IOException {
@@ -536,13 +551,13 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     testTransitionFunction.manageTransitions(rg);
 
     // No commands should have been issued to r0
-    assertNull(r0h0.getLastEnqueuedCommand());
-    assertNull(r0h1.getLastEnqueuedCommand());
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
 
     // Other hosts should have received serve data
-    assertEquals(HostCommand.SERVE_DATA, r1h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.SERVE_DATA, r1h1.getLastEnqueuedCommand());
-    assertEquals(HostCommand.SERVE_DATA, r2h0.getLastEnqueuedCommand());
-    assertEquals(HostCommand.SERVE_DATA, r2h1.getLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r1h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r1h1.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r2h0.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.SERVE_DATA, r2h1.getAndClearLastEnqueuedCommand());
   }
 }

@@ -21,12 +21,12 @@ import java.io.IOException;
 
 public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
-  private final int partNum;
+  private final int partitionNumber;
   private Integer currentDomainVersion;
   private boolean deletable;
 
-  public MockHostDomainPartition(int partitionNumber, int currentDomainVersion) {
-    this.partNum = partitionNumber;
+  public MockHostDomainPartition(int partitionNumber, Integer currentDomainVersion) {
+    this.partitionNumber = partitionNumber;
     this.currentDomainVersion = currentDomainVersion;
     deletable = false;
   }
@@ -38,7 +38,7 @@ public class MockHostDomainPartition extends AbstractHostDomainPartition {
 
   @Override
   public int getPartitionNumber() {
-    return partNum;
+    return partitionNumber;
   }
 
   @Override

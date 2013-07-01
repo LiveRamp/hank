@@ -63,8 +63,8 @@ public class MockHost extends AbstractHost {
   }
 
   public MockHostDomain addMockDomain(Domain domain,
-                                      int... numberAndVersionPairs) throws IOException {
-    MockHostDomain hostDomain = new MockHostDomain(domain, numberAndVersionPairs);
+                                      int... partitionNumberAndVersionPairs) throws IOException {
+    MockHostDomain hostDomain = new MockHostDomain(domain, partitionNumberAndVersionPairs);
     hostDomains.add(hostDomain);
     return hostDomain;
   }
@@ -171,8 +171,10 @@ public class MockHost extends AbstractHost {
     notifyCommandQueueChangeListeners();
   }
 
-  public HostCommand getLastEnqueuedCommand() {
-    return lastEnqueuedCommand;
+  public HostCommand getAndClearLastEnqueuedCommand() {
+    HostCommand result = lastEnqueuedCommand;
+    lastEnqueuedCommand = null;
+    return result;
   }
 
   @Override

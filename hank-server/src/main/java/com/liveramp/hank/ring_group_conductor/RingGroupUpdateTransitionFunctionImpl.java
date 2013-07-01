@@ -22,7 +22,9 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
@@ -102,8 +104,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
                                  Host host,
                                  DomainGroup domainGroup,
                                  int minNumReplicasFullyServing) throws IOException {
-    boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup);
-    boolean isUpToDate = isUpToDate(host, domainGroup);
+    boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup.getDomainVersions());
+    boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
     boolean isFullyServing = isFullyServing(host, true);
 
     // Host is serving, assigned and up-to-date. Do nothing.
@@ -112,10 +114,14 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       return;
     }
 
-    int numReplicasFullyServing = computeNumReplicasFullyServing(ringGroup, host);
+    // Note: numReplicasFullyServing can be null if the host is not serving relevant data
+    Integer numReplicasFullyServing = computeNumReplicasFullyServingRelevantData(domainGroup.getDomainVersions(), ringGroup, host);
+    if (numReplicasFullyServing == null) {
+      numReplicasFullyServing = Integer.MAX_VALUE;
+    }
 
     // Not enough replicas are fully serving and the current host is servable. Serve.
-    if (Hosts.isIdle(host) && isServable(host) && numReplicasFullyServing < minNumReplicasFullyServing) {
+    if (Hosts.isIdle(host) && Hosts.isServable(host) && numReplicasFullyServing < minNumReplicasFullyServing) {
       LOG.info("Host " + host.getAddress() + " is idle, servable, and only " + numReplicasFullyServing + " replicas are fully serving. Serve.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.SERVE_DATA);
       return;
@@ -129,9 +135,9 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     if (Hosts.isIdle(host) && isAssigned && !isUpToDate
-        && (numReplicasFullyServing > minNumReplicasFullyServing || !isServable(host))) {
-      // Host is idle, assigned, not up-to-date and there are more than enough replicas serving or it's not servable. Update.
-      LOG.info("Host " + host.getAddress() + " is idle, assigned, not up-to-date, and there are more than enough replicas serving (or it's not servable). Update.");
+        && (numReplicasFullyServing >= minNumReplicasFullyServing || !Hosts.isServable(host))) {
+      // Host is idle, assigned, not up-to-date and there are enough replicas serving or it's not servable. Update.
+      LOG.info("Host " + host.getAddress() + " is idle, assigned, not up-to-date, and there are enough replicas serving (or it's not servable). Update.");
       Hosts.enqueueCommandIfNotPresent(host, HostCommand.EXECUTE_UPDATE);
       return;
     }
@@ -146,7 +152,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     // Host is idle, and not assigned. Assign.
     if (Hosts.isIdle(host) && !isAssigned) {
       LOG.info("Host " + host.getAddress() + " is idle, and not assigned. Assign.");
-      partitionAssigner.assign(ring, host, domainGroup);
+      partitionAssigner.assign(ring, host, domainGroup.getDomainVersions());
       return;
     }
 
@@ -160,30 +166,25 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     LOG.info("Host " + host.getAddress() + ": Nothing to do"
         + ", isAssigned: " + isAssigned
         + ", isUpToDate: " + isUpToDate
+        + ", isFullyServing: " + isFullyServing
         + ", state: " + host.getState()
         + ", numReplicasFullyServing: " + numReplicasFullyServing
         + ", minNumReplicasFullyServing: " + minNumReplicasFullyServing
     );
   }
 
-  protected boolean isServable(Host host) throws IOException {
-    return Hosts.isServable(host);
-  }
-
-  protected boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
-    return Hosts.isUpToDate(host, domainGroup);
-  }
-
-  protected int computeNumReplicasFullyServing(RingGroup ringGroup, Host host) throws IOException {
+  private Integer computeNumReplicasFullyServingRelevantData(Set<DomainGroupDomainVersion> domainVersions,
+                                                             RingGroup ringGroup,
+                                                             Host host) throws IOException {
     Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing = new HashMap<Domain, Map<Integer, Integer>>();
     // Compute num replicas fully serving for all partitions
     for (Ring ring : ringGroup.getRings()) {
       for (Host h : ring.getHosts()) {
         if (isFullyServing(h, false)) {
           for (HostDomain hostDomain : h.getAssignedDomains()) {
+            Domain domain = hostDomain.getDomain();
             for (HostDomainPartition partition : hostDomain.getPartitions()) {
               if (!partition.isDeletable() && partition.getCurrentDomainVersion() != null) {
-                Domain domain = hostDomain.getDomain();
                 int partitionNumber = partition.getPartitionNumber();
                 Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(domain);
                 if (partitionToNumFullyServing == null) {
@@ -201,21 +202,31 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       }
     }
 
+    // Build set of relevant domains
+    Set<Domain> relevantDomains = new HashSet<Domain>();
+    for (DomainGroupDomainVersion domainVersion : domainVersions) {
+      relevantDomains.add(domainVersion.getDomain());
+    }
+
     // Compute num replicas fully serving for given host, which is the minimum of the number of replicas
-    // fully serving across all partitions assigned to it.
+    // fully serving across all partitions assigned to it (for relevant domains)
     Integer result = null;
     for (HostDomain hostDomain : host.getAssignedDomains()) {
-      Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(hostDomain.getDomain());
-      if (partitionToNumFullyServing == null) {
-        return 0;
-      }
-      for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber());
-        if (result == null || numFullyServing < result) {
-          result = numFullyServing;
+      Domain domain = hostDomain.getDomain();
+      // Only consider relevant domains
+      if (relevantDomains.contains(domain)) {
+        Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(hostDomain.getDomain());
+        if (partitionToNumFullyServing == null) {
+          return 0;
+        }
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber());
+          if (result == null || numFullyServing < result) {
+            result = numFullyServing;
+          }
         }
       }
     }
-    return result == null ? 0 : result;
+    return result;
   }
 }
