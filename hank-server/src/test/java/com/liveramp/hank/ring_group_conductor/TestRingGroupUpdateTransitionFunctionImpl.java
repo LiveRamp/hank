@@ -147,7 +147,9 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
                          Set<DomainGroupDomainVersion> currentVersions,
                          Set<DomainGroupDomainVersion> assignedVersions,
                          HostState hostState) throws IOException {
-    partitionAssigner.prepare(ring, assignedVersions);
+    if (assignedVersions != null) {
+      partitionAssigner.prepare(ring, assignedVersions);
+    }
     for (Host host : ring.getHosts()) {
       if (assignedVersions != null) {
         partitionAssigner.assign(host);
