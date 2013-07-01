@@ -560,4 +560,31 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertEquals(HostCommand.SERVE_DATA, r2h0.getAndClearLastEnqueuedCommand());
     assertEquals(HostCommand.SERVE_DATA, r2h1.getAndClearLastEnqueuedCommand());
   }
+
+  public void testUpdateMultipleRingsWhenEnoughReplicasAreServing() throws IOException {
+    domainGroup.setDomainVersions(versionsMap2);
+
+    // r0: h0 SERVING, h1 UPDATING
+    // r1: h0 SERVING, h1 SERVING
+    // r2: h0 SERVING, h1 SERVING
+
+    setUpRing(r0, v1, v2, HostState.SERVING);
+    // Make r0h0 up to date
+    partitionAssigner.assign(r0, r0h0, v2);
+    r0h0.setCurrentVersion(v2);
+    // r0h1 is still updating
+    r0h1.setState(HostState.UPDATING);
+    setUpRing(r1, v1, v1, HostState.SERVING);
+    setUpRing(r2, v1, v2, HostState.SERVING);
+
+    testTransitionFunction.manageTransitions(rg);
+
+    // No commands should have been issued to offline hosts and up to date hosts
+    assertNull(r0h0.getAndClearLastEnqueuedCommand());
+    assertNull(r0h1.getAndClearLastEnqueuedCommand());
+    assertEquals(HostCommand.GO_TO_IDLE, r1h0.getAndClearLastEnqueuedCommand());
+    assertNull(r1h1.getAndClearLastEnqueuedCommand());
+    assertNull(r2h0.getAndClearLastEnqueuedCommand());
+    assertNull(r2h1.getAndClearLastEnqueuedCommand());
+  }
 }
