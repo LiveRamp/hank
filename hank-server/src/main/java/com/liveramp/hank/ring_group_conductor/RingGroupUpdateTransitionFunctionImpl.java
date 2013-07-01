@@ -190,6 +190,7 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         hosts.remove(host);
       }
     }
+    hostToFullyServingObservations.put(host.getAddress().toString(), 0);
   }
 
   private Map<Domain, Map<Integer, Set<Host>>> computeDomainToPartitionToHostsFullyServing(RingGroup ringGroup) throws IOException {
