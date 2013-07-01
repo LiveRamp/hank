@@ -34,7 +34,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
     for (DomainGroupDomainVersion dgvdv : domainVersions) {
       Domain domain = dgvdv.getDomain();
 
-      // Determine what hosts can serve this domain
+      // Determine which hosts can serve this domain
       SortedSet<Host> validHosts = new TreeSet<Host>();
       for (Host host : ring.getHosts()) {
         if (host.getFlags().containsAll(domain.getRequiredHostFlags()) || host.getFlags().contains(Hosts.ALL_FLAGS_EXPRESSION)) {
