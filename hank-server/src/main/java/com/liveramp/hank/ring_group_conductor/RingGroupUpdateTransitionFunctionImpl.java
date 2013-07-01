@@ -92,18 +92,20 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
       minNumReplicasFullyServing = ringGroup.getRings().size() - 2;
     }
 
+    Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing = computeDomainToPartitionToNumFullyServing(ringGroup);
+
     for (Ring ring : ringGroup.getRingsSorted()) {
       for (Host host : ring.getHostsSorted()) {
-        manageTransitions(ringGroup, ring, host, domainGroup, minNumReplicasFullyServing);
+        manageTransitions(ring, host, domainGroup, minNumReplicasFullyServing, domainToPartitionToNumFullyServing);
       }
     }
   }
 
-  private void manageTransitions(RingGroup ringGroup,
-                                 Ring ring,
+  private void manageTransitions(Ring ring,
                                  Host host,
                                  DomainGroup domainGroup,
-                                 int minNumReplicasFullyServing) throws IOException {
+                                 int minNumReplicasFullyServing,
+                                 Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing) throws IOException {
     boolean isAssigned = partitionAssigner.isAssigned(ring, host, domainGroup.getDomainVersions());
     boolean isUpToDate = Hosts.isUpToDate(host, domainGroup);
     boolean isFullyServing = isFullyServing(host, true);
@@ -115,7 +117,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     }
 
     // Note: numReplicasFullyServing can be null if the host is not serving relevant data
-    Integer numReplicasFullyServing = computeNumReplicasFullyServingRelevantData(domainGroup.getDomainVersions(), ringGroup, host);
+
+    Integer numReplicasFullyServing =
+        computeNumReplicasFullyServingRelevantData(
+            domainToPartitionToNumFullyServing,
+            domainGroup.getDomainVersions(),
+            host);
     if (numReplicasFullyServing == null) {
       numReplicasFullyServing = Integer.MAX_VALUE;
     }
@@ -173,10 +180,8 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
     );
   }
 
-  private Integer computeNumReplicasFullyServingRelevantData(Set<DomainGroupDomainVersion> domainVersions,
-                                                             RingGroup ringGroup,
-                                                             Host host) throws IOException {
-    Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing = new HashMap<Domain, Map<Integer, Integer>>();
+  private Map<Domain, Map<Integer, Integer>> computeDomainToPartitionToNumFullyServing(RingGroup ringGroup) throws IOException {
+    Map<Domain, Map<Integer, Integer>> result = new HashMap<Domain, Map<Integer, Integer>>();
     // Compute num replicas fully serving for all partitions
     for (Ring ring : ringGroup.getRings()) {
       for (Host h : ring.getHosts()) {
@@ -186,10 +191,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
             for (HostDomainPartition partition : hostDomain.getPartitions()) {
               if (!partition.isDeletable() && partition.getCurrentDomainVersion() != null) {
                 int partitionNumber = partition.getPartitionNumber();
-                Map<Integer, Integer> partitionToNumFullyServing = domainToPartitionToNumFullyServing.get(domain);
+                Map<Integer, Integer> partitionToNumFullyServing = result.get(domain);
                 if (partitionToNumFullyServing == null) {
                   partitionToNumFullyServing = new HashMap<Integer, Integer>();
-                  domainToPartitionToNumFullyServing.put(domain, partitionToNumFullyServing);
+                  result.put(domain, partitionToNumFullyServing);
                 }
                 if (!partitionToNumFullyServing.containsKey(partitionNumber)) {
                   partitionToNumFullyServing.put(partitionNumber, 0);
@@ -201,7 +206,12 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
         }
       }
     }
+    return result;
+  }
 
+  private Integer computeNumReplicasFullyServingRelevantData(Map<Domain, Map<Integer, Integer>> domainToPartitionToNumFullyServing,
+                                                             Set<DomainGroupDomainVersion> domainVersions,
+                                                             Host host) throws IOException {
     // Build set of relevant domains
     Set<Domain> relevantDomains = new HashSet<Domain>();
     for (DomainGroupDomainVersion domainVersion : domainVersions) {
