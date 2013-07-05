@@ -19,21 +19,10 @@ package com.liveramp.hank.storage.cueball;
 import com.liveramp.hank.storage.PartitionFileLocalPath;
 
 import java.io.File;
-import java.io.IOException;
 
 public class CueballFilePath extends PartitionFileLocalPath {
 
   public CueballFilePath(String path) {
     super(path, Cueball.parseVersionNumber(new File(path).getName()));
-  }
-
-  public boolean isBase() throws IOException {
-    if (getName().matches(Cueball.BASE_REGEX)) {
-      return true;
-    } else if (getName().matches(Cueball.DELTA_REGEX)) {
-      return false;
-    } else {
-      throw new IOException("Failed to determine if file path was a base or a delta: " + getPath());
-    }
   }
 }

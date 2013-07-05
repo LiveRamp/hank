@@ -19,21 +19,10 @@ package com.liveramp.hank.storage.curly;
 import com.liveramp.hank.storage.PartitionFileLocalPath;
 
 import java.io.File;
-import java.io.IOException;
 
 public class CurlyFilePath extends PartitionFileLocalPath {
 
   public CurlyFilePath(String path) {
     super(path, Curly.parseVersionNumber(new File(path).getName()));
-  }
-
-  public boolean isBase() throws IOException {
-    if (getName().matches(Curly.BASE_REGEX)) {
-      return true;
-    } else if (getName().matches(Curly.DELTA_REGEX)) {
-      return false;
-    } else {
-      throw new IOException("Failed to determine if file path was a base or a delta: " + getPath());
-    }
   }
 }
