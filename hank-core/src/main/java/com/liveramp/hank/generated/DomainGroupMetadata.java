@@ -360,7 +360,7 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
                 for (int _i19 = 0; _i19 < _map18.size; ++_i19)
                 {
                   int _key20; // required
-                  int _val21; // optional
+                  int _val21; // required
                   _key20 = iprot.readI32();
                   _val21 = iprot.readI32();
                   struct.domain_versions.put(_key20, _val21);
@@ -436,7 +436,7 @@ public class DomainGroupMetadata implements org.apache.thrift.TBase<DomainGroupM
         for (int _i25 = 0; _i25 < _map24.size; ++_i25)
         {
           int _key26; // required
-          int _val27; // optional
+          int _val27; // required
           _key26 = iprot.readI32();
           _val27 = iprot.readI32();
           struct.domain_versions.put(_key26, _val27);

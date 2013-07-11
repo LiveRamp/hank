@@ -7,37 +7,18 @@
 package com.liveramp.hank.generated;
 
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.apache.thrift.scheme.IScheme;
-import org.apache.thrift.scheme.SchemeFactory;
-import org.apache.thrift.scheme.StandardScheme;
-
-import org.apache.thrift.scheme.TupleScheme;
-import org.apache.thrift.protocol.TTupleProtocol;
 import org.apache.thrift.protocol.TProtocolException;
-import org.apache.thrift.EncodingUtils;
-import org.apache.thrift.TException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.EnumMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.EnumSet;
-import java.util.Collections;
-import java.util.BitSet;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class HankException extends org.apache.thrift.TUnion<HankException, HankException._Fields> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("HankException");
   private static final org.apache.thrift.protocol.TField WRONG_HOST_FIELD_DESC = new org.apache.thrift.protocol.TField("wrong_host", org.apache.thrift.protocol.TType.BOOL, (short)1);
   private static final org.apache.thrift.protocol.TField NO_SUCH_DOMAIN_FIELD_DESC = new org.apache.thrift.protocol.TField("no_such_domain", org.apache.thrift.protocol.TType.BOOL, (short)2);
-  private static final org.apache.thrift.protocol.TField NO_CONNECTION_AVAILABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("no_connection_available", org.apache.thrift.protocol.TType.BOOL, (short)3);
-  private static final org.apache.thrift.protocol.TField FAILED_RETRIES_FIELD_DESC = new org.apache.thrift.protocol.TField("failed_retries", org.apache.thrift.protocol.TType.I32, (short)4);
-  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField NO_REPLICA_FIELD_DESC = new org.apache.thrift.protocol.TField("no_replica", org.apache.thrift.protocol.TType.BOOL, (short)3);
+  private static final org.apache.thrift.protocol.TField NO_CONNECTION_AVAILABLE_FIELD_DESC = new org.apache.thrift.protocol.TField("no_connection_available", org.apache.thrift.protocol.TType.BOOL, (short)4);
+  private static final org.apache.thrift.protocol.TField FAILED_RETRIES_FIELD_DESC = new org.apache.thrift.protocol.TField("failed_retries", org.apache.thrift.protocol.TType.I32, (short)5);
+  private static final org.apache.thrift.protocol.TField INTERNAL_ERROR_FIELD_DESC = new org.apache.thrift.protocol.TField("internal_error", org.apache.thrift.protocol.TType.STRING, (short)6);
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -50,17 +31,21 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
      */
     NO_SUCH_DOMAIN((short)2, "no_such_domain"),
     /**
+     * There was no replica for a given partition
+     */
+    NO_REPLICA((short)3, "no_replica"),
+    /**
      * There were no available connections for a given partition
      */
-    NO_CONNECTION_AVAILABLE((short)3, "no_connection_available"),
+    NO_CONNECTION_AVAILABLE((short)4, "no_connection_available"),
     /**
      * Failed to perform query after a specified number of retries
      */
-    FAILED_RETRIES((short)4, "failed_retries"),
+    FAILED_RETRIES((short)5, "failed_retries"),
     /**
      * There was some internal error in the server. This is pretty bad.
      */
-    INTERNAL_ERROR((short)5, "internal_error");
+    INTERNAL_ERROR((short)6, "internal_error");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -79,11 +64,13 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           return WRONG_HOST;
         case 2: // NO_SUCH_DOMAIN
           return NO_SUCH_DOMAIN;
-        case 3: // NO_CONNECTION_AVAILABLE
+        case 3: // NO_REPLICA
+          return NO_REPLICA;
+        case 4: // NO_CONNECTION_AVAILABLE
           return NO_CONNECTION_AVAILABLE;
-        case 4: // FAILED_RETRIES
+        case 5: // FAILED_RETRIES
           return FAILED_RETRIES;
-        case 5: // INTERNAL_ERROR
+        case 6: // INTERNAL_ERROR
           return INTERNAL_ERROR;
         default:
           return null;
@@ -127,15 +114,17 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.WRONG_HOST, new org.apache.thrift.meta_data.FieldMetaData("wrong_host", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.WRONG_HOST, new org.apache.thrift.meta_data.FieldMetaData("wrong_host", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.NO_SUCH_DOMAIN, new org.apache.thrift.meta_data.FieldMetaData("no_such_domain", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NO_SUCH_DOMAIN, new org.apache.thrift.meta_data.FieldMetaData("no_such_domain", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.NO_CONNECTION_AVAILABLE, new org.apache.thrift.meta_data.FieldMetaData("no_connection_available", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NO_REPLICA, new org.apache.thrift.meta_data.FieldMetaData("no_replica", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
-    tmpMap.put(_Fields.FAILED_RETRIES, new org.apache.thrift.meta_data.FieldMetaData("failed_retries", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.NO_CONNECTION_AVAILABLE, new org.apache.thrift.meta_data.FieldMetaData("no_connection_available", org.apache.thrift.TFieldRequirementType.DEFAULT,
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.FAILED_RETRIES, new org.apache.thrift.meta_data.FieldMetaData("failed_retries", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.INTERNAL_ERROR, new org.apache.thrift.meta_data.FieldMetaData("internal_error", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.INTERNAL_ERROR, new org.apache.thrift.meta_data.FieldMetaData("internal_error", org.apache.thrift.TFieldRequirementType.DEFAULT,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(HankException.class, metaDataMap);
@@ -165,6 +154,12 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
   public static HankException no_such_domain(boolean value) {
     HankException x = new HankException();
     x.set_no_such_domain(value);
+    return x;
+  }
+
+  public static HankException no_replica(boolean value) {
+    HankException x = new HankException();
+    x.set_no_replica(value);
     return x;
   }
 
@@ -200,6 +195,11 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           break;
         }
         throw new ClassCastException("Was expecting value of type Boolean for field 'no_such_domain', but got " + value.getClass().getSimpleName());
+      case NO_REPLICA:
+        if (value instanceof Boolean) {
+          break;
+        }
+        throw new ClassCastException("Was expecting value of type Boolean for field 'no_replica', but got " + value.getClass().getSimpleName());
       case NO_CONNECTION_AVAILABLE:
         if (value instanceof Boolean) {
           break;
@@ -239,6 +239,15 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
             Boolean no_such_domain;
             no_such_domain = iprot.readBool();
             return no_such_domain;
+          } else {
+            org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
+            return null;
+          }
+        case NO_REPLICA:
+          if (field.type == NO_REPLICA_FIELD_DESC.type) {
+            Boolean no_replica;
+            no_replica = iprot.readBool();
+            return no_replica;
           } else {
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, field.type);
             return null;
@@ -289,6 +298,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         Boolean no_such_domain = (Boolean)value_;
         oprot.writeBool(no_such_domain);
         return;
+      case NO_REPLICA:
+        Boolean no_replica = (Boolean)value_;
+        oprot.writeBool(no_replica);
+        return;
       case NO_CONNECTION_AVAILABLE:
         Boolean no_connection_available = (Boolean)value_;
         oprot.writeBool(no_connection_available);
@@ -319,6 +332,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
           Boolean no_such_domain;
           no_such_domain = iprot.readBool();
           return no_such_domain;
+        case NO_REPLICA:
+          Boolean no_replica;
+          no_replica = iprot.readBool();
+          return no_replica;
         case NO_CONNECTION_AVAILABLE:
           Boolean no_connection_available;
           no_connection_available = iprot.readBool();
@@ -350,6 +367,10 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         Boolean no_such_domain = (Boolean)value_;
         oprot.writeBool(no_such_domain);
         return;
+      case NO_REPLICA:
+        Boolean no_replica = (Boolean)value_;
+        oprot.writeBool(no_replica);
+        return;
       case NO_CONNECTION_AVAILABLE:
         Boolean no_connection_available = (Boolean)value_;
         oprot.writeBool(no_connection_available);
@@ -374,6 +395,8 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
         return WRONG_HOST_FIELD_DESC;
       case NO_SUCH_DOMAIN:
         return NO_SUCH_DOMAIN_FIELD_DESC;
+      case NO_REPLICA:
+        return NO_REPLICA_FIELD_DESC;
       case NO_CONNECTION_AVAILABLE:
         return NO_CONNECTION_AVAILABLE_FIELD_DESC;
       case FAILED_RETRIES:
@@ -435,6 +458,25 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
    */
   public void set_no_such_domain(boolean value) {
     setField_ = _Fields.NO_SUCH_DOMAIN;
+    value_ = value;
+  }
+
+  /**
+   * There was no replica for a given partition
+   */
+  public boolean get_no_replica() {
+    if (getSetField() == _Fields.NO_REPLICA) {
+      return (Boolean)getFieldValue();
+    } else {
+      throw new RuntimeException("Cannot get field 'no_replica' because union is currently set to " + getFieldDesc(getSetField()).name);
+    }
+  }
+
+  /**
+   * There was no replica for a given partition
+   */
+  public void set_no_replica(boolean value) {
+    setField_ = _Fields.NO_REPLICA;
     value_ = value;
   }
 
@@ -503,6 +545,11 @@ public class HankException extends org.apache.thrift.TUnion<HankException, HankE
 
   public boolean is_set_no_such_domain() {
     return setField_ == _Fields.NO_SUCH_DOMAIN;
+  }
+
+
+  public boolean is_set_no_replica() {
+    return setField_ == _Fields.NO_REPLICA;
   }
 
 

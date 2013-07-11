@@ -15,7 +15,6 @@
  */
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
@@ -24,8 +23,9 @@ import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.PartitionServer;
-import com.liveramp.hank.test.partitioner.MapPartitioner;
+import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.*;
+import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
@@ -296,7 +296,7 @@ public class TestHankSmartClient extends BaseTestCase {
       mockRingHosts.add(host3);
 
       // Should not be able to query new domain
-      assertTrue(client.get("new_domain", KEY_3).get_xception().is_set_internal_error());
+      assertTrue(client.get("new_domain", KEY_3).get_xception().is_set_no_replica());
 
       // Notify client of data location change
       client.onDataLocationChange(mockCoord.getRingGroup("myRingGroup"));

@@ -7,14 +7,17 @@ union HankException {
   /** The domain passed in the request does not correspond to a valid domain */
   2: bool no_such_domain;
 
+  /** There was no replica for a given partition */
+  3: bool no_replica;
+
   /** There were no available connections for a given partition */
-  3: bool no_connection_available;
+  4: bool no_connection_available;
 
   /** Failed to perform query after a specified number of retries */
-  4: i32 failed_retries;
+  5: i32 failed_retries;
 
   /** There was some internal error in the server. This is pretty bad. */
-  5: string internal_error;
+  6: string internal_error;
 }
 
 union HankResponse {

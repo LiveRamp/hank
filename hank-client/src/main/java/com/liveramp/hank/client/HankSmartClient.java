@@ -39,6 +39,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   private static final HankResponse NO_SUCH_DOMAIN = HankResponse.xception(HankException.no_such_domain(true));
   private static final HankBulkResponse NO_SUCH_DOMAIN_BULK = HankBulkResponse.xception(HankException.no_such_domain(true));
+  private static final HankResponse NO_REPLICA = HankResponse.xception(HankException.no_replica(true));
 
   private static final long GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME = 1;
   private static final TimeUnit GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
@@ -444,17 +445,15 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
     }
     if (partitionToConnectionPool == null) {
-      String errMsg = String.format("Could not get domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId());
-      LOG.error(errMsg);
-      return HankResponse.xception(HankException.internal_error(errMsg));
+      LOG.error(String.format("Could not find domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId()));
+      return NO_REPLICA;
     }
 
     HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
     if (hostConnectionPool == null) {
       // this is a problem, since the cache must not have been loaded correctly
-      String errMsg = String.format("Could not get list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition);
-      LOG.error(errMsg);
-      return HankResponse.xception(HankException.internal_error(errMsg));
+      LOG.error(String.format("Could not find list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition));
+      return NO_REPLICA;
     }
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));

@@ -360,7 +360,7 @@ public class HostDomainMetadata implements org.apache.thrift.TBase<HostDomainMet
                 for (int _i29 = 0; _i29 < _map28.size; ++_i29)
                 {
                   int _key30; // required
-                  HostDomainPartitionMetadata _val31; // optional
+                  HostDomainPartitionMetadata _val31; // required
                   _key30 = iprot.readI32();
                   _val31 = new HostDomainPartitionMetadata();
                   _val31.read(iprot);
