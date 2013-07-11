@@ -37,9 +37,9 @@ public class FutureGet extends FutureTask<Object> {
   public HankResponse getResponse() {
     try {
       this.get();
-    } catch (Exception e) {
-      String errMsg = "Exception while executing future GET: " + e.getMessage();
-      LOG.error(errMsg, e);
+    } catch (Throwable t) {
+      String errMsg = "Throwable while executing future GET: " + t.getMessage();
+      LOG.error(errMsg, t);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
     return runnable.getResponse();
