@@ -16,6 +16,7 @@
 
 package com.liveramp.hank.client;
 
+import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
@@ -233,7 +234,8 @@ public class HostConnectionPool {
     }
   }
 
-  public HankResponse get(int domainId, ByteBuffer key, int maxNumTries, Integer keyHash) {
+  public HankResponse get(Domain domain, ByteBuffer key, int maxNumTries, Integer keyHash) {
+    int domainId = domain.getId();
     HostConnectionAndHostIndex connectionAndHostIndex = null;
     int numTries = 0;
     while (true) {
@@ -250,7 +252,7 @@ public class HostConnectionPool {
       }
       // If we couldn't find any available connection, return corresponding error response
       if (connectionAndHostIndex == null) {
-        LOG.error("No connection is available. Giving up. Key = " + Bytes.bytesToHexString(key));
+        LOG.error("No connection is available. Giving up. Domain = " + domain.getName() + ", Key=" + Bytes.bytesToHexString(key));
         return NO_CONNECTION_AVAILABLE_RESPONSE;
       } else {
         // Perform query
@@ -264,12 +266,14 @@ public class HostConnectionPool {
             LOG.error("Failed to perform query with host: "
                 + connectionAndHostIndex.hostConnection.getHost().getAddress()
                 + ". Retrying. Try " + numTries + "/" + maxNumTries
+                + ", Domain = " + domain.getName()
                 + ", Key = " + Bytes.bytesToHexString(key), e);
           } else {
             // If we have exhausted tries, return an exception response
             LOG.error("Failed to perform query with host: "
                 + connectionAndHostIndex.hostConnection.getHost().getAddress()
                 + ". Giving up. Try " + numTries + "/" + maxNumTries
+                + ", Domain = " + domain.getName()
                 + ", Key = " + Bytes.bytesToHexString(key), e);
             return HankResponse.xception(HankException.failed_retries(maxNumTries));
           }

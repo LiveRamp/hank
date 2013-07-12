@@ -16,15 +16,17 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
-import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partition_server.IfaceWithShutdown;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
@@ -56,6 +58,8 @@ public class TestHostConnectionPool extends BaseTestCase {
 
   private TestHostConnection.MockPartitionServer mockPartitionServer1;
   private TestHostConnection.MockPartitionServer mockPartitionServer2;
+
+  private Domain mockDomain = new MockDomain("domain");
 
   private static abstract class MockIface implements IfaceWithShutdown {
 
@@ -163,7 +167,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     int numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -184,7 +188,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -205,7 +209,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -246,7 +250,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     int numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
       if (response.is_set_value()) {
         assertEquals(RESPONSE_1, response);
         ++numHits;
@@ -265,7 +269,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     numHits = 0;
 
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 2, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 2, null);
       assertEquals(RESPONSE_1, response);
       if (response.is_set_value()) {
         ++numHits;
@@ -310,7 +314,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     iface2.clearCounts();
     previousIface1NumGets = 0;
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 1, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 1, null);
       LOG.trace("Num retries = 1, sequence index = " + i +
           " host 1 gets = " + iface1.numGets + ", host 2 gets = " + iface2.numGets);
       if (response.is_set_value()) {
@@ -344,7 +348,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     iface2.clearCounts();
     previousIface1NumGets = 0;
     for (int i = 0; i < 10; ++i) {
-      HankResponse response = hostConnectionPool.get(0, KEY_1, 2, null);
+      HankResponse response = hostConnectionPool.get(mockDomain, KEY_1, 2, null);
       LOG.trace("Num retries = 2, sequence index = " + i +
           " host 1 gets = " + iface1.numGets + ", host 2 gets = " + iface2.numGets);
       assertEquals(RESPONSE_1, response);
@@ -406,8 +410,8 @@ public class TestHostConnectionPool extends BaseTestCase {
       // Connection pools should try the same host first for a given key hash
       final int keyHash = 42;
       for (int i = 0; i < 10; ++i) {
-        HankResponse responseA = hostConnectionPoolA.get(0, KEY_1, 1, keyHash);
-        HankResponse responseB = hostConnectionPoolB.get(0, KEY_1, 1, keyHash);
+        HankResponse responseA = hostConnectionPoolA.get(mockDomain, KEY_1, 1, keyHash);
+        HankResponse responseB = hostConnectionPoolB.get(mockDomain, KEY_1, 1, keyHash);
         assertEquals(RESPONSE_1, responseA);
         assertEquals(RESPONSE_1, responseB);
         if (responseA.is_set_value() && responseB.is_set_value()) {

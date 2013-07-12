@@ -458,7 +458,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     if (LOG.isTraceEnabled()) {
       LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
     }
-    return hostConnectionPool.get(domain.getId(), key, queryMaxNumTries, keyHash);
+    return hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
   }
 
   // The real getBulk is disabled for now, until we can make it more performant.
