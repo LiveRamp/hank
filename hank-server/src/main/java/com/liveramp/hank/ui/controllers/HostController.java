@@ -1,6 +1,7 @@
 package com.liveramp.hank.ui.controllers;
 
 import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
 import com.liveramp.hank.ui.URLEnc;
 
 import javax.servlet.http.HttpServletRequest;
@@ -47,6 +48,12 @@ public class HostController extends Controller {
       @Override
       protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         doUpdate(req, resp);
+      }
+    });
+    actions.put("assign", new Action() {
+      @Override
+      protected void action(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doAssign(req, resp);
       }
     });
   }
@@ -106,6 +113,20 @@ public class HostController extends Controller {
     } else {
       redirectBack(resp, rg, r, h);
     }
+  }
+
+  protected void doAssign(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    RingGroup rg = coordinator.getRingGroup(req.getParameter("g"));
+    Ring r = rg.getRing(Integer.parseInt(req.getParameter("n")));
+    Host h = r.getHostByAddress(PartitionServerAddress.parse(URLEnc.decode(req.getParameter("h"))));
+
+    // TODO: make this assigner configurable
+    ModPartitionAssigner assigner = new ModPartitionAssigner();
+    assigner.prepare(r, rg.getDomainGroup().getDomainVersions());
+    if (!assigner.isAssigned(h)) {
+      assigner.assign(h);
+    }
+    redirectBack(resp, rg, r, h);
   }
 
   public static String getHostUrl(RingGroup ringGroup, Ring ring, Host host) {
