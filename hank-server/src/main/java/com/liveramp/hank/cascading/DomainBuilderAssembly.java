@@ -90,7 +90,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     @Override
     public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
-      Integer partition = ((IntWritable) filterCall.getArguments().get(0)).get();
+      Integer partition = ((IntWritable) filterCall.getArguments().getObject(0)).get();
       return partition != partitionToKeep;
     }
   }
@@ -114,7 +114,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
       // Compute partition and comparable key
       TupleEntry tupleEntry = call.getArguments();
-      BytesWritable key = (BytesWritable) tupleEntry.get(0);
+      BytesWritable key = (BytesWritable) tupleEntry.getObject(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
       PartitionIntWritable partition = new PartitionIntWritable(partitioner.partition(keyByteBuffer, domainNumParts));
       ByteBuffer comparableKey = storageEngine.getComparableKey(keyByteBuffer);
