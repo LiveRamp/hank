@@ -553,7 +553,7 @@ public class IntegrationTest extends ZkTestCase {
           throw new RuntimeException(e);
         }
       }
-    });
+    }, 60 * 1000);
   }
 
   private void startSmartClientServer() throws Exception {

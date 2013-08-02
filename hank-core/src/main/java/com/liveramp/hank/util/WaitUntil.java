@@ -26,7 +26,11 @@ public class WaitUntil {
   }
 
   public static void orDie(Condition condition) throws InterruptedException {
-    ExponentialBackoff exponentialBackoff = new ExponentialBackoff();
+    orDie(condition, ExponentialBackoff.DEFAULT_MAXIMUM_BACKOFF_MS);
+  }
+
+  public static void orDie(Condition condition, long maximumBackoffMs) throws InterruptedException {
+    ExponentialBackoff exponentialBackoff = new ExponentialBackoff(ExponentialBackoff.DEFAULT_INITIAL_BACKOFF_MS, maximumBackoffMs);
     while (!condition.test()) {
       if (exponentialBackoff.isMaxedOut()) {
         throw new RuntimeException("Timed out while waiting for condition to test true: " + condition);
