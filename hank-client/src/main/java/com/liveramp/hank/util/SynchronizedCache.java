@@ -20,7 +20,7 @@ public class SynchronizedCache<K, V> {
 
   private final LruHashMap<K, V> cache;
 
-  // A cache capacity of 0 will disable the cache and will not add any synchronization overhead
+  // A cache capacity <= 0 will disable the cache and will not add any synchronization overhead
   public SynchronizedCache(int cacheCapacity) {
     if (cacheCapacity <= 0) {
       cache = null;
