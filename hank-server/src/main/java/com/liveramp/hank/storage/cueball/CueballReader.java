@@ -31,6 +31,7 @@ import java.util.SortedSet;
 public class CueballReader implements Reader {
 
   private static final KeyHashBufferThreadLocal keyHashBufferThreadLocal = new KeyHashBufferThreadLocal();
+  private static final ByteBuffer NOT_FOUND_MARKER = ByteBuffer.wrap(new byte[]{});
 
   private final Hasher hasher;
   private final int valueSize;
@@ -126,7 +127,13 @@ public class CueballReader implements Reader {
         if (cache != null) {
           addValueToCache(keyHashByteBuffer, buffer);
         }
+      } else {
+        // key not found
+        if (cache != null) {
+          addNotFoundToCache(keyHashByteBuffer);
+        }
       }
+
     }
   }
 
@@ -192,6 +199,12 @@ public class CueballReader implements Reader {
     }
   }
 
+  private void addNotFoundToCache(ByteBuffer keyHash) {
+    synchronized (cache) {
+      cache.put(Bytes.byteBufferDeepCopy(keyHash), NOT_FOUND_MARKER);
+    }
+  }
+
   // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer keyHash, ReaderResult result) {
     ByteBuffer value;
@@ -199,12 +212,20 @@ public class CueballReader implements Reader {
       value = cache.get(keyHash);
     }
     if (value != null) {
-      // Load cached value into result
-      result.deepCopyIntoResultBuffer(value);
-      result.found();
+      // Compare against the not found marker (note that this is an address equality
+      // and not an object equality on purpose)
+      if (value != NOT_FOUND_MARKER) {
+        // Load cached value into result
+        result.deepCopyIntoResultBuffer(value);
+        result.found();
+      } else {
+        result.notFound();
+      }
+      // Was found in cache
       result.setL1CacheHit(true);
       return true;
     } else {
+      // Was not found in cache
       return false;
     }
   }

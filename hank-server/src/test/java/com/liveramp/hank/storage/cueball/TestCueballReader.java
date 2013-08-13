@@ -86,5 +86,18 @@ public class TestCueballReader extends AbstractCueballTest {
     assertEquals(true, result.getL1CacheHit());
     assertEquals(false, result.getL2CacheHit());
     result.clear();
+
+    // Test cache for keys not found
+    reader.get(ByteBuffer.wrap(KEY4), result);
+    assertFalse(result.isFound());
+    assertEquals(false, result.getL1CacheHit());
+    assertEquals(false, result.getL2CacheHit());
+    result.clear();
+
+    reader.get(ByteBuffer.wrap(KEY4), result);
+    assertFalse(result.isFound());
+    assertEquals(true, result.getL1CacheHit());
+    assertEquals(false, result.getL2CacheHit());
+    result.clear();
   }
 }
