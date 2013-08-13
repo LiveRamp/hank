@@ -115,11 +115,10 @@ public class RuntimeStatisticsAggregator {
   }
 
   public double getL2CacheHitRate() {
-    long numL2RequestsTotal = numRequestsTotal - numL1CacheHitsTotal;
-    if (numL2RequestsTotal == 0) {
+    if (numHitsTotal == 0) {
       return 0;
     } else {
-      return (double) numL2CacheHitsTotal / ((double) numL2RequestsTotal);
+      return (double) numL2CacheHitsTotal / ((double) numHitsTotal);
     }
   }
 
