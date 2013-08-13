@@ -22,7 +22,7 @@ import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
-import com.liveramp.hank.util.LruHashMap;
+import com.liveramp.hank.util.SynchronizedCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
 
 import java.io.FileInputStream;
@@ -39,7 +39,7 @@ public class CurlyReader implements Reader, ICurlyReader {
   private final int readBufferSize;
   private final FileChannel recordFile;
   private final int versionNumber;
-  private LruHashMap<ByteBuffer, ByteBuffer> cache;
+  private SynchronizedCache<ByteBuffer, ByteBuffer> cache;
   private final CompressionCodec blockCompressionCodec;
   private final int offsetNumBytes;
   private final int offsetInBlockNumBytes;
@@ -115,11 +115,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
-    if (cacheCapacity > 0) {
-      this.cache = new LruHashMap<ByteBuffer, ByteBuffer>(0, cacheCapacity);
-    } else {
-      this.cache = null;
-    }
+    this.cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity);
     // Check that key file is at the same version
     if (keyFileReader != null &&
         keyFileReader.getVersionNumber() != null &&
@@ -136,11 +132,11 @@ public class CurlyReader implements Reader, ICurlyReader {
   // Note: the buffer in result must be at least readBufferSize long
   public void readRecord(ByteBuffer location, ReaderResult result) throws IOException {
     // Attempt to load value from the cache
-    if (cache != null && loadValueFromCache(location, result)) {
+    if (loadValueFromCache(location, result)) {
       return;
     }
-    // Deep copy the location if caching is activated, since result might point to location and overwrite it
-    ByteBuffer locationDeepCopy = cache != null ? Bytes.byteBufferDeepCopy(location) : null;
+    // Deep copy the location if caching is active, since result might point to location and overwrite it
+    ByteBuffer locationDeepCopy = cache.isActive() ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);
@@ -185,9 +181,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       result.getBuffer().flip();
     }
     // Store result in cache if needed
-    if (cache != null) {
-      addValueToCache(locationDeepCopy, result.getBuffer());
-    }
+    addValueToCache(locationDeepCopy, result.getBuffer());
   }
 
   private ByteBuffer decompressBlock(ByteBuffer block) throws IOException {
@@ -279,17 +273,12 @@ public class CurlyReader implements Reader, ICurlyReader {
 
   // Note: location should already be a deep copy that won't get modified
   private void addValueToCache(ByteBuffer location, ByteBuffer value) {
-    synchronized (cache) {
-      cache.put(location, Bytes.byteBufferDeepCopy(value));
-    }
+    cache.put(location, Bytes.byteBufferDeepCopy(value));
   }
 
   // Return true if managed to read the corresponding value from the cache and into result
   private boolean loadValueFromCache(ByteBuffer location, ReaderResult result) {
-    ByteBuffer value;
-    synchronized (cache) {
-      value = cache.get(location);
-    }
+    ByteBuffer value = cache.get(location);
     if (value != null) {
       result.deepCopyIntoResultBuffer(value);
       result.found();
