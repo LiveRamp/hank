@@ -418,14 +418,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   private FutureGet _concurrentGet(Domain domain, ByteBuffer key) {
-    // Check for null keys
-    if (key == null) {
-      throw new NullKeyException();
-    }
-    // Check for empty keys
-    if (key.remaining() == 0) {
-      throw new EmptyKeyException();
-    }
     FutureGet futureGet = new FutureGet(new GetTaskRunnable(domain, key));
     getTaskExecutor.execute(futureGet);
     return futureGet;
