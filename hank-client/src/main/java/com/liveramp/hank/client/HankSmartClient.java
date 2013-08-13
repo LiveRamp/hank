@@ -69,7 +69,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final UpdateRuntimeStatisticsRunnable updateRuntimeStatisticsRunnable;
   private final Thread updateRuntimeStatisticsThread;
 
-  // Cache
+  // Connection Cache
 
   private Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
       = new HashMap<PartitionServerAddress, HostConnectionPool>();
@@ -80,9 +80,9 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private Map<List<PartitionServerAddress>, HostConnectionPool> partitionServerAddressListToConnectionPool =
       new HashMap<List<PartitionServerAddress>, HostConnectionPool>();
 
-  private final Object cacheLock = new Object();
-  private final CacheUpdaterRunnable cacheUpdaterRunnable = new CacheUpdaterRunnable();
-  private final Thread cacheUpdaterThread;
+  private final Object connectionCacheLock = new Object();
+  private final ConnectionCacheUpdaterRunnable connectionCacheUpdaterRunnable = new ConnectionCacheUpdaterRunnable();
+  private final Thread connectionCacheUpdaterThread;
 
   public HankSmartClient(Coordinator coordinator,
                          HankSmartClientConfigurator configurator) throws IOException, TException {
@@ -155,15 +155,15 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     updateRuntimeStatisticsThread.setDaemon(true);
     updateRuntimeStatisticsThread.start();
 
-    // Initialize cache and cache updater
-    updateCache();
+    // Initialize connection cache and connection cache updater
+    updateConnectionCache();
     ringGroup.addDataLocationChangeListener(this);
-    cacheUpdaterThread = new Thread(cacheUpdaterRunnable, "Cache Updater Thread");
-    cacheUpdaterThread.setDaemon(true);
-    cacheUpdaterThread.start();
+    connectionCacheUpdaterThread = new Thread(connectionCacheUpdaterRunnable, "Cache Updater Thread");
+    connectionCacheUpdaterThread.setDaemon(true);
+    connectionCacheUpdaterThread.start();
   }
 
-  private void updateCache() throws IOException, TException {
+  private void updateConnectionCache() throws IOException, TException {
     LOG.info("Loading Hank's smart client metadata cache and connections.");
 
     // Create new empty cache
@@ -177,7 +177,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         new HashMap<List<PartitionServerAddress>, HostConnectionPool>();
 
     // Build new cache
-    buildNewCache(
+    buildNewConnectionCache(
         newPartitionServerAddressToConnectionPool,
         newDomainToPartitionToPartitionServerAddressList,
         newDomainToPartitionToConnectionPool,
@@ -186,7 +186,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Switch old cache for new cache
     final Map<PartitionServerAddress, HostConnectionPool> oldPartitionServerAddressToConnectionPool
         = partitionServerAddressToConnectionPool;
-    synchronized (cacheLock) {
+    synchronized (connectionCacheLock) {
       partitionServerAddressToConnectionPool = newPartitionServerAddressToConnectionPool;
       domainToPartitionToPartitionServerAddressList = newDomainToPartitionToPartitionServerAddressList;
       domainToPartitionToConnectionPool = newDomainToPartitionToConnectionPool;
@@ -207,7 +207,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
   }
 
-  private class CacheUpdaterRunnable implements Runnable {
+  private class ConnectionCacheUpdaterRunnable implements Runnable {
 
     private volatile boolean stopping = false;
     private Semaphore semaphore = new Semaphore(0);
@@ -229,7 +229,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         }
         if (!stopping) {
           try {
-            updateCache();
+            updateConnectionCache();
             // Sleep for a given time period to avoid doing cache updates too frequently
             Thread.sleep(CACHE_UPDATER_MINIMUM_WAIT_MS);
           } catch (Exception e) {
@@ -250,7 +250,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
   }
 
-  private void buildNewCache(
+  private void buildNewConnectionCache(
       final Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
       final Map<Integer, Map<Integer, List<PartitionServerAddress>>> newDomainToPartitionToPartitionServerAddressList,
       final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool,
@@ -444,7 +444,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
     Map<Integer, HostConnectionPool> partitionToConnectionPool;
-    synchronized (cacheLock) {
+    synchronized (connectionCacheLock) {
       partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
     }
     if (partitionToConnectionPool == null) {
@@ -467,12 +467,12 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   @Override
   public void stop() {
     stopGetTaskExecutor();
-    cacheUpdaterRunnable.cancel();
-    cacheUpdaterThread.interrupt();
+    connectionCacheUpdaterRunnable.cancel();
+    connectionCacheUpdaterThread.interrupt();
     updateRuntimeStatisticsRunnable.cancel();
     updateRuntimeStatisticsThread.interrupt();
     try {
-      cacheUpdaterThread.join();
+      connectionCacheUpdaterThread.join();
       updateRuntimeStatisticsThread.join();
     } catch (InterruptedException e) {
       LOG.info("Interrupted while waiting for updater threads to terminate during shutdown.");
@@ -494,7 +494,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   private void disconnect() {
-    synchronized (cacheLock) {
+    synchronized (connectionCacheLock) {
       for (HostConnectionPool hostConnectionPool : partitionServerAddressToConnectionPool.values()) {
         for (HostConnection connection : hostConnectionPool.getConnections()) {
           connection.disconnect();
@@ -506,7 +506,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   @Override
   public void onDataLocationChange(RingGroup ringGroup) {
     LOG.debug("Smart client notified of data location change.");
-    cacheUpdaterRunnable.wakeUp();
+    connectionCacheUpdaterRunnable.wakeUp();
   }
 
   private class StaticGetTaskRunnable implements GetTaskRunnableIface {
