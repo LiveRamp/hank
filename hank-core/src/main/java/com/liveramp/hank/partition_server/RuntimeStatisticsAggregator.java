@@ -107,18 +107,18 @@ public class RuntimeStatisticsAggregator {
   }
 
   public double getL1CacheHitRate() {
-    if (numHitsTotal == 0) {
+    if (numRequestsTotal == 0) {
       return 0;
     } else {
-      return (double) numL1CacheHitsTotal / (double) numHitsTotal;
+      return (double) numL1CacheHitsTotal / (double) numRequestsTotal;
     }
   }
 
   public double getL2CacheHitRate() {
-    if (numHitsTotal == 0) {
+    if (numRequestsTotal == 0) {
       return 0;
     } else {
-      return (double) numL2CacheHitsTotal / (double) numHitsTotal;
+      return (double) numL2CacheHitsTotal / (double) numRequestsTotal;
     }
   }
 

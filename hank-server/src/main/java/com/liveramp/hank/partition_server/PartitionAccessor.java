@@ -18,10 +18,10 @@ package com.liveramp.hank.partition_server;
 
 import com.liveramp.hank.coordinator.HostDomainPartition;
 import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.AtomicLongCollection;
+import com.liveramp.hank.util.HankTimer;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -66,16 +66,13 @@ public class PartitionAccessor {
     // Increment requests counter
     LOG.trace("Partition GET");
     reader.get(key, result);
+    int l1CacheHit = result.getL1CacheHit() ? 1 : 0;
+    int l2CacheHit = result.getL2CacheHit() ? 1 : 0;
     if (result.isFound()) {
-      // Increment both num requests and num hits and responses data num bytes and cache hits
-      countersWindow.increment(1, 1,
-          result.getBuffer().remaining(),
-          result.getL1CacheHit() ? 1 : 0,
-          result.getL2CacheHit() ? 1 : 0);
+      countersWindow.increment(1, 1, result.getBuffer().remaining(), l1CacheHit, l2CacheHit);
       return HankResponse.value(result.getBuffer());
     } else {
-      // Increment only num requests
-      countersWindow.increment(1, 0, 0, 0, 0);
+      countersWindow.increment(1, 0, 0, l1CacheHit, l2CacheHit);
       return NOT_FOUND;
     }
   }
