@@ -28,7 +28,10 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 import static com.liveramp.hank.client.HostConnectionPool.getHostListShuffleSeed;
@@ -461,117 +464,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     return hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
   }
 
-  // The real getBulk is disabled for now, until we can make it more performant.
-  /*
-  @Override
-  public HankBulkResponse getBulk(String domainName, List<ByteBuffer> keys) {
-
-    // Get Domain
-    Domain domain = coordinator.getDomain(domainName);
-    if (domain == null) {
-      LOG.error("No such Domain: " + domainName);
-      return NO_SUCH_DOMAIN_BULK;
-    }
-
-    // Get partition to partition server addresses for given domain
-    Map<Integer, List<PartitionServerAddress>> partitionToPartitionServerAddresses;
-    synchronized (cacheLock) {
-      partitionToPartitionServerAddresses = domainToPartitionToPartitionServerAddressList.get(domain.getId());
-    }
-    if (partitionToPartitionServerAddresses == null) {
-      String errMsg = String.format("Got a null set of partition to hosts pairs when looking for domain %s.", domain.getName());
-      LOG.error(errMsg);
-      return HankBulkResponse.xception(HankException.internal_error(errMsg));
-    }
-
-    // Build requests for each partition server list
-
-    Map<List<PartitionServerAddress>, BulkRequest[]> partitionServerListTobulkRequestList
-        = new HashMap<List<PartitionServerAddress>, BulkRequest[]>();
-
-    int keyIndex = 0;
-    for (ByteBuffer key : keys) {
-      // Determine key's partition
-      int partition = domain.getPartitioner().partition(key, domain.getNumParts());
-
-      // Get list of partition server addresses for this partition
-      List<PartitionServerAddress> partitionServerAddressList = partitionToPartitionServerAddresses.get(partition);
-      if (partitionServerAddressList == null) {
-        String errMsg = String.format("Got a null set of hosts for partition %d in domain %s (%d).", partition, domain.getName(), domain.getId());
-        LOG.error(errMsg);
-        return HankBulkResponse.xception(HankException.internal_error(errMsg));
-      }
-      if (partitionServerAddressList.size() == 0) {
-        String errMsg = String.format("Got an empty set of hosts for partition %d in domain %s (%d).", partition, domain.getName(), domain.getId());
-        LOG.error(errMsg);
-        return HankBulkResponse.xception(HankException.internal_error(errMsg));
-      }
-
-      // Add this key to the bulk request object corresponding to the chosen partition server
-      if (!partitionServerListTobulkRequestList.containsKey(partitionServerAddressList)) {
-        // Create as many bulk requests as the number of hosts available in that list
-        int numAvailableHosts = partitionServerAddressListToConnectionPool.get(partitionServerAddressList).getNumAvailableHosts();
-        // If no hosts are available, create one bulk request anyway
-        if (numAvailableHosts == 0) {
-          numAvailableHosts = 1;
-        }
-        BulkRequest[] bulkRequestList = new BulkRequest[numAvailableHosts];
-        for (int i = 0; i < numAvailableHosts; ++i) {
-          bulkRequestList[i] = new BulkRequest();
-        }
-        partitionServerListTobulkRequestList.put(partitionServerAddressList, bulkRequestList);
-      }
-      // Add this key to a random bulk request for the corresponding partition server list
-      BulkRequest[] bulkRequestList = partitionServerListTobulkRequestList.get(partitionServerAddressList);
-      bulkRequestList[random.nextInt(bulkRequestList.length)].addItem(key, keyIndex);
-
-      // Update key index
-      ++keyIndex;
-    }
-
-    // Prepare responses list
-    List<HankResponse> allResponses = new ArrayList<HankResponse>(keys.size());
-    for (int i = 0; i < keys.size(); ++i) {
-      allResponses.add(new HankResponse());
-    }
-
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Looking in domain " + domainName + " for " + keys.size() + " keys");
-    }
-
-    // Create threads to execute requests
-    // TODO: use asynchronous getBulk?
-    List<Thread> requestThreads = new ArrayList<Thread>(partitionServerListTobulkRequestList.keySet().size());
-    for (Map.Entry<List<PartitionServerAddress>, BulkRequest[]> entry : partitionServerListTobulkRequestList.entrySet()) {
-      List<PartitionServerAddress> partitionServerAddressList = entry.getKey();
-      BulkRequest[] bulkRequestList = entry.getValue();
-      // Find connection set
-
-      HostConnectionPool connectionPool;
-      synchronized (cacheLock) {
-        connectionPool = partitionServerAddressListToConnectionPool.get(partitionServerAddressList);
-      }
-      for (BulkRequest bulkRequest : bulkRequestList) {
-        Thread thread = new Thread(new GetBulkRunnable(domain.getId(), bulkRequest, connectionPool, allResponses));
-        thread.start();
-        requestThreads.add(thread);
-      }
-    }
-
-    // Wait for all threads
-    for (Thread thread : requestThreads) {
-      try {
-        thread.join();
-      } catch (InterruptedException e) {
-        return HankBulkResponse.xception(
-            HankException.internal_error("HankSmartClient was interrupted while executing a bulk get request."));
-      }
-    }
-
-    return HankBulkResponse.responses(allResponses);
-  }
-  */
-
   @Override
   public void stop() {
     stopGetTaskExecutor();
@@ -615,76 +507,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   public void onDataLocationChange(RingGroup ringGroup) {
     LOG.debug("Smart client notified of data location change.");
     cacheUpdaterRunnable.wakeUp();
-  }
-
-  private static class BulkRequest {
-    private final List<Integer> keyIndices = new ArrayList<Integer>();
-    private final List<ByteBuffer> keys = new ArrayList<ByteBuffer>();
-
-    public BulkRequest() {
-    }
-
-    // Note: key index is the original index of the key in the global bulk request. This allows us to place
-    // the corresponding HankResponse at the same index in the HankBulkResponse.
-    public void addItem(ByteBuffer key, int keyIndex) {
-      keys.add(key);
-      keyIndices.add(keyIndex);
-    }
-
-    public List<ByteBuffer> getKeys() {
-      return keys;
-    }
-
-    public List<Integer> getKeyIndices() {
-      return keyIndices;
-    }
-  }
-
-  private class GetBulkRunnable implements Runnable {
-    private final int domainId;
-    private final BulkRequest bulkRequest;
-    private final HostConnectionPool connectionPool;
-    private final List<HankResponse> allResponses;
-
-    public GetBulkRunnable(int domainId,
-                           BulkRequest bulkRequest,
-                           HostConnectionPool connectionPool,
-                           List<HankResponse> allResponses) {
-      this.domainId = domainId;
-      this.bulkRequest = bulkRequest;
-      this.connectionPool = connectionPool;
-      this.allResponses = allResponses;
-    }
-
-    public void run() {
-      HankBulkResponse response;
-      // Execute request
-      response = connectionPool.getBulk(domainId, bulkRequest.getKeys(), queryMaxNumTries);
-      // Request succeeded
-      if (response.is_set_xception()) {
-        // Fill responses with error
-        for (int responseIndex : bulkRequest.getKeyIndices()) {
-          allResponses.get(responseIndex).set_xception(response.get_xception());
-        }
-      } else if (response.is_set_responses()) {
-        // Valid response, load results into final response
-        if (response.get_responses().size() != bulkRequest.getKeys().size()) {
-          throw new RuntimeException(
-              String.format("Number of responses in bulk response (%d) does not match number of keys requested (%d)",
-                  response.get_responses().size(), bulkRequest.getKeys().size()));
-        }
-        Iterator<Integer> keyIndexIterator = bulkRequest.getKeyIndices().iterator();
-        int intermediateKeyIndex = 0;
-        // Note: keys and keyIds should be the same size
-        while (keyIndexIterator.hasNext()) {
-          int finalKeyIndex = keyIndexIterator.next();
-          allResponses.set(finalKeyIndex, response.get_responses().get(intermediateKeyIndex));
-          ++intermediateKeyIndex;
-        }
-      } else {
-        throw new RuntimeException("Unknown bulk response type.");
-      }
-    }
   }
 
   private class StaticGetTaskRunnable implements GetTaskRunnableIface {
