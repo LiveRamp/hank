@@ -47,7 +47,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private WatchedMap<WatchedThriftNode<ClientMetadata>> clients;
 
   private final WatchedEnum<RingGroupConductorMode> ringGroupConductorMode;
-  private final Set<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new HashSet<RingGroupDataLocationChangeListener>();
+  private final List<RingGroupDataLocationChangeListener> dataLocationChangeListeners = new ArrayList<RingGroupDataLocationChangeListener>();
   private final DataLocationChangeListener dataLocationChangeListener = new LocalDataLocationChangeListener();
 
   public static ZkRingGroup create(ZooKeeperPlus zk, String path, ZkDomainGroup domainGroup, Coordinator coordinator) throws KeeperException, InterruptedException, IOException {

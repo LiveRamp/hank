@@ -21,7 +21,9 @@ import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -29,10 +31,10 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   private final String name;
   private final Set<Ring> ringConfigs;
   private RingGroupConductorMode ringGroupConductorMode = null;
-  private Collection<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
-      = new TreeSet<WatchedNodeListener<RingGroupConductorMode>>();
-  private Collection<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
-      = new TreeSet<RingGroupDataLocationChangeListener>();
+  private List<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
+      = new ArrayList<WatchedNodeListener<RingGroupConductorMode>>();
+  private List<RingGroupDataLocationChangeListener> ringGroupDataLocationChangeListeners
+      = new ArrayList<RingGroupDataLocationChangeListener>();
   private final List<ClientMetadata> clients = new ArrayList<ClientMetadata>();
 
   public MockRingGroup(DomainGroup dcg,

@@ -60,11 +60,10 @@ public class TestHankSmartClient extends BaseTestCase {
   }
 
   private static class MockPartitionServerHandler implements PartitionServer.Iface {
-    @SuppressWarnings("unused")
-    private final int domainId;
     private final HankResponse response;
     private final HankBulkResponse bulkResponse;
     private Mode mode = Mode.NORMAL;
+    private int numRequests = 0;
 
     private static enum Mode {
       NORMAL,
@@ -73,8 +72,7 @@ public class TestHankSmartClient extends BaseTestCase {
       THROWING_ERROR
     }
 
-    public MockPartitionServerHandler(int domainId, ByteBuffer result) {
-      this.domainId = domainId;
+    public MockPartitionServerHandler(ByteBuffer result) {
       this.response = HankResponse.value(result);
       List<HankResponse> responses = new ArrayList<HankResponse>();
       responses.add(HankResponse.value(result));
@@ -84,13 +82,27 @@ public class TestHankSmartClient extends BaseTestCase {
     @Override
     public HankResponse get(int domainId, ByteBuffer key) throws TException {
       applyMode();
-      return response;
+      ++numRequests;
+      if (key.equals(KEY_NOT_FOUND)) {
+        return HankResponse.not_found(true);
+      } else {
+        return response;
+      }
     }
 
     @Override
     public HankBulkResponse getBulk(int domainId, List<ByteBuffer> keys) throws TException {
       applyMode();
+      numRequests += keys.size();
       return bulkResponse;
+    }
+
+    public int getNumRequests() {
+      return numRequests;
+    }
+
+    public void clearNumRequests() {
+      numRequests = 0;
     }
 
     public void setMode(Mode mode) {
@@ -122,34 +134,36 @@ public class TestHankSmartClient extends BaseTestCase {
   private static final ByteBuffer KEY_3 = ByteBuffer.wrap(new byte[]{3});
   private static final ByteBuffer VALUE_3 = ByteBuffer.wrap(new byte[]{3});
 
+  private static final ByteBuffer KEY_NOT_FOUND = ByteBuffer.wrap(new byte[]{9, 9, 9});
+
   public void testIt() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;
     int server3Port = 12347;
 
     // launch server 1
-    final PartitionServer.Iface iface1 = new MockPartitionServerHandler(0, VALUE_1);
+    final MockPartitionServerHandler iface1 = new MockPartitionServerHandler(VALUE_1);
     TNonblockingServerTransport transport1 = createPartitionServerTransport(server1Port);
     final TServer server1 = createPartitionServer(transport1, iface1);
     Thread thread1 = new Thread(new ServerRunnable(server1), "mock partition server thread 1");
     thread1.start();
 
     // launch server 2;
-    final PartitionServer.Iface iface2 = new MockPartitionServerHandler(0, VALUE_2);
+    final MockPartitionServerHandler iface2 = new MockPartitionServerHandler(VALUE_2);
     TNonblockingServerTransport transport2 = createPartitionServerTransport(server2Port);
     final TServer server2 = createPartitionServer(transport2, iface2);
     Thread thread2 = new Thread(new ServerRunnable(server2), "mock partition server thread 2");
     thread2.start();
 
     // launch server 3;
-    final PartitionServer.Iface iface3 = new MockPartitionServerHandler(1, VALUE_3);
+    final MockPartitionServerHandler iface3 = new MockPartitionServerHandler(VALUE_3);
     TNonblockingServerTransport transport3 = createPartitionServerTransport(server3Port);
     final TServer server3 = createPartitionServer(transport3, iface3);
     Thread thread3 = new Thread(new ServerRunnable(server3), "mock partition server thread 3");
     thread3.start();
 
     final MockDomain existentDomain = new MockDomain("existent_domain", 0, 2,
-        new MapPartitioner(KEY_1, 0, KEY_2, 1), null, null, null);
+        new MapPartitioner(KEY_1, 0, KEY_2, 1, KEY_NOT_FOUND, 0), null, null, null);
     final MockDomain newDomain = new MockDomain("new_domain", 1, 1,
         new MapPartitioner(KEY_3, 0), null, null, null);
 
@@ -160,13 +174,11 @@ public class TestHankSmartClient extends BaseTestCase {
     final Host host3 = getHost(newDomain, new PartitionServerAddress("localhost",
         server3Port), 0);
 
-    final Set<Host> mockRingHosts = new HashSet<Host>() {{
-      add(host1);
-      add(host2);
-    }};
+    final Set<Host> mockRingHosts = new HashSet<Host>();
+    mockRingHosts.add(host1);
+    mockRingHosts.add(host2);
 
     final MockRing mockRing = new MockRing(null, null, 1) {
-
       @Override
       public Set<Host> getHosts() {
         return mockRingHosts;
@@ -174,18 +186,12 @@ public class TestHankSmartClient extends BaseTestCase {
     };
 
     MockDomainGroup mockDomainGroup = new MockDomainGroup("myDomainGroup") {
-      private final Map<Integer, Domain> domains = new HashMap<Integer, Domain>() {
-        {
-          put(1, existentDomain);
-          put(2, newDomain);
-        }
-      };
-
       @Override
       public Set<DomainGroupDomainVersion> getDomainVersions() {
         return new HashSet<DomainGroupDomainVersion>(Arrays.asList(new DomainGroupDomainVersion(existentDomain, 1)));
       }
     };
+
     final MockRingGroup mockRingGroup = new MockRingGroup(
         mockDomainGroup, "myRingGroup", null) {
       @Override
@@ -193,6 +199,7 @@ public class TestHankSmartClient extends BaseTestCase {
         return Collections.singleton((Ring) mockRing);
       }
     };
+
     Coordinator mockCoord = new MockCoordinator() {
       @Override
       public RingGroup getRingGroup(String ringGroupName) {
@@ -221,6 +228,8 @@ public class TestHankSmartClient extends BaseTestCase {
     try {
       final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup",
           new HankSmartClientOptions().setQueryTimeoutMs(1000));
+      final HankSmartClient cachingClient = new HankSmartClient(mockCoord, "myRingGroup",
+          new HankSmartClientOptions().setResponseCacheCapacity(1).setResponseCacheExpirationSeconds(1));
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), client.get("nonexistent_domain", null));
@@ -292,25 +301,58 @@ public class TestHankSmartClient extends BaseTestCase {
       // TODO: Test not querying deletable partitions
 
       // Simulate servers that fail to perform gets
-      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.FAILING);
-      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.FAILING);
+      iface1.setMode(MockPartitionServerHandler.Mode.FAILING);
+      iface2.setMode(MockPartitionServerHandler.Mode.FAILING);
 
       assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
       assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
 
       // Simulate servers that throws an error
-      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
-      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
+      iface1.setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
+      iface2.setMode(MockPartitionServerHandler.Mode.THROWING_ERROR);
 
       assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
       assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
 
       // Simulate servers that hangs
-      ((MockPartitionServerHandler) iface1).setMode(MockPartitionServerHandler.Mode.HANGING);
-      ((MockPartitionServerHandler) iface2).setMode(MockPartitionServerHandler.Mode.HANGING);
+      iface1.setMode(MockPartitionServerHandler.Mode.HANGING);
+      iface2.setMode(MockPartitionServerHandler.Mode.HANGING);
 
       assertTrue(client.get("existent_domain", KEY_1).get_xception().get_failed_retries() > 0);
       assertTrue(client.get("existent_domain", KEY_2).get_xception().get_failed_retries() > 0);
+
+      // Test caching
+      iface1.setMode(MockPartitionServerHandler.Mode.NORMAL);
+      iface2.setMode(MockPartitionServerHandler.Mode.NORMAL);
+      iface3.setMode(MockPartitionServerHandler.Mode.NORMAL);
+
+      iface1.clearNumRequests();
+
+      // One request
+      assertEquals(HankResponse.value(VALUE_1), cachingClient.get("existent_domain", KEY_1));
+      assertEquals(1, iface1.getNumRequests());
+
+      // One cached request
+      assertEquals(HankResponse.value(VALUE_1), cachingClient.get("existent_domain", KEY_1));
+      assertEquals(1, iface1.getNumRequests());
+
+      iface1.clearNumRequests();
+
+      // One not found request
+      assertEquals(HankResponse.not_found(true), cachingClient.get("existent_domain", KEY_NOT_FOUND));
+      assertEquals(1, iface1.getNumRequests());
+
+      // One not found cached request
+      assertEquals(HankResponse.not_found(true), cachingClient.get("existent_domain", KEY_NOT_FOUND));
+      assertEquals(1, iface1.getNumRequests());
+
+      // Wait for cache to expire
+      Thread.sleep(2000);
+
+      // Should not be in cache anymore
+      assertEquals(HankResponse.not_found(true), cachingClient.get("existent_domain", KEY_NOT_FOUND));
+      assertEquals(2, iface1.getNumRequests());
+
     } finally {
       server1.stop();
       server2.stop();
