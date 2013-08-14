@@ -37,9 +37,26 @@ public abstract class AbstractDomain implements Domain {
   }
 
   @Override
-  public boolean equals(Object other) {
-    return other.getClass().equals(this.getClass())
-        && this.getId() == ((AbstractDomain) other).getId();
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    AbstractDomain that = (AbstractDomain) o;
+
+    if (getId() != that.getId()) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return getId();
   }
 
   @Override
