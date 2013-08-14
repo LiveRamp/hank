@@ -20,9 +20,7 @@ import com.liveramp.hank.coordinator.*;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.util.FormatUtils;
-import com.liveramp.hank.util.UpdateStatisticsRunnable;
+import com.liveramp.hank.util.*;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 
@@ -64,6 +62,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final int queryTimeoutMs;
   private final int bulkQueryTimeoutMs;
 
+  private final SynchronizedCacheExpiring<DomainAndKey, HankResponse> responseCache;
+  // 0: num queries
+  // 1: num cache hits
+  private final AtomicLongCollection requestsCounters;
+
   private final ThreadPoolExecutor getTaskExecutor;
 
   private final UpdateRuntimeStatisticsRunnable updateRuntimeStatisticsRunnable;
@@ -86,44 +89,22 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   public HankSmartClient(Coordinator coordinator,
                          HankSmartClientConfigurator configurator) throws IOException, TException {
-    this(coordinator,
-        configurator.getRingGroupName(),
-        configurator.getNumConnectionsPerHost(),
-        configurator.getQueryNumMaxTries(),
-        configurator.getTryLockConnectionTimeoutMs(),
-        configurator.getEstablishConnectionTimeoutMs(),
-        configurator.getQueryTimeoutMs(),
-        configurator.getBulkQueryTimeoutMs());
+    this(coordinator, configurator.getRingGroupName(), new HankSmartClientOptions()
+        .setNumConnectionsPerHost(configurator.getNumConnectionsPerHost())
+        .setQueryMaxNumTries(configurator.getQueryNumMaxTries())
+        .setTryLockConnectionTimeoutMs(configurator.getTryLockConnectionTimeoutMs())
+        .setEstablishConnectionTimeoutMs(configurator.getEstablishConnectionTimeoutMs())
+        .setQueryTimeoutMs(configurator.getQueryTimeoutMs())
+        .setBulkQueryTimeoutMs(configurator.getBulkQueryTimeoutMs()));
+  }
+
+  public HankSmartClient(Coordinator coordinator, String ringGroupName) throws IOException, TException {
+    this(coordinator, ringGroupName, new HankSmartClientOptions());
   }
 
   public HankSmartClient(Coordinator coordinator,
                          String ringGroupName,
-                         int numConnectionsPerHost,
-                         int queryMaxNumTries,
-                         int tryLockConnectionTimeoutMs,
-                         int establishConnectionTimeoutMs,
-                         int queryTimeoutMs,
-                         int bulkQueryTimeoutMs) throws IOException, TException {
-    this(coordinator,
-        ringGroupName,
-        numConnectionsPerHost,
-        queryMaxNumTries,
-        tryLockConnectionTimeoutMs,
-        establishConnectionTimeoutMs,
-        queryTimeoutMs,
-        bulkQueryTimeoutMs,
-        Integer.MAX_VALUE);
-  }
-
-  public HankSmartClient(Coordinator coordinator,
-                         String ringGroupName,
-                         int numConnectionsPerHost,
-                         int queryMaxNumTries,
-                         int tryLockConnectionTimeoutMs,
-                         int establishConnectionTimeoutMs,
-                         int queryTimeoutMs,
-                         int bulkQueryTimeoutMs,
-                         int concurrentGetThreadPoolMaxSize) throws IOException, TException {
+                         HankSmartClientOptions options) throws IOException, TException {
     this.coordinator = coordinator;
     ringGroup = coordinator.getRingGroup(ringGroupName);
 
@@ -133,18 +114,20 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
     ringGroup.registerClient(Clients.getClientMetadata(this));
 
-    this.numConnectionsPerHost = numConnectionsPerHost;
-    this.queryMaxNumTries = queryMaxNumTries;
-    this.tryLockConnectionTimeoutMs = tryLockConnectionTimeoutMs;
-    this.establishConnectionTimeoutMs = establishConnectionTimeoutMs;
-    this.queryTimeoutMs = queryTimeoutMs;
-    this.bulkQueryTimeoutMs = bulkQueryTimeoutMs;
+    this.numConnectionsPerHost = options.getNumConnectionsPerHost();
+    this.queryMaxNumTries = options.getQueryMaxNumTries();
+    this.tryLockConnectionTimeoutMs = options.getTryLockConnectionTimeoutMs();
+    this.establishConnectionTimeoutMs = options.getEstablishConnectionTimeoutMs();
+    this.queryTimeoutMs = options.getQueryTimeoutMs();
+    this.bulkQueryTimeoutMs = options.getBulkQueryTimeoutMs();
+    this.responseCache = new SynchronizedCacheExpiring<DomainAndKey, HankResponse>(options.getResponseCacheCapacity(), options.getResponseCacheExpirationSeconds());
+    this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
     // Initialize get task executor with 0 core threads and a bounded maximum number of threads (default is unbounded).
     // The queue is a synchronous queue so that we create new threads even though there might be more
     // than number of core threads threads running
     this.getTaskExecutor = new ThreadPoolExecutor(
         0,
-        concurrentGetThreadPoolMaxSize,
+        options.getConcurrentGetThreadPoolMaxSize(),
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
         new SynchronousQueue<Runnable>(),
@@ -432,28 +415,50 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     if (key.remaining() == 0) {
       throw new EmptyKeyException();
     }
-    int partition = domain.getPartitioner().partition(key, domain.getNumParts());
-    int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
-    Map<Integer, HostConnectionPool> partitionToConnectionPool;
-    synchronized (connectionCacheLock) {
-      partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
-    }
-    if (partitionToConnectionPool == null) {
-      LOG.error(String.format("Could not find domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId()));
-      return NO_REPLICA;
-    }
+    // Attempt to load from cache
+    DomainAndKey domainAndKey = new DomainAndKey(domain, key);
+    HankResponse cachedResponse = responseCache.get(domainAndKey);
+    if (cachedResponse != null) {
+      // One request, in cache
+      requestsCounters.increment(1, 1);
+      return cachedResponse;
+    } else {
+      try {
+        // Determine HostConnectionPool to use
+        int partition = domain.getPartitioner().partition(key, domain.getNumParts());
+        int keyHash = domain.getPartitioner().partition(key, Integer.MAX_VALUE);
 
-    HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
-    if (hostConnectionPool == null) {
-      // this is a problem, since the cache must not have been loaded correctly
-      LOG.error(String.format("Could not find list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition));
-      return NO_REPLICA;
+        Map<Integer, HostConnectionPool> partitionToConnectionPool;
+        synchronized (connectionCacheLock) {
+          partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
+        }
+        if (partitionToConnectionPool == null) {
+          LOG.error(String.format("Could not find domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId()));
+          return NO_REPLICA;
+        }
+
+        HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
+        if (hostConnectionPool == null) {
+          // this is a problem, since the cache must not have been loaded correctly
+          LOG.error(String.format("Could not find list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition));
+          return NO_REPLICA;
+        }
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
+        }
+        // Perform get
+        HankResponse response = hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
+        // Cache response if necessary, do not cache exceptions
+        if (response.is_set_not_found() || response.is_set_value()) {
+          responseCache.put(domainAndKey, response);
+        }
+        return response;
+      } finally {
+        // One request, not in cache
+        requestsCounters.increment(1, 0);
+      }
     }
-    if (LOG.isTraceEnabled()) {
-      LOG.trace("Looking in domain " + domain.getName() + ", in partition " + partition + ", for key: " + Bytes.bytesToHexString(key));
-    }
-    return hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
   }
 
   @Override
@@ -555,6 +560,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private class UpdateRuntimeStatisticsRunnable extends UpdateStatisticsRunnable implements Runnable {
 
     private final Map<PartitionServerAddress, ConnectionLoad> partitionServerToConnectionLoad;
+    private final HankTimer timer = new HankTimer();
 
     public UpdateRuntimeStatisticsRunnable() {
       super(UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT);
@@ -592,6 +598,18 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           LOG.info("Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
               + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
         }
+      }
+      // Restart timer
+      long timerDurationMs = timer.getDurationMs();
+      timer.restart();
+      // Log requests counters
+      long[] requestsCounterValues = requestsCounters.getAsArrayAndSet(0, 0);
+      long numRequests = requestsCounterValues[0];
+      long numCacheHits = requestsCounterValues[1];
+      if (timerDurationMs != 0 && numRequests != 0) {
+        double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
+        double cacheHitRate = (double) numCacheHits / (double) numRequests;
+        LOG.info("Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
       }
     }
 

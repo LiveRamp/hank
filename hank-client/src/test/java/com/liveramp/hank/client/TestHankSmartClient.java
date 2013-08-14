@@ -219,7 +219,8 @@ public class TestHankSmartClient extends BaseTestCase {
     });
 
     try {
-      final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup", 1, 1, 0, 0, 1000, 0);
+      final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup",
+          new HankSmartClientOptions().setQueryTimeoutMs(1000));
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), client.get("nonexistent_domain", null));
@@ -251,28 +252,6 @@ public class TestHankSmartClient extends BaseTestCase {
       // Test get with empty key
       try {
         client.get("existent_domain", ByteBuffer.wrap(new byte[0]));
-        fail("Should throw an exception.");
-      } catch (EmptyKeyException e) {
-        // Good
-      }
-
-      // Test get bulk with null keys
-      try {
-        List<ByteBuffer> bulkRequest = new ArrayList<ByteBuffer>();
-        bulkRequest.add(KEY_1);
-        bulkRequest.add(null);
-        client.getBulk("existent_domain", bulkRequest);
-        fail("Should throw an exception.");
-      } catch (NullKeyException e) {
-        // Good
-      }
-
-      // Test get bulk with empty keys
-      try {
-        List<ByteBuffer> bulkRequest = new ArrayList<ByteBuffer>();
-        bulkRequest.add(KEY_1);
-        bulkRequest.add(ByteBuffer.wrap(new byte[0]));
-        client.getBulk("existent_domain", bulkRequest);
         fail("Should throw an exception.");
       } catch (EmptyKeyException e) {
         // Good

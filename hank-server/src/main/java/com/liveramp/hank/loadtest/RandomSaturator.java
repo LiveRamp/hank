@@ -1,6 +1,7 @@
 package com.liveramp.hank.loadtest;
 
 import com.liveramp.hank.client.HankSmartClient;
+import com.liveramp.hank.client.HankSmartClientOptions;
 import com.liveramp.hank.config.ClientConfigurator;
 import com.liveramp.hank.config.yaml.YamlClientConfigurator;
 import com.liveramp.hank.generated.HankResponse;
@@ -110,9 +111,13 @@ public class RandomSaturator {
     ReadWriteLock lock = new ReentrantReadWriteLock();
     lock.writeLock().lock();
 
-    final HankSmartClient client = new HankSmartClient(configurator.createCoordinator(),
-        ringGroupName, numConnectionsPerHost, queryMaxNumTries,
-        tryLockConnectionTimeoutMs, establishConnectionTimeoutMs, queryTimeoutMs, bulkQueryTimeoutMs);
+    final HankSmartClient client = new HankSmartClient(configurator.createCoordinator(), ringGroupName, new HankSmartClientOptions()
+        .setNumConnectionsPerHost(numConnectionsPerHost)
+        .setQueryMaxNumTries(queryMaxNumTries)
+        .setTryLockConnectionTimeoutMs(tryLockConnectionTimeoutMs)
+        .setEstablishConnectionTimeoutMs(establishConnectionTimeoutMs)
+        .setQueryTimeoutMs(queryTimeoutMs)
+        .setBulkQueryTimeoutMs(bulkQueryTimeoutMs));
 
     // instantiate all the threads
     List<LoadThread> threads = new ArrayList<LoadThread>();
