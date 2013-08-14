@@ -52,7 +52,7 @@ public class SynchronizedCache<K, V> {
   public void put(K key, V value) {
     if (cache != null) {
       if (value == null) {
-        throw new IllegalArgumentException("Value to cache should not be null.");
+        throw new IllegalArgumentException("Value to put in cache should not be null.");
       }
       synchronized (cache) {
         cache.put(key, value);
