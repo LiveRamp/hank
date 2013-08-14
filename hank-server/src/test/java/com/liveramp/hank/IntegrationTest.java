@@ -482,18 +482,18 @@ public class IntegrationTest extends ZkTestCase {
     });
 
     // keep making requests
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(1)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(2)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(3)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(4)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain0", bb(1)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain0", bb(2)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain0", bb(3)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain0", bb(4)));
 
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain0", bb(99)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain0", bb(99)));
 
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(4)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(3)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(2)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(1)));
-    assertEquals(HankResponse.xception(HankException.failed_retries(10)), dumbClient.get("domain1", bb(5)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain1", bb(4)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain1", bb(3)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain1", bb(2)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain1", bb(1)));
+    assertEquals(HankResponse.xception(HankException.failed_retries(1)), dumbClient.get("domain1", bb(5)));
 
     // restart one ring
     startDaemons(new PartitionServerAddress("localhost", 50000));
