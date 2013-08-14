@@ -54,8 +54,7 @@ public class PartitionAccessor {
     this.partition = partition;
     this.reader = reader;
     windowTimer.restart();
-    countersWindow = new AtomicLongCollection(5);
-    countersWindow.set(0, 0, 0, 0, 0);
+    countersWindow = new AtomicLongCollection(5, new long[]{0, 0, 0, 0, 0});
   }
 
   public HostDomainPartition getHostDomainPartition() {

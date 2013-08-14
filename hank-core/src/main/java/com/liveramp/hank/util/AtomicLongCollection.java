@@ -24,6 +24,11 @@ public class AtomicLongCollection {
     values = new long[size];
   }
 
+  public AtomicLongCollection(int size, long[] initialValues) {
+    values = new long[size];
+    set(initialValues);
+  }
+
   synchronized public void set(long... newValues) {
     if (values.length != newValues.length) {
       throw new RuntimeException("Expecting " + values.length + " values but was supplied " + newValues.length);
