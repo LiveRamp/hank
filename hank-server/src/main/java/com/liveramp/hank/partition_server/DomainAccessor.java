@@ -20,9 +20,10 @@ import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.partitioner.Partitioner;
+import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.HankTimerEventAggregator;
-import com.liveramp.hank.storage.ReaderResult;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
@@ -55,10 +56,10 @@ public class DomainAccessor {
   public HankResponse get(ByteBuffer key, ReaderResult result) throws IOException {
     HankTimer timer = getRequestsTimerAggregator.getTimer();
     try {
-      LOG.trace("Domain GET");
       int partition = partitioner.partition(key, partitionAccessors.length);
       PartitionAccessor partitionAccessor = partitionAccessors[partition];
       if (partitionAccessor == null) {
+        LOG.error("Failed to perform get: wrong host for partition: " + partition + ", key: " + Bytes.bytesToHexString(key));
         return WRONG_HOST;
       }
       return partitionAccessor.get(key, result);
