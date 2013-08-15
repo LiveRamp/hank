@@ -147,7 +147,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   private void updateConnectionCache() throws IOException, TException {
-    LOG.info("Loading Hank's smart client metadata cache and connections.");
+    LOG.info(getLogPrefix() + "Loading Hank's smart client metadata cache and connections.");
 
     // Create new empty cache
     final Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool
@@ -217,11 +217,11 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             Thread.sleep(CACHE_UPDATER_MINIMUM_WAIT_MS);
           } catch (Exception e) {
             // Log exception but do not rethrow since we don't want to exit the cache updater
-            LOG.error("Error while updating cache: ", e);
+            LOG.error(getLogPrefix() + "Error while updating cache: ", e);
           }
         }
       }
-      LOG.info("Cache Updater stopping.");
+      LOG.info(getLogPrefix() + "Cache Updater stopping.");
     }
 
     public void wakeUp() {
@@ -243,7 +243,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
 
-        LOG.info("Loading partition metadata for Host: " + host.getAddress());
+        LOG.info(getLogPrefix() + "Loading partition metadata for Host: " + host.getAddress());
 
         // Build new domainToPartitionToPartitionServerAddresses
         for (HostDomain hostDomain : host.getAssignedDomains()) {
@@ -252,7 +252,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             throw new IOException(String.format("Could not load Domain from HostDomain %s", hostDomain.toString()));
           }
           if (LOG.isDebugEnabled()) {
-            LOG.debug("Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
+            LOG.debug(getLogPrefix() + "Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
           }
           Map<Integer, List<PartitionServerAddress>> partitionToAdresses =
               newDomainToPartitionToPartitionServerAddressList.get(domain.getId());
@@ -277,7 +277,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         HostConnectionPool hostConnectionPool = partitionServerAddressToConnectionPool.get(host.getAddress());
         if (hostConnectionPool == null) {
           // Establish new connections to host
-          LOG.info("Establishing " + numConnectionsPerHost + " connections to " + host
+          LOG.info(getLogPrefix() + "Establishing " + numConnectionsPerHost + " connections to " + host
               + " with connection try lock timeout = " + tryLockConnectionTimeoutMs + "ms"
               + ", connection establishment timeout = " + establishConnectionTimeoutMs + "ms"
               + ", query timeout = " + queryTimeoutMs + "ms"
@@ -337,7 +337,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
-      LOG.error("No such Domain: " + domainName);
+      LOG.error(getLogPrefix() + "No such Domain: " + domainName);
       return NO_SUCH_DOMAIN;
     }
     return _get(domain, key);
@@ -349,7 +349,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Get Domain
     Domain domain = coordinator.getDomain(domainName);
     if (domain == null) {
-      LOG.error("No such Domain: " + domainName);
+      LOG.error(getLogPrefix() + "No such Domain: " + domainName);
       return NO_SUCH_DOMAIN_BULK;
     }
     // Execute futures
@@ -371,7 +371,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
-      LOG.error("No such Domain: " + domainName);
+      LOG.error(getLogPrefix() + "No such Domain: " + domainName);
       FutureGet noSuchDomainFutureGet = new FutureGet(new StaticGetTaskRunnable(NO_SUCH_DOMAIN));
       noSuchDomainFutureGet.run();
       return noSuchDomainFutureGet;
@@ -386,7 +386,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Get Domain
     Domain domain = this.coordinator.getDomain(domainName);
     if (domain == null) {
-      LOG.error("No such Domain: " + domainName);
+      LOG.error(getLogPrefix() + "No such Domain: " + domainName);
       FutureGet noSuchDomainFutureGet = new FutureGet(new StaticGetTaskRunnable(NO_SUCH_DOMAIN));
       noSuchDomainFutureGet.run();
       for (ByteBuffer key : keys) {
@@ -434,14 +434,14 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           partitionToConnectionPool = domainToPartitionToConnectionPool.get(domain.getId());
         }
         if (partitionToConnectionPool == null) {
-          LOG.error(String.format("Could not find domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId()));
+          LOG.error(getLogPrefix() + String.format("Could not find domain to partition map for domain %s (id: %d)", domain.getName(), domain.getId()));
           return NO_REPLICA;
         }
 
         HostConnectionPool hostConnectionPool = partitionToConnectionPool.get(partition);
         if (hostConnectionPool == null) {
           // this is a problem, since the cache must not have been loaded correctly
-          LOG.error(String.format("Could not find list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition));
+          LOG.error(getLogPrefix() + String.format("Could not find list of hosts for domain %s (id: %d) when looking for partition %d", domain.getName(), domain.getId(), partition));
           return NO_REPLICA;
         }
         if (LOG.isTraceEnabled()) {
@@ -472,7 +472,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       connectionCacheUpdaterThread.join();
       updateRuntimeStatisticsThread.join();
     } catch (InterruptedException e) {
-      LOG.info("Interrupted while waiting for updater threads to terminate during shutdown.");
+      LOG.info(getLogPrefix() + "Interrupted while waiting for updater threads to terminate during shutdown.");
     }
     disconnect();
   }
@@ -504,6 +504,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   public void onDataLocationChange(RingGroup ringGroup) {
     LOG.debug("Smart client notified of data location change.");
     connectionCacheUpdaterRunnable.wakeUp();
+  }
+
+  private String getLogPrefix() {
+    return ringGroup.getName() + ": ";
   }
 
   private class StaticGetTaskRunnable implements GetTaskRunnableIface {
@@ -595,7 +599,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
         // Only display if load is non zero
         if (connectionLoad.getLoad() > 0) {
-          LOG.info("Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
+          LOG.info(getLogPrefix() + "Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
               + "% (" + connectionLoad.getNumConnectionsLocked() + "/" + connectionLoad.getNumConnections() + " locked connections)");
         }
       }
@@ -609,7 +613,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       if (timerDurationMs != 0 && numRequests != 0) {
         double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
         double cacheHitRate = (double) numCacheHits / (double) numRequests;
-        LOG.info("Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
+        LOG.info(getLogPrefix() + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
       }
     }
 
