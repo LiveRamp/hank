@@ -141,7 +141,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     // Initialize connection cache and connection cache updater
     updateConnectionCache();
     ringGroup.addDataLocationChangeListener(this);
-    connectionCacheUpdaterThread = new Thread(connectionCacheUpdaterRunnable, "Cache Updater Thread");
+    connectionCacheUpdaterThread = new Thread(connectionCacheUpdaterRunnable, "Connection Cache Updater Thread");
     connectionCacheUpdaterThread.setDaemon(true);
     connectionCacheUpdaterThread.start();
   }
