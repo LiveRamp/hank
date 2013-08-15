@@ -454,7 +454,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           responseCache.put(domainAndKey, response);
         }
         if (response.is_set_xception()) {
-          LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + Bytes.bytesToHexString(key) + ", response: " + response);
+          LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + Bytes.bytesToHexString(key) + ", partitioner: " + domain.getPartitioner() + ", response: " + response);
         }
         return response;
       } finally {

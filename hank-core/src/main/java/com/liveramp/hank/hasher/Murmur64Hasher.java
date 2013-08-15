@@ -132,7 +132,7 @@ public final class Murmur64Hasher implements Hasher {
 
   @Override
   public String toString() {
-    return "Murmur64Hasher";
+    return Murmur64Hasher.class.getSimpleName();
   }
 
   public static void main(String[] args) {

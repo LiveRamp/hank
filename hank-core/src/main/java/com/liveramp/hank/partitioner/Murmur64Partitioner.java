@@ -45,6 +45,11 @@ public class Murmur64Partitioner implements Partitioner {
     return other instanceof Murmur64Partitioner;
   }
 
+  @Override
+  public String toString() {
+    return Murmur64Partitioner.class.getSimpleName();
+  }
+
   public static void main(String[] args) {
     System.out.println(new Murmur64Partitioner().partition(Bytes.hexStringToBytes(args[0]), Integer.valueOf(args[1])));
   }
