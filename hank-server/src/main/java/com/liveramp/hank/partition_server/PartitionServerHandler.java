@@ -160,10 +160,8 @@ public class PartitionServerHandler implements IfaceWithShutdown {
           exceptions.add(new IOException(msg));
           continue;
         }
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(String.format("Loaded partition accessor for partition #%d of domain %s with Reader " + reader,
-              partition.getPartitionNumber(), domain.getName()));
-        }
+        LOG.info(String.format("Loaded partition accessor for domain %s, partition #%d",
+            domain.getName(), partition.getPartitionNumber()));
         partitionAccessors[partition.getPartitionNumber()] = new PartitionAccessor(partition, reader);
         // Loading succeeded, if the partition was deletable, it should not be
         if (partition.isDeletable()) {
