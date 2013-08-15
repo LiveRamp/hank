@@ -59,7 +59,8 @@ public class DomainAccessor {
       int partition = partitioner.partition(key, partitionAccessors.length);
       PartitionAccessor partitionAccessor = partitionAccessors[partition];
       if (partitionAccessor == null) {
-        LOG.error("Failed to perform get: wrong host for domain: " + hostDomain.getDomain().getName() +  ", partition: " + partition + ", key: " + Bytes.bytesToHexString(key));
+        LOG.error("Failed to perform get because of an Exception: wrong host for domain: " + hostDomain.getDomain().getName()
+            + ", partition: " + partition + ", key: " + Bytes.bytesToHexString(key) + ", response: " + WRONG_HOST);
         return WRONG_HOST;
       }
       return partitionAccessor.get(key, result);
