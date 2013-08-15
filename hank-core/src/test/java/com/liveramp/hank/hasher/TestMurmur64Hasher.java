@@ -59,4 +59,15 @@ public class TestMurmur64Hasher extends TestCase {
     assertTrue(Arrays.equals(new byte[]{0x08, 0x51, 0x77, 0x72, 0x42, 0x6e, 0x7f, (byte) 0xa6,
         (byte) 0x9f, (byte) 0xa8, 0x0d, 0x49, (byte) 0xde, 0x0a, (byte) 0x90, 0x15}, hash128));
   }
+
+  public void testNonZeroOffset() {
+    byte[] hash64 = new byte[8];
+
+    ByteBuffer buffer = ByteBuffer.wrap(new byte[]{0x0, 0x1, 0x2, 0x3, 0x4});
+    buffer.get();
+    assertEquals(1, buffer.position());
+    assertEquals(4, buffer.remaining());
+    hsh.hash(buffer, 8, hash64);
+    assertTrue(Arrays.equals(new byte[]{0x08, 0x51, 0x77, 0x72, 0x42, 0x6e, 0x7f, (byte) 0xa6}, hash64));
+  }
 }

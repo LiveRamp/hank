@@ -39,7 +39,7 @@ public final class Murmur64Hasher implements Hasher {
     long h = seed ^ (length * m);
 
     final int remainder = length & 7;
-    final int end = length - remainder;
+    final int end = off + length - remainder;
     for (int i = off; i < end; i += 8) {
       long k = data[i + 7];
       k = k << 8;
@@ -90,12 +90,16 @@ public final class Murmur64Hasher implements Hasher {
     return h;
   }
 
+  public static long murmurHash64(final ByteBuffer data, final int seed) {
+    return murmurHash64(data.array(), data.arrayOffset() + data.position(), data.remaining(), seed);
+  }
+
   @Override
   public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
     int seed = INITIAL_SEED;
     long hashValue;
     for (int i = 0; i <= hashSize - 8; i += 8) {
-      hashValue = murmurHash64(value.array(), value.arrayOffset() + value.position(), value.arrayOffset() + value.limit(), seed);
+      hashValue = murmurHash64(value, seed);
       seed = (int) hashValue;
       hashBytes[i] = (byte) ((hashValue >> 56) & 0xff);
       hashBytes[i + 1] = (byte) ((hashValue >> 48) & 0xff);
@@ -109,7 +113,7 @@ public final class Murmur64Hasher implements Hasher {
 
     int shortHashBytes = hashSize % 8;
     if (shortHashBytes > 0) {
-      hashValue = murmurHash64(value.array(), value.arrayOffset() + value.position(), value.arrayOffset() + value.limit(), seed);
+      hashValue = murmurHash64(value, seed);
       int off = hashSize - 1;
       switch (shortHashBytes) {
         case 7:
