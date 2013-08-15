@@ -15,6 +15,8 @@
  */
 package com.liveramp.hank.hasher;
 
+import com.liveramp.hank.util.Bytes;
+
 import java.nio.ByteBuffer;
 
 /**
@@ -131,5 +133,12 @@ public final class Murmur64Hasher implements Hasher {
   @Override
   public String toString() {
     return "Murmur64Hasher";
+  }
+
+  public static void main(String[] args) {
+    int hashSize = Integer.valueOf(args[1]);
+    byte[] result = new byte[hashSize];
+    new Murmur64Hasher().hash(Bytes.hexStringToBytes(args[0]), hashSize, result);
+    System.out.println(Bytes.bytesToHexString(ByteBuffer.wrap(result)));
   }
 }

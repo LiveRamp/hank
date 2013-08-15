@@ -15,9 +15,10 @@
  */
 package com.liveramp.hank.partitioner;
 
-import java.nio.ByteBuffer;
-
 import com.liveramp.hank.hasher.Murmur64Hasher;
+import com.liveramp.hank.util.Bytes;
+
+import java.nio.ByteBuffer;
 
 /**
  * Implementation of Partitioner that takes a 64-bit Murmur hash to produce the
@@ -42,5 +43,9 @@ public class Murmur64Partitioner implements Partitioner {
   @Override
   public boolean equals(Object other) {
     return other instanceof Murmur64Partitioner;
+  }
+
+  public static void main(String[] args) {
+    System.out.println(new Murmur64Partitioner().partition(Bytes.hexStringToBytes(args[0]), Integer.valueOf(args[1])));
   }
 }
