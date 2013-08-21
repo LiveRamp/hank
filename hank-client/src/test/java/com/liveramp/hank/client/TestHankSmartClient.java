@@ -250,7 +250,8 @@ public class TestHankSmartClient extends BaseTestCase {
       final HankSmartClient cachingClient = new HankSmartClient(mockCoord, "myRingGroup",
           new HankSmartClientOptions()
               .setResponseCacheEnabled(true)
-              .setResponseCacheCapacity(1)
+              .setResponseCacheNumItemsCapacity(1)
+              .setResponseCacheNumBytesCapacity(-1)
               .setResponseCacheExpirationSeconds(1));
 
       // Test invalid get

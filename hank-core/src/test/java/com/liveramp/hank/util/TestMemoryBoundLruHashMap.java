@@ -100,6 +100,14 @@ public class TestMemoryBoundLruHashMap extends BaseTestCase {
     assertEquals(2, map.size());
     assertEquals(5, map.getNumManagedBytes());
     assertEquals(v1, map.get(k2));
+
+    // Remove
+
+    map.remove(k2);
+
+    assertEquals(1, map.size());
+    assertEquals(2, map.getNumManagedBytes());
+    assertEquals(null, map.get(k2));
   }
 
   public void testNumItemsCapacity() {

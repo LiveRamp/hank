@@ -25,10 +25,12 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
   private final long numBytesCapacity;
   private final LruHashMap<K, V> map;
 
+  // Negative capacity values disable the corresponding check
   public MemoryBoundLruHashMap(long numBytesCapacity) {
     this(numBytesCapacity, -1);
   }
 
+  // Negative capacity values disable the corresponding check
   public MemoryBoundLruHashMap(long numBytesCapacity, int numItemsCapacity) {
     this.numBytesCapacity = numBytesCapacity;
     map = new LruHashMap<K, V>(0, numItemsCapacity);
@@ -52,16 +54,28 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
     }
 
     // Now remove elements until byte count is under the threshold
-    while (numManagedBytes > numBytesCapacity && map.size() > 0) {
-      Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
-      Map.Entry<K, V> eldest = iterator.next();
-      unmanage(eldest);
-      iterator.remove();
+    if (numBytesCapacity >= 0) {
+      while (numManagedBytes > numBytesCapacity && map.size() > 0) {
+        Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
+        Map.Entry<K, V> eldest = iterator.next();
+        unmanage(eldest);
+        iterator.remove();
+      }
     }
   }
 
   public V get(K key) {
     return map.get(key);
+  }
+
+  public V remove(K key) {
+    if (map.containsKey(key)) {
+      V value = map.remove(key);
+      unmanage(key, value);
+      return value;
+    } else {
+      return null;
+    }
   }
 
   public int size() {

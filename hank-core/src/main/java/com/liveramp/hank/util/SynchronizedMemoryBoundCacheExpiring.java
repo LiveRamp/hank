@@ -16,15 +16,18 @@
 
 package com.liveramp.hank.util;
 
-public class SynchronizedCacheExpiring<K, V> {
+public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V extends ManagedBytes> {
 
-  private final LruHashMap<K, ValueAndTimestamp<V>> cache;
+  private final MemoryBoundLruHashMap<K, ValueAndTimestamp<V>> cache;
   private final long expirationPeriodMs;
 
   // A disabled cache will not add any synchronization overhead
-  public SynchronizedCacheExpiring(boolean isEnabled, int cacheCapacity, long expirationPeriodSeconds) {
+  public SynchronizedMemoryBoundCacheExpiring(boolean isEnabled,
+                                              long numBytesCapacity,
+                                              int numItemsCapacity,
+                                              long expirationPeriodSeconds) {
     if (isEnabled) {
-      cache = new LruHashMap<K, ValueAndTimestamp<V>>(0, cacheCapacity);
+      cache = new MemoryBoundLruHashMap<K, ValueAndTimestamp<V>>(numBytesCapacity, numItemsCapacity);
     } else {
       cache = null;
     }
@@ -72,7 +75,7 @@ public class SynchronizedCacheExpiring<K, V> {
     return (System.currentTimeMillis() - valueAndTimestamp.getTimestamp()) >= expirationPeriodMs;
   }
 
-  private static class ValueAndTimestamp<V> {
+  private static class ValueAndTimestamp<V extends ManagedBytes> implements ManagedBytes {
 
     private final V value;
     private final long timestamp;
@@ -88,6 +91,11 @@ public class SynchronizedCacheExpiring<K, V> {
 
     public long getTimestamp() {
       return timestamp;
+    }
+
+    @Override
+    public long getNumManagedBytes() {
+      return value.getNumManagedBytes();
     }
   }
 }

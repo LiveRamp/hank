@@ -16,11 +16,12 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.coordinator.Domain;
-
 import java.nio.ByteBuffer;
 
-class DomainAndKey {
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.util.ManagedBytes;
+
+class DomainAndKey implements ManagedBytes {
 
   private final Domain domain;
   private final ByteBuffer key;
@@ -56,5 +57,13 @@ class DomainAndKey {
     int result = domain.hashCode();
     result = 31 * result + key.hashCode();
     return result;
+  }
+
+  @Override
+  public long getNumManagedBytes() {
+    if (key.capacity() != key.remaining()) {
+      throw new IllegalStateException("getNumManagedBytes can only be called on keys (ByteBuffer) for which remaining: " + key.remaining() + " equals capacity: " + key.capacity());
+    }
+    return key.remaining();
   }
 }

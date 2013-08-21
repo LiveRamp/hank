@@ -26,7 +26,8 @@ public class HankSmartClientOptions {
   private int bulkQueryTimeoutMs = 0;
   private int concurrentGetThreadPoolMaxSize = Integer.MAX_VALUE;
   private boolean responseCacheEnabled = false;
-  private int responseCacheCapacity = 0;
+  private long responseCacheNumBytesCapacity = 0;
+  private int responseCacheNumItemsCapacity = 0;
   private long responseCacheExpirationSeconds = 0;
 
   public int getNumConnectionsPerHost() {
@@ -101,12 +102,21 @@ public class HankSmartClientOptions {
     return this;
   }
 
-  public int getResponseCacheCapacity() {
-    return responseCacheCapacity;
+  public long getResponseCacheNumBytesCapacity() {
+    return responseCacheNumBytesCapacity;
   }
 
-  public HankSmartClientOptions setResponseCacheCapacity(int responseCacheCapacity) {
-    this.responseCacheCapacity = responseCacheCapacity;
+  public HankSmartClientOptions setResponseCacheNumBytesCapacity(long responseCacheNumBytesCapacity) {
+    this.responseCacheNumBytesCapacity = responseCacheNumBytesCapacity;
+    return this;
+  }
+
+  public int getResponseCacheNumItemsCapacity() {
+    return responseCacheNumItemsCapacity;
+  }
+
+  public HankSmartClientOptions setResponseCacheNumItemsCapacity(int responseCacheNumItemsCapacity) {
+    this.responseCacheNumItemsCapacity = responseCacheNumItemsCapacity;
     return this;
   }
 
