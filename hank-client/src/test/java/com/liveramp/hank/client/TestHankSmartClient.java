@@ -15,19 +15,15 @@
  */
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.coordinator.mock.MockCoordinator;
-import com.liveramp.hank.coordinator.mock.MockDomain;
-import com.liveramp.hank.coordinator.mock.MockDomainGroup;
-import com.liveramp.hank.generated.HankBulkResponse;
-import com.liveramp.hank.generated.HankException;
-import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.generated.PartitionServer;
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.test.coordinator.*;
-import com.liveramp.hank.test.partitioner.MapPartitioner;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -38,9 +34,32 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingServerTransport;
 import org.apache.thrift.transport.TTransportException;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import com.liveramp.hank.coordinator.mock.MockDomain;
+import com.liveramp.hank.coordinator.mock.MockDomainGroup;
+import com.liveramp.hank.generated.HankBulkResponse;
+import com.liveramp.hank.generated.HankException;
+import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.generated.PartitionServer;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockHost;
+import com.liveramp.hank.test.coordinator.MockHostDomain;
+import com.liveramp.hank.test.coordinator.MockHostDomainPartition;
+import com.liveramp.hank.test.coordinator.MockRing;
+import com.liveramp.hank.test.coordinator.MockRingGroup;
+import com.liveramp.hank.test.partitioner.MapPartitioner;
+import com.liveramp.hank.util.Condition;
+import com.liveramp.hank.util.WaitUntil;
 
 public class TestHankSmartClient extends BaseTestCase {
 
@@ -229,7 +248,10 @@ public class TestHankSmartClient extends BaseTestCase {
       final HankSmartClient client = new HankSmartClient(mockCoord, "myRingGroup",
           new HankSmartClientOptions().setQueryTimeoutMs(1000));
       final HankSmartClient cachingClient = new HankSmartClient(mockCoord, "myRingGroup",
-          new HankSmartClientOptions().setResponseCacheCapacity(1).setResponseCacheExpirationSeconds(1));
+          new HankSmartClientOptions()
+              .setResponseCacheEnabled(true)
+              .setResponseCacheCapacity(1)
+              .setResponseCacheExpirationSeconds(1));
 
       // Test invalid get
       assertEquals(HankResponse.xception(HankException.no_such_domain(true)), client.get("nonexistent_domain", null));

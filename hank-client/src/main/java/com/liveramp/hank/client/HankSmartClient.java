@@ -15,22 +15,40 @@
  */
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.config.HankSmartClientConfigurator;
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.generated.HankBulkResponse;
-import com.liveramp.hank.generated.HankException;
-import com.liveramp.hank.generated.HankResponse;
-import com.liveramp.hank.util.*;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+
+import com.liveramp.hank.config.HankSmartClientConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
+import com.liveramp.hank.generated.HankBulkResponse;
+import com.liveramp.hank.generated.HankException;
+import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.util.AtomicLongCollection;
+import com.liveramp.hank.util.Bytes;
+import com.liveramp.hank.util.FormatUtils;
+import com.liveramp.hank.util.HankTimer;
+import com.liveramp.hank.util.SynchronizedCacheExpiring;
+import com.liveramp.hank.util.UpdateStatisticsRunnable;
 
 import static com.liveramp.hank.client.HostConnectionPool.getHostListShuffleSeed;
 
@@ -120,7 +138,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     this.establishConnectionTimeoutMs = options.getEstablishConnectionTimeoutMs();
     this.queryTimeoutMs = options.getQueryTimeoutMs();
     this.bulkQueryTimeoutMs = options.getBulkQueryTimeoutMs();
-    this.responseCache = new SynchronizedCacheExpiring<DomainAndKey, HankResponse>(options.getResponseCacheCapacity(), options.getResponseCacheExpirationSeconds());
+    this.responseCache = new SynchronizedCacheExpiring<DomainAndKey, HankResponse>(
+        options.getResponseCacheEnabled(),
+        options.getResponseCacheCapacity(),
+        options.getResponseCacheExpirationSeconds());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
     // Initialize get task executor with 0 core threads and a bounded maximum number of threads (default is unbounded).
     // The queue is a synchronous queue so that we create new threads even though there might be more
@@ -598,8 +619,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       for (Map.Entry<PartitionServerAddress, ConnectionLoad> entry : partitionServerToConnectionLoad.entrySet()) {
         ConnectionLoad totalConnectionLoad = entry.getValue();
         ConnectionLoad connectionLoad = new ConnectionLoad(
-            (int) ((double) totalConnectionLoad.getNumConnections() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
-            (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
+            (int)((double)totalConnectionLoad.getNumConnections() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
+            (int)((double)totalConnectionLoad.getNumConnectionsLocked() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
         // Only display if load is non zero
         if (connectionLoad.getLoad() > 0) {
           LOG.info(getLogPrefix() + "Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
@@ -614,8 +635,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       long numRequests = requestsCounterValues[0];
       long numCacheHits = requestsCounterValues[1];
       if (timerDurationMs != 0 && numRequests != 0) {
-        double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
-        double cacheHitRate = (double) numCacheHits / (double) numRequests;
+        double throughput = (double)numRequests / ((double)timerDurationMs / 1000d);
+        double cacheHitRate = (double)numCacheHits / (double)numRequests;
         LOG.info(getLogPrefix() + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
       }
     }

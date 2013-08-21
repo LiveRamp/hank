@@ -15,18 +15,18 @@
  */
 package com.liveramp.hank.storage.cueball;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.SortedSet;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.SynchronizedCache;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.SortedSet;
 
 public class CueballReader implements Reader {
 
@@ -71,7 +71,7 @@ public class CueballReader implements Reader {
     hashIndex = footer.getHashIndex();
     maxUncompressedBufferSize = footer.getMaxUncompressedBufferSize();
     maxCompressedBufferSize = footer.getMaxCompressedBufferSize();
-    cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity);
+    cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity > 0, cacheCapacity);
   }
 
   @Override

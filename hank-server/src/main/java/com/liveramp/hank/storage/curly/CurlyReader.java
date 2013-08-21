@@ -16,6 +16,14 @@
 
 package com.liveramp.hank.storage.curly;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.SortedSet;
+
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
 import com.liveramp.hank.storage.Reader;
@@ -24,14 +32,6 @@ import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.SynchronizedCache;
 import com.liveramp.hank.util.UnsafeByteArrayOutputStream;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.SortedSet;
 
 public class CurlyReader implements Reader, ICurlyReader {
 
@@ -115,7 +115,7 @@ public class CurlyReader implements Reader, ICurlyReader {
     this.offsetNumBytes = offsetNumBytes;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
     this.cacheLastDecompressedBlock = cacheLastDecompressedBlock;
-    this.cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity);
+    this.cache = new SynchronizedCache<ByteBuffer, ByteBuffer>(cacheCapacity > 0, cacheCapacity);
     // Check that key file is at the same version
     if (keyFileReader != null &&
         keyFileReader.getVersionNumber() != null &&
@@ -136,7 +136,7 @@ public class CurlyReader implements Reader, ICurlyReader {
       return;
     }
     // Deep copy the location if caching is active, since result might point to location and overwrite it
-    ByteBuffer locationDeepCopy = cache.isActive() ? Bytes.byteBufferDeepCopy(location) : null;
+    ByteBuffer locationDeepCopy = cache.isEnabled() ? Bytes.byteBufferDeepCopy(location) : null;
     if (blockCompressionCodec == null) {
       // When not using block compression, location just contains an offset. Decode it.
       long recordFileOffset = EncodingHelper.decodeLittleEndianFixedWidthLong(location);

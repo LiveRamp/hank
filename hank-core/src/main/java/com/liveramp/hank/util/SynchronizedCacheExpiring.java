@@ -21,22 +21,22 @@ public class SynchronizedCacheExpiring<K, V> {
   private final LruHashMap<K, ValueAndTimestamp<V>> cache;
   private final long expirationPeriodMs;
 
-  // A cache capacity <= 0 will disable the cache and will not add any synchronization overhead
-  public SynchronizedCacheExpiring(int cacheCapacity, long expirationPeriodSeconds) {
-    if (cacheCapacity <= 0) {
-      cache = null;
-    } else {
+  // A disabled cache will not add any synchronization overhead
+  public SynchronizedCacheExpiring(boolean isEnabled, int cacheCapacity, long expirationPeriodSeconds) {
+    if (isEnabled) {
       cache = new LruHashMap<K, ValueAndTimestamp<V>>(0, cacheCapacity);
+    } else {
+      cache = null;
     }
     this.expirationPeriodMs = expirationPeriodSeconds * 1000;
   }
 
-  public boolean isActive() {
+  public boolean isEnabled() {
     return cache != null;
   }
 
   public V get(K key) {
-    if (cache == null) {
+    if (!isEnabled()) {
       return null;
     } else {
       ValueAndTimestamp<V> cachedValue;
@@ -58,7 +58,7 @@ public class SynchronizedCacheExpiring<K, V> {
   }
 
   public void put(K key, V value) {
-    if (cache != null) {
+    if (isEnabled()) {
       if (value == null) {
         throw new IllegalArgumentException("Value to put in cache should not be null.");
       }

@@ -25,6 +25,7 @@ public class HankSmartClientOptions {
   private int queryTimeoutMs = 0;
   private int bulkQueryTimeoutMs = 0;
   private int concurrentGetThreadPoolMaxSize = Integer.MAX_VALUE;
+  private boolean responseCacheEnabled = false;
   private int responseCacheCapacity = 0;
   private long responseCacheExpirationSeconds = 0;
 
@@ -88,6 +89,15 @@ public class HankSmartClientOptions {
 
   public HankSmartClientOptions setConcurrentGetThreadPoolMaxSize(int concurrentGetThreadPoolMaxSize) {
     this.concurrentGetThreadPoolMaxSize = concurrentGetThreadPoolMaxSize;
+    return this;
+  }
+
+  public boolean getResponseCacheEnabled() {
+    return responseCacheEnabled;
+  }
+
+  public HankSmartClientOptions setResponseCacheEnabled(boolean responseCacheEnabled) {
+    this.responseCacheEnabled = responseCacheEnabled;
     return this;
   }
 

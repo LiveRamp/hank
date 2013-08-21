@@ -20,21 +20,21 @@ public class SynchronizedCache<K, V> {
 
   private final LruHashMap<K, V> cache;
 
-  // A cache capacity <= 0 will disable the cache and will not add any synchronization overhead
-  public SynchronizedCache(int cacheCapacity) {
-    if (cacheCapacity <= 0) {
-      cache = null;
-    } else {
+  // A disabled cache will not add any synchronization overhead
+  public SynchronizedCache(boolean isEnabled, int cacheCapacity) {
+    if (isEnabled) {
       cache = new LruHashMap<K, V>(0, cacheCapacity);
+    } else {
+      cache = null;
     }
   }
 
-  public boolean isActive() {
+  public boolean isEnabled() {
     return cache != null;
   }
 
   public V get(K key) {
-    if (cache == null) {
+    if (!isEnabled()) {
       return null;
     } else {
       V cachedValue;
@@ -50,7 +50,7 @@ public class SynchronizedCache<K, V> {
   }
 
   public void put(K key, V value) {
-    if (cache != null) {
+    if (isEnabled()) {
       if (value == null) {
         throw new IllegalArgumentException("Value to put in cache should not be null.");
       }
