@@ -26,6 +26,8 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
   private Map.Entry<K, V> eldestRemoved;
 
   public LruHashMap(int initialCapacity, int sizeLimit) {
+    // Note: the super constructor's third argument specifies
+    // access-ordering rather than default insertion-ordering
     super(initialCapacity, LOAD_FACTOR, true);
     this.sizeLimit = sizeLimit;
   }
