@@ -438,8 +438,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     }
 
     // Attempt to load from cache
-    DomainAndKey domainAndKey = new DomainAndKey(domain, key);
-    HankResponse cachedResponse = responseCache.get(domainAndKey);
+    HankResponse cachedResponse = responseCache.get(new DomainAndKey(domain, key));
     if (cachedResponse != null) {
       // One request, in cache
       requestsCounters.increment(1, 1);
@@ -471,8 +470,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         // Perform get
         HankResponse response = hostConnectionPool.get(domain, key, queryMaxNumTries, keyHash);
         // Cache response if necessary, do not cache exceptions
-        if (response.is_set_not_found() || response.is_set_value()) {
-          responseCache.put(domainAndKey, response);
+        if (responseCache.isEnabled() && response.is_set_not_found() || response.is_set_value()) {
+          responseCache.put(new DomainAndKey(domain, Bytes.byteBufferDeepCopy(key)), response.deepCopy());
         }
         if (response.is_set_xception()) {
           LOG.error(getLogPrefix() + "Failed to perform get: domain " + domain.getName() + ", partition " + partition + ", key: " + Bytes.bytesToHexString(key) + ", partitioner: " + domain.getPartitioner() + ", response: " + response);
@@ -619,8 +618,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       for (Map.Entry<PartitionServerAddress, ConnectionLoad> entry : partitionServerToConnectionLoad.entrySet()) {
         ConnectionLoad totalConnectionLoad = entry.getValue();
         ConnectionLoad connectionLoad = new ConnectionLoad(
-            (int)((double)totalConnectionLoad.getNumConnections() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
-            (int)((double)totalConnectionLoad.getNumConnectionsLocked() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
+            (int) ((double) totalConnectionLoad.getNumConnections() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
+            (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
         // Only display if load is non zero
         if (connectionLoad.getLoad() > 0) {
           LOG.info(getLogPrefix() + "Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
@@ -635,8 +634,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       long numRequests = requestsCounterValues[0];
       long numCacheHits = requestsCounterValues[1];
       if (timerDurationMs != 0 && numRequests != 0) {
-        double throughput = (double)numRequests / ((double)timerDurationMs / 1000d);
-        double cacheHitRate = (double)numCacheHits / (double)numRequests;
+        double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
+        double cacheHitRate = (double) numCacheHits / (double) numRequests;
         LOG.info(getLogPrefix() + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
       }
     }
