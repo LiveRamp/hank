@@ -71,6 +71,26 @@ public class SynchronizedMemoryBoundCacheExpiring<K extends ManagedBytes, V exte
     }
   }
 
+  public int size() {
+    if (!isEnabled()) {
+      return 0;
+    } else {
+      synchronized (cache) {
+        return cache.size();
+      }
+    }
+  }
+
+  public long getNumManagedBytes() {
+    if (!isEnabled()) {
+      return 0;
+    } else {
+      synchronized (cache) {
+        return cache.getNumManagedBytes();
+      }
+    }
+  }
+
   protected boolean shouldExpire(ValueAndTimestamp<V> valueAndTimestamp) {
     return (System.currentTimeMillis() - valueAndTimestamp.getTimestamp()) >= expirationPeriodMs;
   }

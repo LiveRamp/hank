@@ -639,7 +639,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       if (timerDurationMs != 0 && numRequests != 0) {
         double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
         double cacheHitRate = (double) numCacheHits / (double) numRequests;
-        LOG.info(getLogPrefix() + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s, client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%");
+        LOG.info(getLogPrefix()
+            + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s"
+            + ", client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%"
+            + ", cache: " + responseCache.size() + " items totaling " + FormatUtils.formatNumBytes(responseCache.getNumManagedBytes()));
       }
     }
 
