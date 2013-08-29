@@ -16,11 +16,12 @@
 
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.generated.HankException;
-import com.liveramp.hank.generated.HankResponse;
+import java.util.concurrent.FutureTask;
+
 import org.apache.log4j.Logger;
 
-import java.util.concurrent.FutureTask;
+import com.liveramp.hank.generated.HankException;
+import com.liveramp.hank.generated.HankResponse;
 
 public class FutureGet extends FutureTask<Object> {
 
@@ -38,7 +39,7 @@ public class FutureGet extends FutureTask<Object> {
     try {
       this.get();
     } catch (Throwable t) {
-      String errMsg = "Throwable while executing future GET: " + t.getMessage();
+      String errMsg = "Throwable while executing future GET: " + t.toString();
       LOG.error(errMsg, t);
       return HankResponse.xception(HankException.internal_error(errMsg));
     }
