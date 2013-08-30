@@ -77,6 +77,12 @@
     </dependency>
 
     <dependency>
+      <groupId>com.liveramp</groupId>
+      <artifactId>cascading_ext</artifactId>
+      <version>1.5</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
       <version>20090211</version>

@@ -34,7 +34,7 @@ public abstract class HadoopTestCase extends BaseTestCase {
   protected final String INPUT_DIR;
   protected final String OUTPUT_DIR;
 
-  public HadoopTestCase(Class<? extends Object> cls) throws IOException {
+  public HadoopTestCase(Class<?> cls) throws IOException {
     super();
     this.fs = FileSystem.get(new Configuration());
     TEST_DIR = "/tmp/test_" + cls.getName();

@@ -16,6 +16,7 @@
 
 package com.liveramp.hank.hadoop;
 
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -105,7 +106,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     FileSystem fs = tmpOutputPath.getFileSystem(conf);
     if (fs.exists(tmpOutputPath)) {
       LOG.info("Deleting temporary output path " + tmpOutputPath);
-      fs.delete(tmpOutputPath, true);
+      TrashHelper.deleteUsingTrashIfEnabled(fs, tmpOutputPath);
     }
   }
 }

@@ -16,28 +16,27 @@
 
 package com.liveramp.hank.storage;
 
-import com.liveramp.hank.test.BaseTestCase;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
+import com.liveramp.hank.hadoop.HadoopTestCase;
 import org.apache.hadoop.fs.Path;
 
 import java.io.File;
 import java.io.IOException;
 
-public class TestHdfsPartitionRemoteFileOps extends BaseTestCase {
+public class TestHdfsPartitionRemoteFileOps extends HadoopTestCase {
 
-  private final String ROOT = localTmpDir + "/hdfs/";
-  private FileSystem fs;
+  private String ROOT;
   private HdfsPartitionRemoteFileOps hdfsFileOps;
 
+  public TestHdfsPartitionRemoteFileOps() throws IOException {
+    super(TestHdfsPartitionRemoteFileOps.class);
+  }
+
   @Override
-  protected void setUp() throws Exception {
+  public void setUp() throws Exception {
     super.setUp();
 
-    fs = FileSystem.get(new Configuration());
-    System.out.println(fs.toString());
-    fs.delete(new Path(ROOT), true);
-    fs.mkdirs(new Path(ROOT));
+    ROOT = TEST_DIR + "/hdfs/";
+
     fs.create(new Path(ROOT, "0/file1.txt")).close();
     fs.create(new Path(ROOT, "0/file2.txt")).close();
     hdfsFileOps = new HdfsPartitionRemoteFileOps(ROOT, 0);
