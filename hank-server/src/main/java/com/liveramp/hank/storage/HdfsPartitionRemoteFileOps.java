@@ -16,6 +16,7 @@
 
 package com.liveramp.hank.storage;
 
+import com.liveramp.cascading_ext.fs.TrashHelper;
 import com.liveramp.hank.util.IOStreamUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -127,7 +128,7 @@ public class HdfsPartitionRemoteFileOps implements PartitionRemoteFileOps {
   @Override
   public boolean attemptDelete(String remoteRelativePath) throws IOException {
     if (exists(remoteRelativePath)) {
-      fs.delete(new Path(getRemoteAbsolutePath(remoteRelativePath)), true);
+      TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(getRemoteAbsolutePath(remoteRelativePath)));
     }
     return true;
   }
