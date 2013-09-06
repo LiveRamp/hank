@@ -324,7 +324,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     Collections.sort(l);
     byte[] partitionNumberBytes = new byte[8];
     EncodingHelper.encodeLittleEndianFixedWidthLong(partitionNumber, partitionNumberBytes);
-    return l.get((int) (Murmur64Hasher.murmurHash64(partitionNumberBytes) % l.size())) + "/" + domain.getName() + "/" + partitionNumber;
+    return l.get((int) (Math.abs(Murmur64Hasher.murmurHash64(partitionNumberBytes)) % l.size())) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
