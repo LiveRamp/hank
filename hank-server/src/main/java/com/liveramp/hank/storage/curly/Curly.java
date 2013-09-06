@@ -404,8 +404,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
   }
 
-  private static String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return Cueball.getLocalDir(configurator, partitionNumber);
+  private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return Cueball.getLocalDir(configurator, domain, partitionNumber);
   }
 
   public static int parseVersionNumber(String name) {

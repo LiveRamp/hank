@@ -319,12 +319,16 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  public static String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
+  public static String getLocalDir(DataDirectoriesConfigurator configurator, Domain domain, int partitionNumber) {
     ArrayList<String> l = new ArrayList<String>(configurator.getDataDirectories());
     Collections.sort(l);
     byte[] partitionNumberBytes = new byte[8];
     EncodingHelper.encodeLittleEndianFixedWidthLong(partitionNumber, partitionNumberBytes);
     return l.get((int) (Murmur64Hasher.murmurHash64(partitionNumberBytes) % l.size())) + "/" + domain.getName() + "/" + partitionNumber;
+  }
+
+  private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return getLocalDir(configurator, domain, partitionNumber);
   }
 
   public static String getName(int versionNumber, boolean base) {
