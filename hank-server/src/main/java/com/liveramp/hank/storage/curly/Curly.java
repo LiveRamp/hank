@@ -15,6 +15,19 @@
  */
 package com.liveramp.hank.storage.curly;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
@@ -23,7 +36,17 @@ import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
-import com.liveramp.hank.storage.*;
+import com.liveramp.hank.storage.Compactor;
+import com.liveramp.hank.storage.Deleter;
+import com.liveramp.hank.storage.PartitionRemoteFileOps;
+import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
+import com.liveramp.hank.storage.PartitionUpdater;
+import com.liveramp.hank.storage.Reader;
+import com.liveramp.hank.storage.RemoteDomainCleaner;
+import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.StorageEngineFactory;
+import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.cueball.Cueball;
 import com.liveramp.hank.storage.cueball.CueballMerger;
 import com.liveramp.hank.storage.cueball.CueballStreamBufferMergeSort;
@@ -31,14 +54,6 @@ import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.liveramp.hank.util.FsUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Curly is a storage engine designed for larger, variable-sized values. It uses
@@ -389,10 +404,8 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
   }
 
-  private String getLocalDir(DataDirectoriesConfigurator configurator, int partNum) {
-    ArrayList<String> l = new ArrayList<String>(configurator.getDataDirectories());
-    Collections.sort(l);
-    return l.get(partNum % l.size()) + "/" + domain.getName() + "/" + partNum;
+  private static String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return Cueball.getLocalDir(configurator, partitionNumber);
   }
 
   public static int parseVersionNumber(String name) {

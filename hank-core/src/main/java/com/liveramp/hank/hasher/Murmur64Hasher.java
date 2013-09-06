@@ -15,9 +15,9 @@
  */
 package com.liveramp.hank.hasher;
 
-import com.liveramp.hank.util.Bytes;
-
 import java.nio.ByteBuffer;
+
+import com.liveramp.hank.util.Bytes;
 
 /**
  * This is a very fast, non-cryptographic hash suitable for general hash-based
@@ -88,6 +88,14 @@ public final class Murmur64Hasher implements Hasher {
     h ^= h >>> r;
 
     return h;
+  }
+
+  public static long murmurHash64(final byte[] data) {
+    return murmurHash64(data, 0, data.length, INITIAL_SEED);
+  }
+
+  public static long murmurHash64(final ByteBuffer data) {
+    return murmurHash64(data, INITIAL_SEED);
   }
 
   public static long murmurHash64(final ByteBuffer data, final int seed) {

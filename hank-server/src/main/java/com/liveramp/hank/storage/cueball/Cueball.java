@@ -16,6 +16,19 @@
 
 package com.liveramp.hank.storage.cueball;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
@@ -24,17 +37,23 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.hasher.IdentityHasher;
-import com.liveramp.hank.storage.*;
+import com.liveramp.hank.hasher.Murmur64Hasher;
+import com.liveramp.hank.storage.Compactor;
+import com.liveramp.hank.storage.Deleter;
+import com.liveramp.hank.storage.PartitionRemoteFileOps;
+import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
+import com.liveramp.hank.storage.PartitionUpdater;
+import com.liveramp.hank.storage.Reader;
+import com.liveramp.hank.storage.RemoteDomainCleaner;
+import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.StorageEngineFactory;
+import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
+import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.FsUtils;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Cueball is a storage engine optimized for small, fixed-size values.
@@ -300,10 +319,12 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  private String getLocalDir(DataDirectoriesConfigurator configurator, int partNum) {
+  public static String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
     ArrayList<String> l = new ArrayList<String>(configurator.getDataDirectories());
     Collections.sort(l);
-    return l.get(partNum % l.size()) + "/" + domain.getName() + "/" + partNum;
+    byte[] partitionNumberBytes = new byte[8];
+    EncodingHelper.encodeLittleEndianFixedWidthLong(partitionNumber, partitionNumberBytes);
+    return l.get((int) (Murmur64Hasher.murmurHash64(partitionNumberBytes) % l.size())) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   public static String getName(int versionNumber, boolean base) {
