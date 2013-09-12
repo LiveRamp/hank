@@ -24,7 +24,7 @@ public class HankSmartClientOptions {
   private int establishConnectionTimeoutMs = 0;
   private int queryTimeoutMs = 0;
   private int bulkQueryTimeoutMs = 0;
-  private int concurrentGetThreadPoolMaxSize = Integer.MAX_VALUE;
+  private int concurrentGetThreadPoolMaxSize = 1024;
   private boolean responseCacheEnabled = false;
   private long responseCacheNumBytesCapacity = 0;
   private int responseCacheNumItemsCapacity = 0;
