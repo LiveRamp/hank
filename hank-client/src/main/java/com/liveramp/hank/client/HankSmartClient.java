@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -64,6 +64,7 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private static final TimeUnit GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT = TimeUnit.MINUTES;
   private static final long GET_TASK_EXECUTOR_AWAIT_TERMINATION_VALUE = 1;
   private static final TimeUnit GET_TASK_EXECUTOR_AWAIT_TERMINATION_UNIT = TimeUnit.SECONDS;
+  private static final int GET_TASK_EXECUTOR_QUEUE_SIZE = 1024;
 
   private static final int UPDATE_RUNTIME_STATISTICS_THREAD_SLEEP_TIME_MS_DEFAULT = 30000;
   private static final int UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS = 3;
@@ -105,6 +106,24 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   private final ConnectionCacheUpdaterRunnable connectionCacheUpdaterRunnable = new ConnectionCacheUpdaterRunnable();
   private final Thread connectionCacheUpdaterThread;
 
+  private static class AlwaysBlockingLinkedBlockingQueue extends LinkedBlockingQueue<Runnable> {
+
+    private AlwaysBlockingLinkedBlockingQueue(int capacity) {
+      super(capacity);
+    }
+
+    @Override
+    public boolean offer(Runnable task) {
+      try {
+        put(task);
+        return true;
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+      return false;
+    }
+  }
+
   public HankSmartClient(Coordinator coordinator,
                          HankSmartClientConfigurator configurator) throws IOException, TException {
     this(coordinator, configurator.getRingGroupName(), new HankSmartClientOptions()
@@ -144,16 +163,19 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
         options.getResponseCacheNumItemsCapacity(),
         options.getResponseCacheExpirationSeconds());
     this.requestsCounters = new AtomicLongCollection(2, new long[]{0, 0});
-    // Initialize get task executor with 0 core threads and a bounded maximum number of threads (default is unbounded).
-    // The queue is a synchronous queue so that we create new threads even though there might be more
-    // than number of core threads threads running
+
+    // This creates a thread pool executor with a specific maximum number of threads.
+    // We allow core threads to timeout after the keep alive time. We use a custom bounded
+    // blocking queue so that executing tasks will never fail, but will block instead.
+    // The queue size is mainly to avoid excessive contention.
     this.getTaskExecutor = new ThreadPoolExecutor(
-        0,
+        options.getConcurrentGetThreadPoolMaxSize(),
         options.getConcurrentGetThreadPoolMaxSize(),
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME,
         GET_TASK_EXECUTOR_THREAD_KEEP_ALIVE_TIME_UNIT,
-        new SynchronousQueue<Runnable>(),
-        new GetTaskThreadFactory());
+        new AlwaysBlockingLinkedBlockingQueue(GET_TASK_EXECUTOR_QUEUE_SIZE));
+    getTaskExecutor.allowCoreThreadTimeOut(true);
+
     // Initialize Load statistics runner
     updateRuntimeStatisticsRunnable = new UpdateRuntimeStatisticsRunnable();
     updateRuntimeStatisticsThread = new Thread(updateRuntimeStatisticsRunnable, "Update Load Statistics");
