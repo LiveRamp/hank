@@ -16,17 +16,31 @@
 
 package com.liveramp.hank.partition_assigner;
 
-import com.liveramp.hank.coordinator.*;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import org.apache.log4j.Logger;
 
-import java.io.IOException;
-import java.util.*;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostDomains;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.Ring;
 
 public abstract class AbstractMappingPartitionAssigner implements PartitionAssigner {
 
   private static final Logger LOG = Logger.getLogger(AbstractMappingPartitionAssigner.class);
 
   private Set<DomainGroupDomainVersion> domainVersions;
+  private Set<Domain> domains;
   private Map<Host, Map<Domain, Set<Integer>>> hostToDomainToPartitionsMappings;
 
   @Override
@@ -34,6 +48,10 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
                       Set<DomainGroupDomainVersion> domainVersions) throws IOException {
     this.domainVersions = domainVersions;
     this.hostToDomainToPartitionsMappings = getHostToDomainToPartitionsMapping(ring, domainVersions);
+    domains = new HashSet<Domain>();
+    for (DomainGroupDomainVersion domainVersion : domainVersions) {
+      domains.add(domainVersion.getDomain());
+    }
   }
 
   abstract protected Host getHostResponsibleForPartition(SortedSet<Host> validHostsSorted, int partitionNumber);
@@ -106,7 +124,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
 
       HostDomain hostDomain = host.getHostDomain(domain);
 
-      // Check for extra mappings
+      // Check for extra mappings within the required domain versions
       if (hostDomain != null) {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
           if (!partition.isDeletable() &&
@@ -127,6 +145,16 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
           // Check that partition is assigned
           HostDomainPartition partition = hostDomain.getPartitionByNumber(partitionMapping);
           if (partition == null) {
+            return false;
+          }
+        }
+      }
+    }
+    // Check for extra mappings outside the required domain versions
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      if (!domains.contains(hostDomain.getDomain())) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (!partition.isDeletable()) {
             return false;
           }
         }
@@ -153,7 +181,7 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
 
       HostDomain hostDomain = host.getHostDomain(domain);
 
-      // Delete extra mappings
+      // Delete extra mappings within the required domain versions
       if (hostDomain != null) {
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
           if (!partition.isDeletable() &&
@@ -173,6 +201,16 @@ public abstract class AbstractMappingPartitionAssigner implements PartitionAssig
         for (Integer partitionMapping : partitionMappings) {
           // Assign partition if necessary
           HostDomains.addPartition(hostDomain, partitionMapping);
+        }
+      }
+    }
+    // Delete extra mappings outside the required domain versions
+    for (HostDomain hostDomain : host.getAssignedDomains()) {
+      if (!domains.contains(hostDomain.getDomain())) {
+        for (HostDomainPartition partition : hostDomain.getPartitions()) {
+          if (!partition.isDeletable()) {
+            partition.setDeletable(true);
+          }
         }
       }
     }
