@@ -16,15 +16,26 @@
 
 package com.liveramp.hank.ring_group_conductor;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.partition_assigner.PartitionAssigner;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
+import org.apache.log4j.Logger;
+
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.partition_assigner.PartitionAssigner;
 
 public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTransitionFunction {
 
@@ -243,7 +254,10 @@ public class RingGroupUpdateTransitionFunctionImpl implements RingGroupUpdateTra
           return 0;
         }
         for (HostDomainPartition partition : hostDomain.getPartitions()) {
-          int numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber()).size();
+          int numFullyServing = 0;
+          if (partitionToNumFullyServing.containsKey(partition.getPartitionNumber())) {
+            numFullyServing = partitionToNumFullyServing.get(partition.getPartitionNumber()).size();
+          }
           if (result == null || numFullyServing < result) {
             result = numFullyServing;
           }
