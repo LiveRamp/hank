@@ -59,7 +59,7 @@
       </td>
     </tr>
   </table>
-  <form>
+  </form>
 
   <h2>Delete Host</h2>
 
