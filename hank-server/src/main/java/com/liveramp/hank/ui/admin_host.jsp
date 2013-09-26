@@ -35,6 +35,9 @@
   <h2>Update Configuration</h2>
 
   <form action="/host/update" method="post">
+  <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
+  <input type=hidden name="n" value="<%= ring.getRingNumber() %>"/>
+  <input type=hidden name="h" value="<%= host.getAddress() %>"/>
   <table>
     <tr>
       <td>
