@@ -34,7 +34,7 @@
 
   <h2>Update Configuration</h2>
 
-  <form action="/host/update" method=post>
+  <form action="/host/update" method="post">
   <table>
     <tr>
       <td>
@@ -63,7 +63,7 @@
 
   <h2>Delete Host</h2>
 
-    <form method=post action="/ring/delete_host" id="remove_form_<%= host.getAddress().getHostName() %>__<%= host.getAddress().getPortNumber() %>">
+    <form method="post" action="/ring/delete_host">
       <input type=hidden name="g" value="<%= ringGroup.getName() %>"/>
       <input type=hidden name="n" value="<%= ring.getRingNumber() %>"/>
       <input type=hidden name="h" value="<%= host.getAddress() %>"/>
