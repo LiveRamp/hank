@@ -1,16 +1,17 @@
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.coordinator.DomainVersion;
-import com.liveramp.hank.coordinator.DomainVersions;
-import com.liveramp.hank.generated.PartitionMetadata;
-import com.liveramp.hank.util.Condition;
-import com.liveramp.hank.util.WaitUntil;
-import com.liveramp.hank.zookeeper.ZkPath;
+import java.io.IOException;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
 
-import java.io.IOException;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersions;
+import com.liveramp.hank.generated.PartitionMetadata;
+import com.liveramp.hank.test.ZkTestCase;
+import com.liveramp.hank.util.Condition;
+import com.liveramp.hank.util.WaitUntil;
+import com.liveramp.hank.zookeeper.ZkPath;
 
 public class TestZkDomainVersion extends ZkTestCase {
 
@@ -92,7 +93,7 @@ public class TestZkDomainVersion extends ZkTestCase {
 
   public void testDefunct() throws Exception {
     final DomainVersion dv = ZkDomainVersion.create(getZk(), getRoot(), 1, null, null);
-    DomainVersion otherDv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "v/1"), null);
+    final DomainVersion otherDv = new ZkDomainVersion(getZk(), ZkPath.append(getRoot(), "v/1"), null);
 
     assertFalse(dv.isDefunct());
     assertFalse(otherDv.isDefunct());
@@ -116,7 +117,7 @@ public class TestZkDomainVersion extends ZkTestCase {
       @Override
       public boolean test() {
         try {
-          return !dv.isDefunct();
+          return !dv.isDefunct() && !otherDv.isDefunct();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

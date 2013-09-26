@@ -15,18 +15,18 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.test.ZkTestCase;
+import java.util.Collections;
+
+import org.apache.zookeeper.KeeperException;
+
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.partitioner.ConstantPartitioner;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.storage.constant.ConstantStorageEngine;
+import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-import org.apache.zookeeper.KeeperException;
-
-import java.io.IOException;
-import java.util.Collections;
 
 public class TestZkDomain extends ZkTestCase {
   private static final String CONST_PARTITIONER = ConstantPartitioner.class.getName();
@@ -67,26 +67,13 @@ public class TestZkDomain extends ZkTestCase {
     DomainVersion version = dc.openNewVersion(null);
     assertEquals(0, version.getVersionNumber());
     assertEquals(1, dc.getVersions().size());
-
-    assertEquals(1, dc.getVersions().size());
-
     version.close();
+
+    Thread.sleep(1000);
 
     version = dc.openNewVersion(null);
     assertNotNull(version);
     assertEquals(1, version.getVersionNumber());
-
-    WaitUntil.orDie(new Condition() {
-      @Override
-      public boolean test() {
-        try {
-          return dc.getVersions().size() == 2;
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    });
-
     assertEquals(2, dc.getVersions().size());
 
     // Test getVersionShallow
