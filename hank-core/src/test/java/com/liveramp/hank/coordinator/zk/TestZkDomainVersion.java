@@ -103,7 +103,7 @@ public class TestZkDomainVersion extends ZkTestCase {
       @Override
       public boolean test() {
         try {
-          return dv.isDefunct();
+          return dv.isDefunct() && otherDv.isDefunct();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
