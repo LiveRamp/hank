@@ -16,6 +16,20 @@
 
 package com.liveramp.hank.client;
 
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
+
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -27,19 +41,6 @@ import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.WaitUntil;
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
-
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
 
 public class TestHostConnection extends BaseTestCase {
 
@@ -282,7 +283,9 @@ public class TestHostConnection extends BaseTestCase {
     }
 
     public void stop() {
-      dataServer.stop();
+      if (dataServer != null) {
+        dataServer.stop();
+      }
     }
   }
 
