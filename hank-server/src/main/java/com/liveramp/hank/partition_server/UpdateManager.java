@@ -220,8 +220,8 @@ public class UpdateManager implements IUpdateManager {
           // Perform update
           StorageEngine storageEngine = domain.getStorageEngine();
           LOG.info(String.format(
-              "Starting partition update of domain %s partition %d to version %d.",
-              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
+              "Starting partition update of domain %s partition %d to version %d in %s.",
+              domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber(), getDataDirectory()));
           storageEngine.getUpdater(configurator, partition.getPartitionNumber()).updateTo(targetDomainVersion, statistics);
 
           // Record update success
@@ -290,6 +290,7 @@ public class UpdateManager implements IUpdateManager {
       try {
         Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
       } catch (IOException e) {
+        LOG.error("Failed to set ETA", e);
         throw new RuntimeException(e);
       }
     }
@@ -329,7 +330,8 @@ public class UpdateManager implements IUpdateManager {
       // Build executor services and invoke tasks
       List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
       List<Future<Boolean>> futurePartitionUpdateTasks = new ArrayList<Future<Boolean>>();
-      for (List<PartitionUpdateTask> updateTasks : dataDirectoryToUpdateTasks.values()) {
+      for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
+        LOG.info("Number of update tasks scheduled in " + entry.getKey() + ": " + entry.getValue().size());
         ExecutorService executorService = new UpdateThreadPoolExecutor(
             configurator.getNumConcurrentUpdates(),
             factory,
@@ -337,7 +339,7 @@ public class UpdateManager implements IUpdateManager {
             partitionUpdateTaskStatisticsAggregator);
         executorServices.add(executorService);
         try {
-          futurePartitionUpdateTasks.addAll(executorService.invokeAll(updateTasks));
+          futurePartitionUpdateTasks.addAll(executorService.invokeAll(entry.getValue()));
         } catch (InterruptedException e) {
           throwablesEncountered.add(e);
         }
