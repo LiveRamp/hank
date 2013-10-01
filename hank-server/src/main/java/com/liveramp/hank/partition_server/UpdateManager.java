@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -268,13 +267,11 @@ public class UpdateManager implements IUpdateManager {
 
     private final Host host;
     private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
-    private final Semaphore semaphore;
 
     public UpdateThreadPoolExecutor(int numThreads,
                                     ThreadFactory threadFactory,
                                     Host host,
-                                    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
-                                    Semaphore semaphore) {
+                                    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) {
       // Essentially a fixed thread pool
       super(
           numThreads,
@@ -285,23 +282,10 @@ public class UpdateManager implements IUpdateManager {
           threadFactory);
       this.host = host;
       this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
-      this.semaphore = semaphore;
-    }
-
-    @Override
-    protected void beforeExecute(Thread thread, Runnable runnable) {
-      // Acquire an update permit
-      try {
-        semaphore.acquire();
-      } catch (InterruptedException e) {
-        throw new RuntimeException(e);
-      }
     }
 
     @Override
     protected void afterExecute(Runnable runnable, Throwable throwable) {
-      // Release an update permit
-      semaphore.release();
       // Record update ETA after execute
       try {
         Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
@@ -328,7 +312,6 @@ public class UpdateManager implements IUpdateManager {
     try {
       // Perform update
       ThreadFactory factory = new UpdaterThreadFactory();
-      Semaphore updateTaskSemaphore = new Semaphore(configurator.getNumConcurrentUpdates());
       List<Throwable> throwablesEncountered = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
       Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
@@ -351,8 +334,7 @@ public class UpdateManager implements IUpdateManager {
             configurator.getNumConcurrentUpdates(),
             factory,
             host,
-            partitionUpdateTaskStatisticsAggregator,
-            updateTaskSemaphore);
+            partitionUpdateTaskStatisticsAggregator);
         executorServices.add(executorService);
         try {
           futurePartitionUpdateTasks.addAll(executorService.invokeAll(updateTasks));
