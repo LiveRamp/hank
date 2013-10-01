@@ -15,6 +15,28 @@
  */
 package com.liveramp.hank;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -24,7 +46,19 @@ import com.liveramp.hank.config.yaml.YamlClientConfigurator;
 import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
 import com.liveramp.hank.config.yaml.YamlRingGroupConductorConfigurator;
 import com.liveramp.hank.config.yaml.YamlSmartClientDaemonConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.Domains;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroups;
+import com.liveramp.hank.coordinator.Rings;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankException;
 import com.liveramp.hank.generated.HankResponse;
@@ -44,16 +78,6 @@ import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.util.*;
 
 public class IntegrationTest extends ZkTestCase {
 
@@ -141,6 +165,7 @@ public class IntegrationTest extends ZkTestCase {
       pw.println("    " + YamlPartitionServerConfigurator.GET_TIMER_AGGREGATOR_WINDOW_KEY + ": 1000");
       pw.println("  " + YamlPartitionServerConfigurator.UPDATE_DAEMON_SECTION_KEY + ":");
       pw.println("    " + YamlPartitionServerConfigurator.NUM_CONCURRENT_UPDATES_KEY + ": 1");
+      pw.println("    " + YamlPartitionServerConfigurator.MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY + ": 1");
       coordinatorConfig(pw);
       pw.close();
       configurator = new YamlPartitionServerConfigurator(configPath);
@@ -638,7 +663,7 @@ public class IntegrationTest extends ZkTestCase {
   private static ByteBuffer bb(int... bs) {
     byte[] bytes = new byte[bs.length];
     for (int i = 0; i < bs.length; i++) {
-      bytes[i] = (byte) bs[i];
+      bytes[i] = (byte)bs[i];
     }
     return ByteBuffer.wrap(bytes);
   }
