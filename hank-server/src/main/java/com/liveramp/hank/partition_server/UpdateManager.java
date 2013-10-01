@@ -15,26 +15,42 @@
  */
 package com.liveramp.hank.partition_server;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.util.DurationAggregator;
 import com.liveramp.hank.util.FormatUtils;
 import com.liveramp.hank.util.HankTimer;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * Manages the domain update process.
  */
 public class UpdateManager implements IUpdateManager {
 
-  private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
-  private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
   private final class PartitionUpdateTaskStatisticsAggregator {
@@ -105,7 +121,7 @@ public class UpdateManager implements IUpdateManager {
           return -1;
         }
         // Compute time taken by partition updates of this domain
-        double numSecondsPerPartitionUpdateTask = ((double) windowDurationMS / 1000.0d) / (double) numPartitionUpdateTasksFinishedInWindow;
+        double numSecondsPerPartitionUpdateTask = ((double)windowDurationMS / 1000.0d) / (double)numPartitionUpdateTasksFinishedInWindow;
         // Compute ETA in seconds for this domain
         long numRemainingPartitionUpdateTasksForDomain = numPartitionUpdateTasksForDomain - partitionUpdateTaskStatisticsList.size();
         long domainETA = Math.round(numRemainingPartitionUpdateTasksForDomain * numSecondsPerPartitionUpdateTask);
@@ -140,23 +156,20 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
-  private final class PartitionUpdateTask implements Runnable, Comparable<PartitionUpdateTask> {
+  private final class PartitionUpdateTask implements Callable<Boolean>, Comparable<PartitionUpdateTask> {
 
     private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
     private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
-    private final Queue<Throwable> exceptionQueue;
 
     public PartitionUpdateTask(HostDomain hostDomain,
                                HostDomainPartition partition,
-                               PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
-                               Queue<Throwable> exceptionQueue) {
+                               PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) {
       this.hostDomain = hostDomain;
       this.domain = hostDomain.getDomain();
       this.partition = partition;
       this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
-      this.exceptionQueue = exceptionQueue;
       // Register itself in the aggregator
       partitionUpdateTaskStatisticsAggregator.register(this);
     }
@@ -166,7 +179,7 @@ public class UpdateManager implements IUpdateManager {
     }
 
     @Override
-    public void run() {
+    public Boolean call() throws Exception {
       PartitionUpdateTaskStatistics statistics = new PartitionUpdateTaskStatistics();
       statistics.setStartTimeMs(System.currentTimeMillis());
       try {
@@ -189,7 +202,7 @@ public class UpdateManager implements IUpdateManager {
             LOG.info(String.format(
                 "Skipping partition update of domain %s partition %d to version %d (it is already up-to-date).",
                 domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
-            return;
+            return true;
           }
 
           // Mark the beginning of the update by first unsetting the partition's current version number.
@@ -209,14 +222,15 @@ public class UpdateManager implements IUpdateManager {
               "Completed partition update of domain %s partition %d to version %d.",
               domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
         }
-      } catch (Throwable e) {
+      } catch (Throwable t) {
         LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
-            domain.getName(), partition.getPartitionNumber()), e);
-        exceptionQueue.add(e);
+            domain.getName(), partition.getPartitionNumber()), t);
+        throw new RuntimeException(t);
       } finally {
         statistics.setEndTimeMs(System.currentTimeMillis());
         partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this, statistics);
       }
+      return true;
     }
 
     @Override
@@ -235,6 +249,16 @@ public class UpdateManager implements IUpdateManager {
   private final Host host;
   private final RingGroup ringGroup;
 
+  public class UpdaterThreadFactory implements ThreadFactory {
+
+    private int threadID = 0;
+
+    @Override
+    public Thread newThread(Runnable r) {
+      return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
+    }
+  }
+
   public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroup) throws IOException {
     this.configurator = configurator;
     this.host = host;
@@ -244,75 +268,44 @@ public class UpdateManager implements IUpdateManager {
   // When an Exception is thrown, the update has failed.
   @Override
   public void update() throws IOException {
-
     HankTimer timer = new HankTimer();
-
     try {
-
       // Perform update
-      ThreadFactory factory = new ThreadFactory() {
-        private int threadID = 0;
-
-        @Override
-        public Thread newThread(Runnable r) {
-          return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
-        }
-      };
-
+      ThreadFactory factory = new UpdaterThreadFactory();
       ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator
           = new PartitionUpdateTaskStatisticsAggregator();
-      Queue<Throwable> exceptionQueue = new LinkedBlockingQueue<Throwable>();
-
+      List<Throwable> exceptionQueue = new ArrayList<Throwable>();
       // Execute all tasks and wait for them to finish
-      executePartitionUpdateTasks(executor, partitionUpdateTaskStatisticsAggregator, exceptionQueue);
-      IOException failedUpdateException = null;
-      boolean keepWaiting = true;
-      executor.shutdown();
-      while (keepWaiting) {
-        LOG.debug("Waiting for update executor to complete...");
-        try {
-          boolean terminated = executor.awaitTermination(UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
-              UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
-          if (terminated) {
-            // We finished executing all tasks
-            // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
-            keepWaiting = false;
+      try {
+        List<Future<Boolean>> futurePartitionUpdateTasks = executor.invokeAll(buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator));
+        executor.shutdown();
+        for (Future<Boolean> futurePartitionUpdateTask : futurePartitionUpdateTasks) {
+          try {
+            futurePartitionUpdateTask.get();
+          } catch (ExecutionException e) {
+            // Record task execution exception
+            exceptionQueue.add(e);
           }
           // Record update ETA
           Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
-        } catch (InterruptedException e) {
-          // Received interruption (stop request).
-          // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
-          LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
-              " and wait for those that were running to finish).");
-          executor.shutdownNow();
-          // Record failed update exception (we need to keep waiting)
-          failedUpdateException = new IOException("Failed to complete update: update interruption was requested.");
         }
+      } catch (InterruptedException e) {
+        exceptionQueue.add(e);
       }
+      // Executor is now ready to be shutdown
+      executor.shutdownNow();
 
       // Detect failed tasks
-      IOException failedTasksException = null;
       if (!exceptionQueue.isEmpty()) {
         LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
         int i = 0;
         for (Throwable t : exceptionQueue) {
           LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
         }
-        failedTasksException = new IOException(String.format(
+        throw new IOException(String.format(
             "Failed to complete update: %d exceptions encountered while running partition update tasks.",
             exceptionQueue.size()));
-      }
-
-      // First detect failed update
-      if (failedUpdateException != null) {
-        throw failedUpdateException;
-      }
-
-      // Then detect failed tasks
-      if (failedTasksException != null) {
-        throw failedTasksException;
       }
 
       // Garbage collect useless host domains
@@ -328,25 +321,23 @@ public class UpdateManager implements IUpdateManager {
     LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 
-  private void executePartitionUpdateTasks(ExecutorService executor,
-                                           PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
-                                           Queue<Throwable> exceptionQueue) throws IOException {
+  private ArrayList<PartitionUpdateTask> buildPartitionUpdateTasks(PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) throws IOException {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
-        partitionUpdateTasks.add(new PartitionUpdateTask(hostDomain, partition,
-            partitionUpdateTaskStatisticsAggregator, exceptionQueue));
+        partitionUpdateTasks.add(
+            new PartitionUpdateTask(
+                hostDomain,
+                partition,
+                partitionUpdateTaskStatisticsAggregator));
       }
     }
 
     // Sort update tasks per partition id, so that we update domains concurrently but in order of partition number
     Collections.sort(partitionUpdateTasks);
 
-    // Execute tasks
-    for (PartitionUpdateTask updateTask : partitionUpdateTasks) {
-      executor.execute(updateTask);
-    }
+    return partitionUpdateTasks;
   }
 
   private void garbageCollectHostDomains(Host host) throws IOException {
