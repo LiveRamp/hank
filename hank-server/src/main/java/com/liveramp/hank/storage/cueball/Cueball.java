@@ -189,7 +189,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CueballReader(getDataDirectory(configurator, partitionNumber),
+    return new CueballReader(getTargetDirectory(configurator, partitionNumber),
         keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec(), partitionCacheCapacity);
   }
 
@@ -231,7 +231,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getDataDirectory(configurator, partitionNumber);
+    String localDir = getTargetDirectory(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
         getPartitionRemoteFileOps(partitionNumber),
         new CueballMerger(),
@@ -281,7 +281,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getDataDirectory(configurator, partitionNumber);
+    String localDir = getTargetDirectory(configurator, partitionNumber);
     return new CueballDeleter(localDir);
   }
 
@@ -357,7 +357,11 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     ArrayList<String> sortedDataDirectories = new ArrayList<String>(configurator.getDataDirectories());
     Collections.sort(sortedDataDirectories);
     int partitionDataDirectoryIndex = getDataDirectoryIndex(sortedDataDirectories.size(), domain.getNumParts(), partitionNumber);
-    return sortedDataDirectories.get(partitionDataDirectoryIndex) + "/" + domain.getName() + "/" + partitionNumber;
+    return sortedDataDirectories.get(partitionDataDirectoryIndex);
+  }
+
+  private String getTargetDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return getDataDirectory(configurator, partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   @Override

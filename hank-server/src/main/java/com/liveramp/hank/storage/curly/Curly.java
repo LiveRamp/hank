@@ -260,7 +260,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CurlyReader(CurlyReader.getLatestBase(getDataDirectory(configurator, partitionNumber)),
+    return new CurlyReader(CurlyReader.getLatestBase(getTargetDirectory(configurator, partitionNumber)),
         recordFileReadBufferBytes,
         cueballStorageEngine.getReader(configurator, partitionNumber),
         recordFilePartitionCacheCapacity,
@@ -314,7 +314,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    File localDir = new File(getDataDirectory(configurator, partitionNumber));
+    File localDir = new File(getTargetDirectory(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
@@ -325,7 +325,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException {
     if (configurator != null) {
-      File localDir = new File(getDataDirectory(configurator, partitionNumber));
+      File localDir = new File(getTargetDirectory(configurator, partitionNumber));
       if (!localDir.exists() && !localDir.mkdirs()) {
         throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
       }
@@ -385,7 +385,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
       throws IOException {
-    String localDir = getDataDirectory(configurator, partitionNumber);
+    String localDir = getTargetDirectory(configurator, partitionNumber);
     return new CurlyDeleter(localDir);
   }
 
@@ -478,6 +478,10 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     return new IncrementalDomainVersionProperties.Serialization();
+  }
+
+  private String getTargetDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return getDataDirectory(configurator, partitionNumber) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   @Override
