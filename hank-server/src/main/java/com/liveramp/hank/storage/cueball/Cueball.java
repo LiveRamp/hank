@@ -189,7 +189,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CueballReader(getLocalDir(configurator, partitionNumber),
+    return new CueballReader(getDataDirectory(configurator, partitionNumber),
         keyHashSize, hasher, valueSize, hashIndexBits, getCompressionCodec(), partitionCacheCapacity);
   }
 
@@ -231,7 +231,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getLocalDir(configurator, partitionNumber);
+    String localDir = getDataDirectory(configurator, partitionNumber);
     return new CueballPartitionUpdater(domain,
         getPartitionRemoteFileOps(partitionNumber),
         new CueballMerger(),
@@ -281,7 +281,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    String localDir = getLocalDir(configurator, partitionNumber);
+    String localDir = getDataDirectory(configurator, partitionNumber);
     return new CueballDeleter(localDir);
   }
 
@@ -317,24 +317,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
-  public static int getDataDirectoryIndex(int numDataDirectories, int numDomainPartitions, int partitionNumber) {
-    // Distribute partitions across data directories by considering them as buckets. The low numbered partitions
-    // are assigned to the first data directory, etc, the high numbered partitions are assigned to the last data directory.
-    double partitionsPerDataDirectory = (double)numDomainPartitions / (double)numDataDirectories;
-    return (int)Math.floor((double)partitionNumber / partitionsPerDataDirectory);
-  }
-
-  public static String getLocalDir(DataDirectoriesConfigurator configurator, Domain domain, int partitionNumber) {
-    ArrayList<String> sortedDataDirectories = new ArrayList<String>(configurator.getDataDirectories());
-    Collections.sort(sortedDataDirectories);
-    int partitionDataDirectoryIndex = getDataDirectoryIndex(sortedDataDirectories.size(), domain.getNumParts(), partitionNumber);
-    return sortedDataDirectories.get(partitionDataDirectoryIndex) + "/" + domain.getName() + "/" + partitionNumber;
-  }
-
-  private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return getLocalDir(configurator, domain, partitionNumber);
-  }
-
   public static String getName(int versionNumber, boolean base) {
     String s = padVersionNumber(versionNumber) + ".";
     if (base) {
@@ -350,20 +332,6 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   }
 
   @Override
-  public String toString() {
-    return "Cueball [compressionCodecClass=" + compressionCodecClass
-        + ", domainName=" + domain.getName()
-        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
-        + ", hashIndexBits=" + hashIndexBits
-        + ", hasher=" + hasher
-        + ", keyHashSize=" + keyHashSize
-        + ", remoteDomainRoot=" + remoteDomainRoot
-        + ", valueSize=" + valueSize
-        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
-        + "]";
-  }
-
-  @Override
   public RemoteDomainVersionDeleter getRemoteDomainVersionDeleter() throws IOException {
     return new CueballRemoteDomainVersionDeleter(domain, remoteDomainRoot, partitionRemoteFileOpsFactory);
   }
@@ -376,5 +344,38 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     return new IncrementalDomainVersionProperties.Serialization();
+  }
+
+  public static int getDataDirectoryIndex(int numDataDirectories, int numDomainPartitions, int partitionNumber) {
+    // Distribute partitions across data directories by considering them as buckets. The low numbered partitions
+    // are assigned to the first data directory, etc, the high numbered partitions are assigned to the last data directory.
+    double partitionsPerDataDirectory = (double)numDomainPartitions / (double)numDataDirectories;
+    return (int)Math.floor((double)partitionNumber / partitionsPerDataDirectory);
+  }
+
+  public static String getDataDirectory(DataDirectoriesConfigurator configurator, Domain domain, int partitionNumber) {
+    ArrayList<String> sortedDataDirectories = new ArrayList<String>(configurator.getDataDirectories());
+    Collections.sort(sortedDataDirectories);
+    int partitionDataDirectoryIndex = getDataDirectoryIndex(sortedDataDirectories.size(), domain.getNumParts(), partitionNumber);
+    return sortedDataDirectories.get(partitionDataDirectoryIndex) + "/" + domain.getName() + "/" + partitionNumber;
+  }
+
+  @Override
+  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return getDataDirectory(configurator, domain, partitionNumber);
+  }
+
+  @Override
+  public String toString() {
+    return "Cueball [compressionCodecClass=" + compressionCodecClass
+        + ", domainName=" + domain.getName()
+        + ", fileOpsFactory=" + partitionRemoteFileOpsFactory
+        + ", hashIndexBits=" + hashIndexBits
+        + ", hasher=" + hasher
+        + ", keyHashSize=" + keyHashSize
+        + ", remoteDomainRoot=" + remoteDomainRoot
+        + ", valueSize=" + valueSize
+        + ", numRemoteLeafVersionsToKeep=" + numRemoteLeafVersionsToKeep
+        + "]";
   }
 }

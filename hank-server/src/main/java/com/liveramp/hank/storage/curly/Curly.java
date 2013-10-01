@@ -101,65 +101,65 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
       PartitionRemoteFileOpsFactory fileOpsFactory;
       Class<? extends CueballCompressionCodec> compressionCodecClass;
       try {
-        hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
-        fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
+        hasher = (Hasher)Class.forName((String)options.get(HASHER_KEY)).newInstance();
+        fileOpsFactory = (PartitionRemoteFileOpsFactory)Class.forName((String)options.get(FILE_OPS_FACTORY_KEY)).newInstance();
 
-        String compressionCodecClassName = (String) options.get(COMPRESSION_CODEC);
+        String compressionCodecClassName = (String)options.get(COMPRESSION_CODEC);
         if (compressionCodecClassName == null) {
           compressionCodecClass = NoCueballCompressionCodec.class;
         } else {
-          compressionCodecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodecClassName);
+          compressionCodecClass = (Class<? extends CueballCompressionCodec>)Class.forName(compressionCodecClassName);
         }
       } catch (Exception e) {
         throw new IOException(e);
       }
-      final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long) options.get(MAX_ALLOWED_PART_SIZE_KEY)
-          : ((Integer) options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
+      final long maxAllowedPartSize = options.get(MAX_ALLOWED_PART_SIZE_KEY) instanceof Long ? (Long)options.get(MAX_ALLOWED_PART_SIZE_KEY)
+          : ((Integer)options.get(MAX_ALLOWED_PART_SIZE_KEY)).longValue();
 
       // num remote bases to keep
-      Integer numRemoteLeafVersionsToKeep = (Integer) options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
+      Integer numRemoteLeafVersionsToKeep = (Integer)options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
 
       // Value folding cache size
-      Integer valueFoldingCacheCapacity = (Integer) options.get(VALUE_FOLDING_CACHE_CAPACITY);
+      Integer valueFoldingCacheCapacity = (Integer)options.get(VALUE_FOLDING_CACHE_CAPACITY);
       if (valueFoldingCacheCapacity == null) {
         valueFoldingCacheCapacity = -1;
       }
 
       // Cache capacity
-      Integer keyFilePartitionCacheCapacity = (Integer) options.get(KEY_FILE_PARTITION_CACHE_CAPACITY);
+      Integer keyFilePartitionCacheCapacity = (Integer)options.get(KEY_FILE_PARTITION_CACHE_CAPACITY);
       if (keyFilePartitionCacheCapacity == null) {
         keyFilePartitionCacheCapacity = -1;
       }
-      Integer recordFilePartitionCacheCapacity = (Integer) options.get(RECORD_FILE_PARTITION_CACHE_CAPACITY);
+      Integer recordFilePartitionCacheCapacity = (Integer)options.get(RECORD_FILE_PARTITION_CACHE_CAPACITY);
       if (recordFilePartitionCacheCapacity == null) {
         recordFilePartitionCacheCapacity = -1;
       }
-      Integer recordFilePartitionCompactorCacheCapacity = (Integer) options.get(RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY);
+      Integer recordFilePartitionCompactorCacheCapacity = (Integer)options.get(RECORD_FILE_PARTITION_COMPACTOR_CACHE_CAPACITY);
       if (recordFilePartitionCompactorCacheCapacity == null) {
         recordFilePartitionCompactorCacheCapacity = recordFilePartitionCacheCapacity;
       }
 
       // Block compression
       CompressionCodec blockCompressionCodec = null;
-      String blockCompressionCodecStr = (String) options.get(BLOCK_COMPRESSION_CODEC);
+      String blockCompressionCodecStr = (String)options.get(BLOCK_COMPRESSION_CODEC);
       if (blockCompressionCodecStr != null) {
         blockCompressionCodec = CompressionCodec.valueOf(blockCompressionCodecStr.toUpperCase());
       }
-      Integer compressedBlockSizeThreshold = (Integer) options.get(COMPRESSED_BLOCK_SIZE_THRESHOLD);
+      Integer compressedBlockSizeThreshold = (Integer)options.get(COMPRESSED_BLOCK_SIZE_THRESHOLD);
       if (compressedBlockSizeThreshold == null) {
         compressedBlockSizeThreshold = -1;
       }
-      Integer offsetInBlockNumBytes = (Integer) options.get(OFFSET_IN_BLOCK_NUM_BYTES);
+      Integer offsetInBlockNumBytes = (Integer)options.get(OFFSET_IN_BLOCK_NUM_BYTES);
       if (offsetInBlockNumBytes == null) {
         offsetInBlockNumBytes = -1;
       }
 
-      return new Curly((Integer) options.get(KEY_HASH_SIZE_KEY),
+      return new Curly((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
           maxAllowedPartSize,
-          (Integer) options.get(HASH_INDEX_BITS_KEY),
-          (Integer) options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
-          (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
+          (Integer)options.get(HASH_INDEX_BITS_KEY),
+          (Integer)options.get(RECORD_FILE_READ_BUFFER_BYTES_KEY),
+          (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
           domain,
@@ -236,7 +236,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
     this.compressedBlockSizeThreshold = compressedBlockSizeThreshold;
     this.offsetInBlockNumBytes = offsetInBlockNumBytes;
 
-    this.offsetNumBytes = (int) (Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
+    this.offsetNumBytes = (int)(Math.ceil(Math.ceil(Math.log(maxAllowedPartSize) / Math.log(2)) / 8.0));
 
     // Determine size of values in Cueball. If we are using block compression in Curly,
     // the offsets stored in Cueball are appended with the offset in the block.
@@ -260,7 +260,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public Reader getReader(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    return new CurlyReader(CurlyReader.getLatestBase(getLocalDir(configurator, partitionNumber)),
+    return new CurlyReader(CurlyReader.getLatestBase(getDataDirectory(configurator, partitionNumber)),
         recordFileReadBufferBytes,
         cueballStorageEngine.getReader(configurator, partitionNumber),
         recordFilePartitionCacheCapacity,
@@ -293,7 +293,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
     IncrementalDomainVersionProperties result;
     try {
-      result = (IncrementalDomainVersionProperties) domainVersion.getProperties();
+      result = (IncrementalDomainVersionProperties)domainVersion.getProperties();
     } catch (ClassCastException e) {
       throw new IOException("Failed to load properties of version " + domainVersion);
     }
@@ -314,7 +314,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
 
   @Override
   public PartitionUpdater getUpdater(DataDirectoriesConfigurator configurator, int partitionNumber) throws IOException {
-    File localDir = new File(getLocalDir(configurator, partitionNumber));
+    File localDir = new File(getDataDirectory(configurator, partitionNumber));
     if (!localDir.exists() && !localDir.mkdirs()) {
       throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
     }
@@ -325,13 +325,13 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   public Compactor getCompactor(DataDirectoriesConfigurator configurator,
                                 int partitionNumber) throws IOException {
     if (configurator != null) {
-      File localDir = new File(getLocalDir(configurator, partitionNumber));
+      File localDir = new File(getDataDirectory(configurator, partitionNumber));
       if (!localDir.exists() && !localDir.mkdirs()) {
         throw new RuntimeException("Failed to create directory " + localDir.getAbsolutePath());
       }
       return getCompactor(localDir.getAbsolutePath(), partitionNumber);
     } else {
-      return getCompactor((String) null, partitionNumber);
+      return getCompactor((String)null, partitionNumber);
     }
   }
 
@@ -385,7 +385,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public Deleter getDeleter(DataDirectoriesConfigurator configurator, int partitionNumber)
       throws IOException {
-    String localDir = getLocalDir(configurator, partitionNumber);
+    String localDir = getDataDirectory(configurator, partitionNumber);
     return new CurlyDeleter(localDir);
   }
 
@@ -402,10 +402,6 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public PartitionRemoteFileOps getPartitionRemoteFileOps(int partitionNumber) throws IOException {
     return partitionRemoteFileOpsFactory.getPartitionRemoteFileOps(remoteDomainRoot, partitionNumber);
-  }
-
-  private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {
-    return Cueball.getLocalDir(configurator, domain, partitionNumber);
   }
 
   public static int parseVersionNumber(String name) {
@@ -482,5 +478,10 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
   @Override
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
     return new IncrementalDomainVersionProperties.Serialization();
+  }
+
+  @Override
+  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
+    return Cueball.getDataDirectory(configurator, domain, partitionNumber);
   }
 }

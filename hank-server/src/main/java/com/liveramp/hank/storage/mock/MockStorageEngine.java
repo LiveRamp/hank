@@ -15,13 +15,23 @@
  */
 package com.liveramp.hank.storage.mock;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
-import com.liveramp.hank.storage.*;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
+import com.liveramp.hank.storage.Compactor;
+import com.liveramp.hank.storage.Deleter;
+import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
+import com.liveramp.hank.storage.PartitionRemoteFileOps;
+import com.liveramp.hank.storage.PartitionRemoteFileOpsFactory;
+import com.liveramp.hank.storage.PartitionUpdater;
+import com.liveramp.hank.storage.Reader;
+import com.liveramp.hank.storage.RemoteDomainCleaner;
+import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import com.liveramp.hank.storage.StorageEngine;
+import com.liveramp.hank.storage.Writer;
 
 public class MockStorageEngine implements StorageEngine {
 
@@ -92,6 +102,11 @@ public class MockStorageEngine implements StorageEngine {
 
   @Override
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization() {
+    return null;
+  }
+
+  @Override
+  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber) {
     return null;
   }
 }

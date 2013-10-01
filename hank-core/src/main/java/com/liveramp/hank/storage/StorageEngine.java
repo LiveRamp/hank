@@ -16,12 +16,12 @@
 
 package com.liveramp.hank.storage;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * Defines how to read, write, delete, and update the data stored for a given
@@ -57,4 +57,6 @@ public interface StorageEngine {
   public RemoteDomainCleaner getRemoteDomainCleaner() throws IOException;
 
   public DomainVersionPropertiesSerialization getDomainVersionPropertiesSerialization();
+
+  public String getDataDirectory(DataDirectoriesConfigurator configurator, int partitionNumber);
 }
