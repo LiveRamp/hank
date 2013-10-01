@@ -30,6 +30,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 
@@ -261,7 +262,7 @@ public class UpdateManager implements IUpdateManager {
   private static class UpdaterThreadFactory implements ThreadFactory {
 
     private final String dataDirectory;
-    private int threadID = 0;
+    private AtomicInteger threadID = new AtomicInteger(0);
 
     public UpdaterThreadFactory(String dataDirectory) {
       this.dataDirectory = dataDirectory;
@@ -269,7 +270,7 @@ public class UpdateManager implements IUpdateManager {
 
     @Override
     public Thread newThread(Runnable r) {
-      return new Thread(r, "Updater Thread Pool Thread: " + dataDirectory + " #" + ++threadID);
+      return new Thread(r, "Updater Thread Pool Thread: " + dataDirectory + " #" + threadID.getAndIncrement());
     }
   }
 
