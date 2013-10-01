@@ -316,8 +316,9 @@ public class UpdateManager implements IUpdateManager {
       List<Throwable> throwablesEncountered = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
       Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
+      List<PartitionUpdateTask> allUpdateTasks = buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator);
       // Build and organize update tasks per data directory
-      for (PartitionUpdateTask updateTask : buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator)) {
+      for (PartitionUpdateTask updateTask : allUpdateTasks) {
         String dataDirectory = updateTask.getDataDirectory();
         List<PartitionUpdateTask> updateTasks = dataDirectoryToUpdateTasks.get(dataDirectory);
         if (updateTasks == null) {
@@ -327,11 +328,16 @@ public class UpdateManager implements IUpdateManager {
         updateTasks.add(updateTask);
       }
 
+      // Logging
+      LOG.info("Number of update tasks: " + allUpdateTasks.size());
+      for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
+        LOG.info("Number of update tasks scheduled in " + entry.getKey() + ": " + entry.getValue().size());
+      }
+
       // Build executor services and invoke tasks
       List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
       List<Future<Boolean>> futurePartitionUpdateTasks = new ArrayList<Future<Boolean>>();
       for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
-        LOG.info("Number of update tasks scheduled in " + entry.getKey() + ": " + entry.getValue().size());
         ExecutorService executorService = new UpdateThreadPoolExecutor(
             configurator.getNumConcurrentUpdates(),
             factory,
