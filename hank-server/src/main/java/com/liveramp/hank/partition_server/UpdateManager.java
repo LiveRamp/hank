@@ -255,11 +255,16 @@ public class UpdateManager implements IUpdateManager {
 
   private static class UpdaterThreadFactory implements ThreadFactory {
 
+    private final String dataDirectory;
     private int threadID = 0;
+
+    public UpdaterThreadFactory(String dataDirectory) {
+      this.dataDirectory = dataDirectory;
+    }
 
     @Override
     public Thread newThread(Runnable r) {
-      return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
+      return new Thread(r, "Updater Thread Pool Thread: " + dataDirectory + " #" + ++threadID);
     }
   }
 
@@ -312,7 +317,6 @@ public class UpdateManager implements IUpdateManager {
     HankTimer timer = new HankTimer();
     try {
       // Perform update
-      ThreadFactory factory = new UpdaterThreadFactory();
       List<Throwable> throwablesEncountered = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
       Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
@@ -340,7 +344,7 @@ public class UpdateManager implements IUpdateManager {
       for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
         ExecutorService executorService = new UpdateThreadPoolExecutor(
             configurator.getNumConcurrentUpdates(),
-            factory,
+            new UpdaterThreadFactory(entry.getKey()),
             host,
             partitionUpdateTaskStatisticsAggregator);
         executorServices.add(executorService);
