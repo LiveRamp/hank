@@ -37,7 +37,6 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.DomainVersionPropertiesSerialization;
 import com.liveramp.hank.hasher.Hasher;
 import com.liveramp.hank.hasher.IdentityHasher;
-import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Deleter;
 import com.liveramp.hank.storage.PartitionRemoteFileOps;
@@ -52,7 +51,6 @@ import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalStorageEngine;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
-import com.liveramp.hank.util.EncodingHelper;
 import com.liveramp.hank.util.FsUtils;
 
 /**
@@ -98,18 +96,18 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
       Hasher hasher;
       PartitionRemoteFileOpsFactory fileOpsFactory;
       try {
-        hasher = (Hasher) Class.forName((String) options.get(HASHER_KEY)).newInstance();
-        fileOpsFactory = (PartitionRemoteFileOpsFactory) Class.forName((String) options.get(FILE_OPS_FACTORY_KEY)).newInstance();
+        hasher = (Hasher)Class.forName((String)options.get(HASHER_KEY)).newInstance();
+        fileOpsFactory = (PartitionRemoteFileOpsFactory)Class.forName((String)options.get(FILE_OPS_FACTORY_KEY)).newInstance();
       } catch (Exception e) {
         throw new IOException(e);
       }
 
       // Compression codec
-      String compressionCodec = (String) options.get(COMPRESSION_CODEC);
+      String compressionCodec = (String)options.get(COMPRESSION_CODEC);
       Class<? extends CueballCompressionCodec> compressionCodecClass = NoCueballCompressionCodec.class;
       if (compressionCodec != null) {
         try {
-          compressionCodecClass = (Class<? extends CueballCompressionCodec>) Class.forName(compressionCodec);
+          compressionCodecClass = (Class<? extends CueballCompressionCodec>)Class.forName(compressionCodec);
         } catch (ClassNotFoundException e) {
           throw new IOException("Failed to get CompressionCodec class '"
               + compressionCodec + "'!", e);
@@ -117,19 +115,19 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
       }
 
       // Num remote bases to keep
-      Integer numRemoteLeafVersionsToKeep = (Integer) options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
+      Integer numRemoteLeafVersionsToKeep = (Integer)options.get(NUM_REMOTE_LEAF_VERSIONS_TO_KEEP);
 
       // Cache capacity
-      Integer partitionCacheCapacity = (Integer) options.get(PARTITION_CACHE_CAPACITY);
+      Integer partitionCacheCapacity = (Integer)options.get(PARTITION_CACHE_CAPACITY);
       if (partitionCacheCapacity == null) {
         partitionCacheCapacity = -1;
       }
 
-      return new Cueball((Integer) options.get(KEY_HASH_SIZE_KEY),
+      return new Cueball((Integer)options.get(KEY_HASH_SIZE_KEY),
           hasher,
-          (Integer) options.get(VALUE_SIZE_KEY),
-          (Integer) options.get(HASH_INDEX_BITS_KEY),
-          (String) options.get(REMOTE_DOMAIN_ROOT_KEY),
+          (Integer)options.get(VALUE_SIZE_KEY),
+          (Integer)options.get(HASH_INDEX_BITS_KEY),
+          (String)options.get(REMOTE_DOMAIN_ROOT_KEY),
           fileOpsFactory,
           compressionCodecClass,
           domain,
@@ -216,7 +214,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
   private IncrementalDomainVersionProperties getDomainVersionProperties(DomainVersion domainVersion) throws IOException {
     IncrementalDomainVersionProperties result;
     try {
-      result = (IncrementalDomainVersionProperties) domainVersion.getProperties();
+      result = (IncrementalDomainVersionProperties)domainVersion.getProperties();
     } catch (ClassCastException e) {
       throw new IOException("Failed to load properties of version " + domainVersion);
     }
@@ -319,12 +317,18 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
     return Integer.parseInt(matcher.group(1));
   }
 
+  public static int getDataDirectoryIndex(int numDataDirectories, int numDomainPartitions, int partitionNumber) {
+    // Distribute partitions across data directories by considering them as buckets. The low numbered partitions
+    // are assigned to the first data directory, etc, the high numbered partitions are assigned to the last data directory.
+    double partitionsPerDataDirectory = (double)numDomainPartitions / (double)numDataDirectories;
+    return (int)Math.floor((double)partitionNumber / partitionsPerDataDirectory);
+  }
+
   public static String getLocalDir(DataDirectoriesConfigurator configurator, Domain domain, int partitionNumber) {
-    ArrayList<String> l = new ArrayList<String>(configurator.getDataDirectories());
-    Collections.sort(l);
-    byte[] partitionNumberBytes = new byte[8];
-    EncodingHelper.encodeLittleEndianFixedWidthLong(partitionNumber, partitionNumberBytes);
-    return l.get((int) (Math.abs(Murmur64Hasher.murmurHash64(partitionNumberBytes)) % l.size())) + "/" + domain.getName() + "/" + partitionNumber;
+    ArrayList<String> sortedDataDirectories = new ArrayList<String>(configurator.getDataDirectories());
+    Collections.sort(sortedDataDirectories);
+    int partitionDataDirectoryIndex = getDataDirectoryIndex(sortedDataDirectories.size(), domain.getNumParts(), partitionNumber);
+    return sortedDataDirectories.get(partitionDataDirectoryIndex) + "/" + domain.getName() + "/" + partitionNumber;
   }
 
   private String getLocalDir(DataDirectoriesConfigurator configurator, int partitionNumber) {

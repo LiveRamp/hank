@@ -15,13 +15,14 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.hasher.Murmur64Hasher;
-import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
-import org.apache.log4j.Logger;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+
+import com.liveramp.hank.hasher.Murmur64Hasher;
+import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
+import com.liveramp.hank.test.BaseTestCase;
 
 public class TestCueballFactory extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestCueballFactory.class);
@@ -49,5 +50,28 @@ public class TestCueballFactory extends BaseTestCase {
     options.put(Cueball.Factory.VALUE_SIZE_KEY, 15);
     options.put(Cueball.Factory.NUM_REMOTE_LEAF_VERSIONS_TO_KEEP, 0);
     factory.getStorageEngine(options, null);
+  }
+
+  public void testGetDataDirectory() {
+    // More data directories than partitions
+    assertEquals(0, Cueball.getDataDirectoryIndex(3, 2, 0));
+    assertEquals(1, Cueball.getDataDirectoryIndex(3, 2, 1));
+    // One data directory
+    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 0));
+    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 1));
+    assertEquals(0, Cueball.getDataDirectoryIndex(1, 10, 2));
+    // Three data directories
+    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 0));
+    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 1));
+    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 2));
+    assertEquals(0, Cueball.getDataDirectoryIndex(3, 11, 3));
+    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 4));
+    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 5));
+    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 6));
+    assertEquals(1, Cueball.getDataDirectoryIndex(3, 11, 7));
+    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 8));
+    // Remaining should be distributed evenly across buckets
+    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 9));
+    assertEquals(2, Cueball.getDataDirectoryIndex(3, 11, 10));
   }
 }
