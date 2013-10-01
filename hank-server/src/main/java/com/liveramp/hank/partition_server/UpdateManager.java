@@ -19,8 +19,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -323,14 +325,14 @@ public class UpdateManager implements IUpdateManager {
       Semaphore concurrentUpdatesSemaphore = new Semaphore(configurator.getNumConcurrentUpdates());
       List<Throwable> encounteredThrowables = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
-      Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
+      Map<String, Queue<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, Queue<PartitionUpdateTask>>();
       List<PartitionUpdateTask> allUpdateTasks = buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator, encounteredThrowables);
       // Build and organize update tasks per data directory
       for (PartitionUpdateTask updateTask : allUpdateTasks) {
         String dataDirectory = updateTask.getDataDirectory();
-        List<PartitionUpdateTask> updateTasks = dataDirectoryToUpdateTasks.get(dataDirectory);
+        Queue<PartitionUpdateTask> updateTasks = dataDirectoryToUpdateTasks.get(dataDirectory);
         if (updateTasks == null) {
-          updateTasks = new ArrayList<PartitionUpdateTask>();
+          updateTasks = new LinkedList<PartitionUpdateTask>();
           dataDirectoryToUpdateTasks.put(dataDirectory, updateTasks);
         }
         updateTasks.add(updateTask);
@@ -338,26 +340,44 @@ public class UpdateManager implements IUpdateManager {
 
       // Logging
       LOG.info("Number of update tasks: " + allUpdateTasks.size());
-      for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
+      for (Map.Entry<String, Queue<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
         LOG.info("Number of update tasks scheduled in " + entry.getKey() + ": " + entry.getValue().size());
       }
 
-      // Build executor services and invoke tasks
-      List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
-      for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
-        ExecutorService executorService = new UpdateThreadPoolExecutor(
-            configurator.getMaxConcurrentUpdatesPerDataDirectory(),
-            new UpdaterThreadFactory(entry.getKey()),
-            concurrentUpdatesSemaphore);
-        executorServices.add(executorService);
-        for (PartitionUpdateTask partitionUpdateTask : entry.getValue()) {
-          executorService.execute(partitionUpdateTask);
+      // Build executor services
+      Map<String, ExecutorService> dataDirectoryToExecutorService = new HashMap<String, ExecutorService>();
+      for (String dataDirectory : dataDirectoryToUpdateTasks.keySet()) {
+        dataDirectoryToExecutorService.put(dataDirectory,
+            new UpdateThreadPoolExecutor(
+                configurator.getMaxConcurrentUpdatesPerDataDirectory(),
+                new UpdaterThreadFactory(dataDirectory),
+                concurrentUpdatesSemaphore));
+      }
+
+      // Execute tasks. We execute one task for each data directory and loop around so that the tasks
+      // attempt to acquire the semaphore in a reasonable order.
+      boolean remaining = true;
+      while (remaining) {
+        remaining = false;
+        for (Map.Entry<String, Queue<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
+          // Pop next task
+          Queue<PartitionUpdateTask> partitionUpdateTasks = entry.getValue();
+          PartitionUpdateTask partitionUpdateTask = partitionUpdateTasks.remove();
+          // Execute task
+          dataDirectoryToExecutorService.get(entry.getKey()).execute(partitionUpdateTask);
+          if (!partitionUpdateTasks.isEmpty()) {
+            remaining = true;
+          }
         }
+      }
+
+      // Shutdown executors
+      for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
         executorService.shutdown();
       }
 
       // Wait for executors to finish
-      for (ExecutorService executorService : executorServices) {
+      for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
         boolean keepWaiting = true;
         while (keepWaiting) {
           try {
@@ -384,7 +404,7 @@ public class UpdateManager implements IUpdateManager {
       }
 
       // Shutdown all executors
-      for (ExecutorService executorService : executorServices) {
+      for (ExecutorService executorService : dataDirectoryToExecutorService.values()) {
         executorService.shutdownNow();
       }
 
@@ -410,6 +430,7 @@ public class UpdateManager implements IUpdateManager {
       LOG.info("Update failed and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
       throw e;
     }
+
     LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 
