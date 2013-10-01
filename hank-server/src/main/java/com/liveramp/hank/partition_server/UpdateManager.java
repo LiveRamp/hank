@@ -363,8 +363,8 @@ public class UpdateManager implements IUpdateManager {
         for (Map.Entry<String, Queue<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
           // Pop next task
           Queue<PartitionUpdateTask> partitionUpdateTasks = entry.getValue();
-          PartitionUpdateTask partitionUpdateTask = partitionUpdateTasks.remove();
-          if (partitionUpdateTask != null) {
+          if (!partitionUpdateTasks.isEmpty()) {
+            PartitionUpdateTask partitionUpdateTask = partitionUpdateTasks.remove();
             // Execute task
             dataDirectoryToExecutorService.get(entry.getKey()).execute(partitionUpdateTask);
           }
@@ -436,7 +436,6 @@ public class UpdateManager implements IUpdateManager {
       LOG.info("Update failed and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
       throw e;
     }
-
     LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 
