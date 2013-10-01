@@ -25,9 +25,12 @@ import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
@@ -161,6 +164,7 @@ public class UpdateManager implements IUpdateManager {
     private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
+    private final String dataDirectory;
     private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
 
     public PartitionUpdateTask(HostDomain hostDomain,
@@ -169,6 +173,7 @@ public class UpdateManager implements IUpdateManager {
       this.hostDomain = hostDomain;
       this.domain = hostDomain.getDomain();
       this.partition = partition;
+      this.dataDirectory = domain.getStorageEngine().getDataDirectory(configurator, partition.getPartitionNumber());
       this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
       // Register itself in the aggregator
       partitionUpdateTaskStatisticsAggregator.register(this);
@@ -176,6 +181,10 @@ public class UpdateManager implements IUpdateManager {
 
     public Domain getDomain() {
       return domain;
+    }
+
+    public String getDataDirectory() {
+      return dataDirectory;
     }
 
     @Override
@@ -245,11 +254,7 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
-  private final PartitionServerConfigurator configurator;
-  private final Host host;
-  private final RingGroup ringGroup;
-
-  public class UpdaterThreadFactory implements ThreadFactory {
+  private static class UpdaterThreadFactory implements ThreadFactory {
 
     private int threadID = 0;
 
@@ -258,6 +263,57 @@ public class UpdateManager implements IUpdateManager {
       return new Thread(r, "Updater Thread Pool Thread #" + ++threadID);
     }
   }
+
+  private static class UpdateThreadPoolExecutor extends ThreadPoolExecutor {
+
+    private final Host host;
+    private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
+    private final Semaphore semaphore;
+
+    public UpdateThreadPoolExecutor(int numThreads,
+                                    ThreadFactory threadFactory,
+                                    Host host,
+                                    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
+                                    Semaphore semaphore) {
+      // Essentially a fixed thread pool
+      super(
+          numThreads,
+          numThreads,
+          0L,
+          TimeUnit.MILLISECONDS,
+          new LinkedBlockingQueue<Runnable>(),
+          threadFactory);
+      this.host = host;
+      this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
+      this.semaphore = semaphore;
+    }
+
+    @Override
+    protected void beforeExecute(Thread thread, Runnable runnable) {
+      // Acquire an update permit
+      try {
+        semaphore.acquire();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    protected void afterExecute(Runnable runnable, Throwable throwable) {
+      // Release an update permit
+      semaphore.release();
+      // Record update ETA after execute
+      try {
+        Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  private final PartitionServerConfigurator configurator;
+  private final Host host;
+  private final RingGroup ringGroup;
 
   public UpdateManager(PartitionServerConfigurator configurator, Host host, RingGroup ringGroup) throws IOException {
     this.configurator = configurator;
@@ -272,40 +328,61 @@ public class UpdateManager implements IUpdateManager {
     try {
       // Perform update
       ThreadFactory factory = new UpdaterThreadFactory();
-      ExecutorService executor = Executors.newFixedThreadPool(configurator.getNumConcurrentUpdates(), factory);
-      PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator
-          = new PartitionUpdateTaskStatisticsAggregator();
-      List<Throwable> exceptionQueue = new ArrayList<Throwable>();
-      // Execute all tasks and wait for them to finish
+      Semaphore updateTaskSemaphore = new Semaphore(configurator.getNumConcurrentUpdates());
+      List<Throwable> throwablesEncountered = new ArrayList<Throwable>();
+      PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
+      Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
+      // Build and organize update tasks per data directory
+      for (PartitionUpdateTask updateTask : buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator)) {
+        String dataDirectory = updateTask.getDataDirectory();
+        List<PartitionUpdateTask> updateTasks = dataDirectoryToUpdateTasks.get(dataDirectory);
+        if (updateTasks == null) {
+          updateTasks = new ArrayList<PartitionUpdateTask>();
+          dataDirectoryToUpdateTasks.put(dataDirectory, updateTasks);
+        }
+        updateTasks.add(updateTask);
+      }
+
+      // Build executor services and invoke tasks
+      List<Future<Boolean>> futurePartitionUpdateTasks = new ArrayList<Future<Boolean>>();
+      for (List<PartitionUpdateTask> updateTasks : dataDirectoryToUpdateTasks.values()) {
+        ExecutorService executorService = new UpdateThreadPoolExecutor(
+            configurator.getNumConcurrentUpdates(),
+            factory,
+            host,
+            partitionUpdateTaskStatisticsAggregator,
+            updateTaskSemaphore);
+        try {
+          futurePartitionUpdateTasks.addAll(executorService.invokeAll(updateTasks));
+        } catch (InterruptedException e) {
+          throwablesEncountered.add(e);
+        }
+      }
+
+      // Wait for tasks to finish
       try {
-        List<Future<Boolean>> futurePartitionUpdateTasks = executor.invokeAll(buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator));
-        executor.shutdown();
         for (Future<Boolean> futurePartitionUpdateTask : futurePartitionUpdateTasks) {
           try {
             futurePartitionUpdateTask.get();
           } catch (ExecutionException e) {
             // Record task execution exception
-            exceptionQueue.add(e);
+            throwablesEncountered.add(e);
           }
-          // Record update ETA
-          Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
         }
       } catch (InterruptedException e) {
-        exceptionQueue.add(e);
+        throwablesEncountered.add(e);
       }
-      // Executor is now ready to be shutdown
-      executor.shutdownNow();
 
-      // Detect failed tasks
-      if (!exceptionQueue.isEmpty()) {
-        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", exceptionQueue.size()));
+      // Detect failures
+      if (!throwablesEncountered.isEmpty()) {
+        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", throwablesEncountered.size()));
         int i = 0;
-        for (Throwable t : exceptionQueue) {
-          LOG.fatal(String.format("Exception %d/%d:", ++i, exceptionQueue.size()), t);
+        for (Throwable t : throwablesEncountered) {
+          LOG.fatal(String.format("Exception %d/%d:", ++i, throwablesEncountered.size()), t);
         }
         throw new IOException(String.format(
             "Failed to complete update: %d exceptions encountered while running partition update tasks.",
-            exceptionQueue.size()));
+            throwablesEncountered.size()));
       }
 
       // Garbage collect useless host domains
