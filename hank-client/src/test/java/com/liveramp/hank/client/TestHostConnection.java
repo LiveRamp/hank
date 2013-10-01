@@ -260,7 +260,7 @@ public class TestHostConnection extends BaseTestCase {
     @Override
     public void run() {
       // launch the thrift server
-      TNonblockingServerSocket serverSocket = null;
+      TNonblockingServerSocket serverSocket;
       try {
         serverSocket = new TNonblockingServerSocket(partitionServerAddress.getPortNumber());
       } catch (TTransportException e) {
