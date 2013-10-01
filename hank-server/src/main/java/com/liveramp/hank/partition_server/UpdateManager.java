@@ -22,10 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -52,6 +49,9 @@ import com.liveramp.hank.util.HankTimer;
  * Manages the domain update process.
  */
 public class UpdateManager implements IUpdateManager {
+
+  private static final int UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE = 10;
+  private static final TimeUnit UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT = TimeUnit.SECONDS;
 
   private static final Logger LOG = Logger.getLogger(UpdateManager.class);
 
@@ -158,18 +158,21 @@ public class UpdateManager implements IUpdateManager {
     }
   }
 
-  private final class PartitionUpdateTask implements Callable<Boolean>, Comparable<PartitionUpdateTask> {
+  private final class PartitionUpdateTask implements Runnable, Comparable<PartitionUpdateTask> {
 
     private final HostDomain hostDomain;
     private final Domain domain;
     private final HostDomainPartition partition;
     private final String dataDirectory;
     private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
+    private final List<Throwable> encounteredThrowables;
 
     public PartitionUpdateTask(HostDomain hostDomain,
                                HostDomainPartition partition,
-                               PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) {
+                               PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
+                               List<Throwable> encounteredThrowables) {
       this.hostDomain = hostDomain;
+      this.encounteredThrowables = encounteredThrowables;
       this.domain = hostDomain.getDomain();
       this.partition = partition;
       this.dataDirectory = domain.getStorageEngine().getDataDirectory(configurator, partition.getPartitionNumber());
@@ -187,7 +190,7 @@ public class UpdateManager implements IUpdateManager {
     }
 
     @Override
-    public Boolean call() throws Exception {
+    public void run() {
       PartitionUpdateTaskStatistics statistics = new PartitionUpdateTaskStatistics();
       statistics.setStartTimeMs(System.currentTimeMillis());
       try {
@@ -210,7 +213,7 @@ public class UpdateManager implements IUpdateManager {
             LOG.info(String.format(
                 "Skipping partition update of domain %s partition %d to version %d (it is already up-to-date).",
                 domain.getName(), partition.getPartitionNumber(), targetDomainVersion.getVersionNumber()));
-            return true;
+            return;
           }
 
           // Mark the beginning of the update by first unsetting the partition's current version number.
@@ -233,12 +236,11 @@ public class UpdateManager implements IUpdateManager {
       } catch (Throwable t) {
         LOG.fatal(String.format("Failed to complete partition update of domain %s partition %d.",
             domain.getName(), partition.getPartitionNumber()), t);
-        throw new RuntimeException(t);
+        encounteredThrowables.add(t);
       } finally {
         statistics.setEndTimeMs(System.currentTimeMillis());
         partitionUpdateTaskStatisticsAggregator.recordPartitionUpdateTaskStatistics(this, statistics);
       }
-      return true;
     }
 
     @Override
@@ -270,13 +272,8 @@ public class UpdateManager implements IUpdateManager {
 
   private static class UpdateThreadPoolExecutor extends ThreadPoolExecutor {
 
-    private final Host host;
-    private final PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator;
-
     public UpdateThreadPoolExecutor(int numThreads,
-                                    ThreadFactory threadFactory,
-                                    Host host,
-                                    PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) {
+                                    ThreadFactory threadFactory) {
       // Essentially a fixed thread pool
       super(
           numThreads,
@@ -285,19 +282,6 @@ public class UpdateManager implements IUpdateManager {
           TimeUnit.MILLISECONDS,
           new LinkedBlockingQueue<Runnable>(),
           threadFactory);
-      this.host = host;
-      this.partitionUpdateTaskStatisticsAggregator = partitionUpdateTaskStatisticsAggregator;
-    }
-
-    @Override
-    protected void afterExecute(Runnable runnable, Throwable throwable) {
-      // Record update ETA after execute
-      try {
-        Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
-      } catch (IOException e) {
-        LOG.error("Failed to set ETA", e);
-        throw new RuntimeException(e);
-      }
     }
   }
 
@@ -317,10 +301,10 @@ public class UpdateManager implements IUpdateManager {
     HankTimer timer = new HankTimer();
     try {
       // Perform update
-      List<Throwable> throwablesEncountered = new ArrayList<Throwable>();
+      List<Throwable> encounteredThrowables = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
       Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
-      List<PartitionUpdateTask> allUpdateTasks = buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator);
+      List<PartitionUpdateTask> allUpdateTasks = buildPartitionUpdateTasks(partitionUpdateTaskStatisticsAggregator, encounteredThrowables);
       // Build and organize update tasks per data directory
       for (PartitionUpdateTask updateTask : allUpdateTasks) {
         String dataDirectory = updateTask.getDataDirectory();
@@ -340,33 +324,42 @@ public class UpdateManager implements IUpdateManager {
 
       // Build executor services and invoke tasks
       List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
-      List<Future<Boolean>> futurePartitionUpdateTasks = new ArrayList<Future<Boolean>>();
       for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
         ExecutorService executorService = new UpdateThreadPoolExecutor(
             configurator.getNumConcurrentUpdates(),
-            new UpdaterThreadFactory(entry.getKey()),
-            host,
-            partitionUpdateTaskStatisticsAggregator);
+            new UpdaterThreadFactory(entry.getKey()));
         executorServices.add(executorService);
-        try {
-          futurePartitionUpdateTasks.addAll(executorService.invokeAll(entry.getValue()));
-        } catch (InterruptedException e) {
-          throwablesEncountered.add(e);
+        for (PartitionUpdateTask partitionUpdateTask : entry.getValue()) {
+          executorService.execute(partitionUpdateTask);
         }
+        executorService.shutdown();
       }
 
-      // Wait for tasks to finish
-      try {
-        for (Future<Boolean> futurePartitionUpdateTask : futurePartitionUpdateTasks) {
+      // Wait for executors to finish
+      for (ExecutorService executorService : executorServices) {
+        boolean keepWaiting = true;
+        while (keepWaiting) {
           try {
-            futurePartitionUpdateTask.get();
-          } catch (ExecutionException e) {
-            // Record task execution exception
-            throwablesEncountered.add(e);
+            boolean terminated = executorService.awaitTermination(
+                UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_VALUE,
+                UPDATE_EXECUTOR_TERMINATION_CHECK_TIMEOUT_UNIT);
+            if (terminated) {
+              // We finished executing all tasks
+              // Otherwise, timeout elapsed and current thread was not interrupted. Keep waiting.
+              keepWaiting = false;
+            }
+            // Record update ETA
+            Hosts.setUpdateETA(host, partitionUpdateTaskStatisticsAggregator.computeETA());
+          } catch (InterruptedException e) {
+            // Received interruption (stop request).
+            // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
+            LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
+                " and wait for those that were running to finish).");
+            executorService.shutdownNow();
+            // Record failed update exception (we need to keep waiting)
+            encounteredThrowables.add(new IOException("Failed to complete update: update interruption was requested."));
           }
         }
-      } catch (InterruptedException e) {
-        throwablesEncountered.add(e);
       }
 
       // Shutdown all executors
@@ -375,15 +368,15 @@ public class UpdateManager implements IUpdateManager {
       }
 
       // Detect failures
-      if (!throwablesEncountered.isEmpty()) {
-        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", throwablesEncountered.size()));
+      if (!encounteredThrowables.isEmpty()) {
+        LOG.fatal(String.format("%d exceptions encountered while running partition update tasks:", encounteredThrowables.size()));
         int i = 0;
-        for (Throwable t : throwablesEncountered) {
-          LOG.fatal(String.format("Exception %d/%d:", ++i, throwablesEncountered.size()), t);
+        for (Throwable t : encounteredThrowables) {
+          LOG.fatal(String.format("Exception %d/%d:", ++i, encounteredThrowables.size()), t);
         }
         throw new IOException(String.format(
             "Failed to complete update: %d exceptions encountered while running partition update tasks.",
-            throwablesEncountered.size()));
+            encounteredThrowables.size()));
       }
 
       // Garbage collect useless host domains
@@ -399,7 +392,9 @@ public class UpdateManager implements IUpdateManager {
     LOG.info("Update succeeded and took " + FormatUtils.formatSecondsDuration(timer.getDurationMs() / 1000));
   }
 
-  private ArrayList<PartitionUpdateTask> buildPartitionUpdateTasks(PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator) throws IOException {
+  private ArrayList<PartitionUpdateTask> buildPartitionUpdateTasks(
+      PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator,
+      List<Throwable> encounteredThrowables) throws IOException {
     ArrayList<PartitionUpdateTask> partitionUpdateTasks = new ArrayList<PartitionUpdateTask>();
 
     for (HostDomain hostDomain : host.getAssignedDomains()) {
@@ -408,7 +403,8 @@ public class UpdateManager implements IUpdateManager {
             new PartitionUpdateTask(
                 hostDomain,
                 partition,
-                partitionUpdateTaskStatisticsAggregator));
+                partitionUpdateTaskStatisticsAggregator,
+                encounteredThrowables));
       }
     }
 
