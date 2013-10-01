@@ -297,6 +297,7 @@ public class UpdateManager implements IUpdateManager {
       try {
         semaphore.acquire();
       } catch (InterruptedException e) {
+        LOG.error("Failed to acquire update thread semaphore", e);
         throw new RuntimeException(e);
       }
     }
@@ -317,7 +318,6 @@ public class UpdateManager implements IUpdateManager {
     this.ringGroup = ringGroup;
   }
 
-  // When an Exception is thrown, the update has failed.
   @Override
   public void update() throws IOException {
     HankTimer timer = new HankTimer();
@@ -399,7 +399,10 @@ public class UpdateManager implements IUpdateManager {
             // Swallow the interrupted state and ask the executor to shutdown immediately. Also, keep waiting.
             LOG.info("The update manager was interrupted. Stopping the update process (stop executing new partition update tasks" +
                 " and wait for those that were running to finish).");
-            executorService.shutdownNow();
+            // Shutdown all executors
+            for (ExecutorService otherExecutorService : dataDirectoryToExecutorService.values()) {
+              otherExecutorService.shutdownNow();
+            }
             // Record failed update exception (we need to keep waiting)
             encounteredThrowables.add(new IOException("Failed to complete update: update interruption was requested."));
           }
