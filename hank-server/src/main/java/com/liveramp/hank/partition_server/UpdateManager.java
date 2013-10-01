@@ -344,6 +344,7 @@ public class UpdateManager implements IUpdateManager {
       }
 
       // Build executor services and invoke tasks
+      List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
       List<Future<Boolean>> futurePartitionUpdateTasks = new ArrayList<Future<Boolean>>();
       for (List<PartitionUpdateTask> updateTasks : dataDirectoryToUpdateTasks.values()) {
         ExecutorService executorService = new UpdateThreadPoolExecutor(
@@ -352,6 +353,7 @@ public class UpdateManager implements IUpdateManager {
             host,
             partitionUpdateTaskStatisticsAggregator,
             updateTaskSemaphore);
+        executorServices.add(executorService);
         try {
           futurePartitionUpdateTasks.addAll(executorService.invokeAll(updateTasks));
         } catch (InterruptedException e) {
@@ -371,6 +373,11 @@ public class UpdateManager implements IUpdateManager {
         }
       } catch (InterruptedException e) {
         throwablesEncountered.add(e);
+      }
+
+      // Shutdown all executors
+      for (ExecutorService executorService : executorServices) {
+        executorService.shutdownNow();
       }
 
       // Detect failures
