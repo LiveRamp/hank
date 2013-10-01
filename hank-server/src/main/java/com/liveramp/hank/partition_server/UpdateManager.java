@@ -363,8 +363,10 @@ public class UpdateManager implements IUpdateManager {
           // Pop next task
           Queue<PartitionUpdateTask> partitionUpdateTasks = entry.getValue();
           PartitionUpdateTask partitionUpdateTask = partitionUpdateTasks.remove();
-          // Execute task
-          dataDirectoryToExecutorService.get(entry.getKey()).execute(partitionUpdateTask);
+          if (partitionUpdateTask != null) {
+            // Execute task
+            dataDirectoryToExecutorService.get(entry.getKey()).execute(partitionUpdateTask);
+          }
           if (!partitionUpdateTasks.isEmpty()) {
             remaining = true;
           }
