@@ -15,12 +15,12 @@
  */
 package com.liveramp.hank.config.yaml;
 
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.coordinator.mock.MockCoordinator;
-
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
+
+import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import com.liveramp.hank.test.BaseTestCase;
 
 public class TestYamlPartitionServerConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
@@ -39,6 +39,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     pw.println("    get_timer_aggregator_window: 1000");
     pw.println("  update_daemon:");
     pw.println("    num_concurrent_updates: 5");
+    pw.println("    max_concurrent_updates_per_data_directory: 2");
     pw.println("coordinator:");
     pw.println("  factory: " + MockCoordinator.Factory.class.getName());
     pw.println("  options:");
@@ -50,6 +51,7 @@ public class TestYamlPartitionServerConfigurator extends BaseTestCase {
     assertEquals(1, conf.getServicePort());
     assertEquals("rg1", conf.getRingGroupName());
     assertEquals(5, conf.getNumConcurrentUpdates());
+    assertEquals(2, conf.getMaxConcurrentUpdatesPerDataDirectory());
     assertEquals(5, conf.getNumConcurrentQueries());
   }
 }

@@ -15,11 +15,11 @@
  */
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.coordinator.Coordinator;
-
 import java.util.Collections;
 import java.util.Set;
+
+import com.liveramp.hank.config.PartitionServerConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
 
 public class MockPartitionServerConfigurator implements PartitionServerConfigurator {
 
@@ -81,6 +81,11 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
 
   @Override
   public int getNumConcurrentUpdates() {
+    return 10;
+  }
+
+  @Override
+  public int getMaxConcurrentUpdatesPerDataDirectory() {
     return 10;
   }
 }

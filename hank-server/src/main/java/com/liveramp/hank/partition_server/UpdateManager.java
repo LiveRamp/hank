@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -272,8 +273,11 @@ public class UpdateManager implements IUpdateManager {
 
   private static class UpdateThreadPoolExecutor extends ThreadPoolExecutor {
 
+    private final Semaphore semaphore;
+
     public UpdateThreadPoolExecutor(int numThreads,
-                                    ThreadFactory threadFactory) {
+                                    ThreadFactory threadFactory,
+                                    Semaphore semaphore) {
       // Essentially a fixed thread pool
       super(
           numThreads,
@@ -282,6 +286,21 @@ public class UpdateManager implements IUpdateManager {
           TimeUnit.MILLISECONDS,
           new LinkedBlockingQueue<Runnable>(),
           threadFactory);
+      this.semaphore = semaphore;
+    }
+
+    @Override
+    protected void beforeExecute(Thread thread, Runnable runnable) {
+      try {
+        semaphore.acquire();
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Override
+    protected void afterExecute(Runnable runnable, Throwable throwable) {
+      semaphore.release();
     }
   }
 
@@ -301,6 +320,7 @@ public class UpdateManager implements IUpdateManager {
     HankTimer timer = new HankTimer();
     try {
       // Perform update
+      Semaphore concurrentUpdatesSemaphore = new Semaphore(configurator.getNumConcurrentUpdates());
       List<Throwable> encounteredThrowables = new ArrayList<Throwable>();
       PartitionUpdateTaskStatisticsAggregator partitionUpdateTaskStatisticsAggregator = new PartitionUpdateTaskStatisticsAggregator();
       Map<String, List<PartitionUpdateTask>> dataDirectoryToUpdateTasks = new HashMap<String, List<PartitionUpdateTask>>();
@@ -326,8 +346,9 @@ public class UpdateManager implements IUpdateManager {
       List<ExecutorService> executorServices = new ArrayList<ExecutorService>();
       for (Map.Entry<String, List<PartitionUpdateTask>> entry : dataDirectoryToUpdateTasks.entrySet()) {
         ExecutorService executorService = new UpdateThreadPoolExecutor(
-            configurator.getNumConcurrentUpdates(),
-            new UpdaterThreadFactory(entry.getKey()));
+            configurator.getMaxConcurrentUpdatesPerDataDirectory(),
+            new UpdaterThreadFactory(entry.getKey()),
+            concurrentUpdatesSemaphore);
         executorServices.add(executorService);
         for (PartitionUpdateTask partitionUpdateTask : entry.getValue()) {
           executorService.execute(partitionUpdateTask);

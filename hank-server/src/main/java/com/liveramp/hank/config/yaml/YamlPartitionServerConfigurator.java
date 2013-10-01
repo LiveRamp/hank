@@ -16,12 +16,12 @@
 
 package com.liveramp.hank.config.yaml;
 
-import com.liveramp.hank.config.InvalidConfigurationException;
-import com.liveramp.hank.config.PartitionServerConfigurator;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.PartitionServerConfigurator;
 
 public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator implements PartitionServerConfigurator {
 
@@ -33,6 +33,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   public static final String NUM_CONCURRENT_QUERIES_KEY = "num_concurrent_queries";
   public static final String UPDATE_DAEMON_SECTION_KEY = "update_daemon";
   public static final String NUM_CONCURRENT_UPDATES_KEY = "num_concurrent_updates";
+  public static final String MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY = "max_concurrent_updates_per_data_directory";
   public static final String NUM_CONCURRENT_GET_BULK_TASKS = "num_concurrent_get_bulk_tasks";
   public static final String GET_BULK_TASK_SIZE = "get_bulk_task_size";
   public static final String GET_TIMER_AGGREGATOR_WINDOW_KEY = "get_timer_aggregator_window";
@@ -63,6 +64,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
 
     getRequiredSection(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
+    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY);
   }
 
   @Override
@@ -108,5 +110,10 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   @Override
   public int getNumConcurrentUpdates() {
     return getInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, NUM_CONCURRENT_UPDATES_KEY);
+  }
+
+  @Override
+  public int getMaxConcurrentUpdatesPerDataDirectory() {
+    return getInteger(PARTITION_SERVER_SECTION_KEY, UPDATE_DAEMON_SECTION_KEY, MAX_CONCURRENT_UPDATES_PER_DATA_DIRECTORY_KEY);
   }
 }

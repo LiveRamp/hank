@@ -24,6 +24,8 @@ public interface PartitionServerConfigurator extends CoordinatorConfigurator, Da
 
   public int getNumConcurrentUpdates();
 
+  public int getMaxConcurrentUpdatesPerDataDirectory();
+
   public int getNumConcurrentQueries();
 
   public int getNumConcurrentGetBulkTasks();
