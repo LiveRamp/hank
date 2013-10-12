@@ -16,13 +16,14 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.hank.coordinator.DomainVersionProperties;
+import java.io.IOException;
+
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapred.JobClient;
 import org.apache.hadoop.mapred.JobConf;
 
-import java.io.IOException;
+import com.liveramp.hank.coordinator.DomainVersionProperties;
 
 public abstract class AbstractHadoopDomainBuilder {
 
@@ -72,7 +73,7 @@ public abstract class AbstractHadoopDomainBuilder {
     DomainBuilderOutputCommitter.cleanupJob(properties.getDomainName(), conf);
   }
 
-  private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, int numPartitions, JobConf conf) {
+  private void configureJobCommon(DomainBuilderProperties properties, int versionNumber, int numPartitions, JobConf conf) throws IOException {
     // Hank specific configuration
     properties.setJobConfProperties(conf, versionNumber);
     // Output Committer

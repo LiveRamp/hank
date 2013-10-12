@@ -16,13 +16,18 @@
 
 package com.liveramp.hank.hadoop.test;
 
-import com.liveramp.hank.hadoop.*;
-import com.liveramp.hank.storage.map.MapStorageEngine;
-import com.liveramp.hank.util.Bytes;
-import org.apache.hadoop.mapred.TextInputFormat;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import org.apache.hadoop.mapred.TextInputFormat;
+
+import com.liveramp.hank.hadoop.DomainBuilderEmptyOutputFormat;
+import com.liveramp.hank.hadoop.DomainBuilderProperties;
+import com.liveramp.hank.hadoop.HadoopDomainBuilder;
+import com.liveramp.hank.hadoop.HadoopTestCase;
+import com.liveramp.hank.hadoop.TestHadoopDomainBuilder;
+import com.liveramp.hank.storage.map.MapStorageEngine;
+import com.liveramp.hank.util.Bytes;
 
 
 public class TestMapStorageEngineCoordinator extends HadoopTestCase {
@@ -45,7 +50,7 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
 
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
-            MapStorageEngineCoordinator.getConfigurator(1), OUTPUT_DIR+"/a", DomainBuilderEmptyOutputFormat.class), null);
+            MapStorageEngineCoordinator.getConfigurator(1), DomainBuilderEmptyOutputFormat.class).setOutputPath(OUTPUT_DIR + "/a"), null);
 
     // Verify num partitions and num entries
     assertEquals(1, MapStorageEngine.getPartitions(DOMAIN_A_NAME).size());

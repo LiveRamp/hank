@@ -1,16 +1,27 @@
 package com.liveramp.hank.hadoop;
 
-import cascading.flow.FlowProcess;
-import com.liveramp.hank.config.CoordinatorConfigurator;
-import com.liveramp.hank.coordinator.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.log4j.Logger;
 
-import java.io.*;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import cascading.flow.FlowProcess;
+
+import com.liveramp.hank.config.CoordinatorConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersionProperties;
+import com.liveramp.hank.coordinator.RunWithCoordinator;
+import com.liveramp.hank.coordinator.RunnableWithCoordinator;
 
 public class DomainBuilderProperties {
 
@@ -23,52 +34,27 @@ public class DomainBuilderProperties {
 
   private final String domainName;
   private final CoordinatorConfigurator configurator;
-  private final String outputPath;
-  private final Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass;
+  private Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
+  private String outputPath = null;
   private String randomTmpOutputPathId;
+
   private static final Logger LOG = Logger.getLogger(DomainBuilderProperties.class);
 
   // With a default output format
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
-                                 CoordinatorConfigurator configurator) throws IOException {
+                                 CoordinatorConfigurator configurator) {
     this.domainName = domainName;
     this.configurator = configurator;
-    this.outputPath = getRemoteDomainRoot();
-    this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
   }
 
   // With a specific output format
   // Get output path from the Coordinator
   public DomainBuilderProperties(String domainName,
                                  CoordinatorConfigurator configurator,
-                                 Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass) throws IOException {
-    this.domainName = domainName;
-    this.configurator = configurator;
-    this.outputPath = getRemoteDomainRoot();
-    this.outputFormatClass = outputFormatClass;
-  }
-
-  // With a default output format
-  // With a specific output path
-  public DomainBuilderProperties(String domainName,
-                                 CoordinatorConfigurator configurator,
-                                 String outputPath) {
-    this.domainName = domainName;
-    this.configurator = configurator;
-    this.outputPath = outputPath;
-    this.outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
-  }
-
-  // With a specific output format
-  // With a specific output path
-  public DomainBuilderProperties(String domainName,
-                                 CoordinatorConfigurator configurator,
-                                 String outputPath,
                                  Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass) {
     this.domainName = domainName;
     this.configurator = configurator;
-    this.outputPath = outputPath;
     this.outputFormatClass = outputFormatClass;
   }
 
@@ -80,8 +66,16 @@ public class DomainBuilderProperties {
     return configurator;
   }
 
-  public String getOutputPath() {
+  public String getOutputPath() throws IOException {
+    if (outputPath == null) {
+      this.outputPath = getRemoteDomainRoot();
+    }
     return outputPath;
+  }
+
+  public DomainBuilderProperties setOutputPath(String outputPath) {
+    this.outputPath = outputPath;
+    return this;
   }
 
   public String getTmpOutputPath(int versionNumber) {
@@ -136,7 +130,7 @@ public class DomainBuilderProperties {
   }
 
   // To configure Hadoop MapReduce jobs
-  public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
+  public JobConf setJobConfProperties(JobConf conf, int versionNumber) throws IOException {
     // Domain name
     conf.set(DomainBuilderAbstractOutputFormat.CONF_PARAM_HANK_DOMAIN_NAME, getDomainName());
     // Configuration
@@ -163,7 +157,7 @@ public class DomainBuilderProperties {
   // FlowProcess
 
   private static String getRequiredConfigurationItem(String key, String prettyName, FlowProcess flowProcess) {
-    String result = (String) flowProcess.getProperty(key);
+    String result = (String)flowProcess.getProperty(key);
     if (result == null) {
       throw new RuntimeException(prettyName + " must be set with configuration item: " + key);
     }
@@ -185,7 +179,7 @@ public class DomainBuilderProperties {
         "Hank coordinator configuration", conf);
     CoordinatorConfigurator configurator;
     try {
-      configurator = (CoordinatorConfigurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (CoordinatorConfigurator)new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -199,7 +193,7 @@ public class DomainBuilderProperties {
         "Hank coordinator configuration", flowProcess);
     CoordinatorConfigurator configurator;
     try {
-      configurator = (CoordinatorConfigurator) new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
+      configurator = (CoordinatorConfigurator)new ObjectInputStream(new ByteArrayInputStream(Base64.decodeBase64(configuratorString.getBytes()))).readObject();
     } catch (Exception e) {
       throw new RuntimeException("Hank Configurator is incorrectly serialized in configuration item: " + configurationItem, e);
     }
@@ -257,7 +251,7 @@ public class DomainBuilderProperties {
       if (options == null) {
         throw new RuntimeException("Empty options for domain: " + domainName);
       }
-      String result = (String) options.get(REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
+      String result = (String)options.get(REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION);
       if (result == null) {
         throw new RuntimeException("Could not load option: " + REMOTE_DOMAIN_ROOT_STORAGE_ENGINE_OPTION + " for domain: " + domainName + " from storage engine options.");
       }

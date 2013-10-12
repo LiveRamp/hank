@@ -16,10 +16,11 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.liveramp.hank.config.CoordinatorConfigurator;
+import java.io.IOException;
+
 import org.apache.hadoop.mapred.JobConf;
 
-import java.io.IOException;
+import com.liveramp.hank.config.CoordinatorConfigurator;
 
 public class DomainCompactorProperties extends DomainBuilderProperties {
 
@@ -35,17 +36,9 @@ public class DomainCompactorProperties extends DomainBuilderProperties {
     this.versionToCompactNumber = versionToCompactNumber;
   }
 
-  public DomainCompactorProperties(String domainName,
-                                   int versionToCompactNumber,
-                                   CoordinatorConfigurator configurator,
-                                   String outputPath) {
-    super(domainName, configurator, outputPath);
-    this.versionToCompactNumber = versionToCompactNumber;
-  }
-
   // To configure Hadoop MapReduce jobs
   @Override
-  public JobConf setJobConfProperties(JobConf conf, int versionNumber) {
+  public JobConf setJobConfProperties(JobConf conf, int versionNumber) throws IOException {
     super.setJobConfProperties(conf, versionNumber);
     // Version Number to compact
     conf.set(DomainBuilderAbstractOutputFormat.createConfParamName(getDomainName(),

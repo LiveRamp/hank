@@ -16,15 +16,20 @@
 
 package com.liveramp.hank.hadoop;
 
+import java.io.IOException;
+
+import org.apache.commons.lang.NotImplementedException;
+import org.apache.hadoop.mapred.FileInputFormat;
+import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
 import com.liveramp.hank.util.CommandLineChecker;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.hadoop.mapred.*;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
 
 public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
 
@@ -80,7 +85,7 @@ public class HadoopDomainBuilder extends AbstractHadoopDomainBuilder {
     String inputPath = args[3];
     String outputPath = args[4];
 
-    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, configurator, outputPath);
+    DomainBuilderProperties properties = new DomainBuilderProperties(domainName, configurator).setOutputPath(outputPath);
     JobConf conf = new JobConf();
     conf.setJar(jobJar);
     conf.setJobName(HadoopDomainBuilder.class.getSimpleName()

@@ -16,6 +16,9 @@
 
 package com.liveramp.hank.hadoop;
 
+import java.io.IOException;
+import java.util.Collections;
+
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -27,9 +30,6 @@ import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
-
-import java.io.IOException;
-import java.util.Collections;
 
 public class TestHadoopDomainCompactor extends HadoopTestCase {
 
@@ -43,7 +43,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
   public void setUp() throws Exception {
     super.setUp();
     LocalMockCoordinatorConfigurator.compactor = new LocalMockCompactor();
-    LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, (long) 0);
+    LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, (long)0);
   }
 
   private static class LocalMockCompactor implements Compactor {
@@ -89,7 +89,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
   public void testMain() throws IOException {
     CoordinatorConfigurator configurator = new LocalMockCoordinatorConfigurator();
     DomainBuilderProperties properties =
-        new DomainCompactorProperties(DOMAIN_A_NAME, 0, configurator, OUTPUT_PATH_A);
+        new DomainCompactorProperties(DOMAIN_A_NAME, 0, configurator).setOutputPath(OUTPUT_PATH_A);
     new HadoopDomainCompactor().buildHankDomain(properties, null);
 
     // Check that compactor was called with correct version twice
