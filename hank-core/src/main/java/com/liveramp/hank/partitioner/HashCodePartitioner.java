@@ -23,6 +23,6 @@ public class HashCodePartitioner implements Partitioner {
   @Override
   public int partition(ByteBuffer key, int numPartitions) {
     int hashCode = (31 + (key != null ? key.hashCode() : 0));
-    return hashCode % numPartitions;
+    return (hashCode & Integer.MAX_VALUE) % numPartitions;
   }
 }
