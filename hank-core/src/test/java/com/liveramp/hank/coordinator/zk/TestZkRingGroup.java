@@ -15,18 +15,27 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.coordinator.*;
+import java.io.IOException;
+import java.util.Collections;
+
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainGroup;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
-
-import java.io.IOException;
-import java.util.Collections;
 
 public class TestZkRingGroup extends ZkTestCase {
 
@@ -121,12 +130,22 @@ public class TestZkRingGroup extends ZkTestCase {
     dataLocationChangeListener.clear();
 
     HostDomainPartition hostDomainPartition = hostDomain.addPartition(0);
-    Thread.sleep(100);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return !dataLocationChangeListener.isCalled();
+      }
+    });
     assertFalse(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
     hostDomainPartition.setDeletable(true);
-    Thread.sleep(100);
+    WaitUntil.orDie(new Condition() {
+      @Override
+      public boolean test() {
+        return !dataLocationChangeListener.isCalled();
+      }
+    });
     assertFalse(dataLocationChangeListener.isCalled());
     dataLocationChangeListener.clear();
 
