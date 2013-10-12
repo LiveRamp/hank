@@ -16,8 +16,18 @@
 
 package com.liveramp.hank.cascading;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.IntWritable;
+
 import cascading.flow.FlowProcess;
-import cascading.operation.*;
+import cascading.operation.BaseOperation;
+import cascading.operation.Filter;
+import cascading.operation.FilterCall;
+import cascading.operation.Function;
+import cascading.operation.FunctionCall;
 import cascading.pipe.Each;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
@@ -25,6 +35,7 @@ import cascading.pipe.SubAssembly;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntry;
+
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.RunWithCoordinator;
@@ -33,11 +44,6 @@ import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.PartitionIntWritable;
 import com.liveramp.hank.partitioner.Partitioner;
 import com.liveramp.hank.storage.StorageEngine;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.IntWritable;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class DomainBuilderAssembly extends SubAssembly {
 
@@ -51,13 +57,14 @@ public class DomainBuilderAssembly extends SubAssembly {
                                Pipe outputPipe,
                                String keyFieldName,
                                String valueFieldName) {
-    this(domainName, outputPipe, keyFieldName, valueFieldName, null);
+    this(domainName, outputPipe, keyFieldName, valueFieldName, true, null);
   }
 
   public DomainBuilderAssembly(String domainName,
                                Pipe outputPipe,
                                String keyFieldName,
                                String valueFieldName,
+                               boolean shouldPartitionAndSortInput,
                                Integer partitionToBuild) {
 
     Pipe partitionMarkersPipe = new Pipe(getPartitionMarkersPipeName(domainName));
@@ -68,14 +75,27 @@ public class DomainBuilderAssembly extends SubAssembly {
         new AddPartitionAndComparableKeyFields(domainName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME),
         new Fields(keyFieldName, valueFieldName, PARTITION_FIELD_NAME, COMPARABLE_KEY_FIELD_NAME));
 
+    // Filter partitions if necessary
     if (partitionToBuild != null) {
-      outputPipe = new Each(outputPipe, new Fields(PARTITION_FIELD_NAME), new KeepPartitions(partitionToBuild));
-      partitionMarkersPipe = new Each(partitionMarkersPipe, new Fields(PARTITION_FIELD_NAME), new KeepPartitions(partitionToBuild));
+      outputPipe = new Each(outputPipe,
+          new Fields(PARTITION_FIELD_NAME),
+          new KeepPartitions(partitionToBuild));
+      partitionMarkersPipe = new Each(partitionMarkersPipe,
+          new Fields(PARTITION_FIELD_NAME),
+          new KeepPartitions(partitionToBuild));
     }
 
-    // Group by partition id and secondary sort on comparable key
-    Pipe tail = new GroupBy(getSinkName(domainName), new Pipe[]{partitionMarkersPipe, outputPipe}, new Fields(PARTITION_FIELD_NAME), new Fields(
-        COMPARABLE_KEY_FIELD_NAME));
+    Pipe tail;
+    if (shouldPartitionAndSortInput) {
+      // Group by partition id and secondary sort on comparable key
+      tail = new GroupBy(getSinkName(domainName),
+          new Pipe[]{partitionMarkersPipe, outputPipe},
+          new Fields(PARTITION_FIELD_NAME),
+          new Fields(COMPARABLE_KEY_FIELD_NAME));
+    } else {
+      // The input is considered to be already partitioned and sorted
+      tail = outputPipe;
+    }
     setTails(tail);
   }
 
@@ -90,7 +110,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
     @Override
     public boolean isRemove(FlowProcess flowProcess, FilterCall filterCall) {
-      Integer partition = ((IntWritable) filterCall.getArguments().getObject(0)).get();
+      Integer partition = ((IntWritable)filterCall.getArguments().getObject(0)).get();
       return partition != partitionToKeep;
     }
   }
@@ -114,7 +134,7 @@ public class DomainBuilderAssembly extends SubAssembly {
 
       // Compute partition and comparable key
       TupleEntry tupleEntry = call.getArguments();
-      BytesWritable key = (BytesWritable) tupleEntry.getObject(0);
+      BytesWritable key = (BytesWritable)tupleEntry.getObject(0);
       ByteBuffer keyByteBuffer = ByteBuffer.wrap(key.getBytes(), 0, key.getLength());
       PartitionIntWritable partition = new PartitionIntWritable(partitioner.partition(keyByteBuffer, domainNumParts));
       ByteBuffer comparableKey = storageEngine.getComparableKey(keyByteBuffer);

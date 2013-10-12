@@ -59,16 +59,6 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     super(TestCascadingDomainBuilder.class);
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
-    try {
-      createInputs();
-    } catch (IOException e) {
-      throw new RuntimeException("Could not set up testcase.", e);
-    }
-  }
-
   private void writeSequenceFile(String path, Fields fields, Tuple... tuples) throws IOException {
     Tap tap = new Hfs(new SequenceFile(fields), path);
     TupleEntryCollector coll = tap.openForWrite(new HadoopFlowProcess(new JobConf()));
@@ -97,6 +87,17 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     writeSequenceFile(INPUT_PATH_C, new Fields("key", "value"));
   }
 
+  private void createSortedInputs() throws IOException {
+    // A
+    writeSequenceFile(INPUT_PATH_A, new Fields("key", "value"),
+        getTT("0", "v0"),
+        getTT("2", "v2"),
+        getTT("4", "v4"),
+        getTT("1", "v1"),
+        getTT("3", "v3"),
+        getTT("5", "v5"));
+  }
+
   private Pipe getPipe(String name) {
     Pipe pipe = new Pipe(name);
     pipe = new Each(pipe, new Fields("key", "value"), new Identity());
@@ -109,6 +110,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   }
 
   public void testMain() throws IOException {
+    createInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
         IntStringKeyStorageEngineCoordinator.getConfigurator(2)).setOutputPath(OUTPUT_PATH_A);
 
@@ -130,6 +132,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   }
 
   public void testMultipleDomains() throws IOException {
+    createInputs();
     // A
     DomainBuilderProperties propertiesA = new DomainBuilderProperties(DOMAIN_A_NAME,
         IntStringKeyStorageEngineCoordinator.getConfigurator(2)).setOutputPath(OUTPUT_PATH_A);
@@ -185,6 +188,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
   }
 
   public void testEmptyVersion() throws IOException {
+    createInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_C_NAME,
         IntStringKeyStorageEngineCoordinator.getConfigurator(2)).setOutputPath(OUTPUT_PATH_C);
 
@@ -203,5 +207,46 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_C, 1, "0.base"));
     assertEquals("", p1);
     assertEquals("", p2);
+  }
+
+  public void testAlreadyPartitionedAndSorted() throws IOException {
+    createSortedInputs();
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2))
+        .setOutputPath(OUTPUT_PATH_A)
+        .setShouldPartitionAndSortInput(false);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
+    Pipe pipe = getPipe("pipe");
+
+    new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+        .build(new Properties(), "pipe", inputTap);
+
+    // Check output
+    String p1 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 0, "0.base"));
+    String p2 = getContents(fs, HdfsPartitionRemoteFileOps.getRemoteAbsolutePath(OUTPUT_PATH_A, 1, "0.base"));
+    assertEquals("0 v0\n2 v2\n4 v4\n", p1);
+    assertEquals("1 v1\n3 v3\n5 v5\n", p2);
+  }
+
+  public void testAlreadyPartitionedAndSortedFailure() throws IOException {
+    // Create input not sorted
+    createInputs();
+    DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
+        IntStringKeyStorageEngineCoordinator.getConfigurator(2))
+        .setOutputPath(OUTPUT_PATH_A)
+            // Expect sorted input
+        .setShouldPartitionAndSortInput(false);
+
+    Tap inputTap = new Hfs(new SequenceFile(new Fields("key", "value")), INPUT_PATH_A);
+    Pipe pipe = getPipe("pipe");
+
+    try {
+      new CascadingDomainBuilder(properties, null, pipe, "key", "value")
+          .build(new Properties(), "pipe", inputTap);
+      fail("Should have failed because input is not sorted");
+    } catch (Exception e) {
+      // Correct behavior
+    }
   }
 }

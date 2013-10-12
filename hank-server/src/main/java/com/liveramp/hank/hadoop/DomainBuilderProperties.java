@@ -37,6 +37,7 @@ public class DomainBuilderProperties {
   private Class<? extends DomainBuilderAbstractOutputFormat> outputFormatClass = DEFAULT_OUTPUT_FORMAT_CLASS;
   private String outputPath = null;
   private String randomTmpOutputPathId;
+  private boolean shouldPartitionAndSortInput = true;
 
   private static final Logger LOG = Logger.getLogger(DomainBuilderProperties.class);
 
@@ -87,6 +88,15 @@ public class DomainBuilderProperties {
 
   public Class<? extends DomainBuilderAbstractOutputFormat> getOutputFormatClass() {
     return outputFormatClass;
+  }
+
+  public boolean shouldPartitionAndSortInput() {
+    return shouldPartitionAndSortInput;
+  }
+
+  public DomainBuilderProperties setShouldPartitionAndSortInput(boolean shouldPartitionAndSortInput) {
+    this.shouldPartitionAndSortInput = shouldPartitionAndSortInput;
+    return this;
   }
 
   // To configure cascading jobs

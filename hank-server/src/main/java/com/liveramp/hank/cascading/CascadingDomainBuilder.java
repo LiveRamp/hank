@@ -16,21 +16,23 @@
 
 package com.liveramp.hank.cascading;
 
-import cascading.cascade.Cascades;
-import cascading.flow.Flow;
-import cascading.pipe.Pipe;
-import cascading.tap.Tap;
-import com.liveramp.hank.coordinator.DomainVersionProperties;
-import com.liveramp.hank.hadoop.DomainBuilderOutputCommitter;
-import com.liveramp.hank.hadoop.DomainBuilderProperties;
-import com.liveramp.hank.hadoop.DomainVersionNumberAndNumPartitions;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.log4j.Logger;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.log4j.Logger;
+
+import cascading.cascade.Cascades;
+import cascading.flow.Flow;
+import cascading.pipe.Pipe;
+import cascading.tap.Tap;
+
+import com.liveramp.hank.coordinator.DomainVersionProperties;
+import com.liveramp.hank.hadoop.DomainBuilderOutputCommitter;
+import com.liveramp.hank.hadoop.DomainBuilderProperties;
+import com.liveramp.hank.hadoop.DomainVersionNumberAndNumPartitions;
 
 public class CascadingDomainBuilder {
 
@@ -98,6 +100,7 @@ public class CascadingDomainBuilder {
         pipe,
         keyFieldName,
         valueFieldName,
+        properties.shouldPartitionAndSortInput(),
         partitionToBuild);
 
     // Open new version and check for success
@@ -170,6 +173,7 @@ public class CascadingDomainBuilder {
             domainBuilder.pipe,
             domainBuilder.keyFieldName,
             domainBuilder.valueFieldName,
+            domainBuilder.properties.shouldPartitionAndSortInput(),
             domainBuilder.partitionToBuild);
       }
 
@@ -183,10 +187,12 @@ public class CascadingDomainBuilder {
       // Add partition marker sources
       Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
       for (CascadingDomainBuilder domainBuilder : domainBuilders) {
-        actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(domainBuilder.properties.getDomainName()),
-            new PartitionMarkerTap(domainBuilder.properties.getDomainName(),
-                domainBuilder.keyFieldName,
-                domainBuilder.valueFieldName));
+        if (domainBuilder.properties.shouldPartitionAndSortInput()) {
+          actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(domainBuilder.properties.getDomainName()),
+              new PartitionMarkerTap(domainBuilder.properties.getDomainName(),
+                  domainBuilder.keyFieldName,
+                  domainBuilder.valueFieldName));
+        }
       }
 
       // Construct tails array
@@ -302,7 +308,7 @@ public class CascadingDomainBuilder {
     return buildDomains(mapToProperties(cascadingProperties), sources, otherSinks, otherTails, domainBuilders);
   }
 
-  public Properties getProperties(){
+  public Properties getProperties() {
     return properties.setCascadingProperties(new Properties(),
         domainVersionNumber, numPartitions);
   }
@@ -323,10 +329,13 @@ public class CascadingDomainBuilder {
   }
 
   private Flow<JobConf> getFlow(FlowConnectorFactory flowConnectorFactory,
-                       Map<String, Tap> sources) {
+                                Map<String, Tap> sources) {
     Map<String, Tap> actualSources = new HashMap<String, Tap>(sources);
-    actualSources.put(DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
-        new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
+    if (properties.shouldPartitionAndSortInput()) {
+      actualSources.put(
+          DomainBuilderAssembly.getPartitionMarkersPipeName(properties.getDomainName()),
+          new PartitionMarkerTap(properties.getDomainName(), keyFieldName, valueFieldName));
+    }
     return flowConnectorFactory.create(getProperties()).connect(getFlowName(), actualSources, outputTap, pipe);
   }
 }
