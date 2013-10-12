@@ -22,6 +22,9 @@ public class IdentityHasher implements Hasher {
 
   @Override
   public void hash(ByteBuffer value, int hashSize, byte[] hashBytes) {
+    if (value.remaining() != hashSize) {
+      throw new IllegalStateException("Tried to compute an identity hash of " + hashSize + " bytes with an incoming value of " + value.remaining() + " bytes.");
+    }
     System.arraycopy(value.array(), value.arrayOffset() + value.position(), hashBytes, 0, hashSize);
   }
 }
