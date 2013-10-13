@@ -22,7 +22,15 @@ public class HashCodePartitioner implements Partitioner {
 
   @Override
   public int partition(ByteBuffer key, int numPartitions) {
-    int hashCode = 31 + (key != null ? key.hashCode() : 0);
+    int hashCode = 31 + (key != null ? bytesHashCode(key.array(), key.arrayOffset() + key.position(), key.remaining()) : 0);
     return (hashCode & Integer.MAX_VALUE) % numPartitions;
+  }
+
+  private int bytesHashCode(byte[] bytes, int offset, int length) {
+    int hash = 1;
+    for (int i = offset; i < offset + length; i++) {
+      hash = (31 * hash) + (int)bytes[i];
+    }
+    return hash;
   }
 }
