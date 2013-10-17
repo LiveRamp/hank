@@ -36,6 +36,11 @@
       <id>liveramp-repositories</id>
       <name>Liveramp Repositories</name>
       <url>http://repository.liveramp.com/artifactory/liveramp-repositories</url>
+      <!--pull in latest cascading_ext-->
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>always</updatePolicy>
+      </snapshots>
     </repository>
     <repository>
       <id>cdh.repo</id>
