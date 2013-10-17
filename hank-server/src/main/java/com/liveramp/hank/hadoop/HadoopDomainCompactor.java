@@ -16,13 +16,17 @@
 
 package com.liveramp.hank.hadoop;
 
-import com.google.common.collect.Lists;
+import com.liveramp.cascading_ext.util.LocalityHelper;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.config.SimpleDataDirectoriesConfigurator;
 import com.liveramp.hank.config.yaml.YamlCoordinatorConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.RunWithCoordinator;
+import com.liveramp.hank.coordinator.RunnableWithCoordinator;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
@@ -31,21 +35,24 @@ import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlanner;
 import com.liveramp.hank.util.CommandLineChecker;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.BlockLocation;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.WritableUtils;
-import org.apache.hadoop.mapred.*;
+import org.apache.hadoop.mapred.InputFormat;
+import org.apache.hadoop.mapred.InputSplit;
+import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.mapred.Mapper;
+import org.apache.hadoop.mapred.OutputCollector;
+import org.apache.hadoop.mapred.RecordReader;
+import org.apache.hadoop.mapred.Reporter;
 import org.apache.log4j.Logger;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.UUID;
 
 public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
 
@@ -202,8 +209,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
     private Domain domain;
     private DomainVersion domainVersionToCompact;
 
-    private static final int MAX_BLOCK_LOCATIONS_PER_SPLIT = 6;
-
     @Override
     public InputSplit[] getSplits(final JobConf conf, int ignored) throws IOException {
       final String domainName = DomainBuilderProperties.getDomainName(conf);
@@ -223,77 +228,17 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
       for (int partition = 0; partition < domainNumParts; ++partition) {
 
         // Compute remote partition file paths for this split if possible
-        List<String> locations = new ArrayList<String>();
+        String[] locations = new String[]{};
         if (storageEngine instanceof IncrementalStorageEngine) {
           IncrementalUpdatePlanner updatePlanner = ((IncrementalStorageEngine) storageEngine).getUpdatePlanner(domain);
           IncrementalUpdatePlan updatePlan = updatePlanner.computeUpdatePlan(domainVersionToCompact);
           List<String> paths = updatePlanner.getRemotePartitionFilePaths(updatePlan, storageEngine.getPartitionRemoteFileOps(partition));
-          locations = computeOptimalHosts(conf, paths);
+          locations = LocalityHelper.getHostsSortedByLocality(paths, conf);
         }
 
-        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations.toArray(new String[locations.size()]));
+        splits[partition] = new HadoopDomainCompactorInputSplit(domainName, partition, locations);
       }
       return splits;
-    }
-
-    private List<String> computeOptimalHosts(JobConf jobConf, Iterable<String> resourceNames) {
-      if (jobConf == null) {
-        return Lists.newArrayList();
-      }
-
-      try {
-        Map<String, Long> numBytesPerHost = new HashMap<String, Long>();
-        for (String resource : resourceNames) {
-          addToHostsAndSizes(numBytesPerHost, resource, jobConf);
-        }
-
-        final int numHosts = Math.min(numBytesPerHost.size(), MAX_BLOCK_LOCATIONS_PER_SPLIT);
-
-        List<String> sortedHosts = scoreAndSortHosts(numBytesPerHost, numHosts);
-        return sortedHosts;
-      } catch (IOException e) {
-        return Lists.newArrayList();
-      }
-    }
-
-    private List<String> scoreAndSortHosts(Map<String, Long> numBytesPerHost, int numHosts) {
-      List<ScoredHost> scoredHosts = new ArrayList<ScoredHost>(numBytesPerHost.size());
-      for (Map.Entry<String, Long> entry : numBytesPerHost.entrySet()) {
-        scoredHosts.add(new ScoredHost(entry.getKey(), entry.getValue()));
-      }
-
-      Collections.sort(scoredHosts);
-      List<String> sortedHostNames = Lists.newArrayList();
-
-      for (int i = 0; i < numHosts; i++) {
-        sortedHostNames.add(scoredHosts.get(i).hostname);
-      }
-      return sortedHostNames;
-
-    }
-
-    private void addToHostsAndSizes(Map<String, Long> numBytesPerHost, String location, JobConf jobConf) throws IOException {
-      Path path = new Path(location);
-      FileSystem fileSystem = path.getFileSystem(jobConf);
-      FileStatus status = fileSystem.getFileStatus(path);
-      BlockLocation[] blockLocations = fileSystem.getFileBlockLocations(status, 0, status.getLen());
-
-      if (blockLocations != null) {
-        for (BlockLocation blockLocation : blockLocations) {
-          Long size = blockLocation.getLength();
-          for (String host : blockLocation.getHosts()) {
-            incrNumBytesPerHost(numBytesPerHost, host, size);
-          }
-        }
-      }
-    }
-
-    private void incrNumBytesPerHost(Map<String, Long> numBytesPerHost, String host, Long numBytes) {
-      if (!numBytesPerHost.containsKey(host)) {
-        numBytesPerHost.put(host, numBytes);
-      } else {
-        numBytesPerHost.put(host, numBytesPerHost.get(host) + numBytes);
-      }
     }
 
     @Override
@@ -302,32 +247,6 @@ public class HadoopDomainCompactor extends AbstractHadoopDomainBuilder {
                                                            Reporter reporter) throws IOException {
       HadoopDomainCompactorInputSplit split = (HadoopDomainCompactorInputSplit) inputSplit;
       return new HadoopDomainCompactorRecordReader(split);
-    }
-
-    private static class ScoredHost implements Comparable<ScoredHost> {
-      public String hostname;
-      public long numBytesInHost;
-
-      public ScoredHost(String hostname, long numBytesInHost) {
-        this.hostname = hostname;
-        this.numBytesInHost = numBytesInHost;
-      }
-
-      @Override
-      public int compareTo(ScoredHost scoredHost) {
-        int bytesCmp = compareNumBytes(numBytesInHost, scoredHost.numBytesInHost);
-
-        if (bytesCmp == 0) {
-          return hostname.compareTo(scoredHost.hostname);
-        }
-
-        return bytesCmp;
-      }
-
-      // sort in reverse order by number of bytes in the host
-      private static int compareNumBytes(long thisCount, long thatCount) {
-        return Long.valueOf(thatCount).compareTo(thisCount);
-      }
     }
   }
 

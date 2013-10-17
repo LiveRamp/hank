@@ -112,6 +112,12 @@
       <version>3.2.0.RELEASE</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.liveramp</groupId>
+      <artifactId>cascading_ext</artifactId>
+      <version>1.6-SNAPSHOT</version>
+    </dependency>
+
   </dependencies>
 
   <build>
