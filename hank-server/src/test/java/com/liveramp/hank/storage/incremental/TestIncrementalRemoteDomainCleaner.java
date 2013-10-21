@@ -94,14 +94,14 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
   public void testZeroVersionsToKeepMeansKeepEverything() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 0);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
-    cleaner.deleteOldVersions(deleter);
+    cleaner.deleteOldVersions(deleter, true);
     assertEquals(0, deleter.deletedVersions.size());
   }
 
   public void testKeepOneVersion() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 1);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
-    cleaner.deleteOldVersions(deleter);
+    cleaner.deleteOldVersions(deleter, true);
     assertEquals(4, deleter.deletedVersions.size());
     assertTrue(deleter.deletedVersions.contains(0));
     assertTrue(deleter.deletedVersions.contains(1));
@@ -112,7 +112,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
   public void testKeepTwoVersions() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 2);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
-    cleaner.deleteOldVersions(deleter);
+    cleaner.deleteOldVersions(deleter, true);
     assertEquals(1, deleter.deletedVersions.size());
     assertTrue(deleter.deletedVersions.contains(2));
   }
@@ -120,7 +120,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
   public void testKeepThreeVersions() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 3);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
-    cleaner.deleteOldVersions(deleter);
+    cleaner.deleteOldVersions(deleter, true);
     assertEquals(0, deleter.deletedVersions.size());
   }
 }
