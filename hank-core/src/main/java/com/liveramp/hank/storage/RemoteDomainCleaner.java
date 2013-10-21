@@ -19,6 +19,5 @@ package com.liveramp.hank.storage;
 import java.io.IOException;
 
 public interface RemoteDomainCleaner {
-
-  public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter) throws IOException;
+  public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter, boolean deleteMetadata) throws IOException;
 }

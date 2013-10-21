@@ -71,6 +71,10 @@ public final class Domains {
   }
 
   public static void cleanDomains(Collection<Domain> domains) throws IOException {
+    cleanDomains(domains, true);
+  }
+
+  public static void cleanDomains(Collection <Domain> domains, boolean deleteMetadata) throws IOException {
     for (Domain domain : domains) {
       StorageEngine storageEngine = domain.getStorageEngine();
       RemoteDomainCleaner cleaner = storageEngine.getRemoteDomainCleaner();
@@ -84,7 +88,10 @@ public final class Domains {
         continue;
       }
       LOG.info("Cleaning Domain " + domain.getName());
-      cleaner.deleteOldVersions(deleter);
+      cleaner.deleteOldVersions(deleter, deleteMetadata);
     }
   }
+
+
+
 }

@@ -41,7 +41,7 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
       throws IOException;
 
   @Override
-  public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter) throws IOException {
+  public void deleteOldVersions(RemoteDomainVersionDeleter remoteDomainVersionDeleter, boolean deleteMetadata) throws IOException {
     if (numRemoteLeafVersionsToKeep <= 0) {
       return;
     }
@@ -98,7 +98,9 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
       // Delete remote data
       remoteDomainVersionDeleter.deleteVersion(version.getVersionNumber());
       // Delete metadata
-      domain.deleteVersion(version.getVersionNumber());
+      if(deleteMetadata){
+        domain.deleteVersion(version.getVersionNumber());
+      }
     }
   }
 }
