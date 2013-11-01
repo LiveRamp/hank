@@ -18,6 +18,7 @@ package com.liveramp.hank.storage.incremental;
 
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.DomainVersions;
 import com.liveramp.hank.storage.RemoteDomainCleaner;
 import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
 import org.apache.log4j.Logger;
@@ -50,7 +51,11 @@ public abstract class IncrementalRemoteDomainCleaner implements RemoteDomainClea
         + " (keeping " + numRemoteLeafVersionsToKeep + " newest leaf versions)");
 
     SortedSet<DomainVersion> sortedVersions = new TreeSet<DomainVersion>();
-    sortedVersions.addAll(domain.getVersions());
+    for (DomainVersion version : domain.getVersions()) {
+      if(DomainVersions.isClosed(version)){
+        sortedVersions.add(version);
+      }
+    }
 
     // Cache parents
     HashMap<DomainVersion, DomainVersion> cachedParents = new HashMap<DomainVersion, DomainVersion>();
