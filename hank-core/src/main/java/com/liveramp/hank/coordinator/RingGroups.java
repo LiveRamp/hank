@@ -48,7 +48,7 @@ public final class RingGroups {
     DomainGroup domainGroup = ringGroup.getDomainGroup();
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
-        if (!(Hosts.isUpToDate(host, domainGroup) || (host.getState() != HostState.SERVING))) {
+        if(!Hosts.isUpToDate(host, domainGroup) && host.getState() == HostState.SERVING){
           return false;
         }
       }
