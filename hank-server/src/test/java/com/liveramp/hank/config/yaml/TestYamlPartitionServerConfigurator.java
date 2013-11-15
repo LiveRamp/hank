@@ -15,16 +15,20 @@
  */
 package com.liveramp.hank.config.yaml;
 
+import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Collections;
 
-import com.liveramp.hank.coordinator.mock.MockCoordinator;
-import com.liveramp.hank.test.BaseTestCase;
+import static org.junit.Assert.assertEquals;
 
 public class TestYamlPartitionServerConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
 
+  @Test
   public void testIt() throws Exception {
     PrintWriter pw = new PrintWriter(new FileWriter(configPath));
     pw.println("partition_server:");

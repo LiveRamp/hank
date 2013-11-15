@@ -15,18 +15,22 @@
  */
 package com.liveramp.hank.storage.cueball;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-
 import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.test.BaseTestCase;
+import org.apache.log4j.Logger;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestCueballFactory extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestCueballFactory.class);
 
+  @Test
   public void testBadConfig() throws Exception {
     Cueball.Factory factory = new Cueball.Factory();
 
@@ -39,6 +43,7 @@ public class TestCueballFactory extends BaseTestCase {
     }
   }
 
+  @Test
   public void testGoodConfig() throws Exception {
     Cueball.Factory factory = new Cueball.Factory();
     Map<String, Object> options = new HashMap<String, Object>();
@@ -52,6 +57,7 @@ public class TestCueballFactory extends BaseTestCase {
     factory.getStorageEngine(options, null);
   }
 
+  @Test
   public void testGetDataDirectory() {
     // More data directories than partitions
     assertEquals(0, Cueball.getDataDirectoryIndex(3, 2, 0));

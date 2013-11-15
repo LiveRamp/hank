@@ -16,10 +16,13 @@
 package com.liveramp.hank.storage.cueball;
 
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
+import org.junit.Test;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestCueballMerger extends AbstractCueballTest {
   private final String LOCAL_ROOT = localTmpDir;
@@ -150,6 +153,7 @@ public class TestCueballMerger extends AbstractCueballTest {
       10, 0, 0, 0,
   };
 
+  @Test
   public void testMerge() throws Exception {
     new File(LOCAL_ROOT).mkdirs();
     OutputStream s = new FileOutputStream(BASE.getPath());

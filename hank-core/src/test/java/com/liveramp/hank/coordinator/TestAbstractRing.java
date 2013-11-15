@@ -4,9 +4,14 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockHostDomain;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.*;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestAbstractRing extends BaseTestCase {
   private static final PartitionServerAddress LOCALHOST = new PartitionServerAddress("localhost", 1);
@@ -39,6 +44,7 @@ public class TestAbstractRing extends BaseTestCase {
     }
   }
 
+  @Test
   public void testCommandAll() throws IOException {
     final Host hc = new MockHost(LOCALHOST);
 
@@ -58,6 +64,7 @@ public class TestAbstractRing extends BaseTestCase {
     assertEquals(Arrays.asList(HostCommand.SERVE_DATA), hc.getCommandQueue());
   }
 
+  @Test
   public void testGetHostsForDomainPartition() throws Exception {
     final Domain d0 = new MockDomain("d0");
     final Host hc = new MockHost(LOCALHOST) {
@@ -86,6 +93,7 @@ public class TestAbstractRing extends BaseTestCase {
     assertEquals(Collections.EMPTY_SET, Rings.getHostsForDomainPartition(ring, d0, 3));
   }
 
+  @Test
   public void testGetHostsInState() throws Exception {
     final MockHost h1 = new MockHost(new PartitionServerAddress("localhost", 1));
     final MockHost h2 = new MockHost(new PartitionServerAddress("localhost", 2));

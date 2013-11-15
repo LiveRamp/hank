@@ -25,9 +25,13 @@ import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestCueballRemoteDomainVersionDeleter extends BaseTestCase {
 
@@ -35,6 +39,7 @@ public class TestCueballRemoteDomainVersionDeleter extends BaseTestCase {
   private ByteBuffer key = ByteBuffer.wrap(new byte[]{1});
   private ByteBuffer value = ByteBuffer.wrap(new byte[]{2});
 
+  @Test
   public void testIt() throws Exception {
     final Cueball storageEngine = new Cueball(1,
         new Murmur64Hasher(), 1, 1, localDiskRoot,

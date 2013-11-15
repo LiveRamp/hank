@@ -15,16 +15,30 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.coordinator.mock.MockDomain;
+import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class TestZkHost extends ZkTestCase {
 
@@ -34,9 +48,8 @@ public class TestZkHost extends ZkTestCase {
   private Coordinator coordinator;
   private Domain d0 = new MockDomain("d0");
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     coordinator = new MockCoordinator() {
       @Override
       public Domain getDomainById(int domainId) {
@@ -49,6 +62,7 @@ public class TestZkHost extends ZkTestCase {
     };
   }
 
+  @Test
   public void testCreateAndLoad() throws Exception {
     final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(ADDRESS, host.getAddress());
@@ -84,6 +98,7 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(OTHER_ADDRESS, host.getAddress());
   }
 
+  @Test
   public void testStateChangeListener() throws Exception {
     ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     MockHostStateChangeListener mockListener = new MockHostStateChangeListener();
@@ -105,6 +120,7 @@ public class TestZkHost extends ZkTestCase {
     host.close();
   }
 
+  @Test
   public void testSetState() throws Exception {
     ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(HostState.OFFLINE, host.getState());
@@ -122,6 +138,7 @@ public class TestZkHost extends ZkTestCase {
     host.close();
   }
 
+  @Test
   public void testCommandQueue() throws Exception {
     ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(Collections.EMPTY_LIST, host.getCommandQueue());
@@ -148,6 +165,7 @@ public class TestZkHost extends ZkTestCase {
     host.close();
   }
 
+  @Test
   public void testCommandQueueListener() throws Exception {
     ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     MockHostCommandQueueChangeListener l2 = new MockHostCommandQueueChangeListener();
@@ -200,6 +218,7 @@ public class TestZkHost extends ZkTestCase {
     assertNull(l2.calledWith);
   }
 
+  @Test
   public void testDomains() throws Exception {
     final ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertEquals(0, host.getAssignedDomains().size());
@@ -220,6 +239,7 @@ public class TestZkHost extends ZkTestCase {
     assertEquals(0, host.getHostDomain(d0).getDomain().getId());
   }
 
+  @Test
   public void testUptime() throws Exception {
     ZkHost host = ZkHost.create(getZk(), coordinator, getRoot(), ADDRESS, null, Collections.<String>emptyList());
     assertNull(host.getUpSince());

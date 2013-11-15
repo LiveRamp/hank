@@ -15,10 +15,6 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import java.util.Collections;
-
-import org.apache.zookeeper.KeeperException;
-
 import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.partitioner.ConstantPartitioner;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
@@ -27,12 +23,22 @@ import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.apache.zookeeper.KeeperException;
+import org.junit.Test;
+
+import java.util.Collections;
+
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestZkDomain extends ZkTestCase {
   private static final String CONST_PARTITIONER = ConstantPartitioner.class.getName();
   private static final String STORAGE_ENGINE_FACTORY = ConstantStorageEngine.Factory.class.getName();
   private static final String STORAGE_ENGINE_OPTS = "---\n";
 
+  @Test
   public void testCreate() throws Exception {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     assertEquals(0, dc.getId());
@@ -45,6 +51,7 @@ public class TestZkDomain extends ZkTestCase {
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
   }
 
+  @Test
   public void testLoad() throws Exception {
     ZkDomain.create(getZk(), getRoot(), "domain0", 1024, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     ZkDomain dc = new ZkDomain(getZk(), ZkPath.append(getRoot(), "domain0"));
@@ -59,6 +66,7 @@ public class TestZkDomain extends ZkTestCase {
     assertTrue(dc.getPartitioner() instanceof Murmur64Partitioner);
   }
 
+  @Test
   public void testVersioning() throws Exception {
     final ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, STORAGE_ENGINE_FACTORY, STORAGE_ENGINE_OPTS, CONST_PARTITIONER, 0, Collections.<String>emptyList());
 
@@ -81,6 +89,7 @@ public class TestZkDomain extends ZkTestCase {
     assertEquals(dc.getVersion(0), dc.getVersionShallow(0));
   }
 
+  @Test
   public void testDelete() throws Exception {
     ZkDomain dc = ZkDomain.create(getZk(), getRoot(), "domain0", 1, ConstantStorageEngine.Factory.class.getName(), "---", Murmur64Partitioner.class.getName(), 0, Collections.<String>emptyList());
     assertNotNull(getZk().exists(ZkPath.append(getRoot(), "domain0"), false));

@@ -15,7 +15,16 @@
  */
 package com.liveramp.hank.ring_group_conductor;
 
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainGroup;
 import com.liveramp.hank.partition_assigner.ModPartitionAssigner;
@@ -24,9 +33,21 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
 
@@ -96,10 +117,8 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
   private PartitionAssigner partitionAssigner;
   private RingGroupUpdateTransitionFunctionImpl testTransitionFunction = null;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-
-    super.setUp();
 
     r0h0 = new MockHostLocal(new PartitionServerAddress("localhost", 1));
     r0h1 = new MockHostLocal(new PartitionServerAddress("localhost", 2));
@@ -166,6 +185,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     return partitionAssigner.isAssigned(host);
   }
 
+  @Test
   public void testIsFullyServing() throws IOException {
     RingGroupUpdateTransitionFunctionImpl transitionFunction = new RingGroupUpdateTransitionFunctionImpl(null, 1);
 
@@ -191,6 +211,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertFalse(transitionFunction.isFullyServing(r0h0, true));
   }
 
+  @Test
   public void testNothingToDo() throws IOException {
     domainGroup.setDomainVersions(versionsMap1);
 
@@ -209,6 +230,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testKickstartAllRings() throws IOException {
     domainGroup.setDomainVersions(versionsMap1);
 
@@ -253,6 +275,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertEquals(HostCommand.EXECUTE_UPDATE, r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testTakesDownFirstRingForAssignmentWhenStartingUpdate() throws IOException {
     domainGroup.setDomainVersions(versionsMap3);
 
@@ -297,6 +320,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertFalse(isAssigned(r2, r2h1, v3));
   }
 
+  @Test
   public void testTakesDownFirstRingForUpdateWhenStartingUpdate() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -335,6 +359,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testAssignWhenOneHostIsServing() throws IOException {
     domainGroup.setDomainVersions(versionsMap3);
 
@@ -376,6 +401,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testAssignWhenOneHostIsUpdating() throws IOException {
     domainGroup.setDomainVersions(versionsMap3);
 
@@ -399,6 +425,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testAssignIdleRing() throws IOException {
     domainGroup.setDomainVersions(versionsMap3);
 
@@ -424,6 +451,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testTakeDownModifiedRing() throws IOException {
     domainGroup.setDomainVersions(versionsMap1);
 
@@ -444,6 +472,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testAssignModifiedRing() throws IOException {
     domainGroup.setDomainVersions(versionsMap1);
 
@@ -466,6 +495,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testExecuteUpdateWhenAssignedAndIdle() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -486,6 +516,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testProactivelyServeDateWhenHostUpdated() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -509,6 +540,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testServeDataWhenUpdated() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -529,6 +561,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testTakeDownSecondRingWhenFirstIsUpdated() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -549,6 +582,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertNull(r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testServeDataWhenNotEnoughRingsAreFullyServing() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 
@@ -569,6 +603,7 @@ public class TestRingGroupUpdateTransitionFunctionImpl extends BaseTestCase {
     assertEquals(HostCommand.SERVE_DATA, r2h1.getAndClearLastEnqueuedCommand());
   }
 
+  @Test
   public void testUpdateMultipleRingsWhenEnoughReplicasAreServing() throws IOException {
     domainGroup.setDomainVersions(versionsMap2);
 

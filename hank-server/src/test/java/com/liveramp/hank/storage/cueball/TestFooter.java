@@ -1,15 +1,21 @@
 package com.liveramp.hank.storage.cueball;
 
+import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import com.liveramp.hank.test.BaseTestCase;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestFooter extends BaseTestCase {
   private final String filePath = localTmpDir + "/testfile";
 
+  @Test
   public void testValid() throws Exception {
     final FileOutputStream out = new FileOutputStream(filePath);
     out.write(new byte[]{
@@ -75,17 +81,20 @@ public class TestFooter extends BaseTestCase {
       }
   );
 
+  @Test
   public void testInvalid() throws Exception {
-    for (int i = 0; i < INVALID_CASES.size(); i++) {
+    for (byte[] INVALID_CASE : INVALID_CASES) {
       final FileOutputStream out = new FileOutputStream(filePath);
-      out.write(INVALID_CASES.get(i));
+      out.write(INVALID_CASE);
       out.flush();
       out.close();
 
       try {
         new Footer(new FileInputStream(filePath).getChannel(), 2);
         fail("should have thrown an exception");
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
     }
   }
+
 }

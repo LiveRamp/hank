@@ -12,10 +12,14 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.Stat;
+import org.junit.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestWatchedMap extends ZkTestCase {
   private static final class StringElementLoader implements ElementLoader<String> {
@@ -29,6 +33,7 @@ public class TestWatchedMap extends ZkTestCase {
     }
   }
 
+  @Test
   public void testIt() throws Exception {
     Logger.getLogger("org.apache.zookeeper").setLevel(Level.ALL);
 
@@ -66,6 +71,7 @@ public class TestWatchedMap extends ZkTestCase {
     assertEquals(1, c1.size());
   }
 
+  @Test
   public void testCompletionDetector() throws Exception {
     final ElementLoader<String> elementLoader = new StringElementLoader();
     final AtomicBoolean b = new AtomicBoolean(false);
@@ -115,6 +121,7 @@ public class TestWatchedMap extends ZkTestCase {
     assertEquals(1, m.size());
   }
 
+  @Test
   public void testDeletion() throws Exception {
     getZk().create(ZkPath.append(getRoot(), "map"), null, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     getZk().create(ZkPath.append(getRoot(), "map/1"), "2".getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);

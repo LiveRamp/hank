@@ -17,13 +17,19 @@ package com.liveramp.hank.storage.cueball;
 
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.storage.ReaderResult;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class TestCueballReader extends AbstractCueballTest {
+  @Test
   public void testRead() throws Exception {
     // set up fake cueball file
     String root = localTmpDir + "/1";

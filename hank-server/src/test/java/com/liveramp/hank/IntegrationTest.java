@@ -15,28 +15,6 @@
  */
 package com.liveramp.hank;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-
 import com.liveramp.hank.compression.cueball.GzipCueballCompressionCodec;
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.PartitionServerConfigurator;
@@ -78,6 +56,30 @@ import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.transport.TFramedTransport;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.junit.Test;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import static org.junit.Assert.assertEquals;
 
 public class IntegrationTest extends ZkTestCase {
 
@@ -194,8 +196,6 @@ public class IntegrationTest extends ZkTestCase {
   private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
   private final String ringGroupsRoot = ZkPath.append(getRoot(), "ring_groups");
   private final String clientConfigYml = localTmpDir + "/config.yml";
-  private final String domain0OptsYml = localTmpDir + "/domain0_opts.yml";
-  private final String domain1OptsYml = localTmpDir + "/domain1_opts.yml";
   private final Map<PartitionServerAddress, Thread> partitionServerThreads = new HashMap<PartitionServerAddress, Thread>();
   private final Map<PartitionServerAddress, PartitionServerRunnable> partitionServerRunnables = new HashMap<PartitionServerAddress, PartitionServerRunnable>();
 
@@ -203,6 +203,7 @@ public class IntegrationTest extends ZkTestCase {
   private RingGroupConductorRunnable ringGroupConductorRunnable;
   private SmartClientRunnable smartClientRunnable;
 
+  @Test
   public void testItAll() throws Throwable {
     Logger.getLogger("com.liveramp.hank.coordinator.zk").setLevel(Level.INFO);
     // Logger.getLogger("com.liveramp.hank.partition_server").setLevel(Level.INFO);

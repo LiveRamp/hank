@@ -31,6 +31,9 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import org.apache.log4j.Logger;
 import org.apache.thrift.TException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -39,6 +42,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class TestHostConnectionPool extends BaseTestCase {
 
@@ -126,19 +133,19 @@ public class TestHostConnectionPool extends BaseTestCase {
     }
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mockHost1.setState(HostState.OFFLINE);
     mockHost2.setState(HostState.OFFLINE);
   }
 
-  @Override
+  @After
   public void tearDown() throws InterruptedException {
     stopPartitionServer(mockPartitionServer1, mockPartitionServerThread1);
     stopPartitionServer(mockPartitionServer2, mockPartitionServerThread2);
   }
 
+  @Test
   public void testBothUp() throws IOException, TException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
@@ -220,6 +227,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("All keys should have been found", 10, numHits);
   }
 
+  @Test
   public void testOneHankExceptions() throws IOException, TException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();
@@ -280,6 +288,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("All keys should have been found", 10, numHits);
   }
 
+  @Test
   public void testOneHanging() throws IOException, TException, InterruptedException {
     Semaphore semaphore = new Semaphore(0);
     final MockIface iface1 = new HangingIface(semaphore);
@@ -378,6 +387,7 @@ public class TestHostConnectionPool extends BaseTestCase {
     assertEquals("All keys should have been found", 10, numHits);
   }
 
+  @Test
   public void testDeterministicHostListShuffling() throws IOException, TException, InterruptedException {
 
     MockIface iface1 = new Response1Iface();

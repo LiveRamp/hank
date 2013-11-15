@@ -7,10 +7,12 @@ import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.mock.MockReader;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 
 public class TestDomainAccessor extends BaseTestCase {
+  @Test
   public void testSetUpAndServe() throws Exception {
     PartitionAccessor partitionAccessors[] = new PartitionAccessor[1];
 

@@ -15,9 +15,6 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import java.io.IOException;
-import java.util.Collections;
-
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
@@ -36,6 +33,17 @@ import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestZkRingGroup extends ZkTestCase {
 
@@ -59,9 +67,8 @@ public class TestZkRingGroup extends ZkTestCase {
     }
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     create(dg_root);
     create(ring_groups);
     this.coordinator = new MockCoordinator() {
@@ -76,6 +83,7 @@ public class TestZkRingGroup extends ZkTestCase {
   private final String ring_group = ZkPath.append(ring_groups, "myRingGroup");
   private final String dg_root = ZkPath.append(getRoot(), "domain_groups");
 
+  @Test
   public void testLoad() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
     createRing(1);
@@ -93,6 +101,7 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals("ring group by number", 3, rg.getRing(3).getRingNumber());
   }
 
+  @Test
   public void testDataLocationChangeListeners() throws Exception {
     create(ring_group, ZkPath.append(dg_root, "myDomainGroup"));
     createRing(1);
@@ -160,6 +169,7 @@ public class TestZkRingGroup extends ZkTestCase {
     dataLocationChangeListener.clear();
   }
 
+  @Test
   public void testClaimRingGroupConductor() throws Exception {
     ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
     dg.setDomainVersions(Collections.<Domain, Integer>emptyMap());
@@ -184,6 +194,7 @@ public class TestZkRingGroup extends ZkTestCase {
     assertEquals(RingGroupConductorMode.ACTIVE, rg.getRingGroupConductorMode());
   }
 
+  @Test
   public void testDelete() throws Exception {
     ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, dg_root, "blah");
     assertNotNull(getZk().exists(ZkPath.append(dg_root, "blah"), false));

@@ -25,15 +25,20 @@ import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.test.ZkTestCase;
+import org.junit.Test;
 
 import java.io.File;
 import java.nio.ByteBuffer;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestCurlyRemoteDomainVersionDeleter extends ZkTestCase {
   private String localDiskRoot = localTmpDir + "/local_disk_root";
   private ByteBuffer key = ByteBuffer.wrap(new byte[]{1});
   private ByteBuffer value = ByteBuffer.wrap(new byte[]{2});
 
+  @Test
   public void testIt() throws Exception {
     final Curly storageEngine = new Curly(1, new Murmur64Hasher(), 100000, 1, 1000, localDiskRoot,
         new LocalPartitionRemoteFileOps.Factory(), NoCueballCompressionCodec.class,

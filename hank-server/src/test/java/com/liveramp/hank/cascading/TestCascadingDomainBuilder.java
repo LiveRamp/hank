@@ -16,15 +16,6 @@
 
 package com.liveramp.hank.cascading;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
-
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapred.JobConf;
-
 import cascading.flow.hadoop.HadoopFlowProcess;
 import cascading.operation.Identity;
 import cascading.pipe.Each;
@@ -35,11 +26,22 @@ import cascading.tap.hadoop.Hfs;
 import cascading.tuple.Fields;
 import cascading.tuple.Tuple;
 import cascading.tuple.TupleEntryCollector;
-
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.HadoopTestCase;
 import com.liveramp.hank.hadoop.IntStringKeyStorageEngineCoordinator;
 import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.mapred.JobConf;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestCascadingDomainBuilder extends HadoopTestCase {
 
@@ -109,6 +111,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
         new BytesWritable(b2.getBytes()));
   }
 
+  @Test
   public void testMain() throws IOException {
     createInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
@@ -131,6 +134,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     assertEquals("1 v1\n3 v3\n", p2);
   }
 
+  @Test
   public void testMultipleDomains() throws IOException {
     createInputs();
     // A
@@ -187,6 +191,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     assertEquals("", p2C);
   }
 
+  @Test
   public void testEmptyVersion() throws IOException {
     createInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_C_NAME,
@@ -209,6 +214,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     assertEquals("", p2);
   }
 
+  @Test
   public void testAlreadyPartitionedAndSorted() throws IOException {
     createSortedInputs();
     DomainBuilderProperties properties = new DomainBuilderProperties(DOMAIN_A_NAME,
@@ -229,6 +235,7 @@ public class TestCascadingDomainBuilder extends HadoopTestCase {
     assertEquals("1 v1\n3 v3\n5 v5\n", p2);
   }
 
+  @Test
   public void testAlreadyPartitionedAndSortedFailure() throws IOException {
     // Create input not sorted
     createInputs();

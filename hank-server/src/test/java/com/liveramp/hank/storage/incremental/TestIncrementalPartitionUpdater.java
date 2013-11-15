@@ -21,20 +21,28 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     new File(remotePartitionRoot).mkdir();
     new File(localPartitionRoot).mkdir();
   }
 
+  @Test
   public void testGetUpdatePlan() throws IOException {
     final DomainVersion v0 = new MockDomainVersion(0, 0l);
     final DomainVersion v1 = new MockDomainVersion(1, 0l);
@@ -111,6 +119,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         updatePlanner.computeUpdatePlan(null, Collections.<DomainVersion>singleton(v1), v2));
   }
 
+  @Test
   public void testGetUpdatePlanNonRelatedVersions() throws IOException {
 
     final DomainVersion v0 = new MockDomainVersion(0, 0l);
@@ -164,6 +173,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
         updater.computeUpdatePlan(v3, Collections.<DomainVersion>emptySet(), v2));
   }
 
+  @Test
   public void testCacheVersionsNeededToUpdate() throws IOException {
     final DomainVersion v0 = new MockDomainVersion(0, 0l);
     final DomainVersion v1 = new MockDomainVersion(1, 0l);
@@ -252,6 +262,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     assertFalse(new File(updater.localPartitionRootCache).exists());
   }
 
+  @Test
   public void testFailingFetcher() throws IOException {
     final DomainVersion v0 = new MockDomainVersion(0, 0l);
     final DomainVersion v1 = new MockDomainVersion(1, 0l);
@@ -331,6 +342,7 @@ public class TestIncrementalPartitionUpdater extends IncrementalPartitionUpdater
     }
   }
 
+  @Test
   public void testCommitFiles() throws IOException {
 
     IncrementalPartitionUpdater updater =

@@ -17,13 +17,17 @@ package com.liveramp.hank.config.yaml;
 
 import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import org.junit.Test;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
+import static org.junit.Assert.assertEquals;
+
 public class TestYamlHankSmartClientConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/config.yml";
 
+  @Test
   public void testIt() throws Exception {
     PrintWriter pw = new PrintWriter(new FileWriter(configPath));
     pw.println("coordinator:");

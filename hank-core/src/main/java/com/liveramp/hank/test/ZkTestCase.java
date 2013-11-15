@@ -32,13 +32,22 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper.States;
 import org.apache.zookeeper.server.NIOServerCnxnFactory;
 import org.apache.zookeeper.server.ZooKeeperServer;
+import org.junit.After;
+import org.junit.Before;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.Reader;
 import java.net.BindException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.Assert.fail;
 
 public abstract class ZkTestCase extends BaseTestCase {
 
@@ -94,9 +103,8 @@ public abstract class ZkTestCase extends BaseTestCase {
     }
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public final void setUpZk() throws Exception {
     Logger.getLogger("org.apache.zookeeper").setLevel(Level.WARN);
 
     setupZkServer();
@@ -192,10 +200,9 @@ public abstract class ZkTestCase extends BaseTestCase {
     return zk;
   }
 
-  @Override
-  protected void tearDown() throws Exception {
+  @After
+  public final void tearDownZkTestCase() throws Exception {
     LOG.debug("teardown called");
-    super.tearDown();
     shutdownZk();
   }
 
@@ -237,7 +244,7 @@ public abstract class ZkTestCase extends BaseTestCase {
   }
 
   protected void createNodeRecursively(String path)
-      throws InterruptedException, Exception {
+      throws Exception {
     String[] toks = path.split("/");
     String newPath = "/";
     for (int i = 0; i < toks.length; i++) {

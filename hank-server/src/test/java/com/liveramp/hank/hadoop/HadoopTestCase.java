@@ -16,16 +16,16 @@
 
 package com.liveramp.hank.hadoop;
 
-import java.io.IOException;
-
 import com.liveramp.cascading_ext.fs.TrashHelper;
+import com.liveramp.hank.test.BaseTestCase;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Before;
 
-import com.liveramp.hank.test.BaseTestCase;
+import java.io.IOException;
 
 public abstract class HadoopTestCase extends BaseTestCase {
 
@@ -43,9 +43,8 @@ public abstract class HadoopTestCase extends BaseTestCase {
     OUTPUT_DIR = TEST_DIR + "/output";
   }
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUpHadoopTest() throws Exception {
     TrashHelper.deleteUsingTrashIfEnabled(fs, new Path(TEST_DIR));
     fs.mkdirs(new Path(TEST_DIR));
   }

@@ -1,15 +1,18 @@
 package com.liveramp.hank.monitor.notifier.db;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.config.InvalidConfigurationException;
-import org.apache.log4j.Logger;
+import com.liveramp.hank.test.BaseTestCase;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 public class SQLNotifierFactoryTest extends BaseTestCase {
-  private static Logger LOG = Logger.getLogger(SQLNotifierFactoryTest.class);
 
   private static Map<String, Object> workingConfiguration = new HashMap<String, Object>() {{
     put(SQLNotifierFactory.DRIVER, "com.mysql.jdbc.Driver");
@@ -31,11 +34,10 @@ public class SQLNotifierFactoryTest extends BaseTestCase {
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
     factory = new SQLNotifierFactory();
   }
 
-
+  @Test
   public void testValidate() {
 
     try {
@@ -52,6 +54,7 @@ public class SQLNotifierFactoryTest extends BaseTestCase {
 
   }
 
+  @Test
   public void testCreateNotifier() throws Exception {
     assertNotNull(factory.createNotifier(workingConfiguration, "test", ""));
     try {

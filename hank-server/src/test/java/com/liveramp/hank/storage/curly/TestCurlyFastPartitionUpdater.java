@@ -28,11 +28,17 @@ import com.liveramp.hank.storage.cueball.MockCueballMerger;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
@@ -56,9 +62,8 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
   };
   private CurlyFastPartitionUpdater updater;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     int keyHashSize = 12;
     int offsetNumBytes = 5;
@@ -82,6 +87,7 @@ public class TestCurlyFastPartitionUpdater extends IncrementalPartitionUpdaterTe
     }
   }
 
+  @Test
   public void testUpdate() throws IOException {
     // Updating from v0 to v2
     List<DomainVersion> deltas = new ArrayList<DomainVersion>();

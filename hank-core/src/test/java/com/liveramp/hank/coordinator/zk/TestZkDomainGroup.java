@@ -16,33 +16,40 @@
 package com.liveramp.hank.coordinator.zk;
 
 
-import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.partitioner.Murmur64Partitioner;
 import com.liveramp.hank.storage.echo.Echo;
+import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class TestZkDomainGroup extends ZkTestCase {
 
   private final String domainGroupsRoot = ZkPath.append(getRoot(), "domain_groups");
   private final String domainsRoot = ZkPath.append(getRoot(), "domains");
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     create(domainsRoot);
     create(domainGroupsRoot);
   }
 
+  @Test
   public void testLoad() throws Exception {
 
     final Domain d0 = ZkDomain.create(getZk(), domainsRoot, "domain0", 1024, Echo.Factory.class.getName(), "---",
@@ -110,6 +117,7 @@ public class TestZkDomainGroup extends ZkTestCase {
     assertEquals(1, dg.getDomainVersion(d1).getVersionNumber());
   }
 
+  @Test
   public void testDelete() throws Exception {
     ZkDomainGroup dg = ZkDomainGroup.create(getZk(), null, domainGroupsRoot, "dg");
     assertNotNull(getZk().exists(dg.getPath(), false));

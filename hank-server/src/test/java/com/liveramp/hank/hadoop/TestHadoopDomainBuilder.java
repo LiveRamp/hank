@@ -15,14 +15,18 @@
  */
 package com.liveramp.hank.hadoop;
 
-import java.io.IOException;
-
+import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.TextInputFormat;
+import org.junit.Before;
+import org.junit.Test;
 
-import com.liveramp.hank.storage.HdfsPartitionRemoteFileOps;
+import java.io.IOException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 public class TestHadoopDomainBuilder extends HadoopTestCase {
@@ -38,14 +42,14 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     super(TestHadoopDomainBuilder.class);
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     // Create inputs
     outputFile(fs, INPUT_PATH_A, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
     outputFile(fs, INPUT_PATH_B, "4 v4\n1 v1\n2 v2\n0 v0\n3 v3");
   }
 
+  @Test
   public void testFailIfOutputExists() throws IOException {
     fs.create(new Path(OUTPUT_PATH_A));
     try {
@@ -57,6 +61,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     }
   }
 
+  @Test
   public void testOutput() throws IOException {
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestMapper.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_A_NAME,
@@ -67,6 +72,7 @@ public class TestHadoopDomainBuilder extends HadoopTestCase {
     assertEquals("1 v1\n3 v3\n", p2);
   }
 
+  @Test
   public void testSorted() throws IOException {
     new HadoopDomainBuilder(INPUT_PATH_B, TextInputFormat.class, TestMapper.class)
         .buildHankDomain(new DomainBuilderProperties(DOMAIN_B_NAME,

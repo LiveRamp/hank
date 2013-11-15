@@ -22,12 +22,16 @@ import com.liveramp.hank.coordinator.DomainVersion;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.storage.RemoteDomainVersionDeleter;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
 
@@ -91,6 +95,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
     }
   }
 
+  @Test
   public void testZeroVersionsToKeepMeansKeepEverything() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 0);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
@@ -98,6 +103,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
     assertEquals(0, deleter.deletedVersions.size());
   }
 
+  @Test
   public void testKeepOneVersion() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 1);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
@@ -109,6 +115,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
     assertTrue(deleter.deletedVersions.contains(3));
   }
 
+  @Test
   public void testKeepTwoVersions() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 2);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
@@ -117,6 +124,7 @@ public class TestIncrementalRemoteDomainCleaner extends BaseTestCase {
     assertTrue(deleter.deletedVersions.contains(2));
   }
 
+  @Test
   public void testKeepThreeVersions() throws IOException {
     IncrementalRemoteDomainCleaner cleaner = new MockIncrementalRemoteDomainCleaner(domain, 3);
     MockRemoteDomainVersionDeleter deleter = new MockRemoteDomainVersionDeleter();
