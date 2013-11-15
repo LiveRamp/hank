@@ -17,7 +17,16 @@
 package com.liveramp.hank.partition_server;
 
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
+import com.liveramp.hank.coordinator.DomainVersion;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.mock.MockDomain;
 import com.liveramp.hank.coordinator.mock.MockDomainGroup;
 import com.liveramp.hank.coordinator.mock.MockDomainVersion;
@@ -28,17 +37,33 @@ import com.liveramp.hank.storage.StorageEngine;
 import com.liveramp.hank.storage.mock.MockDeleter;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
 import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.test.coordinator.*;
+import com.liveramp.hank.test.coordinator.MockHost;
+import com.liveramp.hank.test.coordinator.MockHostDomain;
+import com.liveramp.hank.test.coordinator.MockHostDomainPartition;
+import com.liveramp.hank.test.coordinator.MockRing;
+import com.liveramp.hank.test.coordinator.MockRingGroup;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestUpdateManager extends BaseTestCase {
 
   private Fixtures fixtures;
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     this.fixtures = new Fixtures();
   }
 
@@ -184,6 +209,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
   }
 
+  @Test
   public void testUpdate() throws Exception {
     final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 
@@ -221,6 +247,7 @@ public class TestUpdateManager extends BaseTestCase {
         mockHostDomain.isRemoved(fixtures.PARTITION_FOR_DELETION.getPartitionNumber()));
   }
 
+  @Test
   public void testGarbageCollectDomain() throws Exception {
     final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 
@@ -259,6 +286,7 @@ public class TestUpdateManager extends BaseTestCase {
     assertTrue("host domain has been deleted", mockHost.isRemoved(mockHostDomain.getDomain()));
   }
 
+  @Test
   public void testFailedUpdateTask() throws Exception {
     final MockPartitionUpdater failingUpdater = new MockPartitionUpdater() {
       @Override
@@ -294,6 +322,7 @@ public class TestUpdateManager extends BaseTestCase {
     }
   }
 
+  @Test
   public void testInterruptedUpdateTask() throws Exception {
     final MockPartitionUpdater mockUpdater = new MockPartitionUpdater();
 

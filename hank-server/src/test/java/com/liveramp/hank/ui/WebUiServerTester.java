@@ -12,6 +12,7 @@ import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
 import org.apache.thrift.TException;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -22,6 +23,7 @@ import java.util.Map;
 
 public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
+  @Test
   public void testIt() throws Exception {
     final Coordinator coordinator = getMockCoordinator();
 
@@ -125,7 +127,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
       @Override
       public HankResponse get(String domainName, ByteBuffer key) throws TException {
-        String sKey = null;
+        String sKey;
         try {
           sKey = new String(key.array(), key.position(), key.limit(), "UTF-8");
         } catch (UnsupportedEncodingException e) {

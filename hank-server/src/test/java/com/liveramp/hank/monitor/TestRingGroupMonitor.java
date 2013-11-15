@@ -16,9 +16,7 @@
 
 package com.liveramp.hank.monitor;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.coordinator.Domain;
-import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.coordinator.Ring;
 import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.mock.MockDomain;
@@ -29,11 +27,18 @@ import com.liveramp.hank.monitor.notification.RingGroupConductorModeNotification
 import com.liveramp.hank.monitor.notifier.Notifier;
 import com.liveramp.hank.monitor.notifier.mock.MockNotifier;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.test.coordinator.MockRingGroup;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestRingGroupMonitor extends BaseTestCase {
 
@@ -42,12 +47,12 @@ public class TestRingGroupMonitor extends BaseTestCase {
   private RingGroup mockRingGroup = new MockRingGroup(domainGroup, "ring_group", Collections.<Ring>emptySet());
   private MockNotifier mockNotifier;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mockNotifier = new MockNotifier();
   }
 
+  @Test
   public void testMain() throws IOException {
     RingGroupMonitor monitor = new RingGroupMonitor(mockRingGroup, Collections.singletonList((Notifier) mockNotifier));
 

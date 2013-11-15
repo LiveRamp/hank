@@ -27,10 +27,22 @@ import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
@@ -54,9 +66,8 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
   };
   private CueballPartitionUpdater updater;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     int keyHashSize = 12;
     int valueSize = 5;
@@ -78,6 +89,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     }
   }
 
+  @Test
   public void testGetDomainVersionParent() throws IOException {
     CueballUpdatePlanner updatePlanner = new CueballUpdatePlanner(domain);
     assertNull(updatePlanner.getParentDomainVersion(v0));
@@ -85,6 +97,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertEquals(v1, updatePlanner.getParentDomainVersion(v2));
   }
 
+  @Test
   public void testDetectCurrentVersionNumber() throws IOException {
     // Null when there is no version
     assertEquals(null, updater.detectCurrentVersionNumber());
@@ -107,6 +120,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     deleteLocalFile("00002.base.cueball");
   }
 
+  @Test
   public void testGetCachedVersions() throws IOException {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
@@ -140,6 +154,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     deleteLocalCacheFile("00001.base.cueball");
   }
 
+  @Test
   public void testFetchVersion() throws IOException {
     String fetchRootName = "_fetch";
     String fetchRoot = localPartitionRoot + "/" + fetchRootName;
@@ -158,6 +173,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.cueball"));
   }
 
+  @Test
   public void testUpdateNoDelta() throws IOException {
     // Updating from null to v0
     // Fail when missing files
@@ -176,6 +192,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertTrue(existsUpdateWorkFile("00000.base.cueball"));
   }
 
+  @Test
   public void testUpdate() throws IOException {
     // Updating from v0 to v2
     List<DomainVersion> deltas = new ArrayList<DomainVersion>();
@@ -208,6 +225,7 @@ public class TestCueballPartitionUpdater extends IncrementalPartitionUpdaterTest
     assertTrue(existsLocalFile("00000.base.cueball"));
   }
 
+  @Test
   public void testGetRemotePartitionFilePaths() throws IOException {
     CueballUpdatePlanner updatePlanner = new CueballUpdatePlanner(domain);
     List<String> paths = updatePlanner.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2),

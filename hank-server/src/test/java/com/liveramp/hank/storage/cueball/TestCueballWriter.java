@@ -14,13 +14,20 @@
  *  limitations under the License.
  */
 package com.liveramp.hank.storage.cueball;
+import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
+import org.junit.Test;
+
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 
-import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 public class TestCueballWriter extends AbstractCueballTest {
+
+  @Test
   public void testWriter() throws Exception {
     ByteArrayOutputStream s = new ByteArrayOutputStream();
 
@@ -38,6 +45,7 @@ public class TestCueballWriter extends AbstractCueballTest {
         ByteBuffer.wrap(result));
   }
 
+  @Test
   public void testEnforceKeyOrdering() {
     try {
       ByteArrayOutputStream s = new ByteArrayOutputStream();

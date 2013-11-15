@@ -15,18 +15,31 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.test.ZkTestCase;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.partitioner.ConstantPartitioner;
 import com.liveramp.hank.storage.constant.ConstantStorageEngine;
+import com.liveramp.hank.test.ZkTestCase;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import com.liveramp.hank.zookeeper.ZkPath;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class TestZooKeeperCoordinator extends ZkTestCase {
@@ -35,6 +48,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
   private final String ring_groups_root = ZkPath.append(getRoot(), "ring_groups");
   private ZooKeeperCoordinator coord;
 
+  @Test
   public void testLoad() throws Exception {
     // check standard loading stuff
     assertEquals("number of loaded domain configs", 1, coord.getDomains().size());
@@ -47,6 +61,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals("get ring group by name", "myRingGroup", coord.getRingGroup("myRingGroup").getName());
   }
 
+  @Test
   public void testAddDomain() throws Exception {
     coord.addDomain("myDomain", 1234, ConstantStorageEngine.Factory.class.getName(), "---", ConstantPartitioner.class.getName(), Collections.<String>emptyList());
     Domain domain = coord.getDomain("myDomain");
@@ -67,6 +82,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertTrue(domain.getPartitioner() instanceof ConstantPartitioner);
   }
 
+  @Test
   public void testAddDomainGroup() throws Exception {
     // keep a second coordinator aside
     final ZooKeeperCoordinator coord2 = getCoord();
@@ -94,6 +110,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     coord2.close();
   }
 
+  @Test
   public void testAddRingGroup() throws Exception {
     DomainGroup dg = coord.addDomainGroup("myDomainGroup2");
     Map<Domain, Integer> domainIdToVersion = new HashMap<Domain, Integer>();
@@ -103,6 +120,7 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertEquals(0, rg.getRings().size());
   }
 
+  @Test
   public void testDeleteDomain() throws Exception {
     assertNotNull(coord.getDomain("domain0"));
     assertTrue(coord.deleteDomain("domain0"));
@@ -110,14 +128,14 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     assertFalse(coord.deleteDomain("domain0"));
   }
 
+  @Test
   public void testGetDomainShallow() {
     assertNotNull(coord.getDomainShallow("domain0"));
     assertEquals(coord.getDomain("domain0"), coord.getDomainShallow("domain0"));
   }
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
 
     create(domains_root);
     create(domain_groups_root);
@@ -140,10 +158,8 @@ public class TestZooKeeperCoordinator extends ZkTestCase {
     return new ZooKeeperCoordinator(getZkConnectString(), 100000000, domains_root, domain_groups_root, ring_groups_root);
   }
 
-  @Override
-  protected void tearDown() throws Exception {
+  @After
+  public void tearDown() throws Exception {
     coord.close();
-
-    super.tearDown();
   }
 }

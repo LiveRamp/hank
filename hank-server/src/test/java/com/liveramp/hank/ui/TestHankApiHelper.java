@@ -2,21 +2,27 @@ package com.liveramp.hank.ui;
 
 import com.liveramp.hank.ZkMockCoordinatorTestCase;
 import com.liveramp.hank.coordinator.Coordinator;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
+
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
 
   private HankApiHelper helper;
   private Coordinator coordinator;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     coordinator = getMockCoordinator();
     helper = new HankApiHelper(coordinator);
   }
 
+  @Test
   public void testGetDomainData() throws IOException {
     HankApiHelper.DomainData data = helper.getDomainData(coordinator.getDomain("domain0"));
     assertEquals("domain0", data.name);
@@ -37,6 +43,7 @@ public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
     assertNull(versionData);
   }
 
+  @Test
   public void testGetDomainGroupData() throws Exception {
     HankApiHelper.DomainGroupData data = helper.getDomainGroupData(coordinator.getDomainGroup("Group_1"));
     assertEquals("Group_1", data.name);
@@ -46,6 +53,7 @@ public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
     assertEquals(1, (int) data.domainVersions.get("domain1"));
   }
 
+  @Test
   public void testGetRingGroupData() throws Exception {
     HankApiHelper.RingGroupData data = helper.getRingGroupData(coordinator.getRingGroup("RG_Alpha"));
     assertEquals("RG_Alpha", data.name);
@@ -53,11 +61,13 @@ public class TestHankApiHelper extends ZkMockCoordinatorTestCase {
     assertEquals(3, data.ringsMap.size());
   }
 
+  @Test
   public void testGetDeployStatusForDomain() throws Exception {
     HankApiHelper.DomainDeployStatus status = helper.getDomainDeployStatus(coordinator.getDomain("domain0"));
     assertEquals("domain0", status.domainName);
   }
 
+  @Test
   public void testGetDeployStatusForDomainGroup() throws Exception {
     HankApiHelper.DomainGroupDeployStatus status = helper.getDomainGroupDeployStatus(coordinator.getDomainGroup("Group_1"));
     assertEquals("Group_1", status.domainGroupName);

@@ -22,9 +22,14 @@ import com.liveramp.hank.util.WaitUntil;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.junit.Test;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 public class TestWatchedInt extends ZkTestCase {
 
+  @Test
   public void testIt() throws Exception {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
@@ -72,6 +77,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(22), wi.get());
   }
 
+  @Test
   public void testUpdate() throws InterruptedException, KeeperException {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
@@ -102,6 +108,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(finalValue), wi.get());
   }
 
+  @Test
   public void testWaitForCreation() throws InterruptedException, KeeperException {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");
@@ -134,6 +141,7 @@ public class TestWatchedInt extends ZkTestCase {
     assertEquals(Integer.valueOf(42), wi.get());
   }
 
+  @Test
   public void testCreateAndWaitForCreation() throws InterruptedException, KeeperException {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");

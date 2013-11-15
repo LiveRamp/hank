@@ -16,20 +16,6 @@
 
 package com.liveramp.hank.client;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TTransportException;
-
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -41,6 +27,26 @@ import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.HankTimer;
 import com.liveramp.hank.util.WaitUntil;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TTransportException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestHostConnection extends BaseTestCase {
 
@@ -73,13 +79,12 @@ public class TestHostConnection extends BaseTestCase {
   private Thread mockPartitionServerThread;
   private MockPartitionServer mockPartitionServer;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mockHost.setState(HostState.OFFLINE);
   }
 
-  @Override
+  @After
   public void tearDown() throws InterruptedException {
     if (mockPartitionServer != null) {
       LOG.info("Stopping partition server...");
@@ -91,6 +96,7 @@ public class TestHostConnection extends BaseTestCase {
     }
   }
 
+  @Test
   public void testQueryOnlyServingHosts() throws IOException, TException, InterruptedException {
 
     int tryLockTimeoutMs = 1000;
@@ -131,6 +137,7 @@ public class TestHostConnection extends BaseTestCase {
     assertEquals(RESPONSE_BULK_1, connection.getBulk(0, Collections.singletonList(KEY_1)));
   }
 
+  @Test
   public void testGetTimeouts() throws IOException, TException, InterruptedException {
 
     mockHost.setState(HostState.SERVING);
@@ -197,6 +204,7 @@ public class TestHostConnection extends BaseTestCase {
     assertTrue(duration < 1000);
   }
 
+  @Test
   public void testTryLockTimeout() throws IOException, TException, InterruptedException {
 
     // Start server

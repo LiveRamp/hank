@@ -1,11 +1,14 @@
 package com.liveramp.hank.compression.cueball;
 
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestGzipCueballCompressionCodec extends BaseTestCase {
   private static final List<byte[]> TESTCASES = Arrays.asList(
@@ -28,6 +31,7 @@ public class TestGzipCueballCompressionCodec extends BaseTestCase {
     return bytes;
   }
 
+  @Test
   public void testIt() throws Exception {
     GzipCueballCompressionCodec codec = new GzipCueballCompressionCodec();
 

@@ -15,12 +15,17 @@
  */
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
+import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
@@ -28,18 +33,25 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import org.apache.thrift.TException;
 import org.apache.thrift.transport.TTransportException;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class TestPartitionServer extends BaseTestCase {
 
   private Fixtures fixtures;
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     this.fixtures = new Fixtures();
   }
 
@@ -167,6 +179,7 @@ public class TestPartitionServer extends BaseTestCase {
     }
   }
 
+  @Test
   public void testColdStartAndShutDown() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
@@ -217,6 +230,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
   }
 
+  @Test
   public void testNonEmptyCommandQueue() throws Exception {
     final SleepingUpdateManager updateManager = new SleepingUpdateManager();
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
@@ -249,6 +263,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals(HostState.OFFLINE, fixtures.host.getState());
   }
 
+  @Test
   public void testUpdateFailure() throws Exception {
     final FailingUpdateManager updateManager = new FailingUpdateManager();
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
@@ -274,6 +289,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals("Still IDLE after failed update.", HostState.IDLE, fixtures.host.getState());
   }
 
+  @Test
   public void testHostSetStateFailure() throws Exception {
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR2, "localhost");
     Thread thread = createPartitionServerThread(partitionServer);
@@ -285,6 +301,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals("Went OFFLINE after failed state update.", HostState.OFFLINE, fixtures.failingSetStateHost.getState());
   }
 
+  @Test
   public void testHostNextCommandFailure() throws Exception {
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR3, "localhost");
     Thread thread = createPartitionServerThread(partitionServer);
@@ -294,6 +311,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals("Went OFFLINE after failed next command.", HostState.OFFLINE, fixtures.failingNextCommandHost.getState());
   }
 
+  @Test
   public void testFailingThriftDataServer() throws Exception {
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost") {
       @Override
@@ -309,6 +327,7 @@ public class TestPartitionServer extends BaseTestCase {
     assertEquals("Went OFFLINE after failed to start data server.", HostState.OFFLINE, fixtures.host.getState());
   }
 
+  @Test
   public void testFailToStartWhenHostIsAlreadyOnline() throws IOException, InterruptedException {
     final PartitionServer partitionServer = new MockPartitionServer(fixtures.CONFIGURATOR1, "localhost");
     Thread thread = createPartitionServerThread(partitionServer);

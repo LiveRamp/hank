@@ -2,6 +2,7 @@ package com.liveramp.hank.ui;
 
 
 import com.liveramp.hank.ZkMockCoordinatorTestCase;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -9,13 +10,16 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+
 public class TestHankApiServlet extends ZkMockCoordinatorTestCase {
 
   private HankApiServlet apiServlet;
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUp() throws Exception {
     apiServlet = new HankApiServlet(getMockCoordinator());
   }
 
@@ -95,6 +99,7 @@ public class TestHankApiServlet extends ZkMockCoordinatorTestCase {
 
     return response;
   }
+
 
   private int getResponseStatus(String... params) throws IOException {
     return getResponse(params, new String[params.length]).getStatus();

@@ -17,27 +17,34 @@
 package com.liveramp.hank.zookeeper;
 
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class TestZkPath extends BaseTestCase {
 
+  @Test
   public void testAppend() {
     assertEquals("/a/b/c", ZkPath.append("/a", "b", "c"));
   }
 
+  @Test
   public void testGetFilename() {
     assertEquals("c", ZkPath.getFilename("/a/b/c"));
     assertEquals("b", ZkPath.getFilename("/a/b/"));
   }
 
+  @Test
   public void testIsHidden() {
     assertEquals(false, ZkPath.isHidden("/a/b/c"));
     assertEquals(true, ZkPath.isHidden("/a/b/.c"));
     assertEquals(true, ZkPath.isHidden("/a/b/..c"));
   }
 
+  @Test
   public void testFilterOutHiddenPaths() {
     List<String> paths = new ArrayList<String>();
     String p1 = "/a/b";

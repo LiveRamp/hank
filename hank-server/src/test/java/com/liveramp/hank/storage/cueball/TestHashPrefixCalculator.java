@@ -1,8 +1,13 @@
 package com.liveramp.hank.storage.cueball;
 
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestHashPrefixCalculator extends BaseTestCase {
+
+  @Test
   public void testLessThanEightBits() throws Exception {
     HashPrefixCalculator c = new HashPrefixCalculator(2);
 
@@ -15,6 +20,7 @@ public class TestHashPrefixCalculator extends BaseTestCase {
     assertEquals(3, c.getHashPrefix(bytes, 4));
   }
 
+  @Test
   public void testAtLeastEightBits() throws Exception {
     HashPrefixCalculator c = new HashPrefixCalculator(10);
 
@@ -26,6 +32,7 @@ public class TestHashPrefixCalculator extends BaseTestCase {
     assertEquals(0x80cf >> 6, c.getHashPrefix(bytes, 3));
   }
 
+  @Test
   public void testExactlyEightBits() throws Exception {
     HashPrefixCalculator c = new HashPrefixCalculator(8);
 

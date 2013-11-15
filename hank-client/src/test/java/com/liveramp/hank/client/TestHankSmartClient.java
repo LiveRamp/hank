@@ -15,25 +15,6 @@
  */
 package com.liveramp.hank.client;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.log4j.Logger;
-import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
-import org.apache.thrift.server.TServer;
-import org.apache.thrift.transport.TNonblockingServerSocket;
-import org.apache.thrift.transport.TNonblockingServerTransport;
-import org.apache.thrift.transport.TTransportException;
-
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.DomainGroupDomainVersion;
@@ -60,6 +41,29 @@ import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.test.partitioner.MapPartitioner;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
+import org.apache.log4j.Logger;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TCompactProtocol;
+import org.apache.thrift.server.THsHaServer;
+import org.apache.thrift.server.THsHaServer.Args;
+import org.apache.thrift.server.TServer;
+import org.apache.thrift.transport.TNonblockingServerSocket;
+import org.apache.thrift.transport.TNonblockingServerTransport;
+import org.apache.thrift.transport.TTransportException;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestHankSmartClient extends BaseTestCase {
 
@@ -155,6 +159,7 @@ public class TestHankSmartClient extends BaseTestCase {
 
   private static final ByteBuffer KEY_NOT_FOUND = ByteBuffer.wrap(new byte[]{9, 9, 9});
 
+  @Test
   public void testIt() throws Exception {
     int server1Port = 12345;
     int server2Port = 12346;

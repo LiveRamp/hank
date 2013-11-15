@@ -17,6 +17,9 @@
 package com.liveramp.hank.util;
 
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestMemoryBoundLruHashMap extends BaseTestCase {
 
@@ -46,6 +49,7 @@ public class TestMemoryBoundLruHashMap extends BaseTestCase {
     }
   }
 
+  @Test
   public void testNumBytesCapacity() {
     MemoryBoundLruHashMap<MockManagedBytes, MockManagedBytes> map =
         new MemoryBoundLruHashMap<MockManagedBytes, MockManagedBytes>(20);
@@ -110,6 +114,7 @@ public class TestMemoryBoundLruHashMap extends BaseTestCase {
     assertEquals(null, map.get(k2));
   }
 
+  @Test
   public void testNumItemsCapacity() {
     MemoryBoundLruHashMap<MockManagedBytes, MockManagedBytes> map =
         new MemoryBoundLruHashMap<MockManagedBytes, MockManagedBytes>(20, 2);

@@ -27,11 +27,17 @@ import com.liveramp.hank.storage.cueball.ICueballStreamBufferMergeSortFactory;
 import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
 
@@ -59,9 +65,8 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
   private boolean mergerCalled = false;
   private boolean mergeSortBufferCalled = false;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     ICurlyCompactingMerger merger = new ICurlyCompactingMerger() {
       @Override
@@ -104,6 +109,7 @@ public class TestCurlyCompactor extends IncrementalPartitionUpdaterTestCase {
     }
   }
 
+  @Test
   public void testUpdate() throws IOException {
     // Success merging with deltas
     assertFalse(existsUpdateWorkFile("00002.base.cueball"));

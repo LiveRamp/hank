@@ -32,10 +32,14 @@ import com.liveramp.hank.storage.mock.MockReader;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
 import com.liveramp.hank.test.coordinator.*;
 import org.apache.thrift.TException;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TestPartitionServerHandler extends BaseTestCase {
 
@@ -67,6 +71,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
     }
   };
 
+  @Test
   public void testDontServeNotUpToDatePartition() throws IOException, TException {
     try {
       PartitionServerHandler handler = createHandler(42);
@@ -75,6 +80,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
     }
   }
 
+  @Test
   public void testSetUpAndServe() throws Exception {
     PartitionServerHandler handler = createHandler(0);
 
@@ -89,6 +95,7 @@ public class TestPartitionServerHandler extends BaseTestCase {
         handler.get(0, K4));
   }
 
+  @Test
   public void testSetUpAndServeBulk() throws Exception {
     PartitionServerHandler handler = createHandler(0);
 

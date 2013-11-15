@@ -1,10 +1,10 @@
 package com.liveramp.hank.monitor.notifier.db;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.config.InvalidConfigurationException;
-import org.apache.log4j.Logger;
+import com.liveramp.hank.test.BaseTestCase;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -13,8 +13,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.assertTrue;
+
 public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
-  private static Logger LOG = Logger.getLogger(SQLEnvironmentsNotifierFactoryTest.class);
 
   private static Map<String, Object> workingConfiguration = new HashMap<String, Object>() {{
     put(SQLEnvironmentsNotifierFactory.DRIVER, "com.mysql.jdbc.Driver");
@@ -62,7 +63,6 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
 
   @Before
   public void setUp() throws Exception {
-    super.setUp();
     factory = new SQLEnvironmentsNotifierFactory();
 
     configDirectory = new File("config");
@@ -75,12 +75,12 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
 
   @After
   public void tearDown() throws Exception {
-    super.tearDown();
     databaseFile.delete();
     environmentFile.delete();
     configDirectory.delete();
   }
 
+  @Test
   public void testValidateSuccess() throws IOException {
     writeTo(environmentFile, environmentConfig);
     writeTo(databaseFile, workingDatabaseConfig);
@@ -91,6 +91,7 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
     }
   }
 
+  @Test
   public void testValidateFailDatabaseConfigMissingField() throws IOException {
     writeTo(environmentFile, environmentConfig);
     writeTo(databaseFile, databaseConfigMissingField);
@@ -102,6 +103,7 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
     }
   }
 
+  @Test
   public void testValidateFailWrongDatabaseConfigName() throws IOException {
     writeTo(environmentFile, environmentConfig);
     writeTo(databaseFile, databaseConfigWrongConfigName);
@@ -113,6 +115,7 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
     }
   }
 
+  @Test
   public void testValidateFailMissingConfigFile() throws IOException {
     writeTo(environmentFile, environmentConfig);
     writeTo(databaseFile, workingDatabaseConfig);
@@ -124,6 +127,7 @@ public class SQLEnvironmentsNotifierFactoryTest extends BaseTestCase {
     }
   }
 
+  @Test
   public void testValidateFailWrongDatabaseEnvirnment() throws IOException {
     writeTo(environmentFile, invalidEnvironmentConfig);
     writeTo(databaseFile, workingDatabaseConfig);

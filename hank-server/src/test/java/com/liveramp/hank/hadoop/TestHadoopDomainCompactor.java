@@ -16,9 +16,6 @@
 
 package com.liveramp.hank.hadoop;
 
-import java.io.IOException;
-import java.util.Collections;
-
 import com.liveramp.hank.config.CoordinatorConfigurator;
 import com.liveramp.hank.config.DataDirectoriesConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
@@ -30,6 +27,13 @@ import com.liveramp.hank.coordinator.mock.MockDomainVersion;
 import com.liveramp.hank.storage.Compactor;
 import com.liveramp.hank.storage.Writer;
 import com.liveramp.hank.storage.mock.MockStorageEngine;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestHadoopDomainCompactor extends HadoopTestCase {
 
@@ -40,8 +44,8 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
     super(TestHadoopDomainCompactor.class);
   }
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     LocalMockCoordinatorConfigurator.compactor = new LocalMockCompactor();
     LocalMockCoordinatorConfigurator.versionToCompact = new MockDomainVersion(0, (long)0);
   }
@@ -86,6 +90,7 @@ public class TestHadoopDomainCompactor extends HadoopTestCase {
     }
   }
 
+  @Test
   public void testMain() throws IOException {
     CoordinatorConfigurator configurator = new LocalMockCoordinatorConfigurator();
     DomainBuilderProperties properties =

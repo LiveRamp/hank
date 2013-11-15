@@ -2,9 +2,14 @@ package com.liveramp.hank.storage.cueball;
 
 import com.liveramp.hank.compression.cueball.NoCueballCompressionCodec;
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Test;
 
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class TestCueballStreamBuffer extends BaseTestCase {
   private static final byte[] CONTIG_DATA = new byte[]{
@@ -46,6 +51,7 @@ public class TestCueballStreamBuffer extends BaseTestCase {
   };
   private final String DISCONTIG_END_PATH = localTmpDir + "/discontiguous_end_file.cueball";
 
+  @Test
   public void testContiguousBlocks() throws Exception {
     final FileOutputStream stream = new FileOutputStream(CONTIG_PATH);
     stream.write(CONTIG_DATA);
@@ -76,6 +82,7 @@ public class TestCueballStreamBuffer extends BaseTestCase {
     assertFalse(sb.anyRemaining());
   }
 
+  @Test
   public void testDiscontiguousInternalBlocks() throws Exception {
     final FileOutputStream stream = new FileOutputStream(DISCONTIG_INTERNAL_HOLE_PATH);
     stream.write(DISCONTIG_DATA_INTERNAL_HOLE);
@@ -101,6 +108,7 @@ public class TestCueballStreamBuffer extends BaseTestCase {
     assertFalse(sb.anyRemaining());
   }
 
+  @Test
   public void testDiscontiguousEndBlocks() throws Exception {
     final FileOutputStream stream = new FileOutputStream(DISCONTIG_END_PATH);
     stream.write(DISCONTIG_DATA_END);

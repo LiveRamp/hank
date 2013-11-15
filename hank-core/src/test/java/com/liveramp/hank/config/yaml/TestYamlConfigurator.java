@@ -19,10 +19,14 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.config.InvalidConfigurationException;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.mock.MockCoordinator;
+import org.junit.Test;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TestYamlConfigurator extends BaseTestCase {
   private final String configPath = localTmpDir + "/bad4.yml";
@@ -34,6 +38,7 @@ public class TestYamlConfigurator extends BaseTestCase {
     }
   }
 
+  @Test
   public void testIt() throws Exception {
     PrintWriter pw = new PrintWriter(new FileWriter(configPath));
     pw.println("cordinator:");

@@ -17,6 +17,7 @@
 package com.liveramp.hank.storage.incremental;
 
 import com.liveramp.hank.test.BaseTestCase;
+import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +29,8 @@ public abstract class IncrementalPartitionUpdaterTestCase extends BaseTestCase {
   protected final String updateWorkRoot =
       localPartitionRoot + "/" + IncrementalPartitionUpdater.UPDATE_WORK_ROOT_PREFIX;
 
-  @Override
-  public void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public void setUpPartitionTest() throws Exception {
     new File(remotePartitionRoot).mkdir();
     new File(localPartitionRoot).mkdir();
   }

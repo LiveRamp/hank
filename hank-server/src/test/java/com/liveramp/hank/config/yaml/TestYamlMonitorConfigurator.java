@@ -4,15 +4,20 @@ import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
 import com.liveramp.hank.monitor.notifier.Notifier;
 import com.liveramp.hank.monitor.notifier.mock.MockNotifier;
+import org.junit.Test;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class TestYamlMonitorConfigurator extends BaseTestCase {
 
   private final String configPath = localTmpDir + "/config.yml";
 
+  @Test
   public void testIt() throws Exception {
     PrintWriter pw = new PrintWriter(new FileWriter(configPath));
     pw.println("monitor:");

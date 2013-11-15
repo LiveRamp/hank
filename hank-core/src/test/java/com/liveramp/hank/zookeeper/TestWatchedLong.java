@@ -5,8 +5,13 @@ import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.WaitUntil;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.junit.Test;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 
 public class TestWatchedLong extends ZkTestCase {
+  @Test
   public void testIt() throws Exception {
     final ZooKeeperPlus zk = getZk();
     final String nodePath = ZkPath.append(getRoot(), "watchedNode");

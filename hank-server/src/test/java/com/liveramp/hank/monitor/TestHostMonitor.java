@@ -16,17 +16,26 @@
 
 package com.liveramp.hank.monitor;
 
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.monitor.notification.HostStateNotification;
 import com.liveramp.hank.monitor.notifier.Notifier;
 import com.liveramp.hank.monitor.notifier.mock.MockNotifier;
+import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.test.coordinator.MockHost;
 import com.liveramp.hank.test.coordinator.MockRing;
 import com.liveramp.hank.test.coordinator.MockRingGroup;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestHostMonitor extends BaseTestCase {
 
@@ -35,13 +44,13 @@ public class TestHostMonitor extends BaseTestCase {
   private Host mockHost;
   private MockNotifier mockNotifier;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     mockHost = new MockHost(new PartitionServerAddress("", 0));
     mockNotifier = new MockNotifier();
   }
 
+  @Test
   public void testMain() throws IOException {
     HostMonitor monitor = new HostMonitor(mockRingGroup, mockRing, mockHost, Collections.singletonList((Notifier) mockNotifier));
 

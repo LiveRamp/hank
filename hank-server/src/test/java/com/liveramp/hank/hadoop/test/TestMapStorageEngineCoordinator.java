@@ -16,11 +16,6 @@
 
 package com.liveramp.hank.hadoop.test;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-
-import org.apache.hadoop.mapred.TextInputFormat;
-
 import com.liveramp.hank.hadoop.DomainBuilderEmptyOutputFormat;
 import com.liveramp.hank.hadoop.DomainBuilderProperties;
 import com.liveramp.hank.hadoop.HadoopDomainBuilder;
@@ -28,6 +23,14 @@ import com.liveramp.hank.hadoop.HadoopTestCase;
 import com.liveramp.hank.hadoop.TestHadoopDomainBuilder;
 import com.liveramp.hank.storage.map.MapStorageEngine;
 import com.liveramp.hank.util.Bytes;
+import org.apache.hadoop.mapred.TextInputFormat;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import static org.junit.Assert.assertEquals;
 
 
 public class TestMapStorageEngineCoordinator extends HadoopTestCase {
@@ -39,13 +42,13 @@ public class TestMapStorageEngineCoordinator extends HadoopTestCase {
     super(TestMapStorageEngineCoordinator.class);
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     // Create inputs
     outputFile(fs, INPUT_PATH_A, "0 v0\n1 v1\n2 v2\n3 v3\n4 v4");
   }
 
+  @Test
   public void testOutput() throws IOException {
 
     new HadoopDomainBuilder(INPUT_PATH_A, TextInputFormat.class, TestHadoopDomainBuilder.TestMapper.class)

@@ -26,10 +26,20 @@ import com.liveramp.hank.storage.incremental.IncrementalDomainVersionProperties;
 import com.liveramp.hank.storage.incremental.IncrementalPartitionUpdaterTestCase;
 import com.liveramp.hank.storage.incremental.IncrementalUpdatePlan;
 import org.apache.commons.lang.NotImplementedException;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static junit.framework.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdaterTestCase {
 
@@ -53,9 +63,8 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
   };
   private AbstractCurlyPartitionUpdater updater;
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     this.updater = new AbstractCurlyPartitionUpdater(domain,
         new LocalPartitionRemoteFileOps(remotePartitionRoot, 0),
@@ -80,6 +89,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     }
   }
 
+  @Test
   public void testGetDomainVersionParent() throws IOException {
     CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
     assertNull(updatePlanner.getParentDomainVersion(v0));
@@ -87,6 +97,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     assertEquals(v1, updatePlanner.getParentDomainVersion(v2));
   }
 
+  @Test
   public void testDetectCurrentVersionNumber() throws IOException {
     // Null when there is no version
     assertEquals(null, updater.detectCurrentVersionNumber());
@@ -122,6 +133,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     deleteLocalFile("00002.base.curly");
   }
 
+  @Test
   public void testGetCachedVersions() throws IOException {
     Set<DomainVersion> versions = new HashSet<DomainVersion>();
 
@@ -169,6 +181,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     deleteLocalCacheFile("00001.base.curly");
   }
 
+  @Test
   public void testFetchVersion() throws IOException {
     String fetchRootName = "_fetch";
     String fetchRoot = localPartitionRoot + "/" + fetchRootName;
@@ -195,6 +208,7 @@ public class TestAbstractCurlyPartitionUpdater extends IncrementalPartitionUpdat
     assertTrue(existsLocalFile(fetchRootName + "/00000.base.curly"));
   }
 
+  @Test
   public void testGetRemotePartitionFilePaths() throws IOException {
     CurlyUpdatePlanner updatePlanner = new CurlyUpdatePlanner(domain);
     List<String> paths = updatePlanner.getRemotePartitionFilePaths(new IncrementalUpdatePlan(v1, v2),

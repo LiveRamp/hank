@@ -1,13 +1,15 @@
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
 import com.liveramp.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
 import com.liveramp.hank.storage.map.MapWriter;
+import com.liveramp.hank.test.BaseTestCase;
 import com.liveramp.hank.util.Bytes;
 import com.liveramp.hank.util.EncodingHelper;
 import org.apache.commons.lang.NotImplementedException;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,6 +18,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestCurlyCompactingMerger extends BaseTestCase {
 
@@ -29,13 +33,14 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
   int recordFileReadBufferBytes = 32 * 1024;
   CurlyCompactingMerger merger = new CurlyCompactingMerger(recordFileReadBufferBytes);
 
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
     writeFile(BASE_DATA, CURLY_BASE_PATH.getPath());
     writeFile(DELTA_1_DATA, CURLY_DELTA_1_PATH.getPath());
     writeFile(DELTA_2_DATA, CURLY_DELTA_2_PATH.getPath());
   }
 
+  @Test
   public void testMain() throws IOException {
 
     CurlyFilePath curlyBasePath = CURLY_BASE_PATH;

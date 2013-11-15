@@ -20,13 +20,17 @@ import com.liveramp.hank.hasher.Murmur64Hasher;
 import com.liveramp.hank.storage.LocalPartitionRemoteFileOps;
 import com.liveramp.hank.storage.cueball.TestCueballFactory;
 import org.apache.log4j.Logger;
+import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.junit.Assert.fail;
+
 public class TestCurlyFactory extends BaseTestCase {
   private static final Logger LOG = Logger.getLogger(TestCueballFactory.class);
 
+  @Test
   public void testBadConfig() throws Exception {
     Curly.Factory factory = new Curly.Factory();
 
@@ -39,6 +43,7 @@ public class TestCurlyFactory extends BaseTestCase {
     }
   }
 
+  @Test
   public void testGoodConfig() throws Exception {
     Curly.Factory factory = new Curly.Factory();
     Map<String, Object> options = new HashMap<String, Object>();

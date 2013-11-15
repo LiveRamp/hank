@@ -21,27 +21,24 @@ import com.liveramp.hank.coordinator.HostState;
 import com.liveramp.hank.util.Condition;
 import com.liveramp.hank.util.FsUtils;
 import com.liveramp.hank.util.WaitUntil;
-import junit.framework.TestCase;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.junit.Before;
 
 import java.io.File;
 import java.io.IOException;
 
-public abstract class BaseTestCase extends TestCase {
+public abstract class BaseTestCase {
   static {
     Logger.getRootLogger().setLevel(Level.ALL);
   }
 
   protected final String localTmpDir = System.getProperty("tmpDir", "/tmp/hank_local_file_system");
 
-  @Override
-  protected void setUp() throws Exception {
-    super.setUp();
+  @Before
+  public final void setUpBase() throws Exception {
     FsUtils.rmrf(localTmpDir);
     new File(localTmpDir).mkdirs();
-    System.err.println("------ test start: " + this.getName() + " ------");
-    System.out.println("------ test start: " + this.getName() + " ------");
   }
 
   protected void waitUntilHost(final HostState state, final Host host) throws InterruptedException {
