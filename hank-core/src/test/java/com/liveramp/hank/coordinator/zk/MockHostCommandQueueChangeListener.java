@@ -6,6 +6,8 @@ package com.liveramp.hank.coordinator.zk;
 import com.liveramp.hank.coordinator.Host;
 import com.liveramp.hank.coordinator.HostCommandQueueChangeListener;
 
+import static org.junit.Assert.fail;
+
 final class MockHostCommandQueueChangeListener implements HostCommandQueueChangeListener {
 
   public Host calledWith;
@@ -34,7 +36,7 @@ final class MockHostCommandQueueChangeListener implements HostCommandQueueChange
         return;
       }
       if (!timeoutOk && end - start > 15000) {
-        TestZkHost.fail("timed out waiting for notification!");
+        fail("timed out waiting for notification!");
       }
     }
   }
