@@ -15,14 +15,17 @@
  */
 package com.liveramp.hank.partition_server;
 
-import com.liveramp.hank.config.InvalidConfigurationException;
-import com.liveramp.hank.config.PartitionServerConfigurator;
-import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.util.CommandLineChecker;
-import com.liveramp.hank.util.HankTimer;
-import com.liveramp.hank.util.UpdateStatisticsRunnable;
-import com.liveramp.hank.zookeeper.WatchedNodeListener;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
@@ -36,12 +39,22 @@ import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransportException;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import com.liveramp.hank.config.InvalidConfigurationException;
+import com.liveramp.hank.config.PartitionServerConfigurator;
+import com.liveramp.hank.config.yaml.YamlPartitionServerConfigurator;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostCommand;
+import com.liveramp.hank.coordinator.HostCommandQueueChangeListener;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.util.CommandLineChecker;
+import com.liveramp.hank.util.HankTimer;
+import com.liveramp.hank.util.UpdateStatisticsRunnable;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
 
 import static com.liveramp.hank.util.LocalHostUtils.getHostName;
 
@@ -266,9 +279,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        if (LOG.isDebugEnabled()) {
-          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
-        }
+        LOG.info(ignoreIncompatibleCommandMessage(HostCommand.GO_TO_IDLE, state));
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
@@ -281,9 +292,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         // Next command is set by the updater thread
         break;
       default:
-        if (LOG.isDebugEnabled()) {
-          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
-        }
+        LOG.info(ignoreIncompatibleCommandMessage(HostCommand.EXECUTE_UPDATE, state));
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
@@ -296,9 +305,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
         break;
       default:
-        if (LOG.isDebugEnabled()) {
-          LOG.info(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
-        }
+        LOG.info(ignoreIncompatibleCommandMessage(HostCommand.SERVE_DATA, state));
         host.nextCommand(); // In case of exception, server will stop and state will be coherent.
     }
   }
