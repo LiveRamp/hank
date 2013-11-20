@@ -1,16 +1,14 @@
 package com.liveramp.hank.client;
 
-import com.liveramp.hank.generated.HankBulkResponse;
-import com.liveramp.hank.generated.HankException;
-import com.liveramp.hank.generated.HankResponse;
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.thrift.TException;
-
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.liveramp.hank.generated.HankBulkResponse;
+import com.liveramp.hank.generated.HankException;
+import com.liveramp.hank.generated.HankResponse;
 
 public class MockHankSmartClient implements HankSmartClientIface {
 
