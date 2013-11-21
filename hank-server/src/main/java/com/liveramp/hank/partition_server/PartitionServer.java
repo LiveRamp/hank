@@ -365,9 +365,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       options.selectorThreads(4);
       options.protocolFactory(new TCompactProtocol.Factory());
       dataServer = new TThreadedSelectorServer(options);
-      LOG.debug("Launching Thrift server...");
+      LOG.info("Launching Thrift server.");
       dataServer.serve();
-      LOG.debug("Thrift server exited.");
+      LOG.info("Thrift server exited.");
       serverSocket.close();
     } finally {
       // Always shut down the handler
@@ -400,7 +400,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       }
     };
     dataServerThread = new Thread(r, "PartitionServer Thrift data server thread");
-    LOG.info("Launching data server thread...");
+    LOG.info("Launching data server thread.");
     dataServerThread.start();
     try {
       while (dataServer == null || !dataServer.isServing()) {
@@ -431,7 +431,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     try {
       dataServerThread.join();
     } catch (InterruptedException e) {
-      LOG.debug("Interrupted while waiting for data server thread to stop. Continuing.", e);
+      LOG.error("Interrupted while waiting for data server thread to stop. Continuing.", e);
     }
     dataServer = null;
     dataServerThread = null;
