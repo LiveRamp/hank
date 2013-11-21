@@ -31,9 +31,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.server.THsHaServer;
-import org.apache.thrift.server.THsHaServer.Args;
 import org.apache.thrift.server.TServer;
+import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TSocket;
@@ -360,11 +359,12 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       handler = getHandler();
       // Launch the thrift server
       TNonblockingServerSocket serverSocket = new TNonblockingServerSocket(configurator.getServicePort());
-      Args options = new Args(serverSocket);
+      TThreadedSelectorServer.Args options = new TThreadedSelectorServer.Args(serverSocket);
       options.processor(new com.liveramp.hank.generated.PartitionServer.Processor(handler));
       options.workerThreads(configurator.getNumConcurrentQueries());
+      options.selectorThreads(4);
       options.protocolFactory(new TCompactProtocol.Factory());
-      dataServer = new THsHaServer(options);
+      dataServer = new TThreadedSelectorServer(options);
       LOG.debug("Launching Thrift server...");
       dataServer.serve();
       LOG.debug("Thrift server exited.");
