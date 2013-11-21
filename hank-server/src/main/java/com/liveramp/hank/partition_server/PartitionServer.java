@@ -368,6 +368,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       LOG.debug("Launching Thrift server...");
       dataServer.serve();
       LOG.debug("Thrift server exited.");
+      serverSocket.close();
     } finally {
       // Always shut down the handler
       if (handler != null) {
