@@ -17,7 +17,9 @@ package com.liveramp.hank.partition_server;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
+import java.nio.channels.Selector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +33,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
-import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TNonblockingServerSocket;
@@ -77,7 +78,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
   private Thread updateThread;
 
-  private TServer dataServer;
+  private TThreadedSelectorServer dataServer;
   private Thread dataServerThread;
   private boolean waitForDataServer;
 
@@ -427,7 +428,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       return;
     }
     LOG.info("Stopping data server thread.");
-    dataServer.stop();
+    stopDataServer(dataServer);
     try {
       dataServerThread.join();
     } catch (InterruptedException e) {
@@ -547,6 +548,53 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   private void removeShutdownHook() {
     if (shutdownHook != null) {
       Runtime.getRuntime().removeShutdownHook(shutdownHook);
+    }
+  }
+
+  // The Thrift server does not clean up selectors after stopping, which leads to a file descriptor leak.
+  // TODO: when the bug is fixed in Thrift, remove this ugly hack which takes care of the issue
+  private static void stopDataServer(TThreadedSelectorServer dataServer) {
+    List<Selector> selectors = getServerSelectors(dataServer);
+    dataServer.stop();
+    closeServerSelectors(selectors);
+  }
+
+  static List<Selector> getServerSelectors(TThreadedSelectorServer server) {
+    List<Selector> result = new ArrayList<Selector>();
+    try {
+      // Get accept thread selector
+      Field acceptThreadField = server.getClass().getDeclaredField("acceptThread");
+      acceptThreadField.setAccessible(true);
+      Thread acceptThread = (Thread)acceptThreadField.get(server);
+      Field acceptSelectorField = acceptThread.getClass().getDeclaredField("acceptSelector");
+      acceptSelectorField.setAccessible(true);
+      Selector acceptSelector = (Selector)acceptSelectorField.get(acceptThread);
+      result.add(acceptSelector);
+      // Get the other selectors
+      Field selectorThreadField = server.getClass().getDeclaredField("selectorThreads");
+      selectorThreadField.setAccessible(true);
+      Set selectorThreads = (Set)selectorThreadField.get(server);
+      for (Object selectorThread : selectorThreads) {
+        Field selectorThreadSelectorField = selectorThread.getClass().getSuperclass().getDeclaredField("selector");
+        selectorThreadSelectorField.setAccessible(true);
+        Selector selector = (Selector)selectorThreadSelectorField.get(selectorThread);
+        result.add(selector);
+      }
+    } catch (NoSuchFieldException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+    return result;
+  }
+
+  static void closeServerSelectors(List<Selector> selectors) {
+    for (Selector selector : selectors) {
+      try {
+        selector.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
