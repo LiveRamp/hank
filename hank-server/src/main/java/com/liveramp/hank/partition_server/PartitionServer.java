@@ -552,6 +552,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
   }
 
   // The Thrift server does not clean up selectors after stopping, which leads to a file descriptor leak.
+  // See https://issues.apache.org/jira/browse/THRIFT-2274
   // TODO: when the bug is fixed in Thrift, remove this ugly hack which takes care of the issue
   private static void stopDataServer(TThreadedSelectorServer dataServer) {
     List<Selector> selectors = getServerSelectors(dataServer);
