@@ -67,6 +67,10 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     cleanupJob(domainName, conf);
   }
 
+  // TODO: Make these configurable from JobConf
+  private static final int nThreads = 10;
+  private static final long waitSeconds = 10000;
+
   public static void commitJob(String domainName, JobConf conf) throws IOException {
     Path outputPath = new Path(DomainBuilderProperties.getOutputPath(domainName, conf));
     Path tmpOutputPath = new Path(DomainBuilderProperties.getTmpOutputPath(domainName, conf));
@@ -79,13 +83,10 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     LOG.info("Moving temporary output files from: " + tmpOutputPath + " to final output path: " + outputPath);
     FileStatus[] partitions = fs.listStatus(tmpOutputPath);
 
-        /* Current multithreading handles each partition separately.
-         * Could use a higher level of granularity and have each file copying
-         * performed as a separate Runnable.
-         */
-
-    // Make this configurable from JobConf
-    final int nThreads = 10;
+    /* Current multithreading handles each partition separately.
+     * Could use a higher level of granularity and have each file copying
+     * performed as a separate Runnable.
+     */
     final ExecutorService executor = Executors.newFixedThreadPool(nThreads);
 
     final List<PartitionCopier> partitionCopiers = new ArrayList<PartitionCopier>();
@@ -96,16 +97,13 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     }
     executor.shutdown();
 
-    // Make this configurable from JobConf
-    final long waitSeconds = 10000;
+
     try {
       executor.awaitTermination(waitSeconds, TimeUnit.SECONDS);
-    } catch (InterruptedException exc) {
-      // Do we need to do any sort of cleanup here?
-      throw new RuntimeException("executor interrupted");
+    } catch (InterruptedException e) {
+      throw new IOException("Executor interrupted", e);
     }
 
-    // Could check for IOException inside of a polling loop to exit earlier
     for (PartitionCopier partitionCopier : partitionCopiers) {
       if (partitionCopier.exception != null) {
         throw new IOException("Partition copying failed for " + partitionCopier.partition, partitionCopier.exception);
@@ -132,7 +130,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     private final FileStatus partition;
     private final FileSystem fs;
     private final Path outputPath;
-    IOException exception = null;
+    private IOException exception;
 
     PartitionCopier(FileStatus partition, FileSystem fs, Path outputPath) {
       this.partition = partition;
@@ -142,10 +140,8 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
     @Override
     public void run() {
-      if (IGNORE_PATHS.contains(partition.getPath().getName())) {
-        return;
-      }
-      if (!partition.isDir()) {
+      if (IGNORE_PATHS.contains(partition.getPath().getName()) ||
+          !partition.isDir()) {
         return;
       }
       try {
