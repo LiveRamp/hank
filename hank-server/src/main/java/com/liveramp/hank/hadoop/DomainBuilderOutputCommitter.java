@@ -140,14 +140,13 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
     @Override
     public void run() {
-      if (IGNORE_PATHS.contains(partition.getPath().getName()) ||
-          !partition.isDir()) {
-        return;
-      }
-      try {
-        copyPartitionContents();
-      } catch (IOException e) {
-        this.exception = e;
+      if (!IGNORE_PATHS.contains(partition.getPath().getName()) &&
+          partition.isDir()) {
+        try {
+          copyPartitionContents();
+        } catch (IOException e) {
+          this.exception = e;
+        }
       }
     }
 
