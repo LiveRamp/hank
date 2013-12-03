@@ -42,7 +42,6 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
   // TODO: Make these configurable
   private static final int N_THREADS = 10;
   private static final int WAIT_CYCLE_SECONDS = 1;
-  private static final int MAX_WAIT_CYCLE = 30 * 60 / WAIT_CYCLE_SECONDS;
 
   private static final Set<String> IGNORE_PATHS = new HashSet<String>(Arrays.asList(
       "_logs",
@@ -102,16 +101,13 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     }
     executor.shutdown();
 
-    boolean allCopiersFinished = false;
     try {
-      for (int waitCycle=0; !allCopiersFinished && waitCycle < MAX_WAIT_CYCLE; waitCycle ++) {
-         allCopiersFinished = executor.awaitTermination(WAIT_CYCLE_SECONDS, TimeUnit.SECONDS);
+      boolean allCopiersFinished = false;
+      while (!allCopiersFinished) {
+        allCopiersFinished = executor.awaitTermination(WAIT_CYCLE_SECONDS, TimeUnit.SECONDS);
       }
     } catch (InterruptedException e) {
       throw new IOException("Executor interrupted", e);
-    }
-    if (!allCopiersFinished) {
-      throw new IOException("Failed to copy all partitions in allocated time");
     }
 
     for (PartitionCopier partitionCopier : partitionCopiers) {
