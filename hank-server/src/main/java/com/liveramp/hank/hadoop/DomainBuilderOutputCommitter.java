@@ -39,6 +39,11 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
   private static final Logger LOG = Logger.getLogger(DomainBuilderOutputCommitter.class);
 
+  // TODO: Make these configurable
+  private static final int N_THREADS = 10;
+  private static final int WAIT_CYCLE_SECONDS = 1;
+  private static final int MAX_WAIT_CYCLE = 30 * 60 / WAIT_CYCLE_SECONDS;
+
   private static final Set<String> IGNORE_PATHS = new HashSet<String>(Arrays.asList(
       "_logs",
       "_temporary"
@@ -67,9 +72,6 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     cleanupJob(domainName, conf);
   }
 
-  // TODO: Make these configurable from JobConf
-  private static final int nThreads = 10;
-  private static final long waitSeconds = 10000;
 
   public static void commitJob(String domainName, JobConf conf) throws IOException {
     Path outputPath = new Path(DomainBuilderProperties.getOutputPath(domainName, conf));
@@ -87,21 +89,29 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
      * Could use a higher level of granularity and have each file copying
      * performed as a separate Runnable.
      */
-    final ExecutorService executor = Executors.newFixedThreadPool(nThreads);
+    final ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
 
     final List<PartitionCopier> partitionCopiers = new ArrayList<PartitionCopier>();
     for (FileStatus partition : partitions) {
-      PartitionCopier partitionCopier = new PartitionCopier(partition, fs, outputPath);
-      partitionCopiers.add(partitionCopier);
-      executor.execute(partitionCopier);
+      if (!IGNORE_PATHS.contains(partition.getPath().getName()) &&
+          partition.isDir()) {
+        PartitionCopier partitionCopier = new PartitionCopier(partition, outputPath, fs);
+        partitionCopiers.add(partitionCopier);
+        executor.execute(partitionCopier);
+      }
     }
     executor.shutdown();
 
-
+    boolean allCopiersFinished = false;
     try {
-      executor.awaitTermination(waitSeconds, TimeUnit.SECONDS);
+      for (int waitCycle=0; !allCopiersFinished && waitCycle < MAX_WAIT_CYCLE; waitCycle ++) {
+         allCopiersFinished = executor.awaitTermination(WAIT_CYCLE_SECONDS, TimeUnit.SECONDS);
+      }
     } catch (InterruptedException e) {
       throw new IOException("Executor interrupted", e);
+    }
+    if (!allCopiersFinished) {
+      throw new IOException("Failed to copy all partitions in allocated time");
     }
 
     for (PartitionCopier partitionCopier : partitionCopiers) {
@@ -132,7 +142,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     private final Path outputPath;
     private IOException exception;
 
-    PartitionCopier(FileStatus partition, FileSystem fs, Path outputPath) {
+    PartitionCopier(FileStatus partition, Path outputPath, FileSystem fs) {
       this.partition = partition;
       this.fs = fs;
       this.outputPath = outputPath;
@@ -140,13 +150,10 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
     @Override
     public void run() {
-      if (!IGNORE_PATHS.contains(partition.getPath().getName()) &&
-          partition.isDir()) {
-        try {
-          copyPartitionContents();
-        } catch (IOException e) {
-          this.exception = e;
-        }
+      try {
+        copyPartitionContents();
+      } catch (IOException e) {
+        this.exception = e;
       }
     }
 
