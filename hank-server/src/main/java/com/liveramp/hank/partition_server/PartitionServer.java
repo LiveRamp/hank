@@ -615,10 +615,11 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
 
     @Override
     public void run() {
+      TSocket socket = null;
       TFramedTransport transport = null;
       try {
-        transport = new TFramedTransport(new TSocket(host.getAddress().getHostName(),
-            host.getAddress().getPortNumber(), 0));
+        socket = new TSocket(host.getAddress().getHostName(), host.getAddress().getPortNumber(), 0);
+        transport = new TFramedTransport(socket);
         transport.open();
         TProtocol proto = new TCompactProtocol(transport);
         com.liveramp.hank.generated.PartitionServer.Client client = new com.liveramp.hank.generated.PartitionServer.Client(proto);
@@ -632,6 +633,9 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       } finally {
         if (transport != null) {
           transport.close();
+        }
+        if (socket != null) {
+          socket.close();
         }
       }
     }
