@@ -30,10 +30,18 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class DomainBuilderOutputCommitter extends FileOutputCommitter {
 
   private static final Logger LOG = Logger.getLogger(DomainBuilderOutputCommitter.class);
+
+  // TODO: Make these configurable
+  private static final int N_THREADS = 10;
+  private static final int WAIT_CYCLE_SECONDS = 1;
 
   private static final Set<String> IGNORE_PATHS = new HashSet<String>(Arrays.asList(
       "_logs",
@@ -63,6 +71,7 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     cleanupJob(domainName, conf);
   }
 
+
   public static void commitJob(String domainName, JobConf conf) throws IOException {
     Path outputPath = new Path(DomainBuilderProperties.getOutputPath(domainName, conf));
     Path tmpOutputPath = new Path(DomainBuilderProperties.getTmpOutputPath(domainName, conf));
@@ -74,24 +83,36 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     // Move temporary output to final output
     LOG.info("Moving temporary output files from: " + tmpOutputPath + " to final output path: " + outputPath);
     FileStatus[] partitions = fs.listStatus(tmpOutputPath);
+
+    /* Current multithreading handles each partition separately.
+     * Could use a higher level of granularity and have each file copying
+     * performed as a separate Runnable.
+     */
+    final ExecutorService executor = Executors.newFixedThreadPool(N_THREADS);
+
+    final List<PartitionCopier> partitionCopiers = new ArrayList<PartitionCopier>();
     for (FileStatus partition : partitions) {
-      if(!IGNORE_PATHS.contains(partition.getPath().getName())){
-        if (partition.isDir()) {
-          FileStatus[] partitionFiles = fs.listStatus(partition.getPath());
-          for (FileStatus partitionFile : partitionFiles) {
-            Path sourcePath = partitionFile.getPath();
-            Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
-            if (LOG.isDebugEnabled()) {
-              LOG.debug("Moving: " + sourcePath + " to: " + targetPath);
-            }
-            if (!fs.mkdirs(targetPath.getParent())) {
-              throw new IOException("Failed at creating directory " + targetPath.getParent());
-            }
-            if (!fs.rename(sourcePath, targetPath)) {
-              throw new IOException("Failed at renaming " + sourcePath + " to " + targetPath);
-            }
-          }
-        }
+      if (!IGNORE_PATHS.contains(partition.getPath().getName()) &&
+          partition.isDir()) {
+        PartitionCopier partitionCopier = new PartitionCopier(partition, outputPath, fs);
+        partitionCopiers.add(partitionCopier);
+        executor.execute(partitionCopier);
+      }
+    }
+    executor.shutdown();
+
+    try {
+      boolean allCopiersFinished = false;
+      while (!allCopiersFinished) {
+        allCopiersFinished = executor.awaitTermination(WAIT_CYCLE_SECONDS, TimeUnit.SECONDS);
+      }
+    } catch (InterruptedException e) {
+      throw new IOException("Executor interrupted", e);
+    }
+
+    for (PartitionCopier partitionCopier : partitionCopiers) {
+      if (partitionCopier.exception != null) {
+        throw new IOException("Partition copying failed for " + partitionCopier.partition, partitionCopier.exception);
       }
     }
 
@@ -107,6 +128,46 @@ public class DomainBuilderOutputCommitter extends FileOutputCommitter {
     if (fs.exists(tmpOutputPath)) {
       LOG.info("Deleting temporary output path " + tmpOutputPath);
       TrashHelper.deleteUsingTrashIfEnabled(fs, tmpOutputPath);
+    }
+  }
+
+  private static class PartitionCopier implements Runnable {
+
+    private final FileStatus partition;
+    private final FileSystem fs;
+    private final Path outputPath;
+    private IOException exception;
+
+    PartitionCopier(FileStatus partition, Path outputPath, FileSystem fs) {
+      this.partition = partition;
+      this.fs = fs;
+      this.outputPath = outputPath;
+    }
+
+    @Override
+    public void run() {
+      try {
+        copyPartitionContents();
+      } catch (IOException e) {
+        this.exception = e;
+      }
+    }
+
+    private void copyPartitionContents() throws IOException {
+      FileStatus[] partitionFiles = fs.listStatus(partition.getPath());
+      for (FileStatus partitionFile : partitionFiles) {
+        Path sourcePath = partitionFile.getPath();
+        Path targetPath = new Path(new Path(outputPath, partition.getPath().getName()), partitionFile.getPath().getName());
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Moving: " + sourcePath + " to: " + targetPath);
+        }
+        if (!fs.mkdirs(targetPath.getParent())) {
+          throw new IOException("Failed at creating directory " + targetPath.getParent());
+        }
+        if (!fs.rename(sourcePath, targetPath)) {
+          throw new IOException("Failed at renaming " + sourcePath + " to " + targetPath);
+        }
+      }
     }
   }
 }
