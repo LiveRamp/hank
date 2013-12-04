@@ -369,6 +369,12 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       LOG.info("Launching Thrift server.");
       dataServer.serve();
       LOG.info("Thrift server exited.");
+      // The Thrift server does not clean up selectors after stopping, which leads to a file descriptor leak.
+      // See https://issues.apache.org/jira/browse/THRIFT-2274
+      // TODO: when the bug is fixed in Thrift, remove this ugly hack which takes care of the issue
+      List<Selector> selectors = getServerSelectors(dataServer);
+      closeServerSelectors(selectors);
+      // Close the socket
       serverSocket.close();
     } finally {
       // Always shut down the handler
@@ -428,7 +434,7 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
       return;
     }
     LOG.info("Stopping data server thread.");
-    stopDataServer(dataServer);
+    dataServer.stop();
     try {
       dataServerThread.join();
     } catch (InterruptedException e) {
@@ -549,15 +555,6 @@ public class PartitionServer implements HostCommandQueueChangeListener, WatchedN
     if (shutdownHook != null) {
       Runtime.getRuntime().removeShutdownHook(shutdownHook);
     }
-  }
-
-  // The Thrift server does not clean up selectors after stopping, which leads to a file descriptor leak.
-  // See https://issues.apache.org/jira/browse/THRIFT-2274
-  // TODO: when the bug is fixed in Thrift, remove this ugly hack which takes care of the issue
-  private static void stopDataServer(TThreadedSelectorServer dataServer) {
-    List<Selector> selectors = getServerSelectors(dataServer);
-    dataServer.stop();
-    closeServerSelectors(selectors);
   }
 
   static List<Selector> getServerSelectors(TThreadedSelectorServer server) {
