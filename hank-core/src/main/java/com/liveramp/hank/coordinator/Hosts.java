@@ -19,11 +19,18 @@ package com.liveramp.hank.coordinator;
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public final class Hosts {
+  private static final Logger LOG = Logger.getLogger(Hosts.class);
 
   public static final String ALL_FLAGS_EXPRESSION = "*";
 
@@ -71,9 +78,17 @@ public final class Hosts {
   // Return true if all partitions assigned to that host for domains of the given domain group version
   // are at the correct version. And there are no deletable partitions.
   public static boolean isUpToDate(Host host, DomainGroup domainGroup) throws IOException {
-    if (domainGroup == null || domainGroup.getDomainVersions() == null) {
+
+    if(domainGroup == null){
+      LOG.info("Null domain group");
       return false;
     }
+
+    if (domainGroup.getDomainVersions() == null) {
+      LOG.info("Domain group versions null for domain group: "+domainGroup);
+      return false;
+    }
+
     // Check that each domain of the given domain group version is up to date on this host
     for (DomainGroupDomainVersion dgvdv : domainGroup.getDomainVersions()) {
       Domain domain = dgvdv.getDomain();
@@ -85,6 +100,7 @@ public final class Hosts {
             // If the partition is not currently at the given domain group version, the host is not up-to-date
             if (partition.getCurrentDomainVersion() == null ||
                 partition.getCurrentDomainVersion() != dgvdv.getVersionNumber()) {
+              LOG.info("Partition "+partition+" is not up to date with version "+dgvdv.getVersionNumber());
               return false;
             }
           }
@@ -95,6 +111,7 @@ public final class Hosts {
     for (HostDomain hostDomain : host.getAssignedDomains()) {
       for (HostDomainPartition partition : hostDomain.getPartitions()) {
         if (partition.isDeletable()) {
+          LOG.info("Partition "+partition+" is deleteable");
           return false;
         }
       }

@@ -57,4 +57,13 @@ public class ZkHostDomainPartition extends AbstractHostDomainPartition implement
   public void setDeletable(boolean deletable) throws IOException {
     host.setDeletable(domainId, partitionNumber, deletable);
   }
+
+  @Override
+  public String toString() {
+    return "ZkHostDomainPartition{" +
+        "host=" + host +
+        ", domainId=" + domainId +
+        ", partitionNumber=" + partitionNumber +
+        '}';
+  }
 }
