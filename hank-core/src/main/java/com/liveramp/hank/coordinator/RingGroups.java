@@ -49,6 +49,7 @@ public final class RingGroups {
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
         if(!Hosts.isUpToDate(host, domainGroup) && host.getState() == HostState.SERVING){
+          LOG.info("Host is not up to date:" + host.getAddress()+", ring "+ring.getRingNumber()+", group "+ringGroup.getName());
           return false;
         }
       }
