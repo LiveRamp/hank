@@ -15,20 +15,34 @@
  */
 package com.liveramp.hank.coordinator.zk;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.generated.ClientMetadata;
-import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
-import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.zookeeper.*;
-import com.liveramp.hank.zookeeper.WatchedMap.ElementLoader;
-import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.KeeperException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+
+import com.liveramp.hank.coordinator.AbstractRingGroup;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.DataLocationChangeListener;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
+import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+import com.liveramp.hank.util.Bytes;
+import com.liveramp.hank.zookeeper.WatchedEnum;
+import com.liveramp.hank.zookeeper.WatchedMap;
+import com.liveramp.hank.zookeeper.WatchedMap.ElementLoader;
+import com.liveramp.hank.zookeeper.WatchedMapListener;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
+import com.liveramp.hank.zookeeper.WatchedThriftNode;
+import com.liveramp.hank.zookeeper.ZkPath;
+import com.liveramp.hank.zookeeper.ZooKeeperPlus;
 
 public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
@@ -37,7 +51,6 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   private static final String CLIENT_NODE = "c";
   private static final ClientMetadata emptyClientMetadata = new ClientMetadata();
 
-  private final String ringGroupName;
   private DomainGroup domainGroup;
   private final WatchedMap<ZkRing> rings;
   private final String ringGroupPath;
@@ -59,6 +72,7 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
 
   public ZkRingGroup(ZooKeeperPlus zk, String ringGroupPath, DomainGroup domainGroup, final Coordinator coordinator)
       throws InterruptedException, KeeperException {
+    super(ZkPath.getFilename(ringGroupPath));
     this.zk = zk;
     this.ringGroupPath = ringGroupPath;
     this.domainGroup = domainGroup;
@@ -68,7 +82,6 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
       throw new IllegalArgumentException("Cannot initialize a ZkRingGroup with a null Coordinator.");
     }
 
-    ringGroupName = ZkPath.getFilename(ringGroupPath);
     rings = new WatchedMap<ZkRing>(zk, ringGroupPath, new ElementLoader<ZkRing>() {
       @Override
       public ZkRing load(ZooKeeperPlus zk, String basePath, String relPath) throws KeeperException, InterruptedException {
@@ -108,11 +121,6 @@ public class ZkRingGroup extends AbstractRingGroup implements RingGroup {
   @Override
   public DomainGroup getDomainGroup() {
     return domainGroup;
-  }
-
-  @Override
-  public String getName() {
-    return ringGroupName;
   }
 
   @Override

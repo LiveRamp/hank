@@ -54,4 +54,32 @@ public abstract class AbstractRing implements Ring {
     return String.format("AbstractRing [ringGroup=%s, ring=%d]",
         (getRingGroup() != null ? getRingGroup().getName() : "null"), this.getRingNumber());
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AbstractRing)) {
+      return false;
+    }
+
+    AbstractRing that = (AbstractRing)o;
+
+    if (ringNumber != that.ringNumber) {
+      return false;
+    }
+    if (ringGroup != null ? !ringGroup.equals(that.ringGroup) : that.ringGroup != null) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = ringNumber;
+    result = 31 * result + (ringGroup != null ? ringGroup.hashCode() : 0);
+    return result;
+  }
 }

@@ -15,20 +15,24 @@
  */
 package com.liveramp.hank.test.coordinator;
 
-import com.liveramp.hank.coordinator.*;
-import com.liveramp.hank.generated.ClientMetadata;
-import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
-import com.liveramp.hank.zookeeper.WatchedNodeListener;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import com.liveramp.hank.coordinator.AbstractRingGroup;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.PartitionServerAddress;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
+import com.liveramp.hank.coordinator.RingGroupDataLocationChangeListener;
+import com.liveramp.hank.generated.ClientMetadata;
+import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
+import com.liveramp.hank.zookeeper.WatchedNodeListener;
+
 public class MockRingGroup extends AbstractRingGroup implements RingGroup {
 
   private final DomainGroup dcg;
-  private final String name;
   private final Set<Ring> ringConfigs;
   private RingGroupConductorMode ringGroupConductorMode = null;
   private List<WatchedNodeListener<RingGroupConductorMode>> ringGroupConductorModeListeners
@@ -40,19 +44,14 @@ public class MockRingGroup extends AbstractRingGroup implements RingGroup {
   public MockRingGroup(DomainGroup dcg,
                        String name,
                        Set<Ring> ringConfigs) {
+    super(name);
     this.dcg = dcg;
-    this.name = name;
     this.ringConfigs = ringConfigs;
   }
 
   @Override
   public DomainGroup getDomainGroup() {
     return dcg;
-  }
-
-  @Override
-  public String getName() {
-    return name;
   }
 
   @Override

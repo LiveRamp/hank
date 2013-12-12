@@ -34,6 +34,7 @@ import com.liveramp.hank.config.HankSmartClientConfigurator;
 import com.liveramp.hank.coordinator.Coordinator;
 import com.liveramp.hank.coordinator.Domain;
 import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostAddress;
 import com.liveramp.hank.coordinator.HostDomain;
 import com.liveramp.hank.coordinator.HostDomainPartition;
 import com.liveramp.hank.coordinator.PartitionServerAddress;
@@ -93,14 +94,10 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
 
   // Connection Cache
 
-  private Map<PartitionServerAddress, HostConnectionPool> partitionServerAddressToConnectionPool
-      = new HashMap<PartitionServerAddress, HostConnectionPool>();
-  private Map<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToPartitionServerAddressList
-      = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+  private Map<HostAddress, HostConnectionPool> partitionServerAddressToConnectionPool
+      = new HashMap<HostAddress, HostConnectionPool>();
   private Map<Integer, Map<Integer, HostConnectionPool>> domainToPartitionToConnectionPool
       = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
-  private Map<List<PartitionServerAddress>, HostConnectionPool> partitionServerAddressListToConnectionPool =
-      new HashMap<List<PartitionServerAddress>, HostConnectionPool>();
 
   private final Object connectionCacheLock = new Object();
   private final ConnectionCacheUpdaterRunnable connectionCacheUpdaterRunnable = new ConnectionCacheUpdaterRunnable();
@@ -194,36 +191,28 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     LOG.info(getLogPrefix() + "Loading Hank's smart client metadata cache and connections.");
 
     // Create new empty cache
-    final Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool
-        = new HashMap<PartitionServerAddress, HostConnectionPool>();
-    final Map<Integer, Map<Integer, List<PartitionServerAddress>>> newDomainToPartitionToPartitionServerAddressList
-        = new HashMap<Integer, Map<Integer, List<PartitionServerAddress>>>();
+    final Map<HostAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool
+        = new HashMap<HostAddress, HostConnectionPool>();
     final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool
         = new HashMap<Integer, Map<Integer, HostConnectionPool>>();
-    final Map<List<PartitionServerAddress>, HostConnectionPool> newPartitionServerAddressListToConnectionPool =
-        new HashMap<List<PartitionServerAddress>, HostConnectionPool>();
 
     // Build new cache
     buildNewConnectionCache(
         newPartitionServerAddressToConnectionPool,
-        newDomainToPartitionToPartitionServerAddressList,
-        newDomainToPartitionToConnectionPool,
-        newPartitionServerAddressListToConnectionPool);
+        newDomainToPartitionToConnectionPool);
 
     // Switch old cache for new cache
-    final Map<PartitionServerAddress, HostConnectionPool> oldPartitionServerAddressToConnectionPool
+    final Map<HostAddress, HostConnectionPool> oldPartitionServerAddressToConnectionPool
         = partitionServerAddressToConnectionPool;
     synchronized (connectionCacheLock) {
       partitionServerAddressToConnectionPool = newPartitionServerAddressToConnectionPool;
-      domainToPartitionToPartitionServerAddressList = newDomainToPartitionToPartitionServerAddressList;
       domainToPartitionToConnectionPool = newDomainToPartitionToConnectionPool;
-      partitionServerAddressListToConnectionPool = newPartitionServerAddressListToConnectionPool;
     }
 
     // Clean up old cache when new cache is in place
-    for (Map.Entry<PartitionServerAddress, HostConnectionPool> entry
+    for (Map.Entry<HostAddress, HostConnectionPool> entry
         : oldPartitionServerAddressToConnectionPool.entrySet()) {
-      PartitionServerAddress address = entry.getKey();
+      HostAddress address = entry.getKey();
       HostConnectionPool connections = entry.getValue();
       // Only close connections that have not been reused
       if (!partitionServerAddressToConnectionPool.containsKey(address)) {
@@ -278,16 +267,19 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
   }
 
   private void buildNewConnectionCache(
-      final Map<PartitionServerAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
-      final Map<Integer, Map<Integer, List<PartitionServerAddress>>> newDomainToPartitionToPartitionServerAddressList,
-      final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool,
-      final Map<List<PartitionServerAddress>, HostConnectionPool> newPartitionServerAddressListToConnectionPool)
+      final Map<HostAddress, HostConnectionPool> newPartitionServerAddressToConnectionPool,
+      final Map<Integer, Map<Integer, HostConnectionPool>> newDomainToPartitionToConnectionPool)
       throws IOException, TException {
+
+    final Map<Integer, Map<Integer, List<HostAddress>>> newDomainToPartitionToPartitionServerAddressList
+        = new HashMap<Integer, Map<Integer, List<HostAddress>>>();
 
     for (Ring ring : ringGroup.getRings()) {
       for (Host host : ring.getHosts()) {
 
         LOG.info(getLogPrefix() + "Loading partition metadata for Host: " + host.getAddress());
+
+        HostAddress hostAddress = new HostAddress(ring, host.getAddress());
 
         // Build new domainToPartitionToPartitionServerAddresses
         for (HostDomain hostDomain : host.getAssignedDomains()) {
@@ -298,27 +290,27 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           if (LOG.isDebugEnabled()) {
             LOG.debug(getLogPrefix() + "Loading partition metadata for Host: " + host.getAddress() + ", Domain: " + domain.getName());
           }
-          Map<Integer, List<PartitionServerAddress>> partitionToAdresses =
+          Map<Integer, List<HostAddress>> partitionToAdresses =
               newDomainToPartitionToPartitionServerAddressList.get(domain.getId());
           if (partitionToAdresses == null) {
-            partitionToAdresses = new HashMap<Integer, List<PartitionServerAddress>>();
+            partitionToAdresses = new HashMap<Integer, List<HostAddress>>();
             newDomainToPartitionToPartitionServerAddressList.put(domain.getId(), partitionToAdresses);
           }
           for (HostDomainPartition partition : hostDomain.getPartitions()) {
             if (!partition.isDeletable()) {
-              List<PartitionServerAddress> partitionsList = partitionToAdresses.get(partition.getPartitionNumber());
+              List<HostAddress> partitionsList = partitionToAdresses.get(partition.getPartitionNumber());
               if (partitionsList == null) {
-                partitionsList = new ArrayList<PartitionServerAddress>();
+                partitionsList = new ArrayList<HostAddress>();
                 partitionToAdresses.put(partition.getPartitionNumber(), partitionsList);
               }
-              partitionsList.add(host.getAddress());
+              partitionsList.add(hostAddress);
             }
           }
         }
 
         // Build new partitionServerAddressToConnectionPool
         // Reuse current connection pool to that host if one exists
-        HostConnectionPool hostConnectionPool = partitionServerAddressToConnectionPool.get(host.getAddress());
+        HostConnectionPool hostConnectionPool = partitionServerAddressToConnectionPool.get(hostAddress);
         if (hostConnectionPool == null) {
           // Establish new connections to host
           LOG.info(getLogPrefix() + "Establishing " + numConnectionsPerHost + " connections to " + host
@@ -336,19 +328,19 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
           }
           hostConnectionPool = HostConnectionPool.createFromList(hostConnections, null);
         }
-        newPartitionServerAddressToConnectionPool.put(host.getAddress(), hostConnectionPool);
+        newPartitionServerAddressToConnectionPool.put(hostAddress, hostConnectionPool);
       }
     }
 
     // Build new domainToPartitionToConnectionPool
-    for (Map.Entry<Integer, Map<Integer, List<PartitionServerAddress>>> domainToPartitionToAddressesEntry :
+    for (Map.Entry<Integer, Map<Integer, List<HostAddress>>> domainToPartitionToAddressesEntry :
         newDomainToPartitionToPartitionServerAddressList.entrySet()) {
       Integer domainId = domainToPartitionToAddressesEntry.getKey();
       Map<Integer, HostConnectionPool> partitionToConnectionPool = new HashMap<Integer, HostConnectionPool>();
-      for (Map.Entry<Integer, List<PartitionServerAddress>> partitionToAddressesEntry :
+      for (Map.Entry<Integer, List<HostAddress>> partitionToAddressesEntry :
           domainToPartitionToAddressesEntry.getValue().entrySet()) {
         List<HostConnection> connections = new ArrayList<HostConnection>();
-        for (PartitionServerAddress address : partitionToAddressesEntry.getValue()) {
+        for (HostAddress address : partitionToAddressesEntry.getValue()) {
           connections.addAll(newPartitionServerAddressToConnectionPool.get(address).getConnections());
         }
         Integer partitionId = partitionToAddressesEntry.getKey();
@@ -356,22 +348,6 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
             HostConnectionPool.createFromList(connections, getHostListShuffleSeed(domainId, partitionId)));
       }
       newDomainToPartitionToConnectionPool.put(domainId, partitionToConnectionPool);
-    }
-
-    // Build new partitionServerAddressListToConnectionPool
-    for (Map<Integer, List<PartitionServerAddress>> partitionToPartitionServerAddressList :
-        newDomainToPartitionToPartitionServerAddressList.values()) {
-      for (List<PartitionServerAddress> partitionServerAddressList : partitionToPartitionServerAddressList.values()) {
-        // Create a connection pool for that list of partition servers only if it doesn't exist yet
-        if (!newPartitionServerAddressListToConnectionPool.containsKey(partitionServerAddressList)) {
-          List<HostConnection> connections = new ArrayList<HostConnection>();
-          for (PartitionServerAddress partitionServerAddress : partitionServerAddressList) {
-            connections.addAll(newPartitionServerAddressToConnectionPool.get(partitionServerAddress).getConnections());
-          }
-          newPartitionServerAddressListToConnectionPool.put(partitionServerAddressList,
-              HostConnectionPool.createFromList(connections, null));
-        }
-      }
     }
   }
 
@@ -623,15 +599,16 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
     public void runCore() throws IOException {
       partitionServerToConnectionLoad.clear();
       for (int i = 0; i < UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS; ++i) {
-        for (Map.Entry<PartitionServerAddress, HostConnectionPool> entry
+        for (Map.Entry<HostAddress, HostConnectionPool> entry
             : partitionServerAddressToConnectionPool.entrySet()) {
+          PartitionServerAddress serverAddress = entry.getKey().getPartitionServerAddress();
           ConnectionLoad currentConnectionLoad = entry.getValue().getConnectionLoad();
-          ConnectionLoad totalConnectionLoad = partitionServerToConnectionLoad.get(entry.getKey());
+          ConnectionLoad totalConnectionLoad = partitionServerToConnectionLoad.get(serverAddress);
           if (totalConnectionLoad == null) {
             totalConnectionLoad = new ConnectionLoad();
           }
           totalConnectionLoad.aggregate(currentConnectionLoad);
-          partitionServerToConnectionLoad.put(entry.getKey(), totalConnectionLoad);
+          partitionServerToConnectionLoad.put(serverAddress, totalConnectionLoad);
         }
         try {
           Thread.sleep(UPDATE_RUNTIME_STATISTICS_MEASUREMENT_SLEEP_TIME_MS);
@@ -643,8 +620,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       for (Map.Entry<PartitionServerAddress, ConnectionLoad> entry : partitionServerToConnectionLoad.entrySet()) {
         ConnectionLoad totalConnectionLoad = entry.getValue();
         ConnectionLoad connectionLoad = new ConnectionLoad(
-            (int) ((double) totalConnectionLoad.getNumConnections() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
-            (int) ((double) totalConnectionLoad.getNumConnectionsLocked() / (double) UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
+            (int)((double)totalConnectionLoad.getNumConnections() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS),
+            (int)((double)totalConnectionLoad.getNumConnectionsLocked() / (double)UPDATE_RUNTIME_STATISTICS_NUM_MEASUREMENTS));
         // Only display if load is non zero
         if (connectionLoad.getLoad() > 0) {
           LOG.info(getLogPrefix() + "Load on connections to " + entry.getKey() + ": " + FormatUtils.formatDouble(connectionLoad.getLoad())
@@ -659,8 +636,8 @@ public class HankSmartClient implements HankSmartClientIface, RingGroupDataLocat
       long numRequests = requestsCounterValues[0];
       long numCacheHits = requestsCounterValues[1];
       if (timerDurationMs != 0 && numRequests != 0) {
-        double throughput = (double) numRequests / ((double) timerDurationMs / 1000d);
-        double cacheHitRate = (double) numCacheHits / (double) numRequests;
+        double throughput = (double)numRequests / ((double)timerDurationMs / 1000d);
+        double cacheHitRate = (double)numCacheHits / (double)numRequests;
         LOG.info(getLogPrefix()
             + "Throughput: " + FormatUtils.formatDouble(throughput) + " queries/s"
             + ", client-side cache hit rate: " + FormatUtils.formatDouble(cacheHitRate * 100) + "%"

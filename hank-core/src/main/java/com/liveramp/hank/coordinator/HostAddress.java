@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 LiveRamp
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,30 +16,22 @@
 
 package com.liveramp.hank.coordinator;
 
-import java.util.SortedSet;
-import java.util.TreeSet;
+public class HostAddress {
 
-public abstract class AbstractRingGroup implements RingGroup {
+  private final Ring ring;
+  private final PartitionServerAddress partitionServerAddress;
 
-  private final String name;
-
-  protected AbstractRingGroup(String name) {
-    this.name = name;
+  public HostAddress(Ring ring, PartitionServerAddress partitionServerAddress) {
+    this.ring = ring;
+    this.partitionServerAddress = partitionServerAddress;
   }
 
-  @Override
-  public String getName() {
-    return name;
+  public Ring getRing() {
+    return ring;
   }
 
-  @Override
-  public SortedSet<Ring> getRingsSorted() {
-    return new TreeSet<Ring>(getRings());
-  }
-
-  @Override
-  public int compareTo(RingGroup other) {
-    return name.compareTo(other.getName());
+  public PartitionServerAddress getPartitionServerAddress() {
+    return partitionServerAddress;
   }
 
   @Override
@@ -47,13 +39,16 @@ public abstract class AbstractRingGroup implements RingGroup {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof AbstractRingGroup)) {
+    if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
-    AbstractRingGroup that = (AbstractRingGroup)o;
+    HostAddress that = (HostAddress)o;
 
-    if (name != null ? !name.equals(that.name) : that.name != null) {
+    if (!partitionServerAddress.equals(that.partitionServerAddress)) {
+      return false;
+    }
+    if (!ring.equals(that.ring)) {
       return false;
     }
 
@@ -62,13 +57,13 @@ public abstract class AbstractRingGroup implements RingGroup {
 
   @Override
   public int hashCode() {
-    return name != null ? name.hashCode() : 0;
+    int result = ring.hashCode();
+    result = 31 * result + partitionServerAddress.hashCode();
+    return result;
   }
 
   @Override
   public String toString() {
-    return "AbstractRingGroup [name=" + getName()
-        + ", domain group=" + (getDomainGroup() != null ? getDomainGroup().getName() : "null")
-        + "]";
+    return ring + "-" + partitionServerAddress;
   }
 }
