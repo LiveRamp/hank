@@ -113,11 +113,22 @@ public class PartitionServerHandler implements IfaceWithShutdown {
       throw new IOException(String.format("Could not get Host at address %s of Ring %s", address, ring));
     }
 
-    // Compute the total number of partitions
+    // Compute the total number of partitions that are going to be loaded
     int numTotalPartitions = 0;
-    for (HostDomain hostDomain : host.getAssignedDomains()) {
-      numTotalPartitions += hostDomain.getPartitions().size();
+    for (DomainGroupDomainVersion dgdv : domainGroup.getDomainVersions()) {
+      HostDomain hostDomain = host.getHostDomain(dgdv.getDomain());
+      if (hostDomain != null) {
+        Set<HostDomainPartition> partitions = hostDomain.getPartitions();
+        if (partitions != null) {
+          for (HostDomainPartition partition : partitions) {
+            if (partition.getCurrentDomainVersion() != null) {
+              numTotalPartitions += 1;
+            }
+          }
+        }
+      }
     }
+    LOG.info("Detected " + numTotalPartitions + " loadable partitions for " + host);
 
     // Determine the max domain id so we can bound the arrays
     int maxDomainId = 0;
