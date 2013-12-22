@@ -16,16 +16,17 @@
 
 package com.liveramp.hank.partition_server;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import org.apache.log4j.Logger;
+
 import com.liveramp.hank.coordinator.HostDomainPartition;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.AtomicLongCollection;
 import com.liveramp.hank.util.HankTimer;
-import org.apache.log4j.Logger;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 /**
  * Wrapper class that stores: 1. HostDomainPartition 2. Reader: The Reader
@@ -93,12 +94,14 @@ public class PartitionAccessor {
       throughput = numRequestsInWindow / (windowDurationNanos / 1000000000d);
       responseDataThroughput = responsesNumBytesInWindow / (windowDurationNanos / 1000000000d);
     }
+
     return new PartitionAccessorRuntimeStatistics(numRequestsInWindow,
         numHitsInWindow,
         throughput,
         responseDataThroughput,
         numL1CacheHitsInWindow,
-        numL2CacheHitsInWindow);
+        numL2CacheHitsInWindow,
+        reader.getCacheStatistics());
   }
 
   public void shutDown() {

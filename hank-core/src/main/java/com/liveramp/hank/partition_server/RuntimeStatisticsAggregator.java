@@ -16,11 +16,13 @@
 
 package com.liveramp.hank.partition_server;
 
-import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import com.liveramp.hank.storage.CacheStatistics;
 
 public class RuntimeStatisticsAggregator {
 
@@ -33,6 +35,7 @@ public class RuntimeStatisticsAggregator {
   private long numL1CacheHitsTotal;
   private long numL2CacheHitsTotal;
   private DoublePopulationStatisticsAggregator getRequestsPopulationStatistics;
+  private CacheStatistics cacheStatisticsTotal;
 
   public RuntimeStatisticsAggregator() {
     throughputTotal = 0;
@@ -42,6 +45,7 @@ public class RuntimeStatisticsAggregator {
     numL1CacheHitsTotal = 0;
     numL2CacheHitsTotal = 0;
     getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator();
+    cacheStatisticsTotal = new CacheStatistics(0, 0);
   }
 
   public RuntimeStatisticsAggregator(double throughputTotal,
@@ -50,7 +54,8 @@ public class RuntimeStatisticsAggregator {
                                      long numHitsTotal,
                                      long numL1CacheHitsTotal,
                                      long numL2CacheHitsTotal,
-                                     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics) {
+                                     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics,
+                                     CacheStatistics cacheStatisticsTotal) {
     this.throughputTotal = throughputTotal;
     this.responseDataThroughputTotal = responseDataThroughputTotal;
     this.numRequestsTotal = numRequestsTotal;
@@ -58,6 +63,7 @@ public class RuntimeStatisticsAggregator {
     this.numL1CacheHitsTotal = numL1CacheHitsTotal;
     this.numL2CacheHitsTotal = numL2CacheHitsTotal;
     this.getRequestsPopulationStatistics = getRequestsPopulationStatistics;
+    this.cacheStatisticsTotal = cacheStatisticsTotal;
   }
 
   public void add(PartitionAccessorRuntimeStatistics runtimeStatistics) {
@@ -67,6 +73,7 @@ public class RuntimeStatisticsAggregator {
     numHitsTotal += runtimeStatistics.numHits;
     numL1CacheHitsTotal += runtimeStatistics.numL1CacheHits;
     numL2CacheHitsTotal += runtimeStatistics.numL2CacheHits;
+    cacheStatisticsTotal.add(runtimeStatistics.cacheStatistics);
   }
 
   public static RuntimeStatisticsAggregator combine(Collection<RuntimeStatisticsAggregator> runtimeStatisticsAggregators) {
@@ -81,6 +88,7 @@ public class RuntimeStatisticsAggregator {
       result.numL1CacheHitsTotal += runtimeStatisticsAggregator.numL1CacheHitsTotal;
       result.numL2CacheHitsTotal += runtimeStatisticsAggregator.numL2CacheHitsTotal;
       doublePopulationStatisticsAggregators.add(runtimeStatisticsAggregator.getRequestsPopulationStatistics);
+      result.cacheStatisticsTotal.add(runtimeStatisticsAggregator.cacheStatisticsTotal);
     }
     result.getRequestsPopulationStatistics = DoublePopulationStatisticsAggregator.combine(doublePopulationStatisticsAggregators);
     return result;
@@ -102,7 +110,7 @@ public class RuntimeStatisticsAggregator {
     if (numRequestsTotal == 0) {
       return 0;
     } else {
-      return (double) numHitsTotal / (double) numRequestsTotal;
+      return (double)numHitsTotal / (double)numRequestsTotal;
     }
   }
 
@@ -110,7 +118,7 @@ public class RuntimeStatisticsAggregator {
     if (numRequestsTotal == 0) {
       return 0;
     } else {
-      return (double) numL1CacheHitsTotal / (double) numRequestsTotal;
+      return (double)numL1CacheHitsTotal / (double)numRequestsTotal;
     }
   }
 
@@ -118,12 +126,16 @@ public class RuntimeStatisticsAggregator {
     if (numHitsTotal == 0) {
       return 0;
     } else {
-      return (double) numL2CacheHitsTotal / ((double) numHitsTotal);
+      return (double)numL2CacheHitsTotal / ((double)numHitsTotal);
     }
   }
 
   public DoublePopulationStatisticsAggregator getGetRequestsPopulationStatistics() {
     return getRequestsPopulationStatistics;
+  }
+
+  public CacheStatistics getCacheStatistics() {
+    return cacheStatisticsTotal;
   }
 
   public static String toString(RuntimeStatisticsAggregator runtimeStatisticsAggregator) {
@@ -133,6 +145,8 @@ public class RuntimeStatisticsAggregator {
         + " " + runtimeStatisticsAggregator.numHitsTotal
         + " " + runtimeStatisticsAggregator.numL1CacheHitsTotal
         + " " + runtimeStatisticsAggregator.numL2CacheHitsTotal
+        + " " + Long.toString(runtimeStatisticsAggregator.cacheStatisticsTotal.getNumItems())
+        + " " + Long.toString(runtimeStatisticsAggregator.cacheStatisticsTotal.getNumManagedBytes())
         + " " + DoublePopulationStatisticsAggregator.toString(
         runtimeStatisticsAggregator.getRequestsPopulationStatistics);
   }
@@ -150,17 +164,21 @@ public class RuntimeStatisticsAggregator {
     long numHitsTotal = Long.parseLong(tokens[3]);
     long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
     long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
-    int numRandomSample = tokens.length - 10;
+
+    CacheStatistics cacheStatisticsTotal = new CacheStatistics(Long.parseLong(tokens[6]), Long.parseLong(tokens[7]));
+
+    int numRandomSample = tokens.length - 12;
     double[] randomSample = new double[numRandomSample];
     for (int i = 0; i < numRandomSample; ++i) {
-      randomSample[i] = Double.parseDouble(tokens[10 + i]);
+      randomSample[i] = Double.parseDouble(tokens[12 + i]);
     }
     DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
-        Double.parseDouble(tokens[6]),
-        Double.parseDouble(tokens[7]),
-        Long.parseLong(tokens[8]),
+        Double.parseDouble(tokens[8]),
         Double.parseDouble(tokens[9]),
+        Long.parseLong(tokens[10]),
+        Double.parseDouble(tokens[11]),
         randomSample);
+
     return new RuntimeStatisticsAggregator(
         throughputTotal,
         responseDataThroughputTotal,
@@ -168,6 +186,7 @@ public class RuntimeStatisticsAggregator {
         numHitsTotal,
         numL1CacheHitsTotal,
         numL2CacheHitsTotal,
-        getRequestsPopulationStatistics);
+        getRequestsPopulationStatistics,
+        cacheStatisticsTotal);
   }
 }

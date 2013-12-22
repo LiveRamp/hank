@@ -1,11 +1,12 @@
 package com.liveramp.hank.storage.echo;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.Bytes;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
 
 public class EchoReader implements Reader {
   private final int partNum;
@@ -30,6 +31,11 @@ public class EchoReader implements Reader {
 
   @Override
   public Integer getVersionNumber() {
+    return null;
+  }
+
+  @Override
+  public CacheStatistics getCacheStatistics() {
     return null;
   }
 

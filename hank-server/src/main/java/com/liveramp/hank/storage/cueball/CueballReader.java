@@ -23,6 +23,7 @@ import java.util.SortedSet;
 
 import com.liveramp.hank.compression.cueball.CueballCompressionCodec;
 import com.liveramp.hank.hasher.Hasher;
+import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.ByteBufferManagedBytes;
@@ -132,6 +133,11 @@ public class CueballReader implements Reader {
 
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  @Override
+  public CacheStatistics getCacheStatistics() {
+    return new CacheStatistics(cache.size(), cache.getNumManagedBytes());
   }
 
   @Override

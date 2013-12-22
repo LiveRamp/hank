@@ -15,12 +15,13 @@
  */
 package com.liveramp.hank.storage.mock;
 
-import com.liveramp.hank.config.DataDirectoriesConfigurator;
-import com.liveramp.hank.storage.Reader;
-import com.liveramp.hank.storage.ReaderResult;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import com.liveramp.hank.config.DataDirectoriesConfigurator;
+import com.liveramp.hank.storage.CacheStatistics;
+import com.liveramp.hank.storage.Reader;
+import com.liveramp.hank.storage.ReaderResult;
 
 public class MockReader implements Reader {
 
@@ -54,6 +55,11 @@ public class MockReader implements Reader {
 
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  @Override
+  public CacheStatistics getCacheStatistics() {
+    return null;
   }
 
   @Override

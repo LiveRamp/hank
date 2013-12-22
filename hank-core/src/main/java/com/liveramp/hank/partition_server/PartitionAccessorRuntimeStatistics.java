@@ -16,6 +16,8 @@
 
 package com.liveramp.hank.partition_server;
 
+import com.liveramp.hank.storage.CacheStatistics;
+
 public class PartitionAccessorRuntimeStatistics {
 
   protected final long numRequests;
@@ -24,18 +26,21 @@ public class PartitionAccessorRuntimeStatistics {
   protected final double responseDataThroughput;
   protected final long numL1CacheHits;
   protected final long numL2CacheHits;
+  protected final CacheStatistics cacheStatistics;
 
   public PartitionAccessorRuntimeStatistics(long numRequests,
                                             long numHits,
                                             double throughput,
                                             double responseDataThroughput,
                                             long numL1CacheHits,
-                                            long numL2CacheHits) {
+                                            long numL2CacheHits,
+                                            CacheStatistics cacheStatistics) {
     this.numRequests = numRequests;
     this.numHits = numHits;
     this.throughput = throughput;
     this.responseDataThroughput = responseDataThroughput;
     this.numL1CacheHits = numL1CacheHits;
     this.numL2CacheHits = numL2CacheHits;
+    this.cacheStatistics = cacheStatistics;
   }
 }

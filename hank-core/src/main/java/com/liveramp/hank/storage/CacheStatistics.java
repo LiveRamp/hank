@@ -1,5 +1,5 @@
 /**
- *  Copyright 2011 LiveRamp
+ *  Copyright 2013 LiveRamp
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -13,22 +13,29 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+
 package com.liveramp.hank.storage;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
+public class CacheStatistics {
 
-/**
- * Interface through which individual partitions are queried.
- */
-public interface Reader {
+  private long numItems;
+  private long numManagedBytes;
 
-  public void get(ByteBuffer key, ReaderResult result) throws IOException;
+  public CacheStatistics(long numItems, long numManagedBytes) {
+    this.numItems = numItems;
+    this.numManagedBytes = numManagedBytes;
+  }
 
-  // null means no versioning
-  public Integer getVersionNumber();
+  public long getNumItems() {
+    return numItems;
+  }
 
-  public CacheStatistics getCacheStatistics();
+  public long getNumManagedBytes() {
+    return numManagedBytes;
+  }
 
-  public void close() throws IOException;
+  public void add(CacheStatistics cacheStatistics) {
+    this.numItems += cacheStatistics.numItems;
+    this.numManagedBytes += cacheStatistics.numManagedBytes;
+  }
 }

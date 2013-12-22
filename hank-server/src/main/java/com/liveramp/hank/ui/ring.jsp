@@ -99,6 +99,15 @@ Ring ring = ringGroup.getRing(Integer.parseInt(request.getParameter("n")));
     </td>
     </tr>
 
+    <tr>
+    <td>Cache Size:</td>
+    <td>
+      <%= String.format("%,d", runtimeStatisticsForRing.getCacheStatistics().getNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForRing.getCacheStatistics().getNumManagedBytes()) %>
+    </td>
+    </tr>
+
     <!-- Serving Status -->
 
       <%

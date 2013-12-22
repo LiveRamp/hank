@@ -1,16 +1,5 @@
 package com.liveramp.hank.storage.curly;
 
-import com.liveramp.hank.storage.ReaderResult;
-import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
-import com.liveramp.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
-import com.liveramp.hank.storage.map.MapWriter;
-import com.liveramp.hank.test.BaseTestCase;
-import com.liveramp.hank.util.Bytes;
-import com.liveramp.hank.util.EncodingHelper;
-import org.apache.commons.lang.NotImplementedException;
-import org.junit.Before;
-import org.junit.Test;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,6 +7,19 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang.NotImplementedException;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.liveramp.hank.storage.CacheStatistics;
+import com.liveramp.hank.storage.ReaderResult;
+import com.liveramp.hank.storage.cueball.IKeyFileStreamBufferMergeSort;
+import com.liveramp.hank.storage.cueball.KeyHashAndValueAndStreamIndex;
+import com.liveramp.hank.storage.map.MapWriter;
+import com.liveramp.hank.test.BaseTestCase;
+import com.liveramp.hank.util.Bytes;
+import com.liveramp.hank.util.EncodingHelper;
 
 import static org.junit.Assert.assertEquals;
 
@@ -95,17 +97,17 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
             switch (curlyFilePath.getVersion()) {
               case 0:
                 result.getBuffer().clear();
-                result.getBuffer().put(BASE_DATA[((int) recordFileOffset)]);
+                result.getBuffer().put(BASE_DATA[((int)recordFileOffset)]);
                 result.getBuffer().flip();
                 break;
               case 1:
                 result.getBuffer().clear();
-                result.getBuffer().put(DELTA_1_DATA[((int) recordFileOffset)]);
+                result.getBuffer().put(DELTA_1_DATA[((int)recordFileOffset)]);
                 result.getBuffer().flip();
                 break;
               case 2:
                 result.getBuffer().clear();
-                result.getBuffer().put(DELTA_2_DATA[((int) recordFileOffset)]);
+                result.getBuffer().put(DELTA_2_DATA[((int)recordFileOffset)]);
                 result.getBuffer().flip();
                 break;
               default:
@@ -121,6 +123,11 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
           @Override
           public Integer getVersionNumber() {
             throw new NotImplementedException();
+          }
+
+          @Override
+          public CacheStatistics getCacheStatistics() {
+            return null;
           }
 
           @Override
@@ -155,7 +162,7 @@ public class TestCurlyCompactingMerger extends BaseTestCase {
 
   private ByteBuffer getBB(int b) {
     byte[] bytes = new byte[1];
-    bytes[0] = (byte) b;
+    bytes[0] = (byte)b;
     return ByteBuffer.wrap(bytes);
   }
 

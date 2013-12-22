@@ -1,7 +1,26 @@
 package com.liveramp.hank.ui;
 
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.thrift.TException;
+import org.junit.Test;
+
 import com.liveramp.hank.ZkMockCoordinatorTestCase;
-import com.liveramp.hank.coordinator.*;
+import com.liveramp.hank.coordinator.Coordinator;
+import com.liveramp.hank.coordinator.Domain;
+import com.liveramp.hank.coordinator.DomainGroup;
+import com.liveramp.hank.coordinator.Host;
+import com.liveramp.hank.coordinator.HostDomain;
+import com.liveramp.hank.coordinator.HostDomainPartition;
+import com.liveramp.hank.coordinator.HostState;
+import com.liveramp.hank.coordinator.Hosts;
+import com.liveramp.hank.coordinator.Ring;
+import com.liveramp.hank.coordinator.RingGroup;
 import com.liveramp.hank.generated.HankBulkResponse;
 import com.liveramp.hank.generated.HankResponse;
 import com.liveramp.hank.generated.SmartClient.Iface;
@@ -11,15 +30,7 @@ import com.liveramp.hank.partition_server.DoublePopulationStatisticsAggregator;
 import com.liveramp.hank.partition_server.FilesystemStatisticsAggregator;
 import com.liveramp.hank.partition_server.RuntimeStatisticsAggregator;
 import com.liveramp.hank.ring_group_conductor.RingGroupConductorMode;
-import org.apache.thrift.TException;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.liveramp.hank.storage.CacheStatistics;
 
 public class WebUiServerTester extends ZkMockCoordinatorTestCase {
 
@@ -52,15 +63,15 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
           runtimeStatistics.put(hd.getDomain(),
               new RuntimeStatisticsAggregator(14, 2500, 142, 100, 15, 48,
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
-                      new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250})));
+                      new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250}), new CacheStatistics(123L << 20, 12L << 30)));
           for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
           }
         }
         Hosts.setRuntimeStatistics(host, runtimeStatistics);
         Map<String, FilesystemStatisticsAggregator> filesystemStatistics = new HashMap<String, FilesystemStatisticsAggregator>();
-        filesystemStatistics.put("/", new FilesystemStatisticsAggregator(4 * (long) Math.pow(1020, 4), 1 * (long) Math.pow(1023, 4)));
-        filesystemStatistics.put("/data", new FilesystemStatisticsAggregator(6 * (long) Math.pow(1021, 4), 3 * (long) Math.pow(1020, 4)));
+        filesystemStatistics.put("/", new FilesystemStatisticsAggregator(4 * (long)Math.pow(1020, 4), 1 * (long)Math.pow(1023, 4)));
+        filesystemStatistics.put("/data", new FilesystemStatisticsAggregator(6 * (long)Math.pow(1021, 4), 3 * (long)Math.pow(1020, 4)));
         Hosts.setFilesystemStatistics(host, filesystemStatistics);
       }
     }

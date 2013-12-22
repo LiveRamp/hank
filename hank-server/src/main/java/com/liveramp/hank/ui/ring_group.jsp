@@ -130,6 +130,15 @@ Collections.sort(clients, new ClientMetadataComparator());
     </td>
     </tr>
 
+    <tr>
+    <td>Cache Size:</td>
+    <td>
+      <%= String.format("%,d", runtimeStatisticsForRingGroup.getCacheStatistics().getNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForRingGroup.getCacheStatistics().getNumManagedBytes()) %>
+    </td>
+    </tr>
+
     <!-- Serving Status -->
 
       <%

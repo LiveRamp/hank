@@ -26,6 +26,7 @@ import java.util.SortedSet;
 
 import com.liveramp.hank.compression.CompressionCodec;
 import com.liveramp.hank.compression.Decompressor;
+import com.liveramp.hank.storage.CacheStatistics;
 import com.liveramp.hank.storage.Reader;
 import com.liveramp.hank.storage.ReaderResult;
 import com.liveramp.hank.util.ByteBufferManagedBytes;
@@ -272,6 +273,14 @@ public class CurlyReader implements Reader, ICurlyReader {
   @Override
   public Integer getVersionNumber() {
     return versionNumber;
+  }
+
+  @Override
+  public CacheStatistics getCacheStatistics() {
+    CacheStatistics keyReaderCacheStatistics = keyFileReader.getCacheStatistics();
+    return new CacheStatistics(
+        keyReaderCacheStatistics.getNumItems() + cache.size(),
+        keyReaderCacheStatistics.getNumManagedBytes() + cache.getNumManagedBytes());
   }
 
   // Note: location should already be a deep copy that won't get modified
