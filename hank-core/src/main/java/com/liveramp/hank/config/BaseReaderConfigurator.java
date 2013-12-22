@@ -22,12 +22,12 @@ public class BaseReaderConfigurator implements ReaderConfigurator {
 
   private final DataDirectoriesConfigurator dataDirectoriesConfigurator;
   private final long cacheNumBytesCapacity;
-  private final int cacheNumItemsCapacity;
+  private final long cacheNumItemsCapacity;
   private final int numTotalPartitions;
 
   public BaseReaderConfigurator(DataDirectoriesConfigurator dataDirectoriesConfigurator,
                                 long cacheNumBytesCapacity,
-                                int cacheNumItemsCapacity,
+                                long cacheNumItemsCapacity,
                                 int numTotalPartitions) {
     this.dataDirectoriesConfigurator = dataDirectoriesConfigurator;
     this.cacheNumBytesCapacity = cacheNumBytesCapacity;
@@ -44,7 +44,7 @@ public class BaseReaderConfigurator implements ReaderConfigurator {
   }
 
   @Override
-  public int getCacheNumItemsCapacity() {
+  public long getCacheNumItemsCapacity() {
     if (cacheNumItemsCapacity < 0) {
       return cacheNumItemsCapacity;
     }

@@ -20,5 +20,5 @@ public interface ReaderConfigurator extends DataDirectoriesConfigurator {
 
   public long getCacheNumBytesCapacity();
 
-  public int getCacheNumItemsCapacity();
+  public long getCacheNumItemsCapacity();
 }

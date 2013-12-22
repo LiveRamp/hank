@@ -65,7 +65,7 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
         GET_BULK_TASK_SIZE);
     getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         GET_TIMER_AGGREGATOR_WINDOW_KEY);
-    getRequiredInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
+    getRequiredLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         CACHE_NUM_BYTES_CAPACITY);
     getRequiredLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY,
         CACHE_NUM_ITEMS_CAPACITY);
@@ -126,8 +126,8 @@ public class YamlPartitionServerConfigurator extends YamlCoordinatorConfigurator
   }
 
   @Override
-  public int getCacheNumItemsCapacity() {
-    return getInteger(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, CACHE_NUM_ITEMS_CAPACITY);
+  public long getCacheNumItemsCapacity() {
+    return getLong(PARTITION_SERVER_SECTION_KEY, PARTITION_SERVER_DAEMON_SECTION_KEY, CACHE_NUM_ITEMS_CAPACITY);
   }
 
   @Override

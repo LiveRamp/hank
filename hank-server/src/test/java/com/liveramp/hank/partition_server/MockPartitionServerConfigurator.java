@@ -86,7 +86,7 @@ public class MockPartitionServerConfigurator implements PartitionServerConfigura
   }
 
   @Override
-  public int getCacheNumItemsCapacity() {
+  public long getCacheNumItemsCapacity() {
     return 0;
   }
 

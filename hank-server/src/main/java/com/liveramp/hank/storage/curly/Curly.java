@@ -246,7 +246,7 @@ public class Curly extends IncrementalStorageEngine implements StorageEngine {
         recordFileReadBufferBytes,
         cueballStorageEngine.getReader(subConfigurator, partitionNumber),
         subConfigurator.getCacheNumBytesCapacity(),
-        subConfigurator.getCacheNumItemsCapacity(),
+        (int)subConfigurator.getCacheNumItemsCapacity(),
         blockCompressionCodec,
         offsetNumBytes,
         offsetInBlockNumBytes,

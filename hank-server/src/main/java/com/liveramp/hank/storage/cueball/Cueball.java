@@ -187,7 +187,7 @@ public class Cueball extends IncrementalStorageEngine implements StorageEngine {
         hashIndexBits,
         getCompressionCodec(),
         configurator.getCacheNumBytesCapacity(),
-        configurator.getCacheNumItemsCapacity());
+        (int)configurator.getCacheNumItemsCapacity());
   }
 
   private CueballCompressionCodec getCompressionCodec() throws IOException {
