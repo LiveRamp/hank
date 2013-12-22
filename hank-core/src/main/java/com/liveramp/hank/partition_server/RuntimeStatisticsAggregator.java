@@ -153,40 +153,42 @@ public class RuntimeStatisticsAggregator {
 
   public static RuntimeStatisticsAggregator parse(String str) {
     String[] tokens = str.split(" ");
-    // Detect mal-formatted statistics and exit early
-    if (tokens.length < 10) {
-      LOG.error("Failed to parse runtime statistics aggregator with string: " + str);
+
+    try {
+
+      double throughputTotal = Double.parseDouble(tokens[0]);
+      double responseDataThroughputTotal = Double.parseDouble(tokens[1]);
+      long numRequestsTotal = Long.parseLong(tokens[2]);
+      long numHitsTotal = Long.parseLong(tokens[3]);
+      long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
+      long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
+
+      CacheStatistics cacheStatisticsTotal = new CacheStatistics(Long.parseLong(tokens[6]), Long.parseLong(tokens[7]));
+
+      int numRandomSample = tokens.length - 12;
+      double[] randomSample = new double[numRandomSample];
+      for (int i = 0; i < numRandomSample; ++i) {
+        randomSample[i] = Double.parseDouble(tokens[12 + i]);
+      }
+      DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
+          Double.parseDouble(tokens[8]),
+          Double.parseDouble(tokens[9]),
+          Long.parseLong(tokens[10]),
+          Double.parseDouble(tokens[11]),
+          randomSample);
+
+      return new RuntimeStatisticsAggregator(
+          throughputTotal,
+          responseDataThroughputTotal,
+          numRequestsTotal,
+          numHitsTotal,
+          numL1CacheHitsTotal,
+          numL2CacheHitsTotal,
+          getRequestsPopulationStatistics,
+          cacheStatisticsTotal);
+    } catch (Exception e) {
+      LOG.error("Failed to parse runtime statistics aggregator with string: " + str, e);
       return new RuntimeStatisticsAggregator();
     }
-    double throughputTotal = Double.parseDouble(tokens[0]);
-    double responseDataThroughputTotal = Double.parseDouble(tokens[1]);
-    long numRequestsTotal = Long.parseLong(tokens[2]);
-    long numHitsTotal = Long.parseLong(tokens[3]);
-    long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
-    long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
-
-    CacheStatistics cacheStatisticsTotal = new CacheStatistics(Long.parseLong(tokens[6]), Long.parseLong(tokens[7]));
-
-    int numRandomSample = tokens.length - 12;
-    double[] randomSample = new double[numRandomSample];
-    for (int i = 0; i < numRandomSample; ++i) {
-      randomSample[i] = Double.parseDouble(tokens[12 + i]);
-    }
-    DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
-        Double.parseDouble(tokens[8]),
-        Double.parseDouble(tokens[9]),
-        Long.parseLong(tokens[10]),
-        Double.parseDouble(tokens[11]),
-        randomSample);
-
-    return new RuntimeStatisticsAggregator(
-        throughputTotal,
-        responseDataThroughputTotal,
-        numRequestsTotal,
-        numHitsTotal,
-        numL1CacheHitsTotal,
-        numL2CacheHitsTotal,
-        getRequestsPopulationStatistics,
-        cacheStatisticsTotal);
   }
 }
