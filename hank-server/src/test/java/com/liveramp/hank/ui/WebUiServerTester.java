@@ -63,7 +63,7 @@ public class WebUiServerTester extends ZkMockCoordinatorTestCase {
           runtimeStatistics.put(hd.getDomain(),
               new RuntimeStatisticsAggregator(14, 2500, 142, 100, 15, 48,
                   new DoublePopulationStatisticsAggregator(1.234, 300.1234 * hd.getDomain().getId(), 1000, 10000,
-                      new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250}), new CacheStatistics(123L << 20, 12L << 30)));
+                      new double[]{1, 2, 3, 20, 100, 101, 120, 150, 250}), new CacheStatistics(123L << 20, 1L << 30, 12L << 30, 1L << 40)));
           for (HostDomainPartition partition : hd.getPartitions()) {
             partition.setCurrentDomainVersion(dg1.getDomainVersion(hd.getDomain()).getVersionNumber());
           }

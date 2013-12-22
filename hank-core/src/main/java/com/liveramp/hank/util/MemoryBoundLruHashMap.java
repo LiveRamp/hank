@@ -22,18 +22,18 @@ import java.util.Map;
 public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedBytes> {
 
   private long numManagedBytes = 0;
-  private final long numBytesCapacity;
+  private final long maxNumManagedBytes;
   private final LruHashMap<K, V> map;
 
   // Negative capacity values disable the corresponding check
-  public MemoryBoundLruHashMap(long numBytesCapacity) {
-    this(numBytesCapacity, -1);
+  public MemoryBoundLruHashMap(long maxNumManagedBytes) {
+    this(maxNumManagedBytes, -1);
   }
 
   // Negative capacity values disable the corresponding check
-  public MemoryBoundLruHashMap(long numBytesCapacity, int numItemsCapacity) {
-    this.numBytesCapacity = numBytesCapacity;
-    map = new LruHashMap<K, V>(0, numItemsCapacity);
+  public MemoryBoundLruHashMap(long maxNumManagedBytes, int maxNumItems) {
+    this.maxNumManagedBytes = maxNumManagedBytes;
+    map = new LruHashMap<K, V>(0, maxNumItems);
   }
 
   public void put(K key, V value) {
@@ -54,8 +54,8 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
     }
 
     // Now remove elements until byte count is under the threshold
-    if (numBytesCapacity >= 0) {
-      while (numManagedBytes > numBytesCapacity && map.size() > 0) {
+    if (maxNumManagedBytes >= 0) {
+      while (numManagedBytes > maxNumManagedBytes && map.size() > 0) {
         Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
         Map.Entry<K, V> eldest = iterator.next();
         unmanage(eldest);
@@ -96,5 +96,13 @@ public class MemoryBoundLruHashMap<K extends ManagedBytes, V extends ManagedByte
 
   private void unmanage(Map.Entry<K, V> entry) {
     numManagedBytes -= entry.getKey().getNumManagedBytes() + entry.getValue().getNumManagedBytes();
+  }
+
+  public long getMaxNumManagedBytes() {
+    return maxNumManagedBytes;
+  }
+
+  public int getMaxNumItems() {
+    return map.getMaxCapacity();
   }
 }

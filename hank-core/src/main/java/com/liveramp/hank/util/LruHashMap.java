@@ -22,23 +22,23 @@ import java.util.Map;
 public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
 
   private static final float LOAD_FACTOR = 0.75f;
-  private final int sizeLimit;
+  private final int maxCapacity;
   private Map.Entry<K, V> eldestRemoved;
 
   // A limit < 0 means no limit
-  public LruHashMap(int initialCapacity, int sizeLimit) {
+  public LruHashMap(int initialCapacity, int maxCapacity) {
     // Note: the super constructor's third argument specifies
     // access-ordering rather than default insertion-ordering
     super(initialCapacity, LOAD_FACTOR, true);
-    this.sizeLimit = sizeLimit;
+    this.maxCapacity = maxCapacity;
   }
 
   @Override
   protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
-    if (sizeLimit < 0) {
+    if (maxCapacity < 0) {
       return false;
     } else {
-      boolean remove = size() > sizeLimit;
+      boolean remove = size() > maxCapacity;
       if (remove) {
         eldestRemoved = eldest;
       } else {
@@ -52,5 +52,9 @@ public class LruHashMap<K, V> extends LinkedHashMap<K, V> {
     Map.Entry<K, V> result = eldestRemoved;
     eldestRemoved = null;
     return result;
+  }
+
+  public int getMaxCapacity() {
+    return maxCapacity;
   }
 }

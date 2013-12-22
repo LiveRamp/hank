@@ -66,6 +66,10 @@ public class SynchronizedMemoryBoundCache<K extends ManagedBytes, V extends Mana
     }
   }
 
+  public int getMaxNumItems() {
+    return cache.getMaxNumItems();
+  }
+
   public long getNumManagedBytes() {
     if (!isEnabled()) {
       return 0;
@@ -74,5 +78,9 @@ public class SynchronizedMemoryBoundCache<K extends ManagedBytes, V extends Mana
         return cache.getNumManagedBytes();
       }
     }
+  }
+
+  public long getMaxNumManagedBytes() {
+    return cache.getMaxNumManagedBytes();
   }
 }

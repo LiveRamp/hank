@@ -124,6 +124,15 @@
     </tr>
 
     <tr>
+    <td>Cache Max Size:</td>
+    <td>
+      <%= String.format("%,d", runtimeStatisticsForHost.getCacheStatistics().getMaxNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForHost.getCacheStatistics().getMaxNumManagedBytes()) %>
+    </td>
+    </tr>
+
+    <tr>
     <td>Uptime:</td>
     <td>
       <% Long upSince = host.getUpSince(); %>
@@ -195,6 +204,7 @@
     <th>Hit Rate</th>
     <th>Cache Hits</th>
     <th>Cache Size</th>
+    <th>Cache Max Size</th>
     </tr>
       <%
      for (DomainGroupDomainVersion dgdv : domainGroup.getDomainVersionsSorted()) {
@@ -217,6 +227,11 @@
       <%= String.format("%,d", runtimeStatisticsForDomain.getCacheStatistics().getNumItems())  %> items
       /
       <%= FormatUtils.formatNumBytes(runtimeStatisticsForDomain.getCacheStatistics().getNumManagedBytes()) %>
+    </td>
+    <td class='centered'>
+      <%= String.format("%,d", runtimeStatisticsForDomain.getCacheStatistics().getMaxNumItems())  %> items
+      /
+      <%= FormatUtils.formatNumBytes(runtimeStatisticsForDomain.getCacheStatistics().getMaxNumManagedBytes()) %>
     </td>
 
 

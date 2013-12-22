@@ -19,23 +19,43 @@ package com.liveramp.hank.storage;
 public class CacheStatistics {
 
   private long numItems;
+  private long maxNumItems;
   private long numManagedBytes;
+  private long maxNumManagedBytes;
 
-  public CacheStatistics(long numItems, long numManagedBytes) {
+  public CacheStatistics(long numItems, long maxNumItems, long numManagedBytes, long maxNumManagedBytes) {
     this.numItems = numItems;
+    this.maxNumItems = maxNumItems;
     this.numManagedBytes = numManagedBytes;
+    this.maxNumManagedBytes = maxNumManagedBytes;
   }
 
   public long getNumItems() {
     return numItems;
   }
 
+  public long getMaxNumItems() {
+    return maxNumItems;
+  }
+
   public long getNumManagedBytes() {
     return numManagedBytes;
   }
 
+  public long getMaxNumManagedBytes() {
+    return maxNumManagedBytes;
+  }
+
   public void add(CacheStatistics cacheStatistics) {
     this.numItems += cacheStatistics.numItems;
+    this.maxNumItems += cacheStatistics.maxNumItems;
     this.numManagedBytes += cacheStatistics.numManagedBytes;
+    this.maxNumManagedBytes += cacheStatistics.maxNumManagedBytes;
+    if (this.maxNumItems < 0) {
+      this.maxNumItems = -1;
+    }
+    if (this.maxNumManagedBytes < 0) {
+      this.maxNumManagedBytes = -1;
+    }
   }
 }

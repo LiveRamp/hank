@@ -137,7 +137,11 @@ public class CueballReader implements Reader {
 
   @Override
   public CacheStatistics getCacheStatistics() {
-    return new CacheStatistics(cache.size(), cache.getNumManagedBytes());
+    return new CacheStatistics(
+        cache.size(),
+        cache.getMaxNumItems(),
+        cache.getNumManagedBytes(),
+        cache.getMaxNumManagedBytes());
   }
 
   @Override

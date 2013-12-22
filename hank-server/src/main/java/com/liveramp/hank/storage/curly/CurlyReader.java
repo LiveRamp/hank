@@ -280,7 +280,9 @@ public class CurlyReader implements Reader, ICurlyReader {
     CacheStatistics keyReaderCacheStatistics = keyFileReader.getCacheStatistics();
     return new CacheStatistics(
         keyReaderCacheStatistics.getNumItems() + cache.size(),
-        keyReaderCacheStatistics.getNumManagedBytes() + cache.getNumManagedBytes());
+        keyReaderCacheStatistics.getMaxNumItems() + cache.getMaxNumItems(),
+        keyReaderCacheStatistics.getNumManagedBytes() + cache.getNumManagedBytes(),
+        keyReaderCacheStatistics.getMaxNumManagedBytes() + cache.getMaxNumManagedBytes());
   }
 
   // Note: location should already be a deep copy that won't get modified

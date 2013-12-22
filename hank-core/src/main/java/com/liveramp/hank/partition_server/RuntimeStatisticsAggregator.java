@@ -45,7 +45,7 @@ public class RuntimeStatisticsAggregator {
     numL1CacheHitsTotal = 0;
     numL2CacheHitsTotal = 0;
     getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator();
-    cacheStatisticsTotal = new CacheStatistics(0, 0);
+    cacheStatisticsTotal = new CacheStatistics(0, 0, 0, 0);
   }
 
   public RuntimeStatisticsAggregator(double throughputTotal,
@@ -145,8 +145,10 @@ public class RuntimeStatisticsAggregator {
         + " " + runtimeStatisticsAggregator.numHitsTotal
         + " " + runtimeStatisticsAggregator.numL1CacheHitsTotal
         + " " + runtimeStatisticsAggregator.numL2CacheHitsTotal
-        + " " + Long.toString(runtimeStatisticsAggregator.cacheStatisticsTotal.getNumItems())
-        + " " + Long.toString(runtimeStatisticsAggregator.cacheStatisticsTotal.getNumManagedBytes())
+        + " " + runtimeStatisticsAggregator.cacheStatisticsTotal.getNumItems()
+        + " " + runtimeStatisticsAggregator.cacheStatisticsTotal.getMaxNumItems()
+        + " " + runtimeStatisticsAggregator.cacheStatisticsTotal.getNumManagedBytes()
+        + " " + runtimeStatisticsAggregator.cacheStatisticsTotal.getMaxNumManagedBytes()
         + " " + DoublePopulationStatisticsAggregator.toString(
         runtimeStatisticsAggregator.getRequestsPopulationStatistics);
   }
@@ -163,18 +165,22 @@ public class RuntimeStatisticsAggregator {
       long numL1CacheHitsTotal = Long.parseLong(tokens[4]);
       long numL2CacheHitsTotal = Long.parseLong(tokens[5]);
 
-      CacheStatistics cacheStatisticsTotal = new CacheStatistics(Long.parseLong(tokens[6]), Long.parseLong(tokens[7]));
+      CacheStatistics cacheStatisticsTotal = new CacheStatistics(
+          Long.parseLong(tokens[6]),
+          Long.parseLong(tokens[7]),
+          Long.parseLong(tokens[8]),
+          Long.parseLong(tokens[9]));
 
-      int numRandomSample = tokens.length - 12;
+      int numRandomSample = tokens.length - 14;
       double[] randomSample = new double[numRandomSample];
       for (int i = 0; i < numRandomSample; ++i) {
-        randomSample[i] = Double.parseDouble(tokens[12 + i]);
+        randomSample[i] = Double.parseDouble(tokens[14 + i]);
       }
       DoublePopulationStatisticsAggregator getRequestsPopulationStatistics = new DoublePopulationStatisticsAggregator(
-          Double.parseDouble(tokens[8]),
-          Double.parseDouble(tokens[9]),
-          Long.parseLong(tokens[10]),
+          Double.parseDouble(tokens[10]),
           Double.parseDouble(tokens[11]),
+          Long.parseLong(tokens[12]),
+          Double.parseDouble(tokens[13]),
           randomSample);
 
       return new RuntimeStatisticsAggregator(
